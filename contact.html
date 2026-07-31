@@ -1,0 +1,304 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Contact — RÉVA</title>
+<meta name="description" content="Écrivez-nous, appelez-nous ou venez essayer les appareils RÉVA au showroom de Paris. Réponse moyenne en 2 h ouvrées.">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0B'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial' font-size='16' font-weight='300' fill='%23C2A26B' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>document.documentElement.className += " js";</script>
+
+</head>
+<body class="preload">
+
+<a class="skip-link" href="#main">Aller au contenu principal</a>
+
+<div class="announce">
+  <div class="announce__track">
+    <span>Livraison offerte dès 120 €<i></i>Essai 30 nuits<i></i>Garantie 2 ans<i></i>Paiement en 3× sans frais<i></i>Conçu &amp; assemblé en Europe<i></i></span>
+    <span aria-hidden="true">Livraison offerte dès 120 €<i></i>Essai 30 nuits<i></i>Garantie 2 ans<i></i>Paiement en 3× sans frais<i></i>Conçu &amp; assemblé en Europe<i></i></span>
+  </div>
+</div>
+
+<header class="header" data-header>
+  <div class="wrap header__inner">
+    <button class="burger" data-nav-toggle aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-nav"><span></span></button>
+    <nav class="nav" aria-label="Navigation principale">
+      <a class="nav__link" href="index.html#collection">Collection</a>
+      <a class="nav__link" href="produit.html">Circula</a>
+      <a class="nav__link" href="a-propos.html">Maison</a>
+      <a class="nav__link" href="faq.html">FAQ</a>
+    </nav>
+    <a class="logo" href="index.html" aria-label="RÉVA, accueil">RÉVA</a>
+    <div class="header__actions">
+      <button class="icon-btn" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6" stroke-linecap="round"/></svg>
+      </button>
+      <a class="icon-btn" href="contact.html" aria-label="Nous contacter">
+        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 0-8 8" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6.5 6.5 0 0 1 11 0" stroke-linecap="round"/></svg>
+      </a>
+      <button class="icon-btn" data-cart-open aria-label="Ouvrir le panier">
+        <svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" stroke-linecap="round"/></svg>
+        <span class="icon-btn__count" data-cart-count hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav" data-nav>
+  <ul class="mobile-nav__list">
+    <li style="--i:0"><a class="mobile-nav__link" href="index.html#collection"><small>01</small>Collection</a></li>
+    <li style="--i:1"><a class="mobile-nav__link" href="produit.html"><small>02</small>Circula</a></li>
+    <li style="--i:2"><a class="mobile-nav__link" href="a-propos.html"><small>03</small>Maison</a></li>
+    <li style="--i:3"><a class="mobile-nav__link" href="faq.html"><small>04</small>FAQ</a></li>
+    <li style="--i:4"><a class="mobile-nav__link" href="contact.html"><small>05</small>Contact</a></li>
+  </ul>
+  <div class="mobile-nav__foot">
+    <span>service@reva-recovery.com</span>
+    <span>+33 1 84 80 12 40</span>
+  </div>
+</div>
+
+<div class="overlay" data-overlay></div>
+<aside class="drawer" data-cart aria-label="Panier" aria-hidden="true">
+  <div class="drawer__head">
+    <span class="drawer__title">Panier</span>
+    <button class="icon-btn" data-cart-close aria-label="Fermer le panier">
+      <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer__body" data-cart-body></div>
+  <div class="drawer__foot" data-cart-foot hidden>
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:.875rem">
+      <span class="muted">Sous-total</span><strong data-cart-total>0 €</strong>
+    </div>
+    <a class="btn btn--block" href="#">Passer commande</a>
+  </div>
+</aside>
+
+<main id="main">
+
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">Contact</p>
+      <h1 class="h1" data-reveal="fade">Une équipe, pas un formulaire.</h1>
+      <p class="lead" data-reveal style="--delay:100ms">
+        Nos conseillers sont des kinésithérapeutes diplômés. Ils règlent votre protocole, vous aident à
+        choisir une taille ou suivent votre commande — du lundi au samedi, de 9 h à 19 h.
+      </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+    <div class="wrap contact-layout">
+
+      <!-- Colonne gauche -->
+      <div>
+        <div class="contact-cards" data-reveal>
+          <div class="contact-card">
+            <svg viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="3"/><path d="m4 7 8 6 8-6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <h3>Écrire</h3>
+            <p><a href="mailto:service@reva-recovery.com">service@reva-recovery.com</a><br>Réponse moyenne en 2 h ouvrées.</p>
+          </div>
+          <div class="contact-card">
+            <svg viewBox="0 0 24 24"><path d="M6 3h3l2 5-2.5 1.5a12 12 0 0 0 6 6L16 13l5 2v3a3 3 0 0 1-3 3A15 15 0 0 1 3 6a3 3 0 0 1 3-3z" stroke-linejoin="round"/></svg>
+            <h3>Appeler</h3>
+            <p><a href="tel:+33184801240">+33 1 84 80 12 40</a><br>Du lundi au samedi, 9 h – 19 h.</p>
+          </div>
+          <div class="contact-card">
+            <svg viewBox="0 0 24 24"><path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11z" stroke-linejoin="round"/><circle cx="12" cy="10" r="2.6"/></svg>
+            <h3>Showroom Paris</h3>
+            <p>14 rue de Turenne, 75003 Paris<br>Essai des quatre appareils sur rendez-vous, du mardi au samedi.</p>
+          </div>
+          <div class="contact-card">
+            <svg viewBox="0 0 24 24"><rect x="3" y="7" width="18" height="13" rx="3"/><path d="M9 7V5.5A2.5 2.5 0 0 1 11.5 3h1A2.5 2.5 0 0 1 15 5.5V7" stroke-linecap="round"/></svg>
+            <h3>Professionnels</h3>
+            <p><a href="mailto:pro@reva-recovery.com">pro@reva-recovery.com</a><br>Cabinets, clubs et entreprises : tarifs dégressifs dès trois appareils.</p>
+          </div>
+        </div>
+
+        <div class="showroom grain" data-reveal="scale" style="margin-top:clamp(1.5rem,3vw,2rem)">
+          <div class="showroom__inner">
+            <p class="eyebrow eyebrow--gold" style="justify-content:center">Sur rendez-vous</p>
+            <h2 class="h3" style="margin-top:1rem">45 minutes d’essai, accompagné.</h2>
+            <p>Un kinésithérapeute vous fait tester les protocoles adaptés à votre usage. Sans engagement, sans obligation d’achat.</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Formulaire -->
+      <div class="form-card" data-reveal style="--delay:80ms">
+        <h2 class="h3" style="margin-bottom:.75rem">Écrivez-nous</h2>
+        <p class="muted" style="font-size:var(--fs-sm);margin-bottom:2rem">Les champs marqués d’un astérisque sont obligatoires.</p>
+
+        <form data-contact-form novalidate>
+          <div class="form-grid">
+            <label class="field">
+              <span class="field__label">Prénom *</span>
+              <input class="input" type="text" name="prenom" autocomplete="given-name" required>
+              <span class="field__error">Merci d’indiquer votre prénom.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Nom *</span>
+              <input class="input" type="text" name="nom" autocomplete="family-name" required>
+              <span class="field__error">Merci d’indiquer votre nom.</span>
+            </label>
+
+            <label class="field field--full">
+              <span class="field__label">Adresse e-mail *</span>
+              <input class="input" type="email" name="email" autocomplete="email" placeholder="prenom@exemple.com" required>
+              <span class="field__error">Cette adresse e-mail ne semble pas valide.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">Sujet *</span>
+              <select class="select" name="sujet" required>
+                <option value="">Choisir un sujet</option>
+                <option>Conseil avant achat</option>
+                <option>Choix de la taille</option>
+                <option>Suivi de commande</option>
+                <option>Retour ou échange</option>
+                <option>Garantie &amp; SAV</option>
+                <option>Rendez-vous au showroom</option>
+                <option>Demande professionnelle</option>
+                <option>Presse &amp; partenariats</option>
+              </select>
+              <span class="field__error">Merci de sélectionner un sujet.</span>
+            </label>
+
+            <label class="field">
+              <span class="field__label">N° de commande</span>
+              <input class="input" type="text" name="commande" placeholder="RV-000000">
+            </label>
+
+            <label class="field field--full">
+              <span class="field__label">Message *</span>
+              <textarea class="textarea" name="message" placeholder="Décrivez votre demande en quelques lignes…" required></textarea>
+              <span class="field__error">Merci de détailler votre demande.</span>
+            </label>
+          </div>
+
+          <label class="checkbox" style="margin-top:1.5rem">
+            <input type="checkbox" data-consent>
+            <span>J’accepte que RÉVA conserve mes données le temps du traitement de ma demande, conformément à la politique de confidentialité.</span>
+          </label>
+
+          <button class="btn btn--block" type="submit" style="margin-top:1.75rem">Envoyer le message</button>
+
+          <p class="muted" style="margin-top:1rem;text-align:center;font-size:var(--fs-xs)">
+            Réponse moyenne en 2 h ouvrées · Aucune donnée revendue
+          </p>
+
+          <div class="form-success" data-form-success role="status">
+            <svg viewBox="0 0 24 24"><path d="m5 13 4 4L19 7" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span><strong>Message envoyé.</strong> Un conseiller vous répond sous 2 h ouvrées, à l’adresse indiquée.</span>
+          </div>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ INFOS PRATIQUES ═══ -->
+  <section class="section section--flush-top">
+    <div class="wrap">
+      <dl class="specs" data-reveal>
+        <div class="spec"><dt>Horaires</dt><dd>9 h – 19 h<small>Du lundi au samedi</small></dd></div>
+        <div class="spec"><dt>Délai de réponse</dt><dd>2 h<small>En moyenne, jours ouvrés</small></dd></div>
+        <div class="spec"><dt>Showroom</dt><dd>Paris 3<sup>e</sup><small>14 rue de Turenne, sur rendez-vous</small></dd></div>
+        <div class="spec"><dt>Atelier SAV</dt><dd>Lille<small>Réparation en 5 jours en moyenne</small></dd></div>
+      </dl>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="section section--flush-top">
+    <div class="wrap">
+      <div class="cta-band" data-reveal="scale">
+        <div class="cta-band__text">
+          <p class="eyebrow eyebrow--gold">Avant d’écrire</p>
+          <h2 class="h2" style="margin-top:1.25rem">La réponse est peut-être déjà en ligne.</h2>
+          <p>Livraison, tailles, garantie, paiement en 3× : notre FAQ couvre les vingt-deux questions que l’on nous pose le plus souvent.</p>
+        </div>
+        <div class="cta-band__actions">
+          <a class="btn btn--gold" href="faq.html">Consulter la FAQ</a>
+          <p class="cta-band__note">Mise à jour en continu par l’équipe service client</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="logo">RÉVA</span>
+        <p class="footer__tagline">Appareils de récupération conçus en Europe. Une exigence unique : le retour au calme, chaque jour, sans compromis.</p>
+        <div class="footer__news">
+          <p>Recevez nos protocoles de récupération et nos lancements en avant-première.</p>
+          <form class="inline-form" data-newsletter novalidate>
+            <input class="input" type="email" name="email" placeholder="Votre e-mail" aria-label="Votre adresse e-mail" required>
+            <button class="btn btn--gold btn--sm" type="submit">S’inscrire</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4>Collection</h4>
+        <ul>
+          <li><a href="produit.html">RÉVA Circula — Jambes</a></li>
+          <li><a href="produit.html">RÉVA Terra — Pieds</a></li>
+          <li><a href="produit.html">RÉVA Atlas — Nuque</a></li>
+          <li><a href="produit.html">RÉVA Lumen — Yeux</a></li>
+          <li><a href="index.html#collection">Accessoires</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Maison</h4>
+        <ul>
+          <li><a href="a-propos.html">Notre histoire</a></li>
+          <li><a href="a-propos.html#valeurs">Nos engagements</a></li>
+          <li><a href="index.html#technologie">Technologie</a></li>
+          <li><a href="contact.html">Showroom Paris</a></li>
+          <li><a href="contact.html">Nous contacter</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Aide</h4>
+        <ul>
+          <li><a href="faq.html">Questions fréquentes</a></li>
+          <li><a href="faq.html#livraison">Livraison &amp; retours</a></li>
+          <li><a href="faq.html#garantie">Garantie 2 ans</a></li>
+          <li><a href="faq.html#paiement">Paiement en 3×</a></li>
+          <li><a href="contact.html">Suivi de commande</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 RÉVA. Tous droits réservés.</p>
+      <div class="footer__legal">
+        <a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Confidentialité</a><a href="#">Cookies</a>
+      </div>
+      <div class="footer__social">
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10v7M8 7v.01M12 17v-4a2.5 2.5 0 0 1 5 0v4" stroke-linecap="round"/></svg></a>
+      </div>
+      <div class="footer__pay"><span>VISA</span><span>MC</span><span>AMEX</span><span>PAYPAL</span><span>3×</span></div>
+    </div>
+  </div>
+  <div class="footer__wordmark" aria-hidden="true"><span>RÉVA</span></div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>

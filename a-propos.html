@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="fr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>La maison RÉVA — Notre histoire &amp; nos engagements</title>
+<meta name="description" content="RÉVA conçoit des appareils de récupération premium depuis Paris. Notre histoire, notre atelier, nos engagements de durabilité et de service.">
+<meta name="theme-color" content="#0A0A0B">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0B'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial' font-size='16' font-weight='300' fill='%23C2A26B' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@200;300;400;500;600&family=Instrument+Serif:ital@0;1&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="assets/css/style.css">
+<script>document.documentElement.className += " js";</script>
+
+</head>
+<body class="preload">
+
+<a class="skip-link" href="#main">Aller au contenu principal</a>
+
+<div class="announce">
+  <div class="announce__track">
+    <span>Livraison offerte dès 120 €<i></i>Essai 30 nuits<i></i>Garantie 2 ans<i></i>Paiement en 3× sans frais<i></i>Conçu &amp; assemblé en Europe<i></i></span>
+    <span aria-hidden="true">Livraison offerte dès 120 €<i></i>Essai 30 nuits<i></i>Garantie 2 ans<i></i>Paiement en 3× sans frais<i></i>Conçu &amp; assemblé en Europe<i></i></span>
+  </div>
+</div>
+
+<header class="header" data-header>
+  <div class="wrap header__inner">
+    <button class="burger" data-nav-toggle aria-label="Ouvrir le menu" aria-expanded="false" aria-controls="mobile-nav"><span></span></button>
+    <nav class="nav" aria-label="Navigation principale">
+      <a class="nav__link" href="index.html#collection">Collection</a>
+      <a class="nav__link" href="produit.html">Circula</a>
+      <a class="nav__link" href="a-propos.html">Maison</a>
+      <a class="nav__link" href="faq.html">FAQ</a>
+    </nav>
+    <a class="logo" href="index.html" aria-label="RÉVA, accueil">RÉVA</a>
+    <div class="header__actions">
+      <button class="icon-btn" aria-label="Rechercher">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.6-3.6" stroke-linecap="round"/></svg>
+      </button>
+      <a class="icon-btn" href="contact.html" aria-label="Nous contacter">
+        <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 0-8 8" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6.5 6.5 0 0 1 11 0" stroke-linecap="round"/></svg>
+      </a>
+      <button class="icon-btn" data-cart-open aria-label="Ouvrir le panier">
+        <svg viewBox="0 0 24 24"><path d="M6 8h12l1 12H5z" stroke-linejoin="round"/><path d="M9 10V7a3 3 0 0 1 6 0v3" stroke-linecap="round"/></svg>
+        <span class="icon-btn__count" data-cart-count hidden>0</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav" data-nav>
+  <ul class="mobile-nav__list">
+    <li style="--i:0"><a class="mobile-nav__link" href="index.html#collection"><small>01</small>Collection</a></li>
+    <li style="--i:1"><a class="mobile-nav__link" href="produit.html"><small>02</small>Circula</a></li>
+    <li style="--i:2"><a class="mobile-nav__link" href="a-propos.html"><small>03</small>Maison</a></li>
+    <li style="--i:3"><a class="mobile-nav__link" href="faq.html"><small>04</small>FAQ</a></li>
+    <li style="--i:4"><a class="mobile-nav__link" href="contact.html"><small>05</small>Contact</a></li>
+  </ul>
+  <div class="mobile-nav__foot">
+    <span>service@reva-recovery.com</span>
+    <span>+33 1 84 80 12 40</span>
+  </div>
+</div>
+
+<div class="overlay" data-overlay></div>
+<aside class="drawer" data-cart aria-label="Panier" aria-hidden="true">
+  <div class="drawer__head">
+    <span class="drawer__title">Panier</span>
+    <button class="icon-btn" data-cart-close aria-label="Fermer le panier">
+      <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="drawer__body" data-cart-body></div>
+  <div class="drawer__foot" data-cart-foot hidden>
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:.875rem">
+      <span class="muted">Sous-total</span><strong data-cart-total>0 €</strong>
+    </div>
+    <a class="btn btn--block" href="#">Passer commande</a>
+  </div>
+</aside>
+
+<main id="main">
+
+  <!-- ═══ HERO ═══ -->
+  <section class="page-hero page-hero--dark grain">
+    <div class="wrap">
+      <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">La maison</p>
+      <h1 class="display split-lines" data-reveal="fade">
+        <span class="line"><span>Nous fabriquons</span></span>
+        <span class="line"><span>des objets <em class="serif" style="color:var(--gold-soft)">lents</em>.</span></span>
+      </h1>
+      <p class="lead" data-reveal style="--delay:120ms">
+        RÉVA est née d’un constat simple : la récupération est devenue une industrie bruyante, encombrée
+        d’appareils en plastique qu’on cache dans un placard. Nous avons voulu l’inverse.
+      </p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ RÉCIT ═══ -->
+  <section class="section">
+    <div class="wrap split">
+      <div class="split__media split__media--light" data-reveal="clip">
+        <img src="assets/img/unit.svg" alt="Unité de contrôle RÉVA" loading="lazy" width="600" height="600" data-parallax="0.03">
+      </div>
+      <div class="split__text">
+        <p class="eyebrow" data-reveal="fade">Origine</p>
+        <h2 class="h2" data-reveal>Un cabinet de kinésithérapie, un dimanche de novembre.</h2>
+        <div class="prose" data-reveal style="--delay:60ms">
+          <p>En 2019, Camille Roux, kinésithérapeute du sport, et Yann Dessaint, ingénieur en mécanique des fluides, partagent le même agacement : les appareils de compression qu’ils utilisent en cabinet sont efficaces mais imprécis, bruyants, et impossibles à recommander pour un usage à domicile.</p>
+          <p>Ils passent dix-huit mois à reconstruire une chaîne pneumatique complète : un compresseur silencieux, un capteur de pression au dixième de mmHg, une séquence de gonflage calquée sur le geste manuel. Le premier prototype tient dans une valise. Le troisième tient dans un tiroir.</p>
+          <blockquote>« Un appareil de récupération que l’on n’a pas envie de laisser sorti est un appareil que l’on n’utilise pas. »</blockquote>
+          <p>De ce principe découle tout le reste : le choix des matières, l’absence de plastique apparent, la housse en feutre de laine, le silence. Un objet que l’on garde à portée de main, parce qu’il a sa place dans une pièce à vivre.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ STATEMENT ═══ -->
+  <section class="bleed grain">
+    <div class="bleed__bg" data-parallax="0.08"></div>
+    <div class="wrap bleed__inner">
+      <p class="eyebrow" data-reveal="fade" style="justify-content:center">Notre parti pris</p>
+      <h2 class="h1" data-reveal>Quatre produits. Pas quarante.</h2>
+      <p data-reveal style="--delay:80ms">
+        Nous refusons d’élargir le catalogue pour élargir le chiffre d’affaires. Chaque nouveau produit
+        demande dix-huit mois de développement et doit répondre à une zone du corps qu’aucun autre
+        ne couvre. Si nous n’avons rien à ajouter, nous n’ajoutons rien.
+      </p>
+    </div>
+  </section>
+
+  <!-- ═══ TIMELINE ═══ -->
+  <section class="section">
+    <div class="wrap wrap--narrow">
+      <div class="section-head">
+        <div class="section-head__text">
+          <p class="eyebrow" data-reveal="fade">Repères</p>
+          <h2 class="h2" data-reveal>Sept ans, quatre appareils.</h2>
+        </div>
+      </div>
+
+      <div class="timeline">
+        <article class="timeline__item" data-reveal>
+          <p class="timeline__year">2019</p>
+          <div class="timeline__body">
+            <h3 class="h3">Le premier prototype</h3>
+            <p>Camille et Yann assemblent une chaîne pneumatique dans un atelier de Montreuil. Vingt-trois versions du compresseur avant d’atteindre 38 dB.</p>
+          </div>
+        </article>
+        <article class="timeline__item" data-reveal style="--delay:80ms">
+          <p class="timeline__year">2021</p>
+          <div class="timeline__body">
+            <h3 class="h3">Circula, première série</h3>
+            <p>Trois cents exemplaires produits, écoulés en onze jours auprès de kinésithérapeutes et de clubs sportifs. Aucun retour SAV la première année.</p>
+          </div>
+        </article>
+        <article class="timeline__item" data-reveal style="--delay:160ms">
+          <p class="timeline__year">2023</p>
+          <div class="timeline__body">
+            <h3 class="h3">L’atelier de Lille</h3>
+            <p>Ouverture de notre atelier de réparation et de reconditionnement. Engagement de disponibilité des pièces détachées pendant dix ans.</p>
+          </div>
+        </article>
+        <article class="timeline__item" data-reveal style="--delay:240ms">
+          <p class="timeline__year">2025</p>
+          <div class="timeline__body">
+            <h3 class="h3">Atlas &amp; Lumen</h3>
+            <p>La gamme s’étend à la nuque et au regard. Les protocoles audio sont écrits avec une sophrologue et une chercheuse en sommeil.</p>
+          </div>
+        </article>
+        <article class="timeline__item" data-reveal style="--delay:320ms">
+          <p class="timeline__year">2026</p>
+          <div class="timeline__body">
+            <h3 class="h3">38 000 foyers</h3>
+            <p>RÉVA équipe aujourd’hui 38 000 foyers dans onze pays européens, sans avoir jamais ouvert de réseau de revendeurs.</p>
+          </div>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ VALEURS ═══ -->
+  <section class="section" id="valeurs" style="background:var(--grey-50)">
+    <div class="wrap">
+      <div class="section-head">
+        <div class="section-head__text">
+          <p class="eyebrow" data-reveal="fade">Engagements</p>
+          <h2 class="h2" data-reveal>Trois promesses que nous tenons par écrit.</h2>
+        </div>
+      </div>
+
+      <div class="values">
+        <article class="value" data-reveal>
+          <svg viewBox="0 0 24 24"><path d="M12 3 4 6v6c0 5 3.4 8.2 8 9 4.6-.8 8-4 8-9V6z" stroke-linejoin="round"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <h3 class="h3">Réparer plutôt que remplacer</h3>
+          <p>Chaque appareil est démontable avec un tournevis standard. Nos pièces détachées restent disponibles dix ans, à prix coûtant, et notre atelier de Lille répare en cinq jours en moyenne.</p>
+        </article>
+        <article class="value" data-reveal style="--delay:100ms">
+          <svg viewBox="0 0 24 24"><path d="M12 4v8l5 3" stroke-linecap="round"/><circle cx="12" cy="12" r="9"/></svg>
+          <h3 class="h3">Le temps avant le volume</h3>
+          <p>Dix-huit mois de développement minimum, trois mille cycles de test moteur, six mois d’essais auprès de kinésithérapeutes avant toute mise en production.</p>
+        </article>
+        <article class="value" data-reveal style="--delay:200ms">
+          <svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 0-8 8" stroke-linecap="round"/><circle cx="12" cy="10" r="3"/><path d="M6.5 19a6.5 6.5 0 0 1 11 0" stroke-linecap="round"/></svg>
+          <h3 class="h3">Un humain au bout du fil</h3>
+          <p>Notre service client est basé en France et composé de kinésithérapeutes diplômés. Ils règlent votre protocole, pas seulement votre commande.</p>
+        </article>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ ATELIER ═══ -->
+  <section class="section">
+    <div class="wrap split split--reverse">
+      <div class="split__media" data-reveal="clip">
+        <img src="assets/img/case.svg" alt="Housse en feutre de laine RÉVA" loading="lazy" width="600" height="600" data-parallax="0.03">
+      </div>
+      <div class="split__text">
+        <p class="eyebrow" data-reveal="fade">Fabrication</p>
+        <h2 class="h2" data-reveal>Ce que nous savons de nos fournisseurs.</h2>
+        <p class="lead" data-reveal style="--delay:60ms">
+          Nous publions la liste complète de nos partenaires industriels. Aucun n’est un intermédiaire :
+          nous travaillons directement avec les ateliers qui produisent nos pièces.
+        </p>
+        <ul class="split__list">
+          <li data-reveal style="--delay:100ms"><span class="num">01</span><div><strong>Textiles — Portugal</strong><p>Atelier familial près de Guimarães, certifié OEKO-TEX Standard 100 et GRS.</p></div></li>
+          <li data-reveal style="--delay:160ms"><span class="num">02</span><div><strong>Pneumatique — Allemagne</strong><p>Compresseurs et capteurs de pression usinés en Souabe, garantis 3 000 cycles.</p></div></li>
+          <li data-reveal style="--delay:220ms"><span class="num">03</span><div><strong>Assemblage &amp; SAV — France</strong><p>Assemblage final, contrôle qualité et réparation dans notre atelier de Lille.</p></div></li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CHIFFRES ═══ -->
+  <section class="section section--flush-top">
+    <div class="wrap stats">
+      <div class="stat" data-reveal>
+        <p class="stat__num"><span data-count="38">38</span> <sup>000</sup></p>
+        <p class="stat__label">foyers équipés en Europe</p>
+      </div>
+      <div class="stat" data-reveal style="--delay:80ms">
+        <p class="stat__num"><span data-count="11">11</span></p>
+        <p class="stat__label">pays livrés depuis notre entrepôt unique</p>
+      </div>
+      <div class="stat" data-reveal style="--delay:160ms">
+        <p class="stat__num"><span data-count="94">94</span><sup>%</sup></p>
+        <p class="stat__label">des appareils rapportés en SAV sont réparés, non remplacés</p>
+      </div>
+      <div class="stat" data-reveal style="--delay:240ms">
+        <p class="stat__num"><span data-count="0">0</span></p>
+        <p class="stat__label">revendeur tiers — nous vendons en direct, uniquement</p>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ SHOWROOM ═══ -->
+  <section class="section section--flush-top">
+    <div class="wrap">
+      <div class="showroom grain" data-reveal="scale">
+        <div class="showroom__inner">
+          <p class="eyebrow eyebrow--gold" style="justify-content:center">Showroom</p>
+          <h2 class="h2" style="margin-top:1.25rem">14 rue de Turenne, Paris 3<sup>e</sup></h2>
+          <p>Essayez les quatre appareils sur rendez-vous, du mardi au samedi, accompagné par un kinésithérapeute de l’équipe. Séance de 45 minutes, sans engagement.</p>
+          <div class="btn-row" style="justify-content:center;margin-top:2rem">
+            <a class="btn btn--light" href="contact.html">Prendre rendez-vous</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ═══ CTA ═══ -->
+  <section class="section section--flush-top">
+    <div class="wrap">
+      <div class="cta-band" data-reveal="scale">
+        <div class="cta-band__text">
+          <p class="eyebrow eyebrow--gold">Commencer</p>
+          <h2 class="h2" style="margin-top:1.25rem">Le meilleur argument reste l’essai.</h2>
+          <p>Trente nuits chez vous. Si l’objet ne trouve pas sa place dans votre quotidien, nous le reprenons et vous remboursons.</p>
+        </div>
+        <div class="cta-band__actions">
+          <a class="btn btn--gold" href="index.html#collection">Découvrir la collection</a>
+          <p class="cta-band__note">Livraison 48 h · Garantie 2 ans · Service client français</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <span class="logo">RÉVA</span>
+        <p class="footer__tagline">Appareils de récupération conçus en Europe. Une exigence unique : le retour au calme, chaque jour, sans compromis.</p>
+        <div class="footer__news">
+          <p>Recevez nos protocoles de récupération et nos lancements en avant-première.</p>
+          <form class="inline-form" data-newsletter novalidate>
+            <input class="input" type="email" name="email" placeholder="Votre e-mail" aria-label="Votre adresse e-mail" required>
+            <button class="btn btn--gold btn--sm" type="submit">S’inscrire</button>
+          </form>
+        </div>
+      </div>
+      <div class="footer__col">
+        <h4>Collection</h4>
+        <ul>
+          <li><a href="produit.html">RÉVA Circula — Jambes</a></li>
+          <li><a href="produit.html">RÉVA Terra — Pieds</a></li>
+          <li><a href="produit.html">RÉVA Atlas — Nuque</a></li>
+          <li><a href="produit.html">RÉVA Lumen — Yeux</a></li>
+          <li><a href="index.html#collection">Accessoires</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Maison</h4>
+        <ul>
+          <li><a href="a-propos.html">Notre histoire</a></li>
+          <li><a href="a-propos.html#valeurs">Nos engagements</a></li>
+          <li><a href="index.html#technologie">Technologie</a></li>
+          <li><a href="contact.html">Showroom Paris</a></li>
+          <li><a href="contact.html">Nous contacter</a></li>
+        </ul>
+      </div>
+      <div class="footer__col">
+        <h4>Aide</h4>
+        <ul>
+          <li><a href="faq.html">Questions fréquentes</a></li>
+          <li><a href="faq.html#livraison">Livraison &amp; retours</a></li>
+          <li><a href="faq.html#garantie">Garantie 2 ans</a></li>
+          <li><a href="faq.html#paiement">Paiement en 3×</a></li>
+          <li><a href="contact.html">Suivi de commande</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bottom">
+      <p>© 2026 RÉVA. Tous droits réservés.</p>
+      <div class="footer__legal">
+        <a href="#">Mentions légales</a><a href="#">CGV</a><a href="#">Confidentialité</a><a href="#">Cookies</a>
+      </div>
+      <div class="footer__social">
+        <a href="#" aria-label="Instagram"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17" cy="7" r="1.1" fill="currentColor" stroke="none"/></svg></a>
+        <a href="#" aria-label="YouTube"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="2.5" y="5" width="19" height="14" rx="4"/><path d="m10 9.5 5 2.5-5 2.5z" stroke-linejoin="round"/></svg></a>
+        <a href="#" aria-label="LinkedIn"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.3"><rect x="3" y="3" width="18" height="18" rx="4"/><path d="M8 10v7M8 7v.01M12 17v-4a2.5 2.5 0 0 1 5 0v4" stroke-linecap="round"/></svg></a>
+      </div>
+      <div class="footer__pay"><span>VISA</span><span>MC</span><span>AMEX</span><span>PAYPAL</span><span>3×</span></div>
+    </div>
+  </div>
+  <div class="footer__wordmark" aria-hidden="true"><span>RÉVA</span></div>
+</footer>
+
+<script src="assets/js/main.js" defer></script>
+</body>
+</html>
