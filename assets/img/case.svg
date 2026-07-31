@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" role="img" aria-label="Housse de transport RÉVA">
+  <defs>
+    <linearGradient id="csBody" x1="110" y1="200" x2="490" y2="470" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#2E3238"/><stop offset=".55" stop-color="#1A1D21"/><stop offset="1" stop-color="#0D0E11"/>
+    </linearGradient>
+    <radialGradient id="csShadow" cx="0" cy="0" r="1" gradientTransform="translate(300 486) scale(190 26)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#0A0A0B" stop-opacity=".3"/><stop offset="1" stop-color="#0A0A0B" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+
+  <ellipse cx="300" cy="486" rx="190" ry="26" fill="url(#csShadow)"/>
+
+  <!-- handle -->
+  <path d="M252 196v-24q0-26 26-26h44q26 0 26 26v24" stroke="#C2A26B" stroke-width="9" stroke-linecap="round"/>
+
+  <!-- body -->
+  <path d="M110 246q0-52 52-52h276q52 0 52 52v148q0 56-54 56H164q-54 0-54-56z" fill="url(#csBody)"/>
+  <path d="M110 246q0-52 52-52h276q52 0 52 52v148q0 56-54 56H164q-54 0-54-56z" stroke="#3A3D43" stroke-width="1.4"/>
+
+  <!-- zip line -->
+  <path d="M120 300h360" stroke="#4A4E55" stroke-width="4" stroke-linecap="round"/>
+  <path d="M120 300h360" stroke="#C2A26B" stroke-width="1.6" stroke-dasharray="8 8" stroke-linecap="round" opacity=".7"/>
+  <rect x="286" y="288" width="26" height="40" rx="8" fill="#C2A26B"/>
+
+  <!-- logo -->
+  <text x="300" y="392" text-anchor="middle" font-family="Inter,Helvetica,Arial" font-size="26" font-weight="300" fill="#FFFFFF" fill-opacity=".85" letter-spacing="9">RÉVA</text>
+
+  <!-- highlight -->
+  <path d="M162 222h276" stroke="#FFFFFF" stroke-opacity=".14" stroke-width="8" stroke-linecap="round"/>
+</svg>
