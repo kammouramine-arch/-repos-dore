@@ -9,6 +9,15 @@
 
 <section class="section" style="padding-top: 0">
   <div class="wrap">
+    {%- if collections.size == 0 -%}
+      {%- comment -%} Aucune collection : on renvoie vers le catalogue plutôt qu'une page nue. {%- endcomment -%}
+      <div class="collection-empty">
+        <p class="lead">{{ 'templates.collections.empty' | t }}</p>
+        <div class="btn-row" style="justify-content: center; margin-top: 2rem">
+          {% render 'button', label: 'general.continue_shopping' | t, link: routes.all_products_collection_url, size: 'lg' %}
+        </div>
+      </div>
+    {%- else -%}
     <div class="cards cards--3">
       {%- for collection in collections -%}
         <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
@@ -37,6 +46,7 @@
         </article>
       {%- endfor -%}
     </div>
+    {%- endif -%}
   </div>
 </section>
 

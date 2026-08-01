@@ -3,17 +3,11 @@
     "main": {
       "type": "main-404",
       "settings": {
-        "eyebrow": "Erreur 404",
-        "button_label": "Retour à l’accueil",
-        "button_2_label": "Voir la collection",
         "show_products": true,
-        "products_heading": "Reprenons par la collection.",
         "products_to_show": 3,
         "columns": "3"
       }
     }
   },
-  "order": [
-    "main"
-  ]
+  "order": ["main"]
 }

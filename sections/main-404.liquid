@@ -13,16 +13,42 @@
 
 <section class="section error-hero">
   <div class="wrap wrap--narrow center">
-    <p class="eyebrow" style="justify-content: center" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+    {%- comment -%}
+      Page système : les libellés suivent la langue de la boutique par défaut.
+      Un réglage renseigné par le marchand reste prioritaire.
+    {%- endcomment -%}
+    {%- liquid
+      assign eyebrow_text = section.settings.eyebrow
+      if eyebrow_text == blank
+        assign eyebrow_text = '404'
+      endif
+
+      assign back_label = section.settings.button_label
+      if back_label == blank
+        assign back_label = 'templates.404.back' | t
+      endif
+
+      assign shop_label = section.settings.button_2_label
+      if shop_label == blank
+        assign shop_label = 'general.continue_shopping' | t
+      endif
+
+      assign products_title = section.settings.products_heading
+      if products_title == blank
+        assign products_title = 'templates.collections.title' | t
+      endif
+    -%}
+
+    <p class="eyebrow" style="justify-content: center" data-reveal="fade">{{ eyebrow_text }}</p>
     <h1 class="h1" data-reveal style="margin: 1.5rem 0">{{ 'templates.404.title' | t }}</h1>
     <p class="lead" data-reveal style="max-width: 34rem; margin-inline: auto">
       {{ 'templates.404.subtext' | t }}
     </p>
 
     <div class="btn-row" data-reveal style="justify-content: center; margin-top: 2.5rem">
-      {% render 'button', label: section.settings.button_label, link: routes.root_url, size: 'lg' %}
+      {% render 'button', label: back_label, link: routes.root_url, size: 'lg' %}
       {% render 'button',
-        label: section.settings.button_2_label,
+        label: shop_label,
         link: routes.all_products_collection_url,
         style: 'ghost',
         size: 'lg'
@@ -43,7 +69,7 @@
     <div class="wrap">
       <div class="section-head section-head--center">
         <div class="section-head__text">
-          <h2 class="h3" data-reveal>{{ section.settings.products_heading }}</h2>
+          <h2 class="h3" data-reveal>{{ products_title }}</h2>
         </div>
       </div>
 
@@ -63,13 +89,13 @@
   "tag": "div",
   "class": "error-section",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Erreur 404" },
-    { "type": "text", "id": "button_label", "label": "Bouton principal", "default": "Retour à l’accueil" },
-    { "type": "text", "id": "button_2_label", "label": "Bouton secondaire", "default": "Voir la collection" },
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "info": "Vide : « 404 »." },
+    { "type": "text", "id": "button_label", "label": "Bouton principal", "info": "Vide : libellé traduit automatiquement." },
+    { "type": "text", "id": "button_2_label", "label": "Bouton secondaire", "info": "Vide : libellé traduit automatiquement." },
     { "type": "header", "content": "Suggestions" },
     { "type": "checkbox", "id": "show_products", "label": "Proposer des produits", "default": true },
     { "type": "collection", "id": "collection", "label": "Collection", "info": "À défaut, tout le catalogue." },
-    { "type": "text", "id": "products_heading", "label": "Titre", "default": "Reprenons par la collection." },
+    { "type": "text", "id": "products_heading", "label": "Titre", "info": "Vide : libellé traduit automatiquement." },
     { "type": "range", "id": "products_to_show", "label": "Nombre de produits", "min": 2, "max": 8, "step": 1, "default": 3 },
     {
       "type": "select",
