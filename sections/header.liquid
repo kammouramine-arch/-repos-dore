@@ -21,8 +21,20 @@
       <span></span>
     </button>
 
+    {%- comment -%}
+      Repli : si aucun menu n'est configuré, on affiche au moins l'accès au
+      catalogue pour ne jamais laisser une navigation vide.
+    {%- endcomment -%}
+    {%- assign menu_links = section.settings.menu.links -%}
+
     <nav class="nav" aria-label="{{ 'general.accessibility.menu' | t }}">
-      {%- for link in section.settings.menu.links -%}
+      {%- if menu_links == blank -%}
+        <a class="nav__link" href="{{ routes.all_products_collection_url }}">
+          {{ 'templates.collections.title' | t }}
+        </a>
+      {%- endif -%}
+
+      {%- for link in menu_links -%}
         <a
           class="nav__link"
           href="{{ link.url }}"
@@ -94,7 +106,16 @@
 
 <div class="mobile-nav" id="MobileNav" data-nav>
   <ul class="mobile-nav__list">
-    {%- for link in section.settings.menu.links -%}
+    {%- if menu_links == blank -%}
+      <li style="--i: 0">
+        <a class="mobile-nav__link" href="{{ routes.all_products_collection_url }}">
+          <small>01</small>
+          {{ 'templates.collections.title' | t }}
+        </a>
+      </li>
+    {%- endif -%}
+
+    {%- for link in menu_links -%}
       <li style="--i: {{ forloop.index0 }}">
         <a class="mobile-nav__link" href="{{ link.url }}">
           <small>{{ forloop.index | prepend: '0' | slice: -2, 2 }}</small>

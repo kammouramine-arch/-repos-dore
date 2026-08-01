@@ -50,7 +50,8 @@
           <li class="drawer-line" data-cart-item="{{ item.key }}">
             <a class="drawer-line__media" href="{{ item.url }}">
               {%- if item.image -%}
-                {{ item.image | image_url: width: 200 | image_tag: loading: 'lazy', alt: item.title | escape }}
+                {%- assign line_alt = item.title | escape -%}
+                {{ item.image | image_url: width: 200 | image_tag: loading: 'lazy', alt: line_alt }}
               {%- else -%}
                 {{ 'product-1' | placeholder_svg_tag }}
               {%- endif -%}

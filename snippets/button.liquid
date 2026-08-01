@@ -1,0 +1,53 @@
+{%- comment -%}
+  Bouton de section.
+  Règle : un bouton sans destination n'est jamais rendu — c'est ce qui garantit
+  qu'aucun lien mort ne peut apparaître sur la boutique.
+
+  Paramètres :
+    label     — texte (obligatoire, sinon rien n'est rendu)
+    link      — URL ; à défaut, `fallback` est utilisé
+    fallback  — URL de repli (par défaut : la collection complète)
+    style     — dark | light | outline-light | gold | ghost
+    size      — lg | sm
+    block     — pleine largeur
+{%- endcomment -%}
+
+{%- liquid
+  assign target = link
+  if target == blank
+    assign target = fallback
+  endif
+  if target == blank
+    assign target = routes.all_products_collection_url
+  endif
+
+  case style
+    when 'light'
+      assign btn_class = 'btn btn--light'
+    when 'outline-light'
+      assign btn_class = 'btn btn--outline-light'
+    when 'gold'
+      assign btn_class = 'btn btn--gold'
+    when 'ghost'
+      assign btn_class = 'btn btn--ghost'
+    else
+      assign btn_class = 'btn'
+  endcase
+
+  if size == 'lg'
+    assign btn_class = btn_class | append: ' btn--lg'
+  elsif size == 'sm'
+    assign btn_class = btn_class | append: ' btn--sm'
+  endif
+
+  if block
+    assign btn_class = btn_class | append: ' btn--block'
+  endif
+-%}
+
+{%- if label != blank -%}
+  <a class="{{ btn_class }}" href="{{ target }}">
+    <span>{{ label }}</span>
+    {% render 'icon', icon: 'arrow-right', class: 'btn__arrow' %}
+  </a>
+{%- endif -%}

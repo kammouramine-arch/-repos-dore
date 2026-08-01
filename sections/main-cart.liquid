@@ -24,7 +24,8 @@
                 <li class="cart-line" data-cart-item="{{ item.key }}">
                   <a class="cart-line__media" href="{{ item.url }}">
                     {%- if item.image -%}
-                      {{ item.image | image_url: width: 300 | image_tag: loading: 'lazy', alt: item.title | escape }}
+                      {%- assign line_alt = item.title | escape -%}
+                      {{ item.image | image_url: width: 300 | image_tag: loading: 'lazy', alt: line_alt }}
                     {%- else -%}
                       {{ 'product-1' | placeholder_svg_tag }}
                     {%- endif -%}

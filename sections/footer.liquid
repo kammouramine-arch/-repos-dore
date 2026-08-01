@@ -47,20 +47,28 @@
       {%- for block in section.blocks -%}
         {%- case block.type -%}
           {%- when 'menu' -%}
-            <div class="footer__col" {{ block.shopify_attributes }}>
-              <h2 class="footer__col-title">{{ block.settings.title }}</h2>
-              <ul>
-                {%- for link in block.settings.menu.links -%}
-                  <li><a href="{{ link.url }}">{{ link.title }}</a></li>
-                {%- endfor -%}
-              </ul>
-            </div>
+            {%- comment -%}
+              Une colonne sans lien n'est pas rendue : un intitulé seul dans le
+              pied de page signale un menu mal configuré au visiteur.
+            {%- endcomment -%}
+            {%- if block.settings.menu.links != blank -%}
+              <div class="footer__col" {{ block.shopify_attributes }}>
+                <h2 class="footer__col-title">{{ block.settings.title }}</h2>
+                <ul>
+                  {%- for link in block.settings.menu.links -%}
+                    <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                  {%- endfor -%}
+                </ul>
+              </div>
+            {%- endif -%}
 
           {%- when 'text' -%}
-            <div class="footer__col" {{ block.shopify_attributes }}>
-              <h2 class="footer__col-title">{{ block.settings.title }}</h2>
-              <div class="footer__rte rte">{{ block.settings.content }}</div>
-            </div>
+            {%- if block.settings.content != blank -%}
+              <div class="footer__col" {{ block.shopify_attributes }}>
+                <h2 class="footer__col-title">{{ block.settings.title }}</h2>
+                <div class="footer__rte rte">{{ block.settings.content }}</div>
+              </div>
+            {%- endif -%}
         {%- endcase -%}
       {%- endfor -%}
     </div>

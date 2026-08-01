@@ -1,0 +1,102 @@
+{%- comment -%}
+  Démonstration du produit en quelques gestes.
+  Chaque bloc porte son visuel : image chargée par le marchand, ou illustration
+  RÉVA de secours pour que la section ne soit jamais vide.
+{%- endcomment -%}
+
+<section
+  class="section{% if section.settings.background != blank %} section--band{% endif %}{% if section.settings.flush_top %} section--flush-top{% endif %}"
+  {% if section.settings.background != blank %}style="background: {{ section.settings.background }}"{% endif %}
+>
+  <div class="wrap">
+    <div class="section-head{% if section.settings.center_heading %} section-head--center{% endif %}">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="lead" data-reveal style="--delay: 80ms">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="steps">
+      {%- for block in section.blocks -%}
+        {%- assign step_alt = block.settings.title | escape -%}
+        <article class="step" data-reveal style="--delay: {{ forloop.index0 | times: 110 }}ms" {{ block.shopify_attributes }}>
+          <div class="step__media">
+            {%- if block.settings.image != blank -%}
+              {{
+                block.settings.image
+                | image_url: width: 900
+                | image_tag: loading: 'lazy', widths: '300, 600, 900', sizes: '(min-width: 900px) 30vw, 88vw', alt: step_alt, class: 'step__img'
+              }}
+            {%- else -%}
+              <img class="step__img step__img--illustration" src="{{ block.settings.illustration | asset_url }}" alt="" aria-hidden="true" width="600" height="600" loading="lazy">
+            {%- endif -%}
+            <span class="step__index" aria-hidden="true">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+          </div>
+
+          <h3 class="h3">{{ block.settings.title }}</h3>
+          <p>{{ block.settings.text }}</p>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Démonstration",
+  "tag": "div",
+  "class": "steps-section",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "En trois gestes" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Une séance ne demande aucune expertise." },
+    { "type": "richtext", "id": "text", "label": "Texte" },
+    { "type": "checkbox", "id": "center_heading", "label": "Centrer le titre", "default": false },
+    { "type": "color", "id": "background", "label": "Fond" },
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Étape",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        {
+          "type": "select",
+          "id": "illustration",
+          "label": "Illustration de secours",
+          "options": [
+            { "value": "device-legs.svg", "label": "Bottes de compression" },
+            { "value": "device-foot.svg", "label": "Masseur de pieds" },
+            { "value": "device-neck.svg", "label": "Masseur de nuque" },
+            { "value": "device-eye.svg", "label": "Masseur oculaire" },
+            { "value": "device-unit.svg", "label": "Unité de contrôle" },
+            { "value": "device-fabric.svg", "label": "Textile" },
+            { "value": "device-case.svg", "label": "Housse de transport" }
+          ],
+          "default": "device-legs.svg"
+        },
+        { "type": "text", "id": "title", "label": "Titre", "default": "Enfiler" },
+        { "type": "textarea", "id": "text", "label": "Texte", "default": "Dix secondes, assis, sans se contorsionner." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Démonstration",
+      "blocks": [
+        { "type": "step", "settings": { "illustration": "device-legs.svg", "title": "Enfiler", "text": "Les bottes s’ouvrent entièrement par la fermeture latérale. Dix secondes, assis." } },
+        { "type": "step", "settings": { "illustration": "device-unit.svg", "title": "Choisir", "text": "Une molette, six protocoles. L’écran affiche la pression réelle et le temps restant." } },
+        { "type": "step", "settings": { "illustration": "device-case.svg", "title": "Oublier", "text": "L’appareil s’arrête seul et se replie dans sa housse, qui tient dans un tiroir." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

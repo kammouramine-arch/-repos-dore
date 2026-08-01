@@ -14,10 +14,11 @@
   {%- if article.image -%}
     <div class="wrap">
       <div class="article__cover" data-reveal="clip">
+        {%- assign article_alt = article.title | escape -%}
         {{
           article.image
           | image_url: width: 2000
-          | image_tag: loading: 'eager', widths: '600, 1000, 1500, 2000', sizes: '90vw', alt: article.title | escape
+          | image_tag: loading: 'eager', widths: '600, 1000, 1500, 2000', sizes: '90vw', alt: article_alt
         }}
       </div>
     </div>

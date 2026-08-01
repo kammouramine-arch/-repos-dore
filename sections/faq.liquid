@@ -11,11 +11,36 @@
     endunless
   endfor
   assign category_list = categories | split: '||'
+
+  comment
+    La grille passe en colonne unique sans barre latérale : sinon le contenu
+    se retrouvait comprimé dans la colonne de 16 rem prévue pour les catégories.
+  endcomment
+  assign show_sidebar = false
+  if section.settings.show_categories and category_list.size > 1
+    assign show_sidebar = true
+  endif
 -%}
 
+{%- if section.blocks.size > 0 -%}
 <section class="section" id="{{ section.id }}">
-  <div class="wrap faq-layout">
-    {%- if section.settings.show_categories and category_list.size > 1 -%}
+  <div class="wrap">
+    {%- if section.settings.heading != blank or section.settings.eyebrow != blank -%}
+      <div class="section-head{% if section.settings.center_heading %} section-head--center{% endif %}">
+        <div class="section-head__text">
+          {%- if section.settings.eyebrow != blank -%}
+            <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+          {%- endif -%}
+          {%- if section.settings.heading != blank -%}
+            <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+          {%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="wrap faq-layout{% unless show_sidebar %} faq-layout--single{% endunless %}">
+    {%- if show_sidebar -%}
       <aside class="faq-side">
         <h2 class="faq-side__title">{{ 'sections.faq.categories' | t }}</h2>
         <ul>
@@ -51,8 +76,8 @@
       {%- for cat in category_list -%}
         {%- if cat != blank -%}
           <section class="faq-group" id="{{ cat | handle }}" data-faq-group="{{ cat | handle }}">
-            {%- if section.settings.show_categories -%}
-              <h2 class="faq-group__title">{{ cat }}</h2>
+            {%- if show_sidebar -%}
+              <h3 class="faq-group__title">{{ cat }}</h3>
             {%- endif -%}
 
             <div class="accordion">
@@ -86,6 +111,7 @@
     </div>
   </div>
 </section>
+{%- endif -%}
 
 {% schema %}
 {
@@ -93,6 +119,9 @@
   "tag": "div",
   "class": "faq-section",
   "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Questions fréquentes" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Tout ce qu’il faut savoir avant de commander." },
+    { "type": "checkbox", "id": "center_heading", "label": "Centrer le titre", "default": false },
     { "type": "checkbox", "id": "show_search", "label": "Afficher la recherche", "default": true },
     { "type": "checkbox", "id": "show_categories", "label": "Afficher les catégories", "default": true }
   ],

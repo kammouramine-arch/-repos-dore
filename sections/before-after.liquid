@@ -23,26 +23,28 @@
       <div class="compare-slider__frame">
         <div class="compare-slider__side compare-slider__side--after">
           {%- if section.settings.image_after != blank -%}
+            {%- assign alt_after = section.settings.label_after | escape -%}
             {{
               section.settings.image_after
               | image_url: width: 1600
-              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: section.settings.label_after | escape
+              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: alt_after
             }}
           {%- else -%}
-            <img src="{{ 'device-legs.svg' | asset_url }}" alt="" width="600" height="600" loading="lazy">
+            <img src="{{ 'placeholder-after.svg' | asset_url }}" alt="{{ section.settings.label_after | escape }}" width="1600" height="1000" loading="lazy">
           {%- endif -%}
           <span class="compare-slider__tag compare-slider__tag--after">{{ section.settings.label_after }}</span>
         </div>
 
         <div class="compare-slider__side compare-slider__side--before">
           {%- if section.settings.image_before != blank -%}
+            {%- assign alt_before = section.settings.label_before | escape -%}
             {{
               section.settings.image_before
               | image_url: width: 1600
-              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: section.settings.label_before | escape
+              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: alt_before
             }}
           {%- else -%}
-            <img src="{{ 'device-fabric.svg' | asset_url }}" alt="" width="600" height="600" loading="lazy">
+            <img src="{{ 'placeholder-before.svg' | asset_url }}" alt="{{ section.settings.label_before | escape }}" width="1600" height="1000" loading="lazy">
           {%- endif -%}
           <span class="compare-slider__tag compare-slider__tag--before">{{ section.settings.label_before }}</span>
         </div>

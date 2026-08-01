@@ -3,7 +3,8 @@
     {%- for block in section.blocks -%}
       {%- if block.settings.image != blank -%}
         <span class="press__logo" {{ block.shopify_attributes }}>
-          {{ block.settings.image | image_url: width: 300 | image_tag: loading: 'lazy', widths: '150, 300', alt: block.settings.text | escape }}
+          {%- assign logo_alt = block.settings.text | escape -%}
+          {{ block.settings.image | image_url: width: 300 | image_tag: loading: 'lazy', widths: '150, 300', alt: logo_alt }}
         </span>
       {%- else -%}
         <span class="{% if block.settings.serif %}serif{% endif %}" {{ block.shopify_attributes }}>{{ block.settings.text }}</span>

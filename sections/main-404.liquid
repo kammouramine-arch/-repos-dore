@@ -1,19 +1,87 @@
-<section class="section center" style="min-height: 60vh; display: grid; place-items: center">
-  <div class="wrap wrap--narrow">
-    <p class="eyebrow" style="justify-content: center">404</p>
-    <h1 class="h1" style="margin: 1.5rem 0">{{ 'templates.404.title' | t }}</h1>
-    <p class="lead" style="max-width: 32rem; margin-inline: auto">{{ 'templates.404.subtext' | t }}</p>
-    <div class="btn-row" style="justify-content: center; margin-top: 2.5rem">
-      <a class="btn" href="{{ routes.root_url }}">{{ 'templates.404.back' | t }}</a>
-      <a class="btn btn--ghost" href="{{ routes.all_products_collection_url }}">{{ 'general.continue_shopping' | t }}</a>
+{%- comment -%}
+  Page introuvable.
+  Un cul-de-sac fait perdre la visite : on propose immédiatement la gamme.
+{%- endcomment -%}
+
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  if collection == blank
+    assign collection = collections.all
+  endif
+  assign fallbacks = 'device-legs.svg,device-foot.svg,device-neck.svg,device-eye.svg' | split: ','
+-%}
+
+<section class="section error-hero">
+  <div class="wrap wrap--narrow center">
+    <p class="eyebrow" style="justify-content: center" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+    <h1 class="h1" data-reveal style="margin: 1.5rem 0">{{ 'templates.404.title' | t }}</h1>
+    <p class="lead" data-reveal style="max-width: 34rem; margin-inline: auto">
+      {{ 'templates.404.subtext' | t }}
+    </p>
+
+    <div class="btn-row" data-reveal style="justify-content: center; margin-top: 2.5rem">
+      {% render 'button', label: section.settings.button_label, link: routes.root_url, size: 'lg' %}
+      {% render 'button',
+        label: section.settings.button_2_label,
+        link: routes.all_products_collection_url,
+        style: 'ghost',
+        size: 'lg'
+      %}
     </div>
+
+    <form class="search-form search-form--page" action="{{ routes.search_url }}" method="get" role="search" data-reveal>
+      <input type="hidden" name="type" value="product">
+      <label class="visually-hidden" for="Search404">{{ 'general.search.title' | t }}</label>
+      <input class="input" id="Search404" type="search" name="q" placeholder="{{ 'general.search.placeholder' | t }}">
+      <button class="btn" type="submit">{{ 'general.search.submit' | t }}</button>
+    </form>
   </div>
 </section>
+
+{%- if section.settings.show_products and collection.products.size > 0 -%}
+  <section class="section">
+    <div class="wrap">
+      <div class="section-head section-head--center">
+        <div class="section-head__text">
+          <h2 class="h3" data-reveal>{{ section.settings.products_heading }}</h2>
+        </div>
+      </div>
+
+      <div class="cards cards--{{ section.settings.columns }}">
+        {%- for product in collection.products limit: section.settings.products_to_show -%}
+          {%- assign pick = forloop.index0 | modulo: 4 -%}
+          {% render 'product-card', product: product, index: forloop.index0, fallback: fallbacks[pick] %}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
 
 {% schema %}
 {
   "name": "Page 404",
   "tag": "div",
-  "settings": []
+  "class": "error-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Erreur 404" },
+    { "type": "text", "id": "button_label", "label": "Bouton principal", "default": "Retour à l’accueil" },
+    { "type": "text", "id": "button_2_label", "label": "Bouton secondaire", "default": "Voir la collection" },
+    { "type": "header", "content": "Suggestions" },
+    { "type": "checkbox", "id": "show_products", "label": "Proposer des produits", "default": true },
+    { "type": "collection", "id": "collection", "label": "Collection", "info": "À défaut, tout le catalogue." },
+    { "type": "text", "id": "products_heading", "label": "Titre", "default": "Reprenons par la collection." },
+    { "type": "range", "id": "products_to_show", "label": "Nombre de produits", "min": 2, "max": 8, "step": 1, "default": 3 },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Colonnes",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    }
+  ]
 }
 {% endschema %}

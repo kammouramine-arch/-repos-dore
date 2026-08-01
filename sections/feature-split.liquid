@@ -9,10 +9,11 @@
   <div class="wrap split{% if section.settings.media_position == 'right' %} split--reverse{% endif %}">
     <div class="split__media{% if section.settings.media_style == 'light' %} split__media--light{% endif %}" data-reveal="clip">
       {%- if section.settings.image != blank -%}
+        {%- assign split_alt = section.settings.image.alt | escape -%}
         {{
           section.settings.image
           | image_url: width: 1400
-          | image_tag: loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 900px) 45vw, 90vw', alt: section.settings.image.alt | escape
+          | image_tag: loading: 'lazy', widths: '500, 800, 1100, 1400', sizes: '(min-width: 900px) 45vw, 90vw', alt: split_alt
         }}
       {%- elsif fallback != blank -%}
         <img
@@ -24,7 +25,7 @@
           {% if settings.animations_parallax %}data-parallax="0.03"{% endif %}
         >
       {%- else -%}
-        {{ 'lifestyle-1' | placeholder_svg_tag }}
+        <img src="{{ 'placeholder-scene-1.svg' | asset_url }}" alt="" aria-hidden="true" loading="lazy" width="1600" height="1200">
       {%- endif -%}
     </div>
 
@@ -55,7 +56,7 @@
 
       {%- if section.settings.button_label != blank -%}
         <div class="btn-row" data-reveal style="margin-top: 2.5rem; --delay: 260ms">
-          <a class="btn" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
+          {% render 'button', label: section.settings.button_label, link: section.settings.button_link, size: 'lg' %}
         </div>
       {%- endif -%}
     </div>

@@ -14,9 +14,10 @@
         "eyebrow": "Une question",
         "heading": "Notre équipe vous répond.",
         "text": "<p>Du lundi au samedi, de 9 h à 19 h. Réponse moyenne en 2 h ouvrées.</p>",
-        "button_label": "Nous contacter",
+        "button_label": "Découvrir la collection",
         "note": "Service client basé en France",
-        "flush_top": true
+        "flush_top": true,
+        "button_link": "/collections/all"
       }
     }
   },

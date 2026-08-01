@@ -51,7 +51,7 @@
       {%- endif -%}
       <span class="hero__scrim"></span>
     </div>
-  {%- elsif has_image -%}
+    {%- elsif has_image -%}
     <div class="hero__media">
       {{
         section.settings.image
@@ -66,7 +66,15 @@
       }}
       <span class="hero__scrim"></span>
     </div>
-  {%- elsif section.settings.product_image != blank -%}
+  {%- else -%}
+    {%- comment -%} Aucun média chargé : décor de secours + appareil détouré. {%- endcomment -%}
+    <div class="hero__media hero__media--fallback">
+      <img class="hero__img" src="{{ 'placeholder-hero.svg' | asset_url }}" alt="" aria-hidden="true">
+      <span class="hero__scrim"></span>
+    </div>
+  {%- endif -%}
+
+  {%- if section.settings.product_image != blank -%}
     <img
       class="hero__visual"
       src="{{ section.settings.product_image | asset_url }}"
@@ -99,16 +107,18 @@
 
       {%- if section.settings.button_label != blank or section.settings.button_2_label != blank -%}
         <div class="btn-row" data-reveal style="--delay: 200ms">
-          {%- if section.settings.button_label != blank -%}
-            <a class="btn btn--light" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">
-              {{ section.settings.button_label }}
-            </a>
-          {%- endif -%}
-          {%- if section.settings.button_2_label != blank -%}
-            <a class="btn btn--outline-light" href="{{ section.settings.button_2_link }}">
-              {{ section.settings.button_2_label }}
-            </a>
-          {%- endif -%}
+          {% render 'button',
+            label: section.settings.button_label,
+            link: section.settings.button_link,
+            style: 'light',
+            size: 'lg'
+          %}
+          {% render 'button',
+            label: section.settings.button_2_label,
+            link: section.settings.button_2_link,
+            style: 'outline-light',
+            size: 'lg'
+          %}
         </div>
       {%- endif -%}
 

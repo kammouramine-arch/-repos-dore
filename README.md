@@ -37,9 +37,10 @@ shopify theme push
 ```
 layout/          theme.liquid · password.liquid
 templates/       13 gabarits JSON + 7 gabarits client Liquid
-sections/        26 sections + 2 groupes de sections
-snippets/        11 partiels réutilisables
-assets/          theme.css · theme.js · product.js · 7 illustrations SVG
+sections/        28 sections + 2 groupes de sections
+snippets/        12 partiels réutilisables
+assets/          theme.css · theme.js · product.js
+                 7 illustrations produit + 6 décors de secours (SVG)
 config/          settings_schema.json · settings_data.json
 locales/         fr.default.json · en.json
 ```
@@ -48,7 +49,7 @@ locales/         fr.default.json · en.json
 
 | Fichier | Rôle |
 |---|---|
-| `index.json` | Accueil — 16 sections |
+| `index.json` | Accueil — 17 sections |
 | `product.json` | Fiche produit + comparatif + avis + FAQ + recommandations |
 | `collection.json` | Grille de collection avec tri et pagination |
 | `list-collections.json` | Index des collections |
@@ -67,9 +68,9 @@ Le contenu se rédige dans l'éditeur de page, pas dans le code.
 ### Sections
 
 **Accueil** — `hero` (vidéo ou image plein écran) · `trust-bar` · `manifesto` ·
-`featured-collection` · `feature-split` · `before-after` · `statement-banner` ·
-`stats` · `rich-text` · `testimonials` · `comparison-table` · `faq` ·
-`logo-list` · `cta-band` · `newsletter`
+`featured-collection` · `steps` (démonstration) · `feature-split` · `before-after` ·
+`statement-banner` · `stats` · `spec-grid` · `rich-text` · `testimonials` ·
+`comparison-table` · `faq` · `logo-list` · `cta-band` · `newsletter`
 
 **Structure** — `header` · `announcement-bar` · `footer` · `cart-drawer`
 (+ `header-group.json` et `footer-group.json`)
@@ -78,6 +79,10 @@ Le contenu se rédige dans l'éditeur de page, pas dans le code.
 `main-search` · `main-blog` · `main-article` · `main-list-collections` ·
 `main-404` · `main-password` · `product-recommendations` · `contact-form` ·
 `timeline` · `value-props`
+
+**Partiels** — `button` (aucun lien mort possible) · `product-card` · `price` ·
+`variant-picker` · `buy-buttons` · `quantity-input` · `star-rating` · `icon` ·
+`pagination` · `social-icons` · `meta-tags` · `css-variables`
 
 Chaque section possède son `{% schema %}` complet : réglages, blocs, `presets`
 pour l'ajout depuis l'éditeur, et `enabled_on` pour les groupes. **Tout est
@@ -90,10 +95,26 @@ blocs, marges, nombre de colonnes.
 
 Dans l'ordre : ouverture plein écran (vidéo premium, titre en trois lignes
 révélées, deux boutons, trois chiffres de réassurance) → bandeau de garanties →
-manifeste dont les mots s'allument au défilement → collection → technologie →
-comparateur avant/après à curseur → bandeau plein écran → chiffres animés →
-rituel du soir → philosophie → avis clients → tableau comparatif → FAQ →
-titres de presse → appel à l'action → lettre d'information.
+manifeste dont les mots s'allument au défilement → collection → démonstration en
+trois gestes → technologie → comparateur avant/après à curseur → bandeau plein
+écran → chiffres animés → rituel du soir → philosophie → avis clients → tableau
+comparatif → FAQ → titres de presse → appel à l'action → lettre d'information.
+
+### Garde-fous visuels
+
+Le thème est conçu pour rester présentable sur une boutique encore vide :
+
+- **Aucune zone vide.** Sept illustrations vectorielles et quatre décors
+  (`placeholder-hero`, `placeholder-scene-*`, `placeholder-before/after`)
+  prennent le relais tant qu'aucune photographie n'est chargée.
+- **Aucun lien mort.** Le snippet `button.liquid` ne rend jamais un bouton sans
+  destination ; à défaut de lien, il retombe sur le catalogue complet.
+- **Aucune section fantôme.** La FAQ sans question, une colonne de pied de page
+  sans menu ou une collection vide ne sont pas rendues — ou sont remplacées par
+  un état soigné.
+- **Repli en cascade.** La section collection utilise la collection choisie,
+  sinon le catalogue complet ; la navigation retombe sur le catalogue si aucun
+  menu n'est configuré.
 
 ## 4. Page produit
 
@@ -102,8 +123,11 @@ variantes accessible (boutons radio, pastilles de couleur si la boutique fournit
 des échantillons) · prix et disponibilité mis à jour sans rechargement ·
 **paiement fractionné** (`payment_terms`) et boutons de paiement accéléré ·
 **barre d'achat collante** · quatre garanties · accordéons livraison / garantie /
-précautions · tableau comparatif · avis · FAQ · recommandations chargées via la
-Section Rendering API.
+précautions.
+
+Puis, en sections indépendantes et réordonnables : spécifications chiffrées ·
+démonstration en trois gestes · récit des matières · tableau comparatif · avis ·
+FAQ · recommandations chargées via la Section Rendering API.
 
 ---
 
@@ -144,6 +168,11 @@ conformes.
 **SEO** — `title` et `meta description` par gabarit, Open Graph et Twitter Card,
 données structurées `Product` et `Article` via `structured_data`, URL canonique,
 hiérarchie de titres cohérente.
+
+**Rythme vertical** — chaque section porte sa marge haute et sa marge basse.
+Deux sections consécutives cumulaient donc près du double de l'espacement voulu :
+une règle `:has()` annule la marge haute d'une section qui en suit une autre, les
+sections « bandeau » (fond coloré) conservant leur respiration interne.
 
 **Animations** — révélations par `IntersectionObserver`, parallaxe discrète,
 compteurs, transitions fluides. L'ensemble est neutralisé sous

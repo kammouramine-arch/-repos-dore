@@ -12,11 +12,12 @@
     <div class="wrap">
       <div class="cards cards--3">
         {%- for article in blog.articles -%}
+          {%- assign article_alt = article.title | escape -%}
           <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
             <a class="card__link" href="{{ article.url }}"><span class="visually-hidden">{{ article.title }}</span></a>
             {%- if article.image -%}
               <div class="card__media card__media--landscape">
-                {{ article.image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 600, 900', alt: article.title | escape }}
+                {{ article.image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 600, 900', alt: article_alt }}
               </div>
             {%- endif -%}
             <div class="card__body">

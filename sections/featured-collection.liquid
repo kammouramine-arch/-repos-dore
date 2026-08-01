@@ -1,5 +1,15 @@
 {%- liquid
+  comment
+    Repli en cascade : la collection choisie, sinon le catalogue complet.
+    La section reste ainsi peuplée dès l'installation du thème, sans réglage.
+  endcomment
   assign collection = collections[section.settings.collection]
+  if collection == blank
+    assign collection = collections.all
+  elsif collection.products.size == 0
+    assign collection = collections.all
+  endif
+
   assign limit = section.settings.products_to_show
   assign fallbacks = 'device-legs.svg,device-foot.svg,device-neck.svg,device-eye.svg' | split: ','
 -%}
@@ -50,20 +60,19 @@
         {%- endfor -%}
       </div>
     {%- else -%}
-      <div class="cards cards--{{ section.settings.columns }}">
-        {%- for i in (1..4) -%}
-          <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
-            <div class="card__media card__media--{{ settings.card_image_ratio }}">
-              <img src="{{ fallbacks[forloop.index0] | asset_url }}" alt="" width="600" height="600" loading="lazy">
-            </div>
-            <div class="card__body">
-              <div>
-                <h3 class="card__title">{{ 'products.product.view_details' | t }}</h3>
-                <p class="card__desc">Sélectionnez une collection dans les réglages de la section.</p>
-              </div>
-            </div>
-          </article>
-        {%- endfor -%}
+      {%- comment -%}
+        Catalogue encore vide : on montre la gamme en illustration plutôt qu'une
+        grille de cartes fantômes, et on garde la section présentable.
+      {%- endcomment -%}
+      <div class="collection-empty">
+        <div class="collection-empty__grid">
+          {%- for image in fallbacks -%}
+            <span class="collection-empty__item" style="--delay: {{ forloop.index0 | times: 80 }}ms">
+              <img src="{{ image | asset_url }}" alt="" aria-hidden="true" width="600" height="600" loading="lazy">
+            </span>
+          {%- endfor -%}
+        </div>
+        <p class="collection-empty__note">{{ 'templates.collections.empty' | t }}</p>
       </div>
     {%- endif -%}
   </div>

@@ -14,9 +14,7 @@
       </div>
 
       <div class="cta-band__actions">
-        {%- if section.settings.button_label != blank -%}
-          <a class="btn btn--gold" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
-        {%- endif -%}
+        {% render 'button', label: section.settings.button_label, link: section.settings.button_link, style: 'gold', size: 'lg' %}
         {%- if section.settings.note != blank -%}
           <p class="cta-band__note">{{ section.settings.note }}</p>
         {%- endif -%}

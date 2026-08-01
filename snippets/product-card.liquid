@@ -1,15 +1,20 @@
 {%- comment -%}
   Carte produit.
+
+  Le visuel occupe la majeure partie de la carte : c'est lui qui vend.
+  Sous l'image, une seule ligne de hiérarchie forte — nom + prix — puis la
+  description courte et la preuve sociale.
+
   Paramètres :
     product   — objet produit (obligatoire)
-    index     — pour l’échelonnement des révélations
-    dark      — fond sombre pour la vignette
-    badge     — texte de pastille (sinon métachamp custom.badge, sinon « Nouveau » / promo)
-    fallback  — nom d’asset SVG utilisé si le produit n’a pas d’image
+    index     — échelonne la révélation au défilement
+    dark      — vignette sur fond sombre (rompt la grille)
+    badge     — pastille ; sinon métachamp custom.badge, sinon promotion
+    fallback  — illustration utilisée si le produit n'a aucun visuel
 {%- endcomment -%}
 
 {%- liquid
-  assign delay = index | default: 0 | times: 60
+  assign delay = index | default: 0 | times: 70
   assign ratio = settings.card_image_ratio
   assign badge_text = badge
 
@@ -22,9 +27,24 @@
 
   assign subtitle = product.metafields.custom.subtitle | default: product.type
   assign media_alt = product.featured_media.alt | default: product.title | escape
+
+  comment
+    Aucun visuel produit : on choisit une illustration RÉVA de façon
+    déterministe, pour que la grille reste cohérente d'un chargement à l'autre.
+  endcomment
+  assign illustrations = 'device-legs.svg,device-foot.svg,device-neck.svg,device-eye.svg' | split: ','
+  assign fallback_image = fallback
+  if fallback_image == blank
+    assign pick = index | default: 0 | modulo: 4
+    assign fallback_image = illustrations[pick]
+  endif
 -%}
 
-<article class="card{% if dark %} card--dark{% endif %}" data-reveal="scale" style="--delay: {{ delay }}ms">
+<article
+  class="card{% if dark %} card--dark{% endif %}"
+  data-reveal="scale"
+  style="--delay: {{ delay }}ms"
+>
   <a class="card__link" href="{{ product.url }}">
     <span class="visually-hidden">{{ product.title | escape }}</span>
   </a>
@@ -37,43 +57,56 @@
     {%- if product.featured_media -%}
       {{
         product.featured_media
-        | image_url: width: 900
-        | image_tag: loading: 'lazy', widths: '300, 450, 600, 900', sizes: '(min-width: 900px) 40vw, 90vw', alt: media_alt
+        | image_url: width: 1000
+        | image_tag: loading: 'lazy', widths: '360, 540, 720, 1000', sizes: '(min-width: 1200px) 32vw, (min-width: 750px) 45vw, 88vw', alt: media_alt, class: 'card__img'
       }}
-    {%- elsif fallback != blank -%}
-      <img src="{{ fallback | asset_url }}" alt="{{ product.title | escape }}" loading="lazy" width="600" height="600">
     {%- else -%}
-      {{ 'product-1' | placeholder_svg_tag: 'card__placeholder' }}
+      <img
+        class="card__img card__img--illustration"
+        src="{{ fallback_image | asset_url }}"
+        alt="{{ product.title | escape }}"
+        loading="lazy"
+        width="600"
+        height="600"
+      >
     {%- endif -%}
+
+    <span class="card__sheen" aria-hidden="true"></span>
   </div>
 
-  <div class="card__body">
-    <div>
-      {%- if settings.card_show_vendor and product.vendor != blank -%}
-        <p class="card__vendor">{{ product.vendor }}</p>
-      {%- endif -%}
+  <div class="card__content">
+    <div class="card__head">
       <h3 class="card__title">{{ product.title }}</h3>
-      {%- if subtitle != blank -%}
-        <p class="card__desc">{{ subtitle }}</p>
-      {%- endif -%}
+      <div class="card__price">{% render 'price', product: product, show_from: true %}</div>
     </div>
-    <div class="card__price">
-      {% render 'price', product: product %}
-    </div>
-  </div>
 
-  <div class="card__cta">
-    {%- if settings.card_show_rating and product.metafields.reviews.rating.value != blank -%}
-      {% render 'star-rating', rating: product.metafields.reviews.rating, count: product.metafields.reviews.rating_count, compact: true %}
-    {%- else -%}
-      <span class="card__stars">
-        {%- if product.available -%}
-          {{ 'products.product.in_stock' | t }}
-        {%- else -%}
-          {{ 'products.product.sold_out' | t }}
-        {%- endif -%}
-      </span>
+    {%- if subtitle != blank -%}
+      <p class="card__desc">{{ subtitle }}</p>
     {%- endif -%}
-    <span class="btn btn--sm btn--ghost" aria-hidden="true">{{ 'products.product.view_details' | t }}</span>
+
+    <div class="card__foot">
+      {%- if settings.card_show_rating and product.metafields.reviews.rating.value != blank -%}
+        {% render 'star-rating',
+          rating: product.metafields.reviews.rating,
+          count: product.metafields.reviews.rating_count,
+          compact: true
+        %}
+      {%- elsif settings.card_show_vendor and product.vendor != blank -%}
+        <span class="card__vendor">{{ product.vendor }}</span>
+      {%- else -%}
+        <span class="card__stock">
+          {%- if product.available -%}
+            {{ 'products.product.in_stock' | t }}
+          {%- else -%}
+            {{ 'products.product.sold_out' | t }}
+          {%- endif -%}
+        </span>
+      {%- endif -%}
+
+      <span class="card__cta" aria-hidden="true">
+        {{ 'products.product.view_details' | t }}
+        {% render 'icon', icon: 'arrow-right' %}
+      </span>
+    </div>
   </div>
 </article>

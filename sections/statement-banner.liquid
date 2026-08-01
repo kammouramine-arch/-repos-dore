@@ -8,7 +8,10 @@
       }}
     </div>
   {%- else -%}
-    <div class="bleed__bg" {% if settings.animations_parallax %}data-parallax="0.08"{% endif %}></div>
+    <div class="bleed__media bleed__media--fallback" {% if settings.animations_parallax %}data-parallax="0.08"{% endif %}>
+      <img class="bleed__img" src="{{ 'placeholder-scene-2.svg' | asset_url }}" alt="" aria-hidden="true" loading="lazy">
+    </div>
+    <div class="bleed__bg"></div>
   {%- endif -%}
 
   <div class="wrap bleed__inner">
@@ -24,12 +27,10 @@
       <div class="rte" data-reveal style="--delay: 80ms">{{ section.settings.text }}</div>
     {%- endif -%}
 
-    {%- if section.settings.button_label != blank -%}
+    {%- if section.settings.button_label != blank or section.settings.button_2_label != blank -%}
       <div class="btn-row" data-reveal style="--delay: 140ms">
-        <a class="btn btn--light" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
-        {%- if section.settings.button_2_label != blank -%}
-          <a class="btn btn--outline-light" href="{{ section.settings.button_2_link }}">{{ section.settings.button_2_label }}</a>
-        {%- endif -%}
+        {% render 'button', label: section.settings.button_label, link: section.settings.button_link, style: 'light', size: 'lg' %}
+        {% render 'button', label: section.settings.button_2_label, link: section.settings.button_2_link, style: 'outline-light', size: 'lg' %}
       </div>
     {%- endif -%}
   </div>

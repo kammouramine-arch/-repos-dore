@@ -228,12 +228,150 @@
       ],
       "settings": {
         "show_search": false,
-        "show_categories": false
+        "show_categories": false,
+        "eyebrow": "Bon à savoir",
+        "heading": "Les questions que l’on nous pose le plus.",
+        "center_heading": true
+      }
+    },
+    "specs": {
+      "type": "spec-grid",
+      "blocks": {
+        "s1": {
+          "type": "spec",
+          "settings": {
+            "label": "Pression",
+            "value": "20 – 120",
+            "detail": "mmHg, par paliers de 5"
+          }
+        },
+        "s2": {
+          "type": "spec",
+          "settings": {
+            "label": "Chambres",
+            "value": "4",
+            "detail": "par jambe, séquentielles"
+          }
+        },
+        "s3": {
+          "type": "spec",
+          "settings": {
+            "label": "Niveau sonore",
+            "value": "38 dB",
+            "detail": "mesuré à 1 mètre"
+          }
+        },
+        "s4": {
+          "type": "spec",
+          "settings": {
+            "label": "Autonomie",
+            "value": "3 h",
+            "detail": "sans fil, charge USB-C en 90 min"
+          }
+        }
+      },
+      "block_order": [
+        "s1",
+        "s2",
+        "s3",
+        "s4"
+      ],
+      "settings": {
+        "eyebrow": "Caractéristiques",
+        "heading": "Les chiffres qui comptent.",
+        "center_heading": false,
+        "flush_top": false
+      }
+    },
+    "demonstration": {
+      "type": "steps",
+      "blocks": {
+        "d1": {
+          "type": "step",
+          "settings": {
+            "illustration": "device-legs.svg",
+            "title": "Enfiler",
+            "text": "Ouverture latérale complète. On les enfile assis, en dix secondes."
+          }
+        },
+        "d2": {
+          "type": "step",
+          "settings": {
+            "illustration": "device-unit.svg",
+            "title": "Choisir",
+            "text": "Une molette, six protocoles. Pression réelle et temps restant à l’écran."
+          }
+        },
+        "d3": {
+          "type": "step",
+          "settings": {
+            "illustration": "device-case.svg",
+            "title": "Oublier",
+            "text": "Arrêt automatique, rangement dans la housse fournie."
+          }
+        }
+      },
+      "block_order": [
+        "d1",
+        "d2",
+        "d3"
+      ],
+      "settings": {
+        "eyebrow": "En trois gestes",
+        "heading": "Une séance ne demande aucune expertise.",
+        "center_heading": true,
+        "background": "",
+        "flush_top": true
+      }
+    },
+    "story": {
+      "type": "feature-split",
+      "blocks": {
+        "m1": {
+          "type": "point",
+          "settings": {
+            "title": "Nylon recyclé 400 D",
+            "text": "Déperlant, résistant à l’abrasion, certifié OEKO-TEX Standard 100."
+          }
+        },
+        "m2": {
+          "type": "point",
+          "settings": {
+            "title": "Doublure amovible",
+            "text": "Lavable en machine à 30 °C, rechange fourni."
+          }
+        },
+        "m3": {
+          "type": "point",
+          "settings": {
+            "title": "Aluminium anodisé",
+            "text": "Molette et charnières usinées dans la masse, sans plastique apparent."
+          }
+        }
+      },
+      "block_order": [
+        "m1",
+        "m2",
+        "m3"
+      ],
+      "settings": {
+        "fallback_image": "device-fabric.svg",
+        "media_position": "right",
+        "media_style": "light",
+        "flush_top": true,
+        "eyebrow": "Matières",
+        "heading": "Ce que l’on touche compte autant que ce que l’on ressent.",
+        "text": "<p>Aucune pièce n’est collée : tout se démonte, tout se remplace. Les pièces détachées restent disponibles dix ans.</p>",
+        "button_label": "",
+        "button_link": ""
       }
     }
   },
   "order": [
     "main",
+    "specs",
+    "demonstration",
+    "story",
     "comparison",
     "reviews",
     "faq",

@@ -2,7 +2,11 @@
   "sections": {
     "main": {
       "type": "main-collection",
-      "settings": { "products_per_page": 12, "columns": "3", "show_sorting": true }
+      "settings": {
+        "products_per_page": 12,
+        "columns": "3",
+        "show_sorting": true
+      }
     },
     "cta": {
       "type": "cta-band",
@@ -10,11 +14,15 @@
         "eyebrow": "Essai 30 nuits",
         "heading": "Testez chez vous. Décidez ensuite.",
         "text": "<p>Trente nuits pour vous décider. Retour organisé et remboursé.</p>",
-        "button_label": "Nous contacter",
+        "button_label": "Découvrir la collection",
         "note": "Livraison 48 h · Garantie 2 ans",
-        "flush_top": true
+        "flush_top": true,
+        "button_link": "/collections/all"
       }
     }
   },
-  "order": ["main", "cta"]
+  "order": [
+    "main",
+    "cta"
+  ]
 }

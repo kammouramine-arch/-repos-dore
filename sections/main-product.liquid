@@ -31,10 +31,11 @@
           >
             {%- case media.media_type -%}
               {%- when 'image' -%}
+                {%- assign media_alt = media.alt | escape -%}
                 {{
                   media
                   | image_url: width: 1400
-                  | image_tag: loading: 'eager', widths: '400, 700, 1000, 1400', sizes: '(min-width: 1024px) 50vw, 92vw', alt: media.alt | escape
+                  | image_tag: loading: 'eager', widths: '400, 700, 1000, 1400', sizes: '(min-width: 1024px) 50vw, 92vw', alt: media_alt
                 }}
               {%- when 'video' -%}
                 {{ media | media_tag: image_size: '1400x', controls: true }}
