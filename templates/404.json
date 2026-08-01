@@ -7,7 +7,6 @@
         "button_label": "Retour à l’accueil",
         "button_2_label": "Voir la collection",
         "show_products": true,
-        "collection": "",
         "products_heading": "Reprenons par la collection.",
         "products_to_show": 3,
         "columns": "3"

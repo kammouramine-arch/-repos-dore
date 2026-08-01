@@ -239,11 +239,27 @@ animations et le tiroir panier s'ouvre quand on le sélectionne dans l'éditeur.
 
 | Symptôme | Cause | Correctif |
 |---|---|---|
-| L'accueil affiche « Cette page n'existe pas » | Le ZIP contenait un dossier parent : Shopify n'a trouvé aucun `templates/index.json` | Réimporter avec l'une des trois méthodes du § 1 |
+| L'accueil affiche la page 404 **mais l'en-tête est correct** | `templates/index.json` a été rejeté par Shopify. L'en-tête vient du groupe de sections (donc du layout), le contenu vient du gabarit : seul ce dernier a échoué | Corrigé : six réglages portaient une chaîne vide sur un type strict (`color`, `url`, `collection`) — Shopify refuse le gabarit entier |
+| L'accueil affiche la 404 **et l'en-tête est absent** | Le ZIP contenait un dossier parent : Shopify n'a trouvé aucun fichier | Réimporter avec l'une des trois méthodes du § 1 |
 | Du CSS s'affiche en haut des pages | `font_face` renvoie du CSS **sans** balise `<style>` ; non enveloppé, le navigateur éjecte ce texte du `<head>` | Corrigé : les appels sont dans `{% style %}` (layout/theme.liquid) |
 | Une balise `<img>` apparaît en toutes lettres | `alt: … \| escape` termine la chaîne `image_tag` et échappe le HTML produit | Corrigé : l'`alt` est calculé avant, par `assign` |
 | Le menu principal est vide | `nil.size` ne vaut pas `0` en Liquid : le test de repli était toujours faux | Corrigé : le test porte sur `blank` |
 | Un bloc « Sélectionnez une collection » | La section n'avait pas de collection assignée | Corrigé : repli automatique sur le catalogue complet |
+
+### Identifier l'erreur en 30 secondes
+
+Si un gabarit est refusé, Shopify le dit explicitement :
+
+1. **Boutique en ligne → Thèmes → ⋯ → Modifier le code**, ouvrir `templates/index.json`.
+   Un bandeau rouge nomme le réglage fautif.
+2. Ou ouvrir **Personnaliser** sur l'accueil : un gabarit invalide affiche l'erreur
+   au lieu des sections.
+
+Les causes de rejet les plus fréquentes, toutes vérifiées automatiquement ici :
+valeur vide sur un réglage `color`, `url` ou `collection` ; valeur `range` hors
+bornes ou hors pas ; valeur `select` absente de la liste d'options ; type de
+section référencé mais inexistant ; identifiant de section contenant autre chose
+que lettres, chiffres, tirets ou tirets bas.
 
 ---
 

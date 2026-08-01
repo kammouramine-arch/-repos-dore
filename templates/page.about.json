@@ -10,8 +10,6 @@
     },
     "story": {
       "type": "feature-split",
-      "blocks": {},
-      "block_order": [],
       "settings": {
         "fallback_image": "device-unit.svg",
         "media_position": "left",

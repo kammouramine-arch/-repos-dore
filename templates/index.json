@@ -99,7 +99,7 @@
         "padding_bottom": 120
       }
     },
-    "collection": {
+    "featured": {
       "type": "featured-collection",
       "settings": {
         "eyebrow": "La collection",
@@ -110,8 +110,7 @@
         "products_to_show": 4,
         "columns": "2",
         "alternate_dark": true,
-        "flush_top": true,
-        "collection": ""
+        "flush_top": true
       }
     },
     "technologie": {
@@ -165,8 +164,7 @@
         "text": "<p>Chaque pièce est démontable et réparable. Nos moteurs sont testés sur 3 000 cycles, soit huit ans d’usage quotidien. Nous fournissons les pièces détachées pendant dix ans — parce qu’un objet premium ne se remplace pas, il s’entretient.</p>",
         "button_label": "Découvrir la collection",
         "button_2_label": "",
-        "button_link": "/collections/all",
-        "button_2_link": ""
+        "button_link": "/collections/all"
       }
     },
     "stats": {
@@ -611,7 +609,6 @@
         "heading": "Une séance ne demande aucune expertise.",
         "text": "<p>Aucun réglage à comprendre, aucune application obligatoire.</p>",
         "center_heading": false,
-        "background": "",
         "flush_top": false
       }
     }
@@ -620,7 +617,7 @@
     "hero",
     "trust",
     "manifesto",
-    "collection",
+    "featured",
     "demonstration",
     "technologie",
     "avant-apres",

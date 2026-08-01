@@ -320,7 +320,6 @@
         "eyebrow": "En trois gestes",
         "heading": "Une séance ne demande aucune expertise.",
         "center_heading": true,
-        "background": "",
         "flush_top": true
       }
     },
@@ -362,8 +361,7 @@
         "eyebrow": "Matières",
         "heading": "Ce que l’on touche compte autant que ce que l’on ressent.",
         "text": "<p>Aucune pièce n’est collée : tout se démonte, tout se remplace. Les pièces détachées restent disponibles dix ans.</p>",
-        "button_label": "",
-        "button_link": ""
+        "button_label": ""
       }
     }
   },
