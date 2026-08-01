@@ -1,0 +1,414 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign media_count = product.media.size
+-%}
+
+<div class="wrap">
+  <nav class="breadcrumb" aria-label="{{ 'general.breadcrumb.label' | t }}">
+    <a href="{{ routes.root_url }}">{{ 'general.breadcrumb.home' | t }}</a>
+    {% render 'icon', icon: 'chevron-right' %}
+    {%- if collection -%}
+      <a href="{{ collection.url }}">{{ collection.title }}</a>
+      {% render 'icon', icon: 'chevron-right' %}
+    {%- endif -%}
+    <span class="muted">{{ product.title }}</span>
+  </nav>
+</div>
+
+<section class="wrap pdp" data-buybar-anchor>
+  {%- comment -%} ——— Galerie ——— {%- endcomment -%}
+  <div class="gallery">
+    <div class="gallery__main">
+      {%- if product.compare_at_price > product.price -%}
+        <span class="gallery__tag">{{ 'products.product.on_sale' | t }}</span>
+      {%- endif -%}
+
+      {%- if media_count > 0 -%}
+        {%- for media in product.media -%}
+          <div
+            class="gallery__slide{% unless forloop.first %} is-hidden{% endunless %}"
+            data-gallery-img="{{ forloop.index }}"
+          >
+            {%- case media.media_type -%}
+              {%- when 'image' -%}
+                {{
+                  media
+                  | image_url: width: 1400
+                  | image_tag: loading: 'eager', widths: '400, 700, 1000, 1400', sizes: '(min-width: 1024px) 50vw, 92vw', alt: media.alt | escape
+                }}
+              {%- when 'video' -%}
+                {{ media | media_tag: image_size: '1400x', controls: true }}
+              {%- when 'external_video' -%}
+                {{ media | media_tag: image_size: '1400x' }}
+              {%- when 'model' -%}
+                {{ media | media_tag: image_size: '1400x' }}
+              {%- else -%}
+                {{ media | media_tag: image_size: '1400x' }}
+            {%- endcase -%}
+          </div>
+        {%- endfor -%}
+      {%- else -%}
+        <div class="gallery__slide" data-gallery-img="1">
+          <img
+            src="{{ section.settings.fallback_image | default: 'device-legs.svg' | asset_url }}"
+            alt="{{ product.title | escape }}"
+            width="600"
+            height="600"
+          >
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- if media_count > 1 -%}
+      <div class="gallery__thumbs" role="tablist" aria-label="{{ 'products.product.media_gallery' | t }}">
+        {%- for media in product.media -%}
+          <button
+            class="gallery__thumb"
+            type="button"
+            role="tab"
+            data-thumb="{{ forloop.index }}"
+            data-media-id="{{ media.id }}"
+            aria-selected="{% if forloop.first %}true{% else %}false{% endif %}"
+            aria-label="{{ 'products.product.view_image' | t: number: forloop.index }}"
+          >
+            {{ media.preview_image | image_url: width: 200 | image_tag: loading: 'lazy', alt: '' }}
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} ——— Colonne d’information ——— {%- endcomment -%}
+  <div class="pdp__info">
+    {%- for block in section.blocks -%}
+      {%- case block.type -%}
+
+        {%- when 'rating' -%}
+          <div class="pdp__rating" {{ block.shopify_attributes }}>
+            {%- if product.metafields.reviews.rating.value != blank -%}
+              {% render 'star-rating',
+                rating: product.metafields.reviews.rating,
+                count: product.metafields.reviews.rating_count
+              %}
+            {%- else -%}
+              <span class="stars" aria-hidden="true">
+                {%- for i in (1..5) -%}{% render 'icon', icon: 'star' %}{%- endfor -%}
+              </span>
+              <span>{{ block.settings.fallback_text }}</span>
+            {%- endif -%}
+          </div>
+
+        {%- when 'title' -%}
+          <h1 class="h1 pdp__title" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+          {%- if product.metafields.custom.subtitle != blank -%}
+            <p class="pdp__tagline">{{ product.metafields.custom.subtitle }}</p>
+          {%- elsif block.settings.subtitle != blank -%}
+            <p class="pdp__tagline">{{ block.settings.subtitle }}</p>
+          {%- endif -%}
+
+        {%- when 'price' -%}
+          <div class="pdp__price" data-price-wrapper {{ block.shopify_attributes }}>
+            {% render 'price', product: product, variant: current_variant %}
+            {%- if current_variant.compare_at_price > current_variant.price -%}
+              {%- assign saving = current_variant.compare_at_price | minus: current_variant.price -%}
+              <span class="save">−{{ saving | money }}</span>
+            {%- endif -%}
+          </div>
+
+          {%- if block.settings.show_installments -%}
+            <p class="pdp__instal">
+              {%- assign instal = current_variant.price | divided_by: 3 | money -%}
+              {{ 'products.product.installments' | t: count: 3, amount: instal }}
+              {%- if block.settings.shipping_note != blank %} · {{ block.settings.shipping_note }}{% endif -%}
+            </p>
+          {%- endif -%}
+
+          {%- form 'product', product, id: 'PaymentTerms', class: 'form--payment-terms' -%}
+            {{ form | payment_terms }}
+          {%- endform -%}
+
+        {%- when 'variant_picker' -%}
+          {% render 'variant-picker', product: product, block: block %}
+
+        {%- when 'inventory' -%}
+          {%- if current_variant.available -%}
+            <p class="stock" data-inventory>
+              <i></i>
+              {%- if current_variant.inventory_management != blank
+                and current_variant.inventory_quantity > 0
+                and current_variant.inventory_quantity <= block.settings.low_threshold
+              -%}
+                {{ 'products.product.low_stock' | t: count: current_variant.inventory_quantity }}
+              {%- else -%}
+                {{ block.settings.in_stock_text }}
+              {%- endif -%}
+            </p>
+          {%- else -%}
+            <p class="stock stock--out" data-inventory>{{ 'products.product.out_of_stock' | t }}</p>
+          {%- endif -%}
+
+        {%- when 'buy_buttons' -%}
+          {% render 'buy-buttons', product: product, block: block, section_id: section.id %}
+
+        {%- when 'reassurance' -%}
+          <ul class="pdp__assur" {{ block.shopify_attributes }}>
+            {%- for i in (1..4) -%}
+              {%- liquid
+                assign title_key = 'title_' | append: i
+                assign text_key = 'text_' | append: i
+                assign icon_key = 'icon_' | append: i
+                assign item_title = block.settings[title_key]
+                assign item_text = block.settings[text_key]
+                assign item_icon = block.settings[icon_key]
+              -%}
+              {%- if item_title != blank -%}
+                <li>
+                  {% render 'icon', icon: item_icon %}
+                  <span><strong>{{ item_title }}</strong> {{ item_text }}</span>
+                </li>
+              {%- endif -%}
+            {%- endfor -%}
+          </ul>
+
+        {%- when 'description' -%}
+          {%- if product.description != blank -%}
+            <div class="accordion pdp__accordion" data-accordion-single {{ block.shopify_attributes }}>
+              <div class="accordion__item">
+                <h2>
+                  <button
+                    class="accordion__btn"
+                    type="button"
+                    aria-expanded="true"
+                    aria-controls="AccDesc-{{ section.id }}"
+                  >
+                    {{ block.settings.title }}
+                    <span class="accordion__icon" aria-hidden="true"></span>
+                  </button>
+                </h2>
+                <div class="accordion__panel" id="AccDesc-{{ section.id }}">
+                  <div class="accordion__inner rte">{{ product.description }}</div>
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+
+        {%- when 'accordion' -%}
+          <div class="accordion pdp__accordion" {{ block.shopify_attributes }}>
+            <div class="accordion__item">
+              <h2>
+                <button
+                  class="accordion__btn"
+                  type="button"
+                  aria-expanded="false"
+                  aria-controls="Acc-{{ block.id }}"
+                >
+                  {{ block.settings.title }}
+                  <span class="accordion__icon" aria-hidden="true"></span>
+                </button>
+              </h2>
+              <div class="accordion__panel" id="Acc-{{ block.id }}">
+                <div class="accordion__inner rte">
+                  {%- if block.settings.page != blank -%}
+                    {{ pages[block.settings.page].content }}
+                  {%- else -%}
+                    {{ block.settings.content }}
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        {%- when 'custom_liquid' -%}
+          <div {{ block.shopify_attributes }}>{{ block.settings.custom_liquid }}</div>
+
+        {%- when '@app' -%}
+          <div {{ block.shopify_attributes }}>{% render block %}</div>
+
+      {%- endcase -%}
+    {%- endfor -%}
+  </div>
+</section>
+
+{%- comment -%} ——— Barre d’achat collante ——— {%- endcomment -%}
+{%- if section.settings.show_sticky_bar -%}
+  <sticky-buy-bar class="buybar" data-buybar>
+    <div class="buybar__info">
+      <span class="buybar__thumb">
+        {%- if product.featured_media -%}
+          {{ product.featured_media | image_url: width: 120 | image_tag: loading: 'lazy', alt: '' }}
+        {%- endif -%}
+      </span>
+      <span>
+        <span class="buybar__name">{{ product.title }}</span>
+        <span class="buybar__price" data-buybar-price>{{ current_variant.price | money }}</span>
+      </span>
+    </div>
+
+    {%- form 'product', product, id: 'StickyForm', novalidate: 'novalidate' -%}
+      <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-input>
+      <button
+        class="btn btn--sm"
+        type="submit"
+        name="add"
+        data-add-to-cart
+        {% unless current_variant.available %}disabled{% endunless %}
+      >
+        {%- if current_variant.available -%}
+          {{ 'products.product.add_to_cart' | t }}
+        {%- else -%}
+          {{ 'products.product.sold_out' | t }}
+        {%- endif -%}
+      </button>
+    {%- endform -%}
+  </sticky-buy-bar>
+{%- endif -%}
+
+<script type="application/json" data-product-json>
+  {{ product | json }}
+</script>
+
+<script type="application/ld+json">
+  {{ product | structured_data }}
+</script>
+
+{% schema %}
+{
+  "name": "Fiche produit",
+  "tag": "section",
+  "class": "product-section",
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "show_sticky_bar",
+      "label": "Barre d’achat collante au défilement",
+      "default": true
+    },
+    {
+      "type": "select",
+      "id": "fallback_image",
+      "label": "Illustration de secours",
+      "info": "Affichée uniquement si le produit n’a aucun visuel.",
+      "options": [
+        { "value": "device-legs.svg", "label": "Bottes de compression" },
+        { "value": "device-foot.svg", "label": "Masseur de pieds" },
+        { "value": "device-neck.svg", "label": "Masseur de nuque" },
+        { "value": "device-eye.svg", "label": "Masseur oculaire" }
+      ],
+      "default": "device-legs.svg"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "rating",
+      "name": "Note",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "text",
+          "id": "fallback_text",
+          "label": "Texte si aucune app d’avis",
+          "default": "Avis vérifiés"
+        }
+      ]
+    },
+    {
+      "type": "title",
+      "name": "Titre",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "subtitle",
+          "label": "Accroche",
+          "info": "Le métachamp custom.subtitle du produit est prioritaire.",
+          "default": "Le drainage d’un cabinet de kinésithérapie, dans votre salon."
+        }
+      ]
+    },
+    {
+      "type": "price",
+      "name": "Prix",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_installments", "label": "Afficher le paiement fractionné", "default": true },
+        { "type": "text", "id": "shipping_note", "label": "Mention de livraison", "default": "Livraison offerte, expédiée sous 24 h" }
+      ]
+    },
+    {
+      "type": "variant_picker",
+      "name": "Sélecteur de variantes",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "swatches",
+          "label": "Pastilles de couleur pour l’option « Couleur »",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "inventory",
+      "name": "Disponibilité",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "in_stock_text", "label": "Texte en stock", "default": "En stock — expédition aujourd’hui si commande avant 15 h" },
+        { "type": "range", "id": "low_threshold", "label": "Seuil de stock faible", "min": 0, "max": 25, "step": 1, "default": 6 }
+      ]
+    },
+    {
+      "type": "buy_buttons",
+      "name": "Boutons d’achat",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "show_quantity", "label": "Afficher la quantité", "default": true },
+        { "type": "checkbox", "id": "show_dynamic_checkout", "label": "Afficher les boutons de paiement accéléré", "default": true }
+      ]
+    },
+    {
+      "type": "reassurance",
+      "name": "Réassurance",
+      "limit": 1,
+      "settings": [
+        { "type": "select", "id": "icon_1", "label": "Icône 1", "options": [{ "value": "clock", "label": "Horloge" }, { "value": "shield", "label": "Bouclier" }, { "value": "truck", "label": "Livraison" }, { "value": "account", "label": "Conseiller" }, { "value": "wrench", "label": "Réparabilité" }], "default": "clock" },
+        { "type": "text", "id": "title_1", "label": "Titre 1", "default": "Essai 30 nuits." },
+        { "type": "text", "id": "text_1", "label": "Texte 1", "default": "Retour organisé et remboursé, sans justification." },
+        { "type": "select", "id": "icon_2", "label": "Icône 2", "options": [{ "value": "shield", "label": "Bouclier" }, { "value": "clock", "label": "Horloge" }, { "value": "truck", "label": "Livraison" }, { "value": "account", "label": "Conseiller" }, { "value": "wrench", "label": "Réparabilité" }], "default": "shield" },
+        { "type": "text", "id": "title_2", "label": "Titre 2", "default": "Garantie 2 ans," },
+        { "type": "text", "id": "text_2", "label": "Texte 2", "default": "extensible à 5 ans gratuitement à l’enregistrement." },
+        { "type": "select", "id": "icon_3", "label": "Icône 3", "options": [{ "value": "truck", "label": "Livraison" }, { "value": "shield", "label": "Bouclier" }, { "value": "clock", "label": "Horloge" }, { "value": "account", "label": "Conseiller" }, { "value": "wrench", "label": "Réparabilité" }], "default": "truck" },
+        { "type": "text", "id": "title_3", "label": "Titre 3", "default": "Livraison en 48 h" },
+        { "type": "text", "id": "text_3", "label": "Texte 3", "default": "en France métropolitaine, suivi et créneau au choix." },
+        { "type": "select", "id": "icon_4", "label": "Icône 4", "options": [{ "value": "account", "label": "Conseiller" }, { "value": "shield", "label": "Bouclier" }, { "value": "clock", "label": "Horloge" }, { "value": "truck", "label": "Livraison" }, { "value": "wrench", "label": "Réparabilité" }], "default": "account" },
+        { "type": "text", "id": "title_4", "label": "Titre 4", "default": "Accompagnement personnalisé :" },
+        { "type": "text", "id": "text_4", "label": "Texte 4", "default": "un conseiller règle votre protocole par téléphone." }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "Description",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titre", "default": "Description" }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "Accordéon",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titre", "default": "Livraison & retours" },
+        { "type": "richtext", "id": "content", "label": "Contenu" },
+        { "type": "page", "id": "page", "label": "Ou reprendre le contenu d’une page" }
+      ]
+    },
+    {
+      "type": "custom_liquid",
+      "name": "Liquid personnalisé",
+      "settings": [
+        { "type": "liquid", "id": "custom_liquid", "label": "Code Liquid" }
+      ]
+    },
+    { "type": "@app" }
+  ]
+}
+{% endschema %}

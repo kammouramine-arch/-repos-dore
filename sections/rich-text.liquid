@@ -1,0 +1,39 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap{% if section.settings.narrow %} wrap--narrow{% endif %}">
+    <div class="{% if section.settings.center %}center {% endif %}prose">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      {%- if section.settings.heading != blank -%}
+        <h2 class="h2" data-reveal style="margin-bottom: 1.5rem">{{ section.settings.heading }}</h2>
+      {%- endif -%}
+      {%- if section.settings.text != blank -%}
+        <div class="rte" data-reveal style="--delay: 60ms">{{ section.settings.text }}</div>
+      {%- endif -%}
+      {%- if section.settings.button_label != blank -%}
+        <div class="btn-row" data-reveal style="margin-top: 2.5rem">
+          <a class="btn" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Texte libre",
+  "tag": "div",
+  "class": "richtext-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Un titre éditorial" },
+    { "type": "richtext", "id": "text", "label": "Texte", "default": "<p>Un paragraphe qui prend le temps de poser la marque.</p>" },
+    { "type": "text", "id": "button_label", "label": "Bouton" },
+    { "type": "url", "id": "button_link", "label": "Lien" },
+    { "type": "checkbox", "id": "narrow", "label": "Largeur réduite", "default": true },
+    { "type": "checkbox", "id": "center", "label": "Centrer", "default": false },
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "presets": [{ "name": "Texte libre" }]
+}
+{% endschema %}

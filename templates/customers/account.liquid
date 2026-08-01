@@ -1,0 +1,54 @@
+<section class="section account">
+  <div class="wrap">
+    <div class="account__head">
+      <h1 class="h2">{{ 'customer.account.title' | t }}</h1>
+      <a class="text-link" href="{{ routes.account_logout_url }}">{{ 'customer.account.logout' | t }}</a>
+    </div>
+
+    <div class="account__layout">
+      <div>
+        <h2 class="h4">{{ 'customer.account.orders' | t }}</h2>
+
+        {%- paginate customer.orders by 12 -%}
+          {%- if customer.orders.size > 0 -%}
+            <table class="orders">
+              <thead>
+                <tr>
+                  <th scope="col">{{ 'customer.orders.order_number' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.date' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.payment_status' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.fulfillment_status' | t }}</th>
+                  <th scope="col">{{ 'customer.orders.total' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {%- for order in customer.orders -%}
+                  <tr>
+                    <td><a class="text-link" href="{{ order.customer_url }}">{{ order.name }}</a></td>
+                    <td>{{ order.created_at | date: '%d.%m.%Y' }}</td>
+                    <td>{{ order.financial_status_label }}</td>
+                    <td>{{ order.fulfillment_status_label }}</td>
+                    <td>{{ order.total_price | money }}</td>
+                  </tr>
+                {%- endfor -%}
+              </tbody>
+            </table>
+
+            {% render 'pagination', paginate: paginate %}
+          {%- else -%}
+            <p class="muted">{{ 'customer.account.no_orders' | t }}</p>
+          {%- endif -%}
+        {%- endpaginate -%}
+      </div>
+
+      <aside class="account__side">
+        <h2 class="h4">{{ 'customer.account.details' | t }}</h2>
+        <div class="rte">{{ customer.default_address | format_address }}</div>
+        <a class="text-link" href="{{ routes.account_addresses_url }}">
+          {{ 'customer.account.view_addresses' | t }}
+          {% render 'icon', icon: 'arrow-right' %}
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>

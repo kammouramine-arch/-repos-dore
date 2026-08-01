@@ -1,0 +1,242 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "rating": {
+          "type": "rating",
+          "settings": {
+            "fallback_text": "Avis vérifiés"
+          }
+        },
+        "title": {
+          "type": "title",
+          "settings": {
+            "subtitle": "Le drainage d’un cabinet de kinésithérapie, dans votre salon."
+          }
+        },
+        "price": {
+          "type": "price",
+          "settings": {
+            "show_installments": true,
+            "shipping_note": "Livraison offerte, expédiée sous 24 h"
+          }
+        },
+        "variants": {
+          "type": "variant_picker",
+          "settings": {
+            "swatches": true
+          }
+        },
+        "inventory": {
+          "type": "inventory",
+          "settings": {
+            "in_stock_text": "En stock — expédition aujourd’hui si commande avant 15 h",
+            "low_threshold": 6
+          }
+        },
+        "buy": {
+          "type": "buy_buttons",
+          "settings": {
+            "show_quantity": true,
+            "show_dynamic_checkout": true
+          }
+        },
+        "assur": {
+          "type": "reassurance",
+          "settings": {}
+        },
+        "description": {
+          "type": "description",
+          "settings": {
+            "title": "Description"
+          }
+        },
+        "acc_shipping": {
+          "type": "accordion",
+          "settings": {
+            "title": "Livraison & retours",
+            "content": "<p>Expédition sous 24 h ouvrées. Livraison offerte dès 120 € d’achat, en 48 h en France métropolitaine.</p><p>Retour gratuit pendant 30 nuits, enlèvement à domicile organisé par nos soins.</p>"
+          }
+        },
+        "acc_warranty": {
+          "type": "accordion",
+          "settings": {
+            "title": "Garantie & service",
+            "content": "<p>Deux ans de garantie constructeur, portée à cinq ans si vous enregistrez votre appareil dans les 30 jours. Pièces détachées disponibles pendant dix ans.</p>"
+          }
+        },
+        "acc_care": {
+          "type": "accordion",
+          "settings": {
+            "title": "Précautions d’usage",
+            "content": "<p>Appareil de bien-être, il ne remplace pas un avis médical. Demandez conseil à votre médecin en cas de thrombose, d’insuffisance cardiaque, de plaie ouverte ou de grossesse.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "rating",
+        "title",
+        "price",
+        "variants",
+        "inventory",
+        "buy",
+        "assur",
+        "description",
+        "acc_shipping",
+        "acc_warranty",
+        "acc_care"
+      ],
+      "settings": {
+        "show_sticky_bar": true,
+        "fallback_image": "device-legs.svg"
+      }
+    },
+    "recommendations": {
+      "type": "product-recommendations",
+      "settings": {
+        "eyebrow": "Compléter le rituel",
+        "heading": "Souvent associés",
+        "link_label": "Toute la collection",
+        "products_to_show": 2,
+        "columns": "2"
+      }
+    },
+    "comparison": {
+      "type": "comparison-table",
+      "blocks": {
+        "r1": {
+          "type": "row",
+          "settings": {
+            "criteria": "Pression calibrée et mesurable",
+            "us": true,
+            "them": false
+          }
+        },
+        "r2": {
+          "type": "row",
+          "settings": {
+            "criteria": "Moteur silencieux < 40 dB",
+            "us": true,
+            "them": false
+          }
+        },
+        "r3": {
+          "type": "row",
+          "settings": {
+            "criteria": "Pièces détachées 10 ans",
+            "us": true,
+            "them": false
+          }
+        },
+        "r4": {
+          "type": "row",
+          "settings": {
+            "criteria": "Essai 30 nuits, retour offert",
+            "us": true,
+            "them": false
+          }
+        }
+      },
+      "block_order": [
+        "r1",
+        "r2",
+        "r3",
+        "r4"
+      ],
+      "settings": {
+        "eyebrow": "Comparer",
+        "heading": "Ce qui justifie l’écart de prix.",
+        "column_criteria": "Critère",
+        "column_them": "Marché entrée de gamme"
+      }
+    },
+    "reviews": {
+      "type": "testimonials",
+      "blocks": {
+        "v1": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« J’avais renoncé aux bottes de compression à cause du bruit. Là, je regarde un film pendant la séance sans monter le son. »",
+            "author": "Julien P.",
+            "detail": "Triathlète · Achat vérifié"
+          }
+        },
+        "v2": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« La housse reste dans le salon sans dénoter. C’est ce qui fait que je m’en sers tous les soirs au lieu de le laisser dans un placard. »",
+            "author": "Élodie V.",
+            "detail": "Architecte · Achat vérifié"
+          }
+        },
+        "v3": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« Douze heures debout. Vingt minutes le soir et mes jambes repartent à zéro. »",
+            "author": "Dr Antoine R.",
+            "detail": "Chirurgien · Achat vérifié"
+          }
+        }
+      },
+      "block_order": [
+        "v1",
+        "v2",
+        "v3"
+      ],
+      "settings": {
+        "eyebrow": "Avis clients",
+        "heading": "Ce qu’en disent celles et ceux qui l’utilisent.",
+        "background": "#F8F8F9"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": {
+          "type": "question",
+          "settings": {
+            "category": "Utilisation",
+            "question": "Combien de séances par jour ?",
+            "answer": "<p>Une à deux séances de 15 à 30 minutes. Il n’y a aucun bénéfice à dépasser 60 minutes cumulées.</p>"
+          }
+        },
+        "q2": {
+          "type": "question",
+          "settings": {
+            "category": "Utilisation",
+            "question": "Comment entretenir l’appareil ?",
+            "answer": "<p>Les doublures se retirent et se lavent en machine à 30 °C. L’extérieur s’essuie avec un chiffon humide.</p>"
+          }
+        },
+        "q3": {
+          "type": "question",
+          "settings": {
+            "category": "Utilisation",
+            "question": "Y a-t-il des contre-indications ?",
+            "answer": "<p>Appareil de bien-être, il ne remplace pas un avis médical. Demandez conseil à votre médecin en cas de thrombose, d’insuffisance cardiaque, de plaie ouverte ou de grossesse.</p>"
+          }
+        }
+      },
+      "block_order": [
+        "q1",
+        "q2",
+        "q3"
+      ],
+      "settings": {
+        "show_search": false,
+        "show_categories": false
+      }
+    }
+  },
+  "order": [
+    "main",
+    "comparison",
+    "reviews",
+    "faq",
+    "recommendations"
+  ]
+}

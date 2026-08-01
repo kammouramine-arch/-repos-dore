@@ -1,0 +1,101 @@
+{%- if section.blocks.size > 0 -%}
+  <div
+    class="announce"
+    style="--announce-bg: {{ section.settings.background }}; --announce-fg: {{ section.settings.text_color }};"
+  >
+    {%- capture messages -%}
+      {%- for block in section.blocks -%}
+        {{ block.settings.text }}<i></i>
+      {%- endfor -%}
+    {%- endcapture -%}
+
+    {%- if section.settings.scroll -%}
+      <div class="announce__track" style="--marquee-duration: {{ section.settings.speed }}s">
+        <span>{{ messages }}</span>
+        <span aria-hidden="true">{{ messages }}</span>
+      </div>
+    {%- else -%}
+      <div class="announce__static wrap">
+        {%- for block in section.blocks -%}
+          <span {{ block.shopify_attributes }}>
+            {%- if block.settings.link != blank -%}
+              <a href="{{ block.settings.link }}">{{ block.settings.text }}</a>
+            {%- else -%}
+              {{ block.settings.text }}
+            {%- endif -%}
+          </span>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Bandeau d’annonce",
+  "tag": "aside",
+  "class": "announcement-section",
+  "max_blocks": 6,
+  "settings": [
+    {
+      "type": "checkbox",
+      "id": "scroll",
+      "label": "Défilement continu",
+      "default": true
+    },
+    {
+      "type": "range",
+      "id": "speed",
+      "label": "Durée du défilement",
+      "min": 20,
+      "max": 80,
+      "step": 2,
+      "unit": "s",
+      "default": 42
+    },
+    {
+      "type": "color",
+      "id": "background",
+      "label": "Fond",
+      "default": "#0A0A0B"
+    },
+    {
+      "type": "color",
+      "id": "text_color",
+      "label": "Texte",
+      "default": "#C6C9CE"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "Message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "Texte",
+          "default": "Livraison offerte dès 120 €"
+        },
+        {
+          "type": "url",
+          "id": "link",
+          "label": "Lien"
+        }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "message", "settings": { "text": "Livraison offerte dès 120 €" } },
+      { "type": "message", "settings": { "text": "Essai 30 nuits" } },
+      { "type": "message", "settings": { "text": "Garantie 2 ans" } },
+      { "type": "message", "settings": { "text": "Paiement en 3× sans frais" } },
+      { "type": "message", "settings": { "text": "Conçu & assemblé en Europe" } }
+    ]
+  },
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

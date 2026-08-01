@@ -1,0 +1,43 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">{{ shop.name }}</p>
+      <h1 class="h1" data-reveal="fade">{{ 'templates.collections.title' | t }}</h1>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top: 0">
+  <div class="wrap">
+    <div class="cards cards--3">
+      {%- for collection in collections -%}
+        <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
+          <a class="card__link" href="{{ collection.url }}">
+            <span class="visually-hidden">{{ collection.title }}</span>
+          </a>
+          <div class="card__media card__media--landscape">
+            {%- if collection.featured_image -%}
+              {{ collection.featured_image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 600, 900', alt: collection.title | escape }}
+            {%- else -%}
+              {{ 'collection-1' | placeholder_svg_tag }}
+            {%- endif -%}
+          </div>
+          <div class="card__body">
+            <div>
+              <h2 class="card__title">{{ collection.title }}</h2>
+              <p class="card__desc">{{ 'products.facets.results_count' | t: count: collection.products_count }}</p>
+            </div>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Liste des collections",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

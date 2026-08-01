@@ -1,0 +1,27 @@
+{
+  "sections": {
+    "hero": {
+      "type": "main-page",
+      "settings": {
+        "eyebrow": "Informations",
+        "dark": false,
+        "large_title": false
+      }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Une question",
+        "heading": "Notre équipe vous répond.",
+        "text": "<p>Du lundi au samedi, de 9 h à 19 h. Réponse moyenne en 2 h ouvrées.</p>",
+        "button_label": "Nous contacter",
+        "note": "Service client basé en France",
+        "flush_top": true
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "cta"
+  ]
+}

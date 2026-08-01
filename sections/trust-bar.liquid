@@ -1,0 +1,58 @@
+<section class="trust">
+  <div class="wrap trust__grid">
+    {%- for block in section.blocks -%}
+      <div class="trust__item" data-reveal style="--delay: {{ forloop.index0 | times: 80 }}ms" {{ block.shopify_attributes }}>
+        {% render 'icon', icon: block.settings.icon %}
+        <div>
+          <strong>{{ block.settings.title }}</strong>
+          <span>{{ block.settings.text }}</span>
+        </div>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bandeau de réassurance",
+  "tag": "div",
+  "class": "trust-section",
+  "max_blocks": 4,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Garantie",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icône",
+          "options": [
+            { "value": "shield", "label": "Bouclier" },
+            { "value": "truck", "label": "Livraison" },
+            { "value": "clock", "label": "Horloge" },
+            { "value": "card", "label": "Paiement" },
+            { "value": "leaf", "label": "Durabilité" },
+            { "value": "wrench", "label": "Réparabilité" }
+          ],
+          "default": "shield"
+        },
+        { "type": "text", "id": "title", "label": "Titre", "default": "Garantie 2 ans" },
+        { "type": "text", "id": "text", "label": "Précision", "default": "Extension 5 ans offerte" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Bandeau de réassurance",
+      "blocks": [
+        { "type": "item", "settings": { "icon": "shield", "title": "Garantie 2 ans", "text": "Extension 5 ans offerte" } },
+        { "type": "item", "settings": { "icon": "truck", "title": "Livraison en 48 h", "text": "Offerte dès 120 €" } },
+        { "type": "item", "settings": { "icon": "clock", "title": "Essai 30 nuits", "text": "Remboursé sans condition" } },
+        { "type": "item", "settings": { "icon": "card", "title": "Paiement en 3×", "text": "Sans frais, dès 100 €" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

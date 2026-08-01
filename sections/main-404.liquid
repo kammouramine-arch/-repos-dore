@@ -1,0 +1,19 @@
+<section class="section center" style="min-height: 60vh; display: grid; place-items: center">
+  <div class="wrap wrap--narrow">
+    <p class="eyebrow" style="justify-content: center">404</p>
+    <h1 class="h1" style="margin: 1.5rem 0">{{ 'templates.404.title' | t }}</h1>
+    <p class="lead" style="max-width: 32rem; margin-inline: auto">{{ 'templates.404.subtext' | t }}</p>
+    <div class="btn-row" style="justify-content: center; margin-top: 2.5rem">
+      <a class="btn" href="{{ routes.root_url }}">{{ 'templates.404.back' | t }}</a>
+      <a class="btn btn--ghost" href="{{ routes.all_products_collection_url }}">{{ 'general.continue_shopping' | t }}</a>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Page 404",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

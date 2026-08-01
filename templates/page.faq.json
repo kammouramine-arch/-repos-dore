@@ -1,0 +1,36 @@
+{
+  "sections": {
+    "hero": { "type": "main-page", "settings": { "eyebrow": "Aide", "dark": false, "large_title": false } },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": { "type": "question", "settings": { "category": "Commande & livraison", "question": "Quels sont les délais de livraison ?", "answer": "<p>Toute commande passée avant 15 h est expédiée le jour même. Comptez 48 h en France métropolitaine, 3 à 5 jours ouvrés dans le reste de l’Europe.</p>" } },
+        "q2": { "type": "question", "settings": { "category": "Commande & livraison", "question": "La livraison est-elle offerte ?", "answer": "<p>Oui, dès 120 € d’achat. En dessous, la participation est de 6,90 €. La livraison en point relais est offerte sans minimum.</p>" } },
+        "q3": { "type": "question", "settings": { "category": "Commande & livraison", "question": "Puis-je choisir mon créneau de livraison ?", "answer": "<p>Oui. Après l’expédition, le transporteur propose un créneau de deux heures, modifiable jusqu’à la veille au soir.</p>" } },
+        "q4": { "type": "question", "settings": { "category": "Paiement", "question": "Comment fonctionne le paiement en 3× sans frais ?", "answer": "<p>Dès 100 € d’achat, vous réglez un tiers à la commande puis deux mensualités à 30 et 60 jours. Aucun frais de dossier, aucun intérêt.</p>" } },
+        "q5": { "type": "question", "settings": { "category": "Paiement", "question": "Quels moyens de paiement acceptez-vous ?", "answer": "<p>Cartes Visa, Mastercard et American Express, PayPal, Apple Pay, Google Pay, ainsi que le paiement en 3× sans frais.</p>" } },
+        "q6": { "type": "question", "settings": { "category": "Produits & utilisation", "question": "Quelle taille choisir ?", "answer": "<p>La taille dépend de votre stature et de votre tour de cuisse. En cas d’hésitation, prenez la taille supérieure : les sangles se resserrent, elles ne s’élargissent pas.</p>" } },
+        "q7": { "type": "question", "settings": { "category": "Produits & utilisation", "question": "Combien de temps dure une séance ?", "answer": "<p>Entre 15 et 30 minutes selon le protocole. L’appareil s’arrête automatiquement. Une à deux séances par jour suffisent.</p>" } },
+        "q8": { "type": "question", "settings": { "category": "Produits & utilisation", "question": "Y a-t-il des contre-indications ?", "answer": "<p>Nos appareils relèvent du bien-être et ne remplacent pas un avis médical. Demandez conseil à votre médecin en cas de thrombose, d’insuffisance cardiaque, d’infection cutanée, de plaie ouverte, de port de pacemaker ou de grossesse.</p>" } },
+        "q9": { "type": "question", "settings": { "category": "Garantie & SAV", "question": "Que couvre la garantie ?", "answer": "<p>Deux ans sur l’ensemble des pièces et de la main-d’œuvre, portés à cinq ans si vous enregistrez votre appareil dans les 30 jours suivant la réception.</p>" } },
+        "q10": { "type": "question", "settings": { "category": "Garantie & SAV", "question": "Que se passe-t-il en cas de panne ?", "answer": "<p>Nous expédions un appareil de remplacement avant même de récupérer le vôtre. L’enlèvement est organisé et pris en charge par nos soins.</p>" } },
+        "q11": { "type": "question", "settings": { "category": "Retours & remboursement", "question": "Comment fonctionne l’essai de 30 nuits ?", "answer": "<p>Vous disposez de 30 nuits à compter de la réception. Si vous n’êtes pas convaincu, nous organisons l’enlèvement à domicile et vous remboursons intégralement, sans justification.</p>" } },
+        "q12": { "type": "question", "settings": { "category": "Retours & remboursement", "question": "Le retour est-il payant ?", "answer": "<p>Non. Le transport retour est à notre charge, y compris depuis les pays européens que nous livrons.</p>" } }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6", "q7", "q8", "q9", "q10", "q11", "q12"],
+      "settings": { "show_search": true, "show_categories": true }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Toujours une question",
+        "heading": "Parlez à un conseiller de l’équipe.",
+        "text": "<p>Du lundi au samedi, de 9 h à 19 h. Réponse moyenne en 2 h ouvrées par e-mail.</p>",
+        "button_label": "Nous contacter",
+        "note": "Réponse moyenne en 2 h ouvrées",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["hero", "faq", "cta"]
+}

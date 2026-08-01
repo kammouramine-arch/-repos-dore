@@ -1,0 +1,163 @@
+{%- liquid
+  assign overlay = false
+  if section.settings.transparent_on_home and template.name == 'index'
+    assign overlay = true
+  endif
+-%}
+
+<sticky-header
+  class="header{% if overlay %} header--overlay{% endif %}"
+  data-header
+>
+  <div class="wrap header__inner">
+    <button
+      class="burger"
+      type="button"
+      data-nav-toggle
+      aria-label="{{ 'general.accessibility.open_menu' | t }}"
+      aria-expanded="false"
+      aria-controls="MobileNav"
+    >
+      <span></span>
+    </button>
+
+    <nav class="nav" aria-label="{{ 'general.accessibility.menu' | t }}">
+      {%- for link in section.settings.menu.links -%}
+        <a
+          class="nav__link"
+          href="{{ link.url }}"
+          {% if link.active or link.child_active %}aria-current="page"{% endif %}
+        >
+          {{ link.title }}
+        </a>
+      {%- endfor -%}
+    </nav>
+
+    {%- if section.settings.logo != blank -%}
+      <a class="logo logo--image" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+        {{
+          section.settings.logo
+          | image_url: width: 400
+          | image_tag: widths: '100, 200, 300, 400', sizes: '160px', alt: shop.name, class: 'logo__img'
+        }}
+      </a>
+    {%- else -%}
+      <a class="logo" href="{{ routes.root_url }}">{{ shop.name }}</a>
+    {%- endif -%}
+
+    <div class="header__actions">
+      <details class="header__search" data-header-search>
+        <summary class="icon-btn" aria-label="{{ 'general.search.title' | t }}">
+          {% render 'icon', icon: 'search' %}
+        </summary>
+        <div class="header__search-panel">
+          <form action="{{ routes.search_url }}" method="get" role="search" class="search-form">
+            <input type="hidden" name="type" value="product">
+            <label class="visually-hidden" for="HeaderSearch">{{ 'general.search.title' | t }}</label>
+            <input
+              class="input"
+              id="HeaderSearch"
+              type="search"
+              name="q"
+              placeholder="{{ 'general.search.placeholder' | t }}"
+              autocomplete="off"
+            >
+            <button class="btn btn--sm" type="submit">{{ 'general.search.submit' | t }}</button>
+          </form>
+        </div>
+      </details>
+
+      {%- if shop.customer_accounts_enabled -%}
+        <a
+          class="icon-btn header__account"
+          href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+          aria-label="{{ 'customer.account.title' | t }}"
+        >
+          {% render 'icon', icon: 'account' %}
+        </a>
+      {%- endif -%}
+
+      <a
+        class="icon-btn"
+        href="{{ routes.cart_url }}"
+        data-cart-open
+        aria-label="{{ 'cart.general.open' | t }}"
+      >
+        {% render 'icon', icon: 'cart' %}
+        <span class="icon-btn__count" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>
+          {{ cart.item_count }}
+        </span>
+      </a>
+    </div>
+  </div>
+</sticky-header>
+
+<div class="mobile-nav" id="MobileNav" data-nav>
+  <ul class="mobile-nav__list">
+    {%- for link in section.settings.menu.links -%}
+      <li style="--i: {{ forloop.index0 }}">
+        <a class="mobile-nav__link" href="{{ link.url }}">
+          <small>{{ forloop.index | prepend: '0' | slice: -2, 2 }}</small>
+          {{ link.title }}
+        </a>
+      </li>
+    {%- endfor -%}
+  </ul>
+
+  <div class="mobile-nav__foot">
+    {%- if section.settings.contact_email != blank -%}
+      <a href="mailto:{{ section.settings.contact_email }}">{{ section.settings.contact_email }}</a>
+    {%- endif -%}
+    {%- if section.settings.contact_phone != blank -%}
+      <a href="tel:{{ section.settings.contact_phone | replace: ' ', '' }}">{{ section.settings.contact_phone }}</a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "En-tête",
+  "tag": "header",
+  "class": "header-section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo",
+      "info": "À défaut, le nom de la boutique est affiché en lettrage espacé."
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "Menu principal",
+      "default": "main-menu"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_on_home",
+      "label": "En-tête transparent sur l’accueil",
+      "default": true,
+      "info": "L’en-tête se pose sur le visuel d’ouverture, puis devient opaque au défilement."
+    },
+    {
+      "type": "header",
+      "content": "Contact affiché dans le menu mobile"
+    },
+    {
+      "type": "text",
+      "id": "contact_email",
+      "label": "E-mail",
+      "default": "service@exemple.com"
+    },
+    {
+      "type": "text",
+      "id": "contact_phone",
+      "label": "Téléphone",
+      "default": "+33 1 84 80 12 40"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

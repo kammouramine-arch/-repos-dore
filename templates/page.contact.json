@@ -1,0 +1,26 @@
+{
+  "sections": {
+    "hero": { "type": "main-page", "settings": { "eyebrow": "Contact", "dark": false, "large_title": false } },
+    "form": {
+      "type": "contact-form",
+      "blocks": {
+        "c1": { "type": "channel", "settings": { "icon": "mail", "title": "Écrire", "text": "<p>service@exemple.com<br/>Réponse moyenne en 2 h ouvrées.</p>" } },
+        "c2": { "type": "channel", "settings": { "icon": "phone", "title": "Appeler", "text": "<p>+33 1 84 80 12 40<br/>Du lundi au samedi, 9 h – 19 h.</p>" } },
+        "c3": { "type": "channel", "settings": { "icon": "pin", "title": "Showroom", "text": "<p>14 rue de Turenne, 75003 Paris<br/>Essai des appareils sur rendez-vous, du mardi au samedi.</p>" } },
+        "c4": { "type": "channel", "settings": { "icon": "briefcase", "title": "Professionnels", "text": "<p>pro@exemple.com<br/>Cabinets, clubs et entreprises : tarifs dégressifs dès trois appareils.</p>" } }
+      },
+      "block_order": ["c1", "c2", "c3", "c4"],
+      "settings": {
+        "form_heading": "Écrivez-nous",
+        "subjects": "Conseil avant achat, Choix de la taille, Suivi de commande, Retour ou échange, Garantie & SAV, Rendez-vous au showroom, Demande professionnelle, Presse & partenariats",
+        "show_consent": true,
+        "note": "Réponse moyenne en 2 h ouvrées · Aucune donnée revendue",
+        "show_highlight": true,
+        "highlight_eyebrow": "Sur rendez-vous",
+        "highlight_heading": "45 minutes d’essai, accompagné.",
+        "highlight_text": "<p>Un conseiller vous fait tester les protocoles adaptés à votre usage. Sans engagement, sans obligation d’achat.</p>"
+      }
+    }
+  },
+  "order": ["hero", "form"]
+}

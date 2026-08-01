@@ -1,0 +1,105 @@
+<!doctype html>
+<html
+  lang="{{ request.locale.iso_code }}"
+  class="no-js{% if settings.animations_enabled %} anim{% endif %}"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="{{ settings.color_ink }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+    {%- endif -%}
+
+    <title>
+      {{ page_title }}
+      {%- if current_tags %} &ndash; {{ 'general.meta.tags' | t: tags: current_tags | join: ', ' }}{% endif -%}
+      {%- if current_page != 1 %} &ndash; {{ 'general.pagination.page' | t: number: current_page }}{% endif -%}
+      {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+    </title>
+
+    {%- if page_description -%}
+      <meta name="description" content="{{ page_description | escape }}">
+    {%- endif -%}
+
+    {% render 'meta-tags' %}
+
+    {{ content_for_header }}
+
+    {%- liquid
+      assign body_font = settings.font_body
+      assign heading_font = settings.font_heading
+      assign body_font_bold = body_font | font_modify: 'weight', 'bold'
+      assign body_font_italic = body_font | font_modify: 'style', 'italic'
+      assign heading_font_light = heading_font | font_modify: 'weight', '300'
+    -%}
+
+    {{ body_font | font_face: font_display: 'swap' }}
+    {{ body_font_bold | font_face: font_display: 'swap' }}
+    {{ body_font_italic | font_face: font_display: 'swap' }}
+    {{ heading_font | font_face: font_display: 'swap' }}
+    {{ heading_font_light | font_face: font_display: 'swap' }}
+
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+    {%- comment -%} Rendu après la feuille de style : les réglages du thème priment. {%- endcomment -%}
+    {% render 'css-variables' %}
+
+    <script>
+      document.documentElement.className = document.documentElement.className.replace('no-js', 'js');
+    </script>
+
+    <script src="{{ 'theme.js' | asset_url }}" defer="defer"></script>
+  </head>
+
+  <body class="template-{{ request.page_type | handle }}{% if settings.cart_type == 'drawer' %} cart-drawer-enabled{% endif %}">
+    <a class="skip-link" href="#MainContent">{{ 'general.accessibility.skip_to_content' | t }}</a>
+
+    {% sections 'header-group' %}
+
+    <main id="MainContent" role="main" tabindex="-1">
+      {{ content_for_layout }}
+    </main>
+
+    {% sections 'footer-group' %}
+
+    {%- if settings.cart_type == 'drawer' -%}
+      {% section 'cart-drawer' %}
+    {%- endif -%}
+
+    <div class="overlay" data-overlay hidden></div>
+
+    <script>
+      window.theme = {
+        routes: {
+          root: {{ routes.root_url | json }},
+          cart: {{ routes.cart_url | json }},
+          cart_add: {{ routes.cart_add_url | json }},
+          cart_change: {{ routes.cart_change_url | json }},
+          cart_update: {{ routes.cart_update_url | json }},
+          predictive_search: {{ routes.predictive_search_url | json }}
+        },
+        settings: {
+          cartType: {{ settings.cart_type | json }},
+          animations: {{ settings.animations_enabled | json }},
+          parallax: {{ settings.animations_parallax | json }},
+          moneyFormat: {{ shop.money_format | json }}
+        },
+        strings: {
+          addToCart: {{ 'products.product.add_to_cart' | t | json }},
+          soldOut: {{ 'products.product.sold_out' | t | json }},
+          unavailable: {{ 'products.product.unavailable' | t | json }},
+          cartError: {{ 'cart.general.error' | t | json }},
+          newsletterInvalid: {{ 'general.newsletter.invalid' | t | json }},
+          newsletterSuccess: {{ 'general.newsletter.success' | t | json }}
+        }
+      };
+    </script>
+
+    {%- if request.page_type == 'product' or request.page_type == 'collection' -%}
+      <script src="{{ 'product.js' | asset_url }}" defer="defer"></script>
+    {%- endif -%}
+  </body>
+</html>

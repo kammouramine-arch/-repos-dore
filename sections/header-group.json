@@ -1,0 +1,33 @@
+{
+  "name": "En-tête",
+  "type": "header",
+  "sections": {
+    "announcement-bar": {
+      "type": "announcement-bar",
+      "blocks": {
+        "m1": { "type": "message", "settings": { "text": "Livraison offerte dès 120 €" } },
+        "m2": { "type": "message", "settings": { "text": "Essai 30 nuits" } },
+        "m3": { "type": "message", "settings": { "text": "Garantie 2 ans" } },
+        "m4": { "type": "message", "settings": { "text": "Paiement en 3× sans frais" } },
+        "m5": { "type": "message", "settings": { "text": "Conçu & assemblé en Europe" } }
+      },
+      "block_order": ["m1", "m2", "m3", "m4", "m5"],
+      "settings": {
+        "scroll": true,
+        "speed": 42,
+        "background": "#0A0A0B",
+        "text_color": "#C6C9CE"
+      }
+    },
+    "header": {
+      "type": "header",
+      "settings": {
+        "menu": "main-menu",
+        "transparent_on_home": true,
+        "contact_email": "service@exemple.com",
+        "contact_phone": "+33 1 84 80 12 40"
+      }
+    }
+  },
+  "order": ["announcement-bar", "header"]
+}

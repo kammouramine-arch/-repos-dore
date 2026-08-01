@@ -1,0 +1,139 @@
+{%- comment -%}
+  Comparaison avant / après par curseur.
+  Le curseur est un input range natif : accessible au clavier, sans dépendance.
+{%- endcomment -%}
+
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap">
+    <div class="section-head{% if section.settings.center %} section-head--center{% endif %}">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="lead" data-reveal style="--delay: 80ms">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <compare-slider class="compare-slider" data-reveal="scale" style="--split: {{ section.settings.start_position }}%">
+      <div class="compare-slider__frame">
+        <div class="compare-slider__side compare-slider__side--after">
+          {%- if section.settings.image_after != blank -%}
+            {{
+              section.settings.image_after
+              | image_url: width: 1600
+              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: section.settings.label_after | escape
+            }}
+          {%- else -%}
+            <img src="{{ 'device-legs.svg' | asset_url }}" alt="" width="600" height="600" loading="lazy">
+          {%- endif -%}
+          <span class="compare-slider__tag compare-slider__tag--after">{{ section.settings.label_after }}</span>
+        </div>
+
+        <div class="compare-slider__side compare-slider__side--before">
+          {%- if section.settings.image_before != blank -%}
+            {{
+              section.settings.image_before
+              | image_url: width: 1600
+              | image_tag: loading: 'lazy', widths: '600, 900, 1200, 1600', sizes: '(min-width: 1200px) 1100px, 92vw', alt: section.settings.label_before | escape
+            }}
+          {%- else -%}
+            <img src="{{ 'device-fabric.svg' | asset_url }}" alt="" width="600" height="600" loading="lazy">
+          {%- endif -%}
+          <span class="compare-slider__tag compare-slider__tag--before">{{ section.settings.label_before }}</span>
+        </div>
+
+        <span class="compare-slider__handle" aria-hidden="true">
+          <span class="compare-slider__grip">
+            {% render 'icon', icon: 'chevron-left' %}
+            {% render 'icon', icon: 'chevron-right' %}
+          </span>
+        </span>
+
+        <label class="visually-hidden" for="CompareRange-{{ section.id }}">
+          {{ 'sections.compare_slider.label' | t }}
+        </label>
+        <input
+          class="compare-slider__range"
+          id="CompareRange-{{ section.id }}"
+          type="range"
+          min="0"
+          max="100"
+          step="1"
+          value="{{ section.settings.start_position }}"
+          data-compare-range
+        >
+      </div>
+    </compare-slider>
+
+    {%- if section.blocks.size > 0 -%}
+      <ul class="compare-slider__notes">
+        {%- for block in section.blocks -%}
+          <li data-reveal style="--delay: {{ forloop.index0 | times: 80 }}ms" {{ block.shopify_attributes }}>
+            <strong>{{ block.settings.value }}</strong>
+            <span>{{ block.settings.label }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Avant / après",
+  "tag": "div",
+  "class": "before-after-section",
+  "max_blocks": 3,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Résultats" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Avant. Après vingt minutes." },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Faites glisser le curseur pour comparer.</p>"
+    },
+    { "type": "image_picker", "id": "image_before", "label": "Image « avant »" },
+    { "type": "image_picker", "id": "image_after", "label": "Image « après »" },
+    { "type": "text", "id": "label_before", "label": "Légende « avant »", "default": "Avant" },
+    { "type": "text", "id": "label_after", "label": "Légende « après »", "default": "Après" },
+    {
+      "type": "range",
+      "id": "start_position",
+      "label": "Position initiale du curseur",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+    { "type": "checkbox", "id": "center", "label": "Centrer le titre", "default": true },
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "note",
+      "name": "Mesure",
+      "settings": [
+        { "type": "text", "id": "value", "label": "Valeur", "default": "−31 %" },
+        { "type": "text", "id": "label", "label": "Légende", "default": "de sensation de jambes lourdes" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Avant / après",
+      "blocks": [
+        { "type": "note", "settings": { "value": "−31 %", "label": "de sensation de jambes lourdes" } },
+        { "type": "note", "settings": { "value": "+22 %", "label": "de retour veineux mesuré" } },
+        { "type": "note", "settings": { "value": "20 min", "label": "de séance quotidienne" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

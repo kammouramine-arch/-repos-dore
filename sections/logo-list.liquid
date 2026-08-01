@@ -1,0 +1,49 @@
+<section class="press-band" style="--section-top: {{ section.settings.padding_top }}px; --section-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="wrap press" data-reveal="fade">
+    {%- for block in section.blocks -%}
+      {%- if block.settings.image != blank -%}
+        <span class="press__logo" {{ block.shopify_attributes }}>
+          {{ block.settings.image | image_url: width: 300 | image_tag: loading: 'lazy', widths: '150, 300', alt: block.settings.text | escape }}
+        </span>
+      {%- else -%}
+        <span class="{% if block.settings.serif %}serif{% endif %}" {{ block.shopify_attributes }}>{{ block.settings.text }}</span>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Ils en parlent",
+  "tag": "div",
+  "class": "press-section",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "range", "id": "padding_top", "label": "Marge haute", "min": 0, "max": 120, "step": 8, "unit": "px", "default": 48 },
+    { "type": "range", "id": "padding_bottom", "label": "Marge basse", "min": 0, "max": 120, "step": 8, "unit": "px", "default": 48 }
+  ],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "Titre de presse",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Logo", "info": "À défaut, le texte ci-dessous est composé typographiquement." },
+        { "type": "text", "id": "text", "label": "Nom", "default": "Le Figaro" },
+        { "type": "checkbox", "id": "serif", "label": "Composer en romain", "default": false }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Ils en parlent",
+      "blocks": [
+        { "type": "logo", "settings": { "text": "Le Figaro", "serif": true } },
+        { "type": "logo", "settings": { "text": "Les Échos" } },
+        { "type": "logo", "settings": { "text": "Vogue", "serif": true } },
+        { "type": "logo", "settings": { "text": "GQ" } },
+        { "type": "logo", "settings": { "text": "L’Équipe", "serif": true } }
+      ]
+    }
+  ]
+}
+{% endschema %}

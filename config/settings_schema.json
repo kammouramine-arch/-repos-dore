@@ -1,0 +1,262 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "RÉVA",
+    "theme_version": "1.0.0",
+    "theme_author": "RÉVA",
+    "theme_documentation_url": "https://github.com/kammouramine-arch/-repos-dore",
+    "theme_support_url": "https://github.com/kammouramine-arch/-repos-dore/issues"
+  },
+  {
+    "name": "Couleurs",
+    "settings": [
+      {
+        "type": "header",
+        "content": "Neutres"
+      },
+      {
+        "type": "color",
+        "id": "color_ink",
+        "label": "Encre (noir de marque)",
+        "default": "#0A0A0B"
+      },
+      {
+        "type": "color",
+        "id": "color_background",
+        "label": "Fond",
+        "default": "#FFFFFF"
+      },
+      {
+        "type": "color",
+        "id": "color_muted",
+        "label": "Texte secondaire",
+        "default": "#55585F"
+      },
+      {
+        "type": "color",
+        "id": "color_border",
+        "label": "Filets et bordures",
+        "default": "#E1E3E6"
+      },
+      {
+        "type": "color",
+        "id": "color_surface",
+        "label": "Surface claire",
+        "default": "#F8F8F9"
+      },
+      {
+        "type": "header",
+        "content": "Accents"
+      },
+      {
+        "type": "color",
+        "id": "color_accent",
+        "label": "Accent principal (or)",
+        "default": "#C2A26B",
+        "info": "Utilisé avec parcimonie : filets, détails, un seul bouton par page."
+      },
+      {
+        "type": "color",
+        "id": "color_accent_soft",
+        "label": "Accent clair",
+        "default": "#DCC698"
+      },
+      {
+        "type": "color",
+        "id": "color_deep",
+        "label": "Bleu nuit",
+        "default": "#0E1D33"
+      }
+    ]
+  },
+  {
+    "name": "Typographie",
+    "settings": [
+      {
+        "type": "font_picker",
+        "id": "font_body",
+        "label": "Texte courant",
+        "default": "assistant_n4"
+      },
+      {
+        "type": "font_picker",
+        "id": "font_heading",
+        "label": "Titres",
+        "default": "assistant_n4"
+      },
+      {
+        "type": "range",
+        "id": "font_body_scale",
+        "label": "Taille du texte",
+        "min": 90,
+        "max": 115,
+        "step": 5,
+        "unit": "%",
+        "default": 100
+      },
+      {
+        "type": "range",
+        "id": "heading_tracking",
+        "label": "Interlettrage des titres",
+        "min": -60,
+        "max": 0,
+        "step": 5,
+        "unit": "‰",
+        "default": -35,
+        "info": "Un interlettrage négatif donne l’allure premium des grands titres."
+      },
+      {
+        "type": "checkbox",
+        "id": "heading_light_weight",
+        "label": "Titres en graisse légère",
+        "default": true
+      }
+    ]
+  },
+  {
+    "name": "Mise en page",
+    "settings": [
+      {
+        "type": "range",
+        "id": "page_width",
+        "label": "Largeur maximale",
+        "min": 1200,
+        "max": 1800,
+        "step": 40,
+        "unit": "px",
+        "default": 1440
+      },
+      {
+        "type": "range",
+        "id": "spacing_scale",
+        "label": "Respiration entre sections",
+        "min": 80,
+        "max": 140,
+        "step": 10,
+        "unit": "%",
+        "default": 100,
+        "info": "Le vide est la matière première du positionnement premium."
+      },
+      {
+        "type": "range",
+        "id": "corner_radius",
+        "label": "Arrondi des blocs",
+        "min": 0,
+        "max": 32,
+        "step": 2,
+        "unit": "px",
+        "default": 20
+      }
+    ]
+  },
+  {
+    "name": "Animations",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "animations_enabled",
+        "label": "Activer les révélations au défilement",
+        "default": true
+      },
+      {
+        "type": "checkbox",
+        "id": "animations_parallax",
+        "label": "Activer la parallaxe légère",
+        "default": true
+      },
+      {
+        "type": "paragraph",
+        "content": "Toutes les animations sont automatiquement désactivées pour les visiteurs ayant activé « réduire les animations » dans leur système."
+      }
+    ]
+  },
+  {
+    "name": "Fiche produit",
+    "settings": [
+      {
+        "type": "checkbox",
+        "id": "card_show_vendor",
+        "label": "Afficher le fournisseur",
+        "default": false
+      },
+      {
+        "type": "checkbox",
+        "id": "card_show_rating",
+        "label": "Afficher la note",
+        "default": true,
+        "info": "Nécessite une application d’avis fournissant les métachamps reviews.rating."
+      },
+      {
+        "type": "select",
+        "id": "card_image_ratio",
+        "label": "Format des visuels",
+        "options": [
+          { "value": "square", "label": "Carré" },
+          { "value": "portrait", "label": "Portrait" },
+          { "value": "landscape", "label": "Paysage" }
+        ],
+        "default": "landscape"
+      }
+    ]
+  },
+  {
+    "name": "Panier",
+    "settings": [
+      {
+        "type": "select",
+        "id": "cart_type",
+        "label": "Type de panier",
+        "options": [
+          { "value": "drawer", "label": "Tiroir latéral" },
+          { "value": "page", "label": "Page panier" }
+        ],
+        "default": "drawer"
+      },
+      {
+        "type": "checkbox",
+        "id": "cart_show_note",
+        "label": "Autoriser les instructions de commande",
+        "default": true
+      },
+      {
+        "type": "text",
+        "id": "cart_free_shipping_threshold",
+        "label": "Seuil de livraison offerte",
+        "default": "120",
+        "info": "Montant dans la devise de la boutique. Laisser vide pour masquer la barre de progression."
+      }
+    ]
+  },
+  {
+    "name": "Réseaux sociaux",
+    "settings": [
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_youtube", "label": "YouTube" },
+      { "type": "url", "id": "social_linkedin", "label": "LinkedIn" },
+      { "type": "url", "id": "social_facebook", "label": "Facebook" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok" }
+    ]
+  },
+  {
+    "name": "Partage social",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "share_image",
+        "label": "Image de partage par défaut",
+        "info": "1200 × 630 px recommandé."
+      }
+    ]
+  },
+  {
+    "name": "Favicon",
+    "settings": [
+      {
+        "type": "image_picker",
+        "id": "favicon",
+        "label": "Favicon",
+        "info": "32 × 32 px recommandé."
+      }
+    ]
+  }
+]

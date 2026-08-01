@@ -1,0 +1,25 @@
+{
+  "name": "Pied de page",
+  "type": "footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "col1": { "type": "menu", "settings": { "title": "Collection", "menu": "footer" } },
+        "col2": { "type": "menu", "settings": { "title": "Maison", "menu": "footer" } },
+        "col3": { "type": "menu", "settings": { "title": "Aide", "menu": "footer" } }
+      },
+      "block_order": ["col1", "col2", "col3"],
+      "settings": {
+        "tagline": "Appareils de récupération conçus en Europe. Une exigence unique : le retour au calme, chaque jour, sans compromis.",
+        "show_newsletter": true,
+        "newsletter_text": "Recevez nos protocoles de récupération et nos lancements en avant-première.",
+        "legal_menu": "footer",
+        "copyright": "Tous droits réservés.",
+        "show_payment_icons": true,
+        "show_wordmark": true
+      }
+    }
+  },
+  "order": ["footer"]
+}

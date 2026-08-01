@@ -1,0 +1,120 @@
+{%- liquid
+  assign collection = collections[section.settings.collection]
+  assign limit = section.settings.products_to_show
+  assign fallbacks = 'device-legs.svg,device-foot.svg,device-neck.svg,device-eye.svg' | split: ','
+-%}
+
+<section
+  class="section{% if section.settings.flush_top %} section--flush-top{% endif %}"
+  id="{{ section.id }}"
+>
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="lead" data-reveal style="--delay: 80ms">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+
+      {%- if section.settings.link_label != blank -%}
+        <a class="text-link" href="{{ section.settings.link_url | default: collection.url }}" data-reveal>
+          {{ section.settings.link_label }}
+          {% render 'icon', icon: 'arrow-right' %}
+        </a>
+      {%- endif -%}
+    </div>
+
+    {%- if collection.products.size > 0 -%}
+      <div class="cards cards--{{ section.settings.columns }}">
+        {%- for product in collection.products limit: limit -%}
+          {%- liquid
+            assign fallback_index = forloop.index0 | modulo: 4
+            assign fallback = fallbacks[fallback_index]
+            assign is_dark = false
+            if section.settings.alternate_dark and forloop.index0 == 2
+              assign is_dark = true
+            endif
+          -%}
+          {% render 'product-card',
+            product: product,
+            index: forloop.index0,
+            dark: is_dark,
+            fallback: fallback
+          %}
+        {%- endfor -%}
+      </div>
+    {%- else -%}
+      <div class="cards cards--{{ section.settings.columns }}">
+        {%- for i in (1..4) -%}
+          <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
+            <div class="card__media card__media--{{ settings.card_image_ratio }}">
+              <img src="{{ fallbacks[forloop.index0] | asset_url }}" alt="" width="600" height="600" loading="lazy">
+            </div>
+            <div class="card__body">
+              <div>
+                <h3 class="card__title">{{ 'products.product.view_details' | t }}</h3>
+                <p class="card__desc">Sélectionnez une collection dans les réglages de la section.</p>
+              </div>
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Collection en vedette",
+  "tag": "div",
+  "class": "collection-section",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "La collection" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Quatre appareils, quatre territoires du corps." },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Chaque produit répond à une zone précise et à un protocole distinct. Aucun accessoire superflu.</p>"
+    },
+    { "type": "text", "id": "link_label", "label": "Lien de la section", "default": "Toute la collection" },
+    { "type": "url", "id": "link_url", "label": "Cible du lien" },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "Nombre de produits",
+      "min": 2,
+      "max": 12,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Colonnes",
+      "options": [
+        { "value": "2", "label": "2 — grandes vignettes" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "2"
+    },
+    {
+      "type": "checkbox",
+      "id": "alternate_dark",
+      "label": "Vignette sombre sur la troisième carte",
+      "default": true,
+      "info": "Rompt la grille et attire l’œil sans surcharger."
+    },
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "presets": [{ "name": "Collection en vedette" }]
+}
+{% endschema %}

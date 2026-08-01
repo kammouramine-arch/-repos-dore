@@ -1,0 +1,52 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap stats">
+    {%- for block in section.blocks -%}
+      <div class="stat" data-reveal style="--delay: {{ forloop.index0 | times: 80 }}ms" {{ block.shopify_attributes }}>
+        <p class="stat__num">
+          {%- if block.settings.animate and block.settings.number != blank -%}
+            <span data-count="{{ block.settings.number }}">{{ block.settings.number }}</span>
+          {%- else -%}
+            <span>{{ block.settings.number }}</span>
+          {%- endif -%}
+          {%- if block.settings.suffix != blank -%}<sup>{{ block.settings.suffix }}</sup>{%- endif -%}
+        </p>
+        <p class="stat__label">{{ block.settings.label }}</p>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Chiffres clés",
+  "tag": "div",
+  "class": "stats-section",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Chiffre",
+      "settings": [
+        { "type": "text", "id": "number", "label": "Nombre", "default": "92", "info": "Un nombre entier permet l’animation de comptage." },
+        { "type": "text", "id": "suffix", "label": "Suffixe", "default": "%" },
+        { "type": "textarea", "id": "label", "label": "Légende", "default": "déclarent des jambes plus légères dès la première semaine" },
+        { "type": "checkbox", "id": "animate", "label": "Animer le comptage", "default": true }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Chiffres clés",
+      "blocks": [
+        { "type": "stat", "settings": { "number": "92", "suffix": "%", "label": "déclarent des jambes plus légères dès la première semaine" } },
+        { "type": "stat", "settings": { "number": "38", "suffix": "dB", "label": "niveau sonore mesuré en usage continu" } },
+        { "type": "stat", "settings": { "number": "3000", "suffix": "", "label": "cycles de test moteur avant mise en production" } },
+        { "type": "stat", "settings": { "number": "10", "suffix": "ans", "label": "de pièces détachées garanties disponibles" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,31 @@
+{%- comment -%} Pagination sobre. Paramètre : paginate {%- endcomment -%}
+
+{%- if paginate.pages > 1 -%}
+  <nav class="pagination" role="navigation" aria-label="{{ 'general.pagination.label' | t }}">
+    {%- if paginate.previous -%}
+      <a class="pagination__arrow" href="{{ paginate.previous.url }}" aria-label="{{ 'general.pagination.previous' | t }}">
+        {% render 'icon', icon: 'chevron-left' %}
+      </a>
+    {%- endif -%}
+
+    <ol class="pagination__list">
+      {%- for part in paginate.parts -%}
+        <li>
+          {%- if part.is_link -%}
+            <a class="pagination__page" href="{{ part.url }}" aria-label="{{ 'general.pagination.page' | t: number: part.title }}">{{ part.title }}</a>
+          {%- elsif part.title == paginate.current_page -%}
+            <span class="pagination__page is-current" aria-current="page">{{ part.title }}</span>
+          {%- else -%}
+            <span class="pagination__page pagination__page--gap">{{ part.title }}</span>
+          {%- endif -%}
+        </li>
+      {%- endfor -%}
+    </ol>
+
+    {%- if paginate.next -%}
+      <a class="pagination__arrow" href="{{ paginate.next.url }}" aria-label="{{ 'general.pagination.next' | t }}">
+        {% render 'icon', icon: 'chevron-right' %}
+      </a>
+    {%- endif -%}
+  </nav>
+{%- endif -%}

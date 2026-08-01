@@ -1,0 +1,20 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-collection",
+      "settings": { "products_per_page": 12, "columns": "3", "show_sorting": true }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Essai 30 nuits",
+        "heading": "Testez chez vous. Décidez ensuite.",
+        "text": "<p>Trente nuits pour vous décider. Retour organisé et remboursé.</p>",
+        "button_label": "Nous contacter",
+        "note": "Livraison 48 h · Garantie 2 ans",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["main", "cta"]
+}

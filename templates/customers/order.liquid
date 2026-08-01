@@ -1,0 +1,48 @@
+<section class="section account">
+  <div class="wrap">
+    <h1 class="h2">{{ 'customer.orders.order_number' | t }} {{ order.name }}</h1>
+    <p class="muted">{{ order.created_at | date: '%d.%m.%Y' }}</p>
+
+    <table class="orders" style="margin-top:2.5rem">
+      <thead>
+        <tr>
+          <th scope="col">{{ 'customer.orders.product' | t }}</th>
+          <th scope="col">{{ 'customer.orders.quantity' | t }}</th>
+          <th scope="col">{{ 'customer.orders.price' | t }}</th>
+        </tr>
+      </thead>
+      <tbody>
+        {%- for line_item in order.line_items -%}
+          <tr>
+            <td>
+              <a class="text-link" href="{{ line_item.product.url }}">{{ line_item.title }}</a>
+            </td>
+            <td>{{ line_item.quantity }}</td>
+            <td>{{ line_item.final_line_price | money }}</td>
+          </tr>
+        {%- endfor -%}
+      </tbody>
+      <tfoot>
+        <tr><td colspan="2">{{ 'customer.orders.subtotal' | t }}</td><td>{{ order.line_items_subtotal_price | money }}</td></tr>
+        {%- for shipping_method in order.shipping_methods -%}
+          <tr><td colspan="2">{{ 'customer.orders.shipping' | t }} — {{ shipping_method.title }}</td><td>{{ shipping_method.price | money }}</td></tr>
+        {%- endfor -%}
+        {%- for tax_line in order.tax_lines -%}
+          <tr><td colspan="2">{{ 'customer.orders.tax' | t }} — {{ tax_line.title }}</td><td>{{ tax_line.price | money }}</td></tr>
+        {%- endfor -%}
+        <tr><td colspan="2"><strong>{{ 'customer.orders.total' | t }}</strong></td><td><strong>{{ order.total_price | money }}</strong></td></tr>
+      </tfoot>
+    </table>
+
+    <div class="account__layout" style="margin-top:3rem">
+      <div>
+        <h2 class="h4">{{ 'customer.orders.billing_address' | t }}</h2>
+        <div class="rte">{{ order.billing_address | format_address }}</div>
+      </div>
+      <div>
+        <h2 class="h4">{{ 'customer.orders.shipping_address' | t }}</h2>
+        <div class="rte">{{ order.shipping_address | format_address }}</div>
+      </div>
+    </div>
+  </div>
+</section>

@@ -1,0 +1,46 @@
+{
+  "current": {
+    "color_ink": "#0A0A0B",
+    "color_background": "#FFFFFF",
+    "color_muted": "#55585F",
+    "color_border": "#E1E3E6",
+    "color_surface": "#F8F8F9",
+    "color_accent": "#C2A26B",
+    "color_accent_soft": "#DCC698",
+    "color_deep": "#0E1D33",
+    "font_body": "assistant_n4",
+    "font_heading": "assistant_n4",
+    "font_body_scale": 100,
+    "heading_tracking": -35,
+    "heading_light_weight": true,
+    "page_width": 1440,
+    "spacing_scale": 100,
+    "corner_radius": 20,
+    "animations_enabled": true,
+    "animations_parallax": true,
+    "card_show_vendor": false,
+    "card_show_rating": true,
+    "card_image_ratio": "landscape",
+    "cart_type": "drawer",
+    "cart_show_note": true,
+    "cart_free_shipping_threshold": "120",
+    "sections": {
+      "header-group": {},
+      "footer-group": {}
+    }
+  },
+  "presets": {
+    "RÉVA — Nuit": {
+      "color_ink": "#0A0A0B",
+      "color_background": "#FFFFFF",
+      "color_accent": "#C2A26B",
+      "color_deep": "#0E1D33"
+    },
+    "RÉVA — Acier": {
+      "color_ink": "#0D1013",
+      "color_background": "#FFFFFF",
+      "color_accent": "#7C8B99",
+      "color_deep": "#1B2A36"
+    }
+  }
+}

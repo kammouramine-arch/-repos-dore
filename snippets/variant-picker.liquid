@@ -1,0 +1,98 @@
+{%- comment -%}
+  Sélecteur de variantes accessible (boutons radio).
+  Pastilles de couleur si la boutique fournit des échantillons (swatches),
+  puces textuelles sinon.
+  Paramètres : product, block
+{%- endcomment -%}
+
+{%- unless product.has_only_default_variant -%}
+  <variant-picker
+    class="variant-picker"
+    data-variant-picker
+    data-url="{{ product.url }}"
+    data-section="{{ section.id }}"
+  >
+    {%- for option in product.options_with_values -%}
+      {%- liquid
+        assign has_swatch = false
+        for value in option.values
+          if value.swatch.color != blank
+            assign has_swatch = true
+          endif
+        endfor
+
+        assign use_swatch = false
+        if has_swatch and block.settings.swatches
+          assign use_swatch = true
+        endif
+      -%}
+
+      <fieldset class="option" data-option-index="{{ forloop.index }}">
+        <legend class="visually-hidden">{{ option.name }}</legend>
+
+        <div class="option__head">
+          <span class="option__label">{{ option.name }}</span>
+          <span class="option__value" data-option-selected="{{ forloop.index }}">
+            {{ option.selected_value }}
+          </span>
+        </div>
+
+        <div class="{% if use_swatch %}swatches{% else %}chips{% endif %}">
+          {%- for value in option.values -%}
+            {%- liquid
+              assign value_string = value | default: value.name
+              assign input_id = 'Option-' | append: section.id | append: '-' | append: option.position | append: '-' | append: forloop.index
+              assign is_checked = false
+              if option.selected_value == value_string
+                assign is_checked = true
+              endif
+            -%}
+
+            <input
+              class="visually-hidden option__input"
+              type="radio"
+              id="{{ input_id }}"
+              name="{{ option.name | escape }}-{{ option.position }}"
+              value="{{ value_string | escape }}"
+              data-option-position="{{ option.position }}"
+              {% if is_checked %}checked{% endif %}
+            >
+            <label
+              class="{% if use_swatch %}swatch{% else %}chip{% endif %}"
+              for="{{ input_id }}"
+              {% if use_swatch %}
+                style="--swatch: {{ value.swatch.color }}"
+                title="{{ value_string | escape }}"
+              {% endif %}
+            >
+              {%- if use_swatch -%}
+                <span class="visually-hidden">{{ value_string }}</span>
+              {%- else -%}
+                {{ value_string }}
+              {%- endif -%}
+            </label>
+          {%- endfor -%}
+        </div>
+      </fieldset>
+    {%- endfor -%}
+
+    <script type="application/json" data-variant-json>
+      {{ product.variants | json }}
+    </script>
+  </variant-picker>
+
+  <noscript>
+    <label class="visually-hidden" for="VariantSelect-{{ section.id }}">{{ 'products.product.choose_option' | t: option: product.options.first }}</label>
+    <select class="select" id="VariantSelect-{{ section.id }}" name="id" form="ProductForm-{{ section.id }}">
+      {%- for variant in product.variants -%}
+        <option
+          value="{{ variant.id }}"
+          {% if variant == product.selected_or_first_available_variant %}selected{% endif %}
+          {% unless variant.available %}disabled{% endunless %}
+        >
+          {{ variant.title }} — {{ variant.price | money }}
+        </option>
+      {%- endfor -%}
+    </select>
+  </noscript>
+{%- endunless -%}

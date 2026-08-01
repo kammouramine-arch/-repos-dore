@@ -1,0 +1,60 @@
+<section class="section">
+  <div class="wrap wrap--narrow">
+    <div class="section-head">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="timeline">
+      {%- for block in section.blocks -%}
+        <article class="timeline__item" data-reveal style="--delay: {{ forloop.index0 | times: 80 }}ms" {{ block.shopify_attributes }}>
+          <p class="timeline__year">{{ block.settings.year }}</p>
+          <div class="timeline__body">
+            <h3 class="h3">{{ block.settings.title }}</h3>
+            <p>{{ block.settings.text }}</p>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Chronologie",
+  "tag": "div",
+  "class": "timeline-section",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Repères" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Sept ans, quatre appareils." }
+  ],
+  "blocks": [
+    {
+      "type": "step",
+      "name": "Étape",
+      "settings": [
+        { "type": "text", "id": "year", "label": "Année", "default": "2019" },
+        { "type": "text", "id": "title", "label": "Titre", "default": "Le premier prototype" },
+        { "type": "textarea", "id": "text", "label": "Texte", "default": "Vingt-trois versions du compresseur avant d’atteindre 38 dB." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Chronologie",
+      "blocks": [
+        { "type": "step", "settings": { "year": "2019" } },
+        { "type": "step", "settings": { "year": "2021", "title": "Première série", "text": "Trois cents exemplaires écoulés en onze jours." } },
+        { "type": "step", "settings": { "year": "2023", "title": "L’atelier de réparation", "text": "Engagement de disponibilité des pièces détachées pendant dix ans." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,91 @@
+{
+  "sections": {
+    "hero": {
+      "type": "main-page",
+      "settings": { "eyebrow": "La maison", "dark": true, "large_title": true }
+    },
+    "story": {
+      "type": "feature-split",
+      "blocks": {},
+      "block_order": [],
+      "settings": {
+        "fallback_image": "device-unit.svg",
+        "media_position": "left",
+        "media_style": "light",
+        "eyebrow": "Origine",
+        "heading": "Un cabinet de kinésithérapie, un dimanche de novembre.",
+        "text": "<p>Une kinésithérapeute du sport et un ingénieur en mécanique des fluides partagent le même agacement : les appareils de compression sont efficaces mais imprécis, bruyants, et impossibles à recommander pour un usage à domicile. Dix-huit mois plus tard, le premier prototype tient dans une valise. Le troisième tient dans un tiroir.</p>"
+      }
+    },
+    "statement": {
+      "type": "statement-banner",
+      "settings": {
+        "background": "#0E1D33",
+        "eyebrow": "Notre parti pris",
+        "heading": "Quatre produits. Pas quarante.",
+        "text": "<p>Chaque nouveau produit demande dix-huit mois de développement et doit répondre à une zone du corps qu’aucun autre ne couvre. Si nous n’avons rien à ajouter, nous n’ajoutons rien.</p>"
+      }
+    },
+    "timeline": {
+      "type": "timeline",
+      "blocks": {
+        "y1": { "type": "step", "settings": { "year": "2019", "title": "Le premier prototype", "text": "Vingt-trois versions du compresseur avant d’atteindre 38 dB." } },
+        "y2": { "type": "step", "settings": { "year": "2021", "title": "Première série", "text": "Trois cents exemplaires écoulés en onze jours auprès de kinésithérapeutes et de clubs sportifs." } },
+        "y3": { "type": "step", "settings": { "year": "2023", "title": "L’atelier de réparation", "text": "Engagement de disponibilité des pièces détachées pendant dix ans." } },
+        "y4": { "type": "step", "settings": { "year": "2025", "title": "La gamme s’étend", "text": "Nuque et regard rejoignent la collection. Protocoles audio écrits avec une sophrologue." } }
+      },
+      "block_order": ["y1", "y2", "y3", "y4"],
+      "settings": { "eyebrow": "Repères", "heading": "Sept ans, quatre appareils." }
+    },
+    "values": {
+      "type": "value-props",
+      "blocks": {
+        "v1": { "type": "value", "settings": { "icon": "wrench", "title": "Réparer plutôt que remplacer", "text": "Chaque appareil est démontable avec un tournevis standard. Pièces détachées disponibles dix ans, à prix coûtant." } },
+        "v2": { "type": "value", "settings": { "icon": "clock", "title": "Le temps avant le volume", "text": "Dix-huit mois de développement minimum, trois mille cycles de test moteur avant toute mise en production." } },
+        "v3": { "type": "value", "settings": { "icon": "account", "title": "Un humain au bout du fil", "text": "Un service client qui règle votre protocole, pas seulement votre commande." } }
+      },
+      "block_order": ["v1", "v2", "v3"],
+      "settings": { "eyebrow": "Engagements", "heading": "Trois promesses que nous tenons par écrit.", "background": "#F8F8F9" }
+    },
+    "making": {
+      "type": "feature-split",
+      "blocks": {
+        "m1": { "type": "point", "settings": { "title": "Textiles — Portugal", "text": "Atelier familial certifié OEKO-TEX Standard 100 et GRS." } },
+        "m2": { "type": "point", "settings": { "title": "Pneumatique — Allemagne", "text": "Compresseurs et capteurs de pression garantis 3 000 cycles." } },
+        "m3": { "type": "point", "settings": { "title": "Assemblage & SAV — France", "text": "Assemblage final, contrôle qualité et réparation dans notre atelier." } }
+      },
+      "block_order": ["m1", "m2", "m3"],
+      "settings": {
+        "fallback_image": "device-case.svg",
+        "media_position": "right",
+        "media_style": "dark",
+        "eyebrow": "Fabrication",
+        "heading": "Ce que nous savons de nos fournisseurs.",
+        "text": "<p>Nous publions la liste complète de nos partenaires industriels. Aucun n’est un intermédiaire : nous travaillons directement avec les ateliers qui produisent nos pièces.</p>"
+      }
+    },
+    "stats": {
+      "type": "stats",
+      "blocks": {
+        "s1": { "type": "stat", "settings": { "number": "38", "suffix": "000", "label": "foyers équipés en Europe", "animate": true } },
+        "s2": { "type": "stat", "settings": { "number": "11", "suffix": "", "label": "pays livrés depuis un entrepôt unique", "animate": true } },
+        "s3": { "type": "stat", "settings": { "number": "94", "suffix": "%", "label": "des appareils rapportés en SAV sont réparés, non remplacés", "animate": true } },
+        "s4": { "type": "stat", "settings": { "number": "0", "suffix": "", "label": "revendeur tiers — nous vendons en direct, uniquement", "animate": false } }
+      },
+      "block_order": ["s1", "s2", "s3", "s4"],
+      "settings": { "flush_top": true }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Commencer",
+        "heading": "Le meilleur argument reste l’essai.",
+        "text": "<p>Trente nuits chez vous. Si l’objet ne trouve pas sa place dans votre quotidien, nous le reprenons et vous remboursons.</p>",
+        "button_label": "Découvrir la collection",
+        "note": "Livraison 48 h · Garantie 2 ans · Service client français",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["hero", "story", "statement", "timeline", "values", "making", "stats", "cta"]
+}

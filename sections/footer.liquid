@@ -1,0 +1,198 @@
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        {%- if section.settings.logo != blank -%}
+          {{ section.settings.logo | image_url: width: 300 | image_tag: widths: '150, 300', sizes: '150px', alt: shop.name, class: 'footer__logo' }}
+        {%- else -%}
+          <span class="logo">{{ shop.name }}</span>
+        {%- endif -%}
+
+        {%- if section.settings.tagline != blank -%}
+          <p class="footer__tagline">{{ section.settings.tagline }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.show_newsletter -%}
+          <div class="footer__news">
+            {%- if section.settings.newsletter_text != blank -%}
+              <p>{{ section.settings.newsletter_text }}</p>
+            {%- endif -%}
+
+            {% form 'customer', class: 'inline-form', novalidate: 'novalidate' %}
+              <input type="hidden" name="contact[tags]" value="newsletter">
+              <label class="visually-hidden" for="FooterNewsletter">{{ 'general.newsletter.label' | t }}</label>
+              <input
+                class="input"
+                id="FooterNewsletter"
+                type="email"
+                name="contact[email]"
+                value="{{ form.email }}"
+                placeholder="{{ 'general.newsletter.placeholder' | t }}"
+                autocorrect="off"
+                autocapitalize="off"
+                required
+              >
+              <button class="btn btn--gold btn--sm" type="submit">{{ 'general.newsletter.submit' | t }}</button>
+
+              {%- if form.posted_successfully? -%}
+                <p class="form__note form__note--success" role="status">{{ 'general.newsletter.success' | t }}</p>
+              {%- elsif form.errors -%}
+                <p class="form__note form__note--error" role="alert">{{ form.errors.messages.email }}</p>
+              {%- endif -%}
+            {% endform %}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- for block in section.blocks -%}
+        {%- case block.type -%}
+          {%- when 'menu' -%}
+            <div class="footer__col" {{ block.shopify_attributes }}>
+              <h2 class="footer__col-title">{{ block.settings.title }}</h2>
+              <ul>
+                {%- for link in block.settings.menu.links -%}
+                  <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+                {%- endfor -%}
+              </ul>
+            </div>
+
+          {%- when 'text' -%}
+            <div class="footer__col" {{ block.shopify_attributes }}>
+              <h2 class="footer__col-title">{{ block.settings.title }}</h2>
+              <div class="footer__rte rte">{{ block.settings.content }}</div>
+            </div>
+        {%- endcase -%}
+      {%- endfor -%}
+    </div>
+
+    <div class="footer__bottom">
+      <p>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ section.settings.copyright }}</p>
+
+      {%- if section.settings.legal_menu != blank -%}
+        <nav class="footer__legal" aria-label="{{ section.settings.legal_menu.title }}">
+          {%- for link in section.settings.legal_menu.links -%}
+            <a href="{{ link.url }}">{{ link.title }}</a>
+          {%- endfor -%}
+        </nav>
+      {%- endif -%}
+
+      <div class="footer__social">
+        {% render 'social-icons' %}
+      </div>
+
+      {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+        <div class="footer__pay">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'footer__pay-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.show_wordmark -%}
+    <div class="footer__wordmark" aria-hidden="true">
+      <span>{{ section.settings.wordmark | default: shop.name }}</span>
+    </div>
+  {%- endif -%}
+</footer>
+
+{% schema %}
+{
+  "name": "Pied de page",
+  "tag": "div",
+  "class": "footer-section",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "Logo"
+    },
+    {
+      "type": "textarea",
+      "id": "tagline",
+      "label": "Signature de marque",
+      "default": "Appareils de récupération conçus en Europe. Une exigence unique : le retour au calme, chaque jour, sans compromis."
+    },
+    {
+      "type": "header",
+      "content": "Lettre d’information"
+    },
+    {
+      "type": "checkbox",
+      "id": "show_newsletter",
+      "label": "Afficher le formulaire",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "newsletter_text",
+      "label": "Accroche",
+      "default": "Recevez nos protocoles de récupération et nos lancements en avant-première."
+    },
+    {
+      "type": "header",
+      "content": "Bas de page"
+    },
+    {
+      "type": "link_list",
+      "id": "legal_menu",
+      "label": "Menu légal",
+      "default": "footer"
+    },
+    {
+      "type": "text",
+      "id": "copyright",
+      "label": "Mention de copyright",
+      "default": "Tous droits réservés."
+    },
+    {
+      "type": "checkbox",
+      "id": "show_payment_icons",
+      "label": "Afficher les moyens de paiement",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_wordmark",
+      "label": "Afficher le grand logotype en filigrane",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "wordmark",
+      "label": "Texte du filigrane",
+      "info": "À défaut, le nom de la boutique."
+    }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Colonne de liens",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titre", "default": "Collection" },
+        { "type": "link_list", "id": "menu", "label": "Menu", "default": "footer" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "Colonne de texte",
+      "settings": [
+        { "type": "text", "id": "title", "label": "Titre", "default": "Maison" },
+        { "type": "richtext", "id": "content", "label": "Contenu" }
+      ]
+    }
+  ],
+  "default": {
+    "blocks": [
+      { "type": "menu", "settings": { "title": "Collection" } },
+      { "type": "menu", "settings": { "title": "Maison" } },
+      { "type": "menu", "settings": { "title": "Aide" } }
+    ]
+  },
+  "enabled_on": {
+    "groups": ["footer"]
+  }
+}
+{% endschema %}

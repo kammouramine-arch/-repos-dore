@@ -1,0 +1,276 @@
+{%- liquid
+  comment
+    Priorité des médias : vidéo hébergée > vidéo externe > image > illustration vectorielle.
+    La vidéo est muette, en boucle et sans contrôles : elle sert de fond, jamais de contenu.
+  endcomment
+  assign has_video = false
+  if section.settings.video != blank or section.settings.video_url != blank
+    assign has_video = true
+  endif
+
+  assign has_image = false
+  if section.settings.image != blank
+    assign has_image = true
+  endif
+-%}
+
+<section
+  class="hero{% if section.settings.overlap_header %} hero--overlap{% endif %} grain"
+  style="--hero-height: {{ section.settings.height }}svh; --hero-overlay: {{ section.settings.overlay_opacity | divided_by: 100.0 }};"
+>
+  <div class="hero__bg"></div>
+
+  {%- if has_video -%}
+    <div class="hero__media hero__media--video">
+      {%- if section.settings.video != blank -%}
+        {{
+          section.settings.video
+          | video_tag:
+            image_size: '1600x',
+            autoplay: true,
+            loop: true,
+            muted: true,
+            controls: false,
+            playsinline: true,
+            class: 'hero__video'
+        }}
+      {%- else -%}
+        <video
+          class="hero__video"
+          autoplay
+          muted
+          loop
+          playsinline
+          preload="metadata"
+          {% if section.settings.video_poster != blank %}
+            poster="{{ section.settings.video_poster | image_url: width: 1600 }}"
+          {% endif %}
+        >
+          <source src="{{ section.settings.video_url }}" type="video/mp4">
+        </video>
+      {%- endif -%}
+      <span class="hero__scrim"></span>
+    </div>
+  {%- elsif has_image -%}
+    <div class="hero__media">
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag:
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '600, 900, 1200, 1800, 2400',
+          sizes: '100vw',
+          alt: section.settings.image.alt | default: section.settings.heading | strip_html | escape,
+          class: 'hero__img'
+      }}
+      <span class="hero__scrim"></span>
+    </div>
+  {%- elsif section.settings.product_image != blank -%}
+    <img
+      class="hero__visual"
+      src="{{ section.settings.product_image | asset_url }}"
+      alt=""
+      aria-hidden="true"
+      {% if settings.animations_parallax %}data-parallax="0.06"{% endif %}
+      width="600"
+      height="600"
+    >
+  {%- endif -%}
+
+  <div class="wrap hero__inner">
+    <div class="hero__content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h1 class="display hero__title split-lines" data-reveal="fade">
+          {%- assign lines = section.settings.heading | strip_html | split: '|' -%}
+          {%- for line in lines -%}
+            <span class="line"><span>{{ line | strip }}</span></span>
+          {%- endfor -%}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="lead hero__text" data-reveal style="--delay: 120ms">{{ section.settings.text }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank or section.settings.button_2_label != blank -%}
+        <div class="btn-row" data-reveal style="--delay: 200ms">
+          {%- if section.settings.button_label != blank -%}
+            <a class="btn btn--light" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">
+              {{ section.settings.button_label }}
+            </a>
+          {%- endif -%}
+          {%- if section.settings.button_2_label != blank -%}
+            <a class="btn btn--outline-light" href="{{ section.settings.button_2_link }}">
+              {{ section.settings.button_2_label }}
+            </a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="hero__meta" data-reveal style="--delay: 300ms">
+          {%- for block in section.blocks -%}
+            <div {{ block.shopify_attributes }}>
+              <strong>{{ block.settings.value }}</strong>
+              <span>{{ block.settings.label }}</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.show_scroll_cue -%}
+    <div class="scroll-cue" aria-hidden="true">
+      <span>{{ section.settings.scroll_label }}</span>
+      <i></i>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "Ouverture",
+  "tag": "div",
+  "class": "hero-section",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "text",
+      "id": "eyebrow",
+      "label": "Surtitre",
+      "default": "Récupération de précision"
+    },
+    {
+      "type": "text",
+      "id": "heading",
+      "label": "Titre",
+      "default": "La récupération,|élevée au rang|de rituel.",
+      "info": "Séparez les lignes par une barre verticale « | » pour les faire apparaître l’une après l’autre."
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Quatre appareils. Une même exigence : rendre au corps ce que la journée lui a pris.</p>"
+    },
+    {
+      "type": "header",
+      "content": "Visuel"
+    },
+    {
+      "type": "video",
+      "id": "video",
+      "label": "Vidéo d’ouverture",
+      "info": "Muette et en boucle. 8 à 12 s suffisent. Prioritaire sur l’image."
+    },
+    {
+      "type": "text",
+      "id": "video_url",
+      "label": "Ou URL d’un fichier MP4",
+      "info": "Utile pour héberger la vidéo sur un CDN externe."
+    },
+    {
+      "type": "image_picker",
+      "id": "video_poster",
+      "label": "Image d’attente de la vidéo",
+      "info": "Affichée pendant le chargement. Améliore nettement le LCP."
+    },
+    {
+      "type": "image_picker",
+      "id": "image",
+      "label": "Image plein écran",
+      "info": "3000 × 1800 px recommandé. Utilisée si aucune vidéo n’est définie."
+    },
+    {
+      "type": "select",
+      "id": "product_image",
+      "label": "Illustration de secours",
+      "info": "Utilisée tant qu’aucune photographie n’est chargée.",
+      "options": [
+        { "value": "", "label": "Aucune" },
+        { "value": "device-legs.svg", "label": "Bottes de compression" },
+        { "value": "device-foot.svg", "label": "Masseur de pieds" },
+        { "value": "device-neck.svg", "label": "Masseur de nuque" },
+        { "value": "device-eye.svg", "label": "Masseur oculaire" }
+      ],
+      "default": "device-legs.svg"
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "Assombrissement de l’image",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 45
+    },
+    {
+      "type": "header",
+      "content": "Mise en page"
+    },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "Hauteur",
+      "min": 60,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 100
+    },
+    {
+      "type": "checkbox",
+      "id": "overlap_header",
+      "label": "Passer sous l’en-tête transparent",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_scroll_cue",
+      "label": "Afficher l’invitation à défiler",
+      "default": true
+    },
+    {
+      "type": "text",
+      "id": "scroll_label",
+      "label": "Libellé de l’invitation",
+      "default": "Défiler"
+    },
+    {
+      "type": "header",
+      "content": "Boutons"
+    },
+    { "type": "text", "id": "button_label", "label": "Bouton principal", "default": "Découvrir la collection" },
+    { "type": "url", "id": "button_link", "label": "Lien du bouton principal" },
+    { "type": "text", "id": "button_2_label", "label": "Bouton secondaire", "default": "Notre technologie" },
+    { "type": "url", "id": "button_2_link", "label": "Lien du bouton secondaire" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "Chiffre de réassurance",
+      "settings": [
+        { "type": "text", "id": "value", "label": "Valeur", "default": "30 nuits" },
+        { "type": "text", "id": "label", "label": "Légende", "default": "D’essai, retour offert" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Ouverture",
+      "blocks": [
+        { "type": "stat", "settings": { "value": "38 000+", "label": "Clients équipés" } },
+        { "type": "stat", "settings": { "value": "4,9/5", "label": "Sur 2 418 avis vérifiés" } },
+        { "type": "stat", "settings": { "value": "30 nuits", "label": "D’essai, retour offert" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

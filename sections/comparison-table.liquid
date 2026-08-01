@@ -1,0 +1,89 @@
+<section class="section">
+  <div class="wrap wrap--narrow">
+    <div class="section-head">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div data-reveal>
+      <table class="compare">
+        <thead>
+          <tr>
+            <th scope="col">{{ section.settings.column_criteria }}</th>
+            <th scope="col">{{ section.settings.column_us | default: shop.name }}</th>
+            <th scope="col">{{ section.settings.column_them }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%- for block in section.blocks -%}
+            <tr {{ block.shopify_attributes }}>
+              <th scope="row">{{ block.settings.criteria }}</th>
+              <td class="yes">
+                {%- if block.settings.us -%}
+                  {% render 'icon', icon: 'check' %}
+                  <span class="visually-hidden">Oui</span>
+                {%- else -%}
+                  <span class="no">—</span>
+                {%- endif -%}
+              </td>
+              <td class="no">
+                {%- if block.settings.them -%}
+                  {% render 'icon', icon: 'check' %}
+                  <span class="visually-hidden">Oui</span>
+                {%- else -%}
+                  —
+                {%- endif -%}
+              </td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Tableau comparatif",
+  "tag": "div",
+  "class": "compare-section",
+  "max_blocks": 10,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Pourquoi nous" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Ce qui sépare un appareil premium d’un appareil bon marché." },
+    { "type": "text", "id": "column_criteria", "label": "Colonne 1", "default": "Critère" },
+    { "type": "text", "id": "column_us", "label": "Colonne 2", "info": "À défaut, le nom de la boutique." },
+    { "type": "text", "id": "column_them", "label": "Colonne 3", "default": "Marché entrée de gamme" }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "Ligne",
+      "settings": [
+        { "type": "text", "id": "criteria", "label": "Critère", "default": "Pression calibrée et mesurable" },
+        { "type": "checkbox", "id": "us", "label": "Proposé par nous", "default": true },
+        { "type": "checkbox", "id": "them", "label": "Proposé par la concurrence", "default": false }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Tableau comparatif",
+      "blocks": [
+        { "type": "row", "settings": { "criteria": "Pression calibrée et mesurable" } },
+        { "type": "row", "settings": { "criteria": "Moteur silencieux < 40 dB" } },
+        { "type": "row", "settings": { "criteria": "Pièces détachées 10 ans" } },
+        { "type": "row", "settings": { "criteria": "Protocoles validés par des kinésithérapeutes" } },
+        { "type": "row", "settings": { "criteria": "Service client basé en France" } },
+        { "type": "row", "settings": { "criteria": "Essai 30 nuits, retour offert" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

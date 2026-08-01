@@ -1,0 +1,75 @@
+{%- comment -%}
+  Injecte les réglages du thème dans les variables CSS consommées par theme.css.
+  Toute la charte tient dans ce bloc : couleurs, typographie, rythme, arrondis.
+{%- endcomment -%}
+
+{%- liquid
+  assign body_font = settings.font_body
+  assign heading_font = settings.font_heading
+  assign body_scale = settings.font_body_scale | divided_by: 100.0
+  assign spacing = settings.spacing_scale | divided_by: 100.0
+  assign tracking = settings.heading_tracking | divided_by: 1000.0
+  if settings.heading_light_weight
+    assign heading_weight = 300
+  else
+    assign heading_weight = 400
+  endif
+-%}
+
+<style data-theme-variables>
+  :root {
+    --ink: {{ settings.color_ink }};
+    --ink-soft: {{ settings.color_ink | color_lighten: 4 }};
+    --ink-raised: {{ settings.color_ink | color_lighten: 8 }};
+    --white: {{ settings.color_background }};
+    --muted: {{ settings.color_muted }};
+    --line: {{ settings.color_border }};
+    --surface: {{ settings.color_surface }};
+
+    --grey-900: {{ settings.color_ink | color_lighten: 12 }};
+    --grey-700: {{ settings.color_muted }};
+    --grey-500: {{ settings.color_muted | color_lighten: 18 }};
+    --grey-300: {{ settings.color_border | color_darken: 10 }};
+    --grey-200: {{ settings.color_border }};
+    --grey-100: {{ settings.color_surface | color_darken: 3 }};
+    --grey-50: {{ settings.color_surface }};
+
+    --gold: {{ settings.color_accent }};
+    --gold-soft: {{ settings.color_accent_soft }};
+    --gold-deep: {{ settings.color_accent | color_darken: 12 }};
+    --navy: {{ settings.color_deep }};
+    --navy-soft: {{ settings.color_deep | color_lighten: 8 }};
+
+    --accent-rgb: {{ settings.color_accent | color_extract: 'red' }}, {{ settings.color_accent | color_extract: 'green' }}, {{ settings.color_accent | color_extract: 'blue' }};
+    --ink-rgb: {{ settings.color_ink | color_extract: 'red' }}, {{ settings.color_ink | color_extract: 'green' }}, {{ settings.color_ink | color_extract: 'blue' }};
+    --bg-rgb: {{ settings.color_background | color_extract: 'red' }}, {{ settings.color_background | color_extract: 'green' }}, {{ settings.color_background | color_extract: 'blue' }};
+
+    --bg: var(--white);
+    --fg: var(--ink);
+
+    --sans: {{ body_font.family }}, {{ body_font.fallback_families }};
+    --serif: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    --heading-weight: {{ heading_weight }};
+    --heading-tracking: {{ tracking }}em;
+
+    --fs-display: clamp({{ 2.5 | times: body_scale }}rem, 5.4vw, {{ 5 | times: body_scale }}rem);
+    --fs-h1: clamp({{ 2.25 | times: body_scale }}rem, 5.2vw, {{ 4.25 | times: body_scale }}rem);
+    --fs-h2: clamp({{ 1.85 | times: body_scale }}rem, 3.8vw, {{ 3.25 | times: body_scale }}rem);
+    --fs-h3: clamp({{ 1.35 | times: body_scale }}rem, 2.2vw, {{ 1.95 | times: body_scale }}rem);
+    --fs-h4: clamp({{ 1.1 | times: body_scale }}rem, 1.5vw, {{ 1.3 | times: body_scale }}rem);
+    --fs-lead: clamp({{ 1 | times: body_scale }}rem, 1.35vw, {{ 1.2 | times: body_scale }}rem);
+    --fs-body: {{ body_scale }}rem;
+    --fs-sm: {{ 0.875 | times: body_scale }}rem;
+    --fs-xs: {{ 0.75 | times: body_scale }}rem;
+    --fs-eyebrow: {{ 0.688 | times: body_scale }}rem;
+
+    --maxw: {{ settings.page_width }}px;
+    --section: clamp({{ 5.5 | times: spacing }}rem, {{ 12 | times: spacing }}vw, {{ 11 | times: spacing }}rem);
+    --section-sm: clamp({{ 3.5 | times: spacing }}rem, {{ 7 | times: spacing }}vw, {{ 6 | times: spacing }}rem);
+
+    --r-sm: {{ settings.corner_radius | divided_by: 5 }}px;
+    --r-md: {{ settings.corner_radius | divided_by: 2 }}px;
+    --r-lg: {{ settings.corner_radius }}px;
+    --r-xl: {{ settings.corner_radius | times: 1.6 | round }}px;
+  }
+</style>

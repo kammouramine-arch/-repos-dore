@@ -1,0 +1,38 @@
+{%- liquid
+  assign words = section.settings.text | strip_html | split: ' '
+-%}
+
+<section class="section manifesto" style="--section-top: {{ section.settings.padding_top }}px; --section-bottom: {{ section.settings.padding_bottom }}px;">
+  <div class="wrap">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="eyebrow" data-reveal="fade" style="justify-content: center">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+
+    <p class="manifesto__text" data-lit>
+      {%- for word in words -%}
+        <span class="word">{{ word }}</span>{% unless forloop.last %} {% endunless %}
+      {%- endfor -%}
+    </p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Manifeste",
+  "tag": "div",
+  "class": "manifesto-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Manifeste" },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "Phrase",
+      "default": "Nous ne vendons pas des appareils. Nous rendons à chacun ses vingt minutes de silence quotidien.",
+      "info": "Les mots s’allument un à un au défilement. Une phrase courte produit le meilleur effet."
+    },
+    { "type": "range", "id": "padding_top", "label": "Marge haute", "min": 0, "max": 200, "step": 8, "unit": "px", "default": 120 },
+    { "type": "range", "id": "padding_bottom", "label": "Marge basse", "min": 0, "max": 200, "step": 8, "unit": "px", "default": 120 }
+  ],
+  "presets": [{ "name": "Manifeste" }]
+}
+{% endschema %}

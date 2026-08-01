@@ -1,0 +1,70 @@
+{%- paginate collection.products by section.settings.products_per_page -%}
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="page-hero__inner">
+        <p class="eyebrow" data-reveal="fade">{{ 'templates.collections.title' | t }}</p>
+        <h1 class="h1" data-reveal="fade">{{ collection.title }}</h1>
+        {%- if collection.description != blank -%}
+          <div class="lead rte" data-reveal style="--delay: 100ms">{{ collection.description }}</div>
+        {%- endif -%}
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0">
+    <div class="wrap">
+      <div class="collection__toolbar">
+        <p class="muted">{{ 'products.facets.results_count' | t: count: collection.products_count }}</p>
+
+        {%- if section.settings.show_sorting -%}
+          <form class="collection__sort" id="SortForm">
+            <label class="visually-hidden" for="SortBy">{{ 'products.facets.sort_by' | t }}</label>
+            <select class="select" id="SortBy" name="sort_by" data-auto-submit>
+              {%- assign current = collection.sort_by | default: collection.default_sort_by -%}
+              {%- for option in collection.sort_options -%}
+                <option value="{{ option.value }}" {% if option.value == current %}selected{% endif %}>
+                  {{ option.name }}
+                </option>
+              {%- endfor -%}
+            </select>
+          </form>
+        {%- endif -%}
+      </div>
+
+      {%- if collection.products.size > 0 -%}
+        <div class="cards cards--{{ section.settings.columns }}">
+          {%- for product in collection.products -%}
+            {% render 'product-card', product: product, index: forloop.index0 %}
+          {%- endfor -%}
+        </div>
+
+        {% render 'pagination', paginate: paginate %}
+      {%- else -%}
+        <p class="lead">{{ 'templates.collections.empty' | t }}</p>
+      {%- endif -%}
+    </div>
+  </section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Grille de collection",
+  "tag": "div",
+  "class": "collection-template",
+  "settings": [
+    { "type": "range", "id": "products_per_page", "label": "Produits par page", "min": 8, "max": 48, "step": 4, "default": 12 },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "Colonnes",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    },
+    { "type": "checkbox", "id": "show_sorting", "label": "Afficher le tri", "default": true }
+  ]
+}
+{% endschema %}

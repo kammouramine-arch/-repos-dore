@@ -1,0 +1,52 @@
+{%- comment -%}
+  Prix d’un produit ou d’une variante.
+  Paramètres : product | variant, show_from (affiche « à partir de » sur les gammes de prix)
+{%- endcomment -%}
+
+{%- liquid
+  if variant
+    assign target = variant
+    assign compare_at = variant.compare_at_price
+    assign price = variant.price
+  else
+    assign target = product
+    assign compare_at = product.compare_at_price_max
+    assign price = product.price
+  endif
+
+  assign on_sale = false
+  if compare_at > price
+    assign on_sale = true
+  endif
+
+  assign varies = false
+  if product and product.price_varies and variant == null
+    assign varies = true
+  endif
+-%}
+
+<span class="price{% if on_sale %} price--on-sale{% endif %}">
+  {%- if varies and show_from -%}
+    <span class="price__from">{{ 'products.product.from_price' | t }}</span>
+  {%- endif -%}
+
+  {%- if on_sale -%}
+    <s class="price__compare">
+      <span class="visually-hidden">{{ 'products.product.regular_price' | t }}</span>
+      {{ compare_at | money }}
+    </s>
+  {%- endif -%}
+
+  <span class="price__current">
+    <span class="visually-hidden">
+      {%- if on_sale -%}{{ 'products.product.sale_price' | t }}{%- else -%}{{ 'products.product.regular_price' | t }}{%- endif -%}
+    </span>
+    {{ price | money }}
+  </span>
+
+  {%- if target.unit_price_measurement -%}
+    <span class="price__unit">
+      {{ target.unit_price | money }}/{% if target.unit_price_measurement.reference_value != 1 %}{{ target.unit_price_measurement.reference_value }}{% endif %}{{ target.unit_price_measurement.reference_unit }}
+    </span>
+  {%- endif -%}
+</span>

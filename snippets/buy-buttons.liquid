@@ -1,0 +1,61 @@
+{%- comment -%}
+  Formulaire d’ajout au panier.
+  Paramètres : product, block, section_id
+{%- endcomment -%}
+
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign form_id = 'ProductForm-' | append: section_id
+-%}
+
+<div class="pdp__buy" {{ block.shopify_attributes }}>
+  {%- form 'product',
+    product,
+    id: form_id,
+    class: 'form--product',
+    novalidate: 'novalidate',
+    data-product-form: ''
+  -%}
+    <input
+      type="hidden"
+      name="id"
+      value="{{ current_variant.id }}"
+      data-variant-input
+      {% unless current_variant.available %}disabled{% endunless %}
+    >
+
+    <div class="buy">
+      {%- if block.settings.show_quantity -%}
+        {% render 'quantity-input',
+          id: 'Quantity-',
+          value: 1,
+          min: 1,
+          form: form_id
+        %}
+      {%- endif -%}
+
+      <button
+        class="btn btn--block"
+        type="submit"
+        name="add"
+        data-add-to-cart
+        {% unless current_variant.available %}disabled{% endunless %}
+      >
+        <span data-add-to-cart-text>
+          {%- if current_variant.available -%}
+            {{ 'products.product.add_to_cart' | t }} — {{ current_variant.price | money }}
+          {%- else -%}
+            {{ 'products.product.sold_out' | t }}
+          {%- endif -%}
+        </span>
+        <span class="btn__spinner" hidden aria-hidden="true"></span>
+      </button>
+    </div>
+
+    {%- if block.settings.show_dynamic_checkout -%}
+      <div class="pdp__dynamic">{{ form | payment_button }}</div>
+    {%- endif -%}
+
+    <p class="form__error" data-cart-error role="alert" hidden></p>
+  {%- endform -%}
+</div>

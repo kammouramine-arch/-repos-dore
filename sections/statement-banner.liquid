@@ -1,0 +1,61 @@
+<section class="bleed grain" style="--bleed-bg: {{ section.settings.background }};">
+  {%- if section.settings.image != blank -%}
+    <div class="bleed__media">
+      {{
+        section.settings.image
+        | image_url: width: 2400
+        | image_tag: loading: 'lazy', widths: '800, 1200, 1800, 2400', sizes: '100vw', alt: '', class: 'bleed__img'
+      }}
+    </div>
+  {%- else -%}
+    <div class="bleed__bg" {% if settings.animations_parallax %}data-parallax="0.08"{% endif %}></div>
+  {%- endif -%}
+
+  <div class="wrap bleed__inner">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="eyebrow" data-reveal="fade" style="justify-content: center">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="h1" data-reveal>{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.text != blank -%}
+      <div class="rte" data-reveal style="--delay: 80ms">{{ section.settings.text }}</div>
+    {%- endif -%}
+
+    {%- if section.settings.button_label != blank -%}
+      <div class="btn-row" data-reveal style="--delay: 140ms">
+        <a class="btn btn--light" href="{{ section.settings.button_link }}">{{ section.settings.button_label }}</a>
+        {%- if section.settings.button_2_label != blank -%}
+          <a class="btn btn--outline-light" href="{{ section.settings.button_2_link }}">{{ section.settings.button_2_label }}</a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bandeau plein écran",
+  "tag": "div",
+  "class": "statement-section",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "Image de fond", "info": "2400 × 1400 px recommandé." },
+    { "type": "color", "id": "background", "label": "Couleur de fond", "default": "#0E1D33" },
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Conçu pour durer" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Aluminium anodisé, tissu technique, zéro plastique apparent." },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "Texte",
+      "default": "<p>Chaque pièce est démontable et réparable. Nous fournissons les pièces détachées pendant dix ans.</p>"
+    },
+    { "type": "text", "id": "button_label", "label": "Bouton principal" },
+    { "type": "url", "id": "button_link", "label": "Lien" },
+    { "type": "text", "id": "button_2_label", "label": "Bouton secondaire" },
+    { "type": "url", "id": "button_2_link", "label": "Lien secondaire" }
+  ],
+  "presets": [{ "name": "Bandeau plein écran" }]
+}
+{% endschema %}

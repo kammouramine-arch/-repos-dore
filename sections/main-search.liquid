@@ -1,0 +1,72 @@
+{%- paginate search.results by 12 -%}
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="page-hero__inner">
+        <p class="eyebrow" data-reveal="fade">{{ 'templates.search.title' | t }}</p>
+        <h1 class="h1" data-reveal="fade">
+          {%- if search.performed -%}
+            {{ 'templates.search.results_for' | t: terms: search.terms }}
+          {%- else -%}
+            {{ 'general.search.title' | t }}
+          {%- endif -%}
+        </h1>
+
+        <form class="search-form search-form--page" action="{{ routes.search_url }}" method="get" role="search" data-reveal>
+          <input type="hidden" name="type" value="product">
+          <label class="visually-hidden" for="SearchPage">{{ 'general.search.title' | t }}</label>
+          <input
+            class="input"
+            id="SearchPage"
+            type="search"
+            name="q"
+            value="{{ search.terms | escape }}"
+            placeholder="{{ 'general.search.placeholder' | t }}"
+          >
+          <button class="btn" type="submit">{{ 'general.search.submit' | t }}</button>
+        </form>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0">
+    <div class="wrap">
+      {%- if search.performed -%}
+        {%- if search.results_count > 0 -%}
+          <p class="muted" style="margin-bottom: 2rem">
+            {{ 'general.search.results_with_count' | t: count: search.results_count }}
+          </p>
+
+          <div class="cards cards--3">
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}
+                {% render 'product-card', product: item, index: forloop.index0 %}
+              {%- else -%}
+                <article class="card card--text" data-reveal="scale">
+                  <a class="card__link" href="{{ item.url }}"><span class="visually-hidden">{{ item.title }}</span></a>
+                  <div class="card__body">
+                    <div>
+                      <h2 class="card__title">{{ item.title }}</h2>
+                      <p class="card__desc">{{ item.content | strip_html | truncatewords: 24 }}</p>
+                    </div>
+                  </div>
+                </article>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          {% render 'pagination', paginate: paginate %}
+        {%- else -%}
+          <p class="lead">{{ 'general.search.no_results' | t: terms: search.terms }}</p>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Résultats de recherche",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,72 @@
+<section class="section" style="background: {{ section.settings.background }};">
+  <div class="wrap">
+    <div class="section-head">
+      <div class="section-head__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>
+        {%- endif -%}
+      </div>
+    </div>
+
+    <div class="values">
+      {%- for block in section.blocks -%}
+        <article class="value" data-reveal style="--delay: {{ forloop.index0 | times: 100 }}ms" {{ block.shopify_attributes }}>
+          {% render 'icon', icon: block.settings.icon %}
+          <h3 class="h3">{{ block.settings.title }}</h3>
+          <p>{{ block.settings.text }}</p>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Engagements",
+  "tag": "div",
+  "class": "values-section",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre", "default": "Engagements" },
+    { "type": "text", "id": "heading", "label": "Titre", "default": "Trois promesses que nous tenons par écrit." },
+    { "type": "color", "id": "background", "label": "Fond", "default": "#F8F8F9" }
+  ],
+  "blocks": [
+    {
+      "type": "value",
+      "name": "Engagement",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icône",
+          "options": [
+            { "value": "wrench", "label": "Réparabilité" },
+            { "value": "clock", "label": "Horloge" },
+            { "value": "account", "label": "Conseiller" },
+            { "value": "shield", "label": "Bouclier" },
+            { "value": "leaf", "label": "Durabilité" },
+            { "value": "truck", "label": "Livraison" }
+          ],
+          "default": "wrench"
+        },
+        { "type": "text", "id": "title", "label": "Titre", "default": "Réparer plutôt que remplacer" },
+        { "type": "textarea", "id": "text", "label": "Texte", "default": "Chaque appareil est démontable avec un tournevis standard. Nos pièces détachées restent disponibles dix ans." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Engagements",
+      "blocks": [
+        { "type": "value" },
+        { "type": "value", "settings": { "icon": "clock", "title": "Le temps avant le volume", "text": "Dix-huit mois de développement minimum, trois mille cycles de test moteur." } },
+        { "type": "value", "settings": { "icon": "account", "title": "Un humain au bout du fil", "text": "Un service client qui règle votre protocole, pas seulement votre commande." } }
+      ]
+    }
+  ]
+}
+{% endschema %}

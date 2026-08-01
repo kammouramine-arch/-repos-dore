@@ -1,0 +1,32 @@
+<section class="page-hero{% if section.settings.dark %} page-hero--dark grain{% endif %}">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 class="{% if section.settings.large_title %}display{% else %}h1{% endif %}" data-reveal="fade">
+        {{ page.title }}
+      </h1>
+    </div>
+  </div>
+</section>
+
+{%- if page.content != blank -%}
+  <section class="section" style="padding-top: clamp(2rem, 4vw, 3rem)">
+    <div class="wrap">
+      <div class="prose rte" data-reveal>{{ page.content }}</div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Contenu de page",
+  "tag": "div",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Surtitre" },
+    { "type": "checkbox", "id": "dark", "label": "En-tête de page sombre", "default": false },
+    { "type": "checkbox", "id": "large_title", "label": "Très grand titre", "default": false }
+  ]
+}
+{% endschema %}

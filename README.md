@@ -1,213 +1,193 @@
-# RÉVA — Site premium de récupération &amp; bien-être
+# RÉVA — Thème Shopify Online Store 2.0
 
-Site e-commerce vitrine complet en HTML / CSS / JavaScript natif, sans aucune dépendance,
-pensé pour être intégré tel quel dans un thème Shopify.
+Thème premium pour **RÉVA**, marque française de technologie de récupération
+(appareils vendus 149 € – 249 €). Architecture Shopify native, sans framework,
+sans dépendance externe.
 
-**Positionnement** : marque premium d'appareils de récupération (jambes, pieds, nuque, yeux)
-à 149 € – 249 €. Le parcours est construit pour justifier ce prix — preuve technique,
-transparence sur la fabrication, essai 30 nuits, garantie 2 ans, service humain.
+Direction artistique : minimalisme absolu, noir profond, blanc cassé, gris clair,
+doré très discret, beaucoup d'espace, micro-animations. Aucune reprise visuelle
+d'une marque existante.
 
 ---
 
-## 1. Contenu livré
+## 1. Installation
 
-| Fichier | Page |
+```bash
+zip -r reva-theme.zip layout templates sections snippets assets config locales
+```
+
+Puis dans l'administration Shopify : **Boutique en ligne → Thèmes → Ajouter un thème
+→ Importer un fichier ZIP**.
+
+Le ZIP doit contenir les sept dossiers **à la racine** (pas dans un dossier parent),
+ce que produit la commande ci-dessus.
+
+Développement en local avec Shopify CLI :
+
+```bash
+shopify theme dev --store votre-boutique.myshopify.com
+shopify theme check     # analyse statique
+shopify theme push
+```
+
+---
+
+## 2. Architecture
+
+```
+layout/          theme.liquid · password.liquid
+templates/       13 gabarits JSON + 7 gabarits client Liquid
+sections/        26 sections + 2 groupes de sections
+snippets/        11 partiels réutilisables
+assets/          theme.css · theme.js · product.js · 7 illustrations SVG
+config/          settings_schema.json · settings_data.json
+locales/         fr.default.json · en.json
+```
+
+### Gabarits
+
+| Fichier | Rôle |
 |---|---|
-| `index.html` | Accueil (hero plein écran, manifeste, collection, technologie, chiffres, avis, comparatif, presse, CTA) |
-| `produit.html` | Page produit haut de gamme — RÉVA Circula (galerie, options, barre d'achat collante, specs, avis, cross-sell) |
-| `a-propos.html` | La maison RÉVA (récit, chronologie, engagements, fabrication, showroom) |
-| `faq.html` | FAQ — 22 questions, recherche instantanée, 5 catégories filtrables |
-| `contact.html` | Contact (4 canaux, formulaire validé, infos pratiques) |
-| `assets/css/style.css` | Design system complet (jetons, composants, responsive) |
-| `assets/js/main.js` | 19 modules autonomes, sans dépendance |
-| `assets/img/*.svg` | Visuels produits vectoriels — **à remplacer par vos photos** |
+| `index.json` | Accueil — 16 sections |
+| `product.json` | Fiche produit + comparatif + avis + FAQ + recommandations |
+| `collection.json` | Grille de collection avec tri et pagination |
+| `list-collections.json` | Index des collections |
+| `page.json` | Page libre |
+| `page.about.json` | À propos (récit, chronologie, engagements, fabrication) |
+| `page.contact.json` | Contact (4 canaux + formulaire) |
+| `page.faq.json` | FAQ filtrable, 12 questions |
+| `page.legal.json` | Livraison, Garantie, Retours, CGV, Confidentialité, Mentions légales |
+| `cart.json` · `search.json` · `blog.json` · `article.json` · `404.json` · `password.json` | Gabarits standards |
+| `customers/*.liquid` | Connexion, inscription, compte, commande, adresses, activation, réinitialisation |
 
-Prévisualiser : `python3 -m http.server 8000` puis <http://localhost:8000>.
+Les six pages informatives partagent `page.legal.json` : créez la page dans
+**Boutique en ligne → Pages**, puis affectez-lui le gabarit `page.legal`.
+Le contenu se rédige dans l'éditeur de page, pas dans le code.
 
----
+### Sections
 
-## 2. Direction artistique
+**Accueil** — `hero` (vidéo ou image plein écran) · `trust-bar` · `manifesto` ·
+`featured-collection` · `feature-split` · `before-after` · `statement-banner` ·
+`stats` · `rich-text` · `testimonials` · `comparison-table` · `faq` ·
+`logo-list` · `cta-band` · `newsletter`
 
-**Palette** — noir `#0A0A0B`, blanc, gris `#F1F2F4` → `#55585F`, or `#C2A26B`,
-bleu nuit `#0E1D33`. L'or n'est jamais un aplat : filets, micro-détails, un seul
-bouton doré par page. C'est ce qui sépare le premium du clinquant.
+**Structure** — `header` · `announcement-bar` · `footer` · `cart-drawer`
+(+ `header-group.json` et `footer-group.json`)
 
-**Typographie** — Inter (200–600) partout, Instrument Serif en italique pour les
-accents éditoriaux. Titres en graisse 200/300 avec interlettrage négatif (`-.04em`),
-échelle entièrement fluide en `clamp()` : aucune rupture typographique entre 320 et 1440 px.
+**Gabarits** — `main-product` · `main-collection` · `main-cart` · `main-page` ·
+`main-search` · `main-blog` · `main-article` · `main-list-collections` ·
+`main-404` · `main-password` · `product-recommendations` · `contact-form` ·
+`timeline` · `value-props`
 
-**Espacement** — sections à `clamp(5.5rem, 12vw, 11rem)`. Le vide est la matière
-première du positionnement premium : ne le réduisez pas pour « gagner de la place ».
-
-**Animations** — révélations au scroll (opacité + 26 px), titres ligne par ligne,
-manifeste qui s'allume mot à mot, compteurs chiffrés, parallaxe légère (0,03–0,08),
-carrousel d'avis, accordéons animés en hauteur. Tout est neutralisé sous
-`prefers-reduced-motion`.
-
-Les jetons sont regroupés en variables CSS en tête de `style.css` : rebrander le site
-revient à modifier une dizaine de lignes.
-
----
-
-## 3. JavaScript
-
-Chaque module est indépendant et sans effet si son markup est absent — vous pouvez
-supprimer une section entière sans rien casser.
-
-Header au scroll · nav mobile plein écran · panier latéral persistant (`localStorage`) ·
-révélations `IntersectionObserver` · manifeste progressif · compteurs · carrousel d'avis
-(flèches, points, swipe, autoplay en pause au survol) · accordéons · galerie produit ·
-sélecteurs d'options · quantité · barre d'achat collante · barres de notation · parallaxe ·
-recherche FAQ insensible aux accents · validation de formulaires · lien de nav actif.
-
-### Robustesse
-- Les états masqués des animations sont conditionnés à la classe `js` posée dans le
-  `<head>` : **sans JavaScript, tout le contenu reste visible et indexable**.
-- Les compteurs contiennent leur valeur finale dans le HTML ; le JS repart de zéro.
-- Navigation clavier, attributs `aria-*`, focus visible, lien d'évitement sur chaque page.
+Chaque section possède son `{% schema %}` complet : réglages, blocs, `presets`
+pour l'ajout depuis l'éditeur, et `enabled_on` pour les groupes. **Tout est
+modifiable sans toucher au code** : textes, couleurs, images, vidéo, ordre des
+blocs, marges, nombre de colonnes.
 
 ---
 
-## 4. Intégration Shopify
+## 3. Page d'accueil
 
-### 4.1 Où placer les fichiers
+Dans l'ordre : ouverture plein écran (vidéo premium, titre en trois lignes
+révélées, deux boutons, trois chiffres de réassurance) → bandeau de garanties →
+manifeste dont les mots s'allument au défilement → collection → technologie →
+comparateur avant/après à curseur → bandeau plein écran → chiffres animés →
+rituel du soir → philosophie → avis clients → tableau comparatif → FAQ →
+titres de presse → appel à l'action → lettre d'information.
 
-```
-theme/
-├─ assets/
-│  ├─ style.css          ← assets/css/style.css
-│  ├─ main.js            ← assets/js/main.js
-│  └─ legs.svg, foot.svg, neck.svg, eye.svg, unit.svg, fabric.svg, case.svg
-├─ snippets/
-│  ├─ announcement.liquid   ← bloc .announce
-│  ├─ header.liquid         ← <header> + .mobile-nav
-│  ├─ cart-drawer.liquid    ← .overlay + .drawer
-│  └─ footer.liquid         ← <footer>
-├─ sections/
-│  ├─ hero.liquid, trust.liquid, manifesto.liquid, collection.liquid,
-│  │  tech-split.liquid, bleed.liquid, stats.liquid, quotes.liquid,
-│  │  compare.liquid, press.liquid, cta-band.liquid
-│  └─ main-product.liquid   ← .pdp + specs + steps + reviews
-└─ templates/
-   ├─ index.json, product.json, page.about.json, page.faq.json, page.contact.json
-```
+## 4. Page produit
 
-Dans `theme.liquid` :
-
-```liquid
-{{ 'style.css' | asset_url | stylesheet_tag }}
-<script>document.documentElement.className += " js";</script>
-...
-{% render 'announcement' %}
-{% render 'header' %}
-{% render 'cart-drawer' %}
-{{ content_for_layout }}
-{% render 'footer' %}
-<script src="{{ 'main.js' | asset_url }}" defer></script>
-```
-
-Le HTML est déjà découpé section par section (commentaires `═══`) pour faciliter
-ce découpage.
-
-### 4.2 Carte produit dynamique
-
-```liquid
-{% for product in collections['appareils'].products %}
-  <article class="card" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 60 }}ms">
-    <a class="card__link" href="{{ product.url }}"><span>Voir {{ product.title }}</span></a>
-    <div class="card__media">
-      {% if product.metafields.custom.badge %}
-        <span class="card__badge">{{ product.metafields.custom.badge }}</span>
-      {% endif %}
-      {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy' }}
-    </div>
-    <div class="card__body">
-      <div>
-        <h3 class="card__title">{{ product.title }}</h3>
-        <p class="card__desc">{{ product.metafields.custom.subtitle }}</p>
-      </div>
-      <p class="card__price">
-        {% if product.compare_at_price > product.price %}<s>{{ product.compare_at_price | money }}</s>{% endif %}
-        {{ product.price | money }}
-      </p>
-    </div>
-  </article>
-{% endfor %}
-```
-
-### 4.3 Ajout au panier
-
-```liquid
-{% form 'product', product %}
-  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-  <div class="buy">
-    <div class="qty" data-qty>
-      <button type="button" data-qty-step="-1" aria-label="Diminuer la quantité">−</button>
-      <input type="number" name="quantity" value="1" min="1" max="9" aria-label="Quantité">
-      <button type="button" data-qty-step="1" aria-label="Augmenter la quantité">+</button>
-    </div>
-    <button class="btn btn--block" type="submit" {% unless product.available %}disabled{% endunless %}>
-      {% if product.available %}Ajouter au panier — {{ product.price | money }}{% else %}Indisponible{% endif %}
-    </button>
-  </div>
-{% endform %}
-```
-
-Les sélecteurs `.swatch` et `.chip` doivent alors piloter `input[name="id"]` à partir de
-`product.variants`. Deux options :
-
-1. remplacer le module « Options produit » de `main.js` par la logique de variantes de
-   votre thème (`variant_selects` sur Dawn) ;
-2. conserver le markup et brancher `Cart.add()` sur l'API Ajax :
-   `fetch('/cart/add.js', {method:'POST', ...})` puis `fetch('/cart.js')` pour rafraîchir
-   le tiroir. La structure HTML (`.drawer`, `.drawer-line`) et les états (`is-open`)
-   restent identiques — seule la source des données change.
-
-Le panier livré ici stocke ses lignes dans `localStorage` : c'est une démonstration
-d'interface, à remplacer par l'API Shopify en production.
-
-### 4.4 Formulaires
-
-- Contact → `{% form 'contact' %}` en conservant les classes `.field`, `.input`,
-  `.field__error` : la validation JS s'y accroche automatiquement.
-- Newsletter → `{% form 'customer' %}` avec
-  `<input type="hidden" name="contact[tags]" value="newsletter">`.
-
-### 4.5 Réglages de section recommandés
-
-Pour rendre l'accueil éditable dans l'admin, exposez au minimum : titre, sous-titre,
-image, libellé et lien de bouton pour `hero`, `bleed` et `cta-band` ; un bloc répétable
-pour `trust`, `stats`, `quotes`, `compare` et `press`.
+Galerie avec vignettes, navigation clavier et **zoom plein écran** · sélecteur de
+variantes accessible (boutons radio, pastilles de couleur si la boutique fournit
+des échantillons) · prix et disponibilité mis à jour sans rechargement ·
+**paiement fractionné** (`payment_terms`) et boutons de paiement accéléré ·
+**barre d'achat collante** · quatre garanties · accordéons livraison / garantie /
+précautions · tableau comparatif · avis · FAQ · recommandations chargées via la
+Section Rendering API.
 
 ---
 
-## 5. À faire avant la mise en ligne
+## 5. Réglages du thème
 
-1. **Photos** — remplacer les SVG de `assets/img/` par vos visuels, ratio 1:1, produits
-   détourés ou photographiés sur fond neutre clair. Le design suppose ce traitement.
-2. **Contenu commercial** — les chiffres (38 000 foyers, 4,9/5, 1 204 avis, 92 %), les
-   témoignages, les titres de presse et les mentions de fabrication sont des
-   **exemples de mise en page**. Ils doivent être remplacés par vos données réelles :
-   publier des allégations invérifiables relève de la pratique commerciale trompeuse
-   (art. L121-2 du Code de la consommation).
-3. **Mentions santé** — les produits sont présentés comme des appareils de bien-être et
-   non comme des dispositifs médicaux. Conservez le bloc « Précautions d'usage » de la
-   page produit et faites valider vos allégations avant diffusion.
-4. **Pages légales** — mentions légales, CGV, confidentialité et cookies sont liées dans
-   le footer mais restent à rédiger.
-5. **SEO** — `title`, `meta description` et Open Graph sont renseignés par page. Ajoutez
-   les données structurées `Product` et `FAQPage` via Liquid.
-6. **Polices** — Inter et Instrument Serif sont chargées depuis Google Fonts. Sur Shopify,
-   préférez l'auto-hébergement dans `assets/` (meilleur LCP, pas de requête tierce).
-   Une pile de repli système est déjà déclarée : le site reste lisible si les polices
-   ne se chargent pas.
+`config/settings_schema.json` expose huit groupes : **Couleurs** (neutres et
+accents), **Typographie** (deux polices, échelle, interlettrage, graisse des
+titres), **Mise en page** (largeur, respiration entre sections, arrondis),
+**Animations**, **Fiche produit**, **Panier** (tiroir ou page, seuil de livraison
+offerte), **Réseaux sociaux**, **Partage** et **Favicon**.
+
+Ces réglages alimentent les variables CSS via `snippets/css-variables.liquid`,
+rendu **après** la feuille de style pour que les choix du marchand priment sur
+les valeurs par défaut. Rebrander le thème ne demande aucune ligne de code.
 
 ---
 
-## 6. Compatibilité
+## 6. Technique
 
-Chrome, Edge, Firefox et Safari récents, desktop et mobile.
-`backdrop-filter`, `clamp()`, `aspect-ratio` et `IntersectionObserver` dégradent
-proprement sur les navigateurs anciens : le contenu reste visible, seules les
-animations disparaissent.
-Points de rupture : 1180 / 1024 / 900 / 620 px.
+**Panier** — API Ajax Shopify avec *bundled section rendering* : `cart/add.js` et
+`cart/change.js` renvoient le tiroir déjà rendu, remplacé sans rechargement.
+Barre de progression vers la livraison offerte, instructions de commande,
+remises panier.
+
+**JavaScript** — éléments personnalisés natifs (`sticky-header`, `quantity-input`,
+`variant-picker`, `quote-carousel`, `compare-slider`, `sticky-buy-bar`,
+`product-recommendations`). `product.js` n'est chargé que sur les pages produit
+et collection. Aucune bibliothèque tierce.
+
+**Performance** — un seul CSS et un seul JS, chargés en `defer` ; images en
+`image_tag` avec `widths`, `sizes` et `loading="lazy"` (`eager` + `fetchpriority`
+sur le visuel d'ouverture) ; SVG vectoriels légers ; aucune requête bloquante.
+
+**Accessibilité** — lien d'évitement, piège de focus sur le tiroir et le menu,
+`aria-*` complets, navigation clavier de la galerie, focus visible, contrastes
+conformes.
+
+**SEO** — `title` et `meta description` par gabarit, Open Graph et Twitter Card,
+données structurées `Product` et `Article` via `structured_data`, URL canonique,
+hiérarchie de titres cohérente.
+
+**Animations** — révélations par `IntersectionObserver`, parallaxe discrète,
+compteurs, transitions fluides. L'ensemble est neutralisé sous
+`prefers-reduced-motion` et désactivable depuis les réglages du thème.
+
+---
+
+## 7. Éditeur de thème
+
+Le thème réagit aux événements `shopify:section:load`, `shopify:section:select`
+et `shopify:section:deselect` : les sections rechargées rejouent leurs
+animations et le tiroir panier s'ouvre quand on le sélectionne dans l'éditeur.
+
+---
+
+## 8. Avant la mise en ligne
+
+1. **Visuels** — les SVG de `assets/` (`device-*.svg`) sont des illustrations de
+   secours. Chargez vos photographies : ratio 1:1 pour les cartes et la galerie,
+   produits détourés ou sur fond neutre clair. Pour l'ouverture, une vidéo muette
+   de 8 à 12 s avec image d'attente.
+2. **Menus** — créez `main-menu` et `footer` dans **Navigation** ; le thème s'y
+   réfère par défaut.
+3. **Contenu commercial** — les chiffres (38 000 clients, 4,9/5, 2 418 avis,
+   92 %, −31 %), les témoignages et les titres de presse sont des **exemples de
+   mise en page**. Remplacez-les par vos données réelles : publier des allégations
+   invérifiables relève de la pratique commerciale trompeuse (art. L121-2 du Code
+   de la consommation).
+4. **Mentions santé** — les produits sont présentés comme des appareils de
+   bien-être et non comme des dispositifs médicaux. Conservez le bloc
+   « Précautions d'usage » de la fiche produit et faites valider vos allégations.
+5. **Pages légales** — CGV, confidentialité, mentions légales, livraison,
+   garantie et retours doivent être rédigées ; le gabarit et la navigation sont
+   prêts.
+6. **Métachamps** — `custom.subtitle` (accroche produit) et `custom.badge`
+   (pastille) sont exploités par les cartes et la fiche produit. La note en
+   étoiles lit `reviews.rating` et `reviews.rating_count`, renseignés par la
+   plupart des applications d'avis.
+
+---
+
+## 9. Compatibilité
+
+Online Store 2.0 · Chrome, Edge, Firefox et Safari récents, desktop et mobile.
+Points de rupture : 1180 / 1024 / 900 / 620 px. Dégradation propre sans
+JavaScript : tout le contenu reste visible et indexable, seules les animations
+disparaissent.

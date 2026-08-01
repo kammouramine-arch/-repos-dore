@@ -1,0 +1,186 @@
+<section class="section" style="padding-top: clamp(1rem, 3vw, 2rem)">
+  <div class="wrap contact-layout">
+    {%- comment -%} ——— Canaux de contact ——— {%- endcomment -%}
+    <div>
+      {%- if section.blocks.size > 0 -%}
+        <div class="contact-cards" data-reveal>
+          {%- for block in section.blocks -%}
+            <div class="contact-card" {{ block.shopify_attributes }}>
+              {% render 'icon', icon: block.settings.icon %}
+              <h2 class="h4">{{ block.settings.title }}</h2>
+              <div class="rte">{{ block.settings.text }}</div>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_highlight -%}
+        <div class="showroom grain" data-reveal="scale" style="margin-top: clamp(1.5rem, 3vw, 2rem)">
+          <div class="showroom__inner">
+            {%- if section.settings.highlight_eyebrow != blank -%}
+              <p class="eyebrow eyebrow--gold" style="justify-content: center">{{ section.settings.highlight_eyebrow }}</p>
+            {%- endif -%}
+            <h2 class="h3" style="margin-top: 1rem">{{ section.settings.highlight_heading }}</h2>
+            <div class="rte">{{ section.settings.highlight_text }}</div>
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    {%- comment -%} ——— Formulaire ——— {%- endcomment -%}
+    <div class="form-card" data-reveal style="--delay: 80ms">
+      <h2 class="h3" style="margin-bottom: .75rem">{{ section.settings.form_heading }}</h2>
+      <p class="muted" style="font-size: var(--fs-sm); margin-bottom: 2rem">{{ 'contact.form.required' | t }}</p>
+
+      {%- form 'contact', class: 'form--contact', novalidate: 'novalidate', data-contact-form: '' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="form-success is-visible" role="status">
+            {% render 'icon', icon: 'check' %}
+            <span>{{ 'contact.form.success' | t }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if form.errors -%}
+          <p class="form__note form__note--error" role="alert">
+            {{ form.errors | default_errors }}
+          </p>
+        {%- endif -%}
+
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.first_name' | t }} *</span>
+            <input class="input" type="text" name="contact[first_name]" autocomplete="given-name" required>
+            <span class="field__error">{{ 'contact.form.error_name' | t }}</span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.last_name' | t }} *</span>
+            <input class="input" type="text" name="contact[last_name]" autocomplete="family-name" required>
+            <span class="field__error">{{ 'contact.form.error_name' | t }}</span>
+          </label>
+
+          <label class="field field--full">
+            <span class="field__label">{{ 'contact.form.email' | t }} *</span>
+            <input
+              class="input"
+              type="email"
+              name="contact[email]"
+              value="{{ form.email }}"
+              autocomplete="email"
+              placeholder="prenom@exemple.com"
+              required
+            >
+            <span class="field__error">{{ 'contact.form.error_email' | t }}</span>
+          </label>
+
+          {%- if section.settings.subjects != blank -%}
+            <label class="field">
+              <span class="field__label">{{ 'contact.form.subject' | t }} *</span>
+              <select class="select" name="contact[Sujet]" required>
+                {%- assign subject_label = 'contact.form.subject' | t -%}
+                <option value="">{{ 'products.product.choose_option' | t: option: subject_label }}</option>
+                {%- assign subject_list = section.settings.subjects | split: ',' -%}
+                {%- for subject in subject_list -%}
+                  <option value="{{ subject | strip | escape }}">{{ subject | strip }}</option>
+                {%- endfor -%}
+              </select>
+              <span class="field__error">{{ 'contact.form.error_subject' | t }}</span>
+            </label>
+          {%- endif -%}
+
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.order_number' | t }}</span>
+            <input class="input" type="text" name="contact[Commande]" placeholder="#1001">
+          </label>
+
+          <label class="field field--full">
+            <span class="field__label">{{ 'contact.form.message' | t }} *</span>
+            <textarea class="textarea" name="contact[body]" required>{{ form.body }}</textarea>
+            <span class="field__error">{{ 'contact.form.error_message' | t }}</span>
+          </label>
+        </div>
+
+        {%- if section.settings.show_consent -%}
+          <label class="checkbox" style="margin-top: 1.5rem">
+            <input type="checkbox" data-consent required>
+            <span>{{ 'contact.form.consent' | t }}</span>
+          </label>
+        {%- endif -%}
+
+        <button class="btn btn--block" type="submit" style="margin-top: 1.75rem">
+          {{ 'contact.form.send' | t }}
+        </button>
+
+        {%- if section.settings.note != blank -%}
+          <p class="muted" style="margin-top: 1rem; text-align: center; font-size: var(--fs-xs)">
+            {{ section.settings.note }}
+          </p>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Formulaire de contact",
+  "tag": "div",
+  "class": "contact-section",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "text", "id": "form_heading", "label": "Titre du formulaire", "default": "Écrivez-nous" },
+    {
+      "type": "textarea",
+      "id": "subjects",
+      "label": "Sujets proposés",
+      "info": "Séparés par des virgules. Laisser vide pour masquer le champ.",
+      "default": "Conseil avant achat, Choix de la taille, Suivi de commande, Retour ou échange, Garantie & SAV, Demande professionnelle, Presse & partenariats"
+    },
+    { "type": "checkbox", "id": "show_consent", "label": "Case de consentement", "default": true },
+    { "type": "text", "id": "note", "label": "Mention sous le bouton", "default": "Réponse moyenne en 2 h ouvrées · Aucune donnée revendue" },
+    { "type": "header", "content": "Encart mis en avant" },
+    { "type": "checkbox", "id": "show_highlight", "label": "Afficher l’encart", "default": true },
+    { "type": "text", "id": "highlight_eyebrow", "label": "Surtitre", "default": "Sur rendez-vous" },
+    { "type": "text", "id": "highlight_heading", "label": "Titre", "default": "45 minutes d’essai, accompagné." },
+    {
+      "type": "richtext",
+      "id": "highlight_text",
+      "label": "Texte",
+      "default": "<p>Un conseiller vous fait tester les protocoles adaptés à votre usage. Sans engagement.</p>"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "channel",
+      "name": "Canal de contact",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "Icône",
+          "options": [
+            { "value": "mail", "label": "E-mail" },
+            { "value": "phone", "label": "Téléphone" },
+            { "value": "pin", "label": "Adresse" },
+            { "value": "briefcase", "label": "Professionnels" }
+          ],
+          "default": "mail"
+        },
+        { "type": "text", "id": "title", "label": "Titre", "default": "Écrire" },
+        { "type": "richtext", "id": "text", "label": "Texte", "default": "<p>service@exemple.com<br/>Réponse moyenne en 2 h ouvrées.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "Formulaire de contact",
+      "blocks": [
+        { "type": "channel" },
+        { "type": "channel", "settings": { "icon": "phone", "title": "Appeler", "text": "<p>+33 1 84 80 12 40<br/>Du lundi au samedi, 9 h – 19 h.</p>" } },
+        { "type": "channel", "settings": { "icon": "pin", "title": "Showroom", "text": "<p>14 rue de Turenne, 75003 Paris<br/>Essai sur rendez-vous.</p>" } },
+        { "type": "channel", "settings": { "icon": "briefcase", "title": "Professionnels", "text": "<p>pro@exemple.com<br/>Tarifs dégressifs dès trois appareils.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

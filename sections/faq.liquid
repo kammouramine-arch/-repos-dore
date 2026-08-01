@@ -1,0 +1,122 @@
+{%- comment -%}
+  FAQ filtrable : catégories dérivées des blocs, recherche instantanée côté client.
+{%- endcomment -%}
+
+{%- liquid
+  assign categories = ''
+  for block in section.blocks
+    assign cat = block.settings.category | strip
+    unless categories contains cat
+      assign categories = categories | append: cat | append: '||'
+    endunless
+  endfor
+  assign category_list = categories | split: '||'
+-%}
+
+<section class="section" id="{{ section.id }}">
+  <div class="wrap faq-layout">
+    {%- if section.settings.show_categories and category_list.size > 1 -%}
+      <aside class="faq-side">
+        <h2 class="faq-side__title">{{ 'sections.faq.categories' | t }}</h2>
+        <ul>
+          <li>
+            <button type="button" data-faq-cat="all" aria-current="true">{{ 'sections.faq.all' | t }}</button>
+          </li>
+          {%- for cat in category_list -%}
+            {%- if cat != blank -%}
+              <li>
+                <button type="button" data-faq-cat="{{ cat | handle }}" aria-current="false">{{ cat }}</button>
+              </li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </aside>
+    {%- endif -%}
+
+    <div>
+      {%- if section.settings.show_search -%}
+        <div class="faq-search">
+          {% render 'icon', icon: 'search' %}
+          <label class="visually-hidden" for="FaqSearch-{{ section.id }}">{{ 'sections.faq.search_label' | t }}</label>
+          <input
+            class="input"
+            id="FaqSearch-{{ section.id }}"
+            type="search"
+            data-faq-search
+            placeholder="{{ 'sections.faq.search_placeholder' | t }}"
+          >
+        </div>
+      {%- endif -%}
+
+      {%- for cat in category_list -%}
+        {%- if cat != blank -%}
+          <section class="faq-group" id="{{ cat | handle }}" data-faq-group="{{ cat | handle }}">
+            {%- if section.settings.show_categories -%}
+              <h2 class="faq-group__title">{{ cat }}</h2>
+            {%- endif -%}
+
+            <div class="accordion">
+              {%- for block in section.blocks -%}
+                {%- assign block_cat = block.settings.category | strip -%}
+                {%- if block_cat == cat -%}
+                  <div class="accordion__item" {{ block.shopify_attributes }}>
+                    <h3>
+                      <button
+                        class="accordion__btn"
+                        type="button"
+                        aria-expanded="false"
+                        aria-controls="Faq-{{ block.id }}"
+                      >
+                        {{ block.settings.question }}
+                        <span class="accordion__icon" aria-hidden="true"></span>
+                      </button>
+                    </h3>
+                    <div class="accordion__panel" id="Faq-{{ block.id }}">
+                      <div class="accordion__inner rte">{{ block.settings.answer }}</div>
+                    </div>
+                  </div>
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </section>
+        {%- endif -%}
+      {%- endfor -%}
+
+      <p class="faq-empty" data-faq-empty>{{ 'sections.faq.no_results' | t }}</p>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "tag": "div",
+  "class": "faq-section",
+  "settings": [
+    { "type": "checkbox", "id": "show_search", "label": "Afficher la recherche", "default": true },
+    { "type": "checkbox", "id": "show_categories", "label": "Afficher les catégories", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "Question",
+      "settings": [
+        { "type": "text", "id": "category", "label": "Catégorie", "default": "Commande & livraison", "info": "Les questions partageant la même catégorie sont regroupées." },
+        { "type": "text", "id": "question", "label": "Question", "default": "Quels sont les délais de livraison ?" },
+        { "type": "richtext", "id": "answer", "label": "Réponse", "default": "<p>Toute commande passée avant 15 h est expédiée le jour même.</p>" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "FAQ",
+      "blocks": [
+        { "type": "question" },
+        { "type": "question", "settings": { "question": "La livraison est-elle offerte ?", "answer": "<p>Oui, dès 120 € d’achat.</p>" } },
+        { "type": "question", "settings": { "category": "Paiement", "question": "Comment fonctionne le paiement en 3× sans frais ?", "answer": "<p>Un tiers à la commande, puis deux mensualités. Aucun frais.</p>" } },
+        { "type": "question", "settings": { "category": "Garantie & SAV", "question": "Que couvre la garantie ?", "answer": "<p>Deux ans sur les pièces et la main-d’œuvre.</p>" } }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,44 @@
+{%- paginate blog.articles by 9 -%}
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="page-hero__inner">
+        <p class="eyebrow" data-reveal="fade">{{ shop.name }}</p>
+        <h1 class="h1" data-reveal="fade">{{ blog.title }}</h1>
+      </div>
+    </div>
+  </section>
+
+  <section class="section" style="padding-top: 0">
+    <div class="wrap">
+      <div class="cards cards--3">
+        {%- for article in blog.articles -%}
+          <article class="card" data-reveal="scale" style="--delay: {{ forloop.index0 | times: 60 }}ms">
+            <a class="card__link" href="{{ article.url }}"><span class="visually-hidden">{{ article.title }}</span></a>
+            {%- if article.image -%}
+              <div class="card__media card__media--landscape">
+                {{ article.image | image_url: width: 900 | image_tag: loading: 'lazy', widths: '300, 600, 900', alt: article.title | escape }}
+              </div>
+            {%- endif -%}
+            <div class="card__body">
+              <div>
+                <p class="card__vendor">{{ article.published_at | date: '%d.%m.%Y' }}</p>
+                <h2 class="card__title">{{ article.title }}</h2>
+                <p class="card__desc">{{ article.excerpt_or_content | strip_html | truncatewords: 22 }}</p>
+              </div>
+            </div>
+          </article>
+        {%- endfor -%}
+      </div>
+
+      {% render 'pagination', paginate: paginate %}
+    </div>
+  </section>
+{%- endpaginate -%}
+
+{% schema %}
+{
+  "name": "Journal",
+  "tag": "div",
+  "settings": []
+}
+{% endschema %}

@@ -1,0 +1,28 @@
+{%- comment -%} Liens sociaux issus des réglages du thème. {%- endcomment -%}
+
+{%- liquid
+  assign has_social = false
+  if settings.social_instagram != blank or settings.social_youtube != blank or settings.social_linkedin != blank or settings.social_facebook != blank or settings.social_tiktok != blank
+    assign has_social = true
+  endif
+-%}
+
+{%- if has_social -%}
+  <ul class="social">
+    {%- if settings.social_instagram != blank -%}
+      <li><a href="{{ settings.social_instagram }}" aria-label="{{ 'general.social.instagram' | t }}" rel="noopener" target="_blank">{% render 'icon', icon: 'instagram' %}</a></li>
+    {%- endif -%}
+    {%- if settings.social_youtube != blank -%}
+      <li><a href="{{ settings.social_youtube }}" aria-label="{{ 'general.social.youtube' | t }}" rel="noopener" target="_blank">{% render 'icon', icon: 'youtube' %}</a></li>
+    {%- endif -%}
+    {%- if settings.social_linkedin != blank -%}
+      <li><a href="{{ settings.social_linkedin }}" aria-label="{{ 'general.social.linkedin' | t }}" rel="noopener" target="_blank">{% render 'icon', icon: 'linkedin' %}</a></li>
+    {%- endif -%}
+    {%- if settings.social_facebook != blank -%}
+      <li><a href="{{ settings.social_facebook }}" aria-label="{{ 'general.social.facebook' | t }}" rel="noopener" target="_blank">{% render 'icon', icon: 'facebook' %}</a></li>
+    {%- endif -%}
+    {%- if settings.social_tiktok != blank -%}
+      <li><a href="{{ settings.social_tiktok }}" aria-label="{{ 'general.social.tiktok' | t }}" rel="noopener" target="_blank">{% render 'icon', icon: 'tiktok' %}</a></li>
+    {%- endif -%}
+  </ul>
+{%- endif -%}
