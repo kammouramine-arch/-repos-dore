@@ -294,5 +294,13 @@
     "compare_slider": {
       "label": "Comparer avant et après"
     }
+  },
+  "gift_cards": {
+    "issued": {
+      "title": "Carte cadeau de {{ value }}",
+      "subtext": "Votre carte cadeau",
+      "expired": "Cette carte cadeau a expiré.",
+      "qr_image_alt": "Code QR de la carte cadeau"
+    }
   }
 }

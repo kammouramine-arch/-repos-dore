@@ -1,0 +1,32 @@
+{%- comment -%}
+  Bloc Liquid libre.
+  Point d'insertion pour les applications ou un contenu sur mesure, disponible
+  sur tous les gabarits.
+{%- endcomment -%}
+
+{%- if section.settings.custom_liquid != blank -%}
+  <section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+    <div class="wrap{% if section.settings.narrow %} wrap--narrow{% endif %}">
+      {{ section.settings.custom_liquid }}
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Liquid personnalisé",
+  "tag": "div",
+  "class": "custom-liquid-section",
+  "settings": [
+    {
+      "type": "liquid",
+      "id": "custom_liquid",
+      "label": "Code Liquid",
+      "info": "Pour insérer un extrait d’application ou un contenu sur mesure."
+    },
+    { "type": "checkbox", "id": "narrow", "label": "Largeur réduite", "default": false },
+    { "type": "checkbox", "id": "flush_top", "label": "Supprimer la marge haute", "default": false }
+  ],
+  "presets": [{ "name": "Liquid personnalisé" }]
+}
+{% endschema %}

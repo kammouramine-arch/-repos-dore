@@ -159,7 +159,7 @@
     "statement": {
       "type": "statement-banner",
       "settings": {
-        "background": "#0E1D33",
+        "background": "#2A2521",
         "eyebrow": "Conçu pour durer",
         "heading": "Aluminium anodisé, tissu technique, zéro plastique apparent.",
         "text": "<p>Chaque pièce est démontable et réparable. Nos moteurs sont testés sur 3 000 cycles, soit huit ans d’usage quotidien. Nous fournissons les pièces détachées pendant dix ans — parce qu’un objet premium ne se remplace pas, il s’entretient.</p>",
@@ -298,7 +298,7 @@
       "settings": {
         "eyebrow": "Ils nous font confiance",
         "heading": "4,9 sur 5 — 2 418 avis vérifiés",
-        "background": "#F8F8F9"
+        "background": "#F6F3EE"
       }
     },
     "compare": {
@@ -568,7 +568,7 @@
         "heading": "Protocoles, lancements, coulisses.",
         "text": "<p>Une lettre par mois, écrite par notre équipe. Rien d’autre.</p>",
         "note": "Désinscription en un clic · Aucune donnée revendue",
-        "background": "#0A0A0B",
+        "background": "#0B0B0C",
         "text_color": "#FFFFFF",
         "flush_top": false
       }

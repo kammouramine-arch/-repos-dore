@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" role="img" aria-label="Masseur de pieds RÉVA Terra">
   <defs>
     <linearGradient id="ftBody" x1="120" y1="180" x2="480" y2="470" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FDFDFE"/>
-      <stop offset=".5" stop-color="#EBEDF0"/>
-      <stop offset="1" stop-color="#CFD3D9"/>
+      <stop stop-color="#FEFDFB"/>
+      <stop offset=".5" stop-color="#F0EBE3"/>
+      <stop offset="1" stop-color="#DBD3C7"/>
     </linearGradient>
     <linearGradient id="ftCav" x1="200" y1="200" x2="400" y2="330" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2A2C31"/>
-      <stop offset="1" stop-color="#0E0F12"/>
+      <stop stop-color="#2A2521"/>
+      <stop offset="1" stop-color="#100E0C"/>
     </linearGradient>
     <linearGradient id="ftTop" x1="120" y1="180" x2="480" y2="260" gradientUnits="userSpaceOnUse">
       <stop stop-color="#FFFFFF"/>
@@ -23,7 +23,7 @@
 
   <!-- body -->
   <path d="M118 250q0-64 64-64h236q64 0 64 64v138q0 62-62 62H180q-62 0-62-62z" fill="url(#ftBody)"/>
-  <path d="M118 250q0-64 64-64h236q64 0 64 64v138q0 62-62 62H180q-62 0-62-62z" stroke="#B7BCC3" stroke-width="1.4"/>
+  <path d="M118 250q0-64 64-64h236q64 0 64 64v138q0 62-62 62H180q-62 0-62-62z" stroke="#C5BDB1" stroke-width="1.4"/>
 
   <!-- top face -->
   <path d="M118 250q0-64 64-64h236q64 0 64 64v14H118z" fill="url(#ftTop)"/>
@@ -35,26 +35,26 @@
   <rect x="320" y="216" width="116" height="92" rx="44" stroke="#FFFFFF" stroke-opacity=".12" stroke-width="1.2"/>
 
   <!-- inner rollers -->
-  <g stroke="#C2A26B" stroke-opacity=".55" stroke-width="2" stroke-linecap="round">
+  <g stroke="#B99B72" stroke-opacity=".55" stroke-width="2" stroke-linecap="round">
     <path d="M186 296h72"/>
     <path d="M342 296h72"/>
   </g>
-  <g fill="#8A8E96" opacity=".5">
+  <g fill="#948C82" opacity=".5">
     <circle cx="196" cy="262" r="7"/><circle cx="222" cy="262" r="7"/><circle cx="248" cy="262" r="7"/>
     <circle cx="352" cy="262" r="7"/><circle cx="378" cy="262" r="7"/><circle cx="404" cy="262" r="7"/>
   </g>
 
   <!-- control dial -->
-  <circle cx="300" cy="390" r="30" fill="#FFFFFF" stroke="#C6C9CE" stroke-width="1.3"/>
-  <circle cx="300" cy="390" r="21" stroke="#C2A26B" stroke-width="2"/>
-  <path d="M300 375v9" stroke="#C2A26B" stroke-width="2.4" stroke-linecap="round"/>
+  <circle cx="300" cy="390" r="30" fill="#FFFFFF" stroke="#CFC8BE" stroke-width="1.3"/>
+  <circle cx="300" cy="390" r="21" stroke="#B99B72" stroke-width="2"/>
+  <path d="M300 375v9" stroke="#B99B72" stroke-width="2.4" stroke-linecap="round"/>
 
   <!-- side vents -->
-  <g stroke="#C6C9CE" stroke-width="1.2" stroke-linecap="round">
+  <g stroke="#CFC8BE" stroke-width="1.2" stroke-linecap="round">
     <path d="M160 372h58M160 392h58M160 412h44"/>
     <path d="M382 372h58M382 392h58M418 412h22"/>
   </g>
 
   <!-- foot line -->
-  <path d="M118 340h364" stroke="#D6D9DE" stroke-width="1.2"/>
+  <path d="M118 340h364" stroke="#DED7CC" stroke-width="1.2"/>
 </svg>

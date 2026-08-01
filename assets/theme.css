@@ -21,25 +21,26 @@
    ========================================================================== */
 
 :root {
-  /* Neutrals */
-  --ink:          #0A0A0B;
-  --ink-soft:     #131417;
-  --ink-raised:   #1B1D21;
-  --grey-900:     #2A2C31;
-  --grey-700:     #55585F;
-  --grey-500:     #8A8E96;
-  --grey-300:     #C6C9CE;
-  --grey-200:     #E1E3E6;
-  --grey-100:     #F1F2F4;
-  --grey-50:      #F8F8F9;
+  /* Neutres chauds — la base de l'identité RÉVA */
+  --ink:          #0B0B0C;
+  --ink-soft:     #16150F;
+  --ink-raised:   #22201C;
+  --grey-900:     #35312C;
+  --grey-700:     #6B6660;
+  --grey-500:     #9A938A;
+  --grey-300:     #CFC8BE;
+  --grey-200:     #E6E1DA;
+  --grey-100:     #EFEBE4;
+  --grey-50:      #F6F3EE;
   --white:        #FFFFFF;
+  --surface:      #F6F3EE;
 
-  /* Accents */
-  --gold:         #C2A26B;
-  --gold-soft:    #DCC698;
-  --gold-deep:    #9A7F4E;
-  --navy:         #0E1D33;
-  --navy-soft:    #172A45;
+  /* Accents — bronze sourd et charbon chaud, jamais de couleur vive */
+  --gold:         #B99B72;
+  --gold-soft:    #DCC9AE;
+  --gold-deep:    #8E7451;
+  --navy:         #2A2521;
+  --navy-soft:    #3A342E;
 
   /* Semantic */
   --bg:           var(--white);
@@ -402,7 +403,7 @@ p:last-child { margin-bottom: 0; }
 .input:focus, .textarea:focus, .select:focus {
   outline: none;
   border-color: var(--ink);
-  box-shadow: 0 0 0 3px rgba(194,162,107,.18);
+  box-shadow: 0 0 0 3px rgba(185,155,114,.2);
 }
 .field.has-error .input,
 .field.has-error .textarea,
@@ -857,9 +858,9 @@ body.nav-open .header {
   inset: 0;
   z-index: -2;
   background:
-    radial-gradient(120% 90% at 78% 18%, rgba(23,42,69,.95) 0%, rgba(14,29,51,.55) 38%, transparent 68%),
-    radial-gradient(70% 60% at 20% 88%, rgba(194,162,107,.16) 0%, transparent 60%),
-    linear-gradient(180deg, #111318 0%, #0A0A0B 60%, #0A0A0B 100%);
+    radial-gradient(120% 90% at 78% 18%, rgba(58,52,46,.95) 0%, rgba(34,30,26,.55) 38%, transparent 68%),
+    radial-gradient(70% 60% at 20% 88%, rgba(185,155,114,.18) 0%, transparent 60%),
+    linear-gradient(180deg, #17150F 0%, #0B0B0C 60%, #0B0B0C 100%);
 }
 .hero__bg::before {
   content: "";
@@ -1026,7 +1027,7 @@ body.nav-open .header {
   overflow: hidden;
   background:
     radial-gradient(80% 68% at 50% 30%, #FFFFFF 0%, rgba(255,255,255,0) 72%),
-    linear-gradient(165deg, #F2F3F5 0%, #E4E6EA 55%, #D8DBE0 100%);
+    linear-gradient(165deg, #FAF8F4 0%, #F1ECE4 55%, #E4DDD2 100%);
 }
 .card__media--square { aspect-ratio: 1 / 1; }
 .card__media--portrait { aspect-ratio: 4 / 4.6; }
@@ -1035,7 +1036,7 @@ body.nav-open .header {
 .card--dark .card__media {
   background:
     radial-gradient(75% 62% at 50% 28%, rgba(255,255,255,.14) 0%, rgba(255,255,255,0) 70%),
-    linear-gradient(165deg, #1C2027 0%, #101318 55%, #0A0B0D 100%);
+    linear-gradient(165deg, #262320 0%, #16140F 55%, #0B0B0C 100%);
 }
 
 .card__img {
@@ -1199,13 +1200,13 @@ body.nav-open .header {
   overflow: hidden;
   display: grid;
   place-items: center;
-  background: linear-gradient(150deg, #14171C 0%, #0A0A0B 100%);
+  background: linear-gradient(150deg, #24211D 0%, #0B0B0C 100%);
 }
 .split__media img { width: 72%; }
 .split__media--light {
   background:
     radial-gradient(60% 60% at 50% 40%, #FFFFFF, transparent 70%),
-    linear-gradient(150deg, #EFF0F2 0%, #DFE1E4 100%);
+    linear-gradient(150deg, #F8F5F0 0%, #EAE3D8 100%);
 }
 .split__text { max-width: 34rem; }
 .split__text .eyebrow { margin-bottom: 1.5rem; }
@@ -1247,8 +1248,8 @@ body.nav-open .header {
   inset: 0;
   z-index: -1;
   background:
-    radial-gradient(80% 70% at 50% 30%, rgba(194,162,107,.2), transparent 65%),
-    linear-gradient(180deg, #0E1D33 0%, #08111E 100%);
+    radial-gradient(80% 70% at 50% 30%, rgba(185,155,114,.22), transparent 65%),
+    linear-gradient(180deg, #2A2521 0%, #131110 100%);
   transform: scale(1.12);
   will-change: transform;
 }
@@ -1382,7 +1383,7 @@ body.nav-open .header {
   gap: clamp(2rem, 5vw, 4rem);
   padding: clamp(2.5rem, 6vw, 5rem);
   border-radius: var(--r-xl);
-  background: linear-gradient(140deg, #16191E 0%, #0A0A0B 70%);
+  background: linear-gradient(140deg, #262320 0%, #0B0B0C 70%);
   color: var(--white);
   overflow: hidden;
   position: relative;
@@ -1393,7 +1394,7 @@ body.nav-open .header {
   right: -10%; top: -40%;
   width: 60%; aspect-ratio: 1;
   border-radius: 50%;
-  background: radial-gradient(circle, rgba(194,162,107,.22), transparent 62%);
+  background: radial-gradient(circle, rgba(185,155,114,.24), transparent 62%);
 }
 .cta-band__text { position: relative; }
 .cta-band h2 { margin-bottom: 1.25rem; }
@@ -1435,7 +1436,7 @@ body.nav-open .header {
   overflow: hidden;
   background:
     radial-gradient(65% 55% at 50% 38%, #FFFFFF, transparent 72%),
-    linear-gradient(155deg, #F2F3F4 0%, #E3E5E8 100%);
+    linear-gradient(155deg, #FAF8F4 0%, #EDE7DE 100%);
 }
 .gallery__main img {
   width: min(72%, 460px);
@@ -1492,7 +1493,7 @@ body.nav-open .header {
 .pdp__price .save {
   padding: .25rem .6rem;
   border-radius: 999px;
-  background: rgba(194,162,107,.16);
+  background: rgba(185,155,114,.18);
   color: var(--gold-deep);
   font-size: var(--fs-xs);
   font-weight: 500;
@@ -1920,8 +1921,8 @@ body.nav-open .header {
   border-radius: var(--r-lg);
   overflow: hidden;
   background:
-    radial-gradient(60% 80% at 30% 20%, rgba(194,162,107,.18), transparent 60%),
-    linear-gradient(150deg, #16191E, #0A0A0B);
+    radial-gradient(60% 80% at 30% 20%, rgba(185,155,114,.2), transparent 60%),
+    linear-gradient(150deg, #262320, #0B0B0C);
   color: var(--white);
   text-align: center;
   padding: 2rem;
@@ -3047,7 +3048,7 @@ a.pagination__page:hover { background: var(--grey-50); color: var(--fg); }
   overflow: hidden;
   background:
     radial-gradient(75% 65% at 50% 32%, #FFFFFF 0%, rgba(255,255,255,0) 72%),
-    linear-gradient(165deg, #F3F4F6 0%, #E5E7EB 100%);
+    linear-gradient(165deg, #FAF8F4 0%, #EFE9E0 100%);
 }
 .step__img {
   width: min(76%, 320px);
@@ -3098,4 +3099,27 @@ a.pagination__page:hover { background: var(--grey-50); color: var(--fg); }
     width: 62vw;
     opacity: .2;
   }
+}
+
+/* --- Carte cadeau --- */
+.giftcard { min-height: 100svh; display: grid; place-items: center; }
+.giftcard__value {
+  font-size: clamp(3rem, 8vw, 5rem);
+  font-weight: 200;
+  letter-spacing: -.05em;
+  margin: 1.5rem 0;
+}
+.giftcard__code {
+  display: grid;
+  gap: 1rem;
+  justify-items: center;
+  padding: clamp(1.5rem, 4vw, 2.5rem);
+  border: 1px solid var(--line);
+  border-radius: var(--r-lg);
+  background: var(--grey-50);
+}
+.giftcard__code p {
+  font-family: ui-monospace, "SFMono-Regular", Menlo, monospace;
+  font-size: 1.125rem;
+  letter-spacing: .18em;
 }

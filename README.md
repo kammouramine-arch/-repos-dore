@@ -4,23 +4,44 @@ Thème premium pour **RÉVA**, marque française de technologie de récupératio
 (appareils vendus 149 € – 249 €). Architecture Shopify native, sans framework,
 sans dépendance externe.
 
-Direction artistique : minimalisme absolu, noir profond, blanc cassé, gris clair,
-doré très discret, beaucoup d'espace, micro-animations. Aucune reprise visuelle
+Direction artistique : blanc, noir profond, beige doux et gris chauds, accent
+bronze très sourd. Neutres chauds plutôt que gris bleutés — c'est ce qui sépare
+une marque de bien-être d'un site de matériel technique. Grands espaces,
+micro-animations, aucun dégradé tape-à-l'œil. Aucune reprise visuelle
 d'une marque existante.
 
 ---
 
 ## 1. Installation
 
+> **Ne téléchargez pas le ZIP depuis le bouton « Code → Download ZIP » de GitHub.**
+> Il place tout le thème dans un dossier parent (`-repos-dore-branche/`). Shopify
+> ne trouve alors ni `templates/` ni `layout/` à la racine, importe un thème vide,
+> et **la page d'accueil renvoie une 404**. C'est la cause la plus fréquente d'un
+> accueil affichant « Cette page n'existe pas ».
+
+Trois méthodes correctes, par ordre de préférence :
+
+**a. Connecter GitHub à Shopify** (recommandé)
+Boutique en ligne → Thèmes → Ajouter un thème → **Connecter depuis GitHub**, puis
+choisir ce dépôt et la branche. Shopify lit la racine du dépôt : aucun ZIP,
+aucune erreur d'empaquetage, et chaque commit met le thème à jour.
+
+**b. Shopify CLI**
 ```bash
-zip -r reva-theme.zip layout templates sections snippets assets config locales
+shopify theme push --store votre-boutique.myshopify.com
 ```
 
-Puis dans l'administration Shopify : **Boutique en ligne → Thèmes → Ajouter un thème
-→ Importer un fichier ZIP**.
-
-Le ZIP doit contenir les sept dossiers **à la racine** (pas dans un dossier parent),
-ce que produit la commande ci-dessus.
+**c. ZIP construit à la main**
+```bash
+cd /chemin/vers/le/depot
+zip -r reva-theme.zip layout templates sections snippets assets config locales
+```
+Vérifiez avant d'importer que les sept dossiers sont bien **à la racine** :
+```bash
+unzip -l reva-theme.zip | head
+# doit afficher assets/… config/… layout/… et non un dossier parent
+```
 
 Développement en local avec Shopify CLI :
 
@@ -214,7 +235,19 @@ animations et le tiroir panier s'ouvre quand on le sélectionne dans l'éditeur.
 
 ---
 
-## 9. Compatibilité
+## 9. Dépannage
+
+| Symptôme | Cause | Correctif |
+|---|---|---|
+| L'accueil affiche « Cette page n'existe pas » | Le ZIP contenait un dossier parent : Shopify n'a trouvé aucun `templates/index.json` | Réimporter avec l'une des trois méthodes du § 1 |
+| Du CSS s'affiche en haut des pages | `font_face` renvoie du CSS **sans** balise `<style>` ; non enveloppé, le navigateur éjecte ce texte du `<head>` | Corrigé : les appels sont dans `{% style %}` (layout/theme.liquid) |
+| Une balise `<img>` apparaît en toutes lettres | `alt: … \| escape` termine la chaîne `image_tag` et échappe le HTML produit | Corrigé : l'`alt` est calculé avant, par `assign` |
+| Le menu principal est vide | `nil.size` ne vaut pas `0` en Liquid : le test de repli était toujours faux | Corrigé : le test porte sur `blank` |
+| Un bloc « Sélectionnez une collection » | La section n'avait pas de collection assignée | Corrigé : repli automatique sur le catalogue complet |
+
+---
+
+## 10. Compatibilité
 
 Online Store 2.0 · Chrome, Edge, Firefox et Safari récents, desktop et mobile.
 Points de rupture : 1180 / 1024 / 900 / 620 px. Dégradation propre sans

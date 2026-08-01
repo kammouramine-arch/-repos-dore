@@ -294,5 +294,13 @@
     "compare_slider": {
       "label": "Compare before and after"
     }
+  },
+  "gift_cards": {
+    "issued": {
+      "title": "{{ value }} gift card",
+      "subtext": "Your gift card",
+      "expired": "This gift card has expired.",
+      "qr_image_alt": "Gift card QR code"
+    }
   }
 }

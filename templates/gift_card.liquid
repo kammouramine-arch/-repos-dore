@@ -1,0 +1,43 @@
+{%- comment -%}
+  Carte cadeau. Gabarit Liquid autonome : il ne passe pas par theme.liquid.
+{%- endcomment -%}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{{ 'gift_cards.issued.title' | t: value: gift_card.initial_value | money }} — {{ shop.name }}</title>
+    {{ content_for_header }}
+    {{ 'theme.css' | asset_url | stylesheet_tag }}
+    {% render 'css-variables' %}
+  </head>
+
+  <body class="template-gift-card">
+    <main class="section giftcard">
+      <div class="wrap wrap--narrow center">
+        <p class="eyebrow" style="justify-content: center">{{ shop.name }}</p>
+        <h1 class="h2" style="margin: 1.5rem 0">{{ 'gift_cards.issued.subtext' | t }}</h1>
+
+        <p class="giftcard__value">{{ gift_card.balance | money }}</p>
+
+        {%- if gift_card.expired -%}
+          <p class="form__note form__note--error">{{ 'gift_cards.issued.expired' | t }}</p>
+        {%- endif -%}
+
+        <div class="giftcard__code">
+          <img
+            src="{{ gift_card.qr_identifier }}"
+            alt="{{ 'gift_cards.issued.qr_image_alt' | t }}"
+            width="120"
+            height="120"
+          >
+          <p>{{ gift_card.code | format_code }}</p>
+        </div>
+
+        <div class="btn-row" style="justify-content: center; margin-top: 2.5rem">
+          <a class="btn" href="{{ shop.url }}">{{ 'general.continue_shopping' | t }}</a>
+        </div>
+      </div>
+    </main>
+  </body>
+</html>

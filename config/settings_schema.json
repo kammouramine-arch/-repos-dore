@@ -18,7 +18,7 @@
         "type": "color",
         "id": "color_ink",
         "label": "Encre (noir de marque)",
-        "default": "#0A0A0B"
+        "default": "#0B0B0C"
       },
       {
         "type": "color",
@@ -30,19 +30,19 @@
         "type": "color",
         "id": "color_muted",
         "label": "Texte secondaire",
-        "default": "#55585F"
+        "default": "#6B6660"
       },
       {
         "type": "color",
         "id": "color_border",
         "label": "Filets et bordures",
-        "default": "#E1E3E6"
+        "default": "#E6E1DA"
       },
       {
         "type": "color",
         "id": "color_surface",
         "label": "Surface claire",
-        "default": "#F8F8F9"
+        "default": "#F6F3EE"
       },
       {
         "type": "header",
@@ -51,21 +51,21 @@
       {
         "type": "color",
         "id": "color_accent",
-        "label": "Accent principal (or)",
-        "default": "#C2A26B",
+        "label": "Accent principal (bronze)",
+        "default": "#B99B72",
         "info": "Utilisé avec parcimonie : filets, détails, un seul bouton par page."
       },
       {
         "type": "color",
         "id": "color_accent_soft",
         "label": "Accent clair",
-        "default": "#DCC698"
+        "default": "#DCC9AE"
       },
       {
         "type": "color",
         "id": "color_deep",
-        "label": "Bleu nuit",
-        "default": "#0E1D33"
+        "label": "Charbon chaud",
+        "default": "#2A2521"
       }
     ]
   },

@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" role="img" aria-label="Unité de contrôle RÉVA">
   <defs>
     <linearGradient id="unBody" x1="170" y1="120" x2="430" y2="480" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FCFCFD"/><stop offset=".5" stop-color="#EAECEF"/><stop offset="1" stop-color="#CDD1D7"/>
+      <stop stop-color="#FDFCFA"/><stop offset=".5" stop-color="#F0EBE3"/><stop offset="1" stop-color="#D9D1C5"/>
     </linearGradient>
     <linearGradient id="unScreen" x1="200" y1="180" x2="400" y2="300" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#20242B"/><stop offset="1" stop-color="#0B0C0E"/>
+      <stop stop-color="#232019"/><stop offset="1" stop-color="#0B0B0C"/>
     </linearGradient>
     <radialGradient id="unShadow" cx="0" cy="0" r="1" gradientTransform="translate(300 500) scale(150 22)" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0A0A0B" stop-opacity=".26"/><stop offset="1" stop-color="#0A0A0B" stop-opacity="0"/>
@@ -13,28 +13,28 @@
 
   <ellipse cx="300" cy="500" rx="150" ry="22" fill="url(#unShadow)"/>
 
-  <rect x="170" y="120" width="260" height="360" rx="46" fill="url(#unBody)" stroke="#B6BBC2" stroke-width="1.4"/>
+  <rect x="170" y="120" width="260" height="360" rx="46" fill="url(#unBody)" stroke="#C4BCB0" stroke-width="1.4"/>
   <rect x="182" y="132" width="236" height="336" rx="38" stroke="#FFFFFF" stroke-opacity=".8" stroke-width="2"/>
 
   <!-- screen -->
   <rect x="206" y="166" width="188" height="128" rx="20" fill="url(#unScreen)"/>
   <text x="300" y="228" text-anchor="middle" font-family="Inter,Helvetica,Arial" font-size="42" font-weight="300" fill="#FFFFFF" letter-spacing="-1">80</text>
-  <text x="300" y="256" text-anchor="middle" font-family="Inter,Helvetica,Arial" font-size="14" font-weight="400" fill="#C2A26B" letter-spacing="3">MMHG</text>
+  <text x="300" y="256" text-anchor="middle" font-family="Inter,Helvetica,Arial" font-size="14" font-weight="400" fill="#B99B72" letter-spacing="3">MMHG</text>
 
   <!-- progress -->
-  <rect x="230" y="270" width="140" height="4" rx="2" fill="#3A3D43"/>
-  <rect x="230" y="270" width="92" height="4" rx="2" fill="#C2A26B"/>
+  <rect x="230" y="270" width="140" height="4" rx="2" fill="#3A342E"/>
+  <rect x="230" y="270" width="92" height="4" rx="2" fill="#B99B72"/>
 
   <!-- dial -->
-  <circle cx="300" cy="378" r="56" fill="#F7F8F9" stroke="#C6C9CE" stroke-width="1.4"/>
-  <circle cx="300" cy="378" r="40" stroke="#C2A26B" stroke-width="2.4"/>
-  <path d="M300 348v14" stroke="#C2A26B" stroke-width="3" stroke-linecap="round"/>
-  <circle cx="300" cy="378" r="7" fill="#B4B9C0"/>
+  <circle cx="300" cy="378" r="56" fill="#FAF7F2" stroke="#CFC8BE" stroke-width="1.4"/>
+  <circle cx="300" cy="378" r="40" stroke="#B99B72" stroke-width="2.4"/>
+  <path d="M300 348v14" stroke="#B99B72" stroke-width="3" stroke-linecap="round"/>
+  <circle cx="300" cy="378" r="7" fill="#C0B8AC"/>
 
   <!-- side buttons -->
-  <rect x="160" y="210" width="10" height="46" rx="5" fill="#B4B9C0"/>
-  <rect x="430" y="210" width="10" height="30" rx="5" fill="#B4B9C0"/>
+  <rect x="160" y="210" width="10" height="46" rx="5" fill="#C0B8AC"/>
+  <rect x="430" y="210" width="10" height="30" rx="5" fill="#C0B8AC"/>
 
   <!-- port -->
-  <rect x="266" y="452" width="68" height="10" rx="5" fill="#C6C9CE"/>
+  <rect x="266" y="452" width="68" height="10" rx="5" fill="#CFC8BE"/>
 </svg>

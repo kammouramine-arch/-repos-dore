@@ -24,7 +24,7 @@
     "statement": {
       "type": "statement-banner",
       "settings": {
-        "background": "#0E1D33",
+        "background": "#2A2521",
         "eyebrow": "Notre parti pris",
         "heading": "Quatre produits. Pas quarante.",
         "text": "<p>Chaque nouveau produit demande dix-huit mois de développement et doit répondre à une zone du corps qu’aucun autre ne couvre. Si nous n’avons rien à ajouter, nous n’ajoutons rien.</p>"
@@ -113,7 +113,7 @@
       "settings": {
         "eyebrow": "Engagements",
         "heading": "Trois promesses que nous tenons par écrit.",
-        "background": "#F8F8F9"
+        "background": "#F6F3EE"
       }
     },
     "making": {

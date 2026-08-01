@@ -1,41 +1,41 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 2400 1400" preserveAspectRatio="xMidYMid slice" role="img" aria-label="Ambiance RÉVA">
   <defs>
     <linearGradient id="hbase" x1="0" y1="0" x2="2400" y2="1400" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#12151A"/><stop offset=".45" stop-color="#0C1119"/><stop offset="1" stop-color="#08090C"/>
+      <stop stop-color="#211E1A"/><stop offset=".45" stop-color="#151310"/><stop offset="1" stop-color="#0B0B0C"/>
     </linearGradient>
-    <radialGradient id="hglow" cx="0" cy="0" r="1" gradientTransform="translate(1620 480) rotate(28) scale(1180 820)" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#2C4463" stop-opacity=".85"/><stop offset=".5" stop-color="#16243A" stop-opacity=".45"/><stop offset="1" stop-color="#0A0A0B" stop-opacity="0"/>
+    <radialGradient id="hglow" cx="0" cy="0" r="1" gradientTransform="translate(1620 470) rotate(26) scale(1220 840)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#6A5C4A" stop-opacity=".8"/><stop offset=".5" stop-color="#3A342C" stop-opacity=".42"/><stop offset="1" stop-color="#0B0B0C" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="hgold" cx="0" cy="0" r="1" gradientTransform="translate(520 1180) rotate(-18) scale(900 520)" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#C2A26B" stop-opacity=".26"/><stop offset="1" stop-color="#C2A26B" stop-opacity="0"/>
+    <radialGradient id="hbronze" cx="0" cy="0" r="1" gradientTransform="translate(560 1160) rotate(-16) scale(940 540)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#B99B72" stop-opacity=".3"/><stop offset="1" stop-color="#B99B72" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="hshaft" x1="900" y1="0" x2="1500" y2="1400" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FFFFFF" stop-opacity=".14"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+      <stop stop-color="#FFF6E8" stop-opacity=".13"/><stop offset="1" stop-color="#FFF6E8" stop-opacity="0"/>
     </linearGradient>
-    <filter id="hblur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="90"/></filter>
+    <filter id="hblur" x="-20%" y="-20%" width="140%" height="140%"><feGaussianBlur stdDeviation="95"/></filter>
     <filter id="hgrain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="3"/><feColorMatrix type="saturate" values="0"/></filter>
   </defs>
 
   <rect width="2400" height="1400" fill="url(#hbase)"/>
   <rect width="2400" height="1400" fill="url(#hglow)"/>
-  <rect width="2400" height="1400" fill="url(#hgold)"/>
+  <rect width="2400" height="1400" fill="url(#hbronze)"/>
 
-  <g filter="url(#hblur)" opacity=".55">
-    <ellipse cx="1740" cy="420" rx="420" ry="300" fill="#3A5679" opacity=".55"/>
-    <ellipse cx="420" cy="1120" rx="380" ry="240" fill="#C2A26B" opacity=".22"/>
+  <g filter="url(#hblur)" opacity=".5">
+    <ellipse cx="1760" cy="400" rx="440" ry="310" fill="#7A6A55" opacity=".5"/>
+    <ellipse cx="440" cy="1120" rx="400" ry="250" fill="#B99B72" opacity=".2"/>
   </g>
 
-  <g opacity=".5">
+  <g opacity=".45">
     <path d="M980 0 1320 0 1760 1400 1420 1400Z" fill="url(#hshaft)"/>
     <path d="M1420 0 1560 0 1980 1400 1840 1400Z" fill="url(#hshaft)" opacity=".6"/>
   </g>
 
-  <g stroke="#FFFFFF" stroke-opacity=".05" stroke-width="1.5">
+  <g stroke="#FFF6E8" stroke-opacity=".045" stroke-width="1.5">
     <path d="M0 980C420 900 900 940 1300 1040 1700 1140 2100 1160 2400 1100"/>
     <path d="M0 1060C420 980 900 1020 1300 1120 1700 1220 2100 1240 2400 1180"/>
     <path d="M0 1140C420 1060 900 1100 1300 1200 1700 1300 2100 1320 2400 1260"/>
   </g>
 
-  <rect width="2400" height="1400" filter="url(#hgrain)" opacity=".05"/>
-  <rect width="2400" height="1400" fill="#0A0A0B" opacity=".18"/>
+  <rect width="2400" height="1400" filter="url(#hgrain)" opacity=".045"/>
+  <rect width="2400" height="1400" fill="#0B0B0C" opacity=".16"/>
 </svg>

@@ -1,13 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" fill="none" role="img" aria-label="Masseur de nuque RÉVA Atlas">
   <defs>
     <linearGradient id="nkBody" x1="150" y1="150" x2="450" y2="440" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#FDFDFE"/>
-      <stop offset=".5" stop-color="#EAECEF"/>
-      <stop offset="1" stop-color="#CDD1D7"/>
+      <stop stop-color="#FEFDFB"/>
+      <stop offset=".5" stop-color="#F0EBE3"/>
+      <stop offset="1" stop-color="#D9D1C5"/>
     </linearGradient>
     <linearGradient id="nkCap" x1="200" y1="380" x2="400" y2="430" gradientUnits="userSpaceOnUse">
-      <stop stop-color="#F6F7F8"/>
-      <stop offset="1" stop-color="#D8DBE0"/>
+      <stop stop-color="#FAF7F2"/>
+      <stop offset="1" stop-color="#E2DACE"/>
     </linearGradient>
     <radialGradient id="nkShadow" cx="0" cy="0" r="1" gradientTransform="translate(300 470) scale(165 24)" gradientUnits="userSpaceOnUse">
       <stop stop-color="#0A0A0B" stop-opacity=".26"/>
@@ -19,32 +19,32 @@
 
   <!-- collar -->
   <path d="M211.1 427A155 155 0 1 1 388.9 427L354.5 377.8A95 95 0 1 0 245.5 377.8Z" fill="url(#nkBody)"/>
-  <path d="M211.1 427A155 155 0 1 1 388.9 427L354.5 377.8A95 95 0 1 0 245.5 377.8Z" stroke="#B6BBC2" stroke-width="1.4"/>
+  <path d="M211.1 427A155 155 0 1 1 388.9 427L354.5 377.8A95 95 0 1 0 245.5 377.8Z" stroke="#C4BCB0" stroke-width="1.4"/>
 
   <!-- rounded ends -->
-  <circle cx="228.3" cy="402.4" r="30" fill="url(#nkCap)" stroke="#B6BBC2" stroke-width="1.4"/>
-  <circle cx="371.7" cy="402.4" r="30" fill="url(#nkCap)" stroke="#B6BBC2" stroke-width="1.4"/>
+  <circle cx="228.3" cy="402.4" r="30" fill="url(#nkCap)" stroke="#C4BCB0" stroke-width="1.4"/>
+  <circle cx="371.7" cy="402.4" r="30" fill="url(#nkCap)" stroke="#C4BCB0" stroke-width="1.4"/>
 
   <!-- inner gold ring -->
-  <path d="M240.5 393A125 125 0 1 1 359.5 393" stroke="#C2A26B" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
+  <path d="M240.5 393A125 125 0 1 1 359.5 393" stroke="#B99B72" stroke-width="2.2" stroke-linecap="round" opacity=".8"/>
 
   <!-- top highlight -->
   <path d="M232 214a105 105 0 0 1 136 0" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" opacity=".8"/>
 
   <!-- heat nodes -->
-  <g fill="#C2A26B" opacity=".85">
+  <g fill="#B99B72" opacity=".85">
     <circle cx="248" cy="356" r="9"/>
     <circle cx="352" cy="356" r="9"/>
   </g>
-  <g stroke="#9AA0A8" stroke-width="1.2" opacity=".7">
+  <g stroke="#9A938A" stroke-width="1.2" opacity=".7">
     <circle cx="248" cy="356" r="17"/>
     <circle cx="352" cy="356" r="17"/>
   </g>
 
   <!-- control button -->
-  <circle cx="300" cy="176" r="22" fill="#FFFFFF" stroke="#C6C9CE" stroke-width="1.3"/>
-  <circle cx="300" cy="176" r="10" stroke="#C2A26B" stroke-width="2"/>
+  <circle cx="300" cy="176" r="22" fill="#FFFFFF" stroke="#CFC8BE" stroke-width="1.3"/>
+  <circle cx="300" cy="176" r="10" stroke="#B99B72" stroke-width="2"/>
 
   <!-- surface seam -->
-  <path d="M300 145v-6M186 300h-6M414 300h6" stroke="#B6BBC2" stroke-width="1.4" stroke-linecap="round"/>
+  <path d="M300 145v-6M186 300h-6M414 300h6" stroke="#C4BCB0" stroke-width="1.4" stroke-linecap="round"/>
 </svg>

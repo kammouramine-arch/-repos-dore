@@ -16,7 +16,10 @@
 
     <title>
       {{ page_title }}
-      {%- if current_tags %} &ndash; {{ 'general.meta.tags' | t: tags: current_tags | join: ', ' }}{% endif -%}
+      {%- if current_tags %}
+        {%- assign tag_list = current_tags | join: ', ' -%}
+        &ndash; {{ 'general.meta.tags' | t: tags: tag_list }}
+      {%- endif -%}
       {%- if current_page != 1 %} &ndash; {{ 'general.pagination.page' | t: number: current_page }}{% endif -%}
       {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
     </title>
@@ -29,21 +32,21 @@
 
     {{ content_for_header }}
 
-    {%- liquid
-      assign body_font = settings.font_body
-      assign heading_font = settings.font_heading
-      assign body_font_bold = body_font | font_modify: 'weight', 'bold'
-      assign body_font_italic = body_font | font_modify: 'style', 'italic'
-      assign heading_font_light = heading_font | font_modify: 'weight', '300'
-    -%}
-
-    {{ body_font | font_face: font_display: 'swap' }}
-    {{ body_font_bold | font_face: font_display: 'swap' }}
-    {{ body_font_italic | font_face: font_display: 'swap' }}
-    {{ heading_font | font_face: font_display: 'swap' }}
-    {{ heading_font_light | font_face: font_display: 'swap' }}
-
     {{ 'theme.css' | asset_url | stylesheet_tag }}
+
+    {%- comment -%}
+      font_face renvoie du CSS brut, sans balise <style> : il doit impérativement
+      être enveloppé, sinon le navigateur éjecte ce texte du <head> et l'affiche
+      en haut de la page.
+    {%- endcomment -%}
+    {% style %}
+      {{ settings.font_body | font_face: font_display: 'swap' }}
+      {{ settings.font_body | font_modify: 'weight', 'bold' | font_face: font_display: 'swap' }}
+      {{ settings.font_body | font_modify: 'style', 'italic' | font_face: font_display: 'swap' }}
+      {{ settings.font_heading | font_face: font_display: 'swap' }}
+      {{ settings.font_heading | font_modify: 'weight', '300' | font_face: font_display: 'swap' }}
+    {% endstyle %}
+
     {%- comment -%} Rendu après la feuille de style : les réglages du thème priment. {%- endcomment -%}
     {% render 'css-variables' %}
 
