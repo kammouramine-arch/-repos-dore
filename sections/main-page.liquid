@@ -1,0 +1,27 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+      <h1 class="h1" data-reveal="fade">{{ page.title }}</h1>
+    </div>
+  </div>
+</section>
+
+{%- if page.content != blank -%}
+  <section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+    <div class="wrap wrap--text">
+      <div class="prose" data-reveal>{{ page.content }}</div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.main_page.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow" }
+  ]
+}
+{% endschema %}

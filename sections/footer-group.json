@@ -1,0 +1,26 @@
+{
+  "type": "footer",
+  "name": "t:sections.footer.group_name",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu-1": { "type": "menu", "settings": { "heading": "Collection", "menu": "footer" } },
+        "menu-2": { "type": "menu", "settings": { "heading": "Maison", "menu": "footer" } },
+        "menu-3": { "type": "menu", "settings": { "heading": "Aide", "menu": "footer" } }
+      },
+      "block_order": ["menu-1", "menu-2", "menu-3"],
+      "settings": {
+        "logo_text": "RÉVA",
+        "tagline": "Appareils de récupération conçus en Europe. Une exigence unique : le retour au calme, chaque jour, sans compromis.",
+        "show_newsletter": true,
+        "newsletter_text": "Recevez nos protocoles de récupération et nos lancements en avant-première.",
+        "show_payment_icons": true,
+        "payment_labels": "VISA, MC, AMEX, PAYPAL, 3×",
+        "show_wordmark": true,
+        "wordmark": "RÉVA"
+      }
+    }
+  },
+  "order": ["footer"]
+}

@@ -1,0 +1,58 @@
+{%- if section.blocks.size > 0 -%}
+  <div class="announce">
+    <div class="announce__track" style="animation-duration:{{ section.settings.speed }}s">
+      <span>
+        {%- for block in section.blocks -%}
+          {{ block.settings.text }}<i></i>
+        {%- endfor -%}
+      </span>
+      <span aria-hidden="true">
+        {%- for block in section.blocks -%}
+          {{ block.settings.text }}<i></i>
+        {%- endfor -%}
+      </span>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.announcement.name",
+  "class": "announcement-section",
+  "max_blocks": 8,
+  "settings": [
+    {
+      "type": "range",
+      "id": "speed",
+      "min": 20,
+      "max": 90,
+      "step": 2,
+      "unit": "s",
+      "label": "t:sections.announcement.settings.speed.label",
+      "default": 42
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "t:sections.announcement.blocks.message.name",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "t:sections.announcement.blocks.message.settings.text.label",
+          "default": "Livraison offerte dès 120 €"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.announcement.name",
+      "blocks": [
+        { "type": "message" }
+      ]
+    }
+  ]
+}
+{% endschema %}

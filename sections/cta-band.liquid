@@ -1,0 +1,42 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap">
+    <div class="cta-band" data-reveal="scale">
+      <div class="cta-band__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" style="margin-top:1.25rem">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <p>{{ section.settings.text }}</p>
+        {%- endif -%}
+      </div>
+      <div class="cta-band__actions">
+        {%- if section.settings.button_label != blank -%}
+          <a class="btn btn--gold" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>
+        {%- endif -%}
+        {%- if section.settings.note != blank -%}
+          <p class="cta-band__note">{{ section.settings.note }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.cta_band.name",
+  "class": "cta-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Essai 30 nuits" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Testez chez vous. Décidez ensuite." },
+    { "type": "textarea", "id": "text", "label": "t:common.text" },
+    { "type": "text", "id": "button_label", "label": "t:common.button_label", "default": "Découvrir la collection" },
+    { "type": "url", "id": "button_link", "label": "t:common.button_link" },
+    { "type": "text", "id": "note", "label": "t:sections.cta_band.settings.note.label", "default": "Livraison 48 h · Paiement en 3× sans frais · Garantie 2 ans" },
+    { "type": "checkbox", "id": "flush_top", "default": false, "label": "t:common.flush_top" }
+  ],
+  "presets": [{ "name": "t:sections.cta_band.name" }]
+}
+{% endschema %}

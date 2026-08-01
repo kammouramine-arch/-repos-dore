@@ -1,0 +1,52 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow">{{ 'customer.account.title' | t }}</p>
+      <h1 class="h1">{{ 'customer.account.addresses' | t }}</h1>
+      <p class="lead"><a href="{{ routes.account_url }}">{{ 'customer.account.back' | t }}</a></p>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap wrap--narrow">
+    {%- for address in customer.addresses -%}
+      <div class="review" style="margin-bottom:1rem">
+        {{ address | format_address }}
+      </div>
+    {%- endfor -%}
+
+    <div class="form-card" style="margin-top:2rem">
+      <h2 class="h3" style="margin-bottom:1.5rem">{{ 'customer.addresses.add' | t }}</h2>
+      {%- form 'customer_address', customer.new_address, novalidate: 'novalidate' -%}
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.first_name' | t }}</span>
+            <input class="input" type="text" name="address[first_name]" autocomplete="given-name">
+          </label>
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.last_name' | t }}</span>
+            <input class="input" type="text" name="address[last_name]" autocomplete="family-name">
+          </label>
+          <label class="field field--full">
+            <span class="field__label">{{ 'customer.addresses.address1' | t }}</span>
+            <input class="input" type="text" name="address[address1]" autocomplete="address-line1">
+          </label>
+          <label class="field">
+            <span class="field__label">{{ 'customer.addresses.zip' | t }}</span>
+            <input class="input" type="text" name="address[zip]" autocomplete="postal-code">
+          </label>
+          <label class="field">
+            <span class="field__label">{{ 'customer.addresses.city' | t }}</span>
+            <input class="input" type="text" name="address[city]" autocomplete="address-level2">
+          </label>
+          <label class="field field--full">
+            <span class="field__label">{{ 'customer.addresses.country' | t }}</span>
+            <input class="input" type="text" name="address[country]" autocomplete="country-name">
+          </label>
+        </div>
+        <button class="btn btn--block" type="submit" style="margin-top:1.5rem">{{ 'customer.addresses.save' | t }}</button>
+      {%- endform -%}
+    </div>
+  </div>
+</section>

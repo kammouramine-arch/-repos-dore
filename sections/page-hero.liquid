@@ -1,0 +1,55 @@
+{%- liquid
+  assign heading = section.settings.heading
+  if heading == blank
+    assign heading = page.title | default: shop.name
+  endif
+  assign heading_lines = heading | newline_to_br | split: '<br />'
+-%}
+
+<section class="page-hero{% if section.settings.dark %} page-hero--dark grain{% endif %}">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.style == 'display' -%}
+        <h1 class="display split-lines" data-reveal="fade">
+          {%- for line in heading_lines -%}
+            <span class="line"><span>{{ line | strip }}</span></span>
+          {%- endfor -%}
+        </h1>
+      {%- else -%}
+        <h1 class="h1" data-reveal="fade">{{ heading | strip_newlines }}</h1>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <p class="lead" data-reveal style="--delay:100ms">{{ section.settings.text }}</p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.page_hero.name",
+  "class": "page-hero-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow" },
+    { "type": "textarea", "id": "heading", "label": "t:common.heading", "info": "t:sections.page_hero.settings.heading.info" },
+    { "type": "textarea", "id": "text", "label": "t:common.text" },
+    {
+      "type": "select",
+      "id": "style",
+      "label": "t:sections.page_hero.settings.style.label",
+      "default": "simple",
+      "options": [
+        { "value": "simple", "label": "t:sections.page_hero.settings.style.simple" },
+        { "value": "display", "label": "t:sections.page_hero.settings.style.display" }
+      ]
+    },
+    { "type": "checkbox", "id": "dark", "default": false, "label": "t:sections.page_hero.settings.dark.label" }
+  ],
+  "presets": [{ "name": "t:sections.page_hero.name" }]
+}
+{% endschema %}

@@ -1,0 +1,198 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "assurance-1": {
+          "type": "assurance",
+          "settings": { "icon": "clock", "title": "Essai 30 nuits.", "text": "Retour organisé et remboursé, sans justification." }
+        },
+        "assurance-2": {
+          "type": "assurance",
+          "settings": { "icon": "shield", "title": "Garantie 2 ans,", "text": "extensible à 5 ans gratuitement à l'enregistrement." }
+        },
+        "assurance-3": {
+          "type": "assurance",
+          "settings": { "icon": "truck", "title": "Livraison en 48 h", "text": "en France métropolitaine, suivi et créneau au choix." }
+        },
+        "assurance-4": {
+          "type": "assurance",
+          "settings": { "icon": "account", "title": "Accompagnement personnalisé :", "text": "un kinésithérapeute règle votre protocole par téléphone." }
+        },
+        "description": {
+          "type": "description",
+          "settings": { "title": "Description", "open": true }
+        },
+        "accordion-livraison": {
+          "type": "accordion",
+          "settings": {
+            "title": "Livraison & retours",
+            "content": "<p>Expédition sous 24 h ouvrées. Livraison offerte dès 120 € d'achat, en 48 h en France métropolitaine et 3 à 5 jours en Europe.</p><ul><li>Choix du créneau et report possible jusqu'à la veille</li><li>Emballage sans plastique, carton recyclé et encres végétales</li><li>Retour gratuit pendant 30 nuits, enlèvement à domicile organisé par nos soins</li></ul>",
+            "open": false
+          }
+        },
+        "accordion-garantie": {
+          "type": "accordion",
+          "settings": {
+            "title": "Garantie & service",
+            "content": "<p>Deux ans de garantie constructeur, portée à cinq ans si vous enregistrez votre appareil dans les 30 jours. En cas de panne, nous envoyons un appareil de remplacement avant même de récupérer le vôtre.</p><ul><li>Pièces détachées disponibles pendant 10 ans</li><li>Atelier de réparation, délai moyen de 5 jours</li><li>Service client francophone, du lundi au samedi de 9 h à 19 h</li></ul>",
+            "open": false
+          }
+        },
+        "accordion-precautions": {
+          "type": "accordion",
+          "settings": {
+            "title": "Précautions d'usage",
+            "content": "<p>Cet appareil de bien-être ne remplace pas un avis médical. Demandez conseil à votre médecin en cas de thrombose ou antécédent thromboembolique, d'insuffisance cardiaque, d'infection cutanée, de plaie ouverte ou de grossesse.</p><ul><li>Usage recommandé : 15 à 30 minutes, une à deux fois par jour</li><li>Ne pas utiliser directement sur une peau lésée</li><li>Déconseillé aux enfants de moins de 12 ans sans supervision</li></ul>",
+            "open": false
+          }
+        }
+      },
+      "block_order": [
+        "assurance-1",
+        "assurance-2",
+        "assurance-3",
+        "assurance-4",
+        "description",
+        "accordion-livraison",
+        "accordion-garantie",
+        "accordion-precautions"
+      ],
+      "settings": {
+        "show_breadcrumb": true,
+        "show_rating": true,
+        "fallback_rating": "4,9",
+        "fallback_rating_count": "1 204",
+        "instalment_text": "Livraison offerte, expédiée sous 24 h.",
+        "instalment_short": "ou 3× sans frais",
+        "color_option_names": "couleur,color,coloris",
+        "swatch_colors": "Onyx: #17191D\nSable: #D8CDBA\nBleu nuit: #0E1D33",
+        "show_stock": true,
+        "stock_text": "En stock — expédition aujourd'hui si commande avant 15 h",
+        "show_buybar": true
+      }
+    },
+    "specs": {
+      "type": "specs",
+      "blocks": {
+        "spec-1": { "type": "spec", "settings": { "label": "Pression", "value": "20 – 120", "detail": "mmHg, par paliers de 5" } },
+        "spec-2": { "type": "spec", "settings": { "label": "Chambres", "value": "4", "detail": "par jambe, séquentielles" } },
+        "spec-3": { "type": "spec", "settings": { "label": "Niveau sonore", "value": "38 dB", "detail": "mesuré à 1 mètre" } },
+        "spec-4": { "type": "spec", "settings": { "label": "Autonomie", "value": "3 h", "detail": "sans fil, charge USB-C en 90 min" } }
+      },
+      "block_order": ["spec-1", "spec-2", "spec-3", "spec-4"],
+      "settings": { "tight": true }
+    },
+    "steps": {
+      "type": "steps",
+      "blocks": {
+        "step-1": { "type": "step", "settings": { "step_label": "Étape", "title": "Enfiler", "text": "Les bottes s'ouvrent entièrement par la fermeture latérale. On les enfile assis, en dix secondes, sans se contorsionner." } },
+        "step-2": { "type": "step", "settings": { "step_label": "Étape", "title": "Choisir", "text": "Une molette, six protocoles. L'écran affiche la pression réelle en mmHg et le temps restant." } },
+        "step-3": { "type": "step", "settings": { "step_label": "Étape", "title": "Oublier", "text": "L'appareil s'arrête seul. Il se replie dans sa housse en feutre de laine, qui tient dans un tiroir." } }
+      },
+      "block_order": ["step-1", "step-2", "step-3"],
+      "settings": {
+        "eyebrow": "En trois gestes",
+        "heading": "Une séance ne demande aucune expertise.",
+        "flush_top": false
+      }
+    },
+    "matieres": {
+      "type": "image-with-text",
+      "blocks": {
+        "item-1": { "type": "item", "settings": { "title": "Nylon recyclé 400 D", "text": "Déperlant, résistant à l'abrasion, certifié OEKO-TEX Standard 100." } },
+        "item-2": { "type": "item", "settings": { "title": "Doublure amovible", "text": "Lavable en machine à 30 °C, séchage rapide, rechange fourni." } },
+        "item-3": { "type": "item", "settings": { "title": "Aluminium anodisé", "text": "Molette et charnières usinées, finition mate, sans plastique apparent." } }
+      },
+      "block_order": ["item-1", "item-2", "item-3"],
+      "settings": {
+        "reverse": true,
+        "light_media": true,
+        "parallax": 0.03,
+        "eyebrow": "Matières",
+        "heading": "Ce que l'on touche compte autant que ce que l'on ressent.",
+        "text": "Nylon recyclé à 400 deniers, doublure en jersey de coton, molette en aluminium anodisé usinée dans la masse. Aucune pièce n'est collée : tout se démonte, tout se remplace.",
+        "flush_top": true
+      }
+    },
+    "box": {
+      "type": "box-list",
+      "blocks": {
+        "item-1": { "type": "item", "settings": { "title": "Deux bottes de compression", "detail": "Taille au choix" } },
+        "item-2": { "type": "item", "settings": { "title": "Unité de contrôle sans fil", "detail": "Batterie 3 h" } },
+        "item-3": { "type": "item", "settings": { "title": "Deux doublures en jersey de coton", "detail": "Lavables" } },
+        "item-4": { "type": "item", "settings": { "title": "Câble de charge USB-C tressé", "detail": "1,5 m" } },
+        "item-5": { "type": "item", "settings": { "title": "Housse de transport en feutre de laine", "detail": "Fabrication portugaise" } },
+        "item-6": { "type": "item", "settings": { "title": "Guide des protocoles imprimé", "detail": "32 pages, papier recyclé" } }
+      },
+      "block_order": ["item-1", "item-2", "item-3", "item-4", "item-5", "item-6"],
+      "settings": {
+        "eyebrow": "Dans la boîte",
+        "heading": "Tout est fourni. Rien n'est en option.",
+        "background": "grey",
+        "flush_top": false
+      }
+    },
+    "reviews": {
+      "type": "product-reviews",
+      "blocks": {
+        "review-1": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Le silence, enfin",
+            "text": "J'avais renoncé aux bottes de compression à cause du bruit. Là, je regarde un film pendant la séance sans monter le son. La différence est réelle.",
+            "author": "Julien P.",
+            "author_meta": "Triathlète",
+            "verified": true
+          }
+        },
+        "review-2": {
+          "type": "review",
+          "settings": {
+            "rating": 5,
+            "title": "Un objet, pas un dispositif",
+            "text": "La housse reste dans le salon sans dénoter. C'est bête, mais c'est ce qui fait que je m'en sers tous les soirs au lieu de le laisser dans un placard.",
+            "author": "Élodie V.",
+            "author_meta": "Architecte",
+            "verified": true
+          }
+        },
+        "review-3": {
+          "type": "review",
+          "settings": {
+            "rating": 4,
+            "title": "Excellent, une réserve",
+            "text": "Rien à redire sur l'appareil. J'aurais aimé une seconde housse pour le bureau. Le service m'en a proposé une à prix coûtant, geste appréciable.",
+            "author": "Marc T.",
+            "author_meta": "Kinésithérapeute",
+            "verified": true
+          }
+        }
+      },
+      "block_order": ["review-1", "review-2", "review-3"],
+      "settings": {
+        "eyebrow": "Avis clients",
+        "heading": "1 204 avis vérifiés",
+        "anchor": "avis",
+        "show_summary": true,
+        "rating": "4,9",
+        "rating_count": "1 204",
+        "distribution": "91, 7, 1, 1, 0",
+        "flush_top": false
+      }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": {
+        "eyebrow": "Compléter le rituel",
+        "heading": "Souvent associés",
+        "products_to_show": 2,
+        "link_label": "Toute la collection",
+        "card_cta": "Découvrir",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["main", "specs", "steps", "matieres", "box", "reviews", "related"]
+}

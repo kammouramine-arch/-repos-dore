@@ -1,0 +1,51 @@
+{%- comment -%}
+  Balises SEO : titre, description, Open Graph et Twitter Card.
+  Utilisé une seule fois, dans layout/theme.liquid.
+{%- endcomment -%}
+
+<title>
+  {{ page_title }}
+  {%- if current_tags %} &ndash; {{ 'general.meta.tags' | t: tags: current_tags | join: ', ' }}{% endif -%}
+  {%- if current_page != 1 %} &ndash; {{ 'general.meta.page' | t: page: current_page }}{% endif -%}
+  {%- unless page_title contains shop.name %} &ndash; {{ shop.name }}{% endunless -%}
+</title>
+
+{%- if page_description -%}
+  <meta name="description" content="{{ page_description | escape }}">
+{%- endif -%}
+
+<meta name="theme-color" content="{{ settings.color_ink | default: '#0A0A0B' }}">
+
+{%- liquid
+  assign og_title = page_title | default: shop.name
+  assign og_description = page_description | default: shop.description | default: shop.name
+  assign og_type = 'website'
+  if request.page_type == 'product'
+    assign og_type = 'product'
+  elsif request.page_type == 'article'
+    assign og_type = 'article'
+  endif
+-%}
+
+<meta property="og:site_name" content="{{ shop.name }}">
+<meta property="og:url" content="{{ canonical_url }}">
+<meta property="og:title" content="{{ og_title | escape }}">
+<meta property="og:type" content="{{ og_type }}">
+<meta property="og:description" content="{{ og_description | escape }}">
+
+{%- if request.page_type == 'product' and product.featured_media -%}
+  <meta property="og:image" content="https:{{ product.featured_media | image_url: width: 1200 }}">
+  <meta property="og:image:secure_url" content="https:{{ product.featured_media | image_url: width: 1200 }}">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="1200">
+  <meta property="og:price:amount" content="{{ product.price | divided_by: 100.0 }}">
+  <meta property="og:price:currency" content="{{ cart.currency.iso_code }}">
+{%- elsif request.page_type == 'article' and article.image -%}
+  <meta property="og:image" content="https:{{ article.image | image_url: width: 1200 }}">
+{%- elsif settings.social_share_image -%}
+  <meta property="og:image" content="https:{{ settings.social_share_image | image_url: width: 1200 }}">
+{%- endif -%}
+
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="{{ og_title | escape }}">
+<meta name="twitter:description" content="{{ og_description | escape }}">

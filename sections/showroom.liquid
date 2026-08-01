@@ -1,0 +1,49 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap">
+    <div class="showroom grain" data-reveal="scale"{% if section.settings.image != blank %} style="background-image:linear-gradient(150deg,rgba(22,25,30,.82),rgba(10,10,11,.92)),url({{ section.settings.image | image_url: width: 1600 }});background-size:cover;background-position:center"{% endif %}>
+      <div class="showroom__inner">
+        {%- if section.settings.eyebrow != blank -%}
+          <p class="eyebrow eyebrow--gold" style="justify-content:center">{{ section.settings.eyebrow }}</p>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="{{ section.settings.heading_size }}" style="margin-top:1.25rem">{{ section.settings.heading }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <p>{{ section.settings.text }}</p>
+        {%- endif -%}
+        {%- if section.settings.button_label != blank -%}
+          <div class="btn-row" style="justify-content:center;margin-top:2rem">
+            <a class="btn btn--light" href="{{ section.settings.button_link | default: '#' }}">{{ section.settings.button_label }}</a>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.showroom.name",
+  "class": "showroom-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Showroom" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "14 rue de Turenne, Paris 3e" },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:sections.showroom.settings.heading_size.label",
+      "default": "h2",
+      "options": [
+        { "value": "h2", "label": "t:common.size_large" },
+        { "value": "h3", "label": "t:common.size_small" }
+      ]
+    },
+    { "type": "textarea", "id": "text", "label": "t:common.text" },
+    { "type": "image_picker", "id": "image", "label": "t:common.image" },
+    { "type": "text", "id": "button_label", "label": "t:common.button_label" },
+    { "type": "url", "id": "button_link", "label": "t:common.button_link" },
+    { "type": "checkbox", "id": "flush_top", "default": true, "label": "t:common.flush_top" }
+  ],
+  "presets": [{ "name": "t:sections.showroom.name" }]
+}
+{% endschema %}

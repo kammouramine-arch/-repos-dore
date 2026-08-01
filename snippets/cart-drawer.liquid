@@ -1,0 +1,56 @@
+{%- comment -%}
+  Panier latéral — alimenté par l'API Ajax de Shopify (/cart.js).
+  Le rendu initial est fait en Liquid pour rester indexable et éviter tout
+  saut de mise en page ; main.js le rafraîchit ensuite sans rechargement.
+{%- endcomment -%}
+<div class="overlay" data-overlay></div>
+
+<aside class="drawer" data-cart aria-label="{{ 'cart.title' | t }}" aria-hidden="true">
+  <div class="drawer__head">
+    <span class="drawer__title">{{ 'cart.title' | t }}</span>
+    <button class="icon-btn" type="button" data-cart-close aria-label="{{ 'cart.close' | t }}">
+      {%- render 'icon', name: 'close' -%}
+    </button>
+  </div>
+
+  <div class="drawer__body" data-cart-body>
+    {%- if cart.item_count == 0 -%}
+      <div class="drawer__empty">
+        {%- render 'icon', name: 'cart' -%}
+        <p>{{ 'cart.empty.title' | t }}<br><span class="muted">{{ 'cart.empty.text' | t }}</span></p>
+        <a class="btn btn--sm" href="{{ routes.all_products_collection_url }}">{{ 'cart.empty.link' | t }}</a>
+      </div>
+    {%- else -%}
+      {%- for item in cart.items -%}
+        <div class="drawer-line">
+          <div class="drawer-line__media">
+            {%- if item.image -%}
+              <img src="{{ item.image | image_url: width: 160 }}" alt="{{ item.image.alt | escape }}" width="80" height="80" loading="lazy">
+            {%- endif -%}
+          </div>
+          <div style="display:flex;flex-direction:column;flex:1;min-width:0">
+            <p class="drawer-line__name">{{ item.product.title }}</p>
+            <p class="drawer-line__meta">
+              {%- unless item.product.has_only_default_variant -%}{{ item.variant.title }} · {% endunless -%}
+              {{ 'cart.line.quantity' | t }} {{ item.quantity }}
+            </p>
+            <p class="drawer-line__price">{{ item.final_line_price | money }}</p>
+          </div>
+          <button class="icon-btn" type="button" data-cart-remove="{{ item.key }}" aria-label="{{ 'cart.line.remove_title' | t: title: item.product.title }}">
+            {%- render 'icon', name: 'close' -%}
+          </button>
+        </div>
+      {%- endfor -%}
+    {%- endif -%}
+  </div>
+
+  <div class="drawer__foot" data-cart-foot {% if cart.item_count == 0 %}hidden{% endif %}>
+    <div style="display:flex;justify-content:space-between;margin-bottom:1rem;font-size:.875rem">
+      <span class="muted">{{ 'cart.subtotal' | t }}</span><strong data-cart-total>{{ cart.total_price | money }}</strong>
+    </div>
+    <form action="{{ routes.cart_url }}" method="post" novalidate>
+      <button class="btn btn--block" type="submit" name="checkout">{{ 'cart.checkout' | t }}</button>
+    </form>
+    <p style="margin-top:.75rem;text-align:center;font-size:.75rem;color:var(--muted)">{{ 'cart.taxes_note' | t }}</p>
+  </div>
+</aside>

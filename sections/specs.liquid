@@ -1,0 +1,43 @@
+<section class="section--sm" style="padding-block:{% if section.settings.tight %}0{% else %}clamp(2.5rem,5vw,4rem){% endif %}">
+  <div class="wrap">
+    <dl class="specs" data-reveal>
+      {%- for block in section.blocks -%}
+        <div class="spec" {{ block.shopify_attributes }}>
+          <dt>{{ block.settings.label }}</dt>
+          <dd>
+            {{ block.settings.value }}
+            {%- if block.settings.detail != blank %}<small>{{ block.settings.detail }}</small>{% endif -%}
+          </dd>
+        </div>
+      {%- endfor -%}
+    </dl>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.specs.name",
+  "class": "specs-section",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "checkbox", "id": "tight", "default": true, "label": "t:sections.specs.settings.tight.label" }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "t:sections.specs.blocks.spec.name",
+      "settings": [
+        { "type": "text", "id": "label", "label": "t:common.label", "default": "Pression" },
+        { "type": "text", "id": "value", "label": "t:common.value", "default": "20 – 120" },
+        { "type": "text", "id": "detail", "label": "t:sections.specs.blocks.spec.settings.detail.label", "default": "mmHg, par paliers de 5" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.specs.name",
+      "blocks": [{ "type": "spec" }, { "type": "spec" }, { "type": "spec" }, { "type": "spec" }]
+    }
+  ]
+}
+{% endschema %}

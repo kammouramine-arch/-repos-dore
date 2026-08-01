@@ -1,0 +1,70 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap wrap--narrow">
+    {%- if section.settings.eyebrow != blank or section.settings.heading != blank -%}
+      <div class="section-head">
+        <div class="section-head__text">
+          {%- if section.settings.eyebrow != blank -%}<p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>{%- endif -%}
+          {%- if section.settings.heading != blank -%}<h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>{%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div data-reveal>
+      <table class="compare">
+        <thead>
+          <tr>
+            <th scope="col">{{ section.settings.column_criteria }}</th>
+            <th scope="col">{{ section.settings.column_us | default: shop.name }}</th>
+            <th scope="col">{{ section.settings.column_them }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          {%- for block in section.blocks -%}
+            <tr {{ block.shopify_attributes }}>
+              <th scope="row">{{ block.settings.criteria }}</th>
+              <td class="{% if block.settings.us %}yes{% else %}no{% endif %}">
+                {%- if block.settings.us -%}{%- render 'icon', name: 'check' -%}{%- else -%}—{%- endif -%}
+              </td>
+              <td class="{% if block.settings.them %}yes{% else %}no{% endif %}">
+                {%- if block.settings.them -%}{%- render 'icon', name: 'check' -%}{%- else -%}—{%- endif -%}
+              </td>
+            </tr>
+          {%- endfor -%}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.comparison.name",
+  "class": "comparison-section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Pourquoi nous" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Ce qui sépare un appareil premium d'un appareil bon marché." },
+    { "type": "text", "id": "column_criteria", "label": "t:sections.comparison.settings.column_criteria.label", "default": "Critère" },
+    { "type": "text", "id": "column_us", "label": "t:sections.comparison.settings.column_us.label", "default": "RÉVA" },
+    { "type": "text", "id": "column_them", "label": "t:sections.comparison.settings.column_them.label", "default": "Marché entrée de gamme" },
+    { "type": "checkbox", "id": "flush_top", "default": false, "label": "t:common.flush_top" }
+  ],
+  "blocks": [
+    {
+      "type": "row",
+      "name": "t:sections.comparison.blocks.row.name",
+      "settings": [
+        { "type": "text", "id": "criteria", "label": "t:sections.comparison.blocks.row.settings.criteria.label", "default": "Pression calibrée et mesurable" },
+        { "type": "checkbox", "id": "us", "default": true, "label": "t:sections.comparison.blocks.row.settings.us.label" },
+        { "type": "checkbox", "id": "them", "default": false, "label": "t:sections.comparison.blocks.row.settings.them.label" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.comparison.name",
+      "blocks": [{ "type": "row" }, { "type": "row" }, { "type": "row" }, { "type": "row" }]
+    }
+  ]
+}
+{% endschema %}

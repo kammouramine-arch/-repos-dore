@@ -1,0 +1,32 @@
+{%- assign words = section.settings.text | strip_newlines | split: ' ' -%}
+
+<section class="section manifesto">
+  <div class="wrap">
+    {%- if section.settings.eyebrow != blank -%}
+      <p class="eyebrow" data-reveal="fade" style="justify-content:center">{{ section.settings.eyebrow }}</p>
+    {%- endif -%}
+    <p class="manifesto__text" data-lit style="margin-top:2rem">
+      {%- for word in words -%}
+        {%- unless word == blank -%}<span class="word">{{ word }}</span> {% endunless -%}
+      {%- endfor -%}
+    </p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.manifesto.name",
+  "class": "manifesto-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Manifeste" },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "t:common.text",
+      "info": "t:sections.manifesto.settings.text.info",
+      "default": "Nous ne vendons pas des appareils. Nous rendons à chacun ses <em>vingt</em> <em>minutes</em> de silence quotidien."
+    }
+  ],
+  "presets": [{ "name": "t:sections.manifesto.name" }]
+}
+{% endschema %}

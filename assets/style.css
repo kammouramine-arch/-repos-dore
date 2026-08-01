@@ -1968,3 +1968,71 @@ body.nav-open .header {
   .press { gap: 1.25rem 2rem; }
   .cta-band { padding: 2rem 1.5rem; }
 }
+
+/* ==========================================================================
+   13. PAGES SHOPIFY
+   Panier, pagination, comptes clients : pages absentes de la maquette
+   d'origine, composées avec les mêmes jetons pour rester homogènes.
+   ========================================================================== */
+
+/* --- Panier --- */
+.cart-lines { border-top: 1px solid var(--line); }
+.cart-lines .drawer-line { padding-block: 1.5rem; align-items: center; }
+.cart-line__actions { display: grid; gap: .5rem; justify-items: end; }
+.cart-line__remove {
+  font-size: var(--fs-xs);
+  color: var(--muted);
+  border-bottom: 1px solid var(--grey-300);
+}
+.cart-line__remove:hover { color: var(--fg); }
+
+.cart-foot { margin-top: 2.5rem; padding-top: 1.5rem; border-top: 1px solid var(--line); }
+.cart-foot__total {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 1rem;
+  margin-bottom: .5rem;
+}
+.cart-foot__total strong { font-size: 1.25rem; font-weight: 400; letter-spacing: -.02em; }
+
+.cart-empty {
+  display: grid;
+  gap: 1.25rem;
+  place-items: center;
+  padding-block: clamp(3rem, 8vw, 6rem);
+  text-align: center;
+  color: var(--muted);
+}
+.cart-empty svg { width: 38px; height: 38px; stroke: var(--grey-300); fill: none; stroke-width: 1; }
+
+/* --- Pagination --- */
+.pagination {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: .5rem;
+  margin-top: clamp(2.5rem, 5vw, 4rem);
+}
+.pagination__link {
+  display: grid;
+  place-items: center;
+  min-width: 2.5rem;
+  height: 2.5rem;
+  padding-inline: .5rem;
+  border: 1px solid var(--line);
+  border-radius: var(--r-sm);
+  font-size: var(--fs-sm);
+  color: var(--muted);
+  transition: border-color var(--dur-fast) var(--ease), color var(--dur-fast) var(--ease);
+}
+.pagination__link:hover { border-color: var(--grey-500); color: var(--fg); }
+.pagination__link.is-current { background: var(--ink); border-color: var(--ink); color: var(--white); }
+.pagination__link svg { width: 12px; height: 12px; stroke: currentColor; fill: none; stroke-width: 1.5; }
+
+/* --- Bouton en cours d'envoi --- */
+.btn.is-loading { opacity: .6; pointer-events: none; }
+
+/* --- Images de remplacement Shopify --- */
+.placeholder { width: 100%; height: 100%; background: var(--grey-100); fill: var(--grey-300); }
+.card__media .placeholder, .split__media .placeholder, .gallery__main .placeholder { aspect-ratio: 1; }

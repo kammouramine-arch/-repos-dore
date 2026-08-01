@@ -1,0 +1,95 @@
+{
+  "sections": {
+    "hero": {
+      "type": "page-hero",
+      "settings": {
+        "eyebrow": "Contact",
+        "heading": "Une équipe, pas un formulaire.",
+        "text": "Nos conseillers sont des kinésithérapeutes diplômés. Ils règlent votre protocole, vous aident à choisir une taille ou suivent votre commande — du lundi au samedi, de 9 h à 19 h.",
+        "style": "simple",
+        "dark": false
+      }
+    },
+    "contact": {
+      "type": "contact",
+      "blocks": {
+        "card-1": {
+          "type": "card",
+          "settings": {
+            "icon": "mail",
+            "title": "Écrire",
+            "link_label": "service@reva-recovery.com",
+            "link_url": "mailto:service@reva-recovery.com",
+            "text": "Réponse moyenne en 2 h ouvrées."
+          }
+        },
+        "card-2": {
+          "type": "card",
+          "settings": {
+            "icon": "phone",
+            "title": "Appeler",
+            "link_label": "+33 1 84 80 12 40",
+            "link_url": "tel:+33184801240",
+            "text": "Du lundi au samedi, 9 h – 19 h."
+          }
+        },
+        "card-3": {
+          "type": "card",
+          "settings": {
+            "icon": "pin",
+            "title": "Showroom Paris",
+            "text": "14 rue de Turenne, 75003 Paris. Essai des quatre appareils sur rendez-vous, du mardi au samedi."
+          }
+        },
+        "card-4": {
+          "type": "card",
+          "settings": {
+            "icon": "briefcase",
+            "title": "Professionnels",
+            "link_label": "pro@reva-recovery.com",
+            "link_url": "mailto:pro@reva-recovery.com",
+            "text": "Cabinets, clubs et entreprises : tarifs dégressifs dès trois appareils."
+          }
+        }
+      },
+      "block_order": ["card-1", "card-2", "card-3", "card-4"],
+      "settings": {
+        "form_title": "Écrivez-nous",
+        "form_note": "Les champs marqués d'un astérisque sont obligatoires.",
+        "subjects": "Conseil avant achat\nChoix de la taille\nSuivi de commande\nRetour ou échange\nGarantie & SAV\nRendez-vous au showroom\nDemande professionnelle\nPresse & partenariats",
+        "show_order_field": true,
+        "order_placeholder": "RV-000000",
+        "consent_text": "J'accepte que mes données soient conservées le temps du traitement de ma demande, conformément à la politique de confidentialité.",
+        "form_footnote": "Réponse moyenne en 2 h ouvrées · Aucune donnée revendue",
+        "success_text": "Message envoyé. Un conseiller vous répond sous 2 h ouvrées, à l'adresse indiquée.",
+        "show_showroom": true,
+        "showroom_eyebrow": "Sur rendez-vous",
+        "showroom_heading": "45 minutes d'essai, accompagné.",
+        "showroom_text": "Un kinésithérapeute vous fait tester les protocoles adaptés à votre usage. Sans engagement, sans obligation d'achat."
+      }
+    },
+    "infos": {
+      "type": "specs",
+      "blocks": {
+        "spec-1": { "type": "spec", "settings": { "label": "Horaires", "value": "9 h – 19 h", "detail": "Du lundi au samedi" } },
+        "spec-2": { "type": "spec", "settings": { "label": "Délai de réponse", "value": "2 h", "detail": "En moyenne, jours ouvrés" } },
+        "spec-3": { "type": "spec", "settings": { "label": "Showroom", "value": "Paris 3e", "detail": "14 rue de Turenne, sur rendez-vous" } },
+        "spec-4": { "type": "spec", "settings": { "label": "Atelier SAV", "value": "Lille", "detail": "Réparation en 5 jours en moyenne" } }
+      },
+      "block_order": ["spec-1", "spec-2", "spec-3", "spec-4"],
+      "settings": { "tight": false }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Avant d'écrire",
+        "heading": "La réponse est peut-être déjà en ligne.",
+        "text": "Livraison, tailles, garantie, paiement en 3× : notre FAQ couvre les vingt-deux questions que l'on nous pose le plus souvent.",
+        "button_label": "Consulter la FAQ",
+        "note": "Mise à jour en continu par l'équipe service client",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["hero", "contact", "infos", "cta"]
+}

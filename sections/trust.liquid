@@ -1,0 +1,53 @@
+<section class="trust">
+  <div class="wrap trust__grid">
+    {%- for block in section.blocks -%}
+      <div class="trust__item" data-reveal{% if forloop.index0 > 0 %} style="--delay:{{ forloop.index0 | times: 80 }}ms"{% endif %} {{ block.shopify_attributes }}>
+        {%- render 'icon', name: block.settings.icon -%}
+        <div><strong>{{ block.settings.title }}</strong><span>{{ block.settings.text }}</span></div>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.trust.name",
+  "class": "trust-section",
+  "max_blocks": 6,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "t:sections.trust.blocks.item.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:common.icon",
+          "default": "shield",
+          "options": [
+            { "value": "shield", "label": "t:icons.shield" },
+            { "value": "truck", "label": "t:icons.truck" },
+            { "value": "clock", "label": "t:icons.clock" },
+            { "value": "card", "label": "t:icons.card" },
+            { "value": "check", "label": "t:icons.check" },
+            { "value": "star", "label": "t:icons.star" },
+            { "value": "pin", "label": "t:icons.pin" },
+            { "value": "phone", "label": "t:icons.phone" },
+            { "value": "mail", "label": "t:icons.mail" },
+            { "value": "briefcase", "label": "t:icons.briefcase" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Garantie 2 ans" },
+        { "type": "text", "id": "text", "label": "t:common.text", "default": "Extension 5 ans offerte" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.trust.name",
+      "blocks": [{ "type": "item" }, { "type": "item" }, { "type": "item" }, { "type": "item" }]
+    }
+  ]
+}
+{% endschema %}

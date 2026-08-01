@@ -1,0 +1,181 @@
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap contact-layout">
+    <div>
+      {%- if section.blocks.size > 0 -%}
+        <div class="contact-cards" data-reveal>
+          {%- for block in section.blocks -%}
+            <div class="contact-card" {{ block.shopify_attributes }}>
+              {%- render 'icon', name: block.settings.icon -%}
+              <h3>{{ block.settings.title }}</h3>
+              <p>
+                {%- if block.settings.link_label != blank -%}
+                  <a href="{{ block.settings.link_url }}">{{ block.settings.link_label }}</a><br>
+                {%- endif -%}
+                {{ block.settings.text }}
+              </p>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_showroom -%}
+        <div class="showroom grain" data-reveal="scale" style="margin-top:clamp(1.5rem,3vw,2rem)">
+          <div class="showroom__inner">
+            {%- if section.settings.showroom_eyebrow != blank -%}
+              <p class="eyebrow eyebrow--gold" style="justify-content:center">{{ section.settings.showroom_eyebrow }}</p>
+            {%- endif -%}
+            {%- if section.settings.showroom_heading != blank -%}
+              <h2 class="h3" style="margin-top:1rem">{{ section.settings.showroom_heading }}</h2>
+            {%- endif -%}
+            {%- if section.settings.showroom_text != blank -%}
+              <p>{{ section.settings.showroom_text }}</p>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endif -%}
+    </div>
+
+    <div class="form-card" data-reveal style="--delay:80ms">
+      {%- if section.settings.form_title != blank -%}
+        <h2 class="h3" style="margin-bottom:.75rem">{{ section.settings.form_title }}</h2>
+      {%- endif -%}
+      {%- if section.settings.form_note != blank -%}
+        <p class="muted" style="font-size:var(--fs-sm);margin-bottom:2rem">{{ section.settings.form_note }}</p>
+      {%- endif -%}
+
+      {%- form 'contact', class: 'contact-form', novalidate: 'novalidate' -%}
+        {%- if form.posted_successfully? -%}
+          <div class="form-success is-visible" role="status" tabindex="-1">
+            {%- render 'icon', name: 'check' -%}
+            <span>{{ section.settings.success_text }}</span>
+          </div>
+        {%- endif -%}
+
+        {%- if form.errors -%}
+          <div class="field__error is-visible" style="margin-bottom:1.5rem" role="alert">
+            {{ 'contact.form.error' | t }} {{ form.errors.messages.form }}
+          </div>
+        {%- endif -%}
+
+        <div class="form-grid">
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.first_name' | t }} *</span>
+            <input class="input" type="text" name="contact[Prenom]" autocomplete="given-name" required>
+            <span class="field__error">{{ 'contact.form.errors.first_name' | t }}</span>
+          </label>
+
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.last_name' | t }} *</span>
+            <input class="input" type="text" name="contact[Nom]" autocomplete="family-name" required>
+            <span class="field__error">{{ 'contact.form.errors.last_name' | t }}</span>
+          </label>
+
+          <label class="field field--full">
+            <span class="field__label">{{ 'contact.form.email' | t }} *</span>
+            <input class="input" type="email" name="contact[email]" autocomplete="email" placeholder="prenom@exemple.com" value="{{ form.email }}" required>
+            <span class="field__error">{{ 'contact.form.errors.email' | t }}</span>
+          </label>
+
+          {%- if section.settings.subjects != blank -%}
+            <label class="field">
+              <span class="field__label">{{ 'contact.form.subject' | t }} *</span>
+              <select class="select" name="contact[Sujet]" required>
+                <option value="">{{ 'contact.form.subject_placeholder' | t }}</option>
+                {%- assign subjects = section.settings.subjects | newline_to_br | split: '<br />' -%}
+                {%- for subject in subjects -%}
+                  {%- assign subject_clean = subject | strip -%}
+                  {%- if subject_clean != blank -%}
+                    <option value="{{ subject_clean | escape }}">{{ subject_clean }}</option>
+                  {%- endif -%}
+                {%- endfor -%}
+              </select>
+              <span class="field__error">{{ 'contact.form.errors.subject' | t }}</span>
+            </label>
+          {%- endif -%}
+
+          {%- if section.settings.show_order_field -%}
+            <label class="field">
+              <span class="field__label">{{ 'contact.form.order' | t }}</span>
+              <input class="input" type="text" name="contact[Commande]" placeholder="{{ section.settings.order_placeholder }}">
+            </label>
+          {%- endif -%}
+
+          <label class="field field--full">
+            <span class="field__label">{{ 'contact.form.message' | t }} *</span>
+            <textarea class="textarea" name="contact[body]" placeholder="{{ 'contact.form.message_placeholder' | t }}" required></textarea>
+            <span class="field__error">{{ 'contact.form.errors.message' | t }}</span>
+          </label>
+        </div>
+
+        {%- if section.settings.consent_text != blank -%}
+          <label class="checkbox" style="margin-top:1.5rem">
+            <input type="checkbox" data-consent required>
+            <span>{{ section.settings.consent_text }}</span>
+          </label>
+        {%- endif -%}
+
+        <button class="btn btn--block" type="submit" style="margin-top:1.75rem">{{ 'contact.form.send' | t }}</button>
+
+        {%- if section.settings.form_footnote != blank -%}
+          <p class="muted" style="margin-top:1rem;text-align:center;font-size:var(--fs-xs)">{{ section.settings.form_footnote }}</p>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.contact.name",
+  "class": "contact-section",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "header", "content": "t:sections.contact.settings.form_header" },
+    { "type": "text", "id": "form_title", "label": "t:common.title", "default": "Écrivez-nous" },
+    { "type": "text", "id": "form_note", "label": "t:sections.contact.settings.form_note.label", "default": "Les champs marqués d'un astérisque sont obligatoires." },
+    { "type": "textarea", "id": "subjects", "label": "t:sections.contact.settings.subjects.label", "info": "t:sections.contact.settings.subjects.info", "default": "Conseil avant achat\nChoix de la taille\nSuivi de commande\nRetour ou échange\nGarantie & SAV\nDemande professionnelle" },
+    { "type": "checkbox", "id": "show_order_field", "default": true, "label": "t:sections.contact.settings.show_order_field.label" },
+    { "type": "text", "id": "order_placeholder", "label": "t:sections.contact.settings.order_placeholder.label", "default": "RV-000000" },
+    { "type": "textarea", "id": "consent_text", "label": "t:sections.contact.settings.consent_text.label", "default": "J'accepte que mes données soient conservées le temps du traitement de ma demande, conformément à la politique de confidentialité." },
+    { "type": "text", "id": "form_footnote", "label": "t:sections.contact.settings.form_footnote.label", "default": "Réponse moyenne en 2 h ouvrées · Aucune donnée revendue" },
+    { "type": "textarea", "id": "success_text", "label": "t:sections.contact.settings.success_text.label", "default": "Message envoyé. Un conseiller vous répond sous 2 h ouvrées, à l'adresse indiquée." },
+    { "type": "header", "content": "t:sections.contact.settings.showroom_header" },
+    { "type": "checkbox", "id": "show_showroom", "default": true, "label": "t:sections.contact.settings.show_showroom.label" },
+    { "type": "text", "id": "showroom_eyebrow", "label": "t:common.eyebrow", "default": "Sur rendez-vous" },
+    { "type": "text", "id": "showroom_heading", "label": "t:common.heading", "default": "45 minutes d'essai, accompagné." },
+    { "type": "textarea", "id": "showroom_text", "label": "t:common.text" }
+  ],
+  "blocks": [
+    {
+      "type": "card",
+      "name": "t:sections.contact.blocks.card.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:common.icon",
+          "default": "mail",
+          "options": [
+            { "value": "mail", "label": "t:icons.mail" },
+            { "value": "phone", "label": "t:icons.phone" },
+            { "value": "pin", "label": "t:icons.pin" },
+            { "value": "briefcase", "label": "t:icons.briefcase" },
+            { "value": "clock", "label": "t:icons.clock" },
+            { "value": "account", "label": "t:icons.account" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Écrire" },
+        { "type": "text", "id": "link_label", "label": "t:sections.contact.blocks.card.settings.link_label.label" },
+        { "type": "text", "id": "link_url", "label": "t:common.button_link", "info": "t:sections.contact.blocks.card.settings.link_url.info" },
+        { "type": "textarea", "id": "text", "label": "t:common.text", "default": "Réponse moyenne en 2 h ouvrées." }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.contact.name",
+      "blocks": [{ "type": "card" }, { "type": "card" }, { "type": "card" }, { "type": "card" }]
+    }
+  ]
+}
+{% endschema %}

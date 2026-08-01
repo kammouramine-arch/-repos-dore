@@ -1,0 +1,32 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow">{{ 'customer.account.title' | t }}</p>
+      <h1 class="h1">{{ 'customer.activate.title' | t }}</h1>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap wrap--narrow">
+    <div class="form-card" style="max-width:34rem;margin-inline:auto">
+      {%- form 'activate_customer_password', novalidate: 'novalidate' -%}
+        {%- if form.errors -%}
+          <div class="field__error is-visible" style="margin-bottom:1.5rem" role="alert">{{ form.errors.messages.form }}</div>
+        {%- endif -%}
+        <label class="field">
+          <span class="field__label">{{ 'customer.login.password' | t }}</span>
+          <input class="input" type="password" name="customer[password]" autocomplete="new-password" required>
+        </label>
+        <label class="field">
+          <span class="field__label">{{ 'customer.reset.confirm' | t }}</span>
+          <input class="input" type="password" name="customer[password_confirmation]" autocomplete="new-password" required>
+        </label>
+        <div class="btn-row" style="margin-top:1.5rem">
+          <button class="btn" type="submit" name="commit">{{ 'customer.activate.submit' | t }}</button>
+          <button class="btn btn--ghost" type="submit" name="decline">{{ 'customer.activate.decline' | t }}</button>
+        </div>
+      {%- endform -%}
+    </div>
+  </div>
+</section>

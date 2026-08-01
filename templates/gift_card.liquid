@@ -1,0 +1,38 @@
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{{ 'gift_card.title' | t }} — {{ shop.name }}</title>
+  {{ 'style.css' | asset_url | stylesheet_tag }}
+  {{ content_for_header }}
+</head>
+<body class="template-gift-card">
+  <main id="main" style="display:grid;place-items:center;min-height:100vh;padding:var(--gutter)">
+    <div class="form-card" style="max-width:32rem;text-align:center">
+      <p class="eyebrow eyebrow--gold" style="justify-content:center">{{ shop.name }}</p>
+      <h1 class="h2" style="margin-block:1rem">{{ 'gift_card.title' | t }}</h1>
+      {%- assign gift_card_value = gift_card.initial_value | money -%}
+      <p class="lead">{{ 'gift_card.subtitle' | t: value: gift_card_value }}</p>
+
+      {%- if gift_card.expired -%}
+        <p class="field__error is-visible">{{ 'gift_card.expired' | t }}</p>
+      {%- endif -%}
+
+      <div style="margin-block:2rem">
+        {{ gift_card.qr_identifier }}
+        <p style="font-size:1.25rem;letter-spacing:.12em;margin-top:1rem">{{ gift_card.code | format_code }}</p>
+      </div>
+
+      <p class="muted" style="font-size:var(--fs-sm)">
+        {{ 'gift_card.balance' | t }} <strong>{{ gift_card.balance | money }}</strong>
+      </p>
+
+      <div class="btn-row" style="justify-content:center;margin-top:2rem">
+        <a class="btn" href="{{ shop.url }}">{{ 'gift_card.shop' | t }}</a>
+      </div>
+    </div>
+  </main>
+</body>
+</html>

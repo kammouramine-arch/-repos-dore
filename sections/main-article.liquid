@@ -1,0 +1,87 @@
+<article>
+  <section class="page-hero">
+    <div class="wrap">
+      <div class="page-hero__inner">
+        <p class="eyebrow" data-reveal="fade">{{ article.published_at | date: format: 'on_date' }}</p>
+        <h1 class="h1" data-reveal="fade">{{ article.title }}</h1>
+        {%- if section.settings.show_author and article.author != blank -%}
+          <p class="lead" data-reveal style="--delay:100ms">{{ 'blog.by_author' | t: author: article.author }}</p>
+        {%- endif -%}
+      </div>
+    </div>
+  </section>
+
+  {%- if article.image and section.settings.show_image -%}
+    <div class="wrap" style="margin-bottom:clamp(2rem,5vw,4rem)">
+      <div class="split__media" data-reveal="clip">
+        <img src="{{ article.image | image_url: width: 1600 }}" alt="{{ article.image.alt | escape }}" width="1600" height="900" loading="eager">
+      </div>
+    </div>
+  {%- endif -%}
+
+  <section class="section" style="padding-top:0">
+    <div class="wrap wrap--text">
+      <div class="prose" data-reveal>{{ article.content }}</div>
+    </div>
+  </section>
+
+  {%- if blog.comments_enabled? -%}
+    <section class="section section--flush-top">
+      <div class="wrap wrap--text">
+        <h2 class="h3" style="margin-bottom:1.5rem">{{ 'blog.comments' | t: count: article.comments_count }}</h2>
+
+        {%- for comment in article.comments -%}
+          <div class="review" style="margin-bottom:1rem">
+            <p>{{ comment.content }}</p>
+            <p class="review__meta"><strong>{{ comment.author }}</strong> · {{ comment.created_at | date: format: 'on_date' }}</p>
+          </div>
+        {%- endfor -%}
+
+        {%- form 'new_comment', article, novalidate: 'novalidate' -%}
+          {%- if form.posted_successfully? -%}
+            <div class="form-success is-visible" role="status">{%- render 'icon', name: 'check' -%}<span>{{ 'blog.comment_success' | t }}</span></div>
+          {%- endif -%}
+          <div class="form-grid">
+            <label class="field">
+              <span class="field__label">{{ 'contact.form.first_name' | t }}</span>
+              <input class="input" type="text" name="comment[author]" value="{{ form.author }}" required>
+            </label>
+            <label class="field">
+              <span class="field__label">{{ 'contact.form.email' | t }}</span>
+              <input class="input" type="email" name="comment[email]" value="{{ form.email }}" required>
+            </label>
+            <label class="field field--full">
+              <span class="field__label">{{ 'contact.form.message' | t }}</span>
+              <textarea class="textarea" name="comment[body]" required>{{ form.body }}</textarea>
+            </label>
+          </div>
+          <button class="btn" type="submit" style="margin-top:1.5rem">{{ 'blog.comment_submit' | t }}</button>
+        {%- endform -%}
+      </div>
+    </section>
+  {%- endif -%}
+</article>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "BlogPosting",
+  "headline": {{ article.title | json }},
+  "articleBody": {{ article.content | strip_html | json }},
+  "datePublished": {{ article.published_at | date: '%Y-%m-%d' | json }},
+  "author": { "@type": "Person", "name": {{ article.author | json }} }
+  {%- if article.image %},
+  "image": {{ article.image | image_url: width: 1200 | prepend: "https:" | json }}
+  {%- endif %}
+}
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.main_article.name",
+  "settings": [
+    { "type": "checkbox", "id": "show_image", "default": true, "label": "t:sections.main_article.settings.show_image.label" },
+    { "type": "checkbox", "id": "show_author", "default": true, "label": "t:sections.main_article.settings.show_author.label" }
+  ]
+}
+{% endschema %}

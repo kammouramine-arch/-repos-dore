@@ -1,0 +1,695 @@
+{
+  "common": {
+    "anchor": "Ancre (#)",
+    "anchor_info": "Permet de lier cette section depuis un menu, ex. #collection.",
+    "author": "Auteur",
+    "author_meta": "Précisions sur l'auteur",
+    "background": "Fond",
+    "background_grey": "Gris clair",
+    "background_white": "Blanc",
+    "button_2_label": "Libellé du second bouton",
+    "button_2_link": "Lien du second bouton",
+    "button_label": "Libellé du bouton",
+    "button_link": "Lien du bouton",
+    "buttons": "Boutons",
+    "content": "Contenu",
+    "eyebrow": "Surtitre",
+    "flush_top": "Supprimer l'espace au-dessus",
+    "heading": "Titre",
+    "icon": "Icône",
+    "image": "Image",
+    "label": "Libellé",
+    "layout": "Mise en page",
+    "open_by_default": "Ouvert par défaut",
+    "parallax": "Intensité de la parallaxe",
+    "quote": "Citation",
+    "rating": "Note (sur 5)",
+    "size_large": "Grand",
+    "size_small": "Petit",
+    "text": "Texte",
+    "title": "Intitulé",
+    "value": "Valeur"
+  },
+  "icons": {
+    "account": "Compte",
+    "briefcase": "Mallette",
+    "card": "Carte bancaire",
+    "check": "Coche",
+    "clock": "Horloge",
+    "mail": "Enveloppe",
+    "phone": "Téléphone",
+    "pin": "Adresse",
+    "shield": "Bouclier",
+    "star": "Étoile",
+    "truck": "Camion"
+  },
+  "sections": {
+    "announcement": {
+      "blocks": {
+        "message": {
+          "name": "Message",
+          "settings": {
+            "text": {
+              "label": "Texte"
+            }
+          }
+        }
+      },
+      "name": "Bandeau d'annonce",
+      "settings": {
+        "speed": {
+          "label": "Durée du défilement"
+        }
+      }
+    },
+    "bleed": {
+      "name": "Déclaration pleine page",
+      "settings": {
+        "image": {
+          "info": "Facultatif : un dégradé est appliqué par défaut.",
+          "label": "Image de fond"
+        }
+      }
+    },
+    "box_list": {
+      "blocks": {
+        "item": {
+          "name": "Élément",
+          "settings": {
+            "detail": {
+              "label": "Précision"
+            }
+          }
+        }
+      },
+      "name": "Contenu de la boîte"
+    },
+    "comparison": {
+      "blocks": {
+        "row": {
+          "name": "Ligne",
+          "settings": {
+            "criteria": {
+              "label": "Critère"
+            },
+            "them": {
+              "label": "Proposé par la concurrence"
+            },
+            "us": {
+              "label": "Proposé par la marque"
+            }
+          }
+        }
+      },
+      "name": "Tableau comparatif",
+      "settings": {
+        "column_criteria": {
+          "label": "Colonne « critère »"
+        },
+        "column_them": {
+          "label": "Colonne « concurrence »"
+        },
+        "column_us": {
+          "label": "Colonne « nous »"
+        }
+      }
+    },
+    "contact": {
+      "blocks": {
+        "card": {
+          "name": "Canal de contact",
+          "settings": {
+            "link_label": {
+              "label": "Texte du lien"
+            },
+            "link_url": {
+              "info": "Accepte mailto: et tel:"
+            }
+          }
+        }
+      },
+      "name": "Contact",
+      "settings": {
+        "consent_text": {
+          "label": "Texte de consentement"
+        },
+        "form_footnote": {
+          "label": "Mention sous le bouton"
+        },
+        "form_header": "Formulaire",
+        "form_note": {
+          "label": "Mention sous le titre"
+        },
+        "order_placeholder": {
+          "label": "Exemple de n° de commande"
+        },
+        "show_order_field": {
+          "label": "Afficher le champ « n° de commande »"
+        },
+        "show_showroom": {
+          "label": "Afficher l'encart"
+        },
+        "showroom_header": "Encart showroom",
+        "subjects": {
+          "info": "Un sujet par ligne. Laisser vide pour masquer le champ.",
+          "label": "Sujets proposés"
+        },
+        "success_text": {
+          "label": "Message de confirmation"
+        }
+      }
+    },
+    "cta_band": {
+      "name": "Bandeau d'action",
+      "settings": {
+        "note": {
+          "label": "Mention sous le bouton"
+        }
+      }
+    },
+    "faq": {
+      "blocks": {
+        "category": {
+          "name": "Catégorie"
+        },
+        "question": {
+          "name": "Question",
+          "settings": {
+            "answer": {
+              "label": "Réponse"
+            },
+            "category": {
+              "info": "Doit correspondre au titre d'un bloc « Catégorie ».",
+              "label": "Catégorie"
+            },
+            "question": {
+              "label": "Question"
+            }
+          }
+        }
+      },
+      "name": "FAQ",
+      "settings": {
+        "show_search": {
+          "label": "Afficher la recherche"
+        },
+        "show_sidebar": {
+          "label": "Afficher les catégories"
+        },
+        "sidebar_title": {
+          "label": "Titre de la colonne"
+        }
+      }
+    },
+    "featured_collection": {
+      "name": "Collection en vedette",
+      "settings": {
+        "card_cta": {
+          "label": "Libellé du bouton des cartes"
+        },
+        "collection": {
+          "label": "Collection"
+        },
+        "dark_card_position": {
+          "info": "0 pour n'en afficher aucune.",
+          "label": "Carte sombre (position)"
+        },
+        "link_label": {
+          "label": "Libellé du lien"
+        },
+        "link_url": {
+          "label": "Lien"
+        },
+        "products_to_show": {
+          "label": "Nombre de produits"
+        }
+      }
+    },
+    "footer": {
+      "blocks": {
+        "menu": {
+          "name": "Colonne de liens",
+          "settings": {
+            "heading": {
+              "label": "Titre de la colonne"
+            },
+            "menu": {
+              "label": "Menu"
+            }
+          }
+        }
+      },
+      "group_name": "Pied de page",
+      "name": "Pied de page",
+      "settings": {
+        "bottom_header": "Bas de page",
+        "copyright": {
+          "label": "Mention de copyright"
+        },
+        "legal_menu": {
+          "label": "Menu des pages légales"
+        },
+        "logo": {
+          "label": "Logo"
+        },
+        "logo_text": {
+          "label": "Logo texte"
+        },
+        "newsletter_header": "Lettre d'information",
+        "newsletter_text": {
+          "label": "Texte d'introduction"
+        },
+        "payment_labels": {
+          "label": "Moyens de paiement (séparés par des virgules)"
+        },
+        "show_newsletter": {
+          "label": "Afficher le formulaire d'inscription"
+        },
+        "show_payment_icons": {
+          "label": "Afficher les moyens de paiement"
+        },
+        "show_wordmark": {
+          "label": "Afficher le grand logotype"
+        },
+        "tagline": {
+          "label": "Signature de marque"
+        },
+        "wordmark": {
+          "label": "Texte du logotype"
+        }
+      }
+    },
+    "header": {
+      "group_name": "En-tête",
+      "name": "En-tête",
+      "settings": {
+        "contact_page": {
+          "info": "Utilisé uniquement si les comptes clients sont désactivés.",
+          "label": "Lien de l'icône contact"
+        },
+        "logo": {
+          "label": "Logo"
+        },
+        "logo_text": {
+          "info": "Utilisé si aucune image de logo n'est choisie.",
+          "label": "Logo texte"
+        },
+        "logo_width": {
+          "label": "Largeur du logo"
+        },
+        "menu": {
+          "label": "Menu"
+        },
+        "overlay": {
+          "info": "L'en-tête se superpose au visuel plein écran.",
+          "label": "En-tête transparent sur l'accueil"
+        }
+      }
+    },
+    "hero": {
+      "blocks": {
+        "stat": {
+          "name": "Chiffre clé"
+        }
+      },
+      "name": "Bannière d'accueil",
+      "settings": {
+        "heading": {
+          "info": "Un saut de ligne = une ligne animée. Les balises HTML en ligne sont acceptées."
+        },
+        "image": {
+          "label": "Visuel produit"
+        },
+        "scroll_header": "Indicateur de défilement",
+        "scroll_label": {
+          "label": "Libellé"
+        },
+        "show_scroll_cue": {
+          "label": "Afficher l'indicateur"
+        }
+      }
+    },
+    "image_with_text": {
+      "blocks": {
+        "item": {
+          "name": "Point numéroté"
+        },
+        "paragraph": {
+          "name": "Paragraphe"
+        },
+        "quote": {
+          "name": "Citation"
+        }
+      },
+      "name": "Image et texte",
+      "settings": {
+        "light_media": {
+          "label": "Fond d'image clair"
+        },
+        "reverse": {
+          "label": "Inverser l'ordre"
+        }
+      }
+    },
+    "main_404": {
+      "name": "Page 404"
+    },
+    "main_article": {
+      "name": "Article",
+      "settings": {
+        "show_author": {
+          "label": "Afficher l'auteur"
+        },
+        "show_image": {
+          "label": "Afficher l'image"
+        }
+      }
+    },
+    "main_blog": {
+      "name": "Journal"
+    },
+    "main_cart": {
+      "name": "Page panier",
+      "settings": {
+        "show_note": {
+          "label": "Afficher le champ d'instructions"
+        }
+      }
+    },
+    "main_collection": {
+      "name": "Page collection",
+      "settings": {
+        "products_per_page": {
+          "label": "Produits par page"
+        },
+        "show_description": {
+          "label": "Afficher la description"
+        }
+      }
+    },
+    "main_list_collections": {
+      "name": "Liste des collections"
+    },
+    "main_page": {
+      "name": "Page"
+    },
+    "main_password": {
+      "name": "Page protégée"
+    },
+    "main_product": {
+      "blocks": {
+        "accordion": {
+          "name": "Accordéon"
+        },
+        "assurance": {
+          "name": "Garantie"
+        },
+        "description": {
+          "name": "Description du produit"
+        }
+      },
+      "name": "Page produit",
+      "settings": {
+        "buy_header": "Achat",
+        "color_option_names": {
+          "info": "Noms d'options séparés par des virgules.",
+          "label": "Options affichées en pastilles"
+        },
+        "fallback_rating": {
+          "info": "Utilisée si aucune application d'avis n'alimente le métachamp reviews.rating.",
+          "label": "Note affichée par défaut"
+        },
+        "fallback_rating_count": {
+          "label": "Nombre d'avis par défaut"
+        },
+        "instalment_short": {
+          "label": "Mention dans la barre d'achat"
+        },
+        "instalment_text": {
+          "label": "Mention sous le prix"
+        },
+        "options_header": "Options et variantes",
+        "show_breadcrumb": {
+          "label": "Afficher le fil d'Ariane"
+        },
+        "show_buybar": {
+          "label": "Afficher la barre d'achat collante"
+        },
+        "show_rating": {
+          "label": "Afficher la note"
+        },
+        "show_stock": {
+          "label": "Afficher la mention de stock"
+        },
+        "stock_text": {
+          "label": "Mention de stock"
+        },
+        "swatch_colors": {
+          "info": "Une ligne par valeur, ex. « Onyx: #17191D ».",
+          "label": "Couleurs des pastilles"
+        }
+      }
+    },
+    "main_search": {
+      "name": "Page de recherche"
+    },
+    "manifesto": {
+      "name": "Manifeste",
+      "settings": {
+        "text": {
+          "info": "Les mots s'allument au défilement. Les balises HTML en ligne sont acceptées."
+        }
+      }
+    },
+    "page_hero": {
+      "name": "Bannière de page",
+      "settings": {
+        "dark": {
+          "label": "Fond sombre"
+        },
+        "heading": {
+          "info": "Laisser vide pour reprendre le titre de la page. Un saut de ligne = une ligne animée."
+        },
+        "style": {
+          "display": "Éditorial (animé ligne par ligne)",
+          "label": "Style du titre",
+          "simple": "Simple"
+        }
+      }
+    },
+    "press": {
+      "blocks": {
+        "logo": {
+          "name": "Titre de presse",
+          "settings": {
+            "image": {
+              "info": "Remplace le texte si une image est choisie."
+            },
+            "serif": {
+              "label": "Afficher en serif"
+            }
+          }
+        }
+      },
+      "name": "Bandeau presse"
+    },
+    "product_reviews": {
+      "blocks": {
+        "review": {
+          "name": "Avis",
+          "settings": {
+            "verified": {
+              "label": "Achat vérifié"
+            }
+          }
+        }
+      },
+      "name": "Avis produit",
+      "settings": {
+        "distribution": {
+          "info": "Cinq valeurs séparées par des virgules, de 5 à 1 étoile.",
+          "label": "Répartition des notes (%)"
+        },
+        "rating": {
+          "info": "Remplacée automatiquement par la note réelle si une application d'avis est installée."
+        },
+        "rating_count": {
+          "label": "Nombre d'avis"
+        },
+        "show_summary": {
+          "label": "Afficher la synthèse"
+        },
+        "summary_header": "Synthèse des notes"
+      }
+    },
+    "related_products": {
+      "name": "Produits associés",
+      "settings": {
+        "collection": {
+          "info": "Si vide, la première collection du produit est utilisée.",
+          "label": "Collection"
+        }
+      }
+    },
+    "showroom": {
+      "name": "Encart showroom",
+      "settings": {
+        "heading_size": {
+          "label": "Taille du titre"
+        }
+      }
+    },
+    "specs": {
+      "blocks": {
+        "spec": {
+          "name": "Caractéristique",
+          "settings": {
+            "detail": {
+              "label": "Précision"
+            }
+          }
+        }
+      },
+      "name": "Caractéristiques",
+      "settings": {
+        "tight": {
+          "label": "Coller aux sections voisines"
+        }
+      }
+    },
+    "stats": {
+      "blocks": {
+        "stat": {
+          "name": "Chiffre",
+          "settings": {
+            "suffix": {
+              "label": "Suffixe"
+            },
+            "value": {
+              "info": "Nombre animé au défilement."
+            }
+          }
+        }
+      },
+      "name": "Chiffres clés"
+    },
+    "steps": {
+      "blocks": {
+        "step": {
+          "name": "Étape",
+          "settings": {
+            "step_label": {
+              "label": "Mot avant le numéro"
+            }
+          }
+        }
+      },
+      "name": "Étapes"
+    },
+    "testimonials": {
+      "blocks": {
+        "quote": {
+          "name": "Témoignage"
+        }
+      },
+      "name": "Avis clients (carrousel)"
+    },
+    "timeline": {
+      "blocks": {
+        "milestone": {
+          "name": "Repère",
+          "settings": {
+            "year": {
+              "label": "Année"
+            }
+          }
+        }
+      },
+      "name": "Chronologie"
+    },
+    "trust": {
+      "blocks": {
+        "item": {
+          "name": "Garantie"
+        }
+      },
+      "name": "Bandeau de réassurance"
+    },
+    "values": {
+      "blocks": {
+        "value": {
+          "name": "Engagement"
+        }
+      },
+      "name": "Engagements"
+    }
+  },
+  "settings": {
+    "animations": {
+      "enabled": {
+        "info": "Révélations au défilement, parallaxe et compteurs. Toujours désactivées si le visiteur a demandé une réduction des animations.",
+        "label": "Activer les animations"
+      },
+      "name": "Animations"
+    },
+    "branding": {
+      "favicon": {
+        "info": "Image carrée de 32 × 32 px minimum.",
+        "label": "Favicon"
+      },
+      "logo": {
+        "info": "Utilisé dans les données structurées et le pied de page.",
+        "label": "Logo"
+      },
+      "name": "Identité",
+      "social_share_image": {
+        "label": "Image de partage social"
+      }
+    },
+    "cart": {
+      "drawer": {
+        "info": "Décochez pour rediriger vers la page panier après un ajout.",
+        "label": "Panier latéral"
+      },
+      "name": "Panier"
+    },
+    "colors": {
+      "bg": {
+        "label": "Fond de page"
+      },
+      "gold": {
+        "label": "Or"
+      },
+      "gold_soft": {
+        "label": "Or clair"
+      },
+      "ink": {
+        "label": "Noir de marque"
+      },
+      "name": "Couleurs",
+      "navy": {
+        "label": "Bleu nuit"
+      },
+      "paragraph": "Ces cinq couleurs pilotent l'ensemble du thème."
+    },
+    "contact": {
+      "email": {
+        "label": "Adresse e-mail"
+      },
+      "name": "Coordonnées",
+      "phone": {
+        "label": "Téléphone"
+      }
+    },
+    "social": {
+      "name": "Réseaux sociaux"
+    },
+    "typography": {
+      "load_theme_fonts": {
+        "info": "Polices auto-hébergées sur le CDN Shopify. Décochez pour n'utiliser que les polices système (chargement encore plus rapide).",
+        "label": "Charger Inter et Instrument Serif"
+      },
+      "name": "Typographie"
+    }
+  }
+}

@@ -1,0 +1,42 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      <h1 class="h1" data-reveal="fade">{{ page_title }}</h1>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap">
+    <div class="cards">
+      {%- for collection in collections -%}
+        <article class="card" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 60 }}ms">
+          <a class="card__link" href="{{ collection.url }}"><span>{{ collection.title }}</span></a>
+          <div class="card__media">
+            {%- if collection.featured_image -%}
+              <img src="{{ collection.featured_image | image_url: width: 900 }}" alt="{{ collection.featured_image.alt | escape }}" width="600" height="600" loading="lazy">
+            {%- else -%}
+              {{ 'collection-1' | placeholder_svg_tag: 'placeholder' }}
+            {%- endif -%}
+          </div>
+          <div class="card__body">
+            <div>
+              <h2 class="card__title">{{ collection.title }}</h2>
+              <p class="card__desc">{{ 'collections.product_count' | t: count: collection.all_products_count }}</p>
+            </div>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_list_collections.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Nos collections" }
+  ]
+}
+{% endschema %}

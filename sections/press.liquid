@@ -1,0 +1,39 @@
+<section class="section--sm" style="padding-block:clamp(2.5rem,5vw,4rem);border-block:1px solid var(--line)">
+  <div class="wrap press" data-reveal="fade">
+    {%- for block in section.blocks -%}
+      {%- if block.settings.image != blank -%}
+        <span {{ block.shopify_attributes }}>
+          {{ block.settings.image | image_url: width: 300 | image_tag: loading: 'lazy', alt: block.settings.name, style: 'max-height:28px;width:auto' }}
+        </span>
+      {%- else -%}
+        <span{% if block.settings.serif %} class="serif"{% endif %} {{ block.shopify_attributes }}>{{ block.settings.name }}</span>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.press.name",
+  "class": "press-section",
+  "max_blocks": 10,
+  "settings": [],
+  "blocks": [
+    {
+      "type": "logo",
+      "name": "t:sections.press.blocks.logo.name",
+      "settings": [
+        { "type": "text", "id": "name", "label": "t:common.title", "default": "Le Figaro" },
+        { "type": "checkbox", "id": "serif", "default": false, "label": "t:sections.press.blocks.logo.settings.serif.label" },
+        { "type": "image_picker", "id": "image", "label": "t:common.image", "info": "t:sections.press.blocks.logo.settings.image.info" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.press.name",
+      "blocks": [{ "type": "logo" }, { "type": "logo" }, { "type": "logo" }, { "type": "logo" }]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,114 @@
+{%- liquid
+  assign heading_lines = section.settings.heading | newline_to_br | split: '<br />'
+  assign parallax_speed = section.settings.parallax | divided_by: 100.0
+-%}
+
+<section class="hero grain">
+  <div class="hero__bg"></div>
+
+  {%- if section.settings.image != blank -%}
+    {%- assign hero_image = section.settings.image -%}
+    <img
+      class="hero__visual"
+      src="{{ hero_image | image_url: width: 900 }}"
+      srcset="{{ hero_image | image_url: width: 480 }} 480w, {{ hero_image | image_url: width: 640 }} 640w, {{ hero_image | image_url: width: 900 }} 900w, {{ hero_image | image_url: width: 1280 }} 1280w"
+      sizes="46vw"
+      width="{{ hero_image.width }}"
+      height="{{ hero_image.height }}"
+      alt=""
+      aria-hidden="true"
+      fetchpriority="high"
+      data-parallax="{{ parallax_speed }}"
+    >
+  {%- endif -%}
+
+  <div class="wrap hero__inner">
+    <div class="hero__content">
+      {%- if section.settings.eyebrow != blank -%}
+        <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h1 class="display hero__title split-lines" data-reveal="fade">
+          {%- for line in heading_lines -%}
+            <span class="line"><span>{{ line | strip }}</span></span>
+          {%- endfor -%}
+        </h1>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <p class="lead hero__text" data-reveal style="--delay:120ms">{{ section.settings.text }}</p>
+      {%- endif -%}
+
+      {%- if section.settings.button_label != blank or section.settings.button_2_label != blank -%}
+        <div class="btn-row" data-reveal style="--delay:200ms">
+          {%- if section.settings.button_label != blank -%}
+            <a class="btn btn--light" href="{{ section.settings.button_link | default: routes.all_products_collection_url }}">{{ section.settings.button_label }}</a>
+          {%- endif -%}
+          {%- if section.settings.button_2_label != blank -%}
+            <a class="btn btn--outline-light" href="{{ section.settings.button_2_link | default: '#' }}">{{ section.settings.button_2_label }}</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.blocks.size > 0 -%}
+        <div class="hero__meta" data-reveal style="--delay:300ms">
+          {%- for block in section.blocks -%}
+            <div {{ block.shopify_attributes }}>
+              <strong>{{ block.settings.value }}</strong><span>{{ block.settings.label }}</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+
+  {%- if section.settings.show_scroll_cue -%}
+    <div class="scroll-cue" aria-hidden="true"><span>{{ section.settings.scroll_label | default: 'Défiler' }}</span><i></i></div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.hero.name",
+  "class": "hero-section",
+  "max_blocks": 4,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Récupération de précision" },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "t:common.heading",
+      "info": "t:sections.hero.settings.heading.info",
+      "default": "La récupération,\n<em>élevée</em> au rang\nde rituel."
+    },
+    { "type": "textarea", "id": "text", "label": "t:common.text" },
+    { "type": "image_picker", "id": "image", "label": "t:sections.hero.settings.image.label" },
+    { "type": "range", "id": "parallax", "min": 0, "max": 15, "step": 1, "unit": "%", "label": "t:common.parallax", "default": 6 },
+    { "type": "header", "content": "t:common.buttons" },
+    { "type": "text", "id": "button_label", "label": "t:common.button_label", "default": "Découvrir la collection" },
+    { "type": "url", "id": "button_link", "label": "t:common.button_link" },
+    { "type": "text", "id": "button_2_label", "label": "t:common.button_2_label", "default": "Notre technologie" },
+    { "type": "url", "id": "button_2_link", "label": "t:common.button_2_link" },
+    { "type": "header", "content": "t:sections.hero.settings.scroll_header" },
+    { "type": "checkbox", "id": "show_scroll_cue", "default": true, "label": "t:sections.hero.settings.show_scroll_cue.label" },
+    { "type": "text", "id": "scroll_label", "label": "t:sections.hero.settings.scroll_label.label", "default": "Défiler" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "t:sections.hero.blocks.stat.name",
+      "settings": [
+        { "type": "text", "id": "value", "label": "t:common.value", "default": "38 000+" },
+        { "type": "text", "id": "label", "label": "t:common.label", "default": "Athlètes et actifs équipés" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.hero.name",
+      "blocks": [{ "type": "stat" }, { "type": "stat" }, { "type": "stat" }]
+    }
+  ]
+}
+{% endschema %}

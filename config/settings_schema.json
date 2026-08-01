@@ -1,0 +1,64 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "RÉVA",
+    "theme_version": "1.0.0",
+    "theme_author": "RÉVA",
+    "theme_documentation_url": "https://shopify.dev/docs/themes",
+    "theme_support_url": "https://shopify.dev/docs/themes"
+  },
+  {
+    "name": "t:settings.branding.name",
+    "settings": [
+      { "type": "image_picker", "id": "logo", "label": "t:settings.branding.logo.label", "info": "t:settings.branding.logo.info" },
+      { "type": "image_picker", "id": "favicon", "label": "t:settings.branding.favicon.label", "info": "t:settings.branding.favicon.info" },
+      { "type": "image_picker", "id": "social_share_image", "label": "t:settings.branding.social_share_image.label" }
+    ]
+  },
+  {
+    "name": "t:settings.colors.name",
+    "settings": [
+      { "type": "paragraph", "content": "t:settings.colors.paragraph" },
+      { "type": "color", "id": "color_ink", "label": "t:settings.colors.ink.label", "default": "#0A0A0B" },
+      { "type": "color", "id": "color_gold", "label": "t:settings.colors.gold.label", "default": "#C2A26B" },
+      { "type": "color", "id": "color_gold_soft", "label": "t:settings.colors.gold_soft.label", "default": "#DCC698" },
+      { "type": "color", "id": "color_navy", "label": "t:settings.colors.navy.label", "default": "#0E1D33" },
+      { "type": "color", "id": "color_bg", "label": "t:settings.colors.bg.label", "default": "#FFFFFF" }
+    ]
+  },
+  {
+    "name": "t:settings.typography.name",
+    "settings": [
+      { "type": "checkbox", "id": "load_theme_fonts", "default": true, "label": "t:settings.typography.load_theme_fonts.label", "info": "t:settings.typography.load_theme_fonts.info" }
+    ]
+  },
+  {
+    "name": "t:settings.contact.name",
+    "settings": [
+      { "type": "text", "id": "contact_email", "label": "t:settings.contact.email.label" },
+      { "type": "text", "id": "contact_phone", "label": "t:settings.contact.phone.label" }
+    ]
+  },
+  {
+    "name": "t:settings.social.name",
+    "settings": [
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_youtube", "label": "YouTube" },
+      { "type": "url", "id": "social_linkedin", "label": "LinkedIn" },
+      { "type": "url", "id": "social_facebook", "label": "Facebook" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok" }
+    ]
+  },
+  {
+    "name": "t:settings.cart.name",
+    "settings": [
+      { "type": "checkbox", "id": "cart_drawer", "default": true, "label": "t:settings.cart.drawer.label", "info": "t:settings.cart.drawer.info" }
+    ]
+  },
+  {
+    "name": "t:settings.animations.name",
+    "settings": [
+      { "type": "checkbox", "id": "animations_enabled", "default": true, "label": "t:settings.animations.enabled.label", "info": "t:settings.animations.enabled.info" }
+    ]
+  }
+]

@@ -1,0 +1,76 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">{{ 'general.search.title' | t }}</p>
+      <h1 class="h1" data-reveal="fade">
+        {%- if search.performed -%}
+          {{ 'general.search.results_for' | t: terms: search.terms }}
+        {%- else -%}
+          {{ section.settings.heading | default: 'Rechercher' }}
+        {%- endif -%}
+      </h1>
+
+      <form action="{{ routes.search_url }}" method="get" role="search" class="faq-search" style="max-width:34rem;margin-top:2rem">
+        {%- render 'icon', name: 'search' -%}
+        <input class="input" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search.placeholder' | t }}" aria-label="{{ 'general.search.title' | t }}">
+      </form>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap">
+    {%- if search.performed -%}
+      {%- paginate search.results by 12 -%}
+        {%- if search.results.size > 0 -%}
+          <div class="cards">
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}
+                {%- render 'card-product', product: item, index: forloop.index0 -%}
+              {%- else -%}
+                <article class="card" data-reveal="scale">
+                  <a class="card__link" href="{{ item.url }}"><span>{{ item.title }}</span></a>
+                  <div class="card__body">
+                    <div>
+                      <h2 class="card__title">{{ item.title }}</h2>
+                      <p class="card__desc">{{ item.content | default: item.excerpt | strip_html | truncate: 120 }}</p>
+                    </div>
+                  </div>
+                </article>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+
+          {%- if paginate.pages > 1 -%}
+            <nav class="pagination" aria-label="{{ 'general.pagination.label' | t }}">
+              {%- if paginate.previous -%}
+                <a class="pagination__link" href="{{ paginate.previous.url }}">{%- render 'icon', name: 'chevron-left' -%}</a>
+              {%- endif -%}
+              {%- for part in paginate.parts -%}
+                {%- if part.is_link -%}
+                  <a class="pagination__link" href="{{ part.url }}">{{ part.title }}</a>
+                {%- else -%}
+                  <span class="pagination__link is-current" aria-current="page">{{ part.title }}</span>
+                {%- endif -%}
+              {%- endfor -%}
+              {%- if paginate.next -%}
+                <a class="pagination__link" href="{{ paginate.next.url }}">{%- render 'icon', name: 'chevron-right' -%}</a>
+              {%- endif -%}
+            </nav>
+          {%- endif -%}
+        {%- else -%}
+          <p class="muted">{{ 'general.search.no_results' | t: terms: search.terms }}</p>
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_search.name",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Rechercher" }
+  ]
+}
+{% endschema %}

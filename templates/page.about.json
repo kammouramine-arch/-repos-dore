@@ -1,0 +1,137 @@
+{
+  "sections": {
+    "hero": {
+      "type": "page-hero",
+      "settings": {
+        "eyebrow": "La maison",
+        "heading": "Nous fabriquons\ndes objets <em class=\"serif\" style=\"color:var(--gold-soft)\">lents</em>.",
+        "text": "RÉVA est née d'un constat simple : la récupération est devenue une industrie bruyante, encombrée d'appareils en plastique qu'on cache dans un placard. Nous avons voulu l'inverse.",
+        "style": "display",
+        "dark": true
+      }
+    },
+    "recit": {
+      "type": "image-with-text",
+      "blocks": {
+        "p-1": {
+          "type": "paragraph",
+          "settings": { "text": "En 2019, Camille Roux, kinésithérapeute du sport, et Yann Dessaint, ingénieur en mécanique des fluides, partagent le même agacement : les appareils de compression qu'ils utilisent en cabinet sont efficaces mais imprécis, bruyants, et impossibles à recommander pour un usage à domicile." }
+        },
+        "p-2": {
+          "type": "paragraph",
+          "settings": { "text": "Ils passent dix-huit mois à reconstruire une chaîne pneumatique complète : un compresseur silencieux, un capteur de pression au dixième de mmHg, une séquence de gonflage calquée sur le geste manuel. Le premier prototype tient dans une valise. Le troisième tient dans un tiroir." }
+        },
+        "quote-1": {
+          "type": "quote",
+          "settings": { "text": "« Un appareil de récupération que l'on n'a pas envie de laisser sorti est un appareil que l'on n'utilise pas. »" }
+        },
+        "p-3": {
+          "type": "paragraph",
+          "settings": { "text": "De ce principe découle tout le reste : le choix des matières, l'absence de plastique apparent, la housse en feutre de laine, le silence. Un objet que l'on garde à portée de main, parce qu'il a sa place dans une pièce à vivre." }
+        }
+      },
+      "block_order": ["p-1", "p-2", "quote-1", "p-3"],
+      "settings": {
+        "reverse": false,
+        "light_media": true,
+        "parallax": 0.03,
+        "eyebrow": "Origine",
+        "heading": "Un cabinet de kinésithérapie, un dimanche de novembre.",
+        "flush_top": false
+      }
+    },
+    "bleed": {
+      "type": "bleed-statement",
+      "settings": {
+        "eyebrow": "Notre parti pris",
+        "heading": "Quatre produits. Pas quarante.",
+        "text": "Nous refusons d'élargir le catalogue pour élargir le chiffre d'affaires. Chaque nouveau produit demande dix-huit mois de développement et doit répondre à une zone du corps qu'aucun autre ne couvre. Si nous n'avons rien à ajouter, nous n'ajoutons rien.",
+        "parallax": 0.08
+      }
+    },
+    "timeline": {
+      "type": "timeline",
+      "blocks": {
+        "m-1": { "type": "milestone", "settings": { "year": "2019", "title": "Le premier prototype", "text": "Camille et Yann assemblent une chaîne pneumatique dans un atelier de Montreuil. Vingt-trois versions du compresseur avant d'atteindre 38 dB." } },
+        "m-2": { "type": "milestone", "settings": { "year": "2021", "title": "Circula, première série", "text": "Trois cents exemplaires produits, écoulés en onze jours auprès de kinésithérapeutes et de clubs sportifs. Aucun retour SAV la première année." } },
+        "m-3": { "type": "milestone", "settings": { "year": "2023", "title": "L'atelier de Lille", "text": "Ouverture de notre atelier de réparation et de reconditionnement. Engagement de disponibilité des pièces détachées pendant dix ans." } },
+        "m-4": { "type": "milestone", "settings": { "year": "2025", "title": "Atlas & Lumen", "text": "La gamme s'étend à la nuque et au regard. Les protocoles audio sont écrits avec une sophrologue et une chercheuse en sommeil." } },
+        "m-5": { "type": "milestone", "settings": { "year": "2026", "title": "38 000 foyers", "text": "RÉVA équipe aujourd'hui 38 000 foyers dans onze pays européens, sans avoir jamais ouvert de réseau de revendeurs." } }
+      },
+      "block_order": ["m-1", "m-2", "m-3", "m-4", "m-5"],
+      "settings": {
+        "eyebrow": "Repères",
+        "heading": "Sept ans, quatre appareils.",
+        "flush_top": false
+      }
+    },
+    "valeurs": {
+      "type": "values",
+      "blocks": {
+        "v-1": { "type": "value", "settings": { "icon": "shield", "title": "Réparer plutôt que remplacer", "text": "Chaque appareil est démontable avec un tournevis standard. Nos pièces détachées restent disponibles dix ans, à prix coûtant, et notre atelier de Lille répare en cinq jours en moyenne." } },
+        "v-2": { "type": "value", "settings": { "icon": "clock", "title": "Le temps avant le volume", "text": "Dix-huit mois de développement minimum, trois mille cycles de test moteur, six mois d'essais auprès de kinésithérapeutes avant toute mise en production." } },
+        "v-3": { "type": "value", "settings": { "icon": "account", "title": "Un humain au bout du fil", "text": "Notre service client est basé en France et composé de kinésithérapeutes diplômés. Ils règlent votre protocole, pas seulement votre commande." } }
+      },
+      "block_order": ["v-1", "v-2", "v-3"],
+      "settings": {
+        "eyebrow": "Engagements",
+        "heading": "Trois promesses que nous tenons par écrit.",
+        "background": "grey",
+        "anchor": "valeurs",
+        "flush_top": false
+      }
+    },
+    "atelier": {
+      "type": "image-with-text",
+      "blocks": {
+        "item-1": { "type": "item", "settings": { "title": "Textiles — Portugal", "text": "Atelier familial près de Guimarães, certifié OEKO-TEX Standard 100 et GRS." } },
+        "item-2": { "type": "item", "settings": { "title": "Pneumatique — Allemagne", "text": "Compresseurs et capteurs de pression usinés en Souabe, garantis 3 000 cycles." } },
+        "item-3": { "type": "item", "settings": { "title": "Assemblage & SAV — France", "text": "Assemblage final, contrôle qualité et réparation dans notre atelier de Lille." } }
+      },
+      "block_order": ["item-1", "item-2", "item-3"],
+      "settings": {
+        "reverse": true,
+        "light_media": false,
+        "parallax": 0.03,
+        "eyebrow": "Fabrication",
+        "heading": "Ce que nous savons de nos fournisseurs.",
+        "text": "Nous publions la liste complète de nos partenaires industriels. Aucun n'est un intermédiaire : nous travaillons directement avec les ateliers qui produisent nos pièces.",
+        "flush_top": false
+      }
+    },
+    "chiffres": {
+      "type": "stats",
+      "blocks": {
+        "s-1": { "type": "stat", "settings": { "value": "38", "suffix": "000", "label": "foyers équipés en Europe" } },
+        "s-2": { "type": "stat", "settings": { "value": "11", "suffix": "", "label": "pays livrés depuis notre entrepôt unique" } },
+        "s-3": { "type": "stat", "settings": { "value": "94", "suffix": "%", "label": "des appareils rapportés en SAV sont réparés, non remplacés" } },
+        "s-4": { "type": "stat", "settings": { "value": "0", "suffix": "", "label": "revendeur tiers — nous vendons en direct, uniquement" } }
+      },
+      "block_order": ["s-1", "s-2", "s-3", "s-4"],
+      "settings": { "flush_top": true }
+    },
+    "showroom": {
+      "type": "showroom",
+      "settings": {
+        "eyebrow": "Showroom",
+        "heading": "14 rue de Turenne, Paris 3e",
+        "heading_size": "h2",
+        "text": "Essayez les quatre appareils sur rendez-vous, du mardi au samedi, accompagné par un kinésithérapeute de l'équipe. Séance de 45 minutes, sans engagement.",
+        "button_label": "Prendre rendez-vous",
+        "flush_top": true
+      }
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Commencer",
+        "heading": "Le meilleur argument reste l'essai.",
+        "text": "Trente nuits chez vous. Si l'objet ne trouve pas sa place dans votre quotidien, nous le reprenons et vous remboursons.",
+        "button_label": "Découvrir la collection",
+        "note": "Livraison 48 h · Garantie 2 ans · Service client français",
+        "flush_top": true
+      }
+    }
+  },
+  "order": ["hero", "recit", "bleed", "timeline", "valeurs", "atelier", "chiffres", "showroom", "cta"]
+}

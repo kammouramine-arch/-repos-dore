@@ -1,0 +1,55 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}"{% if section.settings.anchor != blank %} id="{{ section.settings.anchor | handle }}"{% endif %}>
+  <div class="wrap wrap--narrow">
+    {%- if section.settings.eyebrow != blank or section.settings.heading != blank -%}
+      <div class="section-head">
+        <div class="section-head__text">
+          {%- if section.settings.eyebrow != blank -%}<p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>{%- endif -%}
+          {%- if section.settings.heading != blank -%}<h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>{%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    <div class="timeline">
+      {%- for block in section.blocks -%}
+        <article class="timeline__item" data-reveal{% if forloop.index0 > 0 %} style="--delay:{{ forloop.index0 | times: 80 }}ms"{% endif %} {{ block.shopify_attributes }}>
+          <p class="timeline__year">{{ block.settings.year }}</p>
+          <div class="timeline__body">
+            <h3 class="h3">{{ block.settings.title }}</h3>
+            <p>{{ block.settings.text }}</p>
+          </div>
+        </article>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.timeline.name",
+  "class": "timeline-section",
+  "max_blocks": 12,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Repères" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Notre histoire" },
+    { "type": "text", "id": "anchor", "label": "t:common.anchor", "info": "t:common.anchor_info" },
+    { "type": "checkbox", "id": "flush_top", "default": false, "label": "t:common.flush_top" }
+  ],
+  "blocks": [
+    {
+      "type": "milestone",
+      "name": "t:sections.timeline.blocks.milestone.name",
+      "settings": [
+        { "type": "text", "id": "year", "label": "t:sections.timeline.blocks.milestone.settings.year.label", "default": "2019" },
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Le premier prototype" },
+        { "type": "textarea", "id": "text", "label": "t:common.text" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.timeline.name",
+      "blocks": [{ "type": "milestone" }, { "type": "milestone" }, { "type": "milestone" }]
+    }
+  ]
+}
+{% endschema %}

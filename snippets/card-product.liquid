@@ -1,0 +1,64 @@
+{%- comment -%}
+  Carte produit.
+  Paramètres :
+    product        — objet produit (obligatoire)
+    index          — position dans la grille (pour le délai d'animation)
+    dark           — true pour la variante sombre
+    cta            — libellé du bouton
+    fallback_rating / fallback_count — note affichée si aucun métachamp d'avis
+  Métachamps utilisés : custom.badge (pastille), custom.subtitle (sous-titre).
+{%- endcomment -%}
+{%- liquid
+  assign delay = index | default: 0 | times: 60
+  assign subtitle = product.metafields.custom.subtitle | default: product.type
+  assign badge = product.metafields.custom.badge
+-%}
+<article class="card{% if dark %} card--dark{% endif %}" data-reveal="scale"{% if delay > 0 %} style="--delay:{{ delay }}ms"{% endif %}>
+  <a class="card__link" href="{{ product.url }}"><span>{{ 'products.product.view' | t: title: product.title }}</span></a>
+
+  <div class="card__media">
+    {%- if badge != blank -%}
+      <span class="card__badge">{{ badge }}</span>
+    {%- elsif product.available == false -%}
+      <span class="card__badge">{{ 'products.product.sold_out' | t }}</span>
+    {%- endif -%}
+    {%- if product.featured_media -%}
+      {{
+        product.featured_media
+        | image_url: width: 900
+        | image_tag:
+          loading: 'lazy',
+          width: 600,
+          height: 600,
+          sizes: '(min-width: 1180px) 25vw, (min-width: 620px) 45vw, 90vw',
+          widths: '300, 450, 600, 900',
+          alt: product.featured_media.alt | default: product.title
+      }}
+    {%- else -%}
+      {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+    {%- endif -%}
+  </div>
+
+  <div class="card__body">
+    <div>
+      <h3 class="card__title">{{ product.title }}</h3>
+      {%- if subtitle != blank -%}<p class="card__desc">{{ subtitle }}</p>{%- endif -%}
+    </div>
+    <p class="card__price">
+      {%- if product.compare_at_price > product.price -%}
+        <s>{{ product.compare_at_price | money }}</s>
+      {%- endif -%}
+      {{ product.price | money }}
+    </p>
+  </div>
+
+  <div class="card__cta">
+    {%- render 'product-rating',
+      product: product,
+      fallback_rating: fallback_rating,
+      fallback_count: fallback_count,
+      class: 'card__stars'
+    -%}
+    <span class="btn btn--sm btn--ghost">{% if cta != blank %}{{ cta }}{% else %}{{ 'products.product.discover' | t }}{% endif %}</span>
+  </div>
+</article>

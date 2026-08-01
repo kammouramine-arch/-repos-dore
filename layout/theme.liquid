@@ -1,0 +1,95 @@
+<!doctype html>
+<html class="no-js" lang="{{ request.locale.iso_code }}">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+  {%- if settings.favicon != blank -%}
+    <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+  {%- else -%}
+    <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%230A0A0B'/%3E%3Ctext x='16' y='22' font-family='Helvetica,Arial' font-size='16' font-weight='300' fill='%23C2A26B' text-anchor='middle'%3ER%3C/text%3E%3C/svg%3E">
+  {%- endif -%}
+
+  {%- render 'meta-tags' -%}
+
+  {%- if settings.load_theme_fonts -%}
+    {%- render 'fonts' -%}
+  {%- endif -%}
+
+  {{ 'style.css' | asset_url | stylesheet_tag: preload: true }}
+
+  <style>
+    :root {
+      --ink: {{ settings.color_ink | default: '#0A0A0B' }};
+      --gold: {{ settings.color_gold | default: '#C2A26B' }};
+      --gold-soft: {{ settings.color_gold_soft | default: '#DCC698' }};
+      --navy: {{ settings.color_navy | default: '#0E1D33' }};
+      --bg: {{ settings.color_bg | default: '#FFFFFF' }};
+    }
+  </style>
+
+  {%- if settings.animations_enabled -%}
+    <script>document.documentElement.className = document.documentElement.className.replace('no-js', 'js');</script>
+  {%- endif -%}
+
+  {{ content_for_header }}
+
+  {%- render 'structured-data' -%}
+</head>
+
+<body class="preload template-{{ template.name | handle }}{% if template.suffix %} template-suffix-{{ template.suffix | handle }}{% endif %}">
+
+  <a class="skip-link" href="#main">{{ 'general.accessibility.skip_to_content' | t }}</a>
+
+  {% sections 'header-group' %}
+
+  {%- if settings.cart_drawer -%}
+    {%- render 'cart-drawer' -%}
+  {%- endif -%}
+
+  <main id="main" role="main">
+    {{ content_for_layout }}
+  </main>
+
+  {% sections 'footer-group' %}
+
+  <script>
+    window.RevaTheme = {
+      routes: {
+        root: {{ routes.root_url | json }},
+        cart: {{ routes.cart_url | json }},
+        cartAdd: {{ routes.cart_add_url | json }},
+        cartChange: {{ routes.cart_change_url | json }},
+        collections: {{ routes.all_products_collection_url | json }}
+      },
+      currency: {{ cart.currency.iso_code | json }},
+      locale: {{ request.locale.iso_code | json }},
+      animations: {{ settings.animations_enabled | json }},
+      cartDrawer: {{ settings.cart_drawer | json }},
+      moneyFormat: {{ shop.money_format | strip_html | json }},
+      strings: {
+        cartEmptyTitle: {{ 'cart.empty.title' | t | json }},
+        cartEmptyText: {{ 'cart.empty.text' | t | json }},
+        cartEmptyLink: {{ 'cart.empty.link' | t | json }},
+        remove: {{ 'cart.line.remove' | t | json }},
+        quantity: {{ 'cart.line.quantity' | t | json }},
+        added: {{ 'products.product.added' | t | json }},
+        soldOut: {{ 'products.product.sold_out' | t | json }},
+        unavailable: {{ 'products.product.unavailable' | t | json }},
+        addToCart: {{ 'products.product.add_to_cart' | t | json }},
+        sending: {{ 'contact.form.sending' | t | json }},
+        openMenu: {{ 'general.accessibility.open_menu' | t | json }},
+        closeMenu: {{ 'general.accessibility.close_menu' | t | json }}
+      }
+    };
+  </script>
+  <script src="{{ 'main.js' | asset_url }}" defer></script>
+
+  <ul hidden>
+    <li id="a11y-refresh-page-message">{{ 'general.accessibility.refresh_page' | t }}</li>
+  </ul>
+</body>
+</html>

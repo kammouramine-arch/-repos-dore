@@ -1,0 +1,43 @@
+{%- comment -%}
+  Renvoie la couleur CSS associée à une valeur d'option.
+  Paramètres :
+    value — valeur de l'option (ex. « Onyx »)
+    map   — texte de correspondance, une ligne par couleur : « Onyx: #17191D »
+  Ordre de résolution : correspondance saisie dans l'éditeur, puis noms
+  courants (fr/en), puis gris neutre.
+{%- endcomment -%}
+{%- liquid
+  assign target = value | handle
+  assign found = ''
+
+  assign lines = map | newline_to_br | split: '<br />'
+  for line in lines
+    assign pair = line | split: ':'
+    if pair.size > 1
+      assign key = pair[0] | handle
+      if key == target
+        assign found = pair | slice: 1, 9 | join: ':' | strip
+      endif
+    endif
+  endfor
+
+  if found == blank
+    case target
+      when 'noir', 'black', 'onyx', 'encre' then assign found = '#17191D'
+      when 'blanc', 'white', 'ivoire', 'ivory' then assign found = '#F4F2EE'
+      when 'gris', 'grey', 'gray', 'graphite' then assign found = '#8A8E96'
+      when 'sable', 'sand', 'beige', 'ecru' then assign found = '#D8CDBA'
+      when 'bleu-nuit', 'navy', 'marine' then assign found = '#0E1D33'
+      when 'bleu', 'blue' then assign found = '#2E5A8C'
+      when 'vert', 'green', 'kaki', 'khaki' then assign found = '#4F5D45'
+      when 'rouge', 'red' then assign found = '#9E3324'
+      when 'or', 'gold', 'dore' then assign found = '#C2A26B'
+      when 'argent', 'silver' then assign found = '#C6C9CE'
+      when 'rose', 'pink' then assign found = '#D9AFA6'
+      when 'brun', 'marron', 'brown', 'cognac' then assign found = '#6B4A34'
+      else assign found = '#E1E3E6'
+    endcase
+  endif
+
+  echo found
+-%}

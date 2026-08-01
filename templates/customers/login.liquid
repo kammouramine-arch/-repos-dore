@@ -1,0 +1,46 @@
+<section class="page-hero">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow">{{ 'customer.account.title' | t }}</p>
+      <h1 class="h1">{{ 'customer.login.title' | t }}</h1>
+    </div>
+  </div>
+</section>
+
+<section class="section" style="padding-top:clamp(1rem,3vw,2rem)">
+  <div class="wrap wrap--narrow">
+    <div class="form-card" style="max-width:34rem;margin-inline:auto">
+      {%- form 'customer_login', novalidate: 'novalidate' -%}
+        {%- if form.errors -%}
+          <div class="field__error is-visible" style="margin-bottom:1.5rem" role="alert">{{ form.errors.messages.form }}</div>
+        {%- endif -%}
+        <label class="field">
+          <span class="field__label">{{ 'contact.form.email' | t }}</span>
+          <input class="input" type="email" name="customer[email]" autocomplete="email" required>
+        </label>
+        <label class="field">
+          <span class="field__label">{{ 'customer.login.password' | t }}</span>
+          <input class="input" type="password" name="customer[password]" autocomplete="current-password" required>
+        </label>
+        <button class="btn btn--block" type="submit" style="margin-top:1.5rem">{{ 'customer.login.submit' | t }}</button>
+        <p class="muted" style="margin-top:1rem;text-align:center;font-size:var(--fs-sm)">
+          <a href="#recover" onclick="document.getElementById('recover-form').hidden=false;return false;">{{ 'customer.login.forgot' | t }}</a>
+          {%- if shop.customer_accounts_enabled %} · <a href="{{ routes.account_register_url }}">{{ 'customer.register.title' | t }}</a>{% endif -%}
+        </p>
+      {%- endform -%}
+
+      <div id="recover-form" hidden style="margin-top:2rem">
+        {%- form 'recover_customer_password', novalidate: 'novalidate' -%}
+          {%- if form.posted_successfully? -%}
+            <div class="form-success is-visible" role="status">{%- render 'icon', name: 'check' -%}<span>{{ 'customer.recover.success' | t }}</span></div>
+          {%- endif -%}
+          <label class="field">
+            <span class="field__label">{{ 'contact.form.email' | t }}</span>
+            <input class="input" type="email" name="email" required>
+          </label>
+          <button class="btn btn--block" type="submit" style="margin-top:1.5rem">{{ 'customer.recover.submit' | t }}</button>
+        {%- endform -%}
+      </div>
+    </div>
+  </div>
+</section>

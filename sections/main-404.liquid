@@ -1,0 +1,26 @@
+<section class="page-hero page-hero--dark grain">
+  <div class="wrap">
+    <div class="page-hero__inner">
+      <p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>
+      <h1 class="h1" data-reveal="fade">{{ section.settings.heading }}</h1>
+      <p class="lead" data-reveal style="--delay:100ms">{{ section.settings.text }}</p>
+      <div class="btn-row" data-reveal style="--delay:160ms;margin-top:2.5rem">
+        <a class="btn btn--light" href="{{ routes.root_url }}">{{ section.settings.button_label }}</a>
+        <a class="btn btn--outline-light" href="{{ routes.all_products_collection_url }}">{{ section.settings.button_2_label }}</a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_404.name",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Erreur 404" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Cette page n'existe plus." },
+    { "type": "textarea", "id": "text", "label": "t:common.text", "default": "Le lien est peut-être ancien. Reprenons depuis l'accueil ou la collection." },
+    { "type": "text", "id": "button_label", "label": "t:common.button_label", "default": "Retour à l'accueil" },
+    { "type": "text", "id": "button_2_label", "label": "t:common.button_2_label", "default": "Voir la collection" }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,31 @@
+{
+  "current": {
+    "color_ink": "#0A0A0B",
+    "color_gold": "#C2A26B",
+    "color_gold_soft": "#DCC698",
+    "color_navy": "#0E1D33",
+    "color_bg": "#FFFFFF",
+    "load_theme_fonts": true,
+    "contact_email": "service@reva-recovery.com",
+    "contact_phone": "+33 1 84 80 12 40",
+    "social_instagram": "",
+    "social_youtube": "",
+    "social_linkedin": "",
+    "social_facebook": "",
+    "social_tiktok": "",
+    "cart_drawer": true,
+    "animations_enabled": true
+  },
+  "presets": {
+    "RÉVA": {
+      "color_ink": "#0A0A0B",
+      "color_gold": "#C2A26B",
+      "color_gold_soft": "#DCC698",
+      "color_navy": "#0E1D33",
+      "color_bg": "#FFFFFF",
+      "load_theme_fonts": true,
+      "cart_drawer": true,
+      "animations_enabled": true
+    }
+  }
+}

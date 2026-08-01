@@ -1,0 +1,350 @@
+{%- liquid
+  assign current_variant = product.selected_or_first_available_variant
+  assign color_names = section.settings.color_option_names | downcase | replace: ' ', '' | split: ','
+  assign media_list = product.media | where: 'media_type', 'image'
+  if media_list.size == 0
+    assign media_list = product.media
+  endif
+  assign form_id = 'product-form-' | append: section.id
+-%}
+
+{%- if section.settings.show_breadcrumb -%}
+  <div class="wrap">
+    <nav class="breadcrumb" aria-label="{{ 'general.breadcrumb.title' | t }}">
+      <a href="{{ routes.root_url }}">{{ 'general.breadcrumb.home' | t }}</a>
+      {%- render 'icon', name: 'chevron-right' -%}
+      {%- if collection -%}
+        <a href="{{ collection.url }}">{{ collection.title }}</a>
+      {%- else -%}
+        <a href="{{ routes.all_products_collection_url }}">{{ 'general.breadcrumb.collection' | t }}</a>
+      {%- endif -%}
+      {%- render 'icon', name: 'chevron-right' -%}
+      <span class="muted">{{ product.title }}</span>
+    </nav>
+  </div>
+{%- endif -%}
+
+<section class="wrap pdp" data-buybar-anchor data-product-root>
+  {%- comment -%} Galerie {%- endcomment -%}
+  <div class="gallery">
+    <div class="gallery__main">
+      {%- if product.metafields.custom.badge != blank -%}
+        <span class="gallery__tag">{{ product.metafields.custom.badge }}</span>
+      {%- elsif product.available == false -%}
+        <span class="gallery__tag">{{ 'products.product.sold_out' | t }}</span>
+      {%- endif -%}
+
+      {%- if media_list.size > 0 -%}
+        {%- for media in media_list -%}
+          <img
+            data-gallery-img="{{ forloop.index }}"
+            data-media-id="{{ media.id }}"
+            class="{% unless forloop.first %}is-hidden{% endunless %}"
+            src="{{ media | image_url: width: 1000 }}"
+            srcset="{{ media | image_url: width: 500 }} 500w, {{ media | image_url: width: 750 }} 750w, {{ media | image_url: width: 1000 }} 1000w, {{ media | image_url: width: 1400 }} 1400w"
+            sizes="(min-width: 900px) 55vw, 92vw"
+            width="600"
+            height="600"
+            alt="{{ media.alt | default: product.title | escape }}"
+            {% if forloop.first %}loading="eager" fetchpriority="high"{% else %}loading="lazy"{% endif %}
+          >
+        {%- endfor -%}
+      {%- else -%}
+        {{ 'product-1' | placeholder_svg_tag: 'placeholder' }}
+      {%- endif -%}
+    </div>
+
+    {%- if media_list.size > 1 -%}
+      <div class="gallery__thumbs" role="tablist" aria-label="{{ 'products.product.media' | t }}">
+        {%- for media in media_list limit: 8 -%}
+          <button class="gallery__thumb" type="button" data-thumb="{{ forloop.index }}" role="tab" aria-selected="{% if forloop.first %}true{% else %}false{% endif %}" aria-label="{{ media.alt | default: product.title | escape }}">
+            <img src="{{ media | image_url: width: 200 }}" alt="" width="100" height="100" loading="lazy">
+          </button>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  {%- comment -%} Informations {%- endcomment -%}
+  <div class="pdp__info">
+    {%- liquid
+      assign rating_value = section.settings.fallback_rating
+      assign rating_count = section.settings.fallback_rating_count
+      if product.metafields.reviews.rating.value != blank
+        assign rating_value = product.metafields.reviews.rating.value.rating
+      endif
+      if product.metafields.reviews.rating_count.value != blank and product.metafields.reviews.rating_count.value > 0
+        assign rating_count = product.metafields.reviews.rating_count.value
+      endif
+    -%}
+    {%- if section.settings.show_rating and rating_value != blank -%}
+      <div class="pdp__rating">
+        {%- render 'stars', rating: rating_value -%}
+        <span>
+          {{ rating_value }}
+          {%- if rating_count != blank %} · <a href="#avis" style="border-bottom:1px solid var(--grey-300)">{{ 'products.product.reviews_count' | t: count: rating_count }}</a>{% endif -%}
+        </span>
+      </div>
+    {%- endif -%}
+
+    <h1 class="h1 pdp__title">{{ product.title }}</h1>
+
+    {%- assign tagline = product.metafields.custom.tagline | default: product.metafields.custom.subtitle -%}
+    {%- if tagline != blank -%}
+      <p class="pdp__tagline">{{ tagline }}</p>
+    {%- endif -%}
+
+    <div class="pdp__price" data-price-block>
+      <strong data-price>{{ current_variant.price | money }}</strong>
+      {%- if current_variant.compare_at_price > current_variant.price -%}
+        <s data-compare-price>{{ current_variant.compare_at_price | money }}</s>
+        {%- assign saving = current_variant.compare_at_price | minus: current_variant.price -%}
+        <span class="save" data-save>−{{ saving | money }}</span>
+      {%- else -%}
+        <s data-compare-price hidden></s>
+        <span class="save" data-save hidden></span>
+      {%- endif -%}
+    </div>
+
+    {%- if section.settings.instalment_text != blank -%}
+      <p class="pdp__instal">{{ section.settings.instalment_text }}</p>
+    {%- endif -%}
+
+    {%- unless product.has_only_default_variant -%}
+      {%- for option in product.options_with_values -%}
+        {%- liquid
+          assign opt_key = option.name | downcase | replace: ' ', ''
+          assign is_color = false
+          if color_names contains opt_key
+            assign is_color = true
+          endif
+        -%}
+        <div class="option" data-option-group="{{ option.position }}">
+          <div class="option__head">
+            <span class="option__label">{{ option.name }}</span>
+            <span class="option__value" data-option-value="{{ option.position }}">{{ option.selected_value }}</span>
+          </div>
+
+          {%- if is_color -%}
+            <div class="swatches">
+              {%- for value in option.values -%}
+                {%- capture swatch_bg -%}{%- render 'swatch-color', value: value, map: section.settings.swatch_colors -%}{%- endcapture -%}
+                <button
+                  class="swatch"
+                  type="button"
+                  data-option-position="{{ option.position }}"
+                  data-option="{{ value | escape }}"
+                  aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
+                  aria-label="{{ value | escape }}"
+                  style="background:{{ swatch_bg | strip }}"
+                ></button>
+              {%- endfor -%}
+            </div>
+          {%- else -%}
+            <div class="chips">
+              {%- for value in option.values -%}
+                <button
+                  class="chip"
+                  type="button"
+                  data-option-position="{{ option.position }}"
+                  data-option="{{ value | escape }}"
+                  aria-pressed="{% if option.selected_value == value %}true{% else %}false{% endif %}"
+                >{{ value | split: ' ' | first }}</button>
+              {%- endfor -%}
+            </div>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    {%- endunless -%}
+
+    {%- if section.settings.show_stock -%}
+      <p class="stock" data-stock {% unless current_variant.available %}hidden{% endunless %}>
+        <i></i> {{ section.settings.stock_text }}
+      </p>
+    {%- endif -%}
+
+    {%- form 'product', product, id: form_id, class: 'buy-form', novalidate: 'novalidate' -%}
+      <input type="hidden" name="id" value="{{ current_variant.id }}" data-variant-id>
+      <div class="buy">
+        <div class="qty" data-qty>
+          <button type="button" data-qty-step="-1" aria-label="{{ 'products.product.quantity_down' | t }}">−</button>
+          <input type="number" name="quantity" value="1" min="1" max="99" aria-label="{{ 'products.product.quantity' | t }}">
+          <button type="button" data-qty-step="1" aria-label="{{ 'products.product.quantity_up' | t }}">+</button>
+        </div>
+        <button class="btn btn--block" type="submit" name="add" data-add-to-cart {% unless current_variant.available %}disabled{% endunless %}>
+          <span data-add-to-cart-text>
+            {%- if current_variant.available -%}
+              {{ 'products.product.add_to_cart' | t }} — {{ current_variant.price | money }}
+            {%- else -%}
+              {{ 'products.product.sold_out' | t }}
+            {%- endif -%}
+          </span>
+        </button>
+      </div>
+    {%- endform -%}
+
+    {%- assign has_assurance = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'assurance' -%}{%- assign has_assurance = true -%}{%- endif -%}
+    {%- endfor -%}
+
+    {%- if has_assurance -%}
+      <ul class="pdp__assur">
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'assurance' -%}
+            <li {{ block.shopify_attributes }}>
+              {%- render 'icon', name: block.settings.icon -%}
+              <span><strong>{{ block.settings.title }}</strong> {{ block.settings.text }}</span>
+            </li>
+          {%- endif -%}
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+
+    {%- assign has_accordion = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'accordion' or block.type == 'description' -%}{%- assign has_accordion = true -%}{%- endif -%}
+    {%- endfor -%}
+
+    {%- if has_accordion -%}
+      <div class="accordion pdp__accordion" data-accordion-single>
+        {%- assign panel_index = 0 -%}
+        {%- for block in section.blocks -%}
+          {%- if block.type == 'accordion' or block.type == 'description' -%}
+            {%- assign panel_index = panel_index | plus: 1 -%}
+            {%- assign panel_id = 'acc-' | append: section.id | append: '-' | append: panel_index -%}
+            {%- if block.type == 'description' and product.description == blank -%}
+              {%- continue -%}
+            {%- endif -%}
+            <div class="accordion__item" {{ block.shopify_attributes }}>
+              <h2>
+                <button class="accordion__btn" type="button" aria-expanded="{% if block.settings.open %}true{% else %}false{% endif %}" aria-controls="{{ panel_id }}">
+                  {{ block.settings.title }} <span class="accordion__icon" aria-hidden="true"></span>
+                </button>
+              </h2>
+              <div class="accordion__panel" id="{{ panel_id }}">
+                <div class="accordion__inner">
+                  {%- if block.type == 'description' -%}
+                    {{ product.description }}
+                  {%- else -%}
+                    {{ block.settings.content }}
+                  {%- endif -%}
+                </div>
+              </div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{%- if section.settings.show_buybar -%}
+  <div class="buybar" data-buybar>
+    <div class="buybar__info">
+      <span class="buybar__thumb">
+        {%- if product.featured_media -%}
+          <img src="{{ product.featured_media | image_url: width: 120 }}" alt="" width="60" height="60" loading="lazy">
+        {%- endif -%}
+      </span>
+      <span>
+        <span class="buybar__name">{{ product.title }}</span>
+        <span class="buybar__price" data-buybar-price>
+          {{- current_variant.price | money -}}
+          {%- if section.settings.instalment_short != blank %} · {{ section.settings.instalment_short }}{% endif -%}
+        </span>
+      </span>
+    </div>
+    <button class="btn btn--sm" type="submit" form="{{ form_id }}" data-buybar-add {% unless current_variant.available %}disabled{% endunless %}>
+      {{ 'products.product.add_to_cart' | t }}
+    </button>
+  </div>
+{%- endif -%}
+
+<script type="application/json" data-product-json>
+  {
+    "id": {{ product.id | json }},
+    "options": {{ product.options | json }},
+    "variants": [
+      {%- for variant in product.variants -%}
+        {
+          "id": {{ variant.id | json }},
+          "options": {{ variant.options | json }},
+          "available": {{ variant.available | json }},
+          "price": {{ variant.price | json }},
+          "compare_at_price": {{ variant.compare_at_price | json }},
+          "price_formatted": {{ variant.price | money | json }},
+          "compare_at_price_formatted": {{ variant.compare_at_price | money | json }},
+          "saving_formatted": {%- if variant.compare_at_price > variant.price -%}{{ variant.compare_at_price | minus: variant.price | money | json }}{%- else -%}null{%- endif -%},
+          "featured_media_id": {{ variant.featured_media.id | json }}
+        }{% unless forloop.last %},{% endunless %}
+      {%- endfor -%}
+    ]
+  }
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.main_product.name",
+  "class": "product-section",
+  "settings": [
+    { "type": "checkbox", "id": "show_breadcrumb", "default": true, "label": "t:sections.main_product.settings.show_breadcrumb.label" },
+    { "type": "checkbox", "id": "show_rating", "default": true, "label": "t:sections.main_product.settings.show_rating.label" },
+    { "type": "text", "id": "fallback_rating", "label": "t:sections.main_product.settings.fallback_rating.label", "info": "t:sections.main_product.settings.fallback_rating.info" },
+    { "type": "text", "id": "fallback_rating_count", "label": "t:sections.main_product.settings.fallback_rating_count.label" },
+    { "type": "text", "id": "instalment_text", "label": "t:sections.main_product.settings.instalment_text.label", "default": "Livraison offerte, expédiée sous 24 h." },
+    { "type": "text", "id": "instalment_short", "label": "t:sections.main_product.settings.instalment_short.label" },
+    { "type": "header", "content": "t:sections.main_product.settings.options_header" },
+    { "type": "text", "id": "color_option_names", "label": "t:sections.main_product.settings.color_option_names.label", "info": "t:sections.main_product.settings.color_option_names.info", "default": "couleur,color,coloris" },
+    { "type": "textarea", "id": "swatch_colors", "label": "t:sections.main_product.settings.swatch_colors.label", "info": "t:sections.main_product.settings.swatch_colors.info", "default": "Onyx: #17191D\nSable: #D8CDBA\nBleu nuit: #0E1D33" },
+    { "type": "header", "content": "t:sections.main_product.settings.buy_header" },
+    { "type": "checkbox", "id": "show_stock", "default": true, "label": "t:sections.main_product.settings.show_stock.label" },
+    { "type": "text", "id": "stock_text", "label": "t:sections.main_product.settings.stock_text.label", "default": "En stock — expédition aujourd'hui si commande avant 15 h" },
+    { "type": "checkbox", "id": "show_buybar", "default": true, "label": "t:sections.main_product.settings.show_buybar.label" }
+  ],
+  "blocks": [
+    {
+      "type": "assurance",
+      "name": "t:sections.main_product.blocks.assurance.name",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:common.icon",
+          "default": "clock",
+          "options": [
+            { "value": "clock", "label": "t:icons.clock" },
+            { "value": "shield", "label": "t:icons.shield" },
+            { "value": "truck", "label": "t:icons.truck" },
+            { "value": "card", "label": "t:icons.card" },
+            { "value": "account", "label": "t:icons.account" },
+            { "value": "check", "label": "t:icons.check" },
+            { "value": "phone", "label": "t:icons.phone" },
+            { "value": "mail", "label": "t:icons.mail" }
+          ]
+        },
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Essai 30 nuits." },
+        { "type": "textarea", "id": "text", "label": "t:common.text", "default": "Retour organisé et remboursé, sans justification." }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "t:sections.main_product.blocks.description.name",
+      "limit": 1,
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Description" },
+        { "type": "checkbox", "id": "open", "default": true, "label": "t:common.open_by_default" }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "t:sections.main_product.blocks.accordion.name",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Livraison & retours" },
+        { "type": "richtext", "id": "content", "label": "t:common.content" },
+        { "type": "checkbox", "id": "open", "default": false, "label": "t:common.open_by_default" }
+      ]
+    }
+  ]
+}
+{% endschema %}

@@ -1,213 +1,181 @@
-# RÉVA — Site premium de récupération &amp; bien-être
+# RÉVA — thème Shopify Online Store 2.0
 
-Site e-commerce vitrine complet en HTML / CSS / JavaScript natif, sans aucune dépendance,
-pensé pour être intégré tel quel dans un thème Shopify.
+Thème premium pour marques d'appareils de récupération et de bien-être, converti
+depuis la maquette HTML/CSS/JS d'origine. **Le design n'a pas été refait** : le
+design system, les composants et les animations sont conservés à l'identique ;
+seul le rendu passe par Liquid, et tout le contenu devient modifiable dans
+l'éditeur de thème Shopify.
 
-**Positionnement** : marque premium d'appareils de récupération (jambes, pieds, nuque, yeux)
-à 149 € – 249 €. Le parcours est construit pour justifier ce prix — preuve technique,
-transparence sur la fabrication, essai 30 nuits, garantie 2 ans, service humain.
+Aucune dépendance : ni framework, ni jQuery, ni CDN tiers.
 
 ---
 
-## 1. Contenu livré
+## 1. Installation
 
-| Fichier | Page |
+### En ZIP (le plus simple)
+
+```bash
+zip -r reva-theme.zip . -x '.git/*' '.github/*' '*.DS_Store'
+```
+
+Puis, dans l'admin Shopify : **Boutique en ligne → Thèmes → Ajouter un thème →
+Importer un fichier ZIP**. Le thème s'installe tel quel, sans étape technique.
+
+### En ligne de commande (développement)
+
+```bash
+npm i -g @shopify/cli
+shopify theme dev --store votre-boutique.myshopify.com   # aperçu à chaud
+shopify theme check                                       # 0 erreur, 0 avertissement
+shopify theme push                                        # publication
+```
+
+---
+
+## 2. Arborescence
+
+```
+layout/     theme.liquid · password.liquid
+templates/  index · product · collection · list-collections · page
+            page.about · page.faq · page.contact · blog · article
+            search · cart · 404 · password · gift_card · customers/*
+sections/   28 sections, toutes avec un {% schema %} traduit
+snippets/   icon · card-product · cart-drawer · stars · product-rating
+            swatch-color · meta-tags · structured-data · fonts
+assets/     style.css · main.js · 6 fichiers woff2 · visuels SVG
+config/     settings_schema.json · settings_data.json
+locales/    fr.default.json · en.json (+ .schema.json pour l'éditeur)
+```
+
+Les en-têtes et pieds de page utilisent les **groupes de sections** OS 2.0
+(`sections/header-group.json`, `sections/footer-group.json`) : ils sont donc
+réorganisables depuis l'éditeur, sur toutes les pages à la fois.
+
+---
+
+## 3. Sections disponibles
+
+| Section | Blocs | Utilisée par |
+|---|---|---|
+| Bandeau d'annonce | messages défilants | groupe en-tête |
+| En-tête | — | groupe en-tête |
+| Pied de page | colonnes de liens | groupe pied de page |
+| Bannière d'accueil | chiffres clés | accueil |
+| Bandeau de réassurance | garanties | accueil |
+| Manifeste | — | accueil |
+| Collection en vedette | — | accueil |
+| Image et texte | points numérotés, paragraphes, citations | accueil, produit, maison |
+| Déclaration pleine page | — | accueil, maison |
+| Chiffres clés | chiffres animés | accueil, maison |
+| Avis clients (carrousel) | témoignages | accueil |
+| Tableau comparatif | lignes | accueil |
+| Bandeau presse | titres de presse | accueil |
+| Bandeau d'action | — | toutes |
+| Page produit | garanties, description, accordéons | produit |
+| Caractéristiques | caractéristiques | produit, contact |
+| Étapes | étapes | produit |
+| Contenu de la boîte | éléments | produit |
+| Avis produit | avis | produit |
+| Produits associés | — | produit |
+| Bannière de page | — | pages éditoriales |
+| Chronologie | repères | maison |
+| Engagements | engagements | maison |
+| Encart showroom | — | maison |
+| FAQ | catégories, questions | FAQ |
+| Contact | canaux de contact | contact |
+| Pages système | panier, collection, recherche, journal, article, 404, page protégée | — |
+
+Chaque section expose ses textes, images, liens, ancres et options de mise en
+page. Rien n'est codé en dur : les libellés par défaut reprennent simplement le
+contenu de la maquette.
+
+---
+
+## 4. Réglages du thème
+
+* **Identité** — logo, favicon, image de partage social.
+* **Couleurs** — cinq jetons (noir, or, or clair, bleu nuit, fond) injectés en
+  variables CSS : rebrander le thème tient en cinq champs.
+* **Typographie** — Inter et Instrument Serif **auto-hébergées** sur le CDN
+  Shopify (aucune requête vers Google Fonts). Décochable pour tomber sur la pile
+  système.
+* **Coordonnées** — e-mail et téléphone, repris dans le menu mobile et les
+  données structurées.
+* **Réseaux sociaux** — cinq liens, icônes affichées seulement si renseignées.
+* **Panier** — tiroir latéral en Ajax, ou redirection classique vers `/cart`.
+* **Animations** — interrupteur global ; toujours neutralisées si le visiteur a
+  activé « réduire les animations » au niveau du système.
+
+---
+
+## 5. Fonctionnement e-commerce
+
+* **Panier** — API Ajax Shopify (`/cart.js`, `/cart/add.js`, `/cart/change.js`).
+  Le tiroir est rendu en Liquid au chargement (indexable, sans saut de mise en
+  page) puis rafraîchi en JavaScript.
+* **Variantes** — les options produit deviennent des pastilles de couleur ou des
+  puces. Prix, prix barré, économie, disponibilité, image et paramètre `?variant=`
+  se mettent à jour sans rechargement. Les couleurs des pastilles se règlent dans
+  l'éditeur (« Onyx: #17191D », une par ligne) ; une table de correspondance
+  fr/en couvre les noms courants.
+* **Formulaires** — `{% form 'contact' %}`, `{% form 'customer' %}` (newsletter),
+  commentaires d'article et pages client. La validation JavaScript se contente de
+  bloquer l'envoi si un champ est invalide : la soumission reste native.
+* **Comptes clients** — connexion, inscription, mot de passe oublié, activation,
+  commandes et adresses.
+
+### Métachamps reconnus
+
+| Métachamp | Effet |
 |---|---|
-| `index.html` | Accueil (hero plein écran, manifeste, collection, technologie, chiffres, avis, comparatif, presse, CTA) |
-| `produit.html` | Page produit haut de gamme — RÉVA Circula (galerie, options, barre d'achat collante, specs, avis, cross-sell) |
-| `a-propos.html` | La maison RÉVA (récit, chronologie, engagements, fabrication, showroom) |
-| `faq.html` | FAQ — 22 questions, recherche instantanée, 5 catégories filtrables |
-| `contact.html` | Contact (4 canaux, formulaire validé, infos pratiques) |
-| `assets/css/style.css` | Design system complet (jetons, composants, responsive) |
-| `assets/js/main.js` | 19 modules autonomes, sans dépendance |
-| `assets/img/*.svg` | Visuels produits vectoriels — **à remplacer par vos photos** |
-
-Prévisualiser : `python3 -m http.server 8000` puis <http://localhost:8000>.
+| `custom.badge` | pastille « Best-seller », « Nouveau »… sur la carte et la galerie |
+| `custom.subtitle` | sous-titre de la carte produit |
+| `custom.tagline` | accroche sous le titre de la page produit |
+| `reviews.rating` / `reviews.rating_count` | remplacent automatiquement la note et le nombre d'avis saisis dans l'éditeur |
 
 ---
 
-## 2. Direction artistique
+## 6. Performances & SEO
 
-**Palette** — noir `#0A0A0B`, blanc, gris `#F1F2F4` → `#55585F`, or `#C2A26B`,
-bleu nuit `#0E1D33`. L'or n'est jamais un aplat : filets, micro-détails, un seul
-bouton doré par page. C'est ce qui sépare le premium du clinquant.
-
-**Typographie** — Inter (200–600) partout, Instrument Serif en italique pour les
-accents éditoriaux. Titres en graisse 200/300 avec interlettrage négatif (`-.04em`),
-échelle entièrement fluide en `clamp()` : aucune rupture typographique entre 320 et 1440 px.
-
-**Espacement** — sections à `clamp(5.5rem, 12vw, 11rem)`. Le vide est la matière
-première du positionnement premium : ne le réduisez pas pour « gagner de la place ».
-
-**Animations** — révélations au scroll (opacité + 26 px), titres ligne par ligne,
-manifeste qui s'allume mot à mot, compteurs chiffrés, parallaxe légère (0,03–0,08),
-carrousel d'avis, accordéons animés en hauteur. Tout est neutralisé sous
-`prefers-reduced-motion`.
-
-Les jetons sont regroupés en variables CSS en tête de `style.css` : rebrander le site
-revient à modifier une dizaine de lignes.
+* CSS unique préchargée, JavaScript unique différé (~20 Ko), zéro dépendance.
+* Polices auto-hébergées, sous-ensembles latin / latin étendu, `font-display: swap`,
+  préchargement des deux fichiers critiques.
+* Images servies par `image_url` avec `srcset`, `sizes`, `width`/`height` et
+  `loading="lazy"` (sauf la première image produit, en `fetchpriority="high"`).
+* Balises `title`, `meta description`, canonique, Open Graph et Twitter Card.
+* Données structurées JSON-LD : `Organization`, `Product` (avec offres et note
+  agrégée), `BreadcrumbList`, `FAQPage`, `BlogPosting`.
+* Sans JavaScript, tout le contenu reste visible et indexable : les états masqués
+  sont conditionnés à la classe `js` posée dans le `<head>`.
+* `shopify theme check` : **76 fichiers inspectés, aucune anomalie**.
 
 ---
 
-## 3. JavaScript
+## 7. À faire avant la mise en ligne
 
-Chaque module est indépendant et sans effet si son markup est absent — vous pouvez
-supprimer une section entière sans rien casser.
-
-Header au scroll · nav mobile plein écran · panier latéral persistant (`localStorage`) ·
-révélations `IntersectionObserver` · manifeste progressif · compteurs · carrousel d'avis
-(flèches, points, swipe, autoplay en pause au survol) · accordéons · galerie produit ·
-sélecteurs d'options · quantité · barre d'achat collante · barres de notation · parallaxe ·
-recherche FAQ insensible aux accents · validation de formulaires · lien de nav actif.
-
-### Robustesse
-- Les états masqués des animations sont conditionnés à la classe `js` posée dans le
-  `<head>` : **sans JavaScript, tout le contenu reste visible et indexable**.
-- Les compteurs contiennent leur valeur finale dans le HTML ; le JS repart de zéro.
-- Navigation clavier, attributs `aria-*`, focus visible, lien d'évitement sur chaque page.
-
----
-
-## 4. Intégration Shopify
-
-### 4.1 Où placer les fichiers
-
-```
-theme/
-├─ assets/
-│  ├─ style.css          ← assets/css/style.css
-│  ├─ main.js            ← assets/js/main.js
-│  └─ legs.svg, foot.svg, neck.svg, eye.svg, unit.svg, fabric.svg, case.svg
-├─ snippets/
-│  ├─ announcement.liquid   ← bloc .announce
-│  ├─ header.liquid         ← <header> + .mobile-nav
-│  ├─ cart-drawer.liquid    ← .overlay + .drawer
-│  └─ footer.liquid         ← <footer>
-├─ sections/
-│  ├─ hero.liquid, trust.liquid, manifesto.liquid, collection.liquid,
-│  │  tech-split.liquid, bleed.liquid, stats.liquid, quotes.liquid,
-│  │  compare.liquid, press.liquid, cta-band.liquid
-│  └─ main-product.liquid   ← .pdp + specs + steps + reviews
-└─ templates/
-   ├─ index.json, product.json, page.about.json, page.faq.json, page.contact.json
-```
-
-Dans `theme.liquid` :
-
-```liquid
-{{ 'style.css' | asset_url | stylesheet_tag }}
-<script>document.documentElement.className += " js";</script>
-...
-{% render 'announcement' %}
-{% render 'header' %}
-{% render 'cart-drawer' %}
-{{ content_for_layout }}
-{% render 'footer' %}
-<script src="{{ 'main.js' | asset_url }}" defer></script>
-```
-
-Le HTML est déjà découpé section par section (commentaires `═══`) pour faciliter
-ce découpage.
-
-### 4.2 Carte produit dynamique
-
-```liquid
-{% for product in collections['appareils'].products %}
-  <article class="card" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 60 }}ms">
-    <a class="card__link" href="{{ product.url }}"><span>Voir {{ product.title }}</span></a>
-    <div class="card__media">
-      {% if product.metafields.custom.badge %}
-        <span class="card__badge">{{ product.metafields.custom.badge }}</span>
-      {% endif %}
-      {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy' }}
-    </div>
-    <div class="card__body">
-      <div>
-        <h3 class="card__title">{{ product.title }}</h3>
-        <p class="card__desc">{{ product.metafields.custom.subtitle }}</p>
-      </div>
-      <p class="card__price">
-        {% if product.compare_at_price > product.price %}<s>{{ product.compare_at_price | money }}</s>{% endif %}
-        {{ product.price | money }}
-      </p>
-    </div>
-  </article>
-{% endfor %}
-```
-
-### 4.3 Ajout au panier
-
-```liquid
-{% form 'product', product %}
-  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-  <div class="buy">
-    <div class="qty" data-qty>
-      <button type="button" data-qty-step="-1" aria-label="Diminuer la quantité">−</button>
-      <input type="number" name="quantity" value="1" min="1" max="9" aria-label="Quantité">
-      <button type="button" data-qty-step="1" aria-label="Augmenter la quantité">+</button>
-    </div>
-    <button class="btn btn--block" type="submit" {% unless product.available %}disabled{% endunless %}>
-      {% if product.available %}Ajouter au panier — {{ product.price | money }}{% else %}Indisponible{% endif %}
-    </button>
-  </div>
-{% endform %}
-```
-
-Les sélecteurs `.swatch` et `.chip` doivent alors piloter `input[name="id"]` à partir de
-`product.variants`. Deux options :
-
-1. remplacer le module « Options produit » de `main.js` par la logique de variantes de
-   votre thème (`variant_selects` sur Dawn) ;
-2. conserver le markup et brancher `Cart.add()` sur l'API Ajax :
-   `fetch('/cart/add.js', {method:'POST', ...})` puis `fetch('/cart.js')` pour rafraîchir
-   le tiroir. La structure HTML (`.drawer`, `.drawer-line`) et les états (`is-open`)
-   restent identiques — seule la source des données change.
-
-Le panier livré ici stocke ses lignes dans `localStorage` : c'est une démonstration
-d'interface, à remplacer par l'API Shopify en production.
-
-### 4.4 Formulaires
-
-- Contact → `{% form 'contact' %}` en conservant les classes `.field`, `.input`,
-  `.field__error` : la validation JS s'y accroche automatiquement.
-- Newsletter → `{% form 'customer' %}` avec
-  `<input type="hidden" name="contact[tags]" value="newsletter">`.
-
-### 4.5 Réglages de section recommandés
-
-Pour rendre l'accueil éditable dans l'admin, exposez au minimum : titre, sous-titre,
-image, libellé et lien de bouton pour `hero`, `bleed` et `cta-band` ; un bloc répétable
-pour `trust`, `stats`, `quotes`, `compare` et `press`.
+1. **Produits** — créer les produits et la collection mise en avant, puis la
+   sélectionner dans la section « Collection en vedette ».
+2. **Menus** — créer `main-menu` et `footer` dans *Navigation*, puis les affecter
+   à l'en-tête et aux trois colonnes du pied de page.
+3. **Pages** — créer les pages *Maison*, *FAQ* et *Contact*, et leur appliquer les
+   modèles `page.about`, `page.faq` et `page.contact`.
+4. **Visuels** — remplacer les SVG de démonstration par vos photos (ratio 1:1,
+   produits détourés ou fond neutre clair).
+5. **Contenu commercial** — les chiffres, témoignages et titres de presse fournis
+   sont des **exemples de mise en page**. Ils doivent être remplacés par vos
+   données réelles : publier des allégations invérifiables relève de la pratique
+   commerciale trompeuse (art. L121-2 du Code de la consommation).
+6. **Mentions santé** — les produits sont présentés comme des appareils de
+   bien-être et non comme des dispositifs médicaux. Conservez le bloc
+   « Précautions d'usage » et faites valider vos allégations.
+7. **Pages légales** — mentions légales, CGV, confidentialité et cookies, à lier
+   via le menu du pied de page.
 
 ---
 
-## 5. À faire avant la mise en ligne
-
-1. **Photos** — remplacer les SVG de `assets/img/` par vos visuels, ratio 1:1, produits
-   détourés ou photographiés sur fond neutre clair. Le design suppose ce traitement.
-2. **Contenu commercial** — les chiffres (38 000 foyers, 4,9/5, 1 204 avis, 92 %), les
-   témoignages, les titres de presse et les mentions de fabrication sont des
-   **exemples de mise en page**. Ils doivent être remplacés par vos données réelles :
-   publier des allégations invérifiables relève de la pratique commerciale trompeuse
-   (art. L121-2 du Code de la consommation).
-3. **Mentions santé** — les produits sont présentés comme des appareils de bien-être et
-   non comme des dispositifs médicaux. Conservez le bloc « Précautions d'usage » de la
-   page produit et faites valider vos allégations avant diffusion.
-4. **Pages légales** — mentions légales, CGV, confidentialité et cookies sont liées dans
-   le footer mais restent à rédiger.
-5. **SEO** — `title`, `meta description` et Open Graph sont renseignés par page. Ajoutez
-   les données structurées `Product` et `FAQPage` via Liquid.
-6. **Polices** — Inter et Instrument Serif sont chargées depuis Google Fonts. Sur Shopify,
-   préférez l'auto-hébergement dans `assets/` (meilleur LCP, pas de requête tierce).
-   Une pile de repli système est déjà déclarée : le site reste lisible si les polices
-   ne se chargent pas.
-
----
-
-## 6. Compatibilité
+## 8. Compatibilité
 
 Chrome, Edge, Firefox et Safari récents, desktop et mobile.
 `backdrop-filter`, `clamp()`, `aspect-ratio` et `IntersectionObserver` dégradent
-proprement sur les navigateurs anciens : le contenu reste visible, seules les
-animations disparaissent.
+proprement : le contenu reste visible, seules les animations disparaissent.
 Points de rupture : 1180 / 1024 / 900 / 620 px.

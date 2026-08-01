@@ -1,0 +1,22 @@
+{%- comment -%}
+  Note produit : lit les métachamps `reviews.rating` / `reviews.rating_count`
+  (renseignés par Avis produits Shopify et la plupart des applis d'avis).
+  Paramètres : product, fallback_rating, fallback_count, class.
+  Expose : rendu textuel « 4,9 — 1 204 avis ».
+{%- endcomment -%}
+{%- liquid
+  assign rating_value = fallback_rating
+  assign rating_count = fallback_count
+  if product.metafields.reviews.rating.value != blank
+    assign rating_value = product.metafields.reviews.rating.value.rating
+  endif
+  if product.metafields.reviews.rating_count.value != blank and product.metafields.reviews.rating_count.value > 0
+    assign rating_count = product.metafields.reviews.rating_count.value
+  endif
+-%}
+{%- if rating_value != blank -%}
+  <span class="{{ class | default: 'card__stars' }}">
+    {%- render 'icon', name: 'star' -%}
+    {{- rating_value }}{% if rating_count != blank %} — {{ 'products.product.reviews_count' | t: count: rating_count }}{% endif -%}
+  </span>
+{%- endif -%}

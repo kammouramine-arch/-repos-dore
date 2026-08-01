@@ -1,0 +1,229 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": {
+        "stat-1": { "type": "stat", "settings": { "value": "38 000+", "label": "Athlètes et actifs équipés" } },
+        "stat-2": { "type": "stat", "settings": { "value": "4,9/5", "label": "Sur 2 418 avis vérifiés" } },
+        "stat-3": { "type": "stat", "settings": { "value": "30 nuits", "label": "D'essai, retour offert" } }
+      },
+      "block_order": ["stat-1", "stat-2", "stat-3"],
+      "settings": {
+        "eyebrow": "Récupération de précision",
+        "heading": "La récupération,\n<em>élevée</em> au rang\nde rituel.",
+        "text": "Quatre appareils. Une même exigence : rendre au corps ce que la journée lui a pris. Ingénierie européenne, matériaux nobles, protocoles validés par des kinésithérapeutes.",
+        "parallax": 0.06,
+        "button_label": "Découvrir la collection",
+        "button_link": "#collection",
+        "button_2_label": "Notre technologie",
+        "button_2_link": "#technologie",
+        "show_scroll_cue": true,
+        "scroll_label": "Défiler"
+      }
+    },
+    "trust": {
+      "type": "trust",
+      "blocks": {
+        "item-1": { "type": "item", "settings": { "icon": "shield", "title": "Garantie 2 ans", "text": "Extension 5 ans offerte" } },
+        "item-2": { "type": "item", "settings": { "icon": "truck", "title": "Livraison en 48 h", "text": "Offerte dès 120 €" } },
+        "item-3": { "type": "item", "settings": { "icon": "clock", "title": "Essai 30 nuits", "text": "Remboursé sans condition" } },
+        "item-4": { "type": "item", "settings": { "icon": "card", "title": "Paiement en 3×", "text": "Sans frais, dès 100 €" } }
+      },
+      "block_order": ["item-1", "item-2", "item-3", "item-4"],
+      "settings": {}
+    },
+    "manifesto": {
+      "type": "manifesto",
+      "settings": {
+        "eyebrow": "Manifeste",
+        "text": "Nous ne vendons pas des appareils. Nous rendons à chacun ses <em>vingt</em> <em>minutes</em> de silence quotidien."
+      }
+    },
+    "collection": {
+      "type": "featured-collection",
+      "settings": {
+        "products_to_show": 4,
+        "eyebrow": "La collection",
+        "heading": "Quatre appareils, quatre territoires du corps.",
+        "text": "Chaque produit répond à une zone précise et à un protocole distinct. Aucun accessoire superflu.",
+        "link_label": "Comprendre la technologie",
+        "link_url": "#technologie",
+        "card_cta": "Découvrir",
+        "anchor": "collection",
+        "flush_top": true,
+        "dark_card_position": 3
+      }
+    },
+    "technologie": {
+      "type": "image-with-text",
+      "blocks": {
+        "item-1": {
+          "type": "item",
+          "settings": {
+            "title": "Compression séquentielle 4 chambres",
+            "text": "De 20 à 120 mmHg, ajustable par palier de 5. Le gradient suit le retour veineux naturel."
+          }
+        },
+        "item-2": {
+          "type": "item",
+          "settings": {
+            "title": "Moteur 38 dB",
+            "text": "Plus discret qu'une conversation à voix basse. Utilisable au bureau comme au coucher."
+          }
+        },
+        "item-3": {
+          "type": "item",
+          "settings": {
+            "title": "Six protocoles guidés",
+            "text": "Récupération, drainage, jambes lourdes, pré-effort, sommeil, voyage. Un bouton, une intention."
+          }
+        }
+      },
+      "block_order": ["item-1", "item-2", "item-3"],
+      "settings": {
+        "reverse": false,
+        "light_media": false,
+        "parallax": 0.03,
+        "eyebrow": "Technologie",
+        "heading": "Une pression pensée comme un geste, pas comme une machine.",
+        "text": "Notre moteur silencieux délivre une compression séquentielle calibrée au dixième de mmHg. Le mouvement remonte de la cheville vers la cuisse, exactement comme le drainage manuel pratiqué en cabinet.",
+        "anchor": "technologie",
+        "flush_top": true
+      }
+    },
+    "bleed": {
+      "type": "bleed-statement",
+      "settings": {
+        "eyebrow": "Conçu pour durer",
+        "heading": "Aluminium anodisé, tissu technique, zéro plastique apparent.",
+        "text": "Chaque pièce est démontable et réparable. Nos moteurs sont testés sur 3 000 cycles, soit huit ans d'usage quotidien. Nous fournissons les pièces détachées pendant dix ans — parce qu'un objet premium ne se remplace pas, il s'entretient.",
+        "parallax": 0.08,
+        "button_label": "La maison",
+        "button_2_label": "Questions fréquentes"
+      }
+    },
+    "stats": {
+      "type": "stats",
+      "blocks": {
+        "stat-1": { "type": "stat", "settings": { "value": "92", "suffix": "%", "label": "déclarent des jambes plus légères dès la première semaine" } },
+        "stat-2": { "type": "stat", "settings": { "value": "38", "suffix": "dB", "label": "niveau sonore mesuré en usage continu" } },
+        "stat-3": { "type": "stat", "settings": { "value": "3000", "suffix": "", "label": "cycles de test moteur avant mise en production" } },
+        "stat-4": { "type": "stat", "settings": { "value": "10", "suffix": "ans", "label": "de pièces détachées garanties disponibles" } }
+      },
+      "block_order": ["stat-1", "stat-2", "stat-3", "stat-4"],
+      "settings": { "flush_top": false }
+    },
+    "rituel": {
+      "type": "image-with-text",
+      "blocks": {
+        "item-1": { "type": "item", "settings": { "title": "Chaleur régulée 38–42 °C", "text": "Capteur de température au contact, sans point chaud." } },
+        "item-2": { "type": "item", "settings": { "title": "Cinq séances audio", "text": "Respiration guidée, cohérence cardiaque, sieste éclair." } },
+        "item-3": { "type": "item", "settings": { "title": "Pliable, 280 g", "text": "Se glisse dans un bagage cabine avec sa housse en feutre de laine." } }
+      },
+      "block_order": ["item-1", "item-2", "item-3"],
+      "settings": {
+        "reverse": true,
+        "light_media": true,
+        "parallax": 0.03,
+        "eyebrow": "Le rituel du soir",
+        "heading": "Vingt minutes qui changent la nuit entière.",
+        "text": "Lumen combine une pression d'air rythmée, une chaleur douce à 40 °C et un accompagnement audio. Les écrans s'éteignent, le système nerveux redescend, le sommeil arrive plus vite.",
+        "flush_top": true
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "blocks": {
+        "quote-1": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« J'ai testé trois marques avant RÉVA. C'est la première fois qu'un appareil de compression ne ressemble pas à du matériel médical posé dans mon salon. »",
+            "author": "Claire M.",
+            "meta": "Marathonienne · Lyon · Achat vérifié"
+          }
+        },
+        "quote-2": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« Douze heures debout en bloc opératoire. Vingt minutes de Circula le soir et mes jambes repartent à zéro. L'investissement s'est justifié en une semaine. »",
+            "author": "Dr Antoine R.",
+            "meta": "Chirurgien · Bordeaux · Achat vérifié"
+          }
+        },
+        "quote-3": {
+          "type": "quote",
+          "settings": {
+            "rating": 5,
+            "quote": "« Le service client m'a rappelée un dimanche pour ajuster mon protocole. Ce niveau d'attention, je ne l'avais connu que chez un horloger. »",
+            "author": "Nadia B.",
+            "meta": "Cheffe d'entreprise · Paris · Achat vérifié"
+          }
+        }
+      },
+      "block_order": ["quote-1", "quote-2", "quote-3"],
+      "settings": {
+        "eyebrow": "Ils nous font confiance",
+        "heading": "4,9 sur 5 — 2 418 avis vérifiés",
+        "background": "grey"
+      }
+    },
+    "comparison": {
+      "type": "comparison",
+      "blocks": {
+        "row-1": { "type": "row", "settings": { "criteria": "Pression calibrée et mesurable", "us": true, "them": false } },
+        "row-2": { "type": "row", "settings": { "criteria": "Moteur silencieux < 40 dB", "us": true, "them": false } },
+        "row-3": { "type": "row", "settings": { "criteria": "Pièces détachées 10 ans", "us": true, "them": false } },
+        "row-4": { "type": "row", "settings": { "criteria": "Protocoles validés par des kinésithérapeutes", "us": true, "them": false } },
+        "row-5": { "type": "row", "settings": { "criteria": "Service client basé en France", "us": true, "them": false } },
+        "row-6": { "type": "row", "settings": { "criteria": "Essai 30 nuits, retour offert", "us": true, "them": false } }
+      },
+      "block_order": ["row-1", "row-2", "row-3", "row-4", "row-5", "row-6"],
+      "settings": {
+        "eyebrow": "Pourquoi RÉVA",
+        "heading": "Ce qui sépare un appareil premium d'un appareil bon marché.",
+        "column_criteria": "Critère",
+        "column_us": "RÉVA",
+        "column_them": "Marché entrée de gamme"
+      }
+    },
+    "press": {
+      "type": "press",
+      "blocks": {
+        "logo-1": { "type": "logo", "settings": { "name": "Le Figaro", "serif": true } },
+        "logo-2": { "type": "logo", "settings": { "name": "Les Échos", "serif": false } },
+        "logo-3": { "type": "logo", "settings": { "name": "Vogue", "serif": true } },
+        "logo-4": { "type": "logo", "settings": { "name": "GQ", "serif": false } },
+        "logo-5": { "type": "logo", "settings": { "name": "L'Équipe", "serif": true } },
+        "logo-6": { "type": "logo", "settings": { "name": "Wallpaper*", "serif": false } }
+      },
+      "block_order": ["logo-1", "logo-2", "logo-3", "logo-4", "logo-5", "logo-6"],
+      "settings": {}
+    },
+    "cta": {
+      "type": "cta-band",
+      "settings": {
+        "eyebrow": "Essai 30 nuits",
+        "heading": "Testez chez vous. Décidez ensuite.",
+        "text": "Si nos appareils ne changent pas vos soirées, nous organisons le retour et vous remboursons intégralement. Sans justification, sans frais.",
+        "button_label": "Découvrir la collection",
+        "note": "Livraison 48 h · Paiement en 3× sans frais · Garantie 2 ans"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "trust",
+    "manifesto",
+    "collection",
+    "technologie",
+    "bleed",
+    "stats",
+    "rituel",
+    "testimonials",
+    "comparison",
+    "press",
+    "cta"
+  ]
+}

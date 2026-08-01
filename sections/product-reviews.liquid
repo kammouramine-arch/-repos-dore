@@ -1,0 +1,108 @@
+{%- liquid
+  assign rating_value = section.settings.rating
+  assign rating_count = section.settings.rating_count
+  if product.metafields.reviews.rating.value != blank
+    assign rating_value = product.metafields.reviews.rating.value.rating
+  endif
+  if product.metafields.reviews.rating_count.value != blank and product.metafields.reviews.rating_count.value > 0
+    assign rating_count = product.metafields.reviews.rating_count.value
+  endif
+  assign rounded_rating = 5
+  if product.metafields.reviews.rating.value != blank
+    assign rounded_rating = product.metafields.reviews.rating.value.rating | round
+  endif
+-%}
+
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}" id="{{ section.settings.anchor | default: 'avis' | handle }}">
+  <div class="wrap">
+    {%- if section.settings.eyebrow != blank or section.settings.heading != blank -%}
+      <div class="section-head">
+        <div class="section-head__text">
+          {%- if section.settings.eyebrow != blank -%}<p class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow }}</p>{%- endif -%}
+          {%- if section.settings.heading != blank -%}<h2 class="h2" data-reveal>{{ section.settings.heading }}</h2>{%- endif -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if section.settings.show_summary -%}
+      <div class="rating-sum" data-reveal>
+        <div class="rating-sum__score">
+          <strong>{{ rating_value }}</strong>
+          {%- render 'stars', rating: rounded_rating -%}
+          {%- if rating_count != blank -%}
+            <span>{{ 'products.reviews.based_on' | t: count: rating_count }}</span>
+          {%- endif -%}
+        </div>
+        <div class="rating-bars">
+          {%- assign distribution = section.settings.distribution | split: ',' -%}
+          {%- for value in distribution limit: 5 -%}
+            {%- assign star_level = 5 | minus: forloop.index0 -%}
+            <div class="rating-bar">
+              <span>{{ star_level }} ★</span>
+              <span class="rating-bar__track"><span class="rating-bar__fill" data-bar="{{ value | strip }}"></span></span>
+              <span>{{ value | strip }} %</span>
+            </div>
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
+
+    {%- if section.blocks.size > 0 -%}
+      <div class="reviews">
+        {%- for block in section.blocks -%}
+          {%- assign review_label = block.settings.rating | append: ' / 5' -%}
+          <article class="review" data-reveal{% if forloop.index0 > 0 %} style="--delay:{{ forloop.index0 | times: 100 }}ms"{% endif %} {{ block.shopify_attributes }}>
+            {%- render 'stars', rating: block.settings.rating, class: 'review__stars', label: review_label -%}
+            <h4 class="h4">{{ block.settings.title }}</h4>
+            <p>{{ block.settings.text }}</p>
+            <p class="review__meta">
+              <strong>{{ block.settings.author }}</strong>
+              {%- if block.settings.author_meta != blank %} · {{ block.settings.author_meta }}{% endif -%}
+              {%- if block.settings.verified %} ·
+                <span class="review__verified">{%- render 'icon', name: 'check' -%}{{ 'products.reviews.verified' | t }}</span>
+              {%- endif -%}
+            </p>
+          </article>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.product_reviews.name",
+  "class": "reviews-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Avis clients" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Avis vérifiés" },
+    { "type": "text", "id": "anchor", "label": "t:common.anchor", "default": "avis" },
+    { "type": "checkbox", "id": "flush_top", "default": false, "label": "t:common.flush_top" },
+    { "type": "header", "content": "t:sections.product_reviews.settings.summary_header" },
+    { "type": "checkbox", "id": "show_summary", "default": true, "label": "t:sections.product_reviews.settings.show_summary.label" },
+    { "type": "text", "id": "rating", "label": "t:common.rating", "info": "t:sections.product_reviews.settings.rating.info", "default": "4,9" },
+    { "type": "text", "id": "rating_count", "label": "t:sections.product_reviews.settings.rating_count.label", "default": "1 204" },
+    { "type": "text", "id": "distribution", "label": "t:sections.product_reviews.settings.distribution.label", "info": "t:sections.product_reviews.settings.distribution.info", "default": "91, 7, 1, 1, 0" }
+  ],
+  "blocks": [
+    {
+      "type": "review",
+      "name": "t:sections.product_reviews.blocks.review.name",
+      "settings": [
+        { "type": "range", "id": "rating", "min": 1, "max": 5, "step": 1, "label": "t:common.rating", "default": 5 },
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Le silence, enfin" },
+        { "type": "textarea", "id": "text", "label": "t:common.text" },
+        { "type": "text", "id": "author", "label": "t:common.author", "default": "Julien P." },
+        { "type": "text", "id": "author_meta", "label": "t:common.author_meta", "default": "Triathlète" },
+        { "type": "checkbox", "id": "verified", "default": true, "label": "t:sections.product_reviews.blocks.review.settings.verified.label" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.product_reviews.name",
+      "blocks": [{ "type": "review" }, { "type": "review" }, { "type": "review" }]
+    }
+  ]
+}
+{% endschema %}

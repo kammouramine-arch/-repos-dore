@@ -1,0 +1,6 @@
+{
+  "sections": {
+    "main": { "type": "main-cart", "settings": { "heading": "Votre panier", "show_note": true } }
+  },
+  "order": ["main"]
+}

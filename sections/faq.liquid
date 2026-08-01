@@ -1,0 +1,167 @@
+{%- liquid
+  assign cat_keys = ''
+  for block in section.blocks
+    if block.type == 'category'
+      assign key = block.settings.title | handle
+      assign cat_keys = cat_keys | append: key | append: ','
+    endif
+  endfor
+  assign cat_key_list = cat_keys | split: ','
+
+  assign orphan_count = 0
+  for block in section.blocks
+    if block.type == 'question'
+      assign q_key = block.settings.category | handle
+      unless cat_key_list contains q_key
+        assign orphan_count = orphan_count | plus: 1
+      endunless
+    endif
+  endfor
+-%}
+
+<section class="section" style="padding-top:0">
+  <div class="wrap faq-layout">
+    {%- if section.settings.show_sidebar and cat_key_list.size > 0 -%}
+      <aside class="faq-side">
+        <h4>{{ section.settings.sidebar_title }}</h4>
+        <ul>
+          <li><button type="button" data-faq-cat="all" aria-current="true">{{ 'faq.all_questions' | t }}</button></li>
+          {%- for block in section.blocks -%}
+            {%- if block.type == 'category' -%}
+              <li><button type="button" data-faq-cat="{{ block.settings.title | handle }}" aria-current="false">{{ block.settings.title }}</button></li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </aside>
+    {%- endif -%}
+
+    <div>
+      {%- if section.settings.show_search -%}
+        <div class="faq-search">
+          {%- render 'icon', name: 'search' -%}
+          <input class="input" type="search" data-faq-search placeholder="{{ 'faq.search_placeholder' | t }}" aria-label="{{ 'faq.search_label' | t }}">
+        </div>
+      {%- endif -%}
+
+      {%- for cat in section.blocks -%}
+        {%- if cat.type == 'category' -%}
+          {%- assign cat_key = cat.settings.title | handle -%}
+          {%- assign anchor = cat.settings.anchor | default: cat_key | handle -%}
+          <section class="faq-group" id="{{ anchor }}" data-faq-group="{{ cat_key }}">
+            <h2 class="faq-group__title">{{ cat.settings.title }}</h2>
+            <div class="accordion">
+              {%- for q in section.blocks -%}
+                {%- if q.type == 'question' -%}
+                  {%- assign q_key = q.settings.category | handle -%}
+                  {%- if q_key == cat_key -%}
+                    {%- assign panel_id = 'faq-' | append: section.id | append: '-' | append: q.id -%}
+                    <div class="accordion__item" {{ q.shopify_attributes }}>
+                      <h3>
+                        <button class="accordion__btn" type="button" aria-expanded="false" aria-controls="{{ panel_id }}">
+                          {{ q.settings.question }}<span class="accordion__icon" aria-hidden="true"></span>
+                        </button>
+                      </h3>
+                      <div class="accordion__panel" id="{{ panel_id }}">
+                        <div class="accordion__inner">{{ q.settings.answer }}</div>
+                      </div>
+                    </div>
+                  {%- endif -%}
+                {%- endif -%}
+              {%- endfor -%}
+            </div>
+          </section>
+        {%- endif -%}
+      {%- endfor -%}
+
+      {%- if orphan_count > 0 -%}
+        <section class="faq-group" id="autres" data-faq-group="autres">
+          <h2 class="faq-group__title">{{ 'faq.other_questions' | t }}</h2>
+          <div class="accordion">
+            {%- for q in section.blocks -%}
+              {%- if q.type == 'question' -%}
+                {%- assign q_key = q.settings.category | handle -%}
+                {%- unless cat_key_list contains q_key -%}
+                  {%- assign panel_id = 'faq-' | append: section.id | append: '-' | append: q.id -%}
+                  <div class="accordion__item" {{ q.shopify_attributes }}>
+                    <h3>
+                      <button class="accordion__btn" type="button" aria-expanded="false" aria-controls="{{ panel_id }}">
+                        {{ q.settings.question }}<span class="accordion__icon" aria-hidden="true"></span>
+                      </button>
+                    </h3>
+                    <div class="accordion__panel" id="{{ panel_id }}">
+                      <div class="accordion__inner">{{ q.settings.answer }}</div>
+                    </div>
+                  </div>
+                {%- endunless -%}
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        </section>
+      {%- endif -%}
+
+      <p class="faq-empty" data-faq-empty>{{ 'faq.empty' | t }}</p>
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- assign first_done = false -%}
+    {%- for block in section.blocks -%}
+      {%- if block.type == 'question' -%}
+        {%- if first_done %},{% endif -%}
+        {%- assign first_done = true -%}
+        {
+          "@type": "Question",
+          "name": {{ block.settings.question | strip_html | json }},
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": {{ block.settings.answer | strip_html | strip_newlines | json }}
+          }
+        }
+      {%- endif -%}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+{% schema %}
+{
+  "name": "t:sections.faq.name",
+  "class": "faq-section",
+  "max_blocks": 50,
+  "settings": [
+    { "type": "checkbox", "id": "show_sidebar", "default": true, "label": "t:sections.faq.settings.show_sidebar.label" },
+    { "type": "text", "id": "sidebar_title", "label": "t:sections.faq.settings.sidebar_title.label", "default": "Catégories" },
+    { "type": "checkbox", "id": "show_search", "default": true, "label": "t:sections.faq.settings.show_search.label" }
+  ],
+  "blocks": [
+    {
+      "type": "category",
+      "name": "t:sections.faq.blocks.category.name",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.title", "default": "Commande & livraison" },
+        { "type": "text", "id": "anchor", "label": "t:common.anchor", "info": "t:common.anchor_info" }
+      ]
+    },
+    {
+      "type": "question",
+      "name": "t:sections.faq.blocks.question.name",
+      "settings": [
+        { "type": "text", "id": "category", "label": "t:sections.faq.blocks.question.settings.category.label", "info": "t:sections.faq.blocks.question.settings.category.info", "default": "Commande & livraison" },
+        { "type": "text", "id": "question", "label": "t:sections.faq.blocks.question.settings.question.label", "default": "Quels sont les délais de livraison ?" },
+        { "type": "richtext", "id": "answer", "label": "t:sections.faq.blocks.question.settings.answer.label" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.faq.name",
+      "blocks": [{ "type": "category" }, { "type": "question" }, { "type": "question" }]
+    }
+  ]
+}
+{% endschema %}

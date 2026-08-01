@@ -1,0 +1,17 @@
+{%- comment -%}
+  Étoiles de notation.
+  Paramètres : rating (nombre, 0–5), class (classe CSS), label (aria-label, sinon aria-hidden).
+{%- endcomment -%}
+{%- liquid
+  assign stars_rating = rating | default: 5 | round
+  assign stars_class = class | default: 'stars'
+-%}
+<span class="{{ stars_class }}"{% if label != blank %} aria-label="{{ label | escape }}"{% else %} aria-hidden="true"{% endif %}>
+  {%- for i in (1..5) -%}
+    {%- if i <= stars_rating -%}
+      {%- render 'icon', name: 'star' -%}
+    {%- else -%}
+      {%- render 'icon', name: 'star-muted' -%}
+    {%- endif -%}
+  {%- endfor -%}
+</span>

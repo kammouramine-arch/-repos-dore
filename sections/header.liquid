@@ -1,0 +1,125 @@
+{%- liquid
+  assign is_overlay = false
+  if section.settings.overlay_on_home and template.name == 'index'
+    assign is_overlay = true
+  endif
+  assign menu = section.settings.menu
+-%}
+
+<header class="header{% if is_overlay %} header--overlay{% endif %}" data-header>
+  <div class="wrap header__inner">
+    <button class="burger" type="button" data-nav-toggle aria-label="{{ 'general.accessibility.open_menu' | t }}" aria-expanded="false" aria-controls="mobile-nav"><span></span></button>
+
+    <nav class="nav" aria-label="{{ 'general.accessibility.main_nav' | t }}">
+      {%- for link in linklists[menu].links -%}
+        <a class="nav__link" href="{{ link.url }}"{% if link.current or link.child_active %} aria-current="page"{% endif %}>{{ link.title }}</a>
+      {%- endfor -%}
+    </nav>
+
+    {%- if section.settings.logo != blank -%}
+      <a class="logo logo--image" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+        {{
+          section.settings.logo
+          | image_url: width: 400
+          | image_tag:
+            widths: '100, 200, 300, 400',
+            width: section.settings.logo_width,
+            alt: shop.name,
+            loading: 'eager',
+            style: 'width:auto;height:auto;max-height:32px'
+        }}
+      </a>
+    {%- else -%}
+      <a class="logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">{{ section.settings.logo_text | default: shop.name }}</a>
+    {%- endif -%}
+
+    <div class="header__actions">
+      <a class="icon-btn" href="{{ routes.search_url }}" aria-label="{{ 'general.search.title' | t }}">
+        {%- render 'icon', name: 'search' -%}
+      </a>
+
+      {%- if shop.customer_accounts_enabled -%}
+        <a class="icon-btn" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}" aria-label="{{ 'customer.account.title' | t }}">
+          {%- render 'icon', name: 'account' -%}
+        </a>
+      {%- elsif section.settings.contact_page != blank -%}
+        <a class="icon-btn" href="{{ section.settings.contact_page }}" aria-label="{{ 'general.contact' | t }}">
+          {%- render 'icon', name: 'account' -%}
+        </a>
+      {%- endif -%}
+
+      <a class="icon-btn" href="{{ routes.cart_url }}"{% if settings.cart_drawer %} data-cart-open{% endif %} aria-label="{{ 'cart.open' | t }}">
+        {%- render 'icon', name: 'cart' -%}
+        <span class="icon-btn__count" data-cart-count {% if cart.item_count == 0 %}hidden{% endif %}>{{ cart.item_count }}</span>
+      </a>
+    </div>
+  </div>
+</header>
+
+<div class="mobile-nav" id="mobile-nav" data-nav>
+  <ul class="mobile-nav__list">
+    {%- for link in linklists[menu].links -%}
+      <li style="--i:{{ forloop.index0 }}">
+        <a class="mobile-nav__link" href="{{ link.url }}"><small>{{ forloop.index | prepend: '0' | slice: -2, 2 }}</small>{{ link.title }}</a>
+      </li>
+    {%- endfor -%}
+  </ul>
+  {%- if settings.contact_email != blank or settings.contact_phone != blank -%}
+    <div class="mobile-nav__foot">
+      {%- if settings.contact_email != blank -%}<span>{{ settings.contact_email }}</span>{%- endif -%}
+      {%- if settings.contact_phone != blank -%}<span>{{ settings.contact_phone }}</span>{%- endif -%}
+    </div>
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "class": "header-section",
+  "settings": [
+    {
+      "type": "image_picker",
+      "id": "logo",
+      "label": "t:sections.header.settings.logo.label"
+    },
+    {
+      "type": "range",
+      "id": "logo_width",
+      "min": 60,
+      "max": 220,
+      "step": 10,
+      "unit": "px",
+      "label": "t:sections.header.settings.logo_width.label",
+      "default": 120
+    },
+    {
+      "type": "text",
+      "id": "logo_text",
+      "label": "t:sections.header.settings.logo_text.label",
+      "info": "t:sections.header.settings.logo_text.info"
+    },
+    {
+      "type": "link_list",
+      "id": "menu",
+      "default": "main-menu",
+      "label": "t:sections.header.settings.menu.label"
+    },
+    {
+      "type": "checkbox",
+      "id": "overlay_on_home",
+      "default": true,
+      "label": "t:sections.header.settings.overlay.label",
+      "info": "t:sections.header.settings.overlay.info"
+    },
+    {
+      "type": "url",
+      "id": "contact_page",
+      "label": "t:sections.header.settings.contact_page.label",
+      "info": "t:sections.header.settings.contact_page.info"
+    }
+  ],
+  "enabled_on": {
+    "groups": ["header"]
+  }
+}
+{% endschema %}

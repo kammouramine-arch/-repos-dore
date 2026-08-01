@@ -1,0 +1,41 @@
+<section class="section{% if section.settings.flush_top %} section--flush-top{% endif %}">
+  <div class="wrap stats">
+    {%- for block in section.blocks -%}
+      <div class="stat" data-reveal{% if forloop.index0 > 0 %} style="--delay:{{ forloop.index0 | times: 80 }}ms"{% endif %} {{ block.shopify_attributes }}>
+        <p class="stat__num">
+          <span data-count="{{ block.settings.value | strip }}">{{ block.settings.value }}</span>
+          {%- if block.settings.suffix != blank %}<sup>{{ block.settings.suffix }}</sup>{% endif -%}
+        </p>
+        <p class="stat__label">{{ block.settings.label }}</p>
+      </div>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.stats.name",
+  "class": "stats-section",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "checkbox", "id": "flush_top", "default": false, "label": "t:common.flush_top" }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "t:sections.stats.blocks.stat.name",
+      "settings": [
+        { "type": "text", "id": "value", "label": "t:common.value", "info": "t:sections.stats.blocks.stat.settings.value.info", "default": "92" },
+        { "type": "text", "id": "suffix", "label": "t:sections.stats.blocks.stat.settings.suffix.label", "default": "%" },
+        { "type": "textarea", "id": "label", "label": "t:common.label", "default": "déclarent des jambes plus légères dès la première semaine" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.stats.name",
+      "blocks": [{ "type": "stat" }, { "type": "stat" }, { "type": "stat" }, { "type": "stat" }]
+    }
+  ]
+}
+{% endschema %}
