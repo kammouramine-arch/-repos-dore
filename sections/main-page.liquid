@@ -1,0 +1,22 @@
+{%- comment -%}
+  Static page — /pages/*
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap wrap--text">
+    <header class="section-head section-head--center">
+      <h1 class="h1 center" data-reveal>{{ page.title | escape }}</h1>
+    </header>
+
+    <div class="rte" data-reveal style="--delay:100ms">
+      {{ page.content }}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_page.name",
+  "tag": "section"
+}
+{% endschema %}

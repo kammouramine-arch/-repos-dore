@@ -1,0 +1,99 @@
+{%- comment -%}
+  Collection
+  Banner, sort bar, product grid, pagination. Works for every collection in
+  the store, including /collections/all.
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap">
+    <div class="coll-head" style="margin-bottom:var(--sp-6)">
+      <span class="eyebrow" data-reveal="fade">{{ 'sections.collection.eyebrow' | t }}</span>
+      <h1 class="h1" data-reveal>{{ collection.title | escape }}</h1>
+      {%- if collection.description != blank and section.settings.show_description -%}
+        <div class="rte lede mx-auto center" data-reveal style="--delay:100ms">{{ collection.description }}</div>
+      {%- endif -%}
+    </div>
+
+    {%- if collection.image != blank and section.settings.show_image -%}
+      <div class="media media--16-9" style="margin-bottom:var(--sp-6)" data-reveal="scale">
+        {{
+          collection.image
+          | image_url: width: 2400
+          | image_tag: loading: 'lazy', widths: '800,1200,1600,2000,2400', sizes: '100vw', alt: collection.title | escape
+        }}
+      </div>
+    {%- endif -%}
+
+    {%- paginate collection.products by section.settings.products_per_page -%}
+      <div class="coll-bar">
+        <span class="coll-bar__count">
+          {{ 'sections.collection.product_count' | t: count: collection.products_count }}
+        </span>
+
+        {%- if section.settings.show_sorting -%}
+          <div class="select-wrap">
+            <label class="visually-hidden" for="sort-by">{{ 'sections.collection.sort_by' | t }}</label>
+            {%- assign sort_by = collection.sort_by | default: collection.default_sort_by -%}
+            <select id="sort-by" data-sort-select style="background:none">
+              {%- for option in collection.sort_options -%}
+                <option value="{{ option.value }}"{% if option.value == sort_by %} selected{% endif %}>
+                  {{ option.name }}
+                </option>
+              {%- endfor -%}
+            </select>
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- if collection.products.size > 0 -%}
+        <div class="grid grid--{{ section.settings.columns }} grid--2-mobile">
+          {%- for product in collection.products -%}
+            {%- render 'product-card', product: product, index: forloop.index0 -%}
+          {%- endfor -%}
+        </div>
+
+        {%- render 'pagination', paginate: paginate -%}
+      {%- else -%}
+        <div class="empty">
+          <p class="h3">{{ 'sections.collection.empty' | t }}</p>
+          <a class="btn" href="{{ routes.all_products_collection_url }}">
+            <span>{{ 'sections.collection.view_all' | t }}</span>
+          </a>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_collection.name",
+  "tag": "section",
+  "class": "main-collection-section",
+  "settings": [
+    { "type": "checkbox", "id": "show_description", "label": "t:sections.main_collection.show_description", "default": true },
+    { "type": "checkbox", "id": "show_image", "label": "t:sections.main_collection.show_image", "default": true },
+    { "type": "checkbox", "id": "show_sorting", "label": "t:sections.main_collection.show_sorting", "default": true },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "t:common.columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    },
+    {
+      "type": "range",
+      "id": "products_per_page",
+      "label": "t:sections.main_collection.per_page",
+      "min": 8,
+      "max": 48,
+      "step": 4,
+      "default": 24
+    }
+  ]
+}
+{% endschema %}

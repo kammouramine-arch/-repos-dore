@@ -1,0 +1,36 @@
+{%- comment -%} Customer registration {%- endcomment -%}
+<section class="section">
+  <div class="wrap" style="max-width:460px">
+    <h1 class="h2 center" style="margin-bottom:var(--sp-4)">{{ 'customer.register.title' | t }}</h1>
+
+    {%- form 'create_customer', novalidate: 'novalidate' -%}
+      {%- if form.errors -%}
+        <p class="form-error" style="margin-bottom:1.5rem">{{ form.errors | default_errors }}</p>
+      {%- endif -%}
+
+      <div style="display:grid; gap:1.25rem">
+        <div class="field">
+          <label class="field__label" for="reg-first">{{ 'customer.register.first_name' | t }}</label>
+          <input class="input" id="reg-first" type="text" name="customer[first_name]" autocomplete="given-name">
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-last">{{ 'customer.register.last_name' | t }}</label>
+          <input class="input" id="reg-last" type="text" name="customer[last_name]" autocomplete="family-name">
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-email">{{ 'customer.login_page.email' | t }}</label>
+          <input class="input" id="reg-email" type="email" name="customer[email]" autocomplete="email" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="reg-password">{{ 'customer.login_page.password' | t }}</label>
+          <input class="input" id="reg-password" type="password" name="customer[password]" autocomplete="new-password" required>
+        </div>
+        <button class="btn btn--block" type="submit"><span>{{ 'customer.register.submit' | t }}</span></button>
+      </div>
+    {%- endform -%}
+
+    <p class="center" style="margin-top:var(--sp-4); font-size:var(--t-small)">
+      <a class="link" href="{{ routes.account_login_url }}">{{ 'customer.register.sign_in' | t }}</a>
+    </p>
+  </div>
+</section>

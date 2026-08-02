@@ -1,0 +1,75 @@
+{%- comment -%}
+  Search results — /search
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap">
+    <div class="coll-head" style="margin-bottom:var(--sp-5)">
+      <span class="eyebrow">{{ 'general.search.search' | t }}</span>
+      <h1 class="h1">
+        {%- if search.performed -%}
+          {{ 'general.search.results_for' | t: terms: search.terms }}
+        {%- else -%}
+          {{ 'general.search.title' | t }}
+        {%- endif -%}
+      </h1>
+    </div>
+
+    <form action="{{ routes.search_url }}" method="get" role="search" class="field-inline mx-auto" style="max-width:520px; margin-bottom:var(--sp-6)">
+      <label class="visually-hidden" for="search-page-input">{{ 'general.search.search' | t }}</label>
+      <input
+        class="input"
+        id="search-page-input"
+        type="search"
+        name="q"
+        value="{{ search.terms | escape }}"
+        placeholder="{{ 'general.search.placeholder' | t }}"
+      >
+      <input type="hidden" name="options[prefix]" value="last">
+      <button type="submit">{{ 'general.search.submit' | t }}</button>
+    </form>
+
+    {%- if search.performed -%}
+      {%- paginate search.results by 24 -%}
+        {%- if search.results.size > 0 -%}
+          <p class="coll-bar__count" style="margin-bottom:var(--sp-4)">
+            {{ 'general.search.results_count' | t: count: search.results_count }}
+          </p>
+
+          <div class="grid grid--3 grid--2-mobile">
+            {%- for item in search.results -%}
+              {%- case item.object_type -%}
+                {%- when 'product' -%}
+                  {%- render 'product-card', product: item, index: forloop.index0 -%}
+                {%- else -%}
+                  <article class="card" data-reveal="fade">
+                    <div class="card__body">
+                      <span class="eyebrow">{{ item.object_type }}</span>
+                      <h2 class="card__title"><a href="{{ item.url }}">{{ item.title | escape }}</a></h2>
+                      <p class="card__sub">{{ item.content | default: item.excerpt | strip_html | truncatewords: 24 }}</p>
+                    </div>
+                  </article>
+              {%- endcase -%}
+            {%- endfor -%}
+          </div>
+
+          {%- render 'pagination', paginate: paginate -%}
+        {%- else -%}
+          <div class="empty">
+            <p class="h3">{{ 'general.search.no_results' | t: terms: search.terms }}</p>
+            <a class="btn" href="{{ routes.all_products_collection_url }}">
+              <span>{{ 'sections.collection.view_all' | t }}</span>
+            </a>
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_search.name",
+  "tag": "section"
+}
+{% endschema %}

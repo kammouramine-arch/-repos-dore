@@ -1,0 +1,69 @@
+{%- comment -%}
+  Stats
+  Figures count up once, on first sight. The final value is written in the
+  markup, so it is correct before (and without) JavaScript.
+{%- endcomment -%}
+
+<section class="section section--tight scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    <div class="grid grid--{{ section.blocks.size | at_most: 4 }} grid--2-mobile">
+      {%- for block in section.blocks -%}
+        <div class="stat" data-reveal style="--delay:{{ forloop.index0 | times: 90 }}ms" {{ block.shopify_attributes }}>
+          <span class="stat__value">
+            {{- block.settings.prefix -}}
+            <span data-count="{{ block.settings.value }}">{{ block.settings.value }}</span>
+            {{- block.settings.suffix -}}
+          </span>
+          <span class="stat__label">{{ block.settings.label | escape }}</span>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.stats.name",
+  "tag": "section",
+  "class": "stats-section",
+  "max_blocks": 4,
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "stat",
+      "name": "t:sections.stats.block_stat",
+      "settings": [
+        {
+          "type": "text",
+          "id": "value",
+          "label": "t:sections.stats.value",
+          "info": "t:sections.stats.value_info",
+          "default": "20"
+        },
+        { "type": "text", "id": "prefix", "label": "t:sections.stats.prefix" },
+        { "type": "text", "id": "suffix", "label": "t:sections.stats.suffix", "default": " min" },
+        { "type": "text", "id": "label", "label": "t:common.text", "default": "La durée d'une séance complète" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.stats.name",
+      "blocks": [{ "type": "stat" }, { "type": "stat" }, { "type": "stat" }]
+    }
+  ]
+}
+{% endschema %}

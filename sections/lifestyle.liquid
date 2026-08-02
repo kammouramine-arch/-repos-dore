@@ -1,0 +1,104 @@
+{%- comment -%}
+  Lifestyle
+  A full-bleed cinematic band. With an image it becomes a film still; without
+  one it becomes a quiet sand-to-stone gradient — never a broken box.
+{%- endcomment -%}
+
+{%- liquid
+  assign has_image = false
+  if section.settings.image != blank
+    assign has_image = true
+  endif
+-%}
+
+<section
+  class="bleed{% if has_image and section.settings.text_light %} hero--light{% endif %}"
+  style="min-height: {{ section.settings.height }}px"
+>
+  {%- if has_image -%}
+    <div class="bleed__media">
+      {{
+        section.settings.image
+        | image_url: width: 3000
+        | image_tag:
+          loading: 'lazy',
+          widths: '640,900,1200,1600,2000,2600,3000',
+          sizes: '100vw',
+          alt: section.settings.image.alt | default: section.settings.heading | escape
+      }}
+    </div>
+    <div class="bleed__scrim" style="opacity: {{ section.settings.overlay_opacity | times: 0.01 }}"></div>
+  {%- else -%}
+    <div class="bleed__canvas"></div>
+  {%- endif -%}
+
+  <div class="bleed__inner wrap wrap--narrow">
+    {%- if section.settings.eyebrow != blank -%}
+      <span class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+    {%- endif -%}
+
+    {%- if section.settings.heading != blank -%}
+      <h2 class="h1" data-reveal>{{ section.settings.heading }}</h2>
+    {%- endif -%}
+
+    {%- if section.settings.text != blank -%}
+      <p class="lede mx-auto" data-reveal style="--delay:120ms">{{ section.settings.text | escape }}</p>
+    {%- endif -%}
+
+    {%- if section.settings.cta_label != blank -%}
+      <a class="btn{% unless has_image and section.settings.text_light %} btn--outline{% endunless %}"
+         href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}"
+         data-reveal style="--delay:200ms; margin-top:1rem">
+        <span>{{ section.settings.cta_label | escape }}</span>
+      </a>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.lifestyle.name",
+  "tag": "section",
+  "class": "lifestyle-section",
+  "settings": [
+    { "type": "image_picker", "id": "image", "label": "t:common.image", "info": "t:sections.lifestyle.image_info" },
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Le rituel du soir" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "t:common.heading",
+      "default": "<p>Vingt minutes. <em>Chaque soir.</em></p>"
+    },
+    {
+      "type": "textarea",
+      "id": "text",
+      "label": "t:common.text",
+      "default": "Posez l'appareil, choisissez un programme, ne faites rien d'autre. C'est tout le protocole."
+    },
+    { "type": "text", "id": "cta_label", "label": "t:common.cta_label", "default": "Commencer" },
+    { "type": "url", "id": "cta_link", "label": "t:common.cta_link" },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "t:common.height",
+      "min": 360,
+      "max": 900,
+      "step": 20,
+      "unit": "px",
+      "default": 640
+    },
+    {
+      "type": "range",
+      "id": "overlay_opacity",
+      "label": "t:common.overlay_opacity",
+      "min": 0,
+      "max": 80,
+      "step": 5,
+      "unit": "%",
+      "default": 35
+    },
+    { "type": "checkbox", "id": "text_light", "label": "t:sections.hero.text_light", "default": true }
+  ],
+  "presets": [{ "name": "t:sections.lifestyle.name" }]
+}
+{% endschema %}

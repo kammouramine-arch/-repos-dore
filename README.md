@@ -1,213 +1,93 @@
-# RÉVA — Site premium de récupération &amp; bien-être
+# RÉVA — Shopify Online Store 2.0 theme
 
-Site e-commerce vitrine complet en HTML / CSS / JavaScript natif, sans aucune dépendance,
-pensé pour être intégré tel quel dans un thème Shopify.
+A production Shopify OS 2.0 theme built natively in Liquid for RÉVA, a premium
+recovery and wellness brand. This repository *is* the theme: the folders at the
+root are the theme root, so it can be zipped and imported directly, or connected
+to a store through Shopify's GitHub integration.
 
-**Positionnement** : marque premium d'appareils de récupération (jambes, pieds, nuque, yeux)
-à 149 € – 249 €. Le parcours est construit pour justifier ce prix — preuve technique,
-transparence sur la fabrication, essai 30 nuits, garantie 2 ans, service humain.
-
----
-
-## 1. Contenu livré
-
-| Fichier | Page |
-|---|---|
-| `index.html` | Accueil (hero plein écran, manifeste, collection, technologie, chiffres, avis, comparatif, presse, CTA) |
-| `produit.html` | Page produit haut de gamme — RÉVA Circula (galerie, options, barre d'achat collante, specs, avis, cross-sell) |
-| `a-propos.html` | La maison RÉVA (récit, chronologie, engagements, fabrication, showroom) |
-| `faq.html` | FAQ — 22 questions, recherche instantanée, 5 catégories filtrables |
-| `contact.html` | Contact (4 canaux, formulaire validé, infos pratiques) |
-| `assets/css/style.css` | Design system complet (jetons, composants, responsive) |
-| `assets/js/main.js` | 19 modules autonomes, sans dépendance |
-| `assets/img/*.svg` | Visuels produits vectoriels — **à remplacer par vos photos** |
-
-Prévisualiser : `python3 -m http.server 8000` puis <http://localhost:8000>.
+The previous static HTML site has been moved to `legacy-html/` for reference. No
+part of it is used by the theme.
 
 ---
 
-## 2. Direction artistique
-
-**Palette** — noir `#0A0A0B`, blanc, gris `#F1F2F4` → `#55585F`, or `#C2A26B`,
-bleu nuit `#0E1D33`. L'or n'est jamais un aplat : filets, micro-détails, un seul
-bouton doré par page. C'est ce qui sépare le premium du clinquant.
-
-**Typographie** — Inter (200–600) partout, Instrument Serif en italique pour les
-accents éditoriaux. Titres en graisse 200/300 avec interlettrage négatif (`-.04em`),
-échelle entièrement fluide en `clamp()` : aucune rupture typographique entre 320 et 1440 px.
-
-**Espacement** — sections à `clamp(5.5rem, 12vw, 11rem)`. Le vide est la matière
-première du positionnement premium : ne le réduisez pas pour « gagner de la place ».
-
-**Animations** — révélations au scroll (opacité + 26 px), titres ligne par ligne,
-manifeste qui s'allume mot à mot, compteurs chiffrés, parallaxe légère (0,03–0,08),
-carrousel d'avis, accordéons animés en hauteur. Tout est neutralisé sous
-`prefers-reduced-motion`.
-
-Les jetons sont regroupés en variables CSS en tête de `style.css` : rebrander le site
-revient à modifier une dizaine de lignes.
-
----
-
-## 3. JavaScript
-
-Chaque module est indépendant et sans effet si son markup est absent — vous pouvez
-supprimer une section entière sans rien casser.
-
-Header au scroll · nav mobile plein écran · panier latéral persistant (`localStorage`) ·
-révélations `IntersectionObserver` · manifeste progressif · compteurs · carrousel d'avis
-(flèches, points, swipe, autoplay en pause au survol) · accordéons · galerie produit ·
-sélecteurs d'options · quantité · barre d'achat collante · barres de notation · parallaxe ·
-recherche FAQ insensible aux accents · validation de formulaires · lien de nav actif.
-
-### Robustesse
-- Les états masqués des animations sont conditionnés à la classe `js` posée dans le
-  `<head>` : **sans JavaScript, tout le contenu reste visible et indexable**.
-- Les compteurs contiennent leur valeur finale dans le HTML ; le JS repart de zéro.
-- Navigation clavier, attributs `aria-*`, focus visible, lien d'évitement sur chaque page.
-
----
-
-## 4. Intégration Shopify
-
-### 4.1 Où placer les fichiers
+## Structure
 
 ```
-theme/
-├─ assets/
-│  ├─ style.css          ← assets/css/style.css
-│  ├─ main.js            ← assets/js/main.js
-│  └─ legs.svg, foot.svg, neck.svg, eye.svg, unit.svg, fabric.svg, case.svg
-├─ snippets/
-│  ├─ announcement.liquid   ← bloc .announce
-│  ├─ header.liquid         ← <header> + .mobile-nav
-│  ├─ cart-drawer.liquid    ← .overlay + .drawer
-│  └─ footer.liquid         ← <footer>
-├─ sections/
-│  ├─ hero.liquid, trust.liquid, manifesto.liquid, collection.liquid,
-│  │  tech-split.liquid, bleed.liquid, stats.liquid, quotes.liquid,
-│  │  compare.liquid, press.liquid, cta-band.liquid
-│  └─ main-product.liquid   ← .pdp + specs + steps + reviews
-└─ templates/
-   ├─ index.json, product.json, page.about.json, page.faq.json, page.contact.json
+assets/      reva.css — the whole design system; reva.js — all behaviour
+config/      settings_schema.json (theme settings) + settings_data.json (presets)
+layout/      theme.liquid, password.liquid
+locales/     fr.default.json / en.json  (+ matching *.schema.json for the editor)
+sections/    32 sections, incl. header-group.json and footer-group.json
+snippets/    8 shared partials
+templates/   JSON templates for every page type + customer account templates
+scripts/     validate-theme.py — pre-upload integrity check (not part of the theme)
 ```
 
-Dans `theme.liquid` :
+## Design system
 
-```liquid
-{{ 'style.css' | asset_url | stylesheet_tag }}
-<script>document.documentElement.className += " js";</script>
-...
-{% render 'announcement' %}
-{% render 'header' %}
-{% render 'cart-drawer' %}
-{{ content_for_layout }}
-{% render 'footer' %}
-<script src="{{ 'main.js' | asset_url }}" defer></script>
-```
+Everything visual comes from custom properties written by
+`snippets/theme-tokens.liquid` out of the theme settings, so re-branding is a
+matter of changing settings — never CSS.
 
-Le HTML est déjà découpé section par section (commentaires `═══`) pour faciliter
-ce découpage.
+- **Colour** — white, near-black `#0B0B0C`, warm beige `#F3EEE7`, soft grey
+  `#F4F4F2`, gold `#B08D4F`. Gold is used for hairlines and micro-details only;
+  at most one gold surface per page. That restraint is what separates premium
+  from costume jewellery.
+- **Type** — heading and body fonts come from Shopify's font picker (self-hosted,
+  no third-party request). An editorial serif italic carries quotes and accents.
+  The whole scale is fluid `clamp()`, so there is no typographic break between
+  320 px and 1600 px.
+- **Space** — sections breathe at `clamp(4.5rem, 9vw, 9rem)`, adjustable from
+  the theme settings. The emptiness is the positioning; do not compress it to
+  "fit more in".
+- **Motion** — scroll reveals, line-by-line headings, counters, a marquee, a
+  quote carousel and height-animated accordions. All of it is neutralised under
+  `prefers-reduced-motion`, and can be switched off entirely in the settings.
 
-### 4.2 Carte produit dynamique
+## Accessibility & resilience
 
-```liquid
-{% for product in collections['appareils'].products %}
-  <article class="card" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 60 }}ms">
-    <a class="card__link" href="{{ product.url }}"><span>Voir {{ product.title }}</span></a>
-    <div class="card__media">
-      {% if product.metafields.custom.badge %}
-        <span class="card__badge">{{ product.metafields.custom.badge }}</span>
-      {% endif %}
-      {{ product.featured_image | image_url: width: 900 | image_tag: loading: 'lazy' }}
-    </div>
-    <div class="card__body">
-      <div>
-        <h3 class="card__title">{{ product.title }}</h3>
-        <p class="card__desc">{{ product.metafields.custom.subtitle }}</p>
-      </div>
-      <p class="card__price">
-        {% if product.compare_at_price > product.price %}<s>{{ product.compare_at_price | money }}</s>{% endif %}
-        {{ product.price | money }}
-      </p>
-    </div>
-  </article>
-{% endfor %}
-```
+- Reveal animations hide content only when `html.js` is present, so **without
+  JavaScript the page is fully visible and indexable**.
+- Counters carry their final value in the markup; the script only animates to it.
+- Drawers trap focus, close on `Escape`, and restore focus to their trigger.
+- Search, add-to-cart, cart quantity changes and the newsletter all work as plain
+  form posts if the Ajax layer fails.
 
-### 4.3 Ajout au panier
+## SEO
 
-```liquid
-{% form 'product', product %}
-  <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
-  <div class="buy">
-    <div class="qty" data-qty>
-      <button type="button" data-qty-step="-1" aria-label="Diminuer la quantité">−</button>
-      <input type="number" name="quantity" value="1" min="1" max="9" aria-label="Quantité">
-      <button type="button" data-qty-step="1" aria-label="Augmenter la quantité">+</button>
-    </div>
-    <button class="btn btn--block" type="submit" {% unless product.available %}disabled{% endunless %}>
-      {% if product.available %}Ajouter au panier — {{ product.price | money }}{% else %}Indisponible{% endif %}
-    </button>
-  </div>
-{% endform %}
-```
+`snippets/meta-tags.liquid` builds titles, Open Graph and Twitter cards from the
+current resource, plus JSON-LD for `Product`, `Organization` and `WebSite`. The
+FAQ section emits `FAQPage` structured data. No app required.
 
-Les sélecteurs `.swatch` et `.chip` doivent alors piloter `input[name="id"]` à partir de
-`product.variants`. Deux options :
+## Homepage
 
-1. remplacer le module « Options produit » de `main.js` par la logique de variantes de
-   votre thème (`variant_selects` sur Dawn) ;
-2. conserver le markup et brancher `Cart.add()` sur l'API Ajax :
-   `fetch('/cart/add.js', {method:'POST', ...})` puis `fetch('/cart.js')` pour rafraîchir
-   le tiroir. La structure HTML (`.drawer`, `.drawer-line`) et les états (`is-open`)
-   restent identiques — seule la source des données change.
-
-Le panier livré ici stocke ses lignes dans `localStorage` : c'est une démonstration
-d'interface, à remplacer par l'API Shopify en production.
-
-### 4.4 Formulaires
-
-- Contact → `{% form 'contact' %}` en conservant les classes `.field`, `.input`,
-  `.field__error` : la validation JS s'y accroche automatiquement.
-- Newsletter → `{% form 'customer' %}` avec
-  `<input type="hidden" name="contact[tags]" value="newsletter">`.
-
-### 4.5 Réglages de section recommandés
-
-Pour rendre l'accueil éditable dans l'admin, exposez au minimum : titre, sous-titre,
-image, libellé et lien de bouton pour `hero`, `bleed` et `cta-band` ; un bloc répétable
-pour `trust`, `stats`, `quotes`, `compare` et `press`.
+`templates/index.json` is the real Shopify homepage and wires up, in order:
+hero → marquee → manifesto → featured collection → technology → lifestyle band →
+featured products → benefits → figures → before/after → testimonials → FAQ →
+newsletter. Every one is editable, reorderable and removable in the theme editor.
 
 ---
 
-## 5. À faire avant la mise en ligne
+## Working on the theme
 
-1. **Photos** — remplacer les SVG de `assets/img/` par vos visuels, ratio 1:1, produits
-   détourés ou photographiés sur fond neutre clair. Le design suppose ce traitement.
-2. **Contenu commercial** — les chiffres (38 000 foyers, 4,9/5, 1 204 avis, 92 %), les
-   témoignages, les titres de presse et les mentions de fabrication sont des
-   **exemples de mise en page**. Ils doivent être remplacés par vos données réelles :
-   publier des allégations invérifiables relève de la pratique commerciale trompeuse
-   (art. L121-2 du Code de la consommation).
-3. **Mentions santé** — les produits sont présentés comme des appareils de bien-être et
-   non comme des dispositifs médicaux. Conservez le bloc « Précautions d'usage » de la
-   page produit et faites valider vos allégations avant diffusion.
-4. **Pages légales** — mentions légales, CGV, confidentialité et cookies sont liées dans
-   le footer mais restent à rédiger.
-5. **SEO** — `title`, `meta description` et Open Graph sont renseignés par page. Ajoutez
-   les données structurées `Product` et `FAQPage` via Liquid.
-6. **Polices** — Inter et Instrument Serif sont chargées depuis Google Fonts. Sur Shopify,
-   préférez l'auto-hébergement dans `assets/` (meilleur LCP, pas de requête tierce).
-   Une pile de repli système est déjà déclarée : le site reste lisible si les polices
-   ne se chargent pas.
+```bash
+python3 scripts/validate-theme.py      # integrity check — run before every upload
+npx @shopify/cli theme dev             # live preview against the store
+npx @shopify/cli theme check           # Shopify's linter
+```
 
----
+### Why `scripts/validate-theme.py` exists
 
-## 6. Compatibilité
+Shopify's ZIP importer **silently drops** any file that fails its validation —
+no error, no warning, the file is simply absent and the pages that depend on it
+break. Offline `theme-check` does not catch every one of those rules. This
+script covers the ones that bite:
 
-Chrome, Edge, Firefox et Safari récents, desktop et mobile.
-`backdrop-filter`, `clamp()`, `aspect-ratio` et `IntersectionObserver` dégradent
-proprement sur les navigateurs anciens : le contenu reste visible, seules les
-animations disparaissent.
-Points de rupture : 1180 / 1024 / 900 / 620 px.
+- a `range` setting whose `default` is not reachable from `min` by `step`;
+- a `{` inside a Liquid tag (`{{ x | append: '?q={term}' }}`), which Shopify's
+  Ruby lexer terminates at the brace even inside a quoted string;
+- templates referencing sections, blocks or settings that do not exist;
+- `t:` keys missing from the locale files, and drift between locales;
+- `{% render %}` calls pointing at snippets that do not exist.
+
+Both of the first two rules were real defects caught during the first import.

@@ -1,0 +1,48 @@
+{%- comment -%} Customer login {%- endcomment -%}
+<section class="section">
+  <div class="wrap" style="max-width:460px">
+    <h1 class="h2 center" style="margin-bottom:var(--sp-4)">{{ 'customer.login_page.title' | t }}</h1>
+
+    {%- form 'customer_login', novalidate: 'novalidate' -%}
+      {%- if form.errors -%}
+        <p class="form-error" style="margin-bottom:1.5rem">{{ form.errors | default_errors }}</p>
+      {%- endif -%}
+
+      <div style="display:grid; gap:1.25rem">
+        <div class="field">
+          <label class="field__label" for="login-email">{{ 'customer.login_page.email' | t }}</label>
+          <input class="input" id="login-email" type="email" name="customer[email]" autocomplete="email" required>
+        </div>
+
+        {%- if form.password_needed -%}
+          <div class="field">
+            <label class="field__label" for="login-password">{{ 'customer.login_page.password' | t }}</label>
+            <input class="input" id="login-password" type="password" name="customer[password]" autocomplete="current-password">
+          </div>
+          <a class="link" href="#recover" style="justify-self:start">{{ 'customer.login_page.forgot_password' | t }}</a>
+        {%- endif -%}
+
+        <button class="btn btn--block" type="submit"><span>{{ 'customer.login_page.sign_in' | t }}</span></button>
+      </div>
+    {%- endform -%}
+
+    <p class="center" style="margin-top:var(--sp-4); font-size:var(--t-small)">
+      <a class="link" href="{{ routes.account_register_url }}">{{ 'customer.login_page.create_account' | t }}</a>
+    </p>
+
+    <div id="recover" style="margin-top:var(--sp-6); border-top:1px solid var(--c-line); padding-top:var(--sp-4)">
+      <h2 class="h4" style="margin-bottom:1rem">{{ 'customer.recover_password.title' | t }}</h2>
+      {%- form 'recover_customer_password' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-success">{{ 'customer.recover_password.success' | t }}</p>
+        {%- else -%}
+          <div class="field-inline">
+            <label class="visually-hidden" for="recover-email">{{ 'customer.login_page.email' | t }}</label>
+            <input class="input" id="recover-email" type="email" name="email" autocomplete="email" required>
+            <button type="submit">{{ 'customer.recover_password.submit' | t }}</button>
+          </div>
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+  </div>
+</section>

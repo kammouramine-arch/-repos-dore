@@ -1,0 +1,210 @@
+{%- comment -%}
+  Footer
+  Brand column + up to three link columns (blocks) + legal strip.
+{%- endcomment -%}
+
+<footer class="footer scheme-{{ section.settings.color_scheme }}" role="contentinfo">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand" data-reveal="fade">
+        {%- if settings.logo != blank and section.settings.show_logo -%}
+          {%- assign shop_name = shop.name | escape -%}
+          {{
+            settings.logo
+            | image_url: width: 400
+            | image_tag: loading: 'lazy', alt: shop_name, style: 'width:140px'
+          }}
+        {%- else -%}
+          <span class="footer__logo">{{ shop.name }}</span>
+        {%- endif -%}
+
+        {%- if section.settings.tagline != blank -%}
+          <p class="muted" style="max-width:32ch">{{ section.settings.tagline | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.show_newsletter -%}
+          <div style="margin-top:.5rem; max-width:22rem">
+            {%- form 'customer', class: 'footer__newsletter' -%}
+              <input type="hidden" name="contact[tags]" value="newsletter">
+              {%- if form.posted_successfully? -%}
+                <p class="form-success">{{ 'newsletter.success' | t }}</p>
+              {%- else -%}
+                <label class="visually-hidden" for="footer-email">{{ 'newsletter.email' | t }}</label>
+                <div class="field-inline">
+                  <input
+                    class="input"
+                    id="footer-email"
+                    type="email"
+                    name="contact[email]"
+                    placeholder="{{ 'newsletter.email' | t }}"
+                    autocomplete="email"
+                    required
+                  >
+                  <button type="submit">{{ 'newsletter.submit' | t }}</button>
+                </div>
+                {%- if form.errors -%}
+                  <p class="form-error" style="margin-top:.75rem">{{ form.errors.messages.email }}</p>
+                {%- endif -%}
+              {%- endif -%}
+            {%- endform -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- for block in section.blocks -%}
+        <div {{ block.shopify_attributes }} data-reveal="fade" style="--delay:{{ forloop.index0 | times: 80 }}ms">
+          {%- case block.type -%}
+            {%- when 'menu' -%}
+              <p class="footer__col-title">{{ block.settings.title | escape }}</p>
+              <ul class="footer__list">
+                {%- for link in block.settings.menu.links -%}
+                  <li><a href="{{ link.url }}">{{ link.title | escape }}</a></li>
+                {%- endfor -%}
+              </ul>
+
+            {%- when 'text' -%}
+              <p class="footer__col-title">{{ block.settings.title | escape }}</p>
+              <div class="rte" style="font-size:var(--t-small); color:var(--c-ink-2)">
+                {{ block.settings.content }}
+              </div>
+          {%- endcase -%}
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="footer__bottom">
+      <span>&copy; {{ 'now' | date: '%Y' }} {{ shop.name }}. {{ 'general.rights' | t }}</span>
+
+      {%- assign has_social = false -%}
+      {%- if settings.social_instagram != blank or settings.social_facebook != blank or settings.social_tiktok != blank or settings.social_youtube != blank or settings.social_pinterest != blank or settings.social_linkedin != blank -%}
+        {%- assign has_social = true -%}
+      {%- endif -%}
+
+      {%- if has_social -%}
+        <div class="footer__social">
+          {%- if settings.social_instagram != blank -%}
+            <a href="{{ settings.social_instagram }}" target="_blank" rel="noopener" aria-label="Instagram">{% render 'icon', name: 'instagram' %}</a>
+          {%- endif -%}
+          {%- if settings.social_facebook != blank -%}
+            <a href="{{ settings.social_facebook }}" target="_blank" rel="noopener" aria-label="Facebook">{% render 'icon', name: 'facebook' %}</a>
+          {%- endif -%}
+          {%- if settings.social_tiktok != blank -%}
+            <a href="{{ settings.social_tiktok }}" target="_blank" rel="noopener" aria-label="TikTok">{% render 'icon', name: 'tiktok' %}</a>
+          {%- endif -%}
+          {%- if settings.social_youtube != blank -%}
+            <a href="{{ settings.social_youtube }}" target="_blank" rel="noopener" aria-label="YouTube">{% render 'icon', name: 'youtube' %}</a>
+          {%- endif -%}
+          {%- if settings.social_pinterest != blank -%}
+            <a href="{{ settings.social_pinterest }}" target="_blank" rel="noopener" aria-label="Pinterest">{% render 'icon', name: 'pinterest' %}</a>
+          {%- endif -%}
+          {%- if settings.social_linkedin != blank -%}
+            <a href="{{ settings.social_linkedin }}" target="_blank" rel="noopener" aria-label="LinkedIn">{% render 'icon', name: 'linkedin' %}</a>
+          {%- endif -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_payment_icons and shop.enabled_payment_types.size > 0 -%}
+        <div class="footer__pay">
+          {%- for type in shop.enabled_payment_types -%}
+            {{ type | payment_type_svg_tag: class: 'payment-icon' }}
+          {%- endfor -%}
+        </div>
+      {%- endif -%}
+
+      {%- if section.settings.show_locale_selectors -%}
+        {%- if localization.available_countries.size > 1 or localization.available_languages.size > 1 -%}
+          <form method="post" action="{{ routes.root_url }}localization" id="footer-localization" accept-charset="UTF-8" class="footer__localization">
+            <input type="hidden" name="form_type" value="localization">
+            <input type="hidden" name="utf8" value="✓">
+            <input type="hidden" name="_method" value="put">
+            <input type="hidden" name="return_to" value="{{ request.path }}">
+
+            <div style="display:flex; gap:1rem; flex-wrap:wrap">
+              {%- if localization.available_countries.size > 1 -%}
+                <div class="select-wrap">
+                  <label class="visually-hidden" for="footer-country">{{ 'general.country' | t }}</label>
+                  <select class="select" id="footer-country" name="country_code" onchange="this.form.submit()" style="padding:.5rem 2.25rem .5rem .75rem">
+                    {%- for country in localization.available_countries -%}
+                      <option value="{{ country.iso_code }}"{% if country.iso_code == localization.country.iso_code %} selected{% endif %}>
+                        {{ country.name }} ({{ country.currency.iso_code }})
+                      </option>
+                    {%- endfor -%}
+                  </select>
+                </div>
+              {%- endif -%}
+
+              {%- if localization.available_languages.size > 1 -%}
+                <div class="select-wrap">
+                  <label class="visually-hidden" for="footer-language">{{ 'general.language' | t }}</label>
+                  <select class="select" id="footer-language" name="locale_code" onchange="this.form.submit()" style="padding:.5rem 2.25rem .5rem .75rem">
+                    {%- for language in localization.available_languages -%}
+                      <option value="{{ language.iso_code }}"{% if language.iso_code == localization.language.iso_code %} selected{% endif %}>
+                        {{ language.endonym_name }}
+                      </option>
+                    {%- endfor -%}
+                  </select>
+                </div>
+              {%- endif -%}
+            </div>
+          </form>
+        {%- endif -%}
+      {%- endif -%}
+    </div>
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "t:sections.footer.name",
+  "tag": "div",
+  "class": "footer-section",
+  "max_blocks": 3,
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    },
+    { "type": "checkbox", "id": "show_logo", "label": "t:sections.footer.show_logo", "default": false },
+    {
+      "type": "text",
+      "id": "tagline",
+      "label": "t:sections.footer.tagline",
+      "default": "La récupération, pensée comme un rituel."
+    },
+    { "type": "checkbox", "id": "show_newsletter", "label": "t:sections.footer.show_newsletter", "default": true },
+    { "type": "checkbox", "id": "show_payment_icons", "label": "t:sections.footer.show_payment", "default": true },
+    { "type": "checkbox", "id": "show_locale_selectors", "label": "t:sections.footer.show_locale", "default": true }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "t:sections.footer.block_menu",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.heading", "default": "Boutique" },
+        { "type": "link_list", "id": "menu", "label": "t:sections.footer.menu", "default": "footer" }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "t:sections.footer.block_text",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.heading", "default": "Nous contacter" },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:common.text",
+          "default": "<p>Du lundi au vendredi, 9h – 18h.</p>"
+        }
+      ]
+    }
+  ]
+}
+{% endschema %}

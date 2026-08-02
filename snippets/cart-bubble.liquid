@@ -1,0 +1,10 @@
+{%- comment -%}
+  Cart count bubble. Wrapped in a stable selector so the Section Rendering
+  API can swap it in after an Ajax add.
+{%- endcomment -%}
+<span data-cart-bubble>
+  <span class="cart-count"{% if cart.item_count == 0 %} hidden{% endif %} aria-hidden="true">
+    {{- cart.item_count -}}
+  </span>
+  <span class="visually-hidden">{{ 'sections.cart.count' | t: count: cart.item_count }}</span>
+</span>

@@ -1,0 +1,28 @@
+{%- comment -%}
+  404
+  Always offers a way back to the home page and to the catalogue.
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap wrap--narrow">
+    <div class="empty">
+      <span class="eyebrow eyebrow--gold">404</span>
+      <h1 class="h1">{{ '404.title' | t }}</h1>
+      <p class="lede">{{ '404.text' | t }}</p>
+
+      <div style="display:flex; gap:.75rem; flex-wrap:wrap; justify-content:center; margin-top:1rem">
+        <a class="btn" href="{{ routes.root_url }}"><span>{{ '404.back_home' | t }}</span></a>
+        <a class="btn btn--outline" href="{{ routes.all_products_collection_url }}">
+          <span>{{ 'sections.collection.view_all' | t }}</span>
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_404.name",
+  "tag": "section"
+}
+{% endschema %}

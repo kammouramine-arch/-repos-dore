@@ -1,0 +1,87 @@
+{
+  "current": {
+    "color_white": "#FFFFFF",
+    "color_black": "#0B0B0C",
+    "color_sand": "#F3EEE7",
+    "color_stone": "#F4F4F2",
+    "color_gold": "#B08D4F",
+
+    "font_heading": "assistant_n4",
+    "font_heading_weight": 300,
+    "font_body": "assistant_n4",
+    "font_body_scale": 100,
+    "font_accent": "serif",
+    "heading_tracking": -3,
+
+    "page_width": 1560,
+    "section_spacing": 100,
+    "enable_animations": true,
+
+    "card_image_ratio": "media--4-5",
+    "card_hover_image": true,
+    "card_quick_add": true,
+    "card_show_vendor": false,
+
+    "cart_type": "drawer",
+    "cart_notes": true,
+
+    "social_instagram": "",
+    "social_facebook": "",
+    "social_tiktok": "",
+    "social_youtube": "",
+    "social_pinterest": "",
+    "social_linkedin": "",
+
+    "logo_width": 140,
+
+    "sections": {}
+  },
+  "presets": {
+    "RÉVA": {
+      "color_white": "#FFFFFF",
+      "color_black": "#0B0B0C",
+      "color_sand": "#F3EEE7",
+      "color_stone": "#F4F4F2",
+      "color_gold": "#B08D4F",
+      "font_heading": "assistant_n4",
+      "font_heading_weight": 300,
+      "font_body": "assistant_n4",
+      "font_body_scale": 100,
+      "font_accent": "serif",
+      "heading_tracking": -3,
+      "page_width": 1560,
+      "section_spacing": 100,
+      "enable_animations": true,
+      "card_image_ratio": "media--4-5",
+      "card_hover_image": true,
+      "card_quick_add": true,
+      "card_show_vendor": false,
+      "cart_type": "drawer",
+      "cart_notes": true,
+      "logo_width": 140
+    },
+    "RÉVA — Nuit": {
+      "color_white": "#FFFFFF",
+      "color_black": "#0B0B0C",
+      "color_sand": "#EDE7DC",
+      "color_stone": "#F0F0EE",
+      "color_gold": "#C2A26B",
+      "font_heading": "assistant_n4",
+      "font_heading_weight": 200,
+      "font_body": "assistant_n4",
+      "font_body_scale": 100,
+      "font_accent": "serif",
+      "heading_tracking": -4,
+      "page_width": 1440,
+      "section_spacing": 110,
+      "enable_animations": true,
+      "card_image_ratio": "media--3-4",
+      "card_hover_image": true,
+      "card_quick_add": false,
+      "card_show_vendor": false,
+      "cart_type": "drawer",
+      "cart_notes": true,
+      "logo_width": 140
+    }
+  }
+}

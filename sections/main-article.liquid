@@ -1,0 +1,84 @@
+{%- comment -%}
+  Article — /blogs/*/*
+{%- endcomment -%}
+
+<article class="section">
+  <div class="wrap wrap--text">
+    <header class="section-head section-head--center">
+      <span class="eyebrow">{{ article.published_at | date: format: 'date' }}</span>
+      <h1 class="h1 center" data-reveal>{{ article.title | escape }}</h1>
+      {%- if article.author != blank -%}
+        <p class="muted">{{ 'blogs.by_author' | t: author: article.author }}</p>
+      {%- endif -%}
+    </header>
+  </div>
+
+  {%- if article.image -%}
+    <div class="wrap" style="margin-bottom:var(--sp-6)">
+      <div class="media media--16-9" data-reveal="scale">
+        {{
+          article.image
+          | image_url: width: 2400
+          | image_tag: loading: 'eager', widths: '800,1200,1600,2000,2400', sizes: '100vw',
+            alt: article.image.alt | default: article.title | escape
+        }}
+      </div>
+    </div>
+  {%- endif -%}
+
+  <div class="wrap wrap--text">
+    <div class="rte">{{ article.content }}</div>
+
+    {%- if blog.comments_enabled? -%}
+      <div style="margin-top:var(--sp-6)">
+        <h2 class="h3" style="margin-bottom:var(--sp-3)">
+          {{ 'blogs.comments' | t: count: article.comments_count }}
+        </h2>
+
+        {%- for comment in article.comments -%}
+          <div style="padding-block:1.5rem; border-top:1px solid var(--c-line)">
+            <p class="eyebrow">{{ comment.author }} — {{ comment.created_at | date: format: 'date' }}</p>
+            <div class="rte" style="margin-top:.75rem">{{ comment.content }}</div>
+          </div>
+        {%- endfor -%}
+
+        {%- form 'new_comment', article -%}
+          {%- if form.posted_successfully? -%}
+            <p class="form-success">{{ 'blogs.comment_success' | t }}</p>
+          {%- elsif form.errors -%}
+            <p class="form-error">{{ form.errors | default_errors }}</p>
+          {%- endif -%}
+
+          <div style="display:grid; gap:1.25rem; margin-top:var(--sp-4)">
+            <div class="field">
+              <label class="field__label" for="comment-author">{{ 'contact.name' | t }}</label>
+              <input class="input" id="comment-author" type="text" name="comment[author]" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="comment-email">{{ 'contact.email' | t }}</label>
+              <input class="input" id="comment-email" type="email" name="comment[email]" required>
+            </div>
+            <div class="field">
+              <label class="field__label" for="comment-body">{{ 'contact.message' | t }}</label>
+              <textarea class="textarea" id="comment-body" name="comment[body]" required></textarea>
+            </div>
+            <button class="btn" type="submit" style="justify-self:start">
+              <span>{{ 'blogs.comment_submit' | t }}</span>
+            </button>
+          </div>
+        {%- endform -%}
+      </div>
+    {%- endif -%}
+
+    <div style="margin-top:var(--sp-6)">
+      <a class="link" href="{{ blog.url }}">{{ 'blogs.back' | t }}</a>
+    </div>
+  </div>
+</article>
+
+{% schema %}
+{
+  "name": "t:sections.main_article.name",
+  "tag": "section"
+}
+{% endschema %}

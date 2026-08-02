@@ -1,0 +1,61 @@
+{%- comment -%} Customer account overview {%- endcomment -%}
+<section class="section">
+  <div class="wrap">
+    <div class="section-head section-head--split">
+      <div class="section-head__text">
+        <span class="eyebrow">{{ customer.email }}</span>
+        <h1 class="h2">{{ 'customer.account.title' | t }}</h1>
+      </div>
+      <a class="link" href="{{ routes.account_logout_url }}">{{ 'customer.account.log_out' | t }}</a>
+    </div>
+
+    <div class="split split--60" style="align-items:start">
+      <div>
+        <h2 class="h4" style="margin-bottom:1.5rem">{{ 'customer.orders.title' | t }}</h2>
+
+        {%- paginate customer.orders by 20 -%}
+          {%- if customer.orders.size > 0 -%}
+            <table>
+              <thead>
+                <tr>
+                  <th style="text-align:left; padding:.75rem 1rem .75rem 0; border-bottom:1px solid var(--c-line)">{{ 'customer.orders.order_number' | t }}</th>
+                  <th style="text-align:left; padding:.75rem 1rem; border-bottom:1px solid var(--c-line)">{{ 'customer.orders.date' | t }}</th>
+                  <th style="text-align:left; padding:.75rem 1rem; border-bottom:1px solid var(--c-line)">{{ 'customer.orders.payment_status' | t }}</th>
+                  <th style="text-align:right; padding:.75rem 0 .75rem 1rem; border-bottom:1px solid var(--c-line)">{{ 'customer.orders.total' | t }}</th>
+                </tr>
+              </thead>
+              <tbody>
+                {%- for order in customer.orders -%}
+                  <tr style="font-size:var(--t-small)">
+                    <td style="padding:.9rem 1rem .9rem 0; border-bottom:1px solid var(--c-line)">
+                      <a class="link" href="{{ order.customer_url }}">{{ order.name }}</a>
+                    </td>
+                    <td style="padding:.9rem 1rem; border-bottom:1px solid var(--c-line)">{{ order.created_at | date: format: 'date' }}</td>
+                    <td style="padding:.9rem 1rem; border-bottom:1px solid var(--c-line)">{{ order.financial_status_label }}</td>
+                    <td style="padding:.9rem 0 .9rem 1rem; text-align:right; border-bottom:1px solid var(--c-line)">{{ order.total_price | money }}</td>
+                  </tr>
+                {%- endfor -%}
+              </tbody>
+            </table>
+
+            {%- render 'pagination', paginate: paginate -%}
+          {%- else -%}
+            <p class="muted">{{ 'customer.orders.none' | t }}</p>
+          {%- endif -%}
+        {%- endpaginate -%}
+      </div>
+
+      <aside style="border:1px solid var(--c-line); padding:var(--sp-4)">
+        <h2 class="h4" style="margin-bottom:1rem">{{ 'customer.account.default_address' | t }}</h2>
+        {%- if customer.default_address -%}
+          <div class="muted" style="font-size:var(--t-small)">{{ customer.default_address | format_address }}</div>
+        {%- else -%}
+          <p class="muted" style="font-size:var(--t-small)">{{ 'customer.addresses.none' | t }}</p>
+        {%- endif -%}
+        <a class="link" href="{{ routes.account_addresses_url }}" style="margin-top:1.25rem; display:inline-block">
+          {{ 'customer.account.view_addresses' | t }}
+        </a>
+      </aside>
+    </div>
+  </div>
+</section>

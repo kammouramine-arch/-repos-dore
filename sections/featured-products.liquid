@@ -1,0 +1,148 @@
+{%- comment -%}
+  Featured products
+  Hand-picked products presented as alternating editorial rows rather than a
+  grid — each product gets room to be argued for, not just listed.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    {%- if section.settings.heading != blank or section.settings.eyebrow != blank -%}
+      <div class="section-head section-head--center">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div style="display:flex; flex-direction:column; gap:clamp(3rem,7vw,7rem)">
+      {%- for block in section.blocks -%}
+        {%- liquid
+          assign product = block.settings.product
+          assign parity = forloop.index0 | modulo: 2
+          assign reverse = false
+          if parity == 1
+            assign reverse = true
+          endif
+        -%}
+
+        <div class="split split--50{% if reverse %} split--reverse{% endif %}" {{ block.shopify_attributes }}>
+          <div class="split__media" data-reveal="scale">
+            <a class="media media--4-5 media--zoom" href="{{ product.url | default: routes.all_products_collection_url }}" tabindex="-1" aria-hidden="true">
+              {%- if product.featured_media -%}
+                {{
+                  product.featured_media
+                  | image_url: width: 1600
+                  | image_tag:
+                    loading: 'lazy',
+                    widths: '480,720,960,1200,1600',
+                    sizes: '(min-width: 900px) 46vw, 92vw',
+                    alt: product.featured_media.alt | default: product.title | escape
+                }}
+              {%- else -%}
+                {{ 'product-apparel-3' | placeholder_svg_tag: 'placeholder-svg' }}
+              {%- endif -%}
+            </a>
+          </div>
+
+          <div class="split__text" data-reveal style="--delay:120ms">
+            {%- if block.settings.eyebrow != blank -%}
+              <span class="eyebrow">{{ block.settings.eyebrow | escape }}</span>
+            {%- endif -%}
+
+            <h3 class="h2">
+              {%- if product != blank -%}
+                <a href="{{ product.url }}">{{ product.title | escape }}</a>
+              {%- else -%}
+                {{ 'onboarding.product_title' | t }}
+              {%- endif -%}
+            </h3>
+
+            {%- if block.settings.text != blank -%}
+              <div class="rte muted">{{ block.settings.text }}</div>
+            {%- elsif product.description != blank -%}
+              <p class="muted">{{ product.description | strip_html | truncatewords: 34 }}</p>
+            {%- endif -%}
+
+            {%- if block.settings.features != blank -%}
+              <ul class="pdp__reassure" style="margin-top:.5rem">
+                {%- assign features = block.settings.features | newline_to_br | split: '<br />' -%}
+                {%- for feature in features -%}
+                  {%- if feature != blank -%}
+                    <li>{% render 'icon', name: 'check' %}{{ feature | strip | escape }}</li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+            {%- endif -%}
+
+            {%- if product != blank -%}
+              <p style="font-size:1.125rem; margin-top:.5rem">{%- render 'price', product: product -%}</p>
+              <div style="display:flex; gap:.75rem; flex-wrap:wrap; margin-top:1rem">
+                <a class="btn" href="{{ product.url }}"><span>{{ 'products.product.discover' | t }}</span></a>
+                {%- if product.available and product.variants.size == 1 -%}
+                  {%- form 'product', product, data-cart-add-form: true -%}
+                    <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+                    <input type="hidden" name="quantity" value="1">
+                    <button class="btn btn--outline" type="submit"><span>{{ 'products.product.add_to_cart' | t }}</span></button>
+                  {%- endform -%}
+                {%- endif -%}
+              </div>
+            {%- else -%}
+              <a class="btn" href="{{ routes.all_products_collection_url }}"><span>{{ 'sections.collection.view_all' | t }}</span></a>
+            {%- endif -%}
+          </div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.featured_products.name",
+  "tag": "section",
+  "class": "featured-products-section",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Les essentiels" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Choisis pour ce qu'ils changent" },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "sand"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "product",
+      "name": "t:sections.featured_products.block_product",
+      "settings": [
+        { "type": "product", "id": "product", "label": "t:common.product" },
+        { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow" },
+        { "type": "richtext", "id": "text", "label": "t:common.text" },
+        {
+          "type": "textarea",
+          "id": "features",
+          "label": "t:sections.featured_products.features",
+          "info": "t:sections.featured_products.features_info"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.featured_products.name",
+      "blocks": [{ "type": "product" }, { "type": "product" }]
+    }
+  ]
+}
+{% endschema %}

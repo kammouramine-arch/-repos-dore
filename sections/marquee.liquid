@@ -1,0 +1,51 @@
+{%- comment -%}
+  Marquee
+  A quiet, endlessly scrolling strip of proof points. reva.js duplicates the
+  track once so the loop is seamless.
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  <div class="marquee scheme-{{ section.settings.color_scheme }}" style="border-block: 1px solid var(--c-line)">
+    <div class="marquee__track" data-marquee-track>
+      {%- for block in section.blocks -%}
+        <span class="marquee__item" {{ block.shopify_attributes }}>{{ block.settings.text | escape }}</span>
+      {%- endfor -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.marquee.name",
+  "tag": "section",
+  "class": "marquee-section",
+  "max_blocks": 10,
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "item",
+      "name": "t:sections.marquee.block_item",
+      "settings": [{ "type": "text", "id": "text", "label": "t:common.text", "default": "Essai 30 nuits" }]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.marquee.name",
+      "blocks": [{ "type": "item" }, { "type": "item" }, { "type": "item" }, { "type": "item" }]
+    }
+  ]
+}
+{% endschema %}

@@ -1,0 +1,37 @@
+{%- comment -%}
+  Price
+  Accepts: product (or variant), and optional `show_unit` / `class`.
+  Renders the compare-at price first so the discount reads as an edit,
+  not a sticker.
+{%- endcomment -%}
+
+{%- liquid
+  if product.price_varies
+    assign price_min = product.price_min
+  endif
+
+  assign target = variant | default: product
+  assign price = target.price | default: 0
+  assign compare = target.compare_at_price
+  assign on_sale = false
+  if compare > price
+    assign on_sale = true
+  endif
+-%}
+
+<span class="card__price {{ class }}">
+  {%- if on_sale -%}
+    <s>{{ compare | money }}</s>
+    <span class="price--sale">{{ price | money }}</span>
+  {%- elsif product.price_varies and variant == blank -%}
+    {{ 'products.product.from_price' | t: price: price_min | money }}
+  {%- else -%}
+    {{ price | money }}
+  {%- endif -%}
+
+  {%- if show_unit and target.unit_price_measurement -%}
+    <span class="muted">
+      ({{ target.unit_price | money }}/{% if target.unit_price_measurement.reference_value != 1 %}{{ target.unit_price_measurement.reference_value }}{% endif %}{{ target.unit_price_measurement.reference_unit }})
+    </span>
+  {%- endif -%}
+</span>

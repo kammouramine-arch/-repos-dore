@@ -1,0 +1,53 @@
+{%- comment -%}
+  Blog index — /blogs/*
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap">
+    <div class="coll-head" style="margin-bottom:var(--sp-6)">
+      <span class="eyebrow" data-reveal="fade">{{ 'blogs.journal' | t }}</span>
+      <h1 class="h1" data-reveal>{{ blog.title | escape }}</h1>
+    </div>
+
+    {%- paginate blog.articles by 12 -%}
+      {%- if blog.articles.size > 0 -%}
+        <div class="grid grid--3">
+          {%- for article in blog.articles -%}
+            <article class="card" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 70 }}ms">
+              <a class="card__media media media--3-2 media--zoom" href="{{ article.url }}" tabindex="-1" aria-hidden="true">
+                {%- if article.image -%}
+                  {{
+                    article.image
+                    | image_url: width: 1200
+                    | image_tag: loading: 'lazy', widths: '400,600,900,1200', sizes: '(min-width: 900px) 32vw, 90vw',
+                      alt: article.image.alt | default: article.title | escape
+                  }}
+                {%- else -%}
+                  {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </a>
+              <div class="card__body">
+                <span class="eyebrow">{{ article.published_at | date: format: 'date' }}</span>
+                <h2 class="card__title"><a href="{{ article.url }}">{{ article.title | escape }}</a></h2>
+                <p class="card__sub">{{ article.excerpt_or_content | strip_html | truncatewords: 22 }}</p>
+              </div>
+            </article>
+          {%- endfor -%}
+        </div>
+
+        {%- render 'pagination', paginate: paginate -%}
+      {%- else -%}
+        <div class="empty">
+          <p class="h3">{{ 'blogs.empty' | t }}</p>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_blog.name",
+  "tag": "section"
+}
+{% endschema %}

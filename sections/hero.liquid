@@ -1,0 +1,170 @@
+{%- comment -%}
+  Hero
+  Full-bleed statement opener. When no image is set the section falls back to
+  a warm sand/gold canvas so it always reads as a deliberate composition.
+{%- endcomment -%}
+
+{%- liquid
+  assign has_media = false
+  if section.settings.image != blank or section.settings.video != blank
+    assign has_media = true
+  endif
+
+  assign text_light = section.settings.text_light
+  if has_media == false
+    assign text_light = false
+  endif
+-%}
+
+<section
+  class="hero{% if text_light %} hero--light{% endif %}{% if section.settings.pull_under_header %} hero--under-header{% endif %}"
+  style="min-height: {{ section.settings.height }}vh"
+>
+  {%- if section.settings.video != blank -%}
+    <div class="hero__media">
+      {{
+        section.settings.video
+        | video_tag: image_size: '1600x', autoplay: true, loop: true, muted: true, controls: false
+      }}
+    </div>
+    <div class="hero__scrim"></div>
+  {%- elsif section.settings.image != blank -%}
+    <div class="hero__media">
+      {{
+        section.settings.image
+        | image_url: width: 3200
+        | image_tag:
+          loading: 'eager',
+          fetchpriority: 'high',
+          widths: '640,900,1200,1600,2000,2600,3200',
+          sizes: '100vw',
+          alt: section.settings.image.alt | default: section.settings.heading | escape
+      }}
+    </div>
+    <div class="hero__scrim"></div>
+  {%- else -%}
+    <div class="hero__canvas"></div>
+  {%- endif -%}
+
+  <div class="hero__inner">
+    <div class="wrap">
+      <div class="hero__content hero__content--{{ section.settings.alignment }}">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+
+        {%- if section.settings.heading != blank -%}
+          <h1 class="display" data-reveal-lines>
+            {%- comment -%}
+              The whitespace between the line spans is deliberate: the spans
+              are block-level, so it costs nothing visually, but it keeps the
+              heading readable as one sentence for crawlers and screen readers.
+            {%- endcomment -%}
+            {%- assign lines = section.settings.heading | newline_to_br | split: '<br />' -%}
+            {%- for line in lines %}
+              <span class="line"><span class="line-inner" style="--delay:{{ forloop.index0 | times: 110 }}ms">{{ line | strip | escape }}</span></span>
+            {% endfor -%}
+          </h1>
+        {%- endif -%}
+
+        {%- if section.settings.subheading != blank -%}
+          <p class="lede" data-reveal style="--delay:260ms">{{ section.settings.subheading | escape }}</p>
+        {%- endif -%}
+
+        {%- if section.settings.cta_label != blank or section.settings.cta2_label != blank -%}
+          <div class="hero__ctas" data-reveal style="--delay:380ms">
+            {%- if section.settings.cta_label != blank -%}
+              <a class="btn" href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}">
+                <span>{{ section.settings.cta_label | escape }}</span>
+              </a>
+            {%- endif -%}
+            {%- if section.settings.cta2_label != blank -%}
+              <a class="btn btn--outline" href="{{ section.settings.cta2_link | default: routes.all_products_collection_url }}">
+                <span>{{ section.settings.cta2_label | escape }}</span>
+              </a>
+            {%- endif -%}
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+
+  {%- if section.settings.show_scroll_cue -%}
+    <div class="hero__scroll" aria-hidden="true">
+      <span>{{ 'sections.hero.scroll' | t }}</span>
+      <i></i>
+    </div>
+  {%- endif -%}
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.hero.name",
+  "tag": "section",
+  "class": "hero-section",
+  "settings": [
+    { "type": "header", "content": "t:common.content" },
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Récupération — Maison RÉVA" },
+    {
+      "type": "textarea",
+      "id": "heading",
+      "label": "t:common.heading",
+      "info": "t:sections.hero.heading_info",
+      "default": "Le repos,\nremis au centre."
+    },
+    {
+      "type": "textarea",
+      "id": "subheading",
+      "label": "t:common.subheading",
+      "default": "Des appareils de récupération conçus pour disparaître dans votre intérieur — et se faire sentir dans votre corps."
+    },
+    { "type": "text", "id": "cta_label", "label": "t:common.cta_label", "default": "Découvrir la collection" },
+    { "type": "url", "id": "cta_link", "label": "t:common.cta_link" },
+    { "type": "text", "id": "cta2_label", "label": "t:common.cta2_label", "default": "La technologie" },
+    { "type": "url", "id": "cta2_link", "label": "t:common.cta2_link" },
+
+    { "type": "header", "content": "t:common.media" },
+    { "type": "image_picker", "id": "image", "label": "t:common.image", "info": "t:sections.hero.image_info" },
+    { "type": "video", "id": "video", "label": "t:sections.hero.video" },
+
+    { "type": "header", "content": "t:common.layout" },
+    {
+      "type": "range",
+      "id": "height",
+      "label": "t:sections.hero.height",
+      "min": 55,
+      "max": 100,
+      "step": 5,
+      "unit": "vh",
+      "default": 90
+    },
+    {
+      "type": "select",
+      "id": "alignment",
+      "label": "t:common.alignment",
+      "options": [
+        { "value": "left", "label": "t:common.align_left" },
+        { "value": "center", "label": "t:common.align_center" },
+        { "value": "right", "label": "t:common.align_right" }
+      ],
+      "default": "left"
+    },
+    {
+      "type": "checkbox",
+      "id": "text_light",
+      "label": "t:sections.hero.text_light",
+      "info": "t:sections.hero.text_light_info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "pull_under_header",
+      "label": "t:sections.hero.pull_under_header",
+      "info": "t:sections.hero.pull_under_header_info",
+      "default": true
+    },
+    { "type": "checkbox", "id": "show_scroll_cue", "label": "t:sections.hero.scroll_cue", "default": true }
+  ],
+  "presets": [{ "name": "t:sections.hero.name" }]
+}
+{% endschema %}

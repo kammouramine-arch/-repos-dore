@@ -1,0 +1,158 @@
+{%- comment -%}
+  Before / after
+  A draggable comparison built on a range input: it works with a mouse, with
+  touch, and with the keyboard, and degrades to a static "after" image when
+  JavaScript is off.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    <div class="split split--50{% if section.settings.text_position == 'left' %} split--reverse{% endif %}">
+      <div class="split__media" data-reveal="scale">
+        <div class="ba media--{{ section.settings.ratio }}" data-ba style="--pos: {{ section.settings.start_position }}%">
+          <div class="ba__layer">
+            {%- if section.settings.image_before != blank -%}
+              {{
+                section.settings.image_before
+                | image_url: width: 1600
+                | image_tag: loading: 'lazy', widths: '480,720,960,1400,1600', sizes: '(min-width: 900px) 46vw, 92vw',
+                  alt: section.settings.label_before | escape
+              }}
+            {%- else -%}
+              {{ 'lifestyle-1' | placeholder_svg_tag: 'placeholder-svg' }}
+            {%- endif -%}
+          </div>
+
+          <div class="ba__layer ba__after">
+            {%- if section.settings.image_after != blank -%}
+              {{
+                section.settings.image_after
+                | image_url: width: 1600
+                | image_tag: loading: 'lazy', widths: '480,720,960,1400,1600', sizes: '(min-width: 900px) 46vw, 92vw',
+                  alt: section.settings.label_after | escape
+              }}
+            {%- else -%}
+              {{ 'lifestyle-2' | placeholder_svg_tag: 'placeholder-svg' }}
+            {%- endif -%}
+          </div>
+
+          <span class="ba__tag ba__tag--l">{{ section.settings.label_before | escape }}</span>
+          <span class="ba__tag ba__tag--r">{{ section.settings.label_after | escape }}</span>
+
+          <div class="ba__handle" aria-hidden="true">
+            <span class="ba__grip">{% render 'icon', name: 'drag' %}</span>
+          </div>
+
+          <input
+            class="ba__range"
+            type="range"
+            min="0"
+            max="100"
+            value="{{ section.settings.start_position }}"
+            data-ba-range
+            aria-label="{{ 'sections.before_after.slider_label' | t }}"
+          >
+        </div>
+      </div>
+
+      <div class="split__text" data-reveal style="--delay:120ms">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="rte muted">{{ section.settings.text }}</div>
+        {%- endif -%}
+        {%- if section.settings.disclaimer != blank -%}
+          <p class="form-note" style="margin-top:.5rem">{{ section.settings.disclaimer | escape }}</p>
+        {%- endif -%}
+        {%- if section.settings.cta_label != blank -%}
+          <a class="btn" href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}" style="align-self:flex-start; margin-top:1rem">
+            <span>{{ section.settings.cta_label | escape }}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.before_after.name",
+  "tag": "section",
+  "class": "before-after-section",
+  "settings": [
+    { "type": "header", "content": "t:common.media" },
+    { "type": "image_picker", "id": "image_before", "label": "t:sections.before_after.image_before" },
+    { "type": "image_picker", "id": "image_after", "label": "t:sections.before_after.image_after" },
+    { "type": "text", "id": "label_before", "label": "t:sections.before_after.label_before", "default": "Avant" },
+    { "type": "text", "id": "label_after", "label": "t:sections.before_after.label_after", "default": "Après" },
+    {
+      "type": "select",
+      "id": "ratio",
+      "label": "t:common.image_ratio",
+      "options": [
+        { "value": "1-1", "label": "1:1" },
+        { "value": "4-5", "label": "4:5" },
+        { "value": "3-2", "label": "3:2" },
+        { "value": "16-9", "label": "16:9" }
+      ],
+      "default": "1-1"
+    },
+    {
+      "type": "range",
+      "id": "start_position",
+      "label": "t:sections.before_after.start_position",
+      "min": 10,
+      "max": 90,
+      "step": 5,
+      "unit": "%",
+      "default": 50
+    },
+
+    { "type": "header", "content": "t:common.content" },
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Avant / Après" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Vingt minutes plus tard" },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:common.text",
+      "default": "<p>Faites glisser le curseur pour voir la différence sur une même soirée : jambes plus légères, gonflement réduit, sommeil plus rapide à venir.</p>"
+    },
+    {
+      "type": "text",
+      "id": "disclaimer",
+      "label": "t:sections.before_after.disclaimer",
+      "info": "t:sections.before_after.disclaimer_info",
+      "default": "Résultats individuels. Appareil de bien-être, non médical."
+    },
+    { "type": "text", "id": "cta_label", "label": "t:common.cta_label" },
+    { "type": "url", "id": "cta_link", "label": "t:common.cta_link" },
+    {
+      "type": "select",
+      "id": "text_position",
+      "label": "t:common.text_position",
+      "options": [
+        { "value": "left", "label": "t:common.align_left" },
+        { "value": "right", "label": "t:common.align_right" }
+      ],
+      "default": "right"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "presets": [{ "name": "t:sections.before_after.name" }]
+}
+{% endschema %}

@@ -1,0 +1,70 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "vendor": { "type": "vendor", "settings": {} },
+        "title": { "type": "title", "settings": {} },
+        "price": { "type": "price", "settings": {} },
+        "variants": { "type": "variants", "settings": {} },
+        "buy_buttons": { "type": "buy_buttons", "settings": { "show_dynamic_checkout": true } },
+        "description": { "type": "description", "settings": { "truncate": false } },
+        "reassurance": {
+          "type": "reassurance",
+          "settings": {
+            "items": "Livraison offerte dès 100 €\nEssai 30 jours, retour gratuit\nGarantie 2 ans",
+            "icon": "check"
+          }
+        },
+        "shipping": {
+          "type": "accordion",
+          "settings": {
+            "title": "Livraison & retours",
+            "content": "<p>Expédition sous 24 h ouvrées. Retour gratuit sous 30 jours, dans l'emballage d'origine.</p>"
+          }
+        },
+        "care": {
+          "type": "accordion",
+          "settings": {
+            "title": "Entretien & précautions",
+            "content": "<p>Essuyez avec un chiffon doux légèrement humide. Appareil de bien-être, non médical : en cas de trouble circulatoire, de grossesse ou de traitement en cours, demandez l'avis de votre médecin.</p>"
+          }
+        },
+        "share": { "type": "share", "settings": {} }
+      },
+      "block_order": [
+        "vendor",
+        "title",
+        "price",
+        "variants",
+        "buy_buttons",
+        "description",
+        "reassurance",
+        "shipping",
+        "care",
+        "share"
+      ],
+      "settings": { "image_ratio": "1-1", "show_breadcrumb": true }
+    },
+    "related": {
+      "type": "related-products",
+      "settings": {
+        "heading": "À découvrir également",
+        "products_to_show": 4,
+        "columns": "4",
+        "color_scheme": "stone"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "Lettre RÉVA",
+        "heading": "Une lettre par mois, sur le repos et rien d'autre",
+        "text": "Protocoles, coulisses de fabrication, avant-premières.",
+        "note": "Désinscription en un clic.",
+        "color_scheme": "dark"
+      }
+    }
+  },
+  "order": ["main", "related", "newsletter"]
+}

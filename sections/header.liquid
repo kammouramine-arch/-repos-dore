@@ -1,0 +1,199 @@
+{%- comment -%}
+  Header
+  Sticky, three-column (nav / logo / actions). On the home page it can sit
+  transparently over a full-bleed hero — the hero pulls itself up under the
+  header, so nothing below ever shifts.
+{%- endcomment -%}
+
+{%- liquid
+  assign overlay = false
+  if section.settings.transparent_on_home and request.page_type == 'index'
+    assign overlay = true
+  endif
+-%}
+
+<header
+  class="header scheme-{{ section.settings.color_scheme }}{% if overlay %} header--overlay{% endif %}"
+  data-header
+>
+  <div class="wrap">
+    <div class="header__inner">
+      {%- comment -%} Left: desktop navigation / mobile menu trigger {%- endcomment -%}
+      <button
+        class="burger"
+        type="button"
+        data-drawer-open="menu-drawer"
+        aria-controls="menu-drawer"
+        aria-expanded="false"
+        aria-label="{{ 'general.menu' | t }}"
+      >
+        <span></span>
+      </button>
+
+      <nav class="header__nav" role="navigation" aria-label="{{ 'general.menu' | t }}">
+        {%- for link in section.settings.menu.links -%}
+          <div class="nav-item">
+            <a
+              class="nav-link"
+              href="{{ link.url }}"
+              {% if link.current %}aria-current="page"{% endif %}
+            >
+              {{- link.title | escape -}}
+            </a>
+
+            {%- if link.links.size > 0 -%}
+              <div class="nav-menu">
+                {%- for child in link.links -%}
+                  <a href="{{ child.url }}"{% if child.current %} aria-current="page"{% endif %}>{{ child.title | escape }}</a>
+                {%- endfor -%}
+              </div>
+            {%- endif -%}
+          </div>
+        {%- endfor -%}
+      </nav>
+
+      {%- comment -%}
+        Centre: the logo always returns to the shop root. It stays a <div> so
+        each page keeps a single, content-bearing <h1>.
+      {%- endcomment -%}
+      <div class="header__logo-wrap">
+        <a class="header__logo" href="{{ routes.root_url }}" aria-label="{{ shop.name | escape }}">
+          {%- if settings.logo != blank -%}
+            {%- assign logo_alt = shop.name | escape -%}
+            {{
+              settings.logo
+              | image_url: width: 600
+              | image_tag:
+                loading: 'eager',
+                widths: '140,280,420,600',
+                alt: logo_alt,
+                style: 'width:' | append: settings.logo_width | append: 'px'
+            }}
+          {%- else -%}
+            {{ shop.name }}
+          {%- endif -%}
+        </a>
+      </div>
+
+      {%- comment -%} Right: search, account, cart {%- endcomment -%}
+      <div class="header__actions">
+        <button
+          class="icon-btn"
+          type="button"
+          data-drawer-open="search-drawer"
+          aria-controls="search-drawer"
+          aria-expanded="false"
+          aria-label="{{ 'general.search.search' | t }}"
+        >
+          {%- render 'icon', name: 'search' -%}
+        </button>
+
+        {%- if shop.customer_accounts_enabled and section.settings.show_account -%}
+          <a
+            class="icon-btn"
+            href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}"
+            aria-label="{{ 'customer.account.title' | t }}"
+          >
+            {%- render 'icon', name: 'user' -%}
+          </a>
+        {%- endif -%}
+
+        {%- if settings.cart_type == 'drawer' -%}
+          <button
+            class="icon-btn"
+            type="button"
+            data-drawer-open="cart-drawer"
+            aria-controls="cart-drawer"
+            aria-expanded="false"
+            aria-label="{{ 'sections.cart.title' | t }}"
+          >
+            {%- render 'icon', name: 'bag' -%}
+            {%- render 'cart-bubble' -%}
+          </button>
+        {%- else -%}
+          <a class="icon-btn" href="{{ routes.cart_url }}" aria-label="{{ 'sections.cart.title' | t }}">
+            {%- render 'icon', name: 'bag' -%}
+            {%- render 'cart-bubble' -%}
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</header>
+
+{%- comment -%} Mobile navigation {%- endcomment -%}
+<div class="drawer drawer--left" id="menu-drawer" aria-hidden="true" role="dialog" aria-modal="true" aria-label="{{ 'general.menu' | t }}">
+  <div class="drawer__head">
+    <span class="drawer__title">{{ 'general.menu' | t }}</span>
+    <button class="icon-btn" type="button" data-drawer-close aria-label="{{ 'accessibility.close' | t }}">
+      {%- render 'icon', name: 'close' -%}
+    </button>
+  </div>
+
+  <div class="drawer__body">
+    <nav role="navigation" aria-label="{{ 'general.menu' | t }}">
+      {%- for link in section.settings.menu.links -%}
+        <a class="drawer-nav__link" href="{{ link.url }}">
+          {{- link.title | escape -}}
+          {%- if link.links.size > 0 %}{% render 'icon', name: 'chevron-right' %}{% endif -%}
+        </a>
+        {%- if link.links.size > 0 -%}
+          <div class="drawer-nav__sub">
+            {%- for child in link.links -%}
+              <a href="{{ child.url }}">{{ child.title | escape }}</a>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      {%- endfor -%}
+    </nav>
+  </div>
+
+  <div class="drawer__foot">
+    {%- if shop.customer_accounts_enabled -%}
+      <a class="link" href="{% if customer %}{{ routes.account_url }}{% else %}{{ routes.account_login_url }}{% endif %}">
+        {%- if customer %}{{ 'customer.account.title' | t }}{% else %}{{ 'customer.login_page.title' | t }}{% endif -%}
+      </a>
+    {%- endif -%}
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "t:sections.header.name",
+  "tag": "div",
+  "class": "header-section",
+  "settings": [
+    {
+      "type": "link_list",
+      "id": "menu",
+      "label": "t:sections.header.menu",
+      "default": "main-menu"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    },
+    {
+      "type": "checkbox",
+      "id": "transparent_on_home",
+      "label": "t:sections.header.transparent",
+      "info": "t:sections.header.transparent_info",
+      "default": true
+    },
+    {
+      "type": "checkbox",
+      "id": "show_account",
+      "label": "t:sections.header.show_account",
+      "default": true
+    }
+  ]
+}
+{% endschema %}

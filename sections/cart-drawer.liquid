@@ -1,0 +1,139 @@
+{%- comment -%}
+  Cart drawer
+  Rendered once in layout/theme.liquid and refreshed through the Section
+  Rendering API after every Ajax cart change.
+{%- endcomment -%}
+
+{%- if settings.cart_type == 'drawer' -%}
+  <div
+    class="drawer"
+    id="cart-drawer"
+    role="dialog"
+    aria-modal="true"
+    aria-hidden="true"
+    aria-label="{{ 'sections.cart.title' | t }}"
+  >
+    <div class="drawer__head">
+      <span class="drawer__title">{{ 'sections.cart.title' | t }} ({{ cart.item_count }})</span>
+      <button class="icon-btn" type="button" data-drawer-close aria-label="{{ 'accessibility.close' | t }}">
+        {%- render 'icon', name: 'close' -%}
+      </button>
+    </div>
+
+    <div data-cart-drawer-content style="display:contents">
+      {%- if cart.item_count == 0 -%}
+        <div class="drawer__body">
+          <div class="empty">
+            <p class="h3">{{ 'sections.cart.empty' | t }}</p>
+            <a class="btn" href="{{ routes.all_products_collection_url }}">
+              <span>{{ 'general.continue_shopping' | t }}</span>
+            </a>
+          </div>
+        </div>
+      {%- else -%}
+        <div class="drawer__body">
+          {%- for item in cart.items -%}
+            <div class="cart-line">
+              <a class="cart-line__media media" href="{{ item.url }}" tabindex="-1" aria-hidden="true">
+                {%- if item.image -%}
+                  {{ item.image | image_url: width: 200 | image_tag: loading: 'lazy', alt: item.title | escape }}
+                {%- endif -%}
+              </a>
+
+              <div class="cart-line__body">
+                <a class="cart-line__title" href="{{ item.url }}">{{ item.product.title | escape }}</a>
+
+                {%- unless item.product.has_only_default_variant -%}
+                  <span class="cart-line__opt">{{ item.variant.title }}</span>
+                {%- endunless -%}
+
+                {%- if item.selling_plan_allocation -%}
+                  <span class="cart-line__opt">{{ item.selling_plan_allocation.selling_plan.name }}</span>
+                {%- endif -%}
+
+                {%- for property in item.properties -%}
+                  {%- if property.last != blank and property.first[0] != '_' -%}
+                    <span class="cart-line__opt">{{ property.first }}: {{ property.last }}</span>
+                  {%- endif -%}
+                {%- endfor -%}
+
+                {%- if item.line_level_discount_allocations.size > 0 -%}
+                  {%- for discount in item.line_level_discount_allocations -%}
+                    <span class="cart-line__opt" style="color: var(--c-gold)">
+                      {{ discount.discount_application.title }} (−{{ discount.amount | money }})
+                    </span>
+                  {%- endfor -%}
+                {%- endif -%}
+
+                <div class="cart-line__foot">
+                  <div class="qty" data-qty style="height:2.5rem">
+                    <button type="button" data-qty-step="-1" aria-label="{{ 'sections.cart.decrease' | t }}">−</button>
+                    <input
+                      type="number"
+                      value="{{ item.quantity }}"
+                      min="0"
+                      inputmode="numeric"
+                      data-cart-qty="{{ forloop.index }}"
+                      aria-label="{{ 'sections.cart.quantity' | t }}"
+                    >
+                    <button type="button" data-qty-step="1" aria-label="{{ 'sections.cart.increase' | t }}">+</button>
+                  </div>
+                  <span>{{ item.final_line_price | money }}</span>
+                </div>
+
+                <button class="cart-line__remove" type="button" data-cart-remove="{{ forloop.index }}">
+                  {{ 'sections.cart.remove' | t }}
+                </button>
+              </div>
+            </div>
+          {%- endfor -%}
+
+          {%- if settings.cart_notes -%}
+            <details class="accordion__item" style="border-top:1px solid var(--c-line); margin-top:1.5rem">
+              <summary class="accordion__summary" style="font-size:.875rem">
+                {{ 'sections.cart.note' | t }}
+                <span class="accordion__icon"></span>
+              </summary>
+              <div style="padding-bottom:1.25rem">
+                <textarea class="textarea" name="note" form="cart-drawer-form" style="min-height:6rem">{{ cart.note }}</textarea>
+              </div>
+            </details>
+          {%- endif -%}
+        </div>
+
+        <div class="drawer__foot">
+          {%- if cart.cart_level_discount_applications.size > 0 -%}
+            {%- for discount in cart.cart_level_discount_applications -%}
+              <div class="cart-total" style="font-size:.875rem; color:var(--c-gold)">
+                <span>{{ discount.title }}</span>
+                <span>−{{ discount.total_allocated_amount | money }}</span>
+              </div>
+            {%- endfor -%}
+          {%- endif -%}
+
+          <div class="cart-total">
+            <span class="eyebrow">{{ 'sections.cart.subtotal' | t }}</span>
+            <span class="cart-total__value">{{ cart.total_price | money_with_currency }}</span>
+          </div>
+          <p class="form-note" style="margin-bottom:1.25rem">{{ 'sections.cart.taxes_note' | t }}</p>
+
+          <form action="{{ routes.cart_url }}" method="post" id="cart-drawer-form">
+            <button class="btn btn--block" type="submit" name="checkout">
+              <span>{{ 'sections.cart.checkout' | t }}</span>
+            </button>
+          </form>
+
+          <a class="link" href="{{ routes.cart_url }}" style="display:block; margin-top:1.25rem; text-align:center">
+            {{ 'sections.cart.view_cart' | t }}
+          </a>
+        </div>
+      {%- endif -%}
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.cart_drawer.name"
+}
+{% endschema %}

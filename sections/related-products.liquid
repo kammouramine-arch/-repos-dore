@@ -1,0 +1,79 @@
+{%- comment -%}
+  Related products
+  Uses Shopify's product recommendations, with a graceful fallback to the
+  current collection so the row is never empty on a small catalogue.
+{%- endcomment -%}
+
+{%- liquid
+  assign limit = section.settings.products_to_show
+  assign items = recommendations.products
+  if recommendations.performed == false or items.size == 0
+    assign source = collection | default: collections.all
+    assign items = source.products
+  endif
+-%}
+
+{%- if items.size > 0 -%}
+  <section class="section scheme-{{ section.settings.color_scheme }}">
+    <div class="wrap">
+      <div class="section-head section-head--split">
+        <div class="section-head__text">
+          <h2 class="h3">{{ section.settings.heading | escape }}</h2>
+        </div>
+      </div>
+
+      <div class="grid grid--{{ section.settings.columns }} grid--2-mobile">
+        {%- assign shown = 0 -%}
+        {%- for item in items -%}
+          {%- if item.id != product.id and shown < limit -%}
+            {%- render 'product-card', product: item, index: forloop.index0 -%}
+            {%- assign shown = shown | plus: 1 -%}
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </section>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.related_products.name",
+  "tag": "section",
+  "class": "related-products-section",
+  "settings": [
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "À découvrir également" },
+    {
+      "type": "range",
+      "id": "products_to_show",
+      "label": "t:sections.featured_collection.products_to_show",
+      "min": 2,
+      "max": 8,
+      "step": 1,
+      "default": 4
+    },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "t:common.columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "stone"
+    }
+  ]
+}
+{% endschema %}

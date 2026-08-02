@@ -1,0 +1,279 @@
+{
+  "settings_schema": {
+    "colors": {
+      "name": "Colours",
+      "header_core": "Core",
+      "color_white": "White",
+      "color_black": "Black",
+      "header_neutral": "Warm neutrals",
+      "color_sand": "Warm beige",
+      "color_sand_info": "Used for editorial backgrounds and product media.",
+      "color_stone": "Soft grey",
+      "header_accent": "Accent",
+      "color_gold": "Gold",
+      "color_gold_info": "Reserved for hairlines and micro-details. One gold surface per page at most."
+    },
+    "typography": {
+      "name": "Typography",
+      "font_heading": "Heading font",
+      "font_heading_weight": "Heading weight",
+      "font_body": "Body font",
+      "font_body_scale": "Body size",
+      "font_accent": "Editorial accent",
+      "font_accent_info": "Used in italic for quotes and accents.",
+      "font_accent_serif": "Serif (recommended)",
+      "font_accent_heading": "Same as headings",
+      "heading_tracking": "Heading letter-spacing"
+    },
+    "layout": {
+      "name": "Layout",
+      "page_width": "Maximum width",
+      "section_spacing": "Space between sections",
+      "enable_animations": "Enable animations",
+      "enable_animations_info": "Animations are always disabled for visitors who ask for reduced motion."
+    },
+    "product_cards": {
+      "name": "Product cards",
+      "image_ratio": "Image ratio",
+      "ratio_square": "Square",
+      "ratio_portrait": "Portrait",
+      "ratio_tall": "Tall",
+      "hover_image": "Second image on hover",
+      "quick_add": "Quick add to cart",
+      "quick_add_info": "Products with several variants link to the product page instead.",
+      "show_vendor": "Show vendor"
+    },
+    "cart": {
+      "name": "Cart",
+      "type": "Cart type",
+      "type_drawer": "Side drawer",
+      "type_page": "Dedicated page",
+      "notes": "Allow order notes"
+    },
+    "social": {
+      "name": "Social media"
+    },
+    "brand": {
+      "name": "Brand",
+      "logo": "Logo",
+      "logo_info": "Without a logo, the shop name is set in type.",
+      "logo_width": "Logo width",
+      "logo_light": "Light logo",
+      "logo_light_info": "Light version, for dark backgrounds.",
+      "favicon": "Favicon",
+      "favicon_info": "Square image, 32 × 32 px minimum.",
+      "share_image": "Social sharing image",
+      "share_image_info": "Used when a page has no image of its own. 1200 × 630 px."
+    }
+  },
+  "section_groups": {
+    "header": "Header",
+    "footer": "Footer"
+  },
+  "common": {
+    "color_scheme": "Colour scheme",
+    "scheme_light": "White",
+    "scheme_sand": "Beige",
+    "scheme_stone": "Soft grey",
+    "scheme_dark": "Black",
+    "content": "Content",
+    "media": "Media",
+    "layout": "Layout",
+    "text": "Text",
+    "link": "Link",
+    "heading": "Heading",
+    "subheading": "Subheading",
+    "eyebrow": "Eyebrow",
+    "description": "Description",
+    "heading_size": "Heading size",
+    "cta_label": "Button label",
+    "cta_link": "Button link",
+    "cta2_label": "Second button label",
+    "cta2_link": "Second button link",
+    "image": "Image",
+    "image_position": "Image position",
+    "image_ratio": "Image ratio",
+    "text_position": "Text position",
+    "alignment": "Alignment",
+    "align_left": "Left",
+    "align_center": "Centre",
+    "align_right": "Right",
+    "columns": "Columns",
+    "center": "Centre the text",
+    "mobile_scroller": "Horizontal scroll on mobile",
+    "icon": "Icon",
+    "none": "None",
+    "product": "Product",
+    "collection": "Collection",
+    "height": "Height",
+    "overlay_opacity": "Overlay opacity",
+    "autoplay": "Autoplay",
+    "max_width": "Text width",
+    "one_per_line": "One item per line."
+  },
+  "sections": {
+    "announcement": {
+      "name": "Announcement bar",
+      "rotate_speed": "Rotation speed",
+      "block_message": "Message"
+    },
+    "header": {
+      "name": "Header",
+      "menu": "Menu",
+      "transparent": "Transparent on the home page",
+      "transparent_info": "Pair this with the hero's \"Sit under the header\" option.",
+      "show_account": "Show customer account"
+    },
+    "footer": {
+      "name": "Footer",
+      "show_logo": "Show the logo",
+      "tagline": "Tagline",
+      "show_newsletter": "Show the sign-up form",
+      "show_payment": "Show payment icons",
+      "show_locale": "Show country and language",
+      "block_menu": "Link column",
+      "menu": "Menu",
+      "block_text": "Text column"
+    },
+    "cart_drawer": {
+      "name": "Cart drawer"
+    },
+    "hero": {
+      "name": "Hero",
+      "heading_info": "Each line break becomes its own animated line.",
+      "image_info": "Without an image, a graded beige canvas is composed automatically.",
+      "video": "Background video",
+      "height": "Height",
+      "text_light": "Light text",
+      "text_light_info": "Use over a dark image.",
+      "pull_under_header": "Sit under the header",
+      "pull_under_header_info": "The hero slides up under the transparent header.",
+      "scroll_cue": "Show the scroll cue"
+    },
+    "marquee": {
+      "name": "Marquee",
+      "block_item": "Item"
+    },
+    "rich_text": {
+      "name": "Rich text"
+    },
+    "featured_collection": {
+      "name": "Featured collection",
+      "collection": "Collection",
+      "products_to_show": "Products to show",
+      "view_all": "Show the \"View all\" link"
+    },
+    "featured_products": {
+      "name": "Featured products",
+      "block_product": "Product",
+      "features": "Key points",
+      "features_info": "One point per line."
+    },
+    "technology": {
+      "name": "Technology",
+      "block_spec": "Specification"
+    },
+    "lifestyle": {
+      "name": "Lifestyle band",
+      "image_info": "Full-bleed photography, ideally with an off-centre subject."
+    },
+    "benefits": {
+      "name": "Benefits",
+      "block_benefit": "Benefit"
+    },
+    "testimonials": {
+      "name": "Testimonials",
+      "block_quote": "Testimonial",
+      "quote": "Quote",
+      "author": "Author",
+      "detail": "Detail",
+      "rating_label": "Rating (out of 5)"
+    },
+    "before_after": {
+      "name": "Before / after",
+      "image_before": "\"Before\" image",
+      "image_after": "\"After\" image",
+      "label_before": "\"Before\" label",
+      "label_after": "\"After\" label",
+      "start_position": "Initial handle position",
+      "disclaimer": "Disclaimer",
+      "disclaimer_info": "Required whenever the images suggest a result."
+    },
+    "faq": {
+      "name": "FAQ",
+      "block_question": "Question",
+      "question": "Question",
+      "answer": "Answer"
+    },
+    "newsletter": {
+      "name": "Newsletter",
+      "note": "Note under the form"
+    },
+    "stats": {
+      "name": "Figures",
+      "block_stat": "Figure",
+      "value": "Value",
+      "value_info": "Digits only — the animation counts up to this value.",
+      "prefix": "Prefix",
+      "suffix": "Suffix"
+    },
+    "collection_list": {
+      "name": "Collection list",
+      "block_collection": "Collection",
+      "image_info": "Without an image, the collection's own image is used."
+    },
+    "main_product": {
+      "name": "Product",
+      "breadcrumb": "Show the breadcrumb",
+      "block_vendor": "Vendor",
+      "block_title": "Title",
+      "block_price": "Price",
+      "block_variants": "Variants",
+      "block_buy": "Buy buttons",
+      "dynamic_checkout": "Show accelerated payment buttons",
+      "block_description": "Description",
+      "truncate": "Truncate the description",
+      "block_reassurance": "Reassurance",
+      "reassurance_items": "Items",
+      "block_accordion": "Accordion",
+      "block_share": "Share"
+    },
+    "main_collection": {
+      "name": "Collection",
+      "show_description": "Show the description",
+      "show_image": "Show the image",
+      "show_sorting": "Show sorting",
+      "per_page": "Products per page"
+    },
+    "main_list_collections": {
+      "name": "Collections list"
+    },
+    "main_cart": {
+      "name": "Cart"
+    },
+    "main_search": {
+      "name": "Search"
+    },
+    "main_page": {
+      "name": "Page"
+    },
+    "main_blog": {
+      "name": "Blog"
+    },
+    "main_article": {
+      "name": "Article"
+    },
+    "main_404": {
+      "name": "404 page"
+    },
+    "main_password": {
+      "name": "Password page"
+    },
+    "related_products": {
+      "name": "Related products"
+    },
+    "contact": {
+      "name": "Contact form"
+    }
+  }
+}

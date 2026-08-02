@@ -1,0 +1,279 @@
+{
+  "settings_schema": {
+    "colors": {
+      "name": "Couleurs",
+      "header_core": "Base",
+      "color_white": "Blanc",
+      "color_black": "Noir",
+      "header_neutral": "Neutres chauds",
+      "color_sand": "Beige chaud",
+      "color_sand_info": "Utilisé pour les fonds éditoriaux et les visuels produits.",
+      "color_stone": "Gris doux",
+      "header_accent": "Accent",
+      "color_gold": "Or",
+      "color_gold_info": "Réservé aux filets et aux micro-détails. Un seul aplat doré par page."
+    },
+    "typography": {
+      "name": "Typographie",
+      "font_heading": "Police des titres",
+      "font_heading_weight": "Graisse des titres",
+      "font_body": "Police du texte",
+      "font_body_scale": "Taille du texte",
+      "font_accent": "Police éditoriale",
+      "font_accent_info": "Utilisée en italique pour les citations et les accents.",
+      "font_accent_serif": "Serif (recommandé)",
+      "font_accent_heading": "Identique aux titres",
+      "heading_tracking": "Interlettrage des titres"
+    },
+    "layout": {
+      "name": "Mise en page",
+      "page_width": "Largeur maximale",
+      "section_spacing": "Respiration entre les sections",
+      "enable_animations": "Activer les animations",
+      "enable_animations_info": "Les animations sont toujours désactivées pour les visiteurs qui demandent un mouvement réduit."
+    },
+    "product_cards": {
+      "name": "Fiches produit",
+      "image_ratio": "Format de l'image",
+      "ratio_square": "Carré",
+      "ratio_portrait": "Portrait",
+      "ratio_tall": "Portrait haut",
+      "hover_image": "Seconde image au survol",
+      "quick_add": "Ajout rapide au panier",
+      "quick_add_info": "Les produits à plusieurs variantes renvoient vers la fiche produit.",
+      "show_vendor": "Afficher le fournisseur"
+    },
+    "cart": {
+      "name": "Panier",
+      "type": "Type de panier",
+      "type_drawer": "Tiroir latéral",
+      "type_page": "Page dédiée",
+      "notes": "Autoriser les notes de commande"
+    },
+    "social": {
+      "name": "Réseaux sociaux"
+    },
+    "brand": {
+      "name": "Marque",
+      "logo": "Logo",
+      "logo_info": "Sans logo, le nom de la boutique est composé typographiquement.",
+      "logo_width": "Largeur du logo",
+      "logo_light": "Logo clair",
+      "logo_light_info": "Version claire, pour les fonds sombres.",
+      "favicon": "Favicon",
+      "favicon_info": "Image carrée, 32 × 32 px minimum.",
+      "share_image": "Image de partage",
+      "share_image_info": "Utilisée quand une page n'a pas d'image propre. 1200 × 630 px."
+    }
+  },
+  "section_groups": {
+    "header": "En-tête",
+    "footer": "Pied de page"
+  },
+  "common": {
+    "color_scheme": "Palette",
+    "scheme_light": "Blanc",
+    "scheme_sand": "Beige",
+    "scheme_stone": "Gris doux",
+    "scheme_dark": "Noir",
+    "content": "Contenu",
+    "media": "Média",
+    "layout": "Mise en page",
+    "text": "Texte",
+    "link": "Lien",
+    "heading": "Titre",
+    "subheading": "Sous-titre",
+    "eyebrow": "Sur-titre",
+    "description": "Description",
+    "heading_size": "Taille du titre",
+    "cta_label": "Libellé du bouton",
+    "cta_link": "Lien du bouton",
+    "cta2_label": "Libellé du second bouton",
+    "cta2_link": "Lien du second bouton",
+    "image": "Image",
+    "image_position": "Position de l'image",
+    "image_ratio": "Format de l'image",
+    "text_position": "Position du texte",
+    "alignment": "Alignement",
+    "align_left": "Gauche",
+    "align_center": "Centre",
+    "align_right": "Droite",
+    "columns": "Colonnes",
+    "center": "Centrer",
+    "mobile_scroller": "Défilement horizontal sur mobile",
+    "icon": "Icône",
+    "none": "Aucune",
+    "product": "Produit",
+    "collection": "Collection",
+    "height": "Hauteur",
+    "overlay_opacity": "Opacité du voile",
+    "autoplay": "Défilement automatique",
+    "max_width": "Largeur du texte",
+    "one_per_line": "Un élément par ligne."
+  },
+  "sections": {
+    "announcement": {
+      "name": "Barre d'annonce",
+      "rotate_speed": "Vitesse de rotation",
+      "block_message": "Message"
+    },
+    "header": {
+      "name": "En-tête",
+      "menu": "Menu",
+      "transparent": "Transparent sur l'accueil",
+      "transparent_info": "À combiner avec l'option « Passer sous l'en-tête » du hero.",
+      "show_account": "Afficher le compte client"
+    },
+    "footer": {
+      "name": "Pied de page",
+      "show_logo": "Afficher le logo",
+      "tagline": "Signature",
+      "show_newsletter": "Afficher l'inscription",
+      "show_payment": "Afficher les moyens de paiement",
+      "show_locale": "Afficher pays et langue",
+      "block_menu": "Colonne de liens",
+      "menu": "Menu",
+      "block_text": "Colonne de texte"
+    },
+    "cart_drawer": {
+      "name": "Tiroir panier"
+    },
+    "hero": {
+      "name": "Hero",
+      "heading_info": "Chaque retour à la ligne devient une ligne animée.",
+      "image_info": "Sans image, un fond beige dégradé est composé automatiquement.",
+      "video": "Vidéo de fond",
+      "height": "Hauteur",
+      "text_light": "Texte clair",
+      "text_light_info": "À utiliser sur une image sombre.",
+      "pull_under_header": "Passer sous l'en-tête",
+      "pull_under_header_info": "Le hero remonte sous l'en-tête transparent.",
+      "scroll_cue": "Afficher l'indicateur de défilement"
+    },
+    "marquee": {
+      "name": "Bandeau défilant",
+      "block_item": "Élément"
+    },
+    "rich_text": {
+      "name": "Texte éditorial"
+    },
+    "featured_collection": {
+      "name": "Collection en vedette",
+      "collection": "Collection",
+      "products_to_show": "Produits affichés",
+      "view_all": "Afficher le lien « Voir tout »"
+    },
+    "featured_products": {
+      "name": "Produits en vedette",
+      "block_product": "Produit",
+      "features": "Points clés",
+      "features_info": "Un point par ligne."
+    },
+    "technology": {
+      "name": "Technologie",
+      "block_spec": "Caractéristique"
+    },
+    "lifestyle": {
+      "name": "Bandeau lifestyle",
+      "image_info": "Photographie plein cadre, sujet décentré de préférence."
+    },
+    "benefits": {
+      "name": "Bénéfices",
+      "block_benefit": "Bénéfice"
+    },
+    "testimonials": {
+      "name": "Témoignages",
+      "block_quote": "Témoignage",
+      "quote": "Citation",
+      "author": "Auteur",
+      "detail": "Précision",
+      "rating_label": "Note (sur 5)"
+    },
+    "before_after": {
+      "name": "Avant / Après",
+      "image_before": "Image « avant »",
+      "image_after": "Image « après »",
+      "label_before": "Libellé « avant »",
+      "label_after": "Libellé « après »",
+      "start_position": "Position initiale du curseur",
+      "disclaimer": "Mention légale",
+      "disclaimer_info": "Obligatoire si les visuels suggèrent un résultat."
+    },
+    "faq": {
+      "name": "FAQ",
+      "block_question": "Question",
+      "question": "Question",
+      "answer": "Réponse"
+    },
+    "newsletter": {
+      "name": "Newsletter",
+      "note": "Mention sous le formulaire"
+    },
+    "stats": {
+      "name": "Chiffres",
+      "block_stat": "Chiffre",
+      "value": "Valeur",
+      "value_info": "Chiffres uniquement — l'animation compte jusqu'à cette valeur.",
+      "prefix": "Préfixe",
+      "suffix": "Suffixe"
+    },
+    "collection_list": {
+      "name": "Liste de collections",
+      "block_collection": "Collection",
+      "image_info": "Sans image, celle de la collection est utilisée."
+    },
+    "main_product": {
+      "name": "Produit",
+      "breadcrumb": "Afficher le fil d'Ariane",
+      "block_vendor": "Fournisseur",
+      "block_title": "Titre",
+      "block_price": "Prix",
+      "block_variants": "Variantes",
+      "block_buy": "Boutons d'achat",
+      "dynamic_checkout": "Afficher les paiements accélérés",
+      "block_description": "Description",
+      "truncate": "Tronquer la description",
+      "block_reassurance": "Réassurance",
+      "reassurance_items": "Éléments",
+      "block_accordion": "Accordéon",
+      "block_share": "Partage"
+    },
+    "main_collection": {
+      "name": "Collection",
+      "show_description": "Afficher la description",
+      "show_image": "Afficher l'image",
+      "show_sorting": "Afficher le tri",
+      "per_page": "Produits par page"
+    },
+    "main_list_collections": {
+      "name": "Liste des collections"
+    },
+    "main_cart": {
+      "name": "Panier"
+    },
+    "main_search": {
+      "name": "Recherche"
+    },
+    "main_page": {
+      "name": "Page"
+    },
+    "main_blog": {
+      "name": "Journal"
+    },
+    "main_article": {
+      "name": "Article"
+    },
+    "main_404": {
+      "name": "Page 404"
+    },
+    "main_password": {
+      "name": "Page mot de passe"
+    },
+    "related_products": {
+      "name": "Produits associés"
+    },
+    "contact": {
+      "name": "Formulaire de contact"
+    }
+  }
+}

@@ -1,0 +1,26 @@
+{%- comment -%} Account activation {%- endcomment -%}
+<section class="section">
+  <div class="wrap" style="max-width:460px">
+    <h1 class="h2 center" style="margin-bottom:var(--sp-4)">{{ 'customer.activate_account.title' | t }}</h1>
+    <p class="muted center" style="margin-bottom:var(--sp-4)">{{ 'customer.activate_account.subtitle' | t }}</p>
+
+    {%- form 'activate_customer_password' -%}
+      {%- if form.errors -%}
+        <p class="form-error" style="margin-bottom:1.5rem">{{ form.errors | default_errors }}</p>
+      {%- endif -%}
+
+      <div style="display:grid; gap:1.25rem">
+        <div class="field">
+          <label class="field__label" for="activate-password">{{ 'customer.login_page.password' | t }}</label>
+          <input class="input" id="activate-password" type="password" name="customer[password]" autocomplete="new-password" required>
+        </div>
+        <div class="field">
+          <label class="field__label" for="activate-confirm">{{ 'customer.reset_password.confirm' | t }}</label>
+          <input class="input" id="activate-confirm" type="password" name="customer[password_confirmation]" autocomplete="new-password" required>
+        </div>
+        <button class="btn btn--block" type="submit"><span>{{ 'customer.activate_account.submit' | t }}</span></button>
+        <button class="link" type="submit" name="decline" style="justify-self:center">{{ 'customer.activate_account.decline' | t }}</button>
+      </div>
+    {%- endform -%}
+  </div>
+</section>

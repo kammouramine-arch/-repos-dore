@@ -1,0 +1,40 @@
+{%- comment -%}
+  Gift card
+  Rendered with its own minimal layout so the card prints cleanly.
+{%- endcomment -%}
+{% layout none %}
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ 'gift_card.title' | t }} — {{ shop.name }}</title>
+    {%- render 'theme-tokens' -%}
+    {{ 'reva.css' | asset_url | stylesheet_tag }}
+  </head>
+  <body>
+    <main class="section" style="display:grid; place-items:center; min-height:100vh">
+      <div class="wrap" style="max-width:460px; text-align:center; display:grid; gap:var(--sp-3); justify-items:center">
+        <span class="footer__logo">{{ shop.name }}</span>
+        <span class="eyebrow eyebrow--gold">{{ 'gift_card.subtitle' | t }}</span>
+
+        <p class="display" style="font-size:clamp(2.5rem,8vw,4rem)">{{ gift_card.balance | money }}</p>
+
+        {%- if gift_card.enabled == false or gift_card.expired -%}
+          <p class="form-error">{{ 'gift_card.expired' | t }}</p>
+        {%- endif -%}
+
+        <div style="border:1px solid var(--c-line); padding:var(--sp-4); width:100%">
+          <p class="eyebrow" style="margin-bottom:.75rem">{{ 'gift_card.code' | t }}</p>
+          <p style="font-size:1.25rem; letter-spacing:.12em">{{ gift_card.code | format_code }}</p>
+        </div>
+
+        <a class="btn" href="{{ shop.url }}"><span>{{ 'gift_card.shop' | t }}</span></a>
+
+        {%- if gift_card.expires_on -%}
+          <p class="form-note">{{ 'gift_card.expires_on' | t: date: gift_card.expires_on | date: format: 'date' }}</p>
+        {%- endif -%}
+      </div>
+    </main>
+  </body>
+</html>

@@ -1,0 +1,43 @@
+{%- comment -%}
+  Search drawer
+  Slides down from the top. Results are fetched from the predictive search
+  endpoint, but the form also submits normally to /search — search keeps
+  working with JavaScript disabled.
+{%- endcomment -%}
+
+<div
+  class="drawer drawer--top"
+  id="search-drawer"
+  role="dialog"
+  aria-modal="true"
+  aria-hidden="true"
+  aria-label="{{ 'general.search.search' | t }}"
+  data-search-root
+>
+  <div class="wrap">
+    <div style="display:flex; align-items:center; justify-content:space-between; gap:2rem; padding-block:1.25rem">
+      <span class="drawer__title">{{ 'general.search.search' | t }}</span>
+      <button class="icon-btn" type="button" data-drawer-close aria-label="{{ 'accessibility.close' | t }}">
+        {%- render 'icon', name: 'close' -%}
+      </button>
+    </div>
+
+    <form action="{{ routes.search_url }}" method="get" role="search" class="field-inline" data-search-form>
+      <input
+        class="input"
+        type="search"
+        name="q"
+        placeholder="{{ 'general.search.placeholder' | t }}"
+        autocomplete="off"
+        data-drawer-focus
+        aria-label="{{ 'general.search.search' | t }}"
+      >
+      <input type="hidden" name="options[prefix]" value="last">
+      <button type="submit" aria-label="{{ 'general.search.submit' | t }}">
+        {{ 'general.search.submit' | t }}
+      </button>
+    </form>
+
+    <div data-search-results style="padding-block:2rem; min-height:1px"></div>
+  </div>
+</div>

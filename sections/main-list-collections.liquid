@@ -1,0 +1,68 @@
+{%- comment -%}
+  Collections index — /collections
+{%- endcomment -%}
+
+<section class="section">
+  <div class="wrap">
+    <div class="coll-head" style="margin-bottom:var(--sp-6)">
+      <span class="eyebrow" data-reveal="fade">{{ 'sections.collection.eyebrow' | t }}</span>
+      <h1 class="h1" data-reveal>{{ page_title }}</h1>
+    </div>
+
+    {%- paginate collections by 24 -%}
+      {%- if collections.size > 0 -%}
+        <div class="grid grid--{{ section.settings.columns }}">
+          {%- for coll in collections -%}
+            <a class="card" href="{{ coll.url }}" data-reveal="scale" style="--delay:{{ forloop.index0 | times: 70 }}ms">
+              <div class="card__media media media--3-4 media--zoom">
+                {%- if coll.featured_image -%}
+                  {{
+                    coll.featured_image
+                    | image_url: width: 1200
+                    | image_tag: loading: 'lazy', widths: '400,600,900,1200', sizes: '(min-width: 900px) 32vw, 90vw',
+                      alt: coll.title | escape
+                  }}
+                {%- else -%}
+                  {{ 'collection-2' | placeholder_svg_tag: 'placeholder-svg' }}
+                {%- endif -%}
+              </div>
+              <div class="card__body">
+                <h2 class="card__title">{{ coll.title | escape }}</h2>
+                <p class="card__sub">{{ 'sections.collection.product_count' | t: count: coll.all_products_count }}</p>
+              </div>
+            </a>
+          {%- endfor -%}
+        </div>
+
+        {%- render 'pagination', paginate: paginate -%}
+      {%- else -%}
+        <div class="empty">
+          <p class="h3">{{ 'sections.collection.none' | t }}</p>
+          <a class="btn" href="{{ routes.all_products_collection_url }}">
+            <span>{{ 'sections.collection.view_all' | t }}</span>
+          </a>
+        </div>
+      {%- endif -%}
+    {%- endpaginate -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_list_collections.name",
+  "tag": "section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "t:common.columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "3"
+    }
+  ]
+}
+{% endschema %}

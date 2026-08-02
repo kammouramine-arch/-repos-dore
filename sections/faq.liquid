@@ -1,0 +1,111 @@
+{%- comment -%}
+  FAQ
+  Native <details> elements with a height transition. Answers stay in the DOM,
+  so they are searchable, printable and indexable.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    <div class="split split--40" style="align-items:start; gap:clamp(2rem,5vw,6rem)">
+      <div class="split__text">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="rte muted" data-reveal style="--delay:100ms">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+
+      <div class="accordion" data-reveal>
+        {%- for block in section.blocks -%}
+          <details
+            class="accordion__item"
+            data-accordion
+            data-accordion-group="faq-{{ section.id }}"
+            {{ block.shopify_attributes }}
+          >
+            <summary class="accordion__summary">
+              {{ block.settings.question | escape }}
+              <span class="accordion__icon" aria-hidden="true"></span>
+            </summary>
+            <div class="accordion__panel" data-accordion-panel>
+              <div class="accordion__panel-inner rte">{{ block.settings.answer }}</div>
+            </div>
+          </details>
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{%- comment -%} FAQPage structured data — free rich results, no app needed. {%- endcomment -%}
+{%- if section.blocks.size > 0 -%}
+  <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {%- for block in section.blocks -%}
+          {
+            "@type": "Question",
+            "name": {{ block.settings.question | strip_html | json }},
+            "acceptedAnswer": {
+              "@type": "Answer",
+              "text": {{ block.settings.answer | strip_html | json }}
+            }
+          }{% unless forloop.last %},{% endunless %}
+        {%- endfor -%}
+      ]
+    }
+  </script>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.faq.name",
+  "tag": "section",
+  "class": "faq-section",
+  "max_blocks": 20,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Questions" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Tout ce qu'il faut savoir" },
+    { "type": "richtext", "id": "text", "label": "t:common.text" },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "question",
+      "name": "t:sections.faq.block_question",
+      "settings": [
+        { "type": "text", "id": "question", "label": "t:sections.faq.question", "default": "Combien de temps par séance ?" },
+        {
+          "type": "richtext",
+          "id": "answer",
+          "label": "t:sections.faq.answer",
+          "default": "<p>Vingt minutes suffisent. Les programmes s'arrêtent seuls — vous n'avez rien à surveiller.</p>"
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.faq.name",
+      "blocks": [{ "type": "question" }, { "type": "question" }, { "type": "question" }, { "type": "question" }]
+    }
+  ]
+}
+{% endschema %}

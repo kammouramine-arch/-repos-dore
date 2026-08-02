@@ -1,0 +1,213 @@
+{
+  "accessibility": {
+    "skip_to_content": "Aller au contenu",
+    "close": "Fermer",
+    "link_messages": {
+      "new_window": "Ouvre dans une nouvelle fenêtre."
+    }
+  },
+  "general": {
+    "home": "Accueil",
+    "menu": "Menu",
+    "breadcrumb": "Fil d'Ariane",
+    "continue_shopping": "Continuer mes achats",
+    "rights": "Tous droits réservés.",
+    "country": "Pays / région",
+    "language": "Langue",
+    "meta": {
+      "tags": "Étiquetés « {{ tags }} »",
+      "page": "Page {{ page }}"
+    },
+    "pagination": {
+      "label": "Pagination",
+      "previous": "Page précédente",
+      "next": "Page suivante"
+    },
+    "slider": {
+      "previous": "Précédent",
+      "next": "Suivant",
+      "go_to": "Aller à l'élément {{ index }}"
+    },
+    "search": {
+      "title": "Rechercher",
+      "search": "Rechercher",
+      "submit": "Rechercher",
+      "placeholder": "Que cherchez-vous ?",
+      "products": "Produits",
+      "results_for": "Résultats pour « {{ terms }} »",
+      "results_count": {
+        "one": "{{ count }} résultat",
+        "other": "{{ count }} résultats"
+      },
+      "no_results": "Aucun résultat pour « {{ terms }} »."
+    }
+  },
+  "onboarding": {
+    "product_title": "Nom du produit"
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Ajouter au panier",
+      "sold_out": "Épuisé",
+      "unavailable": "Indisponible",
+      "on_sale": "Offre",
+      "choose_options": "Choisir les options",
+      "from_price": "À partir de {{ price }}",
+      "discover": "Découvrir",
+      "view_image": "Voir l'image {{ index }}",
+      "copy_link": "Copier le lien"
+    }
+  },
+  "sections": {
+    "hero": {
+      "scroll": "Faire défiler"
+    },
+    "cart": {
+      "title": "Panier",
+      "count": {
+        "one": "{{ count }} article dans le panier",
+        "other": "{{ count }} articles dans le panier"
+      },
+      "empty": "Votre panier est vide.",
+      "summary": "Récapitulatif",
+      "subtotal": "Sous-total",
+      "taxes_note": "Taxes et frais de livraison calculés au paiement.",
+      "checkout": "Passer au paiement",
+      "view_cart": "Voir le panier",
+      "remove": "Retirer",
+      "quantity": "Quantité",
+      "increase": "Augmenter la quantité",
+      "decrease": "Diminuer la quantité",
+      "note": "Ajouter une note à la commande"
+    },
+    "collection": {
+      "eyebrow": "Collection",
+      "view_all": "Voir tout",
+      "sort_by": "Trier par",
+      "empty": "Aucun produit dans cette collection pour le moment.",
+      "none": "Aucune collection pour le moment.",
+      "product_count": {
+        "one": "{{ count }} produit",
+        "other": "{{ count }} produits"
+      }
+    },
+    "testimonials": {
+      "rating": "Note : {{ rating }} sur 5"
+    },
+    "before_after": {
+      "slider_label": "Comparer avant et après"
+    }
+  },
+  "newsletter": {
+    "email": "Votre adresse e-mail",
+    "submit": "S'inscrire",
+    "success": "Merci — votre inscription est confirmée."
+  },
+  "contact": {
+    "name": "Nom",
+    "email": "E-mail",
+    "phone": "Téléphone",
+    "message": "Message",
+    "send": "Envoyer",
+    "success": "Merci, votre message a bien été envoyé."
+  },
+  "blogs": {
+    "journal": "Journal",
+    "empty": "Aucun article pour le moment.",
+    "by_author": "Par {{ author }}",
+    "back": "Retour au journal",
+    "comments": {
+      "one": "{{ count }} commentaire",
+      "other": "{{ count }} commentaires"
+    },
+    "comment_success": "Merci, votre commentaire a été envoyé.",
+    "comment_submit": "Publier"
+  },
+  "404": {
+    "title": "Cette page n'existe plus",
+    "text": "Le lien est peut-être ancien, ou la page a été déplacée. Reprenons depuis l'accueil.",
+    "back_home": "Retour à l'accueil"
+  },
+  "password": {
+    "password": "Mot de passe",
+    "enter": "Entrer"
+  },
+  "gift_card": {
+    "title": "Carte cadeau",
+    "subtitle": "Votre carte cadeau",
+    "code": "Code de la carte",
+    "qr": "QR code de la carte cadeau",
+    "shop": "Utiliser ma carte",
+    "expired": "Cette carte cadeau a expiré.",
+    "expires_on": "Expire le {{ date }}"
+  },
+  "customer": {
+    "account": {
+      "title": "Mon compte",
+      "log_out": "Se déconnecter",
+      "default_address": "Adresse par défaut",
+      "view_addresses": "Gérer mes adresses"
+    },
+    "login_page": {
+      "title": "Connexion",
+      "email": "E-mail",
+      "password": "Mot de passe",
+      "forgot_password": "Mot de passe oublié ?",
+      "sign_in": "Se connecter",
+      "create_account": "Créer un compte"
+    },
+    "recover_password": {
+      "title": "Réinitialiser le mot de passe",
+      "submit": "Envoyer",
+      "success": "Nous vous avons envoyé un e-mail avec un lien de réinitialisation."
+    },
+    "reset_password": {
+      "title": "Nouveau mot de passe",
+      "password": "Mot de passe",
+      "confirm": "Confirmer le mot de passe",
+      "submit": "Enregistrer"
+    },
+    "activate_account": {
+      "title": "Activer mon compte",
+      "subtitle": "Choisissez un mot de passe pour activer votre compte.",
+      "submit": "Activer",
+      "decline": "Refuser l'invitation"
+    },
+    "register": {
+      "title": "Créer un compte",
+      "first_name": "Prénom",
+      "last_name": "Nom",
+      "submit": "Créer mon compte",
+      "sign_in": "J'ai déjà un compte"
+    },
+    "orders": {
+      "title": "Commandes",
+      "order_number": "Commande",
+      "date": "Date",
+      "payment_status": "Paiement",
+      "total": "Total",
+      "none": "Vous n'avez pas encore passé de commande."
+    },
+    "order": {
+      "title": "Commande {{ name }}",
+      "product": "Produit",
+      "quantity": "Qté",
+      "subtotal": "Sous-total",
+      "total": "Total",
+      "billing_address": "Adresse de facturation",
+      "shipping_address": "Adresse de livraison",
+      "back": "Retour au compte"
+    },
+    "addresses": {
+      "title": "Mes adresses",
+      "none": "Aucune adresse enregistrée.",
+      "add_new": "Ajouter une adresse",
+      "edit": "Modifier",
+      "save": "Enregistrer",
+      "address1": "Adresse",
+      "city": "Ville",
+      "zip": "Code postal",
+      "country": "Pays"
+    }
+  }
+}

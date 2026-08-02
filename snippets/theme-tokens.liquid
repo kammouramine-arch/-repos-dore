@@ -1,0 +1,59 @@
+{%- comment -%}
+  Design tokens
+  Translates the theme settings into the custom properties consumed by
+  assets/reva.css. Rendered inline in <head> so there is no flash of
+  unstyled colour and no extra request.
+{%- endcomment -%}
+
+{%- assign heading_font = settings.font_heading -%}
+{%- assign body_font = settings.font_body -%}
+{%- assign body_bold = body_font | font_modify: 'weight', 'bolder' -%}
+{%- assign body_italic = body_font | font_modify: 'style', 'italic' -%}
+{%- assign heading_scaled = heading_font | font_modify: 'weight', settings.font_heading_weight -%}
+
+<style data-theme-tokens>
+  {{ body_font | font_face: font_display: 'swap' }}
+  {{ body_bold | font_face: font_display: 'swap' }}
+  {{ body_italic | font_face: font_display: 'swap' }}
+  {{ heading_font | font_face: font_display: 'swap' }}
+  {%- if heading_scaled -%}{{ heading_scaled | font_face: font_display: 'swap' }}{%- endif -%}
+
+  :root {
+    --c-white: {{ settings.color_white }};
+    --c-black: {{ settings.color_black }};
+    --c-sand: {{ settings.color_sand }};
+    --c-stone: {{ settings.color_stone }};
+    --c-gold: {{ settings.color_gold }};
+
+    /* Default (light) scheme */
+    --c-bg: {{ settings.color_white }};
+    --c-ink: {{ settings.color_black }};
+    --c-ink-2: {{ settings.color_black | color_lighten: 18 }};
+    --c-mute: {{ settings.color_black | color_lighten: 45 }};
+    --c-line: {{ settings.color_black | color_lighten: 88 }};
+
+    --f-body: {{ body_font.family }}, {{ body_font.fallback_families }};
+    --f-body-weight: {{ body_font.weight }};
+    --f-head: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    --f-head-weight: {{ settings.font_heading_weight }};
+    {%- if settings.font_accent == 'heading' %}
+    --f-accent: {{ heading_font.family }}, {{ heading_font.fallback_families }};
+    {%- else %}
+    --f-accent: 'Iowan Old Style', 'Palatino Linotype', Palatino, Georgia, 'Times New Roman', serif;
+    {%- endif %}
+
+    --t-body: calc(clamp(0.975rem, 1.02vw, 1.0625rem) * {{ settings.font_body_scale | times: 0.01 }});
+    --ls-head: {{ settings.heading_tracking | times: 0.01 }}em;
+
+    --page: {{ settings.page_width }}px;
+    --section-y: calc(clamp(4.5rem, 9vw, 9rem) * {{ settings.section_spacing | times: 0.01 }});
+  }
+
+  {%- unless settings.enable_animations %}
+  /* Animations disabled in theme settings */
+  .js [data-reveal],
+  .js [data-reveal-lines] .line-inner { opacity: 1 !important; transform: none !important; }
+  .marquee__track { animation: none; }
+  .hero__scroll i { animation: none; transform: scaleY(1); }
+  {%- endunless %}
+</style>

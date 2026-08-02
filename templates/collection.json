@@ -1,0 +1,25 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-collection",
+      "settings": {
+        "show_description": true,
+        "show_image": true,
+        "show_sorting": true,
+        "columns": "3",
+        "products_per_page": 24
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "Lettre RÉVA",
+        "heading": "Une lettre par mois, sur le repos et rien d'autre",
+        "text": "Protocoles, coulisses de fabrication, avant-premières.",
+        "note": "Désinscription en un clic.",
+        "color_scheme": "dark"
+      }
+    }
+  },
+  "order": ["main", "newsletter"]
+}

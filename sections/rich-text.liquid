@@ -1,0 +1,78 @@
+{%- comment -%}
+  Rich text — the manifesto block. Deliberately narrow, deliberately empty
+  around it. This is where the brand speaks in its own voice.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap wrap--narrow">
+    <div class="center mx-auto" style="max-width: {{ section.settings.max_width }}ch; display:flex; flex-direction:column; align-items:center; gap:var(--sp-3)">
+      {%- if section.settings.eyebrow != blank -%}
+        <span class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+      {%- endif -%}
+
+      {%- if section.settings.heading != blank -%}
+        <h2 class="{{ section.settings.heading_size }}" data-reveal>{{ section.settings.heading }}</h2>
+      {%- endif -%}
+
+      {%- if section.settings.text != blank -%}
+        <div class="rte lede" data-reveal style="--delay:120ms; max-width:none">{{ section.settings.text }}</div>
+      {%- endif -%}
+
+      {%- if section.settings.cta_label != blank -%}
+        <a class="link link--gold" href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}" data-reveal style="--delay:200ms; margin-top:1rem">
+          {{ section.settings.cta_label | escape }}
+        </a>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.rich_text.name",
+  "tag": "section",
+  "class": "rich-text-section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Notre conviction" },
+    {
+      "type": "richtext",
+      "id": "heading",
+      "label": "t:common.heading",
+      "default": "<p>La récupération n'est pas un luxe. C'est <em>la condition</em> de tout le reste.</p>"
+    },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:common.text",
+      "default": "<p>Nous concevons des appareils que l'on garde dix ans : des matériaux honnêtes, des moteurs silencieux, des commandes que l'on comprend sans notice. Rien à montrer, tout à ressentir.</p>"
+    },
+    {
+      "type": "select",
+      "id": "heading_size",
+      "label": "t:common.heading_size",
+      "options": [
+        { "value": "h3", "label": "S" },
+        { "value": "h2", "label": "M" },
+        { "value": "h1", "label": "L" }
+      ],
+      "default": "h2"
+    },
+    { "type": "range", "id": "max_width", "label": "t:common.max_width", "min": 30, "max": 70, "step": 2, "unit": "ch", "default": 44 },
+    { "type": "text", "id": "cta_label", "label": "t:common.cta_label" },
+    { "type": "url", "id": "cta_link", "label": "t:common.cta_link" },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "presets": [{ "name": "t:sections.rich_text.name" }]
+}
+{% endschema %}

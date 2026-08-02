@@ -1,0 +1,315 @@
+{%- comment -%}
+  Product
+  The store's real product data, presented in the RÉVA layout. Nothing about
+  the product itself is invented here — titles, media, options, prices and
+  descriptions all come from the Shopify admin.
+{%- endcomment -%}
+
+{%- liquid
+  assign current = product.selected_or_first_available_variant
+  assign has_media = false
+  if product.media.size > 0
+    assign has_media = true
+  endif
+-%}
+
+<section class="section" data-product-root>
+  <div class="wrap">
+    {%- if section.settings.show_breadcrumb -%}
+      <nav class="muted" style="font-size:var(--t-small); margin-bottom:var(--sp-4)" aria-label="{{ 'general.breadcrumb' | t }}">
+        <a href="{{ routes.root_url }}">{{ 'general.home' | t }}</a>
+        <span> / </span>
+        {%- if collection -%}
+          <a href="{{ collection.url }}">{{ collection.title }}</a>
+          <span> / </span>
+        {%- endif -%}
+        <span aria-current="page">{{ product.title }}</span>
+      </nav>
+    {%- endif -%}
+
+    <div class="pdp">
+      {%- comment -%} Gallery {%- endcomment -%}
+      <div class="pdp__gallery" data-gallery>
+        <div class="pdp__main media media--{{ section.settings.image_ratio }}" data-gallery-main>
+          {%- if has_media -%}
+            {{
+              product.featured_media
+              | image_url: width: 1800
+              | image_tag:
+                loading: 'eager',
+                fetchpriority: 'high',
+                widths: '540,720,900,1200,1500,1800',
+                sizes: '(min-width: 900px) 52vw, 100vw',
+                alt: product.featured_media.alt | default: product.title | escape
+            }}
+          {%- else -%}
+            {{ 'product-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+          {%- endif -%}
+        </div>
+
+        {%- if product.media.size > 1 -%}
+          <div class="pdp__thumbs">
+            {%- for media in product.media -%}
+              <button
+                class="pdp__thumb{% if forloop.first %} is-active{% endif %}"
+                type="button"
+                data-thumb
+                data-media-id="{{ media.id }}"
+                data-src="{{ media.preview_image | image_url: width: 1800 }}"
+                data-srcset="{{ media.preview_image | image_url: width: 900 }} 900w, {{ media.preview_image | image_url: width: 1800 }} 1800w"
+                data-alt="{{ media.alt | default: product.title | escape }}"
+                aria-label="{{ 'products.product.view_image' | t: index: forloop.index }}"
+              >
+                {{ media.preview_image | image_url: width: 300 | image_tag: loading: 'lazy', alt: '' }}
+              </button>
+            {%- endfor -%}
+          </div>
+        {%- endif -%}
+      </div>
+
+      {%- comment -%} Buy column {%- endcomment -%}
+      <div class="pdp__info">
+        {%- for block in section.blocks -%}
+          {%- case block.type -%}
+            {%- when '@app' -%}
+              {% render block %}
+
+            {%- when 'vendor' -%}
+              {%- if product.vendor != blank -%}
+                <span class="eyebrow" {{ block.shopify_attributes }}>{{ product.vendor }}</span>
+              {%- endif -%}
+
+            {%- when 'title' -%}
+              <h1 class="pdp__title" {{ block.shopify_attributes }}>{{ product.title }}</h1>
+
+            {%- when 'price' -%}
+              <div class="pdp__price" data-variant-price {{ block.shopify_attributes }}>
+                {%- render 'price', product: product, variant: current, show_unit: true -%}
+              </div>
+
+            {%- when 'description' -%}
+              {%- if product.description != blank -%}
+                <div class="pdp__desc rte" {{ block.shopify_attributes }}>
+                  {%- if block.settings.truncate -%}
+                    {{ product.description | strip_html | truncatewords: 46 }}
+                  {%- else -%}
+                    {{ product.description }}
+                  {%- endif -%}
+                </div>
+              {%- endif -%}
+
+            {%- when 'text' -%}
+              <div class="rte muted" {{ block.shopify_attributes }}>{{ block.settings.text }}</div>
+
+            {%- when 'variants' -%}
+              <div {{ block.shopify_attributes }}>
+                {%- unless product.has_only_default_variant -%}
+                  {%- for option in product.options_with_values -%}
+                    <div class="variant-group" data-option-index="{{ forloop.index0 }}" style="margin-bottom:1.25rem">
+                      <span class="variant-group__label">
+                        {{ option.name }} — <span data-option-selected></span>
+                      </span>
+                      <div class="swatches">
+                        {%- for value in option.values -%}
+                          {%- assign input_id = section.id | append: '-' | append: forloop.parentloop.index0 | append: '-' | append: forloop.index0 -%}
+                          <label class="swatch" data-option-value>
+                            <input
+                              type="radio"
+                              id="opt-{{ input_id }}"
+                              name="option-{{ section.id }}-{{ forloop.parentloop.index0 }}"
+                              value="{{ value | escape }}"
+                              {% if option.selected_value == value %}checked{% endif %}
+                            >
+                            <span>{{ value }}</span>
+                          </label>
+                        {%- endfor -%}
+                      </div>
+                    </div>
+                  {%- endfor -%}
+                {%- endunless -%}
+
+                <script type="application/json" data-variants-json>
+                  [
+                    {%- for variant in product.variants -%}
+                      {
+                        "id": {{ variant.id }},
+                        "options": {{ variant.options | json }},
+                        "available": {{ variant.available }},
+                        "price": {{ variant.price }},
+                        "featured_media_id": {{ variant.featured_media.id | default: 0 }},
+                        "price_html": {{ variant.price | money | json }}
+                      }{% unless forloop.last %},{% endunless %}
+                    {%- endfor -%}
+                  ]
+                </script>
+              </div>
+
+            {%- when 'buy_buttons' -%}
+              {%- assign product_form_id = 'product-form-' | append: section.id -%}
+              <div {{ block.shopify_attributes }}>
+                {%- form 'product', product, data-cart-add-form: true, data-product-form: true, id: product_form_id, novalidate: 'novalidate' -%}
+                  <input type="hidden" name="id" value="{{ current.id }}" data-variant-id>
+
+                  <div class="pdp__buy">
+                    <div class="qty" data-qty>
+                      <button type="button" data-qty-step="-1" aria-label="{{ 'sections.cart.decrease' | t }}">−</button>
+                      <input type="number" name="quantity" value="1" min="1" inputmode="numeric" aria-label="{{ 'sections.cart.quantity' | t }}">
+                      <button type="button" data-qty-step="1" aria-label="{{ 'sections.cart.increase' | t }}">+</button>
+                    </div>
+
+                    <button
+                      class="btn"
+                      type="submit"
+                      data-add-to-cart
+                      {% unless current.available %}aria-disabled="true"{% endunless %}
+                    >
+                      <span data-add-to-cart-text>
+                        {%- if current.available -%}
+                          {{ 'products.product.add_to_cart' | t }}
+                        {%- else -%}
+                          {{ 'products.product.sold_out' | t }}
+                        {%- endif -%}
+                      </span>
+                    </button>
+                  </div>
+
+                  <p class="form-error" data-cart-error hidden style="margin-top:1rem"></p>
+
+                  {%- if block.settings.show_dynamic_checkout -%}
+                    <div style="margin-top:.75rem">{{ form | payment_button }}</div>
+                  {%- endif -%}
+                {%- endform -%}
+              </div>
+
+            {%- when 'reassurance' -%}
+              <ul class="pdp__reassure" {{ block.shopify_attributes }}>
+                {%- assign lines = block.settings.items | newline_to_br | split: '<br />' -%}
+                {%- for line in lines -%}
+                  {%- if line != blank -%}
+                    <li>{% render 'icon', name: block.settings.icon %}{{ line | strip | escape }}</li>
+                  {%- endif -%}
+                {%- endfor -%}
+              </ul>
+
+            {%- when 'accordion' -%}
+              <details class="accordion__item" data-accordion data-accordion-group="pdp-{{ section.id }}" {{ block.shopify_attributes }}>
+                <summary class="accordion__summary" style="font-size:1rem">
+                  {{ block.settings.title | escape }}
+                  <span class="accordion__icon" aria-hidden="true"></span>
+                </summary>
+                <div class="accordion__panel" data-accordion-panel>
+                  <div class="accordion__panel-inner rte" style="padding-right:0">{{ block.settings.content }}</div>
+                </div>
+              </details>
+
+            {%- when 'share' -%}
+              <div {{ block.shopify_attributes }} style="margin-top:.5rem">
+                <a class="link" href="{{ shop.url }}{{ product.url }}" onclick="navigator.clipboard&&navigator.clipboard.writeText(this.href);return false;">
+                  {{ 'products.product.copy_link' | t }}
+                </a>
+              </div>
+          {%- endcase -%}
+        {%- endfor -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.main_product.name",
+  "tag": "section",
+  "class": "main-product-section",
+  "settings": [
+    {
+      "type": "select",
+      "id": "image_ratio",
+      "label": "t:common.image_ratio",
+      "options": [
+        { "value": "1-1", "label": "1:1" },
+        { "value": "4-5", "label": "4:5" },
+        { "value": "3-4", "label": "3:4" }
+      ],
+      "default": "1-1"
+    },
+    { "type": "checkbox", "id": "show_breadcrumb", "label": "t:sections.main_product.breadcrumb", "default": true }
+  ],
+  "blocks": [
+    { "type": "@app" },
+    { "type": "vendor", "name": "t:sections.main_product.block_vendor", "limit": 1 },
+    { "type": "title", "name": "t:sections.main_product.block_title", "limit": 1 },
+    { "type": "price", "name": "t:sections.main_product.block_price", "limit": 1 },
+    {
+      "type": "variants",
+      "name": "t:sections.main_product.block_variants",
+      "limit": 1
+    },
+    {
+      "type": "buy_buttons",
+      "name": "t:sections.main_product.block_buy",
+      "limit": 1,
+      "settings": [
+        {
+          "type": "checkbox",
+          "id": "show_dynamic_checkout",
+          "label": "t:sections.main_product.dynamic_checkout",
+          "default": true
+        }
+      ]
+    },
+    {
+      "type": "description",
+      "name": "t:sections.main_product.block_description",
+      "limit": 1,
+      "settings": [
+        { "type": "checkbox", "id": "truncate", "label": "t:sections.main_product.truncate", "default": false }
+      ]
+    },
+    {
+      "type": "text",
+      "name": "t:common.text",
+      "settings": [{ "type": "richtext", "id": "text", "label": "t:common.text" }]
+    },
+    {
+      "type": "reassurance",
+      "name": "t:sections.main_product.block_reassurance",
+      "settings": [
+        {
+          "type": "textarea",
+          "id": "items",
+          "label": "t:sections.main_product.reassurance_items",
+          "info": "t:common.one_per_line",
+          "default": "Livraison offerte dès 100 €\nEssai 30 jours, retour gratuit\nGarantie 2 ans"
+        },
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:common.icon",
+          "options": [
+            { "value": "check", "label": "Check" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "truck", "label": "Delivery" },
+            { "value": "refresh", "label": "Returns" },
+            { "value": "lock", "label": "Secure" }
+          ],
+          "default": "check"
+        }
+      ]
+    },
+    {
+      "type": "accordion",
+      "name": "t:sections.main_product.block_accordion",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.heading", "default": "Livraison & retours" },
+        {
+          "type": "richtext",
+          "id": "content",
+          "label": "t:common.text",
+          "default": "<p>Expédition sous 24 h ouvrées. Retour gratuit sous 30 jours.</p>"
+        }
+      ]
+    },
+    { "type": "share", "name": "t:sections.main_product.block_share", "limit": 1 }
+  ]
+}
+{% endschema %}

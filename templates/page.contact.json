@@ -1,0 +1,15 @@
+{
+  "sections": {
+    "main": { "type": "main-page", "settings": {} },
+    "form": {
+      "type": "contact-form",
+      "settings": {
+        "eyebrow": "Nous écrire",
+        "heading": "Une question ? Une personne vous répond.",
+        "text": "<p>Du lundi au vendredi, 9h – 18h. Réponse sous 24 h ouvrées.</p>",
+        "color_scheme": "light"
+      }
+    }
+  },
+  "order": ["main", "form"]
+}

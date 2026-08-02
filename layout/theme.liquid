@@ -1,0 +1,70 @@
+<!doctype html>
+<html
+  lang="{{ request.locale.iso_code }}"
+  dir="{% if request.locale.iso_code == 'ar' or request.locale.iso_code == 'he' %}rtl{% else %}ltr{% endif %}"
+>
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+    <meta name="theme-color" content="{{ settings.color_white }}">
+    <link rel="canonical" href="{{ canonical_url }}">
+    <link rel="preconnect" href="https://cdn.shopify.com" crossorigin>
+
+    {%- if settings.favicon != blank -%}
+      <link rel="icon" type="image/png" href="{{ settings.favicon | image_url: width: 32, height: 32 }}">
+      <link rel="apple-touch-icon" href="{{ settings.favicon | image_url: width: 180, height: 180 }}">
+    {%- endif -%}
+
+    {%- render 'meta-tags' -%}
+
+    {%- comment -%} Set before paint so no-JS visitors never see hidden content. {%- endcomment -%}
+    <script>document.documentElement.className += ' js';</script>
+
+    {%- render 'theme-tokens' -%}
+    {{ 'reva.css' | asset_url | stylesheet_tag: preload: true }}
+
+    <script>
+      window.RevaTheme = {
+        moneyFormat: {{ shop.money_format | json }},
+        cartType: {{ settings.cart_type | json }},
+        routes: {
+          root: {{ routes.root_url | json }},
+          cart: {{ routes.cart_url | json }},
+          cartAdd: {{ routes.cart_add_url | json }},
+          cartChange: {{ routes.cart_change_url | json }},
+          predictiveSearch: {{ routes.predictive_search_url | json }}
+        },
+        strings: {
+          addToCart: {{ 'products.product.add_to_cart' | t | json }},
+          soldOut: {{ 'products.product.sold_out' | t | json }},
+          unavailable: {{ 'products.product.unavailable' | t | json }}
+        }
+      };
+    </script>
+    <script src="{{ 'reva.js' | asset_url }}" defer></script>
+
+    {{ content_for_header }}
+  </head>
+
+  <body class="template-{{ request.page_type | handle }}">
+    <a class="skip-link" href="#main">{{ 'accessibility.skip_to_content' | t }}</a>
+
+    {%- sections 'header-group' -%}
+
+    <main id="main" role="main">
+      {{ content_for_layout }}
+    </main>
+
+    {%- sections 'footer-group' -%}
+
+    {%- comment -%} Overlays live outside the flow so they sit above everything. {%- endcomment -%}
+    <div class="drawer-overlay" data-drawer-overlay></div>
+    {%- section 'cart-drawer' -%}
+    {%- render 'search-drawer' -%}
+
+    <ul hidden>
+      <li id="a11y-new-window-message">{{ 'accessibility.link_messages.new_window' | t }}</li>
+    </ul>
+  </body>
+</html>

@@ -1,0 +1,42 @@
+{
+  "type": "footer",
+  "name": "t:section_groups.footer",
+  "sections": {
+    "footer": {
+      "type": "footer",
+      "blocks": {
+        "menu-1": {
+          "type": "menu",
+          "settings": {
+            "title": "Boutique",
+            "menu": "main-menu"
+          }
+        },
+        "menu-2": {
+          "type": "menu",
+          "settings": {
+            "title": "Informations",
+            "menu": "footer"
+          }
+        },
+        "text-1": {
+          "type": "text",
+          "settings": {
+            "title": "Service client",
+            "content": "<p>Du lundi au vendredi, 9h – 18h.<br>Réponse sous 24 h ouvrées.</p>"
+          }
+        }
+      },
+      "block_order": ["menu-1", "menu-2", "text-1"],
+      "settings": {
+        "color_scheme": "light",
+        "show_logo": false,
+        "tagline": "La récupération, pensée comme un rituel quotidien.",
+        "show_newsletter": true,
+        "show_payment_icons": true,
+        "show_locale_selectors": true
+      }
+    }
+  },
+  "order": ["footer"]
+}

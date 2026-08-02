@@ -1,0 +1,118 @@
+{%- comment -%}
+  Benefits
+  Icon + title + one sentence. Three or four columns, nothing more.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    {%- if section.settings.heading != blank or section.settings.eyebrow != blank -%}
+      <div class="section-head {% if section.settings.center %}section-head--center{% endif %}">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+
+    <div class="grid grid--{{ section.settings.columns }} grid--2-mobile">
+      {%- for block in section.blocks -%}
+        <div class="benefit{% if section.settings.center %} center{% endif %}"
+             data-reveal
+             style="--delay:{{ forloop.index0 | times: 90 }}ms{% if section.settings.center %}; align-items:center{% endif %}"
+             {{ block.shopify_attributes }}>
+          {%- if block.settings.icon != 'none' -%}
+            <span class="benefit__icon">{% render 'icon', name: block.settings.icon %}</span>
+          {%- endif -%}
+          <h3 class="benefit__title">{{ block.settings.title | escape }}</h3>
+          {%- if block.settings.text != blank -%}
+            <p class="benefit__text">{{ block.settings.text | escape }}</p>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.benefits.name",
+  "tag": "section",
+  "class": "benefits-section",
+  "max_blocks": 8,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Pourquoi RÉVA" },
+    {
+      "type": "select",
+      "id": "columns",
+      "label": "t:common.columns",
+      "options": [
+        { "value": "2", "label": "2" },
+        { "value": "3", "label": "3" },
+        { "value": "4", "label": "4" }
+      ],
+      "default": "4"
+    },
+    { "type": "checkbox", "id": "center", "label": "t:common.center", "default": false },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "stone"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "benefit",
+      "name": "t:sections.benefits.block_benefit",
+      "settings": [
+        {
+          "type": "select",
+          "id": "icon",
+          "label": "t:common.icon",
+          "options": [
+            { "value": "none", "label": "t:common.none" },
+            { "value": "leaf", "label": "Leaf" },
+            { "value": "heart", "label": "Heart" },
+            { "value": "shield", "label": "Shield" },
+            { "value": "clock", "label": "Clock" },
+            { "value": "moon", "label": "Moon" },
+            { "value": "wave", "label": "Wave" },
+            { "value": "spark", "label": "Spark" },
+            { "value": "thermometer", "label": "Thermometer" },
+            { "value": "battery", "label": "Battery" },
+            { "value": "feather", "label": "Feather" },
+            { "value": "award", "label": "Award" },
+            { "value": "truck", "label": "Delivery" },
+            { "value": "refresh", "label": "Returns" },
+            { "value": "headset", "label": "Support" },
+            { "value": "lock", "label": "Secure" }
+          ],
+          "default": "leaf"
+        },
+        { "type": "text", "id": "title", "label": "t:common.heading", "default": "Silence absolu" },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "t:common.text",
+          "default": "Moins de 45 dB : vous pouvez lire, parler ou vous endormir pendant la séance."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.benefits.name",
+      "blocks": [{ "type": "benefit" }, { "type": "benefit" }, { "type": "benefit" }, { "type": "benefit" }]
+    }
+  ]
+}
+{% endschema %}

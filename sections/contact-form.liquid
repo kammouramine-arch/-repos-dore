@@ -1,0 +1,92 @@
+{%- comment -%}
+  Contact form
+  Native {% form 'contact' %} — messages arrive in the shop's contact inbox.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap wrap--narrow">
+    <div class="split split--50" style="align-items:start">
+      <div class="split__text" data-reveal>
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2">{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.text != blank -%}
+          <div class="rte muted">{{ section.settings.text }}</div>
+        {%- endif -%}
+      </div>
+
+      <div data-reveal style="--delay:120ms">
+        {%- form 'contact', id: 'contact-form' -%}
+          {%- if form.posted_successfully? -%}
+            <p class="form-success">{{ 'contact.success' | t }}</p>
+          {%- else -%}
+            {%- if form.errors -%}
+              <p class="form-error" style="margin-bottom:1.5rem">
+                {{ form.errors | default_errors }}
+              </p>
+            {%- endif -%}
+
+            <div style="display:grid; gap:1.25rem">
+              <div class="field">
+                <label class="field__label" for="contact-name">{{ 'contact.name' | t }}</label>
+                <input class="input" id="contact-name" type="text" name="contact[name]" autocomplete="name" required>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="contact-email">{{ 'contact.email' | t }}</label>
+                <input class="input" id="contact-email" type="email" name="contact[email]" autocomplete="email" required>
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="contact-phone">{{ 'contact.phone' | t }}</label>
+                <input class="input" id="contact-phone" type="tel" name="contact[phone]" autocomplete="tel">
+              </div>
+
+              <div class="field">
+                <label class="field__label" for="contact-body">{{ 'contact.message' | t }}</label>
+                <textarea class="textarea" id="contact-body" name="contact[body]" required></textarea>
+              </div>
+
+              <button class="btn" type="submit" style="justify-self:start">
+                <span>{{ 'contact.send' | t }}</span>
+              </button>
+            </div>
+          {%- endif -%}
+        {%- endform -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.contact.name",
+  "tag": "section",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "Nous écrire" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Une question ? Une personne vous répond." },
+    {
+      "type": "richtext",
+      "id": "text",
+      "label": "t:common.text",
+      "default": "<p>Du lundi au vendredi, 9h – 18h. Réponse sous 24 h ouvrées.</p>"
+    },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "presets": [{ "name": "t:sections.contact.name" }]
+}
+{% endschema %}

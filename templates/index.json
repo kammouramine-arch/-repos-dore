@@ -1,0 +1,343 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "settings": {
+        "eyebrow": "Maison RÉVA — Récupération",
+        "heading": "Le repos,\nremis au centre.",
+        "subheading": "Des appareils de récupération conçus pour disparaître dans votre intérieur — et se faire sentir dans votre corps.",
+        "cta_label": "Découvrir la collection",
+        "cta_link": "shopify://collections/bien-etre-massage",
+        "cta2_label": "La technologie",
+        "cta2_link": "",
+        "height": 90,
+        "alignment": "left",
+        "text_light": true,
+        "pull_under_header": true,
+        "show_scroll_cue": true
+      }
+    },
+    "marquee": {
+      "type": "marquee",
+      "blocks": {
+        "m1": { "type": "item", "settings": { "text": "Essai 30 jours" } },
+        "m2": { "type": "item", "settings": { "text": "Garantie 2 ans" } },
+        "m3": { "type": "item", "settings": { "text": "Livraison offerte dès 100 €" } },
+        "m4": { "type": "item", "settings": { "text": "Conseil humain, pas un chatbot" } },
+        "m5": { "type": "item", "settings": { "text": "Moteurs silencieux" } }
+      },
+      "block_order": ["m1", "m2", "m3", "m4", "m5"],
+      "settings": { "color_scheme": "light" }
+    },
+    "manifesto": {
+      "type": "rich-text",
+      "settings": {
+        "eyebrow": "Notre conviction",
+        "heading": "<p>La récupération n'est pas un luxe. C'est <em>la condition</em> de tout le reste.</p>",
+        "text": "<p>Nous concevons des appareils que l'on garde dix ans : des matériaux honnêtes, des moteurs silencieux, des commandes que l'on comprend sans notice. Rien à montrer, tout à ressentir.</p>",
+        "heading_size": "h2",
+        "max_width": 46,
+        "cta_label": "",
+        "color_scheme": "light"
+      }
+    },
+    "featured-collection": {
+      "type": "featured-collection",
+      "settings": {
+        "collection": "bien-etre-massage",
+        "eyebrow": "La collection",
+        "heading": "Un appareil pour chaque fin de journée",
+        "description": "",
+        "products_to_show": 4,
+        "columns": "4",
+        "mobile_scroller": false,
+        "show_view_all": true,
+        "color_scheme": "light"
+      }
+    },
+    "technology": {
+      "type": "technology",
+      "blocks": {
+        "t1": {
+          "type": "spec",
+          "settings": {
+            "title": "Compression séquentielle",
+            "text": "Les chambres se gonflent l'une après l'autre, de la cheville vers la cuisse, pour accompagner le retour veineux plutôt que de le forcer."
+          }
+        },
+        "t2": {
+          "type": "spec",
+          "settings": {
+            "title": "Moteur silencieux",
+            "text": "Un compresseur isolé et amorti : la séance se fait pendant que vous lisez, pas à la place."
+          }
+        },
+        "t3": {
+          "type": "spec",
+          "settings": {
+            "title": "Intensité réglable",
+            "text": "Plusieurs niveaux et plusieurs programmes, pour adapter la séance à la journée qui vient de passer."
+          }
+        },
+        "t4": {
+          "type": "spec",
+          "settings": {
+            "title": "Arrêt automatique",
+            "text": "Le programme s'interrompt seul à la fin du cycle. Rien à surveiller, rien à éteindre."
+          }
+        }
+      },
+      "block_order": ["t1", "t2", "t3", "t4"],
+      "settings": {
+        "eyebrow": "La technologie",
+        "heading": "Ce qui se passe sous la surface",
+        "description": "Quatre choix d'ingénierie, une seule sensation : celle d'un corps qui redescend.",
+        "image_position": "left",
+        "cta_label": "",
+        "color_scheme": "light"
+      }
+    },
+    "lifestyle": {
+      "type": "lifestyle",
+      "settings": {
+        "eyebrow": "Le rituel du soir",
+        "heading": "<p>Vingt minutes. <em>Chaque soir.</em></p>",
+        "text": "Posez l'appareil, choisissez un programme, ne faites rien d'autre. C'est tout le protocole.",
+        "cta_label": "Composer mon rituel",
+        "cta_link": "shopify://collections/bien-etre-massage",
+        "height": 640,
+        "overlay_opacity": 35,
+        "text_light": true
+      }
+    },
+    "featured-products": {
+      "type": "featured-products",
+      "blocks": {
+        "p1": {
+          "type": "product",
+          "settings": {
+            "product": "masseur-pression-air-pour-jambes",
+            "eyebrow": "Jambes",
+            "text": "",
+            "features": "Compression séquentielle sur toute la jambe\nPlusieurs intensités et programmes\nArrêt automatique en fin de cycle"
+          }
+        },
+        "p2": {
+          "type": "product",
+          "settings": {
+            "product": "massager-automatique-pour-pieds",
+            "eyebrow": "Pieds",
+            "text": "",
+            "features": "Pétrissage profond de la voûte plantaire\nChaleur douce en option\nUtilisation assise, mains libres"
+          }
+        },
+        "p3": {
+          "type": "product",
+          "settings": {
+            "product": "lunettes-massantes-magiques",
+            "eyebrow": "Yeux",
+            "text": "",
+            "features": "Pression rythmée autour de l'orbite\nCoupe la lumière entièrement\nSéance courte, en fin de journée d'écran"
+          }
+        }
+      },
+      "block_order": ["p1", "p2", "p3"],
+      "settings": {
+        "eyebrow": "Les essentiels",
+        "heading": "Choisis pour ce qu'ils changent",
+        "color_scheme": "sand"
+      }
+    },
+    "benefits": {
+      "type": "benefits",
+      "blocks": {
+        "b1": {
+          "type": "benefit",
+          "settings": {
+            "icon": "moon",
+            "title": "S'endormir plus vite",
+            "text": "Une séance en fin de soirée aide le corps à passer en mode repos."
+          }
+        },
+        "b2": {
+          "type": "benefit",
+          "settings": {
+            "icon": "feather",
+            "title": "Jambes plus légères",
+            "text": "La compression accompagne la circulation après une journée debout ou assise."
+          }
+        },
+        "b3": {
+          "type": "benefit",
+          "settings": {
+            "icon": "wave",
+            "title": "Silence tenu",
+            "text": "Assez discret pour lire, travailler ou regarder un film pendant la séance."
+          }
+        },
+        "b4": {
+          "type": "benefit",
+          "settings": {
+            "icon": "shield",
+            "title": "Garantie 2 ans",
+            "text": "Pièces disponibles et service client joignable, en français."
+          }
+        }
+      },
+      "block_order": ["b1", "b2", "b3", "b4"],
+      "settings": {
+        "eyebrow": "",
+        "heading": "Pourquoi RÉVA",
+        "columns": "4",
+        "center": false,
+        "color_scheme": "stone"
+      }
+    },
+    "stats": {
+      "type": "stats",
+      "blocks": {
+        "s1": {
+          "type": "stat",
+          "settings": { "value": "20", "prefix": "", "suffix": " min", "label": "La durée d'une séance complète" }
+        },
+        "s2": {
+          "type": "stat",
+          "settings": { "value": "30", "prefix": "", "suffix": " j", "label": "Pour essayer chez vous, retour gratuit" }
+        },
+        "s3": {
+          "type": "stat",
+          "settings": { "value": "2", "prefix": "", "suffix": " ans", "label": "De garantie sur chaque appareil" }
+        }
+      },
+      "block_order": ["s1", "s2", "s3"],
+      "settings": { "color_scheme": "light" }
+    },
+    "before-after": {
+      "type": "before-after",
+      "settings": {
+        "label_before": "Avant",
+        "label_after": "Après",
+        "ratio": "1-1",
+        "start_position": 50,
+        "eyebrow": "Avant / Après",
+        "heading": "Vingt minutes plus tard",
+        "text": "<p>Faites glisser le curseur pour comparer une même soirée, avant et après la séance.</p>",
+        "disclaimer": "Images d'illustration. Les résultats varient d'une personne à l'autre. Appareils de bien-être, non médicaux.",
+        "cta_label": "",
+        "text_position": "right",
+        "color_scheme": "light"
+      }
+    },
+    "testimonials": {
+      "type": "testimonials",
+      "blocks": {
+        "q1": {
+          "type": "quote",
+          "settings": {
+            "quote": "Je l'utilise chaque soir après l'entraînement. Mes jambes ne sont plus les mêmes le lendemain.",
+            "author": "Camille L.",
+            "detail": "Lyon",
+            "rating": 5
+          }
+        },
+        "q2": {
+          "type": "quote",
+          "settings": {
+            "quote": "Je travaille debout douze heures par jour. C'est le seul moment où je m'arrête vraiment.",
+            "author": "Sofiane B.",
+            "detail": "Marseille",
+            "rating": 5
+          }
+        },
+        "q3": {
+          "type": "quote",
+          "settings": {
+            "quote": "L'objet est beau, silencieux, et il ne ressemble pas à du matériel médical. C'est ce que je cherchais.",
+            "author": "Hélène M.",
+            "detail": "Bordeaux",
+            "rating": 5
+          }
+        }
+      },
+      "block_order": ["q1", "q2", "q3"],
+      "settings": {
+        "eyebrow": "Ils l'utilisent",
+        "heading": "",
+        "autoplay": true,
+        "color_scheme": "sand"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "f1": {
+          "type": "question",
+          "settings": {
+            "question": "Combien de temps dure une séance ?",
+            "answer": "<p>Vingt minutes suffisent. Les programmes s'arrêtent seuls : vous n'avez rien à surveiller.</p>"
+          }
+        },
+        "f2": {
+          "type": "question",
+          "settings": {
+            "question": "À quelle fréquence l'utiliser ?",
+            "answer": "<p>Une séance par jour convient à la plupart des usages. Rien n'empêche d'en faire deux les jours de forte fatigue.</p>"
+          }
+        },
+        "f3": {
+          "type": "question",
+          "settings": {
+            "question": "Est-ce un dispositif médical ?",
+            "answer": "<p>Non. Nos appareils sont des produits de bien-être et de confort. En cas de trouble circulatoire, de grossesse ou de traitement en cours, demandez l'avis de votre médecin avant utilisation.</p>"
+          }
+        },
+        "f4": {
+          "type": "question",
+          "settings": {
+            "question": "Quels sont les délais de livraison ?",
+            "answer": "<p>Expédition sous 24 h ouvrées après la commande. Le délai d'acheminement dépend du transporteur et de votre adresse ; il vous est indiqué au moment du paiement.</p>"
+          }
+        },
+        "f5": {
+          "type": "question",
+          "settings": {
+            "question": "Puis-je le renvoyer s'il ne me convient pas ?",
+            "answer": "<p>Oui. Vous disposez de 30 jours pour nous le renvoyer, dans son emballage d'origine.</p>"
+          }
+        }
+      },
+      "block_order": ["f1", "f2", "f3", "f4", "f5"],
+      "settings": {
+        "eyebrow": "Questions",
+        "heading": "Tout ce qu'il faut savoir",
+        "text": "",
+        "color_scheme": "light"
+      }
+    },
+    "newsletter": {
+      "type": "newsletter",
+      "settings": {
+        "eyebrow": "Lettre RÉVA",
+        "heading": "Une lettre par mois, sur le repos et rien d'autre",
+        "text": "Protocoles, coulisses de fabrication, avant-premières. Aucune promotion agressive.",
+        "note": "Désinscription en un clic.",
+        "color_scheme": "dark"
+      }
+    }
+  },
+  "order": [
+    "hero",
+    "marquee",
+    "manifesto",
+    "featured-collection",
+    "technology",
+    "lifestyle",
+    "featured-products",
+    "benefits",
+    "stats",
+    "before-after",
+    "testimonials",
+    "faq",
+    "newsletter"
+  ]
+}

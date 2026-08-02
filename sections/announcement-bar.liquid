@@ -1,0 +1,99 @@
+{%- comment -%}
+  Announcement bar
+  Rotating messages with optional links. Falls back to a single static
+  message when only one block is present.
+{%- endcomment -%}
+
+{%- if section.blocks.size > 0 -%}
+  <div
+    class="announce scheme-{{ section.settings.color_scheme }}"
+    data-announce
+    data-announce-delay="{{ section.settings.rotate_speed | times: 1000 }}"
+  >
+    <div class="wrap">
+      <div class="announce__inner">
+        {%- if section.blocks.size > 1 -%}
+          <button class="announce__nav" type="button" data-announce-prev aria-label="{{ 'general.slider.previous' | t }}">
+            {%- render 'icon', name: 'arrow-left' -%}
+          </button>
+        {%- endif -%}
+
+        <div class="announce__viewport">
+          {%- for block in section.blocks -%}
+            <div
+              class="announce__slide{% if forloop.first %} is-active{% endif %}"
+              data-announce-slide
+              {{ block.shopify_attributes }}
+            >
+              {%- if block.settings.link != blank -%}
+                <a href="{{ block.settings.link }}">{{ block.settings.text | escape }}</a>
+              {%- else -%}
+                <span>{{ block.settings.text | escape }}</span>
+              {%- endif -%}
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if section.blocks.size > 1 -%}
+          <button class="announce__nav" type="button" data-announce-next aria-label="{{ 'general.slider.next' | t }}">
+            {%- render 'icon', name: 'arrow-right' -%}
+          </button>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "t:sections.announcement.name",
+  "tag": "aside",
+  "class": "announce-section",
+  "max_blocks": 5,
+  "settings": [
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "dark"
+    },
+    {
+      "type": "range",
+      "id": "rotate_speed",
+      "label": "t:sections.announcement.rotate_speed",
+      "min": 3,
+      "max": 12,
+      "step": 1,
+      "unit": "s",
+      "default": 5
+    }
+  ],
+  "blocks": [
+    {
+      "type": "message",
+      "name": "t:sections.announcement.block_message",
+      "settings": [
+        {
+          "type": "text",
+          "id": "text",
+          "label": "t:common.text",
+          "default": "Livraison offerte dès 100 €"
+        },
+        { "type": "url", "id": "link", "label": "t:common.link" }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.announcement.name",
+      "blocks": [{ "type": "message" }]
+    }
+  ]
+}
+{% endschema %}

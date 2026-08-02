@@ -1,0 +1,92 @@
+{%- comment -%}
+  Product card
+  Accepts:
+    product          — required
+    index            — used to stagger the reveal
+    ratio            — overrides settings.card_image_ratio
+    show_quick_add   — overrides settings.card_quick_add
+    heading_tag      — defaults to h3
+{%- endcomment -%}
+
+{%- liquid
+  assign ratio_class = ratio | default: settings.card_image_ratio
+  assign tag = heading_tag | default: 'h3'
+  assign delay = index | default: 0 | times: 70
+  assign second = product.media[1]
+
+  assign quick_add = settings.card_quick_add
+  if show_quick_add != blank
+    assign quick_add = show_quick_add
+  endif
+-%}
+
+<article class="card" data-reveal="scale" style="--delay: {{ delay }}ms">
+  <div class="card__media media {{ ratio_class }}{% if settings.card_hover_image and second %} card__media--hover{% endif %}">
+    {%- if product.featured_media -%}
+      {{
+        product.featured_media
+        | image_url: width: 1200
+        | image_tag:
+          loading: 'lazy',
+          widths: '300,420,540,720,900,1200',
+          sizes: '(min-width: 990px) 25vw, (min-width: 620px) 45vw, 80vw',
+          alt: product.featured_media.alt | default: product.title | escape
+      }}
+      {%- if settings.card_hover_image and second -%}
+        {{
+          second
+          | image_url: width: 900
+          | image_tag:
+            loading: 'lazy',
+            class: 'card__img-2',
+            widths: '300,420,540,720,900',
+            sizes: '(min-width: 990px) 25vw, (min-width: 620px) 45vw, 80vw',
+            alt: second.alt | default: product.title | escape
+        }}
+      {%- endif -%}
+    {%- else -%}
+      {{ 'product-apparel-1' | placeholder_svg_tag: 'placeholder-svg' }}
+    {%- endif -%}
+
+    {%- if product.available == false -%}
+      <span class="card__badge">{{ 'products.product.sold_out' | t }}</span>
+    {%- elsif product.compare_at_price > product.price -%}
+      <span class="card__badge card__badge--gold">{{ 'products.product.on_sale' | t }}</span>
+    {%- endif -%}
+
+    {%- if quick_add and product.available -%}
+      <div class="card__quick">
+        {%- if product.variants.size == 1 -%}
+          {%- form 'product', product, data-cart-add-form: true, class: 'card__quick-form' -%}
+            <input type="hidden" name="id" value="{{ product.selected_or_first_available_variant.id }}">
+            <input type="hidden" name="quantity" value="1">
+            <button type="submit" class="btn btn--sm btn--block">
+              <span>{{ 'products.product.add_to_cart' | t }}</span>
+            </button>
+          {%- endform -%}
+        {%- else -%}
+          <a href="{{ product.url }}" class="btn btn--sm btn--block">
+            <span>{{ 'products.product.choose_options' | t }}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    {%- endif -%}
+  </div>
+
+  <div class="card__body">
+    {%- if settings.card_show_vendor and product.vendor != blank -%}
+      <span class="eyebrow">{{ product.vendor }}</span>
+    {%- endif -%}
+
+    <{{ tag }} class="card__title">
+      <a href="{{ product.url }}">{{ product.title | escape }}</a>
+    </{{ tag }}>
+
+    {%- assign subtitle = product.metafields.custom.subtitle | default: product.type -%}
+    {%- if subtitle != blank -%}
+      <p class="card__sub">{{ subtitle }}</p>
+    {%- endif -%}
+
+    {%- render 'price', product: product -%}
+  </div>
+</article>

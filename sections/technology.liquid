@@ -1,0 +1,128 @@
+{%- comment -%}
+  Technology
+  A numbered spec list beside a single tall image. Reads as documentation,
+  not marketing — which is exactly what makes it feel expensive.
+{%- endcomment -%}
+
+<section class="section scheme-{{ section.settings.color_scheme }}">
+  <div class="wrap">
+    <div class="split split--40{% if section.settings.image_position == 'right' %} split--reverse{% endif %}" style="align-items:start">
+      <div class="split__media" data-reveal="scale">
+        {%- if section.settings.image != blank -%}
+          <div class="media media--3-4">
+            {{
+              section.settings.image
+              | image_url: width: 1400
+              | image_tag:
+                loading: 'lazy',
+                widths: '420,640,900,1200,1400',
+                sizes: '(min-width: 900px) 42vw, 92vw',
+                alt: section.settings.image.alt | default: section.settings.heading | escape
+            }}
+          </div>
+        {%- else -%}
+          <div class="media media--3-4" style="background:linear-gradient(160deg, var(--c-sand), #fff 60%, var(--c-stone))">
+            <div style="position:absolute; inset:0; background-image:var(--grain)"></div>
+          </div>
+        {%- endif -%}
+      </div>
+
+      <div class="split__text" style="max-width:none">
+        {%- if section.settings.eyebrow != blank -%}
+          <span class="eyebrow eyebrow--gold" data-reveal="fade">{{ section.settings.eyebrow | escape }}</span>
+        {%- endif -%}
+        {%- if section.settings.heading != blank -%}
+          <h2 class="h2" data-reveal>{{ section.settings.heading | escape }}</h2>
+        {%- endif -%}
+        {%- if section.settings.description != blank -%}
+          <p class="lede" data-reveal style="--delay:100ms">{{ section.settings.description | escape }}</p>
+        {%- endif -%}
+
+        <div class="spec-list" style="margin-top:var(--sp-3)">
+          {%- for block in section.blocks -%}
+            <div class="spec" data-reveal style="--delay:{{ forloop.index0 | times: 90 }}ms" {{ block.shopify_attributes }}>
+              <span class="spec__num">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+              <div class="spec__body">
+                <h3 class="spec__title">{{ block.settings.title | escape }}</h3>
+                {%- if block.settings.text != blank -%}
+                  <p class="spec__text">{{ block.settings.text | escape }}</p>
+                {%- endif -%}
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+
+        {%- if section.settings.cta_label != blank -%}
+          <a class="btn" href="{{ section.settings.cta_link | default: routes.all_products_collection_url }}" style="margin-top:var(--sp-3); align-self:flex-start" data-reveal>
+            <span>{{ section.settings.cta_label | escape }}</span>
+          </a>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "t:sections.technology.name",
+  "tag": "section",
+  "class": "technology-section",
+  "max_blocks": 6,
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "t:common.eyebrow", "default": "La technologie" },
+    { "type": "text", "id": "heading", "label": "t:common.heading", "default": "Ce qui se passe sous la surface" },
+    {
+      "type": "textarea",
+      "id": "description",
+      "label": "t:common.description",
+      "default": "Une compression séquentielle calibrée, un moteur silencieux et une matière qui respire. Trois choix d'ingénierie, une seule sensation."
+    },
+    { "type": "image_picker", "id": "image", "label": "t:common.image" },
+    {
+      "type": "select",
+      "id": "image_position",
+      "label": "t:common.image_position",
+      "options": [
+        { "value": "left", "label": "t:common.align_left" },
+        { "value": "right", "label": "t:common.align_right" }
+      ],
+      "default": "left"
+    },
+    { "type": "text", "id": "cta_label", "label": "t:common.cta_label" },
+    { "type": "url", "id": "cta_link", "label": "t:common.cta_link" },
+    {
+      "type": "select",
+      "id": "color_scheme",
+      "label": "t:common.color_scheme",
+      "options": [
+        { "value": "light", "label": "t:common.scheme_light" },
+        { "value": "sand", "label": "t:common.scheme_sand" },
+        { "value": "stone", "label": "t:common.scheme_stone" },
+        { "value": "dark", "label": "t:common.scheme_dark" }
+      ],
+      "default": "light"
+    }
+  ],
+  "blocks": [
+    {
+      "type": "spec",
+      "name": "t:sections.technology.block_spec",
+      "settings": [
+        { "type": "text", "id": "title", "label": "t:common.heading", "default": "Compression séquentielle" },
+        {
+          "type": "textarea",
+          "id": "text",
+          "label": "t:common.text",
+          "default": "Quatre chambres qui se gonflent l'une après l'autre, de la cheville vers la cuisse, pour accompagner le retour veineux."
+        }
+      ]
+    }
+  ],
+  "presets": [
+    {
+      "name": "t:sections.technology.name",
+      "blocks": [{ "type": "spec" }, { "type": "spec" }, { "type": "spec" }]
+    }
+  ]
+}
+{% endschema %}

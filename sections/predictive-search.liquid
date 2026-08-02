@@ -1,0 +1,46 @@
+{%- comment -%}
+  Predictive search results
+  Requested by reva.js as `?section_id=predictive-search`; only the
+  [data-search-results] node is transplanted into the search drawer.
+{%- endcomment -%}
+
+<div data-search-results>
+  {%- if predictive_search.performed -%}
+    {%- if predictive_search.resources.products.size > 0 -%}
+      <p class="eyebrow" style="margin-bottom:1.5rem">{{ 'general.search.products' | t }}</p>
+      <div class="grid grid--4 grid--2-mobile">
+        {%- for product in predictive_search.resources.products -%}
+          {%- render 'product-card', product: product, index: forloop.index0, show_quick_add: false -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if predictive_search.resources.collections.size > 0 or predictive_search.resources.pages.size > 0 or predictive_search.resources.articles.size > 0 -%}
+      <div style="margin-top:2.5rem; display:flex; flex-wrap:wrap; gap:.75rem">
+        {%- for collection in predictive_search.resources.collections -%}
+          <a class="pill" href="{{ collection.url }}">{{ collection.title | escape }}</a>
+        {%- endfor -%}
+        {%- for page in predictive_search.resources.pages -%}
+          <a class="pill" href="{{ page.url }}">{{ page.title | escape }}</a>
+        {%- endfor -%}
+        {%- for article in predictive_search.resources.articles -%}
+          <a class="pill" href="{{ article.url }}">{{ article.title | escape }}</a>
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+
+    {%- if predictive_search.resources.products.size == 0
+      and predictive_search.resources.collections.size == 0
+      and predictive_search.resources.pages.size == 0
+      and predictive_search.resources.articles.size == 0
+    -%}
+      <p class="muted">{{ 'general.search.no_results' | t: terms: predictive_search.terms }}</p>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+
+{% schema %}
+{
+  "name": "Predictive search"
+}
+{% endschema %}
