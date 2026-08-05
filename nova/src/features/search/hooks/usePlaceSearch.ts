@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react';
 
+import { useServices } from '@/app/runtime/AppRuntime';
+import { useLocationStore } from '@/app/stores/hooks';
 import { NETWORK } from '@/config';
 import type { Place } from '@/core/domain/entities/place';
 import { messageFor } from '@/core/domain/errors/appError';
-import { useLocationStore } from '@/features/location/state/locationStore';
-import { services } from '@/services/container';
 import { isAbortError } from '@/services/http/httpClient';
 
 export type SearchStatus = 'idle' | 'searching' | 'ready' | 'error';
@@ -25,6 +25,7 @@ export interface PlaceSearchResult {
 const IDLE: PlaceSearchResult = { results: [], status: 'idle', error: null };
 
 export const usePlaceSearch = (query: string): PlaceSearchResult => {
+  const { useCases } = useServices();
   const near = useLocationStore((state) => state.position?.coordinates);
   const [state, setState] = useState<PlaceSearchResult>(IDLE);
 
@@ -39,7 +40,7 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
       setState((current) => ({ ...current, status: 'searching' }));
 
       try {
-        const results = await services.useCases.searchPlaces({
+        const results = await useCases.searchPlaces({
           query,
           near,
           signal: controller.signal,
@@ -59,7 +60,7 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, near, isSearchable]);
+  }, [query, near, isSearchable, useCases]);
 
   // Derived rather than stored: clearing the field returns to the idle result
   // without a second render pass, and stale hits can never flash back.

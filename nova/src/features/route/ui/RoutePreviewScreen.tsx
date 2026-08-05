@@ -4,11 +4,8 @@ import { StyleSheet, View } from 'react-native';
 import type MapView from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useActiveRoute, useLocationStore, useNavigationStore, usePreferencesStore, useTripStore } from '@/app/stores/hooks';
 import { MAP_DEFAULTS } from '@/config';
-import { useLocationStore } from '@/features/location/state/locationStore';
-import { useNavigationStore } from '@/features/navigation/state/navigationStore';
-import { usePreferencesStore } from '@/features/settings/state/preferencesStore';
-import { useActiveRoute, useTripStore } from '@/features/trip/state/tripStore';
 import { DestinationMarker } from '@/maps/components/DestinationMarker';
 import { NovaMapView } from '@/maps/components/NovaMapView';
 import { RouteOverlay } from '@/maps/components/RouteOverlay';

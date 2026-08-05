@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Marker } from 'react-native-maps';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
@@ -9,8 +10,13 @@ export interface DestinationMarkerProps {
   title?: string;
 }
 
-/** The destination pin, drawn from the brand gradient. */
-export const DestinationMarker = ({ coordinate, title }: DestinationMarkerProps) => (
+/**
+ * The destination pin, drawn from the brand gradient.
+ *
+ * Memoised: the destination cannot move, but it sits inside a map subtree that
+ * re-renders on every location fix.
+ */
+const DestinationMarkerComponent = ({ coordinate, title }: DestinationMarkerProps) => (
   <Marker
     coordinate={coordinate}
     title={title}
@@ -36,3 +42,5 @@ export const DestinationMarker = ({ coordinate, title }: DestinationMarkerProps)
     </Svg>
   </Marker>
 );
+
+export const DestinationMarker = memo(DestinationMarkerComponent);

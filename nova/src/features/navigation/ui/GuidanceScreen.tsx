@@ -6,9 +6,12 @@ import type MapView from 'react-native-maps';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import {
+  useLocationStore,
+  useNavigationStore,
+  usePreferencesStore,
+} from '@/app/stores/hooks';
 import { MAP_DEFAULTS } from '@/config';
-import { useLocationStore } from '@/features/location/state/locationStore';
-import { usePreferencesStore } from '@/features/settings/state/preferencesStore';
 import { ActiveRouteOverlay } from '@/maps/components/ActiveRouteOverlay';
 import { DestinationMarker } from '@/maps/components/DestinationMarker';
 import { NovaMapView } from '@/maps/components/NovaMapView';
@@ -16,7 +19,6 @@ import { UserPuck } from '@/maps/components/UserPuck';
 import { AppText, GlassPanel, IconButton } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { useGuidanceSession } from '../hooks/useGuidanceSession';
-import { useNavigationStore } from '../state/navigationStore';
 import { ArrivalCard } from './ArrivalCard';
 import { ManeuverBanner } from './ManeuverBanner';
 import { TripStatusBar } from './TripStatusBar';
@@ -34,7 +36,13 @@ export const GuidanceScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
 
-  const { status, route, destination, progress, stop } = useNavigationStore();
+  // One selector per slice: the map subtree below re-renders on every fix, and
+  // subscribing to the whole store would add every unrelated field to that.
+  const status = useNavigationStore((state) => state.status);
+  const routeIndex = useNavigationStore((state) => state.routeIndex);
+  const destination = useNavigationStore((state) => state.destination);
+  const progress = useNavigationStore((state) => state.progress);
+  const stop = useNavigationStore((state) => state.stop);
   const preferences = usePreferencesStore((state) => state.preferences);
   const lastPosition = useLocationStore((state) => state.position);
 
@@ -83,9 +91,9 @@ export const GuidanceScreen = () => {
         pitchEnabled
         onPanDrag={() => setFollowing(false)}
       >
-        {route && progress ? (
+        {routeIndex && progress ? (
           <ActiveRouteOverlay
-            route={route}
+            routeIndex={routeIndex}
             segmentIndex={progress.segmentIndex}
             snappedPosition={progress.snappedPosition}
           />

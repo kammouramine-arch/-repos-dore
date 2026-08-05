@@ -1,12 +1,11 @@
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 
+import { useAuthStore, useOnboardingStore } from '@/app/stores/hooks';
 import { LoginScreen } from '@/features/auth/ui/LoginScreen';
 import { RegisterScreen } from '@/features/auth/ui/RegisterScreen';
-import { useAuthStore } from '@/features/auth/state/authStore';
 import { HomeScreen } from '@/features/home/ui/HomeScreen';
 import { GuidanceScreen } from '@/features/navigation/ui/GuidanceScreen';
 import { OnboardingScreen } from '@/features/onboarding/ui/OnboardingScreen';
-import { useOnboardingStore } from '@/features/onboarding/state/onboardingStore';
 import { RoutePreviewScreen } from '@/features/route/ui/RoutePreviewScreen';
 import { SearchScreen } from '@/features/search/ui/SearchScreen';
 import { SettingsScreen } from '@/features/settings/ui/SettingsScreen';

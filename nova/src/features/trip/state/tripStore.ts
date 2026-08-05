@@ -4,7 +4,7 @@ import type { Coordinates } from '@/core/domain/entities/geo';
 import type { Place, RecentDestination } from '@/core/domain/entities/place';
 import type { Route, RoutePlan } from '@/core/domain/entities/route';
 import { messageFor } from '@/core/domain/errors/appError';
-import { services } from '@/services/container';
+import type { ServiceContainer } from '@/services/container';
 
 export interface TripState {
   destination: Place | null;
@@ -30,58 +30,57 @@ export interface TripState {
  * read it (search, preview, guidance, home) and it has to survive every
  * transition between them.
  */
-export const useTripStore = create<TripState>()((set) => ({
-  destination: null,
-  plan: null,
-  selectedRouteId: null,
-  planning: false,
-  error: null,
-  recents: [],
+export const createTripStore = (services: ServiceContainer) =>
+  create<TripState>()((set) => ({
+    destination: null,
+    plan: null,
+    selectedRouteId: null,
+    planning: false,
+    error: null,
+    recents: [],
 
-  async loadRecents() {
-    set({ recents: await services.recentDestinationsRepository.list() });
-  },
+    async loadRecents() {
+      set({ recents: await services.recentDestinationsRepository.list() });
+    },
 
-  async clearRecents() {
-    await services.recentDestinationsRepository.clear();
-    set({ recents: [] });
-  },
+    async clearRecents() {
+      await services.recentDestinationsRepository.clear();
+      set({ recents: [] });
+    },
 
-  async planTrip(destination, origin) {
-    set({ planning: true, error: null, destination });
+    async planTrip(destination, origin) {
+      set({ planning: true, error: null, destination });
 
-    try {
-      const plan = await services.useCases.planTrip({ destination, origin });
-      const recents = await services.recentDestinationsRepository.add(destination);
+      try {
+        const plan = await services.useCases.planTrip({ destination, origin });
+        const recents = await services.recentDestinationsRepository.add(destination);
 
-      set({
-        plan,
-        selectedRouteId: plan.routes[0]?.id ?? null,
-        planning: false,
-        recents,
-      });
-      return true;
-    } catch (error) {
-      set({
-        planning: false,
-        plan: null,
-        selectedRouteId: null,
-        error: messageFor(error, 'Nova could not plan that trip.'),
-      });
-      return false;
-    }
-  },
+        set({
+          plan,
+          selectedRouteId: plan.routes[0]?.id ?? null,
+          planning: false,
+          recents,
+        });
+        return true;
+      } catch (error) {
+        set({
+          planning: false,
+          plan: null,
+          selectedRouteId: null,
+          error: messageFor(error, 'Nova could not plan that trip.'),
+        });
+        return false;
+      }
+    },
 
-  selectRoute: (routeId) => set({ selectedRouteId: routeId }),
+    selectRoute: (routeId) => set({ selectedRouteId: routeId }),
 
-  clearTrip: () =>
-    set({ destination: null, plan: null, selectedRouteId: null, error: null }),
-}));
+    clearTrip: () =>
+      set({ destination: null, plan: null, selectedRouteId: null, error: null }),
+  }));
 
 /** The route the driver is about to take, or `null` before planning. */
 export const selectActiveRoute = (state: TripState): Route | null =>
   state.plan?.routes.find((route) => route.id === state.selectedRouteId) ??
   state.plan?.routes[0] ??
   null;
-
-export const useActiveRoute = () => useTripStore(selectActiveRoute);

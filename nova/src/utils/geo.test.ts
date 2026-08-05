@@ -4,6 +4,7 @@ import {
   distanceBetween,
   projectOnPath,
   projectOnSegment,
+  vertexAtDistance,
 } from './geo';
 
 const PARIS = { latitude: 48.8566, longitude: 2.3522 };
@@ -82,6 +83,40 @@ describe('projectOnPath', () => {
 
   it('returns null for an empty path', () => {
     expect(projectOnPath(PARIS, [])).toBeNull();
+  });
+
+  it('never looks past the end of the search window', () => {
+    // The closest point is on segment 1, but the window stops at segment 0.
+    const projection = projectOnPath(
+      { latitude: 48.865, longitude: 2.3102 },
+      path,
+      0,
+      0,
+    );
+
+    expect(projection?.segmentIndex).toBe(0);
+  });
+
+  it('clamps a window that runs past the polyline', () => {
+    const projection = projectOnPath(PARIS, path, 0, 999);
+    expect(projection?.segmentIndex).toBeLessThanOrEqual(path.length - 2);
+  });
+});
+
+describe('vertexAtDistance', () => {
+  const cumulative = [0, 100, 200, 300, 400];
+
+  it('finds the last vertex at or before the target', () => {
+    expect(vertexAtDistance(cumulative, 0)).toBe(0);
+    expect(vertexAtDistance(cumulative, 150)).toBe(1);
+    expect(vertexAtDistance(cumulative, 200)).toBe(2);
+    expect(vertexAtDistance(cumulative, 1_000)).toBe(4);
+  });
+
+  it('never returns a vertex before the search floor', () => {
+    // The target is already behind the floor, so the floor itself is the answer.
+    expect(vertexAtDistance(cumulative, 50, 3)).toBe(3);
+    expect(vertexAtDistance(cumulative, 350, 1)).toBe(3);
   });
 });
 

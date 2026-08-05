@@ -2,9 +2,9 @@ import { useNavigation } from '@react-navigation/native';
 import { useState } from 'react';
 import { FlatList, StyleSheet, View } from 'react-native';
 
+import { useTripStore } from '@/app/stores/hooks';
 import type { Place } from '@/core/domain/entities/place';
 import { usePlanDestination } from '@/features/trip/hooks/usePlanDestination';
-import { useTripStore } from '@/features/trip/state/tripStore';
 import {
   Divider,
   EmptyState,

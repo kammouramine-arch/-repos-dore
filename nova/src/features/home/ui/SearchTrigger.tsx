@@ -1,8 +1,8 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText, PressableScale } from '@/ui/components';
 import { colors, radius, sizing, spacing } from '@/ui/theme';
+import { Icon } from '@/ui/components/Icon';
 
 export interface SearchTriggerProps {
   onPress: () => void;
@@ -19,12 +19,12 @@ export const SearchTrigger = ({ onPress }: SearchTriggerProps) => (
     onPress={onPress}
     style={styles.trigger}
   >
-    <Ionicons name="search" size={19} color={colors.textSecondary} />
+    <Icon name="search" size={19} color={colors.textSecondary} />
     <AppText variant="body" tone="tertiary" style={styles.label}>
       Where to?
     </AppText>
     <View style={styles.badge}>
-      <Ionicons name="arrow-forward" size={16} color={colors.onAccent} />
+      <Icon name="arrow-forward" size={16} color={colors.onAccent} />
     </View>
   </PressableScale>
 );

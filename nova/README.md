@@ -76,10 +76,12 @@ yours, and the permission dialogs show Expo Go's wording rather than Nova's.
 ```bash
 npm run typecheck   # tsc --noEmit, strict
 npm run lint        # eslint (expo config)
-npm test            # jest — 46 tests over the pure core
+npm test            # jest — 93 tests
 ```
 
-All three pass on a clean checkout, and `npx expo-doctor` reports 20/20.
+All three pass on a clean checkout, `npx expo-doctor` reports 20/20, and CI
+(`.github/workflows/nova-ci.yml`) runs the same three on every push and pull
+request that touches `nova/`.
 
 ---
 
@@ -140,6 +142,12 @@ implement them. `services/container.ts` is the only file that knows which
 implementation is in play, and it accepts overrides so tests can build a
 container out of fakes. Swapping OSRM for a commercial router, or the local
 account store for a hosted identity service, is a change to one file.
+
+**Nothing is constructed at import time.** `createAppRuntime` builds the
+container and every store once during bootstrap, and `AppRuntimeProvider` hands
+both down through context (`useServices`, `useStores`, and the bound store hooks
+in `app/stores/hooks.ts`). That is what lets a test mount the app — or any
+single repository — against fakes without module mocking.
 
 **Where the state lives.** Six small Zustand stores — auth, preferences,
 onboarding, location, trip, navigation — each owned by its feature. Routes carry
@@ -229,6 +237,11 @@ never drift from the brand.
 Nothing else is installed. `react-native-gesture-handler` was removed once it
 turned out nothing used it.
 
+> **Icons are imported from their family, never from the barrel.** Use
+> `@/ui/components/Icon`, which re-exports Ionicons from
+> `@expo/vector-icons/Ionicons`. Importing `{ Ionicons } from '@expo/vector-icons'`
+> pulls in every family and bundles ~3.6 MB of fonts Nova never draws.
+
 ---
 
 ## 7. Tests
@@ -237,7 +250,7 @@ turned out nothing used it.
 npm test
 ```
 
-46 tests, covering the parts where a mistake is expensive and a device would not
+93 tests, covering the parts where a mistake is expensive and a device would not
 help you find it:
 
 - `utils/geo` — great-circle distance, bearing, projection onto a segment and a
@@ -253,6 +266,14 @@ help you find it:
   bursts when fixes arrive slowly, reset per step, arrival spoken once.
 - `services/routing/instructionFormatter` — maneuver wording and the OSRM
   maneuver mapping, including the unknown-type fallback.
+- `services/http/decode` — the response validators: what they accept, what they
+  reject, and where strictness matters (a dropped route step would misdirect a
+  driver, so route decoding is strict; a dropped search result is cosmetic, so
+  search decoding is lenient).
+- `services/auth` — password digests, session expiry, the migration from the
+  Sprint 1 account record, and the rehash-on-sign-in path that a future
+  server-side KDF depends on.
+- `maps/geometry/routeWindow` — the slice of route drawn during guidance.
 
 ---
 

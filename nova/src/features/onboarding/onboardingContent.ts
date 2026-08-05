@@ -1,8 +1,8 @@
-import type { Ionicons } from '@expo/vector-icons';
+import type { IconName } from '@/ui/components/Icon';
 
 export interface OnboardingSlideContent {
   key: string;
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   body: string;
 }

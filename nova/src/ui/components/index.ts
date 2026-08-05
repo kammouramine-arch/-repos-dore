@@ -4,6 +4,7 @@ export { Card, type CardProps } from './Card';
 export { Divider } from './Divider';
 export { EmptyState } from './EmptyState';
 export { GlassPanel } from './GlassPanel';
+export { Icon, type IconName } from './Icon';
 export { IconBadge, type IconBadgeTone } from './IconBadge';
 export { IconButton } from './IconButton';
 export { ListRow, type ListRowProps } from './ListRow';

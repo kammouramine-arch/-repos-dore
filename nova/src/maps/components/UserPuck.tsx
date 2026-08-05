@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { Marker } from 'react-native-maps';
 import Svg, { Circle, Path } from 'react-native-svg';
 
@@ -18,7 +19,7 @@ const SIZE = 56;
  * `tracksViewChanges` is off on purpose: leaving it on re-rasterises the marker
  * on every frame and visibly costs frames while the map is moving.
  */
-export const UserPuck = ({ coordinate, headingDegrees }: UserPuckProps) => (
+const UserPuckComponent = ({ coordinate, headingDegrees }: UserPuckProps) => (
   <Marker
     coordinate={coordinate}
     anchor={{ x: 0.5, y: 0.5 }}
@@ -44,3 +45,5 @@ export const UserPuck = ({ coordinate, headingDegrees }: UserPuckProps) => (
     </Svg>
   </Marker>
 );
+
+export const UserPuck = memo(UserPuckComponent);

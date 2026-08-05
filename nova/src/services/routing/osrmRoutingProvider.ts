@@ -6,12 +6,13 @@ import type {
   RouteRequest,
   RoutingProvider,
 } from '@/core/domain/ports/routingProvider';
-import { getJson } from '@/services/http/httpClient';
+import type { HttpClient } from '@/services/http/httpClient';
 import { createId } from '@/utils/id';
 import { decodePolyline } from '@/utils/polyline';
 import { formatInstruction, roadNameOf } from './instructionFormatter';
 import { toManeuverType } from './maneuverMapper';
-import type { OsrmRoute, OsrmRouteResponse, OsrmStep } from './osrmTypes';
+import { decodeOsrmRouteResponse } from './osrmDecoder';
+import type { OsrmRoute, OsrmStep } from './osrmTypes';
 
 /** OSRM expects `longitude,latitude` pairs separated by semicolons. */
 const toWaypoint = ({ latitude, longitude }: Coordinates): string =>
@@ -101,9 +102,15 @@ const toRoute = (route: OsrmRoute): Route => {
  * explicitly not for production traffic. Point `EXPO_PUBLIC_ROUTING_BASE_URL`
  * at your own instance — the contract is unchanged.
  */
-export const createOsrmRoutingProvider = (
-  baseUrl: string = env.routingBaseUrl,
-): RoutingProvider => ({
+export interface OsrmOptions {
+  http: HttpClient;
+  baseUrl?: string;
+}
+
+export const createOsrmRoutingProvider = ({
+  http,
+  baseUrl = env.routingBaseUrl,
+}: OsrmOptions): RoutingProvider => ({
   async getRoutes({
     origin,
     destination,
@@ -112,9 +119,11 @@ export const createOsrmRoutingProvider = (
   }: RouteRequest): Promise<Route[]> {
     const waypoints = `${toWaypoint(origin)};${toWaypoint(destination)}`;
 
-    const response = await getJson<OsrmRouteResponse>(
+    const response = await http.getJson(
       `${baseUrl}/route/v1/driving/${waypoints}`,
+      decodeOsrmRouteResponse,
       {
+        operation: 'routing.route',
         query: {
           overview: 'full',
           geometries: 'polyline6',

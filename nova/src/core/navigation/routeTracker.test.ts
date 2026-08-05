@@ -1,3 +1,4 @@
+import { NAVIGATION } from '@/config';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { Route } from '@/core/domain/entities/route';
 import { distanceBetween } from '@/utils/geo';
@@ -151,5 +152,80 @@ describe('isOffRoute', () => {
 
   it('stays false while the driver is on the road', () => {
     expect(isOffRoute(track(midpoint(A, B)).progress, 10)).toBe(false);
+  });
+});
+
+describe('bounded search window', () => {
+  // 1200 vertices, ~10 m apart: about 12 km, the scale at which an unbounded
+  // scan per fix stops being free.
+  const longGeometry = Array.from({ length: 1200 }, (_, i) => ({
+    latitude: 48.86 + i * 0.00009,
+    longitude: 2.3,
+  }));
+
+  const longRoute: Route = {
+    id: 'long',
+    distanceMeters: distanceBetween(longGeometry[0], longGeometry[1199]),
+    durationSeconds: 900,
+    geometry: longGeometry,
+    summary: 'Long road',
+    steps: [
+      {
+        id: 'long-step',
+        instruction: 'Arrive at your destination',
+        maneuver: 'arrive',
+        distanceMeters: distanceBetween(longGeometry[0], longGeometry[1199]),
+        durationSeconds: 900,
+        location: longGeometry[1199],
+      },
+    ],
+  };
+
+  const longIndex = createRouteIndex(longRoute);
+
+  /** A point part-way along segment `i`, so no vertex tie can decide the result. */
+  const along = (i: number, fraction = 0.5) => ({
+    latitude:
+      longGeometry[i].latitude +
+      (longGeometry[i + 1].latitude - longGeometry[i].latitude) * fraction,
+    longitude: longGeometry[i].longitude,
+  });
+
+  it('follows the driver forward from the start of the trip', () => {
+    const result = trackPosition(longIndex, positionAt(along(20)), initialTrackerState);
+
+    expect(result?.state.segmentIndex).toBe(20);
+    expect(result?.progress.distanceFromRouteMeters).toBeLessThan(1);
+  });
+
+  it('does not follow a jump that lands outside the window', () => {
+    // 5 km ahead but 400 m off to the side: too far to be the same road.
+    const stray = {
+      latitude: longGeometry[500].latitude,
+      longitude: longGeometry[500].longitude + 0.0055,
+    };
+    const result = trackPosition(longIndex, positionAt(stray), initialTrackerState);
+
+    expect(result?.progress.distanceFromRouteMeters).toBeGreaterThan(
+      NAVIGATION.offRouteThresholdMeters,
+    );
+  });
+
+  it('re-acquires the route after a jump onto it, such as leaving a tunnel', () => {
+    // On the route, 8 km further along than the search window reaches.
+    const result = trackPosition(longIndex, positionAt(along(900)), initialTrackerState);
+
+    expect(result?.state.segmentIndex).toBe(900);
+    expect(result?.progress.distanceFromRouteMeters).toBeLessThan(1);
+  });
+
+  it('keeps the windowed result when the driver has simply left the road', () => {
+    // 120 m to the side, close enough to be within the window: the tracker must
+    // report the driver as off the corridor rather than snapping them elsewhere.
+    const beside = { ...along(30), longitude: longGeometry[30].longitude + 0.0016 };
+    const result = trackPosition(longIndex, positionAt(beside), initialTrackerState);
+
+    expect(result?.state.segmentIndex).toBeLessThan(60);
+    expect(result?.progress.distanceFromRouteMeters).toBeGreaterThan(100);
   });
 });

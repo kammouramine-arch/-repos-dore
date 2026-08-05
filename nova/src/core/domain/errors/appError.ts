@@ -2,6 +2,7 @@ export type AppErrorCode =
   | 'network'
   | 'timeout'
   | 'not-found'
+  | 'invalid-response'
   | 'invalid-credentials'
   | 'email-taken'
   | 'permission-denied'

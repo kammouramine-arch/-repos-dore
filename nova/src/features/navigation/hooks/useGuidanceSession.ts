@@ -1,16 +1,17 @@
 import { useEffect, useRef } from 'react';
 
-import { NAVIGATION } from '@/config';
+import { useServices, useStores } from '@/app/runtime/AppRuntime';
+import { useNavigationStore } from '@/app/stores/hooks';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { LocationSubscription } from '@/core/domain/ports/locationTracker';
-import { createRouteIndex, type RouteIndex } from '@/core/navigation/routeIndex';
-import { initialTrackerState, trackPosition } from '@/core/navigation/routeTracker';
-import { useLocationStore } from '@/features/location/state/locationStore';
-import { usePreferencesStore } from '@/features/settings/state/preferencesStore';
-import { services } from '@/services/container';
+import {
+  initialTrackerState,
+  isOffCorridor,
+  isOffRoute,
+  trackPosition,
+} from '@/core/navigation/routeTracker';
 import { haptics } from '@/ui/feedback/haptics';
 import { initialAnnouncerState, nextAnnouncement } from '@/voice/guidanceAnnouncer';
-import { useNavigationStore } from '../state/navigationStore';
 
 /** Never recompute a route more often than this, however lost the driver is. */
 const REROUTE_COOLDOWN_MS = 10_000;
@@ -22,12 +23,18 @@ const REROUTE_COOLDOWN_MS = 10_000;
  * fanned out to the map, the banner and the voice. All of the per-fix state
  * lives in refs: a re-render per GPS update would be wasted work, and the loop
  * must not restart when a preference changes mid-trip.
+ *
+ * The off-route decision is the domain's, not this hook's — `isOffCorridor`
+ * and `isOffRoute` are the single definition, and they are the ones under test.
  */
 export const useGuidanceSession = () => {
+  const services = useServices();
+  const stores = useStores();
+
   const route = useNavigationStore((state) => state.route);
   const destination = useNavigationStore((state) => state.destination);
+  const routeIndex = useNavigationStore((state) => state.routeIndex);
 
-  const indexRef = useRef<RouteIndex | null>(null);
   const trackerRef = useRef(initialTrackerState);
   const announcerRef = useRef(initialAnnouncerState);
   const offRouteFixes = useRef(0);
@@ -35,11 +42,12 @@ export const useGuidanceSession = () => {
   const lastRerouteAt = useRef(0);
 
   useEffect(() => {
-    if (!route || !destination) return;
+    if (!route || !destination || !routeIndex) return;
 
-    const { setProgress, setStatus, replaceRoute } = useNavigationStore.getState();
+    const logger = services.logger.scoped('guidance');
+    const { navigation, preferences, location } = stores;
+    const { setProgress, setStatus, replaceRoute } = navigation.getState();
 
-    indexRef.current = createRouteIndex(route);
     trackerRef.current = initialTrackerState;
     announcerRef.current = initialAnnouncerState;
     offRouteFixes.current = 0;
@@ -51,6 +59,7 @@ export const useGuidanceSession = () => {
       lastRerouteAt.current = now;
 
       setStatus('rerouting');
+      services.crashReporter.addBreadcrumb('rerouting');
 
       try {
         const plan = await services.useCases.planTrip({
@@ -63,39 +72,41 @@ export const useGuidanceSession = () => {
         // Swapping the route re-runs this effect, which rebuilds the index and
         // clears the tracker and announcer state for us.
         replaceRoute(next);
+        logger.info('route replaced', {
+          distanceMeters: Math.round(next.distanceMeters),
+        });
 
-        if (usePreferencesStore.getState().preferences.voiceGuidance) {
+        if (preferences.getState().preferences.voiceGuidance) {
           void services.speechEngine.speak('Route updated.');
         }
-      } catch {
+      } catch (error) {
         setStatus('off-route');
+        logger.warn('reroute failed', { reason: String(error) });
+        services.crashReporter.captureError(error, { during: 'reroute' });
       }
     };
 
     const onPosition = (position: UserPosition) => {
-      const index = indexRef.current;
-      if (!index) return;
+      location.getState().setPosition(position);
 
-      useLocationStore.getState().setPosition(position);
-
-      const result = trackPosition(index, position, trackerRef.current);
+      const result = trackPosition(routeIndex, position, trackerRef.current);
       if (!result) return;
 
       trackerRef.current = result.state;
       setProgress(result.progress);
 
-      const { preferences } = usePreferencesStore.getState();
+      const { preferences: driverPreferences } = preferences.getState();
 
       if (result.progress.stepIndex !== lastStepIndex.current) {
         if (lastStepIndex.current !== -1) haptics.emphasis();
         lastStepIndex.current = result.progress.stepIndex;
       }
 
-      if (preferences.voiceGuidance) {
+      if (driverPreferences.voiceGuidance) {
         const announcement = nextAnnouncement(
           result.progress,
           announcerRef.current,
-          preferences.distanceUnit,
+          driverPreferences.distanceUnit,
         );
         announcerRef.current = announcement.state;
         if (announcement.text) void services.speechEngine.speak(announcement.text);
@@ -106,11 +117,11 @@ export const useGuidanceSession = () => {
         return;
       }
 
-      const strayed =
-        result.progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters;
-      offRouteFixes.current = strayed ? offRouteFixes.current + 1 : 0;
+      offRouteFixes.current = isOffCorridor(result.progress)
+        ? offRouteFixes.current + 1
+        : 0;
 
-      if (offRouteFixes.current >= NAVIGATION.offRouteConfirmations) {
+      if (isOffRoute(result.progress, offRouteFixes.current)) {
         void reroute(position);
       }
     };
@@ -124,12 +135,16 @@ export const useGuidanceSession = () => {
         if (cancelled) created.remove();
         else subscription = created;
       })
-      .catch(() => setStatus('off-route'));
+      .catch((error) => {
+        setStatus('off-route');
+        logger.error('could not watch position', error);
+        services.crashReporter.captureError(error, { during: 'watchPosition' });
+      });
 
     return () => {
       cancelled = true;
       subscription?.remove();
       void services.speechEngine.stop();
     };
-  }, [route, destination]);
+  }, [route, destination, routeIndex, services, stores]);
 };

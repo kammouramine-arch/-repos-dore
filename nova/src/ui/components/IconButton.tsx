@@ -1,12 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, type ViewStyle } from 'react-native';
 
 import { haptics } from '@/ui/feedback/haptics';
 import { colors, shadows, sizing } from '@/ui/theme';
 import { PressableScale } from './PressableScale';
+import { Icon, type IconName } from './Icon';
 
 export interface IconButtonProps {
-  name: keyof typeof Ionicons.glyphMap;
+  name: IconName;
   accessibilityLabel: string;
   onPress?: () => void;
   /** `floating` is for controls sitting directly on the map. */
@@ -43,7 +43,7 @@ export const IconButton = ({
       style ?? {},
     ]}
   >
-    <Ionicons
+    <Icon
       name={name}
       size={size * 0.46}
       color={active ? colors.accent : colors.textPrimary}

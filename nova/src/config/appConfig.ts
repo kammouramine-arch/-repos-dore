@@ -50,6 +50,11 @@ export const NAVIGATION = {
   announcementDistancesMeters: [1_500, 500, 180, 45],
 } as const;
 
+export const AUTH = {
+  /** How long a signed-in session stays valid without re-authenticating. */
+  sessionTtlMs: 90 * 24 * 60 * 60 * 1000,
+} as const;
+
 export const STORAGE_KEYS = {
   accounts: 'nova.auth.accounts',
   session: 'nova.auth.session',

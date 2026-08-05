@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import { ActivityIndicator, StyleSheet, View, type ViewStyle } from 'react-native';
 
@@ -6,6 +5,7 @@ import { haptics } from '@/ui/feedback/haptics';
 import { colors, gradients, radius, sizing, spacing } from '@/ui/theme';
 import { AppText, type TextTone } from './AppText';
 import { PressableScale } from './PressableScale';
+import { Icon, type IconName } from './Icon';
 
 export type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 export type ButtonSize = 'large' | 'medium';
@@ -15,7 +15,7 @@ export interface ButtonProps {
   onPress?: () => void;
   variant?: ButtonVariant;
   size?: ButtonSize;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   loading?: boolean;
   disabled?: boolean;
   style?: ViewStyle;
@@ -57,7 +57,7 @@ export const Button = ({
       ) : (
         <>
           {icon ? (
-            <Ionicons name={icon} size={19} color={ICON_COLORS[variant]} />
+            <Icon name={icon} size={19} color={ICON_COLORS[variant]} />
           ) : null}
           <AppText variant="headline" tone={TONES[variant]}>
             {label}

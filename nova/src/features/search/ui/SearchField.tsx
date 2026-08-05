@@ -1,7 +1,7 @@
-import { Ionicons } from '@expo/vector-icons';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { colors, radius, sizing, spacing, typography } from '@/ui/theme';
+import { Icon } from '@/ui/components/Icon';
 
 export interface SearchFieldProps {
   value: string;
@@ -18,7 +18,7 @@ export const SearchField = ({
   autoFocus = false,
 }: SearchFieldProps) => (
   <View style={styles.field}>
-    <Ionicons name="search" size={19} color={colors.textSecondary} />
+    <Icon name="search" size={19} color={colors.textSecondary} />
 
     <TextInput
       value={value}
@@ -42,7 +42,7 @@ export const SearchField = ({
         hitSlop={12}
         onPress={() => onChangeText('')}
       >
-        <Ionicons name="close-circle" size={19} color={colors.textTertiary} />
+        <Icon name="close-circle" size={19} color={colors.textTertiary} />
       </Pressable>
     ) : null}
   </View>

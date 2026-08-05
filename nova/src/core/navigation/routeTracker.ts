@@ -1,7 +1,13 @@
 import { NAVIGATION } from '@/config';
-import type { UserPosition } from '@/core/domain/entities/geo';
+import type { Coordinates, UserPosition } from '@/core/domain/entities/geo';
 import type { NavigationProgress } from '@/core/domain/entities/navigation';
-import { bearingBetween, distanceBetween, projectOnPath } from '@/utils/geo';
+import {
+  bearingBetween,
+  distanceBetween,
+  projectOnPath,
+  vertexAtDistance,
+  type ProjectionOnPath,
+} from '@/utils/geo';
 import type { RouteIndex } from './routeIndex';
 
 /**
@@ -22,6 +28,23 @@ export interface TrackingResult {
 
 /** How far back along the route we allow a fix to snap, to absorb GPS jitter. */
 const BACKTRACK_SEGMENTS = 2;
+
+/**
+ * How far ahead of the last known position the snap search looks.
+ *
+ * Generous next to how far a car travels between fixes (2 s at motorway speed
+ * is ~70 m), and small enough that the scan stays flat however long the route
+ * is. If nothing plausible turns up inside the window we fall back to a full
+ * scan — see `REACQUIRE_THRESHOLD_METERS`.
+ */
+const SEARCH_WINDOW_METERS = 750;
+
+/**
+ * When the best in-window candidate is further away than this, the driver is
+ * probably not where we last saw them — a tunnel, a resumed app, a car on a
+ * train. One full scan re-acquires the route; it is rare enough to afford.
+ */
+const REACQUIRE_THRESHOLD_METERS = 250;
 
 const distanceTravelled = (index: RouteIndex, segmentIndex: number, t: number): number => {
   const from = index.vertexDistances[segmentIndex] ?? 0;
@@ -61,6 +84,17 @@ const remainingDuration = (
     .reduce((total, step) => total + step.durationSeconds, currentShare);
 };
 
+const resolveProjection = (
+  position: UserPosition,
+  geometry: readonly Coordinates[],
+  windowed: ProjectionOnPath,
+): ProjectionOnPath => {
+  if (windowed.distance <= REACQUIRE_THRESHOLD_METERS) return windowed;
+
+  const full = projectOnPath(position.coordinates, geometry);
+  return full && full.distance < windowed.distance ? full : windowed;
+};
+
 /**
  * Projects a raw GPS fix onto the active route and derives everything the
  * guidance UI needs. Returns `null` only for a degenerate route with no
@@ -73,8 +107,20 @@ export const trackPosition = (
 ): TrackingResult | null => {
   const geometry = index.route.geometry;
   const searchFrom = Math.max(0, previous.segmentIndex - BACKTRACK_SEGMENTS);
-  const projection = projectOnPath(position.coordinates, geometry, searchFrom);
-  if (!projection) return null;
+  const searchTo = vertexAtDistance(
+    index.vertexDistances,
+    (index.vertexDistances[previous.segmentIndex] ?? 0) + SEARCH_WINDOW_METERS,
+    searchFrom,
+  );
+
+  const windowed = projectOnPath(position.coordinates, geometry, searchFrom, searchTo);
+  if (!windowed) return null;
+
+  // Only pay for the whole polyline when the window clearly did not contain the
+  // driver, and even then keep the windowed result unless the full scan is
+  // genuinely closer — a driver who has simply left the road should reroute,
+  // not be teleported onto whichever part of the route happens to be nearest.
+  const projection = resolveProjection(position, geometry, windowed);
 
   const travelled = distanceTravelled(index, projection.segmentIndex, projection.t);
   const stepIndex = resolveStepIndex(index, travelled, previous.stepIndex);
@@ -122,10 +168,19 @@ export const trackPosition = (
   };
 };
 
+/**
+ * True when this single fix sits outside the route corridor.
+ *
+ * One fix proves nothing — GPS noise puts a stationary car 60 m sideways
+ * regularly — so callers count consecutive hits and ask {@link isOffRoute}.
+ */
+export const isOffCorridor = (progress: NavigationProgress): boolean =>
+  progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters;
+
 /** True once the driver has been away from the route for long enough to act. */
 export const isOffRoute = (
   progress: NavigationProgress,
   consecutiveOffRouteFixes: number,
 ): boolean =>
-  progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters &&
+  isOffCorridor(progress) &&
   consecutiveOffRouteFixes >= NAVIGATION.offRouteConfirmations;

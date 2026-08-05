@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -6,11 +5,12 @@ import { colors, spacing } from '@/ui/theme';
 import { AppText } from './AppText';
 import { IconBadge, type IconBadgeTone } from './IconBadge';
 import { PressableScale } from './PressableScale';
+import { Icon, type IconName } from './Icon';
 
 export interface ListRowProps {
   title: string;
   subtitle?: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   iconTone?: IconBadgeTone;
   /** Right-hand content: a value, a switch, anything. */
   trailing?: ReactNode;
@@ -55,7 +55,7 @@ export const ListRow = ({
 
       {trailing}
       {chevron ? (
-        <Ionicons name="chevron-forward" size={17} color={colors.textTertiary} />
+        <Icon name="chevron-forward" size={17} color={colors.textTertiary} />
       ) : null}
     </PressableScale>
   );

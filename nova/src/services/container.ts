@@ -1,5 +1,7 @@
 import type { AuthRepository } from '@/core/domain/ports/authRepository';
+import type { CrashReporter } from '@/core/domain/ports/crashReporter';
 import type { LocationTracker } from '@/core/domain/ports/locationTracker';
+import type { Logger } from '@/core/domain/ports/logger';
 import type { PlacesProvider } from '@/core/domain/ports/placesProvider';
 import type {
   OnboardingRepository,
@@ -11,13 +13,20 @@ import type { SpeechEngine } from '@/core/domain/ports/speechEngine';
 import { createSignIn, createSignUp } from '@/core/usecases/authenticate';
 import { createPlanTrip } from '@/core/usecases/planTrip';
 import { createSearchPlaces } from '@/core/usecases/searchPlaces';
+import { createKeyValueStore } from '@/database/keyValueStore';
+import { createSecureStore } from '@/database/secureStore';
 import {
   createLocalOnboardingRepository,
   createLocalPreferencesRepository,
 } from '@/database/repositories/localPreferencesRepository';
 import { createLocalRecentDestinationsRepository } from '@/database/repositories/localRecentDestinationsRepository';
+import { createAccountStore } from '@/services/auth/accountStore';
 import { createLocalAuthRepository } from '@/services/auth/localAuthRepository';
+import { createSessionStore } from '@/services/auth/sessionStore';
+import { createHttpClient } from '@/services/http/httpClient';
 import { createExpoLocationTracker } from '@/services/location/expoLocationTracker';
+import { createConsoleLogger } from '@/services/observability/consoleLogger';
+import { createLocalCrashReporter } from '@/services/observability/localCrashReporter';
 import { createNominatimPlacesProvider } from '@/services/places/nominatimPlacesProvider';
 import { createOsrmRoutingProvider } from '@/services/routing/osrmRoutingProvider';
 import { createExpoSpeechEngine } from '@/voice/expoSpeechEngine';
@@ -25,11 +34,15 @@ import { createExpoSpeechEngine } from '@/voice/expoSpeechEngine';
 /**
  * The one place where abstractions meet implementations.
  *
- * Features depend on this container, never on a concrete adapter, so swapping
- * the geocoder, the router or the identity backend is a change confined to
- * this file — and tests can build a container out of fakes.
+ * Nothing here runs at import time. `createServiceContainer` is called once
+ * during bootstrap and the result is handed down through React context, which
+ * is what makes the whole graph replaceable: a test builds a container out of
+ * fakes, and Sprint 2's companion adapter is added here rather than reached for
+ * from inside a feature.
  */
 export interface ServiceContainer {
+  logger: Logger;
+  crashReporter: CrashReporter;
   authRepository: AuthRepository;
   placesProvider: PlacesProvider;
   routingProvider: RoutingProvider;
@@ -46,25 +59,47 @@ export interface ServiceContainer {
   };
 }
 
+/** Any part of the graph can be replaced; the rest is still wired for you. */
+export type ServiceOverrides = Partial<Omit<ServiceContainer, 'useCases'>>;
+
 export const createServiceContainer = (
-  overrides: Partial<Omit<ServiceContainer, 'useCases'>> = {},
+  overrides: ServiceOverrides = {},
 ): ServiceContainer => {
-  const authRepository = overrides.authRepository ?? createLocalAuthRepository();
-  const placesProvider = overrides.placesProvider ?? createNominatimPlacesProvider();
-  const routingProvider = overrides.routingProvider ?? createOsrmRoutingProvider();
+  const logger = overrides.logger ?? createConsoleLogger();
+  const crashReporter = overrides.crashReporter ?? createLocalCrashReporter(logger);
+
+  const http = createHttpClient(logger);
+  const keyValue = createKeyValueStore(logger);
+  const secure = createSecureStore(logger);
+
+  const authRepository =
+    overrides.authRepository ??
+    createLocalAuthRepository({
+      accounts: createAccountStore(secure, logger),
+      sessions: createSessionStore(secure),
+      logger,
+    });
+
+  const placesProvider =
+    overrides.placesProvider ?? createNominatimPlacesProvider({ http });
+  const routingProvider =
+    overrides.routingProvider ?? createOsrmRoutingProvider({ http });
 
   return {
+    logger,
+    crashReporter,
     authRepository,
     placesProvider,
     routingProvider,
     locationTracker: overrides.locationTracker ?? createExpoLocationTracker(),
     speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(),
     preferencesRepository:
-      overrides.preferencesRepository ?? createLocalPreferencesRepository(),
+      overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue),
     onboardingRepository:
-      overrides.onboardingRepository ?? createLocalOnboardingRepository(),
+      overrides.onboardingRepository ?? createLocalOnboardingRepository(keyValue),
     recentDestinationsRepository:
-      overrides.recentDestinationsRepository ?? createLocalRecentDestinationsRepository(),
+      overrides.recentDestinationsRepository ??
+      createLocalRecentDestinationsRepository(keyValue),
     useCases: {
       signIn: createSignIn({ authRepository }),
       signUp: createSignUp({ authRepository }),
@@ -73,6 +108,3 @@ export const createServiceContainer = (
     },
   };
 };
-
-/** Application-wide instance used by the feature layer. */
-export const services = createServiceContainer();

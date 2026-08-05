@@ -5,8 +5,8 @@ import type {
   PlaceSearchOptions,
   PlacesProvider,
 } from '@/core/domain/ports/placesProvider';
-import { getJson } from '@/services/http/httpClient';
-import type { NominatimPlace } from './nominatimTypes';
+import type { HttpClient } from '@/services/http/httpClient';
+import { decodeNominatimPlaces } from './nominatimDecoder';
 import { toPlaces } from './placeMapper';
 
 /** Half-width, in degrees, of the box used to bias results near the driver. */
@@ -20,6 +20,11 @@ const viewboxAround = ({ latitude, longitude }: Coordinates): string =>
     latitude - VIEWBOX_SPAN,
   ].join(',');
 
+export interface NominatimOptions {
+  http: HttpClient;
+  baseUrl?: string;
+}
+
 /**
  * Nominatim-compatible geocoder.
  *
@@ -28,11 +33,13 @@ const viewboxAround = ({ latitude, longitude }: Coordinates): string =>
  * `EXPO_PUBLIC_PLACES_BASE_URL` at a self-hosted or commercial instance before
  * shipping. Nothing outside this file knows which geocoder is in use.
  */
-export const createNominatimPlacesProvider = (
-  baseUrl: string = env.placesBaseUrl,
-): PlacesProvider => ({
+export const createNominatimPlacesProvider = ({
+  http,
+  baseUrl = env.placesBaseUrl,
+}: NominatimOptions): PlacesProvider => ({
   async search(query: string, options: PlaceSearchOptions = {}): Promise<Place[]> {
-    const raw = await getJson<NominatimPlace[]>(`${baseUrl}/search`, {
+    const raw = await http.getJson(`${baseUrl}/search`, decodeNominatimPlaces, {
+      operation: 'places.search',
       query: {
         q: query,
         format: 'jsonv2',

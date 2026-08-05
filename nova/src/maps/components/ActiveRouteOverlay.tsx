@@ -1,12 +1,14 @@
+import { memo, useMemo } from 'react';
 import { Polyline } from 'react-native-maps';
 
 import type { Coordinates } from '@/core/domain/entities/geo';
-import type { Route } from '@/core/domain/entities/route';
+import type { RouteIndex } from '@/core/navigation/routeIndex';
+import { sliceRouteWindow } from '@/maps/geometry/routeWindow';
 import { colors } from '@/ui/theme';
 
 export interface ActiveRouteOverlayProps {
-  route: Route;
-  /** Index of the segment the driver is currently on. */
+  routeIndex: RouteIndex;
+  /** Index of the geometry segment the driver is currently on. */
   segmentIndex: number;
   /** Position snapped to the route — where the driven part ends. */
   snappedPosition: Coordinates;
@@ -16,19 +18,35 @@ export interface ActiveRouteOverlayProps {
  * Route geometry during guidance: the road already driven fades back, the road
  * ahead stays lit. Splitting at the snapped position (rather than at the
  * nearest vertex) keeps the boundary exactly under the puck.
+ *
+ * Only a window around the driver is drawn, and the vertex slices are memoised
+ * on the segment index — so a fix that does not cross a vertex costs two array
+ * joins rather than three copies of the whole route.
  */
-export const ActiveRouteOverlay = ({
-  route,
+const ActiveRouteOverlayComponent = ({
+  routeIndex,
   segmentIndex,
   snappedPosition,
 }: ActiveRouteOverlayProps) => {
-  const driven = [...route.geometry.slice(0, segmentIndex + 1), snappedPosition];
-  const remaining = [snappedPosition, ...route.geometry.slice(segmentIndex + 1)];
+  const window = useMemo(
+    () => sliceRouteWindow(routeIndex, segmentIndex),
+    [routeIndex, segmentIndex],
+  );
+
+  const driven = useMemo(
+    () => [...window.behind, snappedPosition],
+    [window.behind, snappedPosition],
+  );
+  const remaining = useMemo(
+    () => [snappedPosition, ...window.ahead],
+    [window.ahead, snappedPosition],
+  );
+  const casing = useMemo(() => [...driven, ...window.ahead], [driven, window.ahead]);
 
   return (
     <>
       <Polyline
-        coordinates={route.geometry}
+        coordinates={casing}
         strokeColor={colors.routeCasing}
         strokeWidth={13}
         lineCap="round"
@@ -56,3 +74,5 @@ export const ActiveRouteOverlay = ({
     </>
   );
 };
+
+export const ActiveRouteOverlay = memo(ActiveRouteOverlayComponent);

@@ -5,6 +5,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
+import { AppRuntimeProvider, createAppRuntime } from '@/app/runtime/AppRuntime';
 import { SplashOverlay } from '@/features/splash/ui/SplashOverlay';
 import { colors } from '@/ui/theme';
 import { bootstrapApp } from './bootstrap';
@@ -16,36 +17,42 @@ import { RootNavigator } from './navigation/RootNavigator';
 void SplashScreen.preventAutoHideAsync();
 
 export const App = () => {
+  // The service graph and every store, built exactly once per app instance.
+  // Nothing is constructed at import time, so a test can mount this tree with
+  // its own runtime and no module mocking.
+  const [runtime] = useState(createAppRuntime);
   const [bootstrapped, setBootstrapped] = useState(false);
   const [splashVisible, setSplashVisible] = useState(true);
 
   useEffect(() => {
-    void bootstrapApp().finally(() => setBootstrapped(true));
-  }, []);
+    void bootstrapApp(runtime).finally(() => setBootstrapped(true));
+  }, [runtime]);
 
   const onLayout = useCallback(() => {
     void SplashScreen.hideAsync();
   }, []);
 
   return (
-    <SafeAreaProvider>
-      <StatusBar style="light" />
+    <AppRuntimeProvider runtime={runtime}>
+      <SafeAreaProvider>
+        <StatusBar style="light" />
 
-      <View style={styles.root} onLayout={onLayout}>
-        {bootstrapped ? (
-          <NavigationContainer theme={navigationTheme}>
-            <RootNavigator />
-          </NavigationContainer>
-        ) : null}
+        <View style={styles.root} onLayout={onLayout}>
+          {bootstrapped ? (
+            <NavigationContainer theme={navigationTheme}>
+              <RootNavigator />
+            </NavigationContainer>
+          ) : null}
 
-        {splashVisible ? (
-          <SplashOverlay
-            ready={bootstrapped}
-            onFinished={() => setSplashVisible(false)}
-          />
-        ) : null}
-      </View>
-    </SafeAreaProvider>
+          {splashVisible ? (
+            <SplashOverlay
+              ready={bootstrapped}
+              onFinished={() => setSplashVisible(false)}
+            />
+          ) : null}
+        </View>
+      </SafeAreaProvider>
+    </AppRuntimeProvider>
   );
 };
 

@@ -2,11 +2,11 @@ import { create } from 'zustand';
 
 import type { Session } from '@/core/domain/entities/user';
 import { messageFor } from '@/core/domain/errors/appError';
-import { services } from '@/services/container';
+import type { ServiceContainer } from '@/services/container';
 
 export type AuthStatus = 'unknown' | 'authenticated' | 'unauthenticated';
 
-interface AuthState {
+export interface AuthState {
   session: Session | null;
   status: AuthStatus;
   submitting: boolean;
@@ -23,54 +23,58 @@ interface AuthState {
  * navigator can wait for the persisted session instead of flashing the login
  * screen at a driver who is already signed in.
  */
-export const useAuthStore = create<AuthState>()((set) => {
-  const authenticate = async (
-    action: () => Promise<Session>,
-    fallbackMessage: string,
-  ): Promise<boolean> => {
-    set({ submitting: true, error: null });
+export const createAuthStore = (services: ServiceContainer) =>
+  create<AuthState>()((set) => {
+    const authenticate = async (
+      action: () => Promise<Session>,
+      fallbackMessage: string,
+    ): Promise<boolean> => {
+      set({ submitting: true, error: null });
 
-    try {
-      const session = await action();
-      set({ session, status: 'authenticated', submitting: false });
-      return true;
-    } catch (error) {
-      set({ submitting: false, error: messageFor(error, fallbackMessage) });
-      return false;
-    }
-  };
+      try {
+        const session = await action();
+        // Opaque id only: crash reports must never carry an email or a name.
+        services.crashReporter.identify(session.user.id);
+        set({ session, status: 'authenticated', submitting: false });
+        return true;
+      } catch (error) {
+        set({ submitting: false, error: messageFor(error, fallbackMessage) });
+        return false;
+      }
+    };
 
-  return {
-    session: null,
-    status: 'unknown',
-    submitting: false,
-    error: null,
+    return {
+      session: null,
+      status: 'unknown',
+      submitting: false,
+      error: null,
 
-    async restore() {
-      const session = await services.authRepository.restoreSession();
-      set({
-        session,
-        status: session ? 'authenticated' : 'unauthenticated',
-      });
-    },
+      async restore() {
+        const session = await services.authRepository.restoreSession();
+        set({
+          session,
+          status: session ? 'authenticated' : 'unauthenticated',
+        });
+      },
 
-    signIn: (email, password) =>
-      authenticate(
-        () => services.useCases.signIn({ email, password }),
-        'Could not sign you in. Try again.',
-      ),
+      signIn: (email, password) =>
+        authenticate(
+          () => services.useCases.signIn({ email, password }),
+          'Could not sign you in. Try again.',
+        ),
 
-    signUp: (fullName, email, password) =>
-      authenticate(
-        () => services.useCases.signUp({ fullName, email, password }),
-        'Could not create your account. Try again.',
-      ),
+      signUp: (fullName, email, password) =>
+        authenticate(
+          () => services.useCases.signUp({ fullName, email, password }),
+          'Could not create your account. Try again.',
+        ),
 
-    async signOut() {
-      await services.authRepository.signOut();
-      set({ session: null, status: 'unauthenticated', error: null });
-    },
+      async signOut() {
+        await services.authRepository.signOut();
+        services.crashReporter.identify(null);
+        set({ session: null, status: 'unauthenticated', error: null });
+      },
 
-    clearError: () => set({ error: null }),
-  };
-});
+      clearError: () => set({ error: null }),
+    };
+  });

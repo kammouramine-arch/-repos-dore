@@ -85,15 +85,20 @@ export interface ProjectionOnPath extends ProjectionOnSegment {
 }
 
 /**
- * Snaps `point` to the closest position on a polyline.
- * `searchFrom` lets a live navigation session skip segments already driven,
- * which both speeds the scan up and prevents snapping back onto an earlier
- * part of a route that loops near itself.
+ * Snaps `point` to the closest position on a polyline, scanning only the
+ * segments in `[searchFrom, searchTo]`.
+ *
+ * Both bounds matter during navigation. `searchFrom` skips road already
+ * driven, which stops a fix snapping backwards onto a route that loops near
+ * itself. `searchTo` is what keeps the cost constant: without it every fix
+ * walks the entire remaining geometry, so a 500 km trip pays tens of thousands
+ * of projections per second regardless of how far the car actually moved.
  */
 export const projectOnPath = (
   point: Coordinates,
   path: readonly Coordinates[],
   searchFrom = 0,
+  searchTo = path.length - 2,
 ): ProjectionOnPath | null => {
   if (path.length === 0) return null;
   if (path.length === 1) {
@@ -105,10 +110,12 @@ export const projectOnPath = (
     };
   }
 
-  const start = Math.min(Math.max(0, searchFrom), path.length - 2);
+  const lastSegment = path.length - 2;
+  const start = Math.min(Math.max(0, searchFrom), lastSegment);
+  const end = Math.min(Math.max(start, searchTo), lastSegment);
   let best: ProjectionOnPath | null = null;
 
-  for (let index = start; index < path.length - 1; index += 1) {
+  for (let index = start; index <= end; index += 1) {
     const projection = projectOnSegment(point, path[index], path[index + 1]);
     if (!best || projection.distance < best.distance) {
       best = { ...projection, segmentIndex: index };
@@ -116,6 +123,29 @@ export const projectOnPath = (
   }
 
   return best;
+};
+
+/**
+ * Index of the last vertex no further along than `target` metres.
+ * Binary search, because the caller runs it on every location fix.
+ */
+export const vertexAtDistance = (
+  cumulative: readonly number[],
+  target: number,
+  from = 0,
+): number => {
+  let low = Math.max(0, from);
+  let high = cumulative.length - 1;
+
+  if (low >= high) return high;
+
+  while (low < high) {
+    const middle = Math.ceil((low + high) / 2);
+    if (cumulative[middle] <= target) low = middle;
+    else high = middle - 1;
+  }
+
+  return low;
 };
 
 /** Distance from the polyline start to each of its vertices, in metres. */

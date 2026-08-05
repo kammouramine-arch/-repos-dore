@@ -2,11 +2,11 @@ import { create } from 'zustand';
 
 import type { LocationPermission, UserPosition } from '@/core/domain/entities/geo';
 import { messageFor } from '@/core/domain/errors/appError';
-import { services } from '@/services/container';
+import type { ServiceContainer } from '@/services/container';
 
 type LocationStatus = 'idle' | 'locating' | 'ready' | 'denied' | 'error';
 
-interface LocationState {
+export interface LocationState {
   position: UserPosition | null;
   permission: LocationPermission;
   status: LocationStatus;
@@ -23,41 +23,42 @@ interface LocationState {
  * wait on the GPS again — the live guidance session runs its own high-rate
  * watch and feeds this store as it goes.
  */
-export const useLocationStore = create<LocationState>()((set) => ({
-  position: null,
-  permission: 'undetermined',
-  status: 'idle',
-  error: null,
+export const createLocationStore = (services: ServiceContainer) =>
+  create<LocationState>()((set) => ({
+    position: null,
+    permission: 'undetermined',
+    status: 'idle',
+    error: null,
 
-  async locate() {
-    set({ status: 'locating', error: null });
+    async locate() {
+      set({ status: 'locating', error: null });
 
-    const granted = await services.locationTracker.getPermission();
-    const permission =
-      granted === 'granted' ? granted : await services.locationTracker.requestPermission();
+      const granted = await services.locationTracker.getPermission();
+      const permission =
+        granted === 'granted' ? granted : await services.locationTracker.requestPermission();
 
-    if (permission !== 'granted') {
-      set({
-        permission,
-        status: 'denied',
-        error: 'Location access is off. Turn it on to navigate.',
-      });
-      return false;
-    }
+      if (permission !== 'granted') {
+        set({
+          permission,
+          status: 'denied',
+          error: 'Location access is off. Turn it on to navigate.',
+        });
+        return false;
+      }
 
-    try {
-      const position = await services.locationTracker.getCurrentPosition();
-      set({ position, permission, status: 'ready', error: null });
-      return true;
-    } catch (error) {
-      set({
-        permission,
-        status: 'error',
-        error: messageFor(error, 'Nova could not get a location fix.'),
-      });
-      return false;
-    }
-  },
+      try {
+        const position = await services.locationTracker.getCurrentPosition();
+        set({ position, permission, status: 'ready', error: null });
+        return true;
+      } catch (error) {
+        set({
+          permission,
+          status: 'error',
+          error: messageFor(error, 'Nova could not get a location fix.'),
+        });
+        return false;
+      }
+    },
 
-  setPosition: (position) => set({ position, status: 'ready' }),
-}));
+    setPosition: (position) => set({ position, status: 'ready' }),
+  }));

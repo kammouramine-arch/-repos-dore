@@ -1,4 +1,4 @@
-import { Fragment } from 'react';
+import { Fragment, memo } from 'react';
 import { Polyline } from 'react-native-maps';
 
 import type { Route } from '@/core/domain/entities/route';
@@ -18,7 +18,7 @@ export interface RouteOverlayProps {
  * then its coloured core — that is what gives the active line a clean edge
  * wherever the routes overlap.
  */
-export const RouteOverlay = ({
+const RouteOverlayComponent = ({
   routes,
   selectedRouteId,
   onSelectRoute,
@@ -66,3 +66,5 @@ export const RouteOverlay = ({
     </>
   );
 };
+
+export const RouteOverlay = memo(RouteOverlayComponent);

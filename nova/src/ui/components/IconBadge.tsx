@@ -1,12 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '@/ui/theme';
+import { Icon, type IconName } from './Icon';
 
 export type IconBadgeTone = 'neutral' | 'accent' | 'danger' | 'success';
 
 export interface IconBadgeProps {
-  name: keyof typeof Ionicons.glyphMap;
+  name: IconName;
   tone?: IconBadgeTone;
   size?: number;
 }
@@ -38,7 +38,7 @@ export const IconBadge = ({ name, tone = 'neutral', size = 38 }: IconBadgeProps)
       },
     ]}
   >
-    <Ionicons name={name} size={size * 0.5} color={FOREGROUNDS[tone]} />
+    <Icon name={name} size={size * 0.5} color={FOREGROUNDS[tone]} />
   </View>
 );
 

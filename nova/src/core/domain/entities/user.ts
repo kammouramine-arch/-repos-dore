@@ -9,6 +9,11 @@ export interface Session {
   token: string;
   user: User;
   issuedAt: number;
+  /**
+   * When the session stops being valid. Local sessions expire on a fixed TTL;
+   * a server-issued token will carry its own, and the field is already here.
+   */
+  expiresAt: number;
 }
 
 export interface Credentials {

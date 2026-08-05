@@ -1,9 +1,8 @@
-import type { Ionicons } from '@expo/vector-icons';
-
 import type { PlaceCategory } from '@/core/domain/entities/place';
+import type { IconName } from '@/ui/components/Icon';
 
 /** One icon per place category, shared by search results and recent trips. */
-export const PLACE_ICONS: Record<PlaceCategory, keyof typeof Ionicons.glyphMap> = {
+export const PLACE_ICONS: Record<PlaceCategory, IconName> = {
   address: 'home-outline',
   transport: 'train-outline',
   food: 'restaurant-outline',

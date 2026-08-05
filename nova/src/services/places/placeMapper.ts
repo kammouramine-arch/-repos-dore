@@ -35,25 +35,21 @@ const toCategory = ({ category, type }: NominatimPlace): PlaceCategory => {
  * Nominatim returns one long `display_name`. Drivers scan a short label and a
  * secondary address line, so we split it: the provider's `name` when it has
  * one, otherwise the first component of the display name.
+ *
+ * Coordinates are already validated by the decoder, so this is pure shaping.
  */
-const toPlace = (raw: NominatimPlace): Place | null => {
-  const latitude = Number.parseFloat(raw.lat);
-  const longitude = Number.parseFloat(raw.lon);
-  if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) return null;
-
-  const components = (raw.display_name ?? '').split(',').map((part) => part.trim());
+export const toPlace = (raw: NominatimPlace): Place => {
+  const components = (raw.displayName ?? '').split(',').map((part) => part.trim());
   const name = raw.name?.trim() || components[0] || 'Dropped pin';
   const rest = raw.name?.trim() ? components : components.slice(1);
-  const address = rest.join(', ') || raw.display_name?.trim() || '';
 
   return {
-    id: `${raw.osm_type ?? 'osm'}:${raw.osm_id ?? raw.place_id ?? `${latitude},${longitude}`}`,
+    id: raw.id,
     name,
-    address,
-    coordinates: { latitude, longitude },
+    address: rest.join(', ') || raw.displayName?.trim() || '',
+    coordinates: { latitude: raw.latitude, longitude: raw.longitude },
     category: toCategory(raw),
   };
 };
 
-export const toPlaces = (raw: NominatimPlace[]): Place[] =>
-  raw.map(toPlace).filter((place): place is Place => place !== null);
+export const toPlaces = (raw: readonly NominatimPlace[]): Place[] => raw.map(toPlace);

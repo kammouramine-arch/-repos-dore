@@ -1,13 +1,14 @@
-/** Subset of the Nominatim `jsonv2` payload that Nova actually consumes. */
+/**
+ * The decoded shape of a Nominatim `jsonv2` result — the subset Nova consumes,
+ * after validation. Coordinates arrive from the provider as strings and are
+ * already numbers by the time anything else sees them.
+ */
 export interface NominatimPlace {
-  place_id?: number;
-  osm_type?: string;
-  osm_id?: number;
-  lat: string;
-  lon: string;
+  id: string;
+  latitude: number;
+  longitude: number;
   name?: string;
-  display_name?: string;
+  displayName?: string;
   category?: string;
   type?: string;
-  addresstype?: string;
 }

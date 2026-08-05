@@ -1,9 +1,9 @@
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
+import { useAuthStore, usePreferencesStore } from '@/app/stores/hooks';
 import { APP_INFO } from '@/config';
 import type { DistanceUnit, MapStyle } from '@/core/domain/entities/preferences';
-import { useAuthStore } from '@/features/auth/state/authStore';
 import {
   AppText,
   Button,
@@ -13,7 +13,6 @@ import {
   ToggleRow,
 } from '@/ui/components';
 import { spacing } from '@/ui/theme';
-import { usePreferencesStore } from '../state/preferencesStore';
 import { AccountCard } from './AccountCard';
 import { ChoiceRow } from './ChoiceRow';
 import { SettingsSection } from './SettingsSection';

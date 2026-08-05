@@ -1,9 +1,9 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
 import { AppText } from '@/ui/components';
 import { colors, radius, spacing } from '@/ui/theme';
+import { Icon } from '@/ui/components/Icon';
 
 export interface FormErrorProps {
   message: string | null;
@@ -16,7 +16,7 @@ export const FormError = ({ message }: FormErrorProps) => {
   return (
     <Animated.View entering={FadeIn.duration(180)} exiting={FadeOut.duration(140)}>
       <View style={styles.banner}>
-        <Ionicons name="alert-circle" size={18} color={colors.danger} />
+        <Icon name="alert-circle" size={18} color={colors.danger} />
         <AppText variant="footnote" tone="danger" style={styles.text}>
           {message}
         </AppText>

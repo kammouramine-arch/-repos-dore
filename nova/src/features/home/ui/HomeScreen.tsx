@@ -4,12 +4,15 @@ import { StyleSheet, View } from 'react-native';
 import type MapView from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
+import { useStores } from '@/app/runtime/AppRuntime';
+import {
+  useAuthStore,
+  useLocationStore,
+  usePreferencesStore,
+  useTripStore,
+} from '@/app/stores/hooks';
 import { MAP_DEFAULTS } from '@/config';
-import { useAuthStore } from '@/features/auth/state/authStore';
-import { useLocationStore } from '@/features/location/state/locationStore';
-import { usePreferencesStore } from '@/features/settings/state/preferencesStore';
 import { usePlanDestination } from '@/features/trip/hooks/usePlanDestination';
-import { useTripStore } from '@/features/trip/state/tripStore';
 import { regionAround } from '@/maps/camera';
 import { NovaMapView } from '@/maps/components/NovaMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
@@ -31,6 +34,7 @@ export const HomeScreen = () => {
   // Narrow selectors on purpose. Home stays mounted under the rest of the
   // stack, so subscribing to whole stores would re-render the map on state it
   // does not display — trip planning, guidance status, sign-in progress.
+  const stores = useStores();
   const session = useAuthStore((state) => state.session);
   const position = useLocationStore((state) => state.position);
   const locationError = useLocationStore((state) => state.error);
@@ -47,7 +51,7 @@ export const HomeScreen = () => {
   }, [loadRecents, locate]);
 
   const centreOnDriver = (animated = true) => {
-    const coordinates = useLocationStore.getState().position?.coordinates;
+    const coordinates = stores.location.getState().position?.coordinates;
     if (!coordinates) {
       void locate();
       return;

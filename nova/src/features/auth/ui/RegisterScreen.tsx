@@ -2,6 +2,7 @@ import { useNavigation } from '@react-navigation/native';
 import { useRef } from 'react';
 import type { TextInput } from 'react-native';
 
+import { useAuthStore } from '@/app/stores/hooks';
 import { Button, TextField } from '@/ui/components';
 import {
   validateEmail,
@@ -10,7 +11,6 @@ import {
   validatePasswordConfirmation,
 } from '@/utils/validation';
 import { useField } from '../hooks/useField';
-import { useAuthStore } from '../state/authStore';
 import { AuthLayout } from './AuthLayout';
 import { FormError } from './FormError';
 

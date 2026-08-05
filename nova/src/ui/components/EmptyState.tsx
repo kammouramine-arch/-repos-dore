@@ -1,12 +1,12 @@
-import { Ionicons } from '@expo/vector-icons';
 import { StyleSheet, View } from 'react-native';
 
 import { spacing } from '@/ui/theme';
 import { AppText } from './AppText';
 import { IconBadge } from './IconBadge';
+import type { IconName } from './Icon';
 
 export interface EmptyStateProps {
-  icon: keyof typeof Ionicons.glyphMap;
+  icon: IconName;
   title: string;
   message?: string;
 }

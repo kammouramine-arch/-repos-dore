@@ -1,4 +1,3 @@
-import { Ionicons } from '@expo/vector-icons';
 import { useState, type RefObject } from 'react';
 import {
   Pressable,
@@ -11,10 +10,11 @@ import Animated, { useAnimatedStyle, withTiming } from 'react-native-reanimated'
 
 import { colors, motion, radius, sizing, spacing, typography } from '@/ui/theme';
 import { AppText } from './AppText';
+import { Icon, type IconName } from './Icon';
 
 export interface TextFieldProps extends Omit<TextInputProps, 'style'> {
   label: string;
-  icon?: keyof typeof Ionicons.glyphMap;
+  icon?: IconName;
   /** Validation message shown under the field; also drives the error styling. */
   error?: string | null;
   /** Renders a reveal toggle and starts obscured. */
@@ -58,7 +58,7 @@ export const TextField = ({
 
       <Animated.View style={[styles.field, animatedBorder]}>
         {icon ? (
-          <Ionicons name={icon} size={18} color={colors.textTertiary} />
+          <Icon name={icon} size={18} color={colors.textTertiary} />
         ) : null}
 
         <TextInput
@@ -85,7 +85,7 @@ export const TextField = ({
             hitSlop={12}
             onPress={() => setRevealed((value) => !value)}
           >
-            <Ionicons
+            <Icon
               name={revealed ? 'eye-off-outline' : 'eye-outline'}
               size={19}
               color={colors.textTertiary}

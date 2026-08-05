@@ -6,10 +6,10 @@ import Animated, {
   useSharedValue,
 } from 'react-native-reanimated';
 
+import { useOnboardingStore } from '@/app/stores/hooks';
 import { AppText, Button, PressableScale, Screen } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { ONBOARDING_SLIDES } from '../onboardingContent';
-import { useOnboardingStore } from '../state/onboardingStore';
 import { OnboardingSlide } from './OnboardingSlide';
 import { PageDots } from './PageDots';
 
