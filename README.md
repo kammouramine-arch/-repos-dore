@@ -1,3 +1,7 @@
+> **Ce dépôt contient deux projets indépendants :**
+> · **RÉVA** (racine) — le site vitrine décrit ci-dessous.
+> · **Nova** ([`nova/`](nova/README.md)) — l'application mobile React Native / Expo.
+
 # RÉVA — Site premium de récupération &amp; bien-être
 
 Site e-commerce vitrine complet en HTML / CSS / JavaScript natif, sans aucune dépendance,
