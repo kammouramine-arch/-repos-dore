@@ -6,9 +6,11 @@ import { StyleSheet, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppRuntimeProvider, createAppRuntime } from '@/app/runtime/AppRuntime';
+import { ConversationEngine } from '@/features/conversation/ui/ConversationEngine';
 import { SplashOverlay } from '@/features/splash/ui/SplashOverlay';
 import { colors } from '@/ui/theme';
 import { bootstrapApp } from './bootstrap';
+import { navigationRef } from './navigation/navigationRef';
 import { navigationTheme } from './navigation/navigationTheme';
 import { RootNavigator } from './navigation/RootNavigator';
 
@@ -39,7 +41,8 @@ export const App = () => {
 
         <View style={styles.root} onLayout={onLayout}>
           {bootstrapped ? (
-            <NavigationContainer theme={navigationTheme}>
+            <NavigationContainer ref={navigationRef} theme={navigationTheme}>
+              <ConversationEngine />
               <RootNavigator />
             </NavigationContainer>
           ) : null}

@@ -1,5 +1,6 @@
 import { useStores } from '@/app/runtime/AppRuntime';
 import type { AuthState } from '@/features/auth/state/authStore';
+import type { ConversationStoreState } from '@/features/conversation/state/conversationStore';
 import type { LocationState } from '@/features/location/state/locationStore';
 import type { NavigationState } from '@/features/navigation/state/navigationStore';
 import type { OnboardingState } from '@/features/onboarding/state/onboardingStore';
@@ -38,6 +39,9 @@ export const useOnboardingStore = bind<OnboardingState>((stores) => stores.onboa
 export const useLocationStore = bind<LocationState>((stores) => stores.location);
 export const useTripStore = bind<TripState>((stores) => stores.trip);
 export const useNavigationStore = bind<NavigationState>((stores) => stores.navigation);
+export const useConversationStore = bind<ConversationStoreState>(
+  (stores) => stores.conversation,
+);
 
 /** The route the driver is about to take, or `null` before planning. */
 export const useActiveRoute = () => useTripStore(selectActiveRoute);

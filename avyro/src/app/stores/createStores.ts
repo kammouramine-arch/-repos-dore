@@ -2,6 +2,10 @@ import type { StoreApi, UseBoundStore } from 'zustand';
 
 import { createAuthStore, type AuthState } from '@/features/auth/state/authStore';
 import {
+  createConversationStore,
+  type ConversationStoreState,
+} from '@/features/conversation/state/conversationStore';
+import {
   createLocationStore,
   type LocationState,
 } from '@/features/location/state/locationStore';
@@ -37,6 +41,7 @@ export interface AppStores {
   location: Store<LocationState>;
   trip: Store<TripState>;
   navigation: Store<NavigationState>;
+  conversation: Store<ConversationStoreState>;
 }
 
 export const createStores = (services: ServiceContainer): AppStores => ({
@@ -46,4 +51,5 @@ export const createStores = (services: ServiceContainer): AppStores => ({
   location: createLocationStore(services),
   trip: createTripStore(services),
   navigation: createNavigationStore(),
+  conversation: createConversationStore(),
 });

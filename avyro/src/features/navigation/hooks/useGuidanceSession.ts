@@ -45,7 +45,14 @@ export const useGuidanceSession = () => {
     if (!route || !destination || !routeIndex) return;
 
     const logger = services.logger.scoped('guidance');
-    const { navigation, preferences, location } = stores;
+    const { navigation, preferences, location, conversation } = stores;
+
+    // Guidance never speaks for itself. Announcements go to the conversation
+    // engine, which stops whatever Avyro was saying, says this instead, and
+    // resumes the conversation afterwards. That is the whole of requirement
+    // "navigation always interrupts conversation" — in one call.
+    const announce = (text: string) =>
+      conversation.getState().dispatch({ type: 'navigation-announcement', text });
     const { setProgress, setStatus, replaceRoute } = navigation.getState();
 
     trackerRef.current = initialTrackerState;
@@ -77,7 +84,7 @@ export const useGuidanceSession = () => {
         });
 
         if (preferences.getState().preferences.voiceGuidance) {
-          void services.speechEngine.speak('Route updated.');
+          announce('Route updated.');
         }
       } catch (error) {
         setStatus('off-route');
@@ -109,7 +116,7 @@ export const useGuidanceSession = () => {
           driverPreferences.distanceUnit,
         );
         announcerRef.current = announcement.state;
-        if (announcement.text) void services.speechEngine.speak(announcement.text);
+        if (announcement.text) announce(announcement.text);
       }
 
       if (result.progress.hasArrived) {

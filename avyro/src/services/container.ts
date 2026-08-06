@@ -1,4 +1,5 @@
 import type { AuthRepository } from '@/core/domain/ports/authRepository';
+import type { ConversationProvider } from '@/core/domain/ports/conversationProvider';
 import type { CrashReporter } from '@/core/domain/ports/crashReporter';
 import type { LocationTracker } from '@/core/domain/ports/locationTracker';
 import type { Logger } from '@/core/domain/ports/logger';
@@ -9,6 +10,8 @@ import type {
   RecentDestinationsRepository,
 } from '@/core/domain/ports/preferencesRepository';
 import type { RoutingProvider } from '@/core/domain/ports/routingProvider';
+import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
+import type { SpeechRecognizer } from '@/core/domain/ports/speechRecognizer';
 import type { SpeechEngine } from '@/core/domain/ports/speechEngine';
 import { createSignIn, createSignUp } from '@/core/usecases/authenticate';
 import { createPlanTrip } from '@/core/usecases/planTrip';
@@ -21,6 +24,8 @@ import {
   createLocalPreferencesRepository,
 } from '@/database/repositories/localPreferencesRepository';
 import { createLocalRecentDestinationsRepository } from '@/database/repositories/localRecentDestinationsRepository';
+import { createLocalSavedPlacesRepository } from '@/database/repositories/localSavedPlacesRepository';
+import { createLocalConversationProvider } from '@/services/ai/localConversationProvider';
 import { createAccountStore } from '@/services/auth/accountStore';
 import { createLocalAuthRepository } from '@/services/auth/localAuthRepository';
 import { createSessionStore } from '@/services/auth/sessionStore';
@@ -30,6 +35,7 @@ import { createConsoleLogger } from '@/services/observability/consoleLogger';
 import { createLocalCrashReporter } from '@/services/observability/localCrashReporter';
 import { createNominatimPlacesProvider } from '@/services/places/nominatimPlacesProvider';
 import { createOsrmRoutingProvider } from '@/services/routing/osrmRoutingProvider';
+import { createExpoSpeechRecognizer } from '@/services/speech/expoSpeechRecognizer';
 import { createExpoSpeechEngine } from '@/voice/expoSpeechEngine';
 
 /**
@@ -52,6 +58,10 @@ export interface ServiceContainer {
   preferencesRepository: PreferencesRepository;
   onboardingRepository: OnboardingRepository;
   recentDestinationsRepository: RecentDestinationsRepository;
+  savedPlacesRepository: SavedPlacesRepository;
+  speechRecognizer: SpeechRecognizer;
+  /** The swappable brain. See `ConversationProvider` before adding a model. */
+  conversationProvider: ConversationProvider;
   /**
    * One-time local data migrations. Bootstrap runs this before any store
    * loads, so repositories only ever see records under the current keys.
@@ -88,6 +98,8 @@ export const createServiceContainer = (
 
   const placesProvider =
     overrides.placesProvider ?? createNominatimPlacesProvider({ http });
+  const savedPlacesRepository =
+    overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(keyValue);
   const routingProvider =
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
 
@@ -106,6 +118,15 @@ export const createServiceContainer = (
     recentDestinationsRepository:
       overrides.recentDestinationsRepository ??
       createLocalRecentDestinationsRepository(keyValue),
+    savedPlacesRepository,
+    speechRecognizer: overrides.speechRecognizer ?? createExpoSpeechRecognizer(logger),
+    conversationProvider:
+      overrides.conversationProvider ??
+      createLocalConversationProvider({
+        placesProvider,
+        savedPlaces: savedPlacesRepository,
+        logger,
+      }),
     migrateStorage:
       overrides.migrateStorage ??
       (() => migrateBrandedStorageKeys({ keyValue, secure, logger })),

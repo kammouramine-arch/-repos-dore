@@ -3,6 +3,7 @@ import { ScrollView, StyleSheet, View } from 'react-native';
 
 import { useAuthStore, usePreferencesStore } from '@/app/stores/hooks';
 import { APP_INFO } from '@/config';
+import { displayWakePhrase } from '@/core/conversation/wakePhrase';
 import type { DistanceUnit, MapStyle } from '@/core/domain/entities/preferences';
 import {
   AppText,
@@ -51,6 +52,12 @@ export const SettingsScreen = () => {
             subtitle="Spoken instructions before every maneuver"
             value={preferences.voiceGuidance}
             onChange={(value) => void update({ voiceGuidance: value })}
+          />
+          <ToggleRow
+            title="Voice commands"
+            subtitle={`Listen for “${displayWakePhrase()}” while driving`}
+            value={preferences.voiceCommands}
+            onChange={(value) => void update({ voiceCommands: value })}
           />
           <ToggleRow
             title="Haptics"

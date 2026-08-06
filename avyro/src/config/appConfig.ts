@@ -57,6 +57,32 @@ export const NAVIGATION = {
   announcementDistancesMeters: [1_500, 500, 180, 45],
 } as const;
 
+/**
+ * The conversation engine.
+ *
+ * Wake phrases are keyed by locale rather than hard-coded so that localisation
+ * is a data change: a locale ships its own phrases, and the matcher normalises
+ * accents and punctuation before comparing. Several spellings per locale is
+ * deliberate — recognisers transcribe a brand name inconsistently, and refusing
+ * "hey aviro" would make Avyro feel deaf rather than precise.
+ */
+export const CONVERSATION = {
+  defaultLocale: 'en-US',
+
+  wakePhrases: {
+    'en-US': ['hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
+    'en-GB': ['hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
+    'fr-FR': ['dis avyro', 'salut avyro', 'ok avyro', 'hey avyro'],
+  } as Record<string, readonly string[]>,
+
+  /** Give up on a command if the driver says nothing after waking Avyro. */
+  listenTimeoutMs: 7_000,
+  /** How long the cancelled state stays observable before returning to idle. */
+  cancelledLingerMs: 1_200,
+  /** Nearby searches are capped tightly: a driver wants the next one, not a list. */
+  nearbyResultLimit: 5,
+} as const;
+
 export const AUTH = {
   /** How long a signed-in session stays valid without re-authenticating. */
   sessionTtlMs: 90 * 24 * 60 * 60 * 1000,
@@ -68,4 +94,5 @@ export const STORAGE_KEYS = {
   preferences: 'avyro.preferences',
   onboarding: 'avyro.onboarding.completed',
   recentDestinations: 'avyro.destinations.recent',
+  savedPlaces: 'avyro.places.saved',
 } as const;

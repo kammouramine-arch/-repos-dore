@@ -1,4 +1,4 @@
-# Avyro — Sprint 1
+# Avyro
 
 **Avyro is not another GPS. Avyro is the world’s first AI Driving Companion.**
 
@@ -25,8 +25,52 @@ React Native · Expo SDK 57 · TypeScript (strict)
 | **Guidance** | Turn-by-turn: pitched follow camera, maneuver banner, spoken instructions, automatic rerouting, arrival. |
 | **Settings** | Account, voice, haptics, screen-awake, units, map style, live traffic. |
 
-Deliberately **not** in Sprint 1: any AI, any server, offline maps, background
-guidance, CarPlay/Android Auto, lane guidance, speed limits.
+Deliberately **not** shipped yet: any hosted model, any server, offline maps,
+background guidance, CarPlay/Android Auto, lane guidance, speed limits.
+
+---
+
+## 1b. The conversation engine (0.2)
+
+Say **“Hey Avyro”** and ask for something. Off by default — Settings → Guidance →
+Voice commands, because an always-listening microphone is opted into, not
+discovered.
+
+| Command | What happens |
+|---|---|
+| Take me home / to work | Navigates to the saved place, or says it does not know one yet |
+| How long until I arrive? | Arrival time and time remaining, from live progress |
+| How far is it? | Distance remaining, in the driver's units |
+| Cancel navigation | Ends the trip and returns to the map |
+| Reroute | Recomputes from the current position |
+| Find restaurants / coffee / fuel / parking | Searches nearby, names the closest, and starts navigating |
+
+**Seven states**, in `core/conversation/conversationMachine.ts`: `idle`,
+`listening`, `thinking`, `speaking`, `navigation-interrupt`, `resuming`,
+`cancelled`. The machine is a pure reducer returning `{ state, effects }` — it
+decides, and the controller carries out. That is why the interaction model is
+testable without a microphone.
+
+**Navigation always wins.** A maneuver announcement pre-empts every state. What
+it suspends is what it restores: interrupted while listening, Avyro listens
+again; while thinking, the request was never cancelled; while speaking, the
+answer is repeated *from the beginning*, because half a heard sentence is not an
+answer. Guidance no longer speaks for itself — announcements go through the
+engine, so two voices can never talk over each other.
+
+**Commands are parsed on-device**, deterministically. "Cancel navigation" at
+110 km/h cannot wait for a network round trip, and must mean the same thing
+every time. Anything outside the vocabulary returns `unknown` and is where a
+model belongs.
+
+**No model is hardcoded.** `ConversationProvider` is one method; 0.2 ships
+`local-commands`, which answers from the route context with no network. A hosted
+model is another implementation, and should sit *behind* this one — control
+commands stay local.
+
+**The wake phrase is data**, keyed by locale in `CONVERSATION.wakePhrases`, with
+several spellings per locale because recognisers mishear a brand name. Only the
+canonical one is ever shown to the driver.
 
 ---
 
@@ -76,7 +120,7 @@ yours, and the permission dialogs show Expo Go's wording rather than Avyro's.
 ```bash
 npm run typecheck   # tsc --noEmit, strict
 npm run lint        # eslint (expo config)
-npm test            # jest — 93 tests
+npm test            # jest — 206 tests
 ```
 
 All three pass on a clean checkout, `npx expo-doctor` reports 20/20, and CI
@@ -122,11 +166,12 @@ src/
 ├── config/       Environment + tuning constants. No magic numbers elsewhere
 ├── core/         BUSINESS LOGIC — pure, no React, no React Native
 │   ├── domain/       entities · ports (interfaces) · errors
+│   ├── conversation/ state machine · command parser · wake phrase · route context
 │   ├── navigation/   route index + route tracker (the guidance maths)
 │   └── usecases/     authenticate · searchPlaces · planTrip
 ├── database/     Local persistence — secure store, key-value store, repositories
 ├── features/     One folder per feature: ui/ · state/ · hooks/
-│   ├── auth/ home/ location/ navigation/ onboarding/
+│   ├── auth/ conversation/ home/ location/ navigation/ onboarding/
 │   └── route/ search/ settings/ splash/ trip/
 ├── maps/         Everything that touches react-native-maps
 ├── services/     Adapters implementing the domain's ports (http, places, routing, location, auth)
@@ -211,7 +256,8 @@ never drift from the brand.
 | `react-native-maps` | The map, polylines, markers and camera. Google Maps on Android, Apple Maps on iOS. |
 | `react-native-svg` | The Avyro mark, the maneuver arrows and the map markers — all vector, all crisp at any size. |
 | `expo-location` | Permissions and position fixes, at `BestForNavigation` accuracy. |
-| `expo-speech` | Spoken turn-by-turn guidance. |
+| `expo-speech` | Everything Avyro says, owned by the conversation engine. |
+| `expo-speech-recognition` | Speech to text for the wake phrase and voice commands. |
 | `expo-haptics` | Press confirmation, and a pulse as each maneuver comes up. |
 | `expo-crypto` | Random identifiers and session tokens; salted hashing for local passwords. |
 | `expo-secure-store` | Keychain / keystore. Accounts and sessions live here, nothing else does. |
@@ -250,7 +296,7 @@ turned out nothing used it.
 npm test
 ```
 
-93 tests, covering the parts where a mistake is expensive and a device would not
+206 tests, covering the parts where a mistake is expensive and a device would not
 help you find it:
 
 - `utils/geo` — great-circle distance, bearing, projection onto a segment and a
@@ -274,6 +320,14 @@ help you find it:
   Sprint 1 account record, and the rehash-on-sign-in path that a future
   server-side KDF depends on.
 - `maps/geometry/routeWindow` — the slice of route drawn during guidance.
+- `core/conversation/conversationMachine` — every state transition, including
+  each way a maneuver can interrupt a turn and how it resumes.
+- `core/conversation/commandParser` — all ten commands, the phrasings a driver
+  would actually use, precedence between them, and what it refuses to guess.
+- `core/conversation/wakePhrase` and `routeContext` — matching, localisation
+  fallback, and what Avyro knows about the drive.
+- `services/ai/localConversationProvider` — every reply and action, including
+  the graceful failures.
 
 ---
 
