@@ -1,5 +1,6 @@
 import { create } from 'zustand';
 
+import type { Place } from '@/core/domain/entities/place';
 import {
   conversationReducer,
   initialConversationState,
@@ -17,6 +18,14 @@ export interface ConversationStoreState extends ConversationState {
    * reducer where it can be tested, and every side effect in one hook.
    */
   pending: ConversationEffect[];
+  /**
+   * The place Avyro last named, which "take me there" resolves against.
+   *
+   * In memory only, never persisted, and cleared the moment it is acted on.
+   * Anaphora resolution for the current exchange — not a record of the driver.
+   */
+  referent: Place | null;
+  setReferent: (place: Place | null) => void;
   dispatch: (event: ConversationEvent) => void;
   /** Marks effects as carried out. */
   drain: () => ConversationEffect[];
@@ -27,6 +36,9 @@ export const createConversationStore = () =>
   create<ConversationStoreState>()((set, get) => ({
     ...initialConversationState,
     pending: [],
+    referent: null,
+
+    setReferent: (place) => set({ referent: place }),
 
     dispatch: (event) => {
       const { state, effects } = conversationReducer(get(), event);
@@ -39,5 +51,5 @@ export const createConversationStore = () =>
       return pending;
     },
 
-    reset: () => set({ ...initialConversationState, pending: [] }),
+    reset: () => set({ ...initialConversationState, pending: [], referent: null }),
   }));

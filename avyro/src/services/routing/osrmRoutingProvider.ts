@@ -114,13 +114,14 @@ export const createOsrmRoutingProvider = ({
   async getRoutes({
     origin,
     destination,
+    waypoints = [],
     alternatives = true,
     signal,
   }: RouteRequest): Promise<Route[]> {
-    const waypoints = `${toWaypoint(origin)};${toWaypoint(destination)}`;
+    const path = [origin, ...waypoints, destination].map(toWaypoint).join(';');
 
     const response = await http.getJson(
-      `${baseUrl}/route/v1/driving/${waypoints}`,
+      `${baseUrl}/route/v1/driving/${path}`,
       decodeOsrmRouteResponse,
       {
         operation: 'routing.route',
@@ -128,7 +129,9 @@ export const createOsrmRoutingProvider = ({
           overview: 'full',
           geometries: 'polyline6',
           steps: true,
-          alternatives,
+          // OSRM ignores alternatives once there is a via point, and asking for
+          // them anyway costs nothing but is never useful.
+          alternatives: alternatives && waypoints.length === 0,
         },
         signal,
       },

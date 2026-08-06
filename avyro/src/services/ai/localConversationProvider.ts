@@ -1,99 +1,110 @@
-import { CONVERSATION } from '@/config';
 import { parseCommand } from '@/core/conversation/commandParser';
 import { REPLIES } from '@/core/conversation/replyText';
 import type {
   ConversationReply,
   ConversationRequest,
-  NearbyCategory,
   VoiceIntent,
 } from '@/core/domain/entities/conversation';
-import type { Coordinates } from '@/core/domain/entities/geo';
-import type { Place } from '@/core/domain/entities/place';
-import type { ConversationProvider } from '@/core/domain/ports/conversationProvider';
+import type {
+  ConversationProvider,
+  IntentResolver,
+} from '@/core/domain/ports/conversationProvider';
 import type { Logger } from '@/core/domain/ports/logger';
-import type { PlacesProvider } from '@/core/domain/ports/placesProvider';
+import type { RoutingProvider } from '@/core/domain/ports/routingProvider';
 import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
-import { distanceBetween } from '@/utils/geo';
+import type { StopRecommender } from '@/services/conversation/routeAwareRecommender';
 
-/** What each category is actually searched for. */
-const SEARCH_TERMS: Record<NearbyCategory, string> = {
-  restaurants: 'restaurant',
-  coffee: 'cafe',
-  fuel: 'fuel station',
-  parking: 'parking',
-};
+/** A faster route has to save at least this much to be worth mentioning. */
+const WORTHWHILE_SAVING_SECONDS = 120;
 
 export interface LocalConversationProviderOptions {
-  placesProvider: PlacesProvider;
+  recommender: StopRecommender;
+  routingProvider: RoutingProvider;
   savedPlaces: SavedPlacesRepository;
   logger: Logger;
 }
 
-const nearest = (places: Place[], origin: Coordinates): Place | null =>
-  places.reduce<Place | null>(
-    (closest, place) =>
-      !closest ||
-      distanceBetween(origin, place.coordinates) <
-        distanceBetween(origin, closest.coordinates)
-        ? place
-        : closest,
-    null,
-  );
-
 /**
- * The provider that ships with Release 0.2.
+ * The deterministic resolver.
  *
- * It understands Avyro's command vocabulary and answers from the route context
- * — no model, no network, no latency, and the same answer every time. That is
- * the right default for a driving app: the commands that matter most are the
- * ones you cannot afford to get wrong or to wait for.
+ * Everything Avyro can answer without a model, answered without one: control
+ * commands, trip questions, and stop suggestions. No network beyond the maps it
+ * already uses, no latency budget, and the same answer every time.
  *
- * A hosted model is another implementation of `ConversationProvider`. When one
- * arrives it should sit *behind* this one, not replace it: control commands
- * stay local, and everything this provider returns as `unknown` becomes the
- * model's territory.
+ * The gateway calls this first and treats `unknown` as the only thing worth
+ * asking a model about. That ordering is the safety argument: nothing a model
+ * says can change what "cancel navigation" does.
  */
 export const createLocalConversationProvider = ({
-  placesProvider,
+  recommender,
+  routingProvider,
   savedPlaces,
   logger,
-}: LocalConversationProviderOptions): ConversationProvider => {
+}: LocalConversationProviderOptions): ConversationProvider & IntentResolver => {
   const scoped = logger.scoped('ai.local');
 
   const reply = (
     intent: VoiceIntent,
     speech: string,
     action: ConversationReply['action'] = { type: 'none' },
-  ): ConversationReply => ({ intent, speech, action });
+    referent: ConversationReply['referent'] = null,
+  ): ConversationReply => ({ intent, speech, action, referent });
 
-  const findNearby = async (
-    intent: Extract<VoiceIntent, { kind: 'find-nearby' }>,
-    { origin, context, signal }: ConversationRequest,
+  /** Re-plans from here and reports whether anything better exists. */
+  const checkFastestRoute = async (
+    intent: VoiceIntent,
+    { context, signal }: ConversationRequest,
   ): Promise<ConversationReply> => {
-    if (!origin) return reply(intent, REPLIES.needLocation());
+    if (!context.isNavigating || !context.location || !context.destination) {
+      return reply(intent, REPLIES.noTripRunning());
+    }
 
     try {
-      const results = await placesProvider.search(SEARCH_TERMS[intent.category], {
-        near: origin,
-        limit: CONVERSATION.nearbyResultLimit,
+      const routes = await routingProvider.getRoutes({
+        origin: context.location,
+        destination: context.destination.coordinates,
+        alternatives: true,
         signal,
       });
 
-      const closest = nearest(results, origin);
-      if (!closest) return reply(intent, REPLIES.nearbyNotFound(intent.category));
+      const best = routes[0];
+      const current = context.remainingDurationSeconds;
+      if (!best || current === null) return reply(intent, REPLIES.fastestRouteUnknown());
 
+      const saving = current - best.durationSeconds;
+      return saving >= WORTHWHILE_SAVING_SECONDS
+        ? reply(intent, REPLIES.fasterRouteFound(saving), {
+            type: 'switch-route',
+            route: best,
+          })
+        : reply(intent, REPLIES.fastestRouteConfirmed());
+    } catch (error) {
+      scoped.warn('fastest-route check failed', { reason: String(error) });
+      return reply(intent, REPLIES.fastestRouteUnknown());
+    }
+  };
+
+  const suggestStop = async (
+    intent: Extract<VoiceIntent, { kind: 'find-nearby' }>,
+    { context, signal }: ConversationRequest,
+  ): Promise<ConversationReply> => {
+    if (!context.location) return reply(intent, REPLIES.needLocation());
+
+    try {
+      const [best] = await recommender.suggest(intent.category, context, signal);
+      if (!best) return reply(intent, REPLIES.nearbyNotFound(intent.category));
+
+      // Suggest, do not commit. Rerouting a moving car on the strength of one
+      // heard word is not helpfulness, it is presumption — the driver confirms
+      // with "take me there", which is why the place becomes the referent.
       return reply(
         intent,
-        REPLIES.nearbyFound(
-          intent.category,
-          closest,
-          distanceBetween(origin, closest.coordinates),
-          context,
-        ),
-        { type: 'navigate-to', place: closest },
+        REPLIES.stopSuggestion(intent.category, best, context),
+        { type: 'none' },
+        best.place,
       );
     } catch (error) {
-      scoped.warn('nearby search failed', {
+      scoped.warn('stop suggestion failed', {
         category: intent.category,
         reason: String(error),
       });
@@ -101,53 +112,91 @@ export const createLocalConversationProvider = ({
     }
   };
 
-  const forSavedPlace = async (
+  const goToSaved = async (
     intent: Extract<VoiceIntent, { kind: 'navigate-saved' }>,
+    { context }: ConversationRequest,
   ): Promise<ConversationReply> => {
     const place = await savedPlaces.get(intent.slot);
+    if (!place) return reply(intent, REPLIES.savedPlaceMissing(intent.slot));
 
-    return place
-      ? reply(intent, REPLIES.headingToSaved(intent.slot), {
-          type: 'navigate-to',
-          place,
-        })
-      : reply(intent, REPLIES.savedPlaceMissing(intent.slot));
+    // Mid-trip this is a change of plan, not a fresh start — say so, so the
+    // driver knows the old destination was replaced and can ask for it back.
+    const speech = context.isNavigating
+      ? REPLIES.destinationChanged(place)
+      : REPLIES.headingToSaved(intent.slot);
+
+    return reply(intent, speech, { type: 'navigate-to', place });
   };
 
   return {
     name: 'local-commands',
 
     async respond(request: ConversationRequest): Promise<ConversationReply> {
-      const intent = parseCommand(request.transcript);
-      const { context } = request;
-      scoped.debug('understood', { kind: intent.kind });
-
-      switch (intent.kind) {
-        case 'navigate-saved':
-          return forSavedPlace(intent);
-
-        case 'find-nearby':
-          return findNearby(intent, request);
-
-        case 'ask-eta':
-          return reply(intent, REPLIES.eta(context));
-
-        case 'ask-remaining-distance':
-          return reply(intent, REPLIES.remainingDistance(context));
-
-        case 'cancel-navigation':
-          return context.route
-            ? reply(intent, REPLIES.navigationCancelled(), { type: 'cancel-navigation' })
-            : reply(intent, REPLIES.nothingToCancel());
-
-        case 'reroute':
-          return context.isNavigating
-            ? reply(intent, REPLIES.rerouting(), { type: 'reroute' })
-            : reply(intent, REPLIES.nothingToReroute());
-
-        default:
-          return reply(intent, REPLIES.notUnderstood());
-      }
+      return resolveIntent(parseCommand(request.transcript), request);
     },
+
+    resolve: resolveIntent,
   };
+
+  /**
+   * Shared by the parser and the gateway: a model that classifies an utterance
+   * gets its intent executed through exactly this path, never its own.
+   */
+  async function resolveIntent(
+    intent: VoiceIntent,
+    request: ConversationRequest,
+  ): Promise<ConversationReply> {
+    const { context } = request;
+    scoped.debug('resolving', { kind: intent.kind });
+
+    switch (intent.kind) {
+      case 'navigate-saved':
+        return goToSaved(intent, request);
+
+      case 'find-nearby':
+        return suggestStop(intent, request);
+
+      case 'navigate-referent':
+        return context.referent
+          ? reply(intent, REPLIES.takingYouThere(context.referent), {
+              type: 'navigate-to',
+              place: context.referent,
+            })
+          : reply(intent, REPLIES.noReferent());
+
+      case 'restore-destination':
+        return context.previousDestination
+          ? reply(
+              intent,
+              REPLIES.destinationRestored(context.previousDestination),
+              { type: 'navigate-to', place: context.previousDestination },
+            )
+          : reply(intent, REPLIES.noPreviousDestination());
+
+      case 'ask-eta':
+        return reply(intent, REPLIES.eta(context));
+
+      case 'ask-remaining-distance':
+        return reply(intent, REPLIES.remainingDistance(context));
+
+      case 'ask-fastest-route':
+        return checkFastestRoute(intent, request);
+
+      case 'ask-traffic':
+        return reply(intent, REPLIES.trafficUnavailable());
+
+      case 'cancel-navigation':
+        return context.route
+          ? reply(intent, REPLIES.navigationCancelled(), { type: 'cancel-navigation' })
+          : reply(intent, REPLIES.nothingToCancel());
+
+      case 'reroute':
+        return context.isNavigating
+          ? reply(intent, REPLIES.rerouting(), { type: 'reroute' })
+          : reply(intent, REPLIES.nothingToReroute());
+
+      default:
+        return reply(intent, REPLIES.notUnderstood());
+    }
+  }
 };

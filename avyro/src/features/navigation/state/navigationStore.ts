@@ -20,6 +20,13 @@ export interface NavigationState {
    */
   routeIndex: RouteIndex | null;
   destination: Place | null;
+  /**
+   * The destination a mid-trip change replaced.
+   *
+   * One step deep, held in memory only. This is trip state — an undo for
+   * "actually take me home" — not a record of anywhere the driver has been.
+   */
+  previousDestination: Place | null;
   progress: NavigationProgress | null;
 
   start: (route: Route, destination: Place) => void;
@@ -43,16 +50,23 @@ export const createNavigationStore = () =>
     route: null,
     routeIndex: null,
     destination: null,
+    previousDestination: null,
     progress: null,
 
     start: (route, destination) =>
-      set({
+      set((state) => ({
         status: 'guiding',
         route,
         routeIndex: createRouteIndex(route),
         destination,
+        // Only a genuine change of plan is worth remembering; restarting the
+        // same trip must not make "go back" a no-op that says yes.
+        previousDestination:
+          state.destination && state.destination.id !== destination.id
+            ? state.destination
+            : state.previousDestination,
         progress: null,
-      }),
+      })),
 
     replaceRoute: (route) =>
       set({
@@ -76,6 +90,7 @@ export const createNavigationStore = () =>
         route: null,
         routeIndex: null,
         destination: null,
+        previousDestination: null,
         progress: null,
       }),
   }));

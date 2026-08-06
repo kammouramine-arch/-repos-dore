@@ -2,13 +2,15 @@
 
 **Avyro is not another GPS. Avyro is the world’s first AI Driving Companion.**
 
-Sprint 1 builds the ground the companion will stand on: a real navigation app —
+Sprint 1 built the ground the companion stands on: a real navigation app —
 splash, onboarding, accounts, a map, destination search, route preview and
 turn-by-turn guidance — with the architecture and the finish of something meant
-to be maintained for years. **No AI, no memory, no premium tiers yet.** Those
-arrive on top of this, not instead of it.
+to be maintained for years. 0.2 added the conversation engine. **0.3 makes it
+contextual**: every answer is given against the drive that is actually
+happening. No memory, no personality, no premium tiers yet. Those arrive on top
+of this, not instead of it.
 
-React Native · Expo SDK 57 · TypeScript (strict)
+React Native · Expo SDK 57 · TypeScript (strict) · **Release 0.3**
 
 ---
 
@@ -43,7 +45,7 @@ discovered.
 | How far is it? | Distance remaining, in the driver's units |
 | Cancel navigation | Ends the trip and returns to the map |
 | Reroute | Recomputes from the current position |
-| Find restaurants / coffee / fuel / parking | Searches nearby, names the closest, and starts navigating |
+| Find restaurants / coffee / fuel / parking | Searches nearby and suggests one, with what the stop costs (see §1c) |
 
 **Seven states**, in `core/conversation/conversationMachine.ts`: `idle`,
 `listening`, `thinking`, `speaking`, `navigation-interrupt`, `resuming`,
@@ -63,14 +65,68 @@ engine, so two voices can never talk over each other.
 every time. Anything outside the vocabulary returns `unknown` and is where a
 model belongs.
 
-**No model is hardcoded.** `ConversationProvider` is one method; 0.2 ships
-`local-commands`, which answers from the route context with no network. A hosted
-model is another implementation, and should sit *behind* this one — control
-commands stay local.
+**No model is hardcoded.** `ConversationProvider` is one method; `local-commands`
+answers from the route context with no network. A hosted model is another
+implementation, and it sits *behind* this one — control commands stay local.
+0.3 is where that seam gets used; see §1c.
 
 **The wake phrase is data**, keyed by locale in `CONVERSATION.wakePhrases`, with
 several spellings per locale because recognisers mishear a brand name. Only the
 canonical one is ever shown to the driver.
+
+---
+
+## 1c. Context intelligence (0.3)
+
+0.3 is where Avyro stops behaving like a voice assistant. Every answer is given
+against the drive that is actually happening — where the car is, what is left,
+what is ahead, and what it would cost to stop.
+
+| Ask | What Avyro does |
+|---|---|
+| “I’m hungry” / “I need coffee” / “I need fuel” / “Find parking” | Searches, **prices each candidate by routing through it**, and offers the best one with the tradeoff: *“There’s a highly rated coffee shop ahead on your route — it adds only 3 minutes.”* |
+| “Am I on the fastest route?” | Re-plans from the current position and either confirms the route or offers the faster one it found |
+| “How much traffic is ahead?” | Says plainly that it cannot see live traffic. It does not invent road conditions |
+| “Take me there” | Navigates to the place it last named |
+| “Actually take me home” | Changes destination mid-trip, and says so, so it can be undone |
+| “Go back to my original destination” | Restores the destination the change replaced |
+| “Cancel navigation” | Ends the trip — parsed on-device, as it always was |
+
+**A detour is measured, not estimated.** For each candidate the recommender
+routes `origin → candidate → destination` as a waypoint trip and subtracts the
+baseline. “Adds three minutes” is a subtraction. A candidate that cannot be
+priced is ranked as the *worst acceptable* detour, never as free, and anything
+over `RECOMMENDATION.maxDetourSeconds` is not offered at all — a twenty-minute
+detour for coffee is a worse answer than “nothing nearby”.
+
+**Avyro suggests; the driver decides.** Rerouting a moving car on one heard word
+is presumption, not help, so a suggestion sets a *referent* and waits for “take
+me there”.
+
+**The AI Gateway** (`services/ai/aiGateway.ts`) sits between the engine and any
+model:
+
+```
+Conversation Engine → AI Gateway → AiProvider → OpenAI today, anything tomorrow
+                          └──────→ deterministic resolver (always, first)
+```
+
+Deterministic first — anything the on-device parser recognises never reaches a
+model. The model only *classifies* an unrecognised sentence into Avyro's own
+vocabulary, and that classification is executed through the same deterministic
+path a spoken command takes; its prose is discarded. `intentEnvelope.ts` rejects
+any kind or argument the app does not implement, so there is no path from a
+model's imagination to an action.
+
+**Failure is a normal path.** No provider configured, a timeout past
+`AI.requestTimeoutMs`, an outage, malformed JSON — every one of them falls back
+to the local reply. `respond()` always resolves; navigation never waits on it.
+**A stock build ships with no model configured and works completely.**
+
+> Engineering reference: **[`docs/Developer-Bible.md`](docs/Developer-Bible.md)** —
+> architecture, principles, dependency injection, the AI Gateway, the
+> conversation engine, coding standards, folder structure and release
+> philosophy. Read it before making an architectural decision.
 
 ---
 
@@ -120,7 +176,7 @@ yours, and the permission dialogs show Expo Go's wording rather than Avyro's.
 ```bash
 npm run typecheck   # tsc --noEmit, strict
 npm run lint        # eslint (expo config)
-npm test            # jest — 206 tests
+npm test            # jest — 291 tests
 ```
 
 All three pass on a clean checkout, `npx expo-doctor` reports 20/20, and CI
@@ -138,10 +194,21 @@ Everything lives in `.env` (git-ignored; `.env.example` is the template).
 | `EXPO_PUBLIC_PLACES_BASE_URL` | runtime | Nominatim-compatible geocoder. Default: OpenStreetMap's public instance. |
 | `EXPO_PUBLIC_ROUTING_BASE_URL` | runtime | OSRM-compatible route planner. Default: the OSRM demo server. |
 | `EXPO_PUBLIC_USER_AGENT` | runtime | Identifies the app to those services. Put a real contact address here. |
+| `EXPO_PUBLIC_AI_GATEWAY_URL` | runtime | Your own AI proxy. Empty by default — a stock build answers deterministically. |
+| `EXPO_PUBLIC_AI_API_KEY` | runtime | Direct provider key. **Local development only** — see below. |
+| `EXPO_PUBLIC_AI_MODEL` | runtime | Model identifier. Defaults to `AI.defaultModel`. |
 | `GOOGLE_MAPS_ANDROID_API_KEY` | build | Injected into the Android manifest by the `react-native-maps` config plugin. |
 
 `EXPO_PUBLIC_*` values are **compiled into the JS bundle** and are therefore
 public. Nothing secret belongs in them.
+
+> **Point `EXPO_PUBLIC_AI_GATEWAY_URL` at your own proxy, not at a provider.**
+> An API key inside a shipped binary is a key you have published: it can be
+> extracted from the bundle in minutes and billed to you indefinitely. The proxy
+> holds the credential, applies your rate limits, and is the one place a provider
+> can be swapped without shipping an app update. `EXPO_PUBLIC_AI_API_KEY` exists
+> so a developer can test against a provider directly; the adapter warns loudly
+> when it is used, and it must never be set in a distributed build.
 
 > **Before production.** The default geocoding and routing endpoints are the
 > public OpenStreetMap and OSRM demo servers. They are excellent for
@@ -167,6 +234,7 @@ src/
 ├── core/         BUSINESS LOGIC — pure, no React, no React Native
 │   ├── domain/       entities · ports (interfaces) · errors
 │   ├── conversation/ state machine · command parser · wake phrase · route context
+│   │                 · detour geometry · stop ranking · reply wording
 │   ├── navigation/   route index + route tracker (the guidance maths)
 │   └── usecases/     authenticate · searchPlaces · planTrip
 ├── database/     Local persistence — secure store, key-value store, repositories
@@ -175,6 +243,8 @@ src/
 │   └── route/ search/ settings/ splash/ trip/
 ├── maps/         Everything that touches react-native-maps
 ├── services/     Adapters implementing the domain's ports (http, places, routing, location, auth)
+│   ├── ai/           AI Gateway · OpenAI provider · intent envelope · local provider
+│   └── conversation/ Route-aware stop recommender
 ├── ui/           Design system — theme tokens, components, feedback
 ├── utils/        Pure helpers — geometry, polyline, formatting, validation
 └── voice/        Spoken guidance: what to say (pure) and how to say it (adapter)
@@ -296,8 +366,8 @@ turned out nothing used it.
 npm test
 ```
 
-206 tests, covering the parts where a mistake is expensive and a device would not
-help you find it:
+291 tests across 21 suites, covering the parts where a mistake is expensive and a
+device would not help you find it:
 
 - `utils/geo` — great-circle distance, bearing, projection onto a segment and a
   polyline, cumulative distances.
@@ -326,13 +396,44 @@ help you find it:
   would actually use, precedence between them, and what it refuses to guess.
 - `core/conversation/wakePhrase` and `routeContext` — matching, localisation
   fallback, and what Avyro knows about the drive.
+- `core/conversation/detour` — whether a place is genuinely ahead on the route,
+  including the corridor width and the minimum lead that stops a place level
+  with the car being sold as upcoming.
+- `core/conversation/rankStops` — the weighting: what a rating is worth against
+  a minute of detour, why an unrated place is neutral rather than bad, and what
+  is filtered out entirely.
+- `services/conversation/routeAwareRecommender` — that a detour is measured by
+  routing through the candidate and subtracting the baseline, that the waypoint
+  order is `origin → candidate → destination`, and that an unpriceable candidate
+  is never treated as free.
+- `services/ai/aiGateway` — deterministic first, the model classifying rather
+  than acting, and every fallback path including the timeout.
+- `services/ai/intentEnvelope` — what a model is allowed to return, and every
+  invented capability, missing argument and out-of-vocabulary value it is not.
 - `services/ai/localConversationProvider` — every reply and action, including
-  the graceful failures.
+  the voice rerouting commands, the route-quality answers and the graceful
+  failures.
 
 ---
 
-## 8. Known limits going into Sprint 2
+## 8. Known limits after 0.3
 
+- **No live traffic source.** Nothing Avyro talks to reports road conditions, so
+  “how much traffic is ahead?” says exactly that. The honest answer is the
+  feature; wiring a traffic-aware routing provider is what would change it.
+- **Nominatim returns no ratings.** The stop scorer weighs ratings
+  (`RECOMMENDATION.ratingWeight`, `highlyRatedFrom`) and the wording says
+  “highly rated” only when one is present — so today that path is exercised by
+  tests and inert in production. A places provider that returns ratings turns it
+  on with no code change.
+- **Pricing a stop costs routing requests.** Each candidate is a real
+  waypoint route, capped at `RECOMMENDATION.maxCandidates`. Against a public
+  demo server that is slow; against your own it is a throughput question worth
+  measuring before the cap is raised.
+- **No model ships configured.** `EXPO_PUBLIC_AI_GATEWAY_URL` is empty by
+  default and the proxy it points at is yours to build. Until it exists Avyro
+  answers only what the on-device parser understands — which is every command,
+  question and reroute in §1b and §1c.
 - **Accounts are device-local.** `LocalAuthRepository` stores salted SHA-256
   digests in the platform keystore so Sprint 1 has a real, complete auth flow
   without a server. It is a stand-in, not a security design: password stretching

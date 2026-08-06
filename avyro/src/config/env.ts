@@ -33,4 +33,26 @@ export const env = {
     process.env.EXPO_PUBLIC_USER_AGENT,
     'AvyroDrivingCompanion/1.0 (contact@avyro.app)',
   ),
+  /**
+   * Where AI requests go.
+   *
+   * This should be **your own gateway**, not `api.openai.com`. An API key
+   * shipped inside a mobile binary is a key you have published: it can be
+   * extracted from the bundle in minutes and billed to you indefinitely. The
+   * proxy holds the credential, applies your rate limits, and is the only
+   * place a provider can be swapped without shipping an app update.
+   *
+   * Empty by default, which is why a stock build answers deterministically.
+   */
+  aiGatewayUrl: readString(process.env.EXPO_PUBLIC_AI_GATEWAY_URL, ''),
+
+  /**
+   * Direct provider key, for local development only.
+   *
+   * Set this and the app talks to the provider directly, bypassing your proxy.
+   * Never set it in a build you distribute — see above.
+   */
+  aiApiKey: readString(process.env.EXPO_PUBLIC_AI_API_KEY, ''),
+
+  aiModel: readString(process.env.EXPO_PUBLIC_AI_MODEL, ''),
 } as const;

@@ -55,8 +55,11 @@ export const useConversationEngine = (): void => {
     return buildRouteContext({
       navigationState: navigation.status,
       destination: navigation.destination ?? stores.trip.getState().destination,
+      previousDestination: navigation.previousDestination,
       route: navigation.route,
       progress: navigation.progress,
+      position: stores.location.getState().position,
+      referent: stores.conversation.getState().referent,
       distanceUnit: stores.preferences.getState().preferences.distanceUnit,
     });
   }, [stores]);
@@ -141,7 +144,11 @@ export const useConversationEngine = (): void => {
           signal: controller.signal,
         })
         .then((reply) => {
-          if (!controller.signal.aborted) dispatch({ type: 'reply', reply });
+          if (controller.signal.aborted) return;
+          // A named place becomes what "take me there" means, until something
+          // is actually chosen.
+          stores.conversation.getState().setReferent(reply.referent);
+          dispatch({ type: 'reply', reply });
         })
         .catch((error) => {
           logger.warn('provider failed', { reason: String(error) });

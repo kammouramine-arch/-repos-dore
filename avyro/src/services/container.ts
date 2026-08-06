@@ -25,7 +25,10 @@ import {
 } from '@/database/repositories/localPreferencesRepository';
 import { createLocalRecentDestinationsRepository } from '@/database/repositories/localRecentDestinationsRepository';
 import { createLocalSavedPlacesRepository } from '@/database/repositories/localSavedPlacesRepository';
+import { createAiGateway } from '@/services/ai/aiGateway';
 import { createLocalConversationProvider } from '@/services/ai/localConversationProvider';
+import { createOpenAiProvider } from '@/services/ai/openAiProvider';
+import { createRouteAwareRecommender } from '@/services/conversation/routeAwareRecommender';
 import { createAccountStore } from '@/services/auth/accountStore';
 import { createLocalAuthRepository } from '@/services/auth/localAuthRepository';
 import { createSessionStore } from '@/services/auth/sessionStore';
@@ -100,8 +103,28 @@ export const createServiceContainer = (
     overrides.placesProvider ?? createNominatimPlacesProvider({ http });
   const savedPlacesRepository =
     overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(keyValue);
+
   const routingProvider =
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
+
+  // Conversation Engine → AI Gateway → AiProvider → OpenAI today.
+  // The engine only ever sees the gateway; the gateway decides whether a model
+  // is consulted at all, and always has the deterministic resolver behind it.
+  const conversationProvider = createAiGateway({
+    local: createLocalConversationProvider({
+      recommender: createRouteAwareRecommender({
+        placesProvider,
+        routingProvider,
+        logger,
+      }),
+      routingProvider,
+      savedPlaces: savedPlacesRepository,
+      logger,
+    }),
+    provider: createOpenAiProvider({ http, logger }),
+    logger,
+    crashReporter,
+  });
 
   return {
     logger,
@@ -120,13 +143,7 @@ export const createServiceContainer = (
       createLocalRecentDestinationsRepository(keyValue),
     savedPlacesRepository,
     speechRecognizer: overrides.speechRecognizer ?? createExpoSpeechRecognizer(logger),
-    conversationProvider:
-      overrides.conversationProvider ??
-      createLocalConversationProvider({
-        placesProvider,
-        savedPlaces: savedPlacesRepository,
-        logger,
-      }),
+    conversationProvider: overrides.conversationProvider ?? conversationProvider,
     migrateStorage:
       overrides.migrateStorage ??
       (() => migrateBrandedStorageKeys({ keyValue, secure, logger })),

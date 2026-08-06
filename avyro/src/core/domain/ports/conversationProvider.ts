@@ -1,6 +1,7 @@
 import type {
   ConversationReply,
   ConversationRequest,
+  VoiceIntent,
 } from '../entities/conversation';
 
 /**
@@ -22,4 +23,18 @@ export interface ConversationProvider {
   /** A short identifier for logs, e.g. `local-commands`. */
   readonly name: string;
   respond(request: ConversationRequest): Promise<ConversationReply>;
+}
+
+/**
+ * Executes an intent that something else determined.
+ *
+ * The gateway uses this to run a model's classification through exactly the
+ * deterministic path a parsed command takes. A model can therefore choose
+ * *which* of Avyro's capabilities to invoke, and never what one of them does.
+ */
+export interface IntentResolver {
+  resolve(
+    intent: VoiceIntent,
+    request: ConversationRequest,
+  ): Promise<ConversationReply>;
 }

@@ -38,9 +38,30 @@ export type VoiceIntent =
   | { kind: 'find-nearby'; category: NearbyCategory }
   | { kind: 'ask-eta' }
   | { kind: 'ask-remaining-distance' }
+  | { kind: 'ask-fastest-route' }
+  | { kind: 'ask-traffic' }
   | { kind: 'cancel-navigation' }
   | { kind: 'reroute' }
+  /** "Take me there" — the place Avyro last named. */
+  | { kind: 'navigate-referent' }
+  /** "Go back to my original destination." */
+  | { kind: 'restore-destination' }
   | { kind: 'unknown' };
+
+/** Every intent kind, for provider schemas and exhaustive checks. */
+export const VOICE_INTENT_KINDS = [
+  'navigate-saved',
+  'find-nearby',
+  'ask-eta',
+  'ask-remaining-distance',
+  'ask-fastest-route',
+  'ask-traffic',
+  'cancel-navigation',
+  'reroute',
+  'navigate-referent',
+  'restore-destination',
+  'unknown',
+] as const;
 
 export type NearbyCategory = 'restaurants' | 'coffee' | 'fuel' | 'parking';
 
@@ -49,7 +70,9 @@ export type ConversationAction =
   | { type: 'none' }
   | { type: 'navigate-to'; place: Place }
   | { type: 'cancel-navigation' }
-  | { type: 'reroute' };
+  | { type: 'reroute' }
+  /** Swap the active route for a faster one already computed. */
+  | { type: 'switch-route'; route: Route };
 
 /** One answer from a conversation provider: something to say, something to do. */
 export interface ConversationReply {
@@ -57,6 +80,14 @@ export interface ConversationReply {
   action: ConversationAction;
   /** What the provider understood, for logging and future analytics. */
   intent: VoiceIntent;
+  /**
+   * The place this reply named, if any.
+   *
+   * What "take me there" resolves against. Held for the next turn only — it is
+   * anaphora, not memory: nothing about the driver is retained, nothing is
+   * persisted, and it is cleared as soon as a destination is chosen.
+   */
+  referent: Place | null;
 }
 
 /**
@@ -68,7 +99,15 @@ export interface ConversationReply {
 export interface RouteContext {
   navigationState: NavigationStatus;
   destination: Place | null;
+  /** The destination this trip replaced, restorable by voice. */
+  previousDestination: Place | null;
   route: Route | null;
+  /** Where the driver is right now. */
+  location: Coordinates | null;
+  /** Course over ground in degrees from true north, when it is known. */
+  headingDegrees: number | null;
+  /** The place Avyro last recommended, which "take me there" refers to. */
+  referent: Place | null;
   remainingDistanceMeters: number | null;
   remainingDurationSeconds: number | null;
   /** Estimated arrival, as epoch milliseconds. */
@@ -76,6 +115,24 @@ export interface RouteContext {
   distanceUnit: DistanceUnit;
   /** True when a trip is actually running, as opposed to merely planned. */
   isNavigating: boolean;
+}
+
+/**
+ * A candidate stop, measured against the drive rather than against the driver.
+ *
+ * "Two kilometres away" is the wrong number when it is two kilometres
+ * backwards. What matters is what stopping there costs.
+ */
+export interface StopSuggestion {
+  place: Place;
+  /** Extra driving time the detour adds, in seconds. */
+  detourSeconds: number;
+  /** Extra driving distance the detour adds, in metres. */
+  detourMeters: number;
+  /** True when the stop lies further along the route than the driver is. */
+  isAhead: boolean;
+  /** Straight-line distance from the driver, for the "nothing planned" case. */
+  directDistanceMeters: number;
 }
 
 export interface ConversationRequest {

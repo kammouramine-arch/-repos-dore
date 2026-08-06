@@ -1,5 +1,11 @@
-import type { NearbyCategory, RouteContext, SavedPlaceSlot } from '@/core/domain/entities/conversation';
+import type {
+  NearbyCategory,
+  RouteContext,
+  SavedPlaceSlot,
+  StopSuggestion,
+} from '@/core/domain/entities/conversation';
 import type { Place } from '@/core/domain/entities/place';
+import { isHighlyRated } from './rankStops';
 import { formatDistance, formatDuration, formatTimeOfDay } from '@/utils/format';
 
 /**
@@ -58,20 +64,64 @@ export const REPLIES = {
   savedPlaceMissing: (slot: SavedPlaceSlot) =>
     `I do not know where ${SLOT_NOUNS[slot]} is yet. You can set it in Settings.`,
 
-  nearbyFound: (
+  /**
+   * The tradeoff, said the way a passenger would say it.
+   *
+   * Three facts in the order a driver cares about them: whether it is any good,
+   * whether it is on the way, and what it costs. The name comes last because it
+   * is the least useful part until the first three have been accepted.
+   */
+  stopSuggestion: (
     category: NearbyCategory,
-    place: Place,
-    distanceMeters: number | null,
+    suggestion: StopSuggestion,
     context: RouteContext,
   ): string => {
     const noun = CATEGORY_NOUNS[category];
-    const proximity =
-      distanceMeters === null
-        ? ''
-        : `, about ${formatDistance(distanceMeters, context.distanceUnit)} away`;
+    const quality = isHighlyRated(suggestion.place.rating) ? 'a highly rated' : 'a';
 
-    return `The nearest ${noun} is ${place.name}${proximity}. Starting navigation.`;
+    if (!context.isNavigating) {
+      const away = formatDistance(suggestion.directDistanceMeters, context.distanceUnit);
+      return `I found ${quality} ${noun} ${away} away — ${suggestion.place.name}. Say “take me there” and I will start.`;
+    }
+
+    const placement = suggestion.isAhead ? 'ahead on your route' : 'nearby';
+    const minutes = Math.round(suggestion.detourSeconds / 60);
+    const cost =
+      minutes <= 0
+        ? 'without adding any time'
+        : minutes === 1
+          ? 'that adds about a minute'
+          : `that adds only ${minutes} minutes`;
+
+    return `I found ${quality} ${noun} ${placement} ${cost} — ${suggestion.place.name}. Say “take me there” and I will reroute.`;
   },
+
+  takingYouThere: (place: Place) => `Rerouting to ${place.name}.`,
+
+  noReferent: () =>
+    'I have not suggested anywhere yet. Ask me to find something first.',
+
+  destinationChanged: (place: Place) => `Changing destination to ${place.name}.`,
+
+  destinationRestored: (place: Place) => `Going back to ${place.name}.`,
+
+  noPreviousDestination: () => 'I do not have an earlier destination to go back to.',
+
+  /** The honest answer, plus the check Avyro can actually run. */
+  fastestRouteConfirmed: () => 'You are on the fastest route I can find.',
+
+  fasterRouteFound: (savedSeconds: number): string =>
+    `I found a route about ${formatDuration(savedSeconds)} faster. Say “reroute” and I will switch.`,
+
+  fastestRouteUnknown: () => 'I could not check the route just now.',
+
+  /**
+   * Live traffic is not available from the current routing provider, and
+   * pretending otherwise would be the worst possible thing to do here: a driver
+   * who is told "traffic is clear" will believe it.
+   */
+  trafficUnavailable: () =>
+    'I cannot see live traffic yet. I can re-check your route for a faster one — just ask.',
 
   nearbyNotFound: (category: NearbyCategory) =>
     `I could not find ${CATEGORY_NOUNS[category]} nearby.`,

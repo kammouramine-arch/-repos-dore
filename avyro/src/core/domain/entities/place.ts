@@ -19,6 +19,14 @@ export interface Place {
   address: string;
   coordinates: Coordinates;
   category: PlaceCategory;
+  /**
+   * Provider rating, normalised to 0–5.
+   *
+   * Absent from OpenStreetMap-derived results, which is why ranking treats a
+   * missing rating as neutral rather than as bad. A commercial POI source
+   * (Google Places, Foursquare, HERE) fills this in without any other change.
+   */
+  rating?: number;
 }
 
 /** A `Place` the driver has already navigated to, kept for quick re-entry. */

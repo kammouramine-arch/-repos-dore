@@ -1,4 +1,5 @@
 import type { RouteContext } from '@/core/domain/entities/conversation';
+import type { UserPosition } from '@/core/domain/entities/geo';
 import type { NavigationProgress, NavigationStatus } from '@/core/domain/entities/navigation';
 import type { Place } from '@/core/domain/entities/place';
 import type { DistanceUnit } from '@/core/domain/entities/preferences';
@@ -7,8 +8,13 @@ import type { Route } from '@/core/domain/entities/route';
 export interface RouteContextInput {
   navigationState: NavigationStatus;
   destination: Place | null;
+  previousDestination?: Place | null;
   route: Route | null;
   progress: NavigationProgress | null;
+  /** The last raw fix, used when there is no snapped position to prefer. */
+  position?: UserPosition | null;
+  /** The place Avyro last named, which "take me there" refers to. */
+  referent?: Place | null;
   distanceUnit: DistanceUnit;
   /** Injected so arrival times are deterministic under test. */
   now?: number;
@@ -29,8 +35,11 @@ const ACTIVE_STATES: readonly NavigationStatus[] = ['guiding', 'rerouting', 'off
 export const buildRouteContext = ({
   navigationState,
   destination,
+  previousDestination = null,
   route,
   progress,
+  position = null,
+  referent = null,
   distanceUnit,
   now = Date.now(),
 }: RouteContextInput): RouteContext => {
@@ -42,7 +51,13 @@ export const buildRouteContext = ({
   return {
     navigationState,
     destination,
+    previousDestination,
     route,
+    // The snapped position is the truthful one while guiding: it is where the
+    // car is *on the road*, which is what every route calculation needs.
+    location: progress?.snappedPosition ?? position?.coordinates ?? null,
+    headingDegrees: progress?.courseDegrees ?? position?.heading ?? null,
+    referent,
     remainingDistanceMeters,
     remainingDurationSeconds,
     arrivalAt:

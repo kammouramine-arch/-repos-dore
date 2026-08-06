@@ -109,3 +109,73 @@ describe('anything else', () => {
     expect(parseCommand('take me somewhere nice').kind).toBe('unknown');
   });
 });
+
+describe('how a driver actually says it', () => {
+  it.each([
+    ["I'm hungry", { kind: 'find-nearby', category: 'restaurants' }],
+    ['I am hungry', { kind: 'find-nearby', category: 'restaurants' }],
+    ['I need to eat', { kind: 'find-nearby', category: 'restaurants' }],
+    ['I need lunch', { kind: 'find-nearby', category: 'restaurants' }],
+    ['I need coffee', { kind: 'find-nearby', category: 'coffee' }],
+    ['I need caffeine', { kind: 'find-nearby', category: 'coffee' }],
+    ['I need fuel', { kind: 'find-nearby', category: 'fuel' }],
+    ['I need gas', { kind: 'find-nearby', category: 'fuel' }],
+    ["I'm running low on fuel", { kind: 'find-nearby', category: 'fuel' }],
+    ['I need to fill up', { kind: 'find-nearby', category: 'fuel' }],
+    ['find parking', { kind: 'find-nearby', category: 'parking' }],
+  ])('reads a need as a request: "%s"', (utterance, expected) => {
+    expect(parseCommand(utterance)).toEqual(expected);
+  });
+});
+
+describe('trip quality questions', () => {
+  it.each([
+    ['am I on the fastest route', { kind: 'ask-fastest-route' }],
+    ['are we on the quickest way', { kind: 'ask-fastest-route' }],
+    ['is there a faster route', { kind: 'ask-fastest-route' }],
+    ['how much traffic is ahead', { kind: 'ask-traffic' }],
+    ['is there traffic', { kind: 'ask-traffic' }],
+  ])('understands "%s"', (utterance, expected) => {
+    expect(parseCommand(utterance)).toEqual(expected);
+  });
+
+  it('separates a route question from a traffic question', () => {
+    expect(parseCommand('am I on the fastest route')).toEqual({
+      kind: 'ask-fastest-route',
+    });
+    expect(parseCommand('how is the traffic')).toEqual({ kind: 'ask-traffic' });
+  });
+});
+
+describe('voice rerouting', () => {
+  it.each([
+    ['take me there', { kind: 'navigate-referent' }],
+    ['take us there', { kind: 'navigate-referent' }],
+    ['go there', { kind: 'navigate-referent' }],
+    ["let's go there", { kind: 'navigate-referent' }],
+    ['navigate there', { kind: 'navigate-referent' }],
+    ['yes, take me there', { kind: 'navigate-referent' }],
+
+    ['actually take me home', { kind: 'navigate-saved', slot: 'home' }],
+    ['actually take me to work', { kind: 'navigate-saved', slot: 'work' }],
+
+    ['go back to my original destination', { kind: 'restore-destination' }],
+    ['take me back to my original destination', { kind: 'restore-destination' }],
+    ['back to my previous destination', { kind: 'restore-destination' }],
+    ['resume my original trip', { kind: 'restore-destination' }],
+  ])('understands "%s"', (utterance, expected) => {
+    expect(parseCommand(utterance)).toEqual(expected);
+  });
+
+  it('does not mistake going back for going home', () => {
+    // "go back to my original destination" contains "go back"; precedence has
+    // to put the restore rule first or this becomes a trip home.
+    expect(parseCommand('go back to my original destination').kind).toBe(
+      'restore-destination',
+    );
+  });
+
+  it('still treats a plain cancel as a cancel', () => {
+    expect(parseCommand('cancel navigation')).toEqual({ kind: 'cancel-navigation' });
+  });
+});

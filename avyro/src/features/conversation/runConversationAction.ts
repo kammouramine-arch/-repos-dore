@@ -22,7 +22,7 @@ export const runConversationAction = async (
   action: ConversationAction,
   { services, stores, logger }: ActionContext,
 ): Promise<void> => {
-  const { trip, navigation, location } = stores;
+  const { trip, navigation, location, conversation } = stores;
 
   switch (action.type) {
     case 'navigate-to': {
@@ -39,6 +39,8 @@ export const runConversationAction = async (
       if (!route) return;
 
       navigation.getState().start(route, action.place);
+      // The suggestion has been taken; "take me there" no longer refers to it.
+      conversation.getState().setReferent(null);
       navigateWhenReady('Guidance');
       return;
     }
@@ -46,7 +48,15 @@ export const runConversationAction = async (
     case 'cancel-navigation': {
       navigation.getState().stop();
       trip.getState().clearTrip();
+      conversation.getState().setReferent(null);
       navigateWhenReady('Home');
+      return;
+    }
+
+    case 'switch-route': {
+      // Already computed by the answer that offered it — no second round trip,
+      // and no window in which the route the driver accepted has gone stale.
+      navigation.getState().replaceRoute(action.route);
       return;
     }
 

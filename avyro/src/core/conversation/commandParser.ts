@@ -24,6 +24,16 @@ const GO = '(?:go|head|navigate|drive|take|get|bring|route)';
 
 const RULES: Rule[] = [
   {
+    // Before everything: "go back to my original destination" contains "go
+    // back", which would otherwise read as a plain navigation command.
+    intent: { kind: 'restore-destination' },
+    patterns: [
+      /\b(?:go|take\s+me|head)\s+back\s+to\s+(?:my\s+)?(?:original|previous|old|first)\s+destination\b/,
+      /\b(?:back|return)\s+to\s+(?:my\s+)?(?:original|previous|old|first)\s+(?:destination|route|trip)\b/,
+      /\bresume\s+(?:my\s+)?(?:original|previous)\s+(?:trip|route|destination)\b/,
+    ],
+  },
+  {
     intent: { kind: 'cancel-navigation' },
     patterns: [
       /\b(?:cancel|stop|end|abort|clear)\b[\s\w]*\b(?:navigation|navigating|route|trip|guidance|directions|journey)\b/,
@@ -58,6 +68,32 @@ const RULES: Rule[] = [
     ],
   },
   {
+    intent: { kind: 'ask-fastest-route' },
+    patterns: [
+      /\b(?:am|are)\s+(?:i|we)\s+on\s+the\s+(?:fastest|quickest|best)\s+(?:route|way)\b/,
+      /\bis\s+(?:this|there)\s+(?:the\s+)?(?:fastest|quickest|a\s+faster|a\s+quicker)\s+(?:route|way)\b/,
+      /\bfastest\s+route\b/,
+    ],
+  },
+  {
+    intent: { kind: 'ask-traffic' },
+    patterns: [
+      /\btraffic\b/,
+      /\b(?:is\s+it|are\s+we)\s+(?:backed\s+up|congested)\b/,
+      /\bhold\s?ups?\s+ahead\b/,
+    ],
+  },
+  {
+    // "Take me there" points at whatever Avyro last suggested.
+    intent: { kind: 'navigate-referent' },
+    patterns: [
+      /\b(?:take|get|bring|drive)\s+(?:me|us)\s+(?:there|to\s+(?:it|that\s+one))\b/,
+      /\b(?:let(?:'?s)?\s+)?go\s+there\b/,
+      /\b(?:yes|yeah|sure|ok(?:ay)?)[, ]+(?:take\s+me\s+there|go\s+there)\b/,
+      /\bnavigate\s+there\b/,
+    ],
+  },
+  {
     intent: { kind: 'ask-eta' },
     patterns: [
       /\bhow\s+long\b/,
@@ -82,19 +118,27 @@ const RULES: Rule[] = [
     patterns: [
       /\brestaurants?\b/,
       /\b(?:somewhere|a\s+place)\s+to\s+eat\b/,
-      /\bfind\s+(?:me\s+)?(?:some\s+)?food\b/,
-      /\bi(?:'?m)?\s+hungry\b/,
+      /\b(?:find|get|need|want)\s+(?:me\s+)?(?:some\s+)?(?:food|lunch|dinner|breakfast)\b/,
+      /\bi(?:\s?a?m|'?m)?\s+hungry\b/,
+      /\bi\s+need\s+(?:to\s+eat|food)\b/,
     ],
   },
   {
     intent: { kind: 'find-nearby', category: 'coffee' },
-    patterns: [/\bcoffee\b/, /\bcafes?\b/, /\bespresso\b/, /\bcoffee\s+shop\b/],
+    patterns: [
+      /\bcoffee\b/,
+      /\bcafes?\b/,
+      /\bespresso\b/,
+      /\bi\s+need\s+caffeine\b/,
+    ],
   },
   {
     intent: { kind: 'find-nearby', category: 'fuel' },
     patterns: [
       /\bfuel\b/,
       /\bpetrol\b/,
+      /\bi\s+need\s+(?:gas|fuel|petrol|to\s+fill\s+up)\b/,
+      /\b(?:low|running\s+low)\s+on\s+(?:gas|fuel|petrol)\b/,
       /\bgas\s+station\b/,
       /\bfind\s+(?:me\s+)?(?:some\s+)?gas\b/,
       /\b(?:ev\s+)?charg(?:er|ing)\b/,

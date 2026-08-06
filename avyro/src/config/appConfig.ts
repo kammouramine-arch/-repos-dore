@@ -83,6 +83,51 @@ export const CONVERSATION = {
   nearbyResultLimit: 5,
 } as const;
 
+/**
+ * How Avyro weighs one stop against another.
+ *
+ * Tuned so that a detour has to buy something: at these weights a five-star
+ * place is worth roughly a minute and a half of extra driving over an unrated
+ * one, and being on the route is worth about two and a half minutes. Those are
+ * product decisions, which is why they are numbers here rather than constants
+ * buried in the scorer.
+ */
+export const RECOMMENDATION = {
+  /** Never offer a stop that costs more than this. */
+  maxDetourSeconds: 600,
+  /** Score lost per minute of detour. */
+  detourWeightPerMinute: 1,
+  /** Score gained for being ahead on the route rather than off it. */
+  aheadBonus: 2.5,
+  /** Score gained per rating point above neutral. */
+  ratingWeight: 1.2,
+  /** An unrated place scores here, so missing data is neutral, not bad. */
+  neutralRating: 3.5,
+  /** From this rating up, Avyro will call a place highly rated out loud. */
+  highlyRatedFrom: 4.3,
+  /** Score lost per kilometre when there is no route to measure against. */
+  proximityWeightPerKm: 1.5,
+  /** How many candidates to price up. Each one costs a routing request. */
+  maxCandidates: 6,
+} as const;
+
+/**
+ * The AI Gateway.
+ *
+ * The timeout is the important number. A model is an optimisation on top of a
+ * deterministic system, never a dependency of it: past this deadline Avyro
+ * stops waiting and answers with what it already knows.
+ */
+export const AI = {
+  /** Hard ceiling on a model call, after which the local reply is used. */
+  requestTimeoutMs: 4_000,
+  /** Sampling temperature. Low: this is classification, not composition. */
+  temperature: 0.2,
+  /** Enough for one intent and one short sentence. */
+  maxOutputTokens: 200,
+  defaultModel: 'gpt-4o-mini',
+} as const;
+
 export const AUTH = {
   /** How long a signed-in session stays valid without re-authenticating. */
   sessionTtlMs: 90 * 24 * 60 * 60 * 1000,

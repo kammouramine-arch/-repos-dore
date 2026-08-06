@@ -28,6 +28,13 @@ export interface HttpClient {
     decode: Decoder<T>,
     options?: JsonRequestOptions,
   ): Promise<T>;
+  /** Same contract, with a JSON body. Added for AI providers. */
+  postJson<T>(
+    url: string,
+    body: unknown,
+    decode: Decoder<T>,
+    options?: JsonRequestOptions,
+  ): Promise<T>;
 }
 
 const buildUrl = (url: string, query: JsonRequestOptions['query']): string => {
@@ -50,79 +57,87 @@ const buildUrl = (url: string, query: JsonRequestOptions['query']): string => {
 export const createHttpClient = (logger: Logger): HttpClient => {
   const scoped = logger.scoped('http');
 
-  return {
-    async getJson<T>(
-      url: string,
-      decode: Decoder<T>,
-      {
-        query,
-        headers,
-        signal,
-        timeoutMs = NETWORK.timeoutMs,
-        operation = 'request',
-      }: JsonRequestOptions = {},
-    ): Promise<T> {
-      const controller = new AbortController();
-      const startedAt = Date.now();
-      let timedOut = false;
+  const request = async <T>(
+    method: 'GET' | 'POST',
+    url: string,
+    body: unknown,
+    decode: Decoder<T>,
+    {
+      query,
+      headers,
+      signal,
+      timeoutMs = NETWORK.timeoutMs,
+      operation = 'request',
+    }: JsonRequestOptions = {},
+  ): Promise<T> => {
+    const controller = new AbortController();
+    const startedAt = Date.now();
+    let timedOut = false;
 
-      const timer = setTimeout(() => {
-        timedOut = true;
-        controller.abort();
-      }, timeoutMs);
+    const timer = setTimeout(() => {
+      timedOut = true;
+      controller.abort();
+    }, timeoutMs);
 
-      const abortFromCaller = () => controller.abort();
-      if (signal?.aborted) abortFromCaller();
-      signal?.addEventListener('abort', abortFromCaller);
+    const abortFromCaller = () => controller.abort();
+    if (signal?.aborted) abortFromCaller();
+    signal?.addEventListener('abort', abortFromCaller);
 
-      try {
-        const response = await fetch(buildUrl(url, query), {
-          method: 'GET',
-          signal: controller.signal,
-          headers: {
-            Accept: 'application/json',
-            'User-Agent': env.userAgent,
-            ...headers,
-          },
-        });
+    try {
+      const response = await fetch(buildUrl(url, query), {
+        method,
+        signal: controller.signal,
+        body: body === undefined ? undefined : JSON.stringify(body),
+        headers: {
+          Accept: 'application/json',
+          'User-Agent': env.userAgent,
+          ...(body === undefined ? {} : { 'Content-Type': 'application/json' }),
+          ...headers,
+        },
+      });
 
-        if (!response.ok) {
-          scoped.warn('request rejected', {
-            operation,
-            status: response.status,
-            durationMs: Date.now() - startedAt,
-          });
-          throw new AppError(
-            response.status === 404 ? 'not-found' : 'network',
-            `The service answered with ${response.status}.`,
-          );
-        }
-
-        const decoded = decode(await response.json(), operation);
-        scoped.debug('request complete', {
+      if (!response.ok) {
+        scoped.warn('request rejected', {
           operation,
+          status: response.status,
           durationMs: Date.now() - startedAt,
         });
-        return decoded;
-      } catch (error) {
-        if (timedOut) {
-          scoped.warn('request timed out', { operation, timeoutMs });
-          throw new AppError('timeout', 'The request took too long. Try again.');
-        }
-        if (isAbortError(error)) throw error;
-        if (error instanceof AppError) {
-          if (error.code === 'invalid-response') {
-            scoped.error('undecodable response', error, { operation });
-          }
-          throw error;
-        }
-
-        scoped.warn('request failed', { operation, reason: String(error) });
-        throw new AppError('network', 'Avyro could not reach the network.', error);
-      } finally {
-        clearTimeout(timer);
-        signal?.removeEventListener('abort', abortFromCaller);
+        throw new AppError(
+          response.status === 404 ? 'not-found' : 'network',
+          `The service answered with ${response.status}.`,
+        );
       }
-    },
+
+      const decoded = decode(await response.json(), operation);
+      scoped.debug('request complete', {
+        operation,
+        durationMs: Date.now() - startedAt,
+      });
+      return decoded;
+    } catch (error) {
+      if (timedOut) {
+        scoped.warn('request timed out', { operation, timeoutMs });
+        throw new AppError('timeout', 'The request took too long. Try again.');
+      }
+      if (isAbortError(error)) throw error;
+      if (error instanceof AppError) {
+        if (error.code === 'invalid-response') {
+          scoped.error('undecodable response', error, { operation });
+        }
+        throw error;
+      }
+
+      scoped.warn('request failed', { operation, reason: String(error) });
+      throw new AppError('network', 'Avyro could not reach the network.', error);
+    } finally {
+      clearTimeout(timer);
+      signal?.removeEventListener('abort', abortFromCaller);
+    }
+  };
+
+  return {
+    getJson: (url, decode, options) => request('GET', url, undefined, decode, options),
+    postJson: (url, body, decode, options) =>
+      request('POST', url, body, decode, options),
   };
 };

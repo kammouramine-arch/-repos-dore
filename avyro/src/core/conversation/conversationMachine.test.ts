@@ -11,6 +11,7 @@ const REPLY: ConversationReply = {
   speech: 'Heading home.',
   action: { type: 'none' },
   intent: { kind: 'navigate-saved', slot: 'home' },
+  referent: null,
 };
 
 /** Drives the machine through a script and returns where it ended up. */
