@@ -81,6 +81,23 @@ export const CONVERSATION = {
   cancelledLingerMs: 1_200,
   /** Nearby searches are capped tightly: a driver wants the next one, not a list. */
   nearbyResultLimit: 5,
+
+  /**
+   * Pause before reopening the wake listener after it ends by itself.
+   *
+   * Platform recognisers end a continuous session on their own — iOS caps a
+   * recognition task at roughly a minute, and any interruption (a call, Siri,
+   * an alarm) ends it early. Reopening immediately would spin against a
+   * recogniser that is not ready yet; this is long enough to let it settle and
+   * short enough that a driver never notices the gap.
+   */
+  wakeRestartDelayMs: 600,
+  /** First backoff after a failed start. Doubles per consecutive failure. */
+  wakeRetryBaseMs: 1_500,
+  /** Ceiling on that backoff, so a broken recogniser costs no battery. */
+  wakeRetryMaxMs: 30_000,
+  /** Consecutive failures before Avyro stops failing quietly and says so. */
+  wakeFailuresBeforeSurfacing: 3,
 } as const;
 
 /**

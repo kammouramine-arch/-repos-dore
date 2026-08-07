@@ -8,6 +8,20 @@ import {
   type ConversationEvent,
   type ConversationState,
 } from '@/core/conversation/conversationMachine';
+import type { VoiceSessionStatus } from '@/core/conversation/voiceSession';
+
+/**
+ * What the microphone is doing, for anything that has to show it.
+ *
+ * The full lifecycle lives in `voiceSession.ts` and is driven by the
+ * controller; only the part a screen needs is published here. Settings reads
+ * it so a driver who refuses the permission is told, rather than left looking
+ * at a switch that turned itself back off.
+ */
+export interface VoiceStatusView {
+  status: VoiceSessionStatus;
+  message: string | null;
+}
 
 export interface ConversationStoreState extends ConversationState {
   /**
@@ -25,20 +39,28 @@ export interface ConversationStoreState extends ConversationState {
    * Anaphora resolution for the current exchange — not a record of the driver.
    */
   referent: Place | null;
+  /** Published by the controller from the voice session machine. */
+  voice: VoiceStatusView;
   setReferent: (place: Place | null) => void;
+  setVoice: (voice: VoiceStatusView) => void;
   dispatch: (event: ConversationEvent) => void;
   /** Marks effects as carried out. */
   drain: () => ConversationEffect[];
   reset: () => void;
 }
 
+const initialVoiceView: VoiceStatusView = { status: 'off', message: null };
+
 export const createConversationStore = () =>
   create<ConversationStoreState>()((set, get) => ({
     ...initialConversationState,
     pending: [],
     referent: null,
+    voice: initialVoiceView,
 
     setReferent: (place) => set({ referent: place }),
+
+    setVoice: (voice) => set({ voice }),
 
     dispatch: (event) => {
       const { state, effects } = conversationReducer(get(), event);
@@ -51,5 +73,7 @@ export const createConversationStore = () =>
       return pending;
     },
 
+    // The microphone's state is not part of a conversation turn and survives
+    // one: resetting the machine must not claim voice commands are off.
     reset: () => set({ ...initialConversationState, pending: [], referent: null }),
   }));

@@ -1,7 +1,11 @@
 import { useNavigation } from '@react-navigation/native';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
-import { useAuthStore, usePreferencesStore } from '@/app/stores/hooks';
+import {
+  useAuthStore,
+  useConversationStore,
+  usePreferencesStore,
+} from '@/app/stores/hooks';
 import { APP_INFO } from '@/config';
 import { displayWakePhrase } from '@/core/conversation/wakePhrase';
 import type { DistanceUnit, MapStyle } from '@/core/domain/entities/preferences';
@@ -17,6 +21,7 @@ import { spacing } from '@/ui/theme';
 import { AccountCard } from './AccountCard';
 import { ChoiceRow } from './ChoiceRow';
 import { SettingsSection } from './SettingsSection';
+import { VoiceStatusNote } from './VoiceStatusNote';
 
 const UNIT_OPTIONS = [
   { value: 'metric' as DistanceUnit, label: 'Kilometres' },
@@ -33,6 +38,7 @@ export const SettingsScreen = () => {
   const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
   const { preferences, update } = usePreferencesStore();
+  const voice = useConversationStore((state) => state.voice);
 
   return (
     <Screen padded={false}>
@@ -59,6 +65,14 @@ export const SettingsScreen = () => {
             value={preferences.voiceCommands}
             onChange={(value) => void update({ voiceCommands: value })}
           />
+          {/*
+            Guarded here rather than inside the note: a child that renders null
+            still counts as a row, and `SettingsSection` would draw a divider
+            above the nothing it produced.
+          */}
+          {preferences.voiceCommands && voice.message ? (
+            <VoiceStatusNote status={voice.status} message={voice.message} />
+          ) : null}
           <ToggleRow
             title="Haptics"
             subtitle="A pulse as each turn comes up"
