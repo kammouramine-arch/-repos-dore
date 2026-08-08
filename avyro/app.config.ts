@@ -36,6 +36,21 @@ const config: ExpoConfig = {
   ios: {
     bundleIdentifier: 'app.avyro.companion',
     supportsTablet: false,
+    /**
+     * The build number baseline.
+     *
+     * `eas.json` sets `appVersionSource: "remote"`, so EAS owns this counter
+     * once the project is initialised and increments it per production build —
+     * which is the right model for a TypeScript config, because EAS cannot
+     * write an incremented value back into one.
+     *
+     * This value seeds that counter. TestFlight already holds build 8 for
+     * version 1.0.0, and App Store Connect rejects a build number that is not
+     * higher than one it already has, so the baseline has to start there and
+     * autoIncrement makes the next upload 9. Verify with
+     * `eas build:version:get --platform ios` before a release build.
+     */
+    buildNumber: '8',
     infoPlist: {
       NSLocationWhenInUseUsageDescription: LOCATION_REASON,
       NSMicrophoneUsageDescription: MICROPHONE_REASON,
@@ -56,6 +71,16 @@ const config: ExpoConfig = {
 
   web: {
     favicon: './assets/favicon.png',
+  },
+
+  /**
+   * Written by hand rather than by `eas init`: the CLI cannot edit a dynamic
+   * TypeScript config, so it prints the id and expects this block to exist.
+   */
+  extra: {
+    eas: {
+      projectId: '491af16e-c8b0-46e4-b5c1-433d4d3602a8',
+    },
   },
 
   plugins: [
