@@ -25,6 +25,15 @@ const LOCATION_REASON =
 const config: ExpoConfig = {
   name: 'Avyro',
   slug: 'avyro',
+  /**
+   * The EAS account that owns the project, making it `@aminekm/avyro`.
+   *
+   * Stated rather than inferred: without it the slug resolves against
+   * whichever account happens to be logged in, which is how a build ends up
+   * attached to the wrong project. Paired with `extra.eas.projectId` below,
+   * the association is unambiguous on any machine.
+   */
+  owner: 'aminekm',
   version: '1.0.0',
   scheme: 'avyro',
   orientation: 'portrait',
