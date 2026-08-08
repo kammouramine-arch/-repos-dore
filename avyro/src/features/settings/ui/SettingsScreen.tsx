@@ -21,6 +21,7 @@ import { spacing } from '@/ui/theme';
 import { AccountCard } from './AccountCard';
 import { ChoiceRow } from './ChoiceRow';
 import { SettingsSection } from './SettingsSection';
+import { VoiceDiagnosticsPanel } from './VoiceDiagnosticsPanel';
 import { VoiceStatusNote } from './VoiceStatusNote';
 
 const UNIT_OPTIONS = [
@@ -39,6 +40,9 @@ export const SettingsScreen = () => {
   const signOut = useAuthStore((state) => state.signOut);
   const { preferences, update } = usePreferencesStore();
   const voice = useConversationStore((state) => state.voice);
+  // TEMPORARY — see core/conversation/voiceDebug.ts. Remove with the rest.
+  const diagnostics = useConversationStore((state) => state.diagnostics);
+  const clearVoiceDebug = useConversationStore((state) => state.clearVoiceDebug);
 
   return (
     <Screen padded={false}>
@@ -107,6 +111,13 @@ export const SettingsScreen = () => {
             onChange={(value) => void update({ showTraffic: value })}
           />
         </SettingsSection>
+
+        {/* TEMPORARY — remove with the rest of the voice diagnostics. */}
+        {preferences.voiceCommands ? (
+          <SettingsSection title="Voice diagnostics">
+            <VoiceDiagnosticsPanel entries={diagnostics} onClear={clearVoiceDebug} />
+          </SettingsSection>
+        ) : null}
 
         <SettingsSection title="About">
           <ListRow title="Version" trailing={<AppText variant="callout" tone="tertiary">{APP_INFO.version}</AppText>} />

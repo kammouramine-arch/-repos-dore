@@ -9,6 +9,10 @@ import {
   type ConversationState,
 } from '@/core/conversation/conversationMachine';
 import type { VoiceSessionStatus } from '@/core/conversation/voiceSession';
+import {
+  appendVoiceDebug,
+  type VoiceDebugEntry,
+} from '@/core/conversation/voiceDebug';
 
 /**
  * What the microphone is doing, for anything that has to show it.
@@ -41,8 +45,17 @@ export interface ConversationStoreState extends ConversationState {
   referent: Place | null;
   /** Published by the controller from the voice session machine. */
   voice: VoiceStatusView;
+  /**
+   * TEMPORARY — the voice pipeline trace, shown in Settings.
+   *
+   * Remove with the rest of the diagnostics once the real-device failure is
+   * understood. See `core/conversation/voiceDebug.ts`.
+   */
+  diagnostics: VoiceDebugEntry[];
   setReferent: (place: Place | null) => void;
   setVoice: (voice: VoiceStatusView) => void;
+  recordVoiceDebug: (entry: VoiceDebugEntry) => void;
+  clearVoiceDebug: () => void;
   dispatch: (event: ConversationEvent) => void;
   /** Marks effects as carried out. */
   drain: () => ConversationEffect[];
@@ -57,10 +70,16 @@ export const createConversationStore = () =>
     pending: [],
     referent: null,
     voice: initialVoiceView,
+    diagnostics: [],
 
     setReferent: (place) => set({ referent: place }),
 
     setVoice: (voice) => set({ voice }),
+
+    recordVoiceDebug: (entry) =>
+      set({ diagnostics: appendVoiceDebug(get().diagnostics, entry) }),
+
+    clearVoiceDebug: () => set({ diagnostics: [] }),
 
     dispatch: (event) => {
       const { state, effects } = conversationReducer(get(), event);

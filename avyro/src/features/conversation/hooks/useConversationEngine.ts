@@ -10,6 +10,7 @@ import {
   type VoiceSessionEffect,
   type VoiceSessionEvent,
 } from '@/core/conversation/voiceSession';
+import { formatVoiceDebug } from '@/core/conversation/voiceDebug';
 import type { ConversationEffect } from '@/core/conversation/conversationMachine';
 import type { SpeechRecognitionSession } from '@/core/domain/ports/speechRecognizer';
 import { runConversationAction } from '../runConversationAction';
@@ -60,6 +61,23 @@ export const useConversationEngine = (): void => {
     (event: Parameters<ReturnType<typeof stores.conversation.getState>['dispatch']>[0]) =>
       stores.conversation.getState().dispatch(event),
     [stores],
+  );
+
+  /**
+   * TEMPORARY — records one stage of the voice pipeline.
+   *
+   * Logged at `warn` on purpose: the console logger's floor is `warn` in a
+   * release build, and this trace exists for TestFlight. Also kept in memory
+   * so Settings can show it, because a Windows tester cannot read iOS device
+   * logs. Remove with the rest of the diagnostics.
+   */
+  const voiceDebug = useCallback(
+    (event: string, detail?: string) => {
+      const entry = { at: Date.now(), event, detail };
+      stores.conversation.getState().recordVoiceDebug(entry);
+      services.logger.scoped('voice').warn(formatVoiceDebug(entry));
+    },
+    [services, stores],
   );
 
   const closeSession = useCallback(() => {
@@ -117,6 +135,12 @@ export const useConversationEngine = (): void => {
         const previous = voiceRef.current;
         voiceRef.current = state;
 
+        voiceDebug(
+          `voice_${current.type.replace(/-/g, '_')}`,
+          `${previous.status} → ${state.status}` +
+            (effects.length > 0 ? ` [${effects.map((e) => e.type).join(',')}]` : ''),
+        );
+
         if (state.status !== previous.status || state.message !== previous.message) {
           stores.conversation
             .getState()
@@ -147,6 +171,10 @@ export const useConversationEngine = (): void => {
 
           const generation = (generationRef.current += 1);
           const isCurrent = () => generation === generationRef.current;
+          let partials = 0;
+          let lastPartialAt = 0;
+
+          voiceDebug('wake_session_requested', `onDevice=${onDevice}`);
 
           void services.speechRecognizer
             .start(
@@ -157,11 +185,34 @@ export const useConversationEngine = (): void => {
                 onDevice,
               },
               {
-                onTranscript: ({ text }) => {
-                  if (!isCurrent()) return;
+                onTranscript: ({ text, isFinal }) => {
+                  if (!isCurrent()) {
+                    voiceDebug('wake_transcript_dropped_stale', text.slice(0, 60));
+                    return;
+                  }
+
+                  partials += 1;
+                  // Throttled: partials stream continuously and would flush
+                  // the whole trace. The first one is the proof that audio is
+                  // reaching the recogniser at all.
+                  const now = Date.now();
+                  if (partials === 1 || now - lastPartialAt > 1_000 || isFinal) {
+                    lastPartialAt = now;
+                    voiceDebug(
+                      isFinal ? 'wake_final_transcript' : 'wake_partial_transcript',
+                      `#${partials} "${text.slice(0, 80)}"`,
+                    );
+                  }
+
                   const match = matchWakePhrase(text, CONVERSATION.defaultLocale);
                   if (!match) return;
 
+                  voiceDebug(
+                    'wake_phrase_matched',
+                    match.remainder
+                      ? `trailing command "${match.remainder}"`
+                      : 'no trailing command — opening a listening turn',
+                  );
                   dispatch({
                     type: 'wake-detected',
                     command: match.remainder || undefined,
@@ -169,6 +220,10 @@ export const useConversationEngine = (): void => {
                 },
                 onError: (error) => {
                   if (!isCurrent()) return;
+                  voiceDebug(
+                    'ERROR wake_session',
+                    `code=${error.code} fatal=${error.fatal} "${error.message}"`,
+                  );
                   // Silence is the normal state of a car, not a failure worth
                   // counting towards a backoff — reopen and keep waiting.
                   send(
@@ -179,19 +234,23 @@ export const useConversationEngine = (): void => {
                 },
                 onEnd: () => {
                   if (!isCurrent()) return;
+                  voiceDebug('wake_session_ended', `partials=${partials}`);
                   send({ type: 'ended' });
                 },
               },
             )
             .then((session) => {
               if (!isCurrent()) {
+                voiceDebug('wake_session_discarded_stale');
                 session.stop();
                 return;
               }
               sessionRef.current = session;
+              voiceDebug('microphone_started', `wake listener, onDevice=${onDevice}`);
               send({ type: 'opened' });
             })
             .catch((error) => {
+              voiceDebug('ERROR wake_session_start_threw', String(error));
               if (!isCurrent()) return;
               send({
                 type: 'failed',
@@ -207,31 +266,49 @@ export const useConversationEngine = (): void => {
                 services.speechRecognizer.isAvailable(),
                 services.speechRecognizer.supportsOnDevice(CONVERSATION.defaultLocale),
               ])
-                .then(([available, onDevice]) =>
-                  send({ type: 'availability', available, onDevice }),
-                )
-                .catch(() =>
-                  send({ type: 'availability', available: false, onDevice: false }),
-                );
+                .then(([available, onDevice]) => {
+                  voiceDebug(
+                    'availability_checked',
+                    `recogniser=${available} onDevice=${onDevice} locale=${CONVERSATION.defaultLocale}`,
+                  );
+                  send({ type: 'availability', available, onDevice });
+                })
+                .catch((error) => {
+                  voiceDebug('ERROR availability_check_threw', String(error));
+                  send({ type: 'availability', available: false, onDevice: false });
+                });
               return;
 
             case 'request-permission': {
               const request = { networkRecognition: effect.networkRecognition };
               // Read before prompting: the platform shows each dialog once, and
               // a driver who already granted it should not be asked again.
+              voiceDebug(
+                'permission_requested',
+                `networkRecognition=${effect.networkRecognition}`,
+              );
               void services.speechRecognizer
                 .getPermission(request)
-                .then((current) =>
-                  current.granted
+                .then((current) => {
+                  voiceDebug(
+                    'permission_current',
+                    `granted=${current.granted} canAskAgain=${current.canAskAgain}`,
+                  );
+                  return current.granted
                     ? current
-                    : services.speechRecognizer.requestPermission(request),
-                )
-                .then(({ granted, canAskAgain }) =>
-                  send({ type: 'permission', granted, canAskAgain }),
-                )
-                .catch(() =>
-                  send({ type: 'permission', granted: false, canAskAgain: false }),
-                );
+                    : services.speechRecognizer.requestPermission(request);
+                })
+                .then(({ granted, canAskAgain }) => {
+                  voiceDebug(
+                    'permission_resolved',
+                    `granted=${granted} canAskAgain=${canAskAgain}`,
+                  );
+                  send({ type: 'permission', granted, canAskAgain });
+                })
+                .catch((error) => {
+                  voiceDebug('ERROR permission_threw', String(error));
+                  send({ type: 'permission', granted: false, canAskAgain: false });
+                });
               return;
             }
 
@@ -258,20 +335,22 @@ export const useConversationEngine = (): void => {
 
       send(event);
     },
-    [services, stores, dispatch, closeSession, clearVoiceTimer],
+    [services, stores, dispatch, closeSession, clearVoiceTimer, voiceDebug],
   );
 
   // Turning the switch on is what starts the permission flow; turning it off
   // is what guarantees the microphone is released.
   useEffect(() => {
+    voiceDebug('voice_commands_preference', enabled ? 'enabled' : 'disabled');
     sendVoice({ type: enabled ? 'enabled' : 'disabled' });
-  }, [enabled, sendVoice]);
+  }, [enabled, sendVoice, voiceDebug]);
 
   // Declared before the effect runner so that on a status change the wake
   // listener is torn down before the runner opens a command session.
   useEffect(() => {
+    voiceDebug('conversation_status', status);
     sendVoice({ type: status === 'idle' ? 'turn-ended' : 'turn-started' });
-  }, [status, sendVoice]);
+  }, [status, sendVoice, voiceDebug]);
 
   // ---- Effects ----------------------------------------------------------
   useEffect(() => {
@@ -282,26 +361,78 @@ export const useConversationEngine = (): void => {
 
     const startListening = () => {
       closeSession();
+
+      // THE FIX. This session must run in the same recognition mode the
+      // permission was granted for. When the wake listener runs on-device we
+      // only ever requested the microphone — asking for network recognition
+      // here means `SFSpeechRecognizer.requestAuthorization` was never called,
+      // so iOS answers `not-allowed`, the machine cancels, and `cancelled`
+      // emits no speech. That is silence after a correctly heard wake phrase.
+      const onDevice = voiceRef.current.onDevice;
+      let partials = 0;
+      let lastPartial = '';
+
+      voiceDebug('command_session_requested', `onDevice=${onDevice}`);
+
       void services.speechRecognizer
         .start(
-          { locale: CONVERSATION.defaultLocale, interimResults: true, continuous: false },
           {
-            onTranscript: ({ text, isFinal }) =>
-              dispatch({ type: 'transcript', text, isFinal }),
-            onError: (error) =>
-              dispatch({ type: 'recognition-failed', reason: error.message }),
-            onEnd: () => undefined,
+            locale: CONVERSATION.defaultLocale,
+            interimResults: true,
+            continuous: false,
+            onDevice,
+          },
+          {
+            onTranscript: ({ text, isFinal }) => {
+              partials += 1;
+              if (!isFinal) lastPartial = text;
+              voiceDebug(
+                isFinal ? 'final_transcript' : 'partial_transcript',
+                `#${partials} "${text.slice(0, 80)}"`,
+              );
+              dispatch({ type: 'transcript', text, isFinal });
+            },
+            onError: (error) => {
+              voiceDebug(
+                'ERROR command_session',
+                `code=${error.code} fatal=${error.fatal} "${error.message}"`,
+              );
+              dispatch({ type: 'recognition-failed', reason: error.message });
+            },
+            onEnd: () =>
+              voiceDebug('command_session_ended', `partials=${partials}`),
           },
         )
         .then((session) => {
           sessionRef.current = session;
+          voiceDebug('command_session_started', `onDevice=${onDevice}`);
         })
-        .catch((error) =>
-          dispatch({ type: 'recognition-failed', reason: String(error) }),
-        );
+        .catch((error) => {
+          voiceDebug('ERROR command_session_start_threw', String(error));
+          dispatch({ type: 'recognition-failed', reason: String(error) });
+        });
 
       timersRef.current.push(
-        setTimeout(() => dispatch({ type: 'listen-timeout' }), CONVERSATION.listenTimeoutMs),
+        setTimeout(() => {
+          // A recogniser that streams partials but never commits a final one
+          // would strand the turn here and cancel it in silence. If we heard
+          // words, act on them rather than throwing the driver's sentence away
+          // — and say plainly in the trace that this is what happened.
+          if (lastPartial.trim().length > 0) {
+            voiceDebug(
+              'listen_timeout_promoted_partial',
+              `no final_transcript in ${CONVERSATION.listenTimeoutMs}ms; using last partial "${lastPartial.slice(0, 80)}"`,
+            );
+            dispatch({ type: 'transcript', text: lastPartial, isFinal: true });
+            return;
+          }
+
+          voiceDebug(
+            'ERROR listen_timeout',
+            `nothing heard in ${CONVERSATION.listenTimeoutMs}ms — turn cancelled`,
+          );
+          dispatch({ type: 'listen-timeout' });
+        }, CONVERSATION.listenTimeoutMs),
       );
     };
 
@@ -309,6 +440,11 @@ export const useConversationEngine = (): void => {
       requestRef.current?.abort();
       const controller = new AbortController();
       requestRef.current = controller;
+
+      voiceDebug(
+        'conversation_turn_started',
+        `provider=${services.conversationProvider.name} transcript="${transcript.slice(0, 80)}"`,
+      );
 
       void services.conversationProvider
         .respond({
@@ -318,13 +454,21 @@ export const useConversationEngine = (): void => {
           signal: controller.signal,
         })
         .then((reply) => {
-          if (controller.signal.aborted) return;
+          if (controller.signal.aborted) {
+            voiceDebug('ai_response_discarded_aborted');
+            return;
+          }
+          voiceDebug(
+            'ai_response_received',
+            `intent=${reply.intent.kind} action=${reply.action.type} speech="${reply.speech.slice(0, 80)}"`,
+          );
           // A named place becomes what "take me there" means, until something
           // is actually chosen.
           stores.conversation.getState().setReferent(reply.referent);
           dispatch({ type: 'reply', reply });
         })
         .catch((error) => {
+          voiceDebug('ERROR provider_failed', String(error));
           logger.warn('provider failed', { reason: String(error) });
           if (!controller.signal.aborted) {
             dispatch({ type: 'reply-failed', reason: 'Sorry, something went wrong.' });
@@ -341,23 +485,43 @@ export const useConversationEngine = (): void => {
           return closeSession();
         case 'ask-provider':
           return ask(effect.transcript);
-        case 'speak':
+        case 'speak': {
           // Never speak into an open microphone. A guidance announcement can
           // pre-empt from `idle`, where the wake listener is running and the
           // conversation machine has no reason to emit `stop-listening` — so
           // the release happens here, where speaking actually begins.
           closeSession();
-          return void services.speechEngine.speak(effect.text, {
-            onDone: () => dispatch({ type: 'speech-finished' }),
-          });
+          voiceDebug('tts_started', `"${effect.text.slice(0, 80)}"`);
+
+          return void services.speechEngine
+            .speak(effect.text, {
+              onDone: () => {
+                voiceDebug('tts_finished');
+                dispatch({ type: 'speech-finished' });
+              },
+            })
+            .catch((error) => {
+              // Without this the engine strands in `speaking` forever: the
+              // machine only leaves that state on `speech-finished`.
+              voiceDebug('ERROR tts_threw', String(error));
+              dispatch({ type: 'speech-finished' });
+            });
+        }
         case 'stop-speaking':
+          voiceDebug('tts_stopped');
           return void services.speechEngine.stop();
         case 'run-action':
+          voiceDebug('action_started', effect.reply.action.type);
           return void runConversationAction(effect.reply.action, {
             services,
             stores,
             logger,
-          }).catch((error) => logger.warn('action failed', { reason: String(error) }));
+          })
+            .then(() => voiceDebug('action_finished', effect.reply.action.type))
+            .catch((error) => {
+              voiceDebug('ERROR action_failed', String(error));
+              logger.warn('action failed', { reason: String(error) });
+            });
         case 'schedule-dismiss':
           timersRef.current.push(
             setTimeout(
@@ -376,7 +540,16 @@ export const useConversationEngine = (): void => {
     if (stores.conversation.getState().status === 'resuming') {
       dispatch({ type: 'resumed' });
     }
-  }, [pending, services, stores, dispatch, readContext, closeSession, clearTimers]);
+  }, [
+    pending,
+    services,
+    stores,
+    dispatch,
+    readContext,
+    closeSession,
+    clearTimers,
+    voiceDebug,
+  ]);
 
   // ---- Teardown ---------------------------------------------------------
   useEffect(

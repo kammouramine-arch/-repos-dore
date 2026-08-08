@@ -72,11 +72,17 @@ const KNOWN_CODES: ReadonlySet<string> = new Set<SpeechErrorCode>([
 ]);
 
 const toError = (event: ExpoSpeechRecognitionErrorEvent): SpeechRecognitionError => {
-  const code = (KNOWN_CODES.has(event.error) ? event.error : 'unknown') as SpeechErrorCode;
+  const known = KNOWN_CODES.has(event.error);
+  const code = (known ? event.error : 'unknown') as SpeechErrorCode;
 
   return {
     code,
-    message: event.message || event.error,
+    // Keep the platform's own string when we did not recognise it. Collapsing
+    // an unmapped native code to "unknown" and dropping it is how a diagnosable
+    // failure becomes an undiagnosable one.
+    message: known
+      ? event.message || event.error
+      : `native code "${event.error}"${event.message ? ` — ${event.message}` : ''}`,
     fatal: FATAL_CODES.has(event.error),
   };
 };
