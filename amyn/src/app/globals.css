@@ -1,0 +1,135 @@
+@import "tailwindcss";
+
+/* ==========================================================================
+   AMYN — Design System
+   Noir profond · Blanc cassé · Gold métallique · Bleu discret (interactions)
+   ========================================================================== */
+
+@theme {
+  /* --- Couleurs de marque ------------------------------------------------ */
+  --color-ink: #08080a; /* noir profond — fond principal */
+  --color-ink-soft: #0e0e11; /* noir légèrement relevé — cartes */
+  --color-ink-line: #1c1c21; /* lignes / bordures sur fond noir */
+
+  --color-bone: #f4f1ea; /* blanc cassé — texte principal sur noir */
+  --color-bone-dim: #a3a099; /* blanc cassé atténué — paragraphes */
+  --color-bone-mute: #6c6a66; /* blanc cassé très atténué — légendes */
+
+  --color-gold: #c8a45c; /* gold métallique — accent principal */
+  --color-gold-light: #e8d3a0; /* reflet clair du gold */
+  --color-gold-deep: #8a6c30; /* ombre du gold */
+
+  --color-azure: #2f6bff; /* bleu discret — CTA / focus uniquement */
+  --color-azure-deep: #16326e;
+
+  /* --- Typographie ------------------------------------------------------- */
+  --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+
+  /* --- Courbes d'animation ---------------------------------------------- */
+  --ease-amyn: cubic-bezier(0.16, 1, 0.3, 1);
+  --ease-amyn-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+}
+
+/* --------------------------------------------------------------------------
+   Base
+   -------------------------------------------------------------------------- */
+
+:root {
+  color-scheme: dark;
+}
+
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  background-color: var(--color-ink);
+  color: var(--color-bone);
+  font-family: var(--font-sans);
+  font-synthesis-weight: none;
+  text-rendering: optimizeLegibility;
+  overflow-x: hidden;
+}
+
+::selection {
+  background-color: var(--color-gold);
+  color: var(--color-ink);
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-azure);
+  outline-offset: 3px;
+  border-radius: 2px;
+}
+
+/* Respect des préférences d'accessibilité : on coupe tout le mouvement. */
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* --------------------------------------------------------------------------
+   Utilitaires de marque
+   -------------------------------------------------------------------------- */
+
+/* Titres : très grands, resserrés, sans effet gadget. */
+@utility display {
+  font-family: var(--font-display);
+  font-weight: 500;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+  text-wrap: balance;
+}
+
+/* Micro-label en capitales espacées (ex. « WEB & GROWTH »). */
+@utility eyebrow {
+  font-family: var(--font-display);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.32em;
+  text-transform: uppercase;
+}
+
+/* Or métallique : dégradé fin appliqué au texte, jamais un aplat plat. */
+@utility text-metal {
+  background-image: linear-gradient(
+    98deg,
+    var(--color-gold-deep) 0%,
+    var(--color-gold) 22%,
+    var(--color-gold-light) 46%,
+    var(--color-gold) 64%,
+    var(--color-gold-deep) 100%
+  );
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
+}
+
+/* Filet horizontal doré qui s'éteint sur les bords. */
+@utility rule-gold {
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--color-gold) 55%, transparent),
+    transparent
+  );
+}
+
+/* Grain très léger : casse l'aspect « aplat numérique » des fonds noirs. */
+@utility grain {
+  position: relative;
+}
+@utility grain-layer {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  opacity: 0.035;
+}
