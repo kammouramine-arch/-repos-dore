@@ -25,6 +25,7 @@
   /* --- Typographie ------------------------------------------------------- */
   --font-display: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
   --font-sans: var(--font-inter), ui-sans-serif, system-ui, sans-serif;
+  --font-serif: var(--font-instrument), ui-serif, Georgia, serif;
 
   /* --- Courbes d'animation ---------------------------------------------- */
   --ease-amyn: cubic-bezier(0.16, 1, 0.3, 1);
@@ -78,6 +79,22 @@ body {
   }
 }
 
+/* Halo doré qui suit le curseur (voir CursorGlow.tsx). Inutile au doigt :
+   on le retire alors complètement pour ne rien coûter en performance. */
+.cursor-glow {
+  background-image: radial-gradient(
+    circle,
+    color-mix(in srgb, var(--color-gold) 9%, transparent) 0%,
+    transparent 62%
+  );
+}
+
+@media (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-glow {
+    display: none;
+  }
+}
+
 /* --------------------------------------------------------------------------
    Utilitaires de marque
    -------------------------------------------------------------------------- */
@@ -89,6 +106,15 @@ body {
   letter-spacing: -0.035em;
   line-height: 0.95;
   text-wrap: balance;
+}
+
+/* Mot d'accent : serif italique. Un seul par titre, jamais deux. */
+@utility accent {
+  font-family: var(--font-serif);
+  font-style: italic;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  text-transform: none;
 }
 
 /* Micro-label en capitales espacées (ex. « WEB & GROWTH »). */
@@ -122,6 +148,15 @@ body {
     transparent,
     color-mix(in srgb, var(--color-gold) 55%, transparent),
     transparent
+  );
+}
+
+/* Halo haut : une lumière rasante venue du plafond. Jamais un dégradé voyant. */
+@utility spotlight {
+  background-image: radial-gradient(
+    120% 70% at 50% -10%,
+    color-mix(in srgb, var(--color-gold) 7%, transparent) 0%,
+    transparent 62%
   );
 }
 
