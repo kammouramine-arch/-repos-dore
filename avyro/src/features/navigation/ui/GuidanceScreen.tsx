@@ -16,10 +16,11 @@ import { ActiveRouteOverlay } from '@/maps/components/ActiveRouteOverlay';
 import { DestinationMarker } from '@/maps/components/DestinationMarker';
 import { AvyroMapView } from '@/maps/components/AvyroMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
-import { AppText, GlassPanel, IconButton } from '@/ui/components';
+import { AppText, GlassPanel } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { useGuidanceSession } from '../hooks/useGuidanceSession';
 import { ArrivalCard } from './ArrivalCard';
+import { GuidanceControls } from './GuidanceControls';
 import { ManeuverBanner } from './ManeuverBanner';
 import { TripStatusBar } from './TripStatusBar';
 
@@ -35,6 +36,9 @@ export const GuidanceScreen = () => {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
+  // Overview suspends the follow camera and fits the whole route, so a driver
+  // stopped at lights can see what is coming without losing their place.
+  const [overview, setOverview] = useState(false);
 
   // One selector per slice: the map subtree below re-renders on every fix, and
   // subscribing to the whole store would add every unrelated field to that.
@@ -44,7 +48,9 @@ export const GuidanceScreen = () => {
   const progress = useNavigationStore((state) => state.progress);
   const stop = useNavigationStore((state) => state.stop);
   const preferences = usePreferencesStore((state) => state.preferences);
+  const updatePreferences = usePreferencesStore((state) => state.update);
   const lastPosition = useLocationStore((state) => state.position);
+  const route = useNavigationStore((state) => state.route);
 
   useGuidanceSession();
 
@@ -58,7 +64,7 @@ export const GuidanceScreen = () => {
   }, [preferences.keepScreenAwake]);
 
   useEffect(() => {
-    if (!progress || !following) return;
+    if (!progress || !following || overview) return;
 
     mapRef.current?.animateCamera(
       {
@@ -70,7 +76,23 @@ export const GuidanceScreen = () => {
       },
       { duration: 850 },
     );
-  }, [progress, following]);
+  }, [progress, following, overview]);
+
+  // Fitting the route is a one-shot action, not a camera that tracks: the
+  // driver asked to see the trip, not to have it recomposed under them.
+  useEffect(() => {
+    if (!overview || !route) return;
+
+    mapRef.current?.fitToCoordinates(route.geometry, {
+      edgePadding: MAP_DEFAULTS.routeFitPadding,
+      animated: true,
+    });
+  }, [overview, route]);
+
+  const leaveOverview = () => {
+    setOverview(false);
+    setFollowing(true);
+  };
 
   const endTrip = () => {
     stop();
@@ -142,15 +164,18 @@ export const GuidanceScreen = () => {
       </View>
 
       <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
-        {!following ? (
-          <View style={styles.controls}>
-            <IconButton
-              name="navigate"
-              accessibilityLabel="Resume following"
-              onPress={() => setFollowing(true)}
-            />
-          </View>
-        ) : null}
+        {status === 'arrived' ? null : (
+          <GuidanceControls
+            following={following}
+            onRecenter={() => setFollowing(true)}
+            overview={overview}
+            onToggleOverview={() => (overview ? leaveOverview() : setOverview(true))}
+            muted={!preferences.voiceGuidance}
+            onToggleMute={() =>
+              void updatePreferences({ voiceGuidance: !preferences.voiceGuidance })
+            }
+          />
+        )}
 
         {status === 'arrived' ? (
           <ArrivalCard destination={destination} onDone={endTrip} />
@@ -158,6 +183,7 @@ export const GuidanceScreen = () => {
           <TripStatusBar
             progress={progress}
             unit={preferences.distanceUnit}
+            speedMetersPerSecond={lastPosition?.speed ?? null}
             onEnd={endTrip}
           />
         ) : null}
@@ -194,8 +220,5 @@ const styles = StyleSheet.create({
     right: spacing.md,
     bottom: 0,
     gap: spacing.sm,
-  },
-  controls: {
-    alignItems: 'flex-end',
   },
 });

@@ -42,8 +42,12 @@ export const App = () => {
         <View style={styles.root} onLayout={onLayout}>
           {bootstrapped ? (
             <NavigationContainer ref={navigationRef} theme={navigationTheme}>
-              <ConversationEngine />
               <RootNavigator />
+              {/*
+                After the navigator, not before: the engine now renders the
+                voice HUD, which has to float above whatever screen is on.
+              */}
+              <ConversationEngine />
             </NavigationContainer>
           ) : null}
 

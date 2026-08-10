@@ -1,5 +1,6 @@
 import { StyleSheet, View } from 'react-native';
 
+import { VoiceButton } from '@/features/conversation/ui/VoiceButton';
 import { AppText, PressableScale } from '@/ui/components';
 import { colors, radius, sizing, spacing } from '@/ui/theme';
 import { Icon } from '@/ui/components/Icon';
@@ -11,26 +12,40 @@ export interface SearchTriggerProps {
 /**
  * Looks like the search field it opens, so the transition into the search
  * screen reads as the same object growing rather than a new screen appearing.
+ *
+ * The microphone sits outside the field rather than inside it: typing an
+ * address and speaking one are different acts, and a driver reaching for voice
+ * should not have to hit a target nested in something else.
  */
 export const SearchTrigger = ({ onPress }: SearchTriggerProps) => (
-  <PressableScale
-    accessibilityRole="search"
-    accessibilityLabel="Search for a destination"
-    onPress={onPress}
-    style={styles.trigger}
-  >
-    <Icon name="search" size={19} color={colors.textSecondary} />
-    <AppText variant="body" tone="tertiary" style={styles.label}>
-      Where to?
-    </AppText>
-    <View style={styles.badge}>
-      <Icon name="arrow-forward" size={16} color={colors.onAccent} />
-    </View>
-  </PressableScale>
+  <View style={styles.row}>
+    <PressableScale
+      accessibilityRole="search"
+      accessibilityLabel="Search for a destination"
+      onPress={onPress}
+      style={styles.trigger}
+    >
+      <Icon name="search" size={19} color={colors.textSecondary} />
+      <AppText variant="body" tone="tertiary" style={styles.label}>
+        Where to?
+      </AppText>
+      <View style={styles.badge}>
+        <Icon name="arrow-forward" size={16} color={colors.onAccent} />
+      </View>
+    </PressableScale>
+
+    <VoiceButton />
+  </View>
 );
 
 const styles = StyleSheet.create({
+  row: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: spacing.sm,
+  },
   trigger: {
+    flex: 1,
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,

@@ -1,9 +1,4 @@
-import {
-  formatArrivalTime,
-  formatDistance,
-  formatDuration,
-  initialsOf,
-} from './format';
+import { formatArrivalTime, formatDistance, formatDuration, formatSpeed, initialsOf, speedUnitLabel } from './format';
 
 describe('formatDistance', () => {
   it('rounds metric distances the way a driver reads them', () => {
@@ -50,5 +45,28 @@ describe('initialsOf', () => {
 
   it('falls back when there is no name', () => {
     expect(initialsOf('')).toBe('?');
+  });
+});
+
+describe('speed, in the driver’s units', () => {
+  it('converts metres per second to the unit on the dashboard', () => {
+    expect(formatSpeed(25, 'metric')).toBe('90');
+    expect(formatSpeed(25, 'imperial')).toBe('56');
+  });
+
+  it('labels the unit separately, so the number can be sized on its own', () => {
+    expect(speedUnitLabel('metric')).toBe('km/h');
+    expect(speedUnitLabel('imperial')).toBe('mph');
+  });
+
+  it('shows nothing rather than zero when the platform reports nothing', () => {
+    // CoreLocation uses a negative speed for "unknown". Rendering that as 0
+    // would tell a moving driver they are stationary.
+    expect(formatSpeed(null)).toBeNull();
+    expect(formatSpeed(-1)).toBeNull();
+  });
+
+  it('is honest about actually standing still', () => {
+    expect(formatSpeed(0)).toBe('0');
   });
 });

@@ -27,6 +27,28 @@ export const formatDistance = (
   return kilometers < 10 ? `${kilometers.toFixed(1)} km` : `${Math.round(kilometers)} km`;
 };
 
+/**
+ * Ground speed, in the driver's own units.
+ *
+ * Returns null rather than "0" when the platform reports nothing: a blank
+ * readout is honest, a zero is a claim that the car is stationary. Negative
+ * speeds mean "unknown" in CoreLocation and are treated the same way.
+ */
+export const formatSpeed = (
+  metersPerSecond: number | null,
+  unit: DistanceUnit = 'metric',
+): string | null => {
+  if (metersPerSecond === null || metersPerSecond < 0) return null;
+
+  return unit === 'imperial'
+    ? `${Math.round((metersPerSecond * 3600) / METERS_PER_MILE)}`
+    : `${Math.round(metersPerSecond * 3.6)}`;
+};
+
+/** The unit label that goes beside {@link formatSpeed}. */
+export const speedUnitLabel = (unit: DistanceUnit = 'metric'): string =>
+  unit === 'imperial' ? 'mph' : 'km/h';
+
 /** Compact trip duration, e.g. `8 min` or `1 hr 24 min`. */
 export const formatDuration = (seconds: number): string => {
   const totalMinutes = Math.max(1, Math.round(seconds / 60));
