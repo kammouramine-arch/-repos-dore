@@ -22,6 +22,22 @@ const SPEECH_REASON =
 const LOCATION_REASON =
   'Avyro uses your location to show where you are, plan routes and guide you turn by turn while you drive.';
 
+/**
+ * Required by a framework Avyro links but never calls.
+ *
+ * `expo-speech-recognition` imports `AppTrackingTransparency` at the top of
+ * `EXSpeechRecognitionPermissionRequester.swift` and never uses it. The
+ * podspec compiles every Swift file in that directory, so the framework is
+ * linked into the binary, and App Store analysis rejects a binary that links
+ * a protected API with no purpose string — ITMS-90683, which is what stopped
+ * Build 11.
+ *
+ * Avyro requests no tracking authorisation and ships no analytics or ad SDK,
+ * so this prompt should never appear. App Privacy in App Store Connect must
+ * still say Avyro does not use data for tracking.
+ */
+const TRACKING_REASON = 'Avyro does not track you or use your data for advertising.';
+
 const config: ExpoConfig = {
   name: 'Avyro',
   slug: 'avyro',
@@ -64,6 +80,7 @@ const config: ExpoConfig = {
       NSLocationWhenInUseUsageDescription: LOCATION_REASON,
       NSMicrophoneUsageDescription: MICROPHONE_REASON,
       NSSpeechRecognitionUsageDescription: SPEECH_REASON,
+      NSUserTrackingUsageDescription: TRACKING_REASON,
       ITSAppUsesNonExemptEncryption: false,
     },
   },
