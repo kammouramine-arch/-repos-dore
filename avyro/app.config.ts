@@ -38,6 +38,22 @@ const LOCATION_REASON =
  */
 const TRACKING_REASON = 'Avyro does not track you or use your data for advertising.';
 
+/**
+ * Required by a framework Avyro links but never calls.
+ *
+ * `expo-file-system` is a dependency of the `expo` package itself, so it is
+ * compiled into every Expo app whether or not the app imports it. Its legacy
+ * module reads `ph://` and `assets-library://` URIs and therefore calls
+ * `PHPhotoLibrary.authorizationStatus()`; its podspec compiles every source
+ * file with no exclusions, and its config plugin declares no usage
+ * description. That combination is what App Store analysis rejected as
+ * ITMS-90683 on Build 11.
+ *
+ * Avyro reads no photos and offers no photo feature, so no reason for access
+ * is claimed here. The string says what is true.
+ */
+const PHOTOS_REASON = 'Avyro does not access your photo library.';
+
 const config: ExpoConfig = {
   name: 'Avyro',
   slug: 'avyro',
@@ -81,6 +97,7 @@ const config: ExpoConfig = {
       NSMicrophoneUsageDescription: MICROPHONE_REASON,
       NSSpeechRecognitionUsageDescription: SPEECH_REASON,
       NSUserTrackingUsageDescription: TRACKING_REASON,
+      NSPhotoLibraryUsageDescription: PHOTOS_REASON,
       ITSAppUsesNonExemptEncryption: false,
     },
   },
