@@ -77,6 +77,16 @@ export const CONVERSATION = {
 
   /** Give up on a command if the driver says nothing after waking Avyro. */
   listenTimeoutMs: 7_000,
+  /**
+   * How long a partial transcript must stop changing before it is read.
+   *
+   * iOS streams a guess that grows word by word and only commits a final
+   * result once it decides the speaker has stopped. Acting on a still-growing
+   * partial is how "Hey Avyro take me to Lille" got parsed as "take me".
+   * Long enough to cover the pause between words, short enough that a driver
+   * who said only the wake phrase is not left waiting.
+   */
+  wakeSettleMs: 900,
   /** How long the cancelled state stays observable before returning to idle. */
   cancelledLingerMs: 1_200,
   /** Nearby searches are capped tightly: a driver wants the next one, not a list. */

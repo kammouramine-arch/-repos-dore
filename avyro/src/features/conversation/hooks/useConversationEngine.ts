@@ -3,7 +3,6 @@ import { useCallback, useEffect, useRef } from 'react';
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
 import { CONVERSATION } from '@/config';
 import { buildRouteContext } from '@/core/conversation/routeContext';
-import { matchWakePhrase } from '@/core/conversation/wakePhrase';
 import {
   initialVoiceSessionState,
   voiceSessionReducer,
@@ -11,6 +10,12 @@ import {
   type VoiceSessionEvent,
 } from '@/core/conversation/voiceSession';
 import { formatVoiceDebug } from '@/core/conversation/voiceDebug';
+import {
+  initialWakeTrackerState,
+  wakeTrackerReducer,
+  type WakeTrackerEvent,
+  type WakeTrackerState,
+} from '@/core/conversation/wakeTracker';
 import type { ConversationEffect } from '@/core/conversation/conversationMachine';
 import type { SpeechRecognitionSession } from '@/core/domain/ports/speechRecognizer';
 import { runConversationAction } from '../runConversationAction';
@@ -56,6 +61,15 @@ export const useConversationEngine = (): void => {
    * instead of quietly becoming a second listener.
    */
   const generationRef = useRef(0);
+  /**
+   * Assembles partial transcripts into one command.
+   *
+   * iOS streams a guess that grows word by word; acting on the first partial
+   * containing the wake phrase is what parsed "take me" and answered "Sorry,
+   * I cannot help with that yet." while the driver was still speaking.
+   */
+  const wakeRef = useRef<WakeTrackerState>(initialWakeTrackerState);
+  const settleTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const dispatch = useCallback(
     (event: Parameters<ReturnType<typeof stores.conversation.getState>['dispatch']>[0]) =>
@@ -110,6 +124,61 @@ export const useConversationEngine = (): void => {
   }, [stores]);
 
   // ---- The microphone ---------------------------------------------------
+  const clearSettleTimer = useCallback(() => {
+    if (settleTimerRef.current === null) return;
+    clearTimeout(settleTimerRef.current);
+    settleTimerRef.current = null;
+  }, []);
+
+  /**
+   * Runs the wake tracker and acts only on a settled decision.
+   *
+   * `armed` deliberately does nothing to the microphone: the driver is
+   * mid-sentence, and the previous implementation's teardown at that moment is
+   * what threw the rest of the sentence away.
+   */
+  const feedWake = useCallback(
+    (event: WakeTrackerEvent) => {
+      // Named and local so the settle timer can call back into it without
+      // tying every future tick to the identity of one render.
+      const feed = (current: WakeTrackerEvent): void => {
+        const { state, decision } = wakeTrackerReducer(wakeRef.current, current);
+        wakeRef.current = state;
+
+        switch (decision.type) {
+          case 'armed':
+            voiceDebug('wake_phrase_armed', 'waiting for the sentence to finish');
+            // Re-armed on every change: when the words stop growing, this is
+            // what reads them.
+            clearSettleTimer();
+            settleTimerRef.current = setTimeout(
+              () => feed({ type: 'tick', at: Date.now() }),
+              CONVERSATION.wakeSettleMs,
+            );
+            return;
+
+          case 'command':
+            clearSettleTimer();
+            voiceDebug('wake_phrase_matched', `command "${decision.transcript}"`);
+            dispatch({ type: 'wake-detected', command: decision.transcript });
+            return;
+
+          case 'listen':
+            clearSettleTimer();
+            voiceDebug('wake_phrase_matched', 'no trailing command — opening a turn');
+            dispatch({ type: 'wake-detected' });
+            return;
+
+          case 'wait':
+            return;
+        }
+      };
+
+      feed(event);
+    },
+    [dispatch, voiceDebug, clearSettleTimer],
+  );
+
   const clearVoiceTimer = useCallback(() => {
     if (voiceTimerRef.current === null) return;
     clearTimeout(voiceTimerRef.current);
@@ -174,6 +243,11 @@ export const useConversationEngine = (): void => {
           let partials = 0;
           let lastPartialAt = 0;
 
+          // A new listener is a new sentence: nothing half-heard from the
+          // previous one may leak into it.
+          wakeRef.current = initialWakeTrackerState;
+          clearSettleTimer();
+
           voiceDebug('wake_session_requested', `onDevice=${onDevice}`);
 
           void services.speechRecognizer
@@ -204,19 +278,7 @@ export const useConversationEngine = (): void => {
                     );
                   }
 
-                  const match = matchWakePhrase(text, CONVERSATION.defaultLocale);
-                  if (!match) return;
-
-                  voiceDebug(
-                    'wake_phrase_matched',
-                    match.remainder
-                      ? `trailing command "${match.remainder}"`
-                      : 'no trailing command — opening a listening turn',
-                  );
-                  dispatch({
-                    type: 'wake-detected',
-                    command: match.remainder || undefined,
-                  });
+                  feedWake({ type: 'transcript', text, isFinal, at: now });
                 },
                 onError: (error) => {
                   if (!isCurrent()) return;
@@ -335,7 +397,15 @@ export const useConversationEngine = (): void => {
 
       send(event);
     },
-    [services, stores, dispatch, closeSession, clearVoiceTimer, voiceDebug],
+    [
+      services,
+      stores,
+      closeSession,
+      clearVoiceTimer,
+      clearSettleTimer,
+      voiceDebug,
+      feedWake,
+    ],
   );
 
   // Turning the switch on is what starts the permission flow; turning it off
@@ -414,22 +484,14 @@ export const useConversationEngine = (): void => {
 
       timersRef.current.push(
         setTimeout(() => {
-          // A recogniser that streams partials but never commits a final one
-          // would strand the turn here and cancel it in silence. If we heard
-          // words, act on them rather than throwing the driver's sentence away
-          // — and say plainly in the trace that this is what happened.
-          if (lastPartial.trim().length > 0) {
-            voiceDebug(
-              'listen_timeout_promoted_partial',
-              `no final_transcript in ${CONVERSATION.listenTimeoutMs}ms; using last partial "${lastPartial.slice(0, 80)}"`,
-            );
-            dispatch({ type: 'transcript', text: lastPartial, isFinal: true });
-            return;
-          }
-
+          // Deliberately does NOT promote the last partial. A truncated
+          // transcript is the thing that sent "take me to" to the parser and
+          // "lil" to the geocoder; cancelling and letting the driver repeat
+          // themselves is the honest outcome.
           voiceDebug(
             'ERROR listen_timeout',
-            `nothing heard in ${CONVERSATION.listenTimeoutMs}ms — turn cancelled`,
+            `no final transcript in ${CONVERSATION.listenTimeoutMs}ms` +
+              (lastPartial ? ` — discarding partial "${lastPartial.slice(0, 60)}"` : ''),
           );
           dispatch({ type: 'listen-timeout' });
         }, CONVERSATION.listenTimeoutMs),
@@ -556,10 +618,11 @@ export const useConversationEngine = (): void => {
     () => () => {
       clearTimers();
       clearVoiceTimer();
+      clearSettleTimer();
       closeSession();
       requestRef.current?.abort();
       void services.speechEngine.stop();
     },
-    [services, clearTimers, clearVoiceTimer, closeSession],
+    [services, clearTimers, clearVoiceTimer, clearSettleTimer, closeSession],
   );
 };
