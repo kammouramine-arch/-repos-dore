@@ -44,6 +44,16 @@ const toIntent = (value: unknown): VoiceIntent | null => {
       : null;
   }
 
+  if (kind === 'navigate-to-place') {
+    // A destination is whatever the driver said, so there is no vocabulary to
+    // check it against — only that something was actually said. The string is
+    // handed to the geocoder, never treated as a place.
+    const query = record?.query;
+    return typeof query === 'string' && query.trim().length > 0
+      ? { kind, query: query.trim() }
+      : null;
+  }
+
   if (kind === 'find-nearby') {
     const category = record?.category;
     return CATEGORIES.includes(category as (typeof CATEGORIES)[number])

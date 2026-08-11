@@ -15,12 +15,46 @@ import { normaliseUtterance } from './wakePhrase';
  */
 
 interface Rule {
-  intent: VoiceIntent;
   patterns: RegExp[];
+  /**
+   * A fixed intent, or a builder that reads capture groups.
+   *
+   * Returning null declines the match and lets the next rule try — which is
+   * how "take me to" with nothing usable after it falls through to `unknown`
+   * instead of asking the geocoder to find "".
+   */
+  intent: VoiceIntent | ((match: RegExpMatchArray) => VoiceIntent | null);
 }
 
 const MOTION = '(?:take|drive|get|bring|navigate|route|guide)';
 const GO = '(?:go|head|navigate|drive|take|get|bring|route)';
+
+/**
+ * Words that carry no destination.
+ *
+ * Stripped from the front and back of a captured query so "can you take me to
+ * the airport please" geocodes as "airport". Leading articles go because
+ * Nominatim scores a bare name better; politeness goes because it is not a
+ * place.
+ */
+// The `(?:\s+|$)` tail matters: without it a lone "the" survives stripping and
+// gets handed to the geocoder as if it were a place.
+const LEADING_NOISE = /^(?:the|a|an|to|towards?|my)(?:\s+|$)/;
+const TRAILING_NOISE = /(?:^|\s+)(?:please|now|thanks|thank\s+you)$/;
+
+/** Trims a captured destination down to what a geocoder should see. */
+export const cleanDestinationQuery = (raw: string): string => {
+  let query = raw.trim();
+  let previous = '';
+
+  // Repeated because "to the airport" sheds two words, one pass each.
+  while (query !== previous) {
+    previous = query;
+    query = query.replace(LEADING_NOISE, '').replace(TRAILING_NOISE, '').trim();
+  }
+
+  return query;
+};
 
 const RULES: Rule[] = [
   {
@@ -154,6 +188,26 @@ const RULES: Rule[] = [
       /\bpark\s+the\s+car\b/,
     ],
   },
+  {
+    /**
+     * Last, and deliberately so.
+     *
+     * "Take me to X" is the broadest phrasing a driver uses, and every rule
+     * above is a more specific reading of it: home, work, a category, the
+     * place Avyro just named. Only once none of those matched is X a
+     * destination to look up.
+     */
+    intent: (match) => {
+      const query = cleanDestinationQuery(match[1] ?? '');
+      return query.length > 0 ? { kind: 'navigate-to-place', query } : null;
+    },
+    patterns: [
+      new RegExp(`\\b${MOTION}\\s+(?:me|us)\\s+to\\s+(.+)$`),
+      new RegExp(`\\b${GO}\\s+to\\s+(.+)$`),
+      /\bdirections?\s+to\s+(.+)$/,
+      /\bi\s+(?:want|need)\s+to\s+go\s+to\s+(.+)$/,
+    ],
+  },
 ];
 
 /**
@@ -167,8 +221,15 @@ export const parseCommand = (transcript: string): VoiceIntent => {
   if (utterance.length === 0) return { kind: 'unknown' };
 
   for (const rule of RULES) {
-    if (rule.patterns.some((pattern) => pattern.test(utterance))) {
-      return rule.intent;
+    for (const pattern of rule.patterns) {
+      const match = utterance.match(pattern);
+      if (!match) continue;
+
+      const intent =
+        typeof rule.intent === 'function' ? rule.intent(match) : rule.intent;
+      // A builder that declined lets the remaining rules — and ultimately
+      // `unknown` — have their turn.
+      if (intent) return intent;
     }
   }
 

@@ -81,6 +81,14 @@ export const CONVERSATION = {
   cancelledLingerMs: 1_200,
   /** Nearby searches are capped tightly: a driver wants the next one, not a list. */
   nearbyResultLimit: 5,
+  /**
+   * Candidates fetched when resolving a spoken destination.
+   *
+   * More than one, because a single result cannot be checked for ambiguity;
+   * few, because only the top one is ever offered and the rest exist solely to
+   * answer "was this obvious?".
+   */
+  destinationCandidates: 4,
 
   /**
    * Pause before reopening the wake listener after it ends by itself.

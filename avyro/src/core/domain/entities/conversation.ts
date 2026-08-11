@@ -35,6 +35,14 @@ export type SavedPlaceSlot = 'home' | 'work';
  */
 export type VoiceIntent =
   | { kind: 'navigate-saved'; slot: SavedPlaceSlot }
+  /**
+   * "Take me to Lille" — a destination named in words, not from a slot.
+   *
+   * The intent carries only what the driver said. Turning that string into a
+   * place on the map is the app's job, never the voice layer's: the same
+   * geocoder and the same routing pipeline the search screen uses.
+   */
+  | { kind: 'navigate-to-place'; query: string }
   | { kind: 'find-nearby'; category: NearbyCategory }
   | { kind: 'ask-eta' }
   | { kind: 'ask-remaining-distance' }
@@ -51,6 +59,7 @@ export type VoiceIntent =
 /** Every intent kind, for provider schemas and exhaustive checks. */
 export const VOICE_INTENT_KINDS = [
   'navigate-saved',
+  'navigate-to-place',
   'find-nearby',
   'ask-eta',
   'ask-remaining-distance',

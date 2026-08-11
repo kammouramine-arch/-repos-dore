@@ -179,3 +179,57 @@ describe('voice rerouting', () => {
     expect(parseCommand('cancel navigation')).toEqual({ kind: 'cancel-navigation' });
   });
 });
+
+describe('destinations named in words', () => {
+  it.each([
+    ['take me to Lille', 'lille'],
+    ['Take me to Lille.', 'lille'],
+    ['navigate to Paris', 'paris'],
+    ['drive me to the Eiffel Tower', 'eiffel tower'],
+    ['take me to 12 Rue de Rivoli', '12 rue de rivoli'],
+    ['can you take me to the airport?', 'airport'],
+    ['go to Bordeaux', 'bordeaux'],
+    ['directions to Lyon', 'lyon'],
+    ['I want to go to Marseille', 'marseille'],
+    ['take me to Lille please', 'lille'],
+    ['get me to Saint-Denis', 'saint denis'],
+  ])('reads "%s" as a destination', (utterance, query) => {
+    expect(parseCommand(utterance)).toEqual({ kind: 'navigate-to-place', query });
+  });
+
+  it('does not steal the commands that already worked', () => {
+    // Every one of these is a more specific reading of "take me to X", and
+    // each must still win over the free-text rule that sits below them.
+    expect(parseCommand('take me home')).toEqual({
+      kind: 'navigate-saved',
+      slot: 'home',
+    });
+    expect(parseCommand('take me to work')).toEqual({
+      kind: 'navigate-saved',
+      slot: 'work',
+    });
+    expect(parseCommand('take me to the office')).toEqual({
+      kind: 'navigate-saved',
+      slot: 'work',
+    });
+    expect(parseCommand('take me there')).toEqual({ kind: 'navigate-referent' });
+    expect(parseCommand('take me to the nearest gas station')).toEqual({
+      kind: 'find-nearby',
+      category: 'fuel',
+    });
+    expect(parseCommand('find me a coffee')).toEqual({
+      kind: 'find-nearby',
+      category: 'coffee',
+    });
+    expect(parseCommand('go back to my original destination')).toEqual({
+      kind: 'restore-destination',
+    });
+  });
+
+  it('does not hand the geocoder an empty string', () => {
+    // "take me to" with nothing after it is not a destination; the rule
+    // declines and the utterance falls through.
+    expect(parseCommand('take me to').kind).toBe('unknown');
+    expect(parseCommand('navigate to the').kind).toBe('unknown');
+  });
+});

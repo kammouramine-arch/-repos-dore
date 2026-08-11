@@ -118,6 +118,9 @@ export const createServiceContainer = (
         logger,
       }),
       routingProvider,
+      // The same geocoder the search screen uses: a spoken destination and a
+      // typed one resolve through one pipeline, never two.
+      placesProvider,
       savedPlaces: savedPlacesRepository,
       logger,
     }),

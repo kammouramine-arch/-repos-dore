@@ -4,6 +4,7 @@ import type {
   SavedPlaceSlot,
   StopSuggestion,
 } from '@/core/domain/entities/conversation';
+import { describeDestination } from './destinationMatch';
 import type { Place } from '@/core/domain/entities/place';
 import { isHighlyRated } from './rankStops';
 import { formatDistance, formatDuration, formatTimeOfDay } from '@/utils/format';
@@ -16,11 +17,18 @@ import { formatDistance, formatDuration, formatTimeOfDay } from '@/utils/format'
  * interaction model, not a personality.
  */
 
+/**
+ * Each category as a countable noun.
+ *
+ * These are spoken after an article — "a highly rated …" — so "fuel" and
+ * "parking" have to be things you can have one of. "I found a fuel ahead" is
+ * what a driver actually heard before this.
+ */
 const CATEGORY_NOUNS: Record<NearbyCategory, string> = {
   restaurants: 'restaurant',
-  coffee: 'coffee',
-  fuel: 'fuel',
-  parking: 'parking',
+  coffee: 'coffee shop',
+  fuel: 'petrol station',
+  parking: 'car park',
 };
 
 const SLOT_NOUNS: Record<SavedPlaceSlot, string> = {
@@ -124,9 +132,20 @@ export const REPLIES = {
     'I cannot see live traffic yet. I can re-check your route for a faster one — just ask.',
 
   nearbyNotFound: (category: NearbyCategory) =>
-    `I could not find ${CATEGORY_NOUNS[category]} nearby.`,
+    `I could not find a ${CATEGORY_NOUNS[category]} nearby.`,
 
   needLocation: () => 'I need your location before I can search nearby.',
+
+  /** Confident: name what was chosen, so a wrong guess is caught by ear. */
+  navigatingTo: (place: Place): string =>
+    `Got it. Navigating you to ${describeDestination(place)}.`,
+
+  /** Not confident: offer the best guess rather than drive to it. */
+  destinationAmbiguous: (place: Place): string =>
+    `I found ${describeDestination(place)}. Say “take me there” to go.`,
+
+  destinationNotFound: (query: string): string =>
+    `I could not find ${query}. Try naming the town or the street.`,
 
   searchFailed: () => 'I could not search just now. Try again in a moment.',
 } as const;

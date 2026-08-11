@@ -1,4 +1,6 @@
+import { CONVERSATION } from '@/config';
 import { parseCommand } from '@/core/conversation/commandParser';
+import { isConfidentMatch } from '@/core/conversation/destinationMatch';
 import { REPLIES } from '@/core/conversation/replyText';
 import type {
   ConversationReply,
@@ -10,6 +12,7 @@ import type {
   IntentResolver,
 } from '@/core/domain/ports/conversationProvider';
 import type { Logger } from '@/core/domain/ports/logger';
+import type { PlacesProvider } from '@/core/domain/ports/placesProvider';
 import type { RoutingProvider } from '@/core/domain/ports/routingProvider';
 import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
 import type { StopRecommender } from '@/services/conversation/routeAwareRecommender';
@@ -20,6 +23,8 @@ const WORTHWHILE_SAVING_SECONDS = 120;
 export interface LocalConversationProviderOptions {
   recommender: StopRecommender;
   routingProvider: RoutingProvider;
+  /** The same geocoder the search screen uses. There is only one. */
+  placesProvider: PlacesProvider;
   savedPlaces: SavedPlacesRepository;
   logger: Logger;
 }
@@ -38,6 +43,7 @@ export interface LocalConversationProviderOptions {
 export const createLocalConversationProvider = ({
   recommender,
   routingProvider,
+  placesProvider,
   savedPlaces,
   logger,
 }: LocalConversationProviderOptions): ConversationProvider & IntentResolver => {
@@ -112,6 +118,49 @@ export const createLocalConversationProvider = ({
     }
   };
 
+  /**
+   * "Take me to Lille" — the voice path into the app's own geocoder.
+   *
+   * The voice layer asks; the routing system resolves and executes. This
+   * returns a `navigate-to` action carrying a real `Place`, which is the same
+   * action a tap on a search result produces and runs through the same
+   * `planTrip` pipeline. There is no second navigation system here.
+   */
+  const goToPlace = async (
+    intent: Extract<VoiceIntent, { kind: 'navigate-to-place' }>,
+    { context, origin, signal }: ConversationRequest,
+  ): Promise<ConversationReply> => {
+    try {
+      const results = await placesProvider.search(intent.query, {
+        near: origin ?? context.location ?? undefined,
+        limit: CONVERSATION.destinationCandidates,
+        signal,
+      });
+
+      const [best] = results;
+      if (!best) return reply(intent, REPLIES.destinationNotFound(intent.query));
+
+      // Not confident enough to move a car: name the guess and let the driver
+      // confirm with "take me there", which is the referent path already built
+      // for suggestions.
+      if (!isConfidentMatch(intent.query, results)) {
+        return reply(intent, REPLIES.destinationAmbiguous(best), { type: 'none' }, best);
+      }
+
+      const speech = context.isNavigating
+        ? REPLIES.destinationChanged(best)
+        : REPLIES.navigatingTo(best);
+
+      return reply(intent, speech, { type: 'navigate-to', place: best });
+    } catch (error) {
+      scoped.warn('destination search failed', {
+        query: intent.query,
+        reason: String(error),
+      });
+      return reply(intent, REPLIES.searchFailed());
+    }
+  };
+
   const goToSaved = async (
     intent: Extract<VoiceIntent, { kind: 'navigate-saved' }>,
     { context }: ConversationRequest,
@@ -152,6 +201,9 @@ export const createLocalConversationProvider = ({
     switch (intent.kind) {
       case 'navigate-saved':
         return goToSaved(intent, request);
+
+      case 'navigate-to-place':
+        return goToPlace(intent, request);
 
       case 'find-nearby':
         return suggestStop(intent, request);

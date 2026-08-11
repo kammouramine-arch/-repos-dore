@@ -66,3 +66,39 @@ describe('what it is not allowed to return', () => {
     ).toEqual({ intent: null, speech: 'No.' });
   });
 });
+
+describe('a destination named by a model', () => {
+  it('accepts a query string, because a place name has no vocabulary', () => {
+    expect(
+      decodeIntentEnvelope({ intent: { kind: 'navigate-to-place', query: 'Lille' } }),
+    ).toEqual({ intent: { kind: 'navigate-to-place', query: 'Lille' }, speech: null });
+  });
+
+  it('trims it, so whitespace never reaches the geocoder', () => {
+    expect(
+      decodeIntentEnvelope({ intent: { kind: 'navigate-to-place', query: '  Lille ' } }),
+    ).toEqual({ intent: { kind: 'navigate-to-place', query: 'Lille' }, speech: null });
+  });
+
+  it('rejects an empty destination rather than searching for nothing', () => {
+    expect(
+      decodeIntentEnvelope({ intent: { kind: 'navigate-to-place', query: '   ' } }),
+    ).toBeNull();
+    expect(decodeIntentEnvelope({ intent: { kind: 'navigate-to-place' } })).toBeNull();
+    expect(
+      decodeIntentEnvelope({ intent: { kind: 'navigate-to-place', query: 42 } }),
+    ).toBeNull();
+  });
+
+  it('still cannot invent coordinates — only a string to look up', () => {
+    // The boundary holds: a model may name a place, never place the car.
+    const decoded = decodeIntentEnvelope({
+      intent: { kind: 'navigate-to-place', query: 'Lille', latitude: 50.6, longitude: 3.06 },
+    });
+
+    expect(decoded).toEqual({
+      intent: { kind: 'navigate-to-place', query: 'Lille' },
+      speech: null,
+    });
+  });
+});

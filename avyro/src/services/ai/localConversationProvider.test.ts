@@ -6,6 +6,7 @@ import type {
 import type { NavigationProgress } from '@/core/domain/entities/navigation';
 import type { Place } from '@/core/domain/entities/place';
 import type { Logger } from '@/core/domain/ports/logger';
+import type { PlacesProvider } from '@/core/domain/ports/placesProvider';
 import type { RoutingProvider } from '@/core/domain/ports/routingProvider';
 import type { StopRecommender } from '@/services/conversation/routeAwareRecommender';
 import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
@@ -98,14 +99,24 @@ const routing = (routes: Route[] | Error): RoutingProvider => ({
   },
 });
 
+/** Geocoding, as the destination pipeline sees it. */
+const places = (results: Place[] | Error): PlacesProvider => ({
+  async search() {
+    if (results instanceof Error) throw results;
+    return results;
+  },
+});
+
 const build = (options: {
   saved?: Partial<Record<'home' | 'work', Place>>;
   results?: StopSuggestion[] | Error;
   routes?: Route[] | Error;
+  found?: Place[] | Error;
 } = {}) =>
   createLocalConversationProvider({
     recommender: recommender(options.results ?? []),
     routingProvider: routing(options.routes ?? []),
+    placesProvider: places(options.found ?? []),
     savedPlaces: savedPlaces(options.saved),
     logger: silentLogger(),
   });
@@ -240,7 +251,7 @@ describe('suggesting a stop', () => {
     const reply = await ask(build({ results: [] }), 'find parking');
 
     expect(reply.action).toEqual({ type: 'none' });
-    expect(reply.speech).toBe('I could not find parking nearby.');
+    expect(reply.speech).toBe('I could not find a car park nearby.');
   });
 
   it('needs a position before it can search', async () => {
@@ -340,5 +351,101 @@ describe('the limits of the local provider', () => {
 
   it('identifies itself, so a swapped provider is visible in logs', () => {
     expect(build().name).toBe('local-commands');
+  });
+});
+
+describe('navigating to a place named out loud', () => {
+  const LILLE = place('lille', 'Lille', 3.06);
+  const LILLE_US = place('lille-us', 'Lille', 3.9);
+
+  it('resolves the destination and asks the app to navigate', async () => {
+    // The whole point of the release: voice must execute navigation, not
+    // describe it. The action carries a real Place, which runs through the
+    // same planTrip pipeline a tap on a search result uses.
+    const reply = await ask(build({ found: [LILLE] }), 'take me to Lille', idle());
+
+    expect(reply.intent).toEqual({ kind: 'navigate-to-place', query: 'lille' });
+    expect(reply.action).toEqual({ type: 'navigate-to', place: LILLE });
+    expect(reply.speech).toBe('Got it. Navigating you to Lille.');
+  });
+
+  it('names what it chose, so a wrong guess is caught by ear', async () => {
+    const reply = await ask(build({ found: [LILLE] }), 'navigate to Paris', idle());
+    expect(reply.speech).toContain('Lille');
+  });
+
+  it('asks instead of guessing when the match is not obvious', async () => {
+    // Two results and neither is plainly what was said: naming the guess and
+    // waiting is the difference between a wrong turn and a 200 km mistake.
+    const vague = place('paix', 'Paix Hotel', 2.33);
+    const other = place('other', 'Somewhere Else', 2.4);
+
+    const reply = await ask(
+      build({ found: [vague, other] }),
+      'take me to rue de la paix',
+      idle(),
+    );
+
+    expect(reply.action).toEqual({ type: 'none' });
+    expect(reply.speech).toContain('take me there');
+    expect(reply.referent).toEqual(vague);
+  });
+
+  it('lets the driver confirm an ambiguous guess with "take me there"', async () => {
+    // The referent path already built for stop suggestions carries the
+    // confirmation, so there is no second confirmation mechanism.
+    const reply = await ask(
+      build(),
+      'take me there',
+      guidingWith({ referent: LILLE }),
+    );
+
+    expect(reply.action).toEqual({ type: 'navigate-to', place: LILLE });
+  });
+
+  it('says so plainly when the place does not exist', async () => {
+    const reply = await ask(build({ found: [] }), 'take me to Atlantis', idle());
+
+    expect(reply.action).toEqual({ type: 'none' });
+    expect(reply.speech).toContain('could not find');
+  });
+
+  it('degrades gracefully when the geocoder is unreachable', async () => {
+    const reply = await ask(
+      build({ found: new Error('offline') }),
+      'take me to Lille',
+      idle(),
+    );
+
+    expect(reply.action).toEqual({ type: 'none' });
+    expect(reply.speech).toBe('I could not search just now. Try again in a moment.');
+  });
+
+  it('calls a mid-trip destination change a change, so it can be undone', async () => {
+    const reply = await ask(build({ found: [LILLE] }), 'take me to Lille');
+
+    expect(reply.action).toEqual({ type: 'navigate-to', place: LILLE });
+    expect(reply.speech).toBe('Changing destination to Lille.');
+  });
+
+  it('is confident when the geocoder is, even with several results', async () => {
+    const reply = await ask(
+      build({ found: [LILLE, LILLE_US] }),
+      'take me to Lille',
+      idle(),
+    );
+
+    expect(reply.action).toEqual({ type: 'navigate-to', place: LILLE });
+  });
+
+  it('still answers saved places from the slot, not the geocoder', async () => {
+    const reply = await ask(
+      build({ saved: { home: HOME }, found: [LILLE] }),
+      'take me home',
+      idle(),
+    );
+
+    expect(reply.action).toEqual({ type: 'navigate-to', place: HOME });
+    expect(reply.speech).toBe('Heading home.');
   });
 });
