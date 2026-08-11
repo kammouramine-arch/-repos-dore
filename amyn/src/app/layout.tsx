@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { CursorGlow } from "@/components/ui/CursorGlow";
+import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Frame } from "@/components/ui/Frame";
 import { Grain } from "@/components/ui/Grain";
 import { Inter, Instrument_Serif, Manrope } from "next/font/google";
@@ -64,6 +65,7 @@ export default function RootLayout({ children }: LayoutProps<"/">) {
       className={`${manrope.variable} ${inter.variable} ${instrument.variable} h-full antialiased`}
     >
       <body className="min-h-full flex flex-col bg-ink text-bone">
+        <SmoothScroll />
         <Frame />
         <Grain />
         <CursorGlow />
