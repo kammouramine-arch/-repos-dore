@@ -175,6 +175,68 @@ body {
   );
 }
 
+/* Halo froid — l'exact contraire du `spotlight` doré du hero. C'est le
+   fond de la section PROBLÈME : la lumière n'y est plus chaude. */
+@utility coldlight {
+  background-image: radial-gradient(
+    95% 55% at 20% 76%,
+    color-mix(in srgb, #90a4c2 5.5%, transparent) 0%,
+    transparent 62%
+  );
+}
+
+/* --------------------------------------------------------------------------
+   LA LIGNE ROMPUE (section PROBLÈME)
+   -------------------------------------------------------------------------- */
+
+/* Chaque segment de la ligne est décalé de `--drift` : c'est ce désalignement
+   qui, cumulé sur six ruptures, fait lire le parcours comme brisé. */
+.spine {
+  transform: translateX(var(--drift, 0px));
+}
+
+/* Entrée de la section : la ligne arrive encore dorée du hero, puis perd
+   sa couleur en quelques dizaines de pixels. Le signal s'éteint. */
+.spine-head {
+  background-image: linear-gradient(
+    to bottom,
+    var(--color-gold) 0%,
+    color-mix(in srgb, var(--color-gold) 30%, transparent) 7%,
+    color-mix(in srgb, var(--color-bone) 15%, transparent) 17%,
+    color-mix(in srgb, var(--color-bone) 15%, transparent) 100%
+  );
+}
+
+/* Fin de section : le dernier fragment pend dans le vide. */
+.spine-tail {
+  background-image: linear-gradient(
+    to bottom,
+    color-mix(in srgb, var(--color-bone) 15%, transparent) 0%,
+    transparent 100%
+  );
+}
+
+/* Au survol d'un problème, le segment tente de se réaligner… puis retombe.
+   Une micro-interaction qui raconte quelque chose plutôt que de décorer. */
+@keyframes spine-reconnect {
+  0%,
+  100% {
+    transform: translateX(var(--drift, 0px));
+    background-color: color-mix(in srgb, var(--color-bone) 15%, transparent);
+  }
+  38%,
+  62% {
+    transform: translateX(0);
+    background-color: color-mix(in srgb, var(--color-bone) 45%, transparent);
+  }
+}
+
+@media (hover: hover) {
+  .problem-row:hover .spine {
+    animation: spine-reconnect 1.7s var(--ease-amyn);
+  }
+}
+
 /* Grain très léger : casse l'aspect « aplat numérique » des fonds noirs. */
 @utility grain {
   position: relative;

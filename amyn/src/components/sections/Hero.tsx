@@ -30,9 +30,13 @@ export function Hero() {
   });
 
   /* Le contenu remonte plus vite que la page et s'efface : la section
-     ne « défile » pas, elle se retire. */
-  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-18%"]);
-  const contentOpacity = useTransform(scrollYProgress, [0, 0.72], [1, 0]);
+     ne « défile » pas, elle se retire.
+
+     Le fondu démarre tard et finit tard : le hero tient jusqu'au bout de
+     l'écran, et le noir qui ouvre la section PROBLÈME prend le relais sans
+     qu'aucun vide ne s'installe entre les deux. */
+  const contentY = useTransform(scrollYProgress, [0, 1], ["0%", "-14%"]);
+  const contentOpacity = useTransform(scrollYProgress, [0.12, 0.88], [1, 0]);
   /* La grille, elle, traîne derrière : c'est l'arrière-plan. */
   const gridY = useTransform(scrollYProgress, [0, 1], ["0%", "12%"]);
 
