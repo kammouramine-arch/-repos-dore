@@ -185,6 +185,16 @@ body {
   );
 }
 
+/* Halo chaud de la section SOLUTION : la lumière revient, centrée sur l'axe.
+   Elle monte du bas, là où les trois brins se rejoignent. */
+@utility goldlight {
+  background-image: radial-gradient(
+    80% 48% at 50% 64%,
+    color-mix(in srgb, var(--color-gold) 8%, transparent) 0%,
+    transparent 62%
+  );
+}
+
 /* --------------------------------------------------------------------------
    LA LIGNE ROMPUE (section PROBLÈME)
    -------------------------------------------------------------------------- */
@@ -234,6 +244,32 @@ body {
 @media (hover: hover) {
   .problem-row:hover .spine {
     animation: spine-reconnect 1.7s var(--ease-amyn);
+  }
+}
+
+/* --------------------------------------------------------------------------
+   LES TROIS BRINS (section SOLUTION)
+   -------------------------------------------------------------------------- */
+
+/* Au survol d'un pilier, une impulsion dorée descend son brin : le système
+   répond. Un seul mouvement, court, jamais en boucle. */
+@keyframes strand-pulse {
+  from {
+    transform: translateY(-110%);
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    transform: translateY(230%);
+    opacity: 0;
+  }
+}
+
+@media (hover: hover) {
+  .pillar:hover .strand-pulse {
+    animation: strand-pulse 1.1s var(--ease-amyn);
   }
 }
 

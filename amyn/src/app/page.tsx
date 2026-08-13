@@ -2,6 +2,7 @@ import { Header } from "@/components/layout/Header";
 import { IntroGate } from "@/components/layout/IntroGate";
 import { Hero } from "@/components/sections/Hero";
 import { Problem } from "@/components/sections/Problem";
+import { Solution } from "@/components/sections/Solution";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
       <main>
         <Hero />
         <Problem />
+        <Solution />
         {/* Les sections suivantes viendront s'ajouter ici, une par une. */}
       </main>
     </IntroGate>

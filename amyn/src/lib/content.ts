@@ -87,6 +87,44 @@ export const problem = {
   ],
 } as const;
 
+/**
+ * SECTION 03 — LA RÉPONSE.
+ *
+ * `mirror` est la phrase-miroir : elle retourne mot pour mot un problème de
+ * la section 02. C'est la transformation rendue lisible, pas seulement
+ * visible. Ne les modifie jamais sans relire les conséquences du CONSTAT.
+ */
+export const solution = {
+  index: "03",
+  eyebrow: "La réponse",
+  title: [
+    { text: "Nous", accent: "transformons" },
+    { text: "votre présence" },
+    { text: "en ligne." },
+  ],
+  pillars: [
+    {
+      name: "Build",
+      body: "Sites web modernes.",
+      mirror: "Une vitrine qui donne envie d'entrer.",
+    },
+    {
+      name: "Convert",
+      body: "Réservation, formulaires, WhatsApp, parcours client.",
+      mirror: "Le visiteur sait quoi faire, et il le fait.",
+    },
+    {
+      name: "Grow",
+      body: "SEO local, Google Business, optimisation.",
+      mirror: "On vous trouve avant de trouver le voisin.",
+    },
+  ],
+  promise: [
+    { text: "Des sites qui attirent." },
+    { text: "Des systèmes qui", accent: "convertissent." },
+  ],
+} as const;
+
 export const nav = [
   { label: "Services", href: "#services" },
   { label: "Réalisations", href: "#showcase" },
