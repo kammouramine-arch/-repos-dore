@@ -89,6 +89,20 @@ export const CONVERSATION = {
   wakeSettleMs: 900,
   /** How long the cancelled state stays observable before returning to idle. */
   cancelledLingerMs: 1_200,
+  /**
+   * Ceiling on how long Avyro may believe it is still speaking.
+   *
+   * The conversation machine leaves `speaking` only on `speech-finished`, and
+   * that event comes only from a TTS callback. If the platform drops the
+   * utterance — most plausibly because the recogniser has not finished
+   * releasing the audio session — no callback ever arrives, the machine is
+   * stranded, and the reply stays on screen over the map for the rest of the
+   * drive. This is the backstop that guarantees the turn ends.
+   *
+   * Generous: a long spoken reply is normal, and cutting one short is a worse
+   * failure than a late dismissal.
+   */
+  speechWatchdogMs: 20_000,
   /** Nearby searches are capped tightly: a driver wants the next one, not a list. */
   nearbyResultLimit: 5,
   /**

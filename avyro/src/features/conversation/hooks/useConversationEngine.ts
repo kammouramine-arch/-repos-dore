@@ -555,18 +555,31 @@ export const useConversationEngine = (): void => {
           closeSession();
           voiceDebug('tts_started', `"${effect.text.slice(0, 80)}"`);
 
+          // The machine leaves `speaking` only on `speech-finished`. A
+          // platform that never calls back would leave the reply on screen
+          // over the map for the rest of the drive, so the turn is ended
+          // either by the callback or by this watchdog — whichever comes
+          // first, exactly once.
+          let spoken = false;
+          const finishSpeaking = (reason: string) => {
+            if (spoken) return;
+            spoken = true;
+            voiceDebug(reason);
+            dispatch({ type: 'speech-finished' });
+          };
+
+          timersRef.current.push(
+            setTimeout(
+              () => finishSpeaking('ERROR tts_watchdog_fired'),
+              CONVERSATION.speechWatchdogMs,
+            ),
+          );
+
           return void services.speechEngine
-            .speak(effect.text, {
-              onDone: () => {
-                voiceDebug('tts_finished');
-                dispatch({ type: 'speech-finished' });
-              },
-            })
+            .speak(effect.text, { onDone: () => finishSpeaking('tts_finished') })
             .catch((error) => {
-              // Without this the engine strands in `speaking` forever: the
-              // machine only leaves that state on `speech-finished`.
               voiceDebug('ERROR tts_threw', String(error));
-              dispatch({ type: 'speech-finished' });
+              finishSpeaking('tts_abandoned');
             });
         }
         case 'stop-speaking':
