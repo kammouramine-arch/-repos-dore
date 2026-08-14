@@ -356,3 +356,75 @@ describe('switching voice commands off', () => {
     expect(kinds(on.effects)).toEqual(['check-availability']);
   });
 });
+
+describe('the Build 15 restart loop, reproduced', () => {
+  /**
+   * The device trace, replayed:
+   *
+   *   .250 voice_retry            → open-session
+   *   .270 microphone_started     → opened
+   *   .571 wake_session_ended     → ended (301 ms, ZERO partials)
+   *   .581 ERROR no-speech
+   *
+   * iOS emits `no-speech` when the recogniser hears nothing, and
+   * expo-speech-recognition's handler tears the whole session down on ANY
+   * error regardless of `continuous`. The machine then reopens, hears
+   * nothing, and is torn down again — for as long as the driver stays quiet,
+   * which is most of a drive.
+   */
+  const noSpeech = (): VoiceSessionEvent => ({
+    type: 'failed',
+    error: { code: 'no-speech', message: 'No speech was detected.', fatal: false },
+  });
+
+  it('reopens after every no-speech, forever', () => {
+    let state = listening().state;
+    const opens: number[] = [];
+
+    for (let cycle = 0; cycle < 20; cycle += 1) {
+      // The session dies ~300 ms in, having captured nothing.
+      const ended = voiceSessionReducer(state, { type: 'ended' });
+      state = ended.state;
+      expect(kinds(ended.effects)).toEqual(['schedule-retry']);
+
+      const retried = voiceSessionReducer(state, { type: 'retry' });
+      state = voiceSessionReducer(retried.state, { type: 'opened' }).state;
+      opens.push(cycle);
+    }
+
+    // Twenty cycles, twenty microphones, zero words heard. The machine is
+    // behaving exactly as designed; the design assumed a recogniser that
+    // stays open through silence, and SFSpeechRecognizer is not one.
+    expect(opens).toHaveLength(20);
+    expect(state.status).toBe('listening');
+    expect(state.failures).toBe(0);
+  });
+
+  it('never surfaces the fault, because no-speech is not counted as a failure', () => {
+    // The controller maps `no-speech` to `ended` rather than `failed`, so the
+    // backoff never engages and the driver is never told. Silent forever.
+    let state = listening().state;
+
+    for (let i = 0; i < 10; i += 1) {
+      state = voiceSessionReducer(state, { type: 'ended' }).state;
+      state = voiceSessionReducer(state, { type: 'retry' }).state;
+      state = voiceSessionReducer(state, { type: 'opened' }).state;
+    }
+
+    expect(state.status).toBe('listening');
+    expect(state.message).toBeNull();
+  });
+
+  it('counts no-speech as a real failure if routed as one, and backs off', () => {
+    // Contrast: had the controller passed it through as `failed`, the machine
+    // would have backed off and told the driver after three attempts.
+    let state = listening().state;
+
+    for (let i = 0; i < CONVERSATION.wakeFailuresBeforeSurfacing; i += 1) {
+      state = voiceSessionReducer(state, noSpeech()).state;
+    }
+
+    expect(state.status).toBe('failed');
+    expect(state.message).toBe(VOICE_MESSAGES.failed);
+  });
+});
