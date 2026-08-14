@@ -328,10 +328,29 @@ export const useConversationEngine = (): void => {
                 services.speechRecognizer.isAvailable(),
                 services.speechRecognizer.supportsOnDevice(CONVERSATION.defaultLocale),
               ])
-                .then(([available, onDevice]) => {
+                .then(([available, deviceSupportsOnDevice]) => {
+                  // EXPERIMENT — network recognition instead of on-device.
+                  //
+                  // On-device recognition dies ~300 ms into silence: iOS emits
+                  // `no-speech` and expo-speech-recognition tears the session
+                  // down on any error regardless of `continuous`, so the wake
+                  // listener never survives long enough to hear anything.
+                  // This tests whether Apple's network recogniser stays alive
+                  // through silence instead.
+                  //
+                  // Set here rather than at the session, because this value
+                  // also drives the permission request: network recognition
+                  // needs SFSpeechRecognizer authorisation, which a mic-only
+                  // request never obtains. Forcing it further down would fail
+                  // with `not-allowed` and answer the wrong question.
+                  //
+                  // Revert to `deviceSupportsOnDevice` if the answer is no.
+                  const onDevice = false;
+
                   voiceDebug(
                     'availability_checked',
-                    `recogniser=${available} onDevice=${onDevice} locale=${CONVERSATION.defaultLocale}`,
+                    `recogniser=${available} deviceSupportsOnDevice=${deviceSupportsOnDevice} ` +
+                      `using onDevice=${onDevice} locale=${CONVERSATION.defaultLocale}`,
                   );
                   send({ type: 'availability', available, onDevice });
                 })
