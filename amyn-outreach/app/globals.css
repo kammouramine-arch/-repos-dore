@@ -1,0 +1,101 @@
+@import "tailwindcss";
+
+/* ---------------------------------------------------------------------------
+   AMYN OUTREACH — design system
+   Graphite profond + un seul accent or. Un accent unique, jamais deux.
+   --------------------------------------------------------------------------- */
+
+@theme {
+  --color-ink-950: #08080a;
+  --color-ink-900: #0e0e11;
+  --color-ink-850: #131317;
+  --color-ink-800: #191920;
+  --color-ink-700: #212129;
+
+  --color-line: #24242c;
+  --color-line-soft: #1b1b22;
+
+  --color-gold-300: #e2c68a;
+  --color-gold-400: #cfae6c;
+  --color-gold-500: #b8934f;
+
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto,
+    "Helvetica Neue", Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+    "Liberation Mono", monospace;
+}
+
+* {
+  border-color: var(--color-line);
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: #e8e8ec;
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
+/* Titres : graisse légère + interlettrage négatif = signature premium */
+h1, h2, h3 {
+  letter-spacing: -0.02em;
+}
+
+::selection {
+  background: var(--color-gold-500);
+  color: #08080a;
+}
+
+/* Barre de défilement discrète */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #2a2a33;
+  border-radius: 999px;
+  border: 3px solid var(--color-ink-950);
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a45;
+}
+
+/* --- Composants réutilisables --------------------------------------------- */
+
+@utility panel {
+  background-color: var(--color-ink-900);
+  border: 1px solid var(--color-line);
+  border-radius: 0.875rem;
+}
+
+@utility panel-hover {
+  transition: border-color 160ms ease, background-color 160ms ease;
+}
+
+/* Filet doré très fin, en haut d'un élément mis en avant */
+@utility gold-rule {
+  background: linear-gradient(
+    90deg,
+    transparent,
+    var(--color-gold-500) 20%,
+    var(--color-gold-400) 50%,
+    var(--color-gold-500) 80%,
+    transparent
+  );
+}
+
+@utility label-xs {
+  font-size: 0.6875rem;
+  line-height: 1;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  font-weight: 500;
+}

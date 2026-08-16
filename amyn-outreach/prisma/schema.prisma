@@ -1,0 +1,199 @@
+// ---------------------------------------------------------------------------
+// AMYN OUTREACH — schema de base de donnees
+//
+// Principe directeur : AUCUN email ne peut citer un probleme qui n'existe pas
+// dans la table `Issue` avec une preuve. Cette regle est structurelle, pas
+// seulement une consigne donnee a l'IA.
+//
+// SQLite ne supporte pas les `enum` Prisma : les valeurs autorisees sont
+// definies et typees dans `lib/constants.ts`.
+// ---------------------------------------------------------------------------
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// PROSPECT — la fiche entreprise
+// ---------------------------------------------------------------------------
+model Prospect {
+  id String @id @default(cuid())
+
+  // Identite
+  name   String
+  sector String
+  city   String
+  region String?
+
+  // Presence en ligne
+  website           String?
+  googleBusinessUrl String?
+  instagramUrl      String?
+
+  // Contact professionnel public
+  email       String?
+  emailSource String? // d'ou vient l'email : WEBSITE_CONTACT, LEGAL_NOTICE...
+  phone       String?
+
+  // Diagnostic
+  auditStatus     String  @default("PENDING") // PENDING | COMPLETE | INCOMPLETE | FAILED
+  auditNote       String?
+  auditedAt       DateTime?
+
+  // Recommandation commerciale
+  recommendedOffer String? // ESSENTIAL | PREMIUM | ULTIMATE | CARE
+  recommendedPrice Int? // en euros, HT
+  offerRationale   String?
+
+  // Cycle de vie
+  status          String    @default("FOUND")
+  lastContactedAt DateTime?
+
+  // Tracabilite
+  isDemo    Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  // Relations
+  issues       Issue[]
+  sources      Source[]
+  emailDrafts  EmailDraft[]
+  sendLogs     SendLog[]
+  statusEvents StatusEvent[]
+
+  @@unique([name, city])
+  @@index([status])
+  @@index([email])
+  @@index([city])
+}
+
+// ---------------------------------------------------------------------------
+// ISSUE — un probleme constate, TOUJOURS accompagne d'une preuve
+// ---------------------------------------------------------------------------
+model Issue {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  type     String // NO_WEBSITE, BROKEN_FORM, NOT_MOBILE_FRIENDLY...
+  severity String @default("MEDIUM") // LOW | MEDIUM | HIGH
+  title    String
+  summary  String
+
+  // LA PREUVE — sans elle, l'email ne peut pas mentionner ce probleme
+  evidenceUrl     String?
+  evidenceSnippet String?
+  evidenceNote    String?
+
+  detectionMethod String   @default("AUTOMATED") // AUTOMATED | AI | MANUAL
+  detectedAt      DateTime @default(now())
+
+  @@index([prospectId])
+  @@index([type])
+}
+
+// ---------------------------------------------------------------------------
+// SOURCE — d'ou vient chaque information (obligation RGPD : pouvoir indiquer
+// la provenance d'une adresse email si le destinataire le demande)
+// ---------------------------------------------------------------------------
+model Source {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  kind        String // WEBSITE | LEGAL_NOTICE | GOOGLE_BUSINESS | INSTAGRAM | DIRECTORY | MANUAL
+  label       String
+  url         String?
+  note        String?
+  collectedAt DateTime @default(now())
+
+  @@index([prospectId])
+}
+
+// ---------------------------------------------------------------------------
+// EMAIL DRAFT — brouillon genere, avec la liste des Issue qu'il cite
+// ---------------------------------------------------------------------------
+model EmailDraft {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  subject String
+  body    String
+
+  citedIssueIds String @default("[]") // JSON : les Issue reellement citees
+  model         String?
+  generatedAt   DateTime @default(now())
+
+  // Verification anti-invention (lot 4)
+  verificationPassed Boolean @default(false)
+  verificationNotes  String?
+
+  // Approbation humaine — pose UNIQUEMENT par un clic dans l'interface
+  approvedAt DateTime?
+  approvedBy String?
+
+  isActive Boolean @default(true)
+
+  sendLogs SendLog[]
+
+  @@index([prospectId])
+}
+
+// ---------------------------------------------------------------------------
+// SEND LOG — journal de tout ce qui a ete envoye OU simule
+// ---------------------------------------------------------------------------
+model SendLog {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  emailDraftId String?
+  emailDraft   EmailDraft? @relation(fields: [emailDraftId], references: [id], onDelete: SetNull)
+
+  transport         String // dry-run | smtp
+  status            String // SIMULATED | SENT | FAILED | BLOCKED
+  dryRun            Boolean @default(true)
+  toEmail           String
+  providerMessageId String?
+  error             String?
+
+  createdAt DateTime @default(now())
+
+  @@index([prospectId])
+  @@index([createdAt])
+}
+
+// ---------------------------------------------------------------------------
+// STATUS EVENT — historique complet des changements de statut
+// ---------------------------------------------------------------------------
+model StatusEvent {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  fromStatus String?
+  toStatus   String
+  reason     String?
+  actor      String   @default("SYSTEM") // SYSTEM | HUMAN
+  createdAt  DateTime @default(now())
+
+  @@index([prospectId])
+}
+
+// ---------------------------------------------------------------------------
+// SUPPRESSION — liste noire. Une adresse ici n'est JAMAIS recontactee.
+// ---------------------------------------------------------------------------
+model Suppression {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  reason    String // UNSUBSCRIBED | BOUNCED | MANUAL | COMPLAINT
+  note      String?
+  createdAt DateTime @default(now())
+}
