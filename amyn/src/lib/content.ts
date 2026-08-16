@@ -125,6 +125,74 @@ export const solution = {
   ],
 } as const;
 
+/**
+ * SECTION 04 — LE SYSTÈME.
+ *
+ * Neuf services = 3 × 3. Chaque circuit prolonge un pilier de la RÉPONSE :
+ * les services forment un système par construction, pas parce qu'un texte
+ * l'affirme. L'ordre des pièces est celui du parcours du courant — sur la
+ * deuxième passe, le circuit va de droite à gauche.
+ */
+export const services = {
+  index: "04",
+  eyebrow: "Le système",
+  title: [{ text: "Neuf pièces." }, { text: "Un seul", accent: "système." }],
+  circuits: [
+    {
+      name: "Build",
+      items: [
+        {
+          name: "Création de sites web",
+          body: "La base : rapide, clair, à votre image.",
+        },
+        {
+          name: "Design responsive",
+          body: "Aussi net dans la poche qu'au bureau.",
+        },
+        {
+          name: "Landing pages",
+          body: "Une page, un objectif, zéro distraction.",
+        },
+      ],
+    },
+    {
+      name: "Convert",
+      items: [
+        {
+          name: "Systèmes de réservation",
+          body: "Le client réserve pendant que vous travaillez.",
+        },
+        {
+          name: "Formulaires & WhatsApp",
+          body: "La demande arrive. Vous le savez tout de suite.",
+        },
+        {
+          name: "Optimisation de conversion",
+          body: "On règle les détails qui décident.",
+        },
+      ],
+    },
+    {
+      name: "Grow",
+      items: [
+        {
+          name: "SEO local",
+          body: "Être là quand on cherche à côté de chez vous.",
+        },
+        {
+          name: "Google Business",
+          body: "Votre fiche, tenue comme une vitrine.",
+        },
+        {
+          name: "Automatisations",
+          body: "Les relances et les avis, sans y penser.",
+        },
+      ],
+    },
+  ],
+  bridge: "Le même système, monté sur mesure.",
+} as const;
+
 export const nav = [
   { label: "Services", href: "#services" },
   { label: "Réalisations", href: "#showcase" },
