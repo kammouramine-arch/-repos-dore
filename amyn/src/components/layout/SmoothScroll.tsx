@@ -2,6 +2,7 @@
 
 import Lenis from "lenis";
 import { useEffect } from "react";
+import { setLenis } from "@/lib/lenis";
 
 /**
  * DÉFILEMENT LISSE (Lenis).
@@ -28,6 +29,8 @@ export function SmoothScroll() {
       anchors: true,
     });
 
+    setLenis(lenis);
+
     let frame = requestAnimationFrame(function raf(time) {
       lenis.raf(time);
       frame = requestAnimationFrame(raf);
@@ -35,6 +38,7 @@ export function SmoothScroll() {
 
     return () => {
       cancelAnimationFrame(frame);
+      setLenis(null);
       lenis.destroy();
     };
   }, []);
