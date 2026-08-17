@@ -4,6 +4,7 @@ import { SmoothScroll } from "@/components/layout/SmoothScroll";
 import { Frame } from "@/components/ui/Frame";
 import { Grain } from "@/components/ui/Grain";
 import { Inter, Instrument_Serif, Manrope } from "next/font/google";
+import { site } from "@/lib/content";
 import "./globals.css";
 
 /* Manrope : les titres. Inter : le texte courant. */
@@ -29,13 +30,19 @@ const instrument = Instrument_Serif({
 });
 
 export const metadata: Metadata = {
-  metadataBase: new URL("https://amyn.fr"),
+  /* Base de toutes les URL absolues (Open Graph, canonique, sitemap). */
+  metadataBase: new URL(`https://${site.domain}`),
+  alternates: { canonical: "/" },
   title: {
     default: "AMYN — Agence Web & Growth",
     template: "%s · AMYN",
   },
   description:
     "Des sites qui attirent. Des systèmes qui convertissent. AMYN crée des sites web modernes et des systèmes digitaux pour les entreprises locales en France.",
+  applicationName: "AMYN",
+  authors: [{ name: "AMYN" }],
+  creator: "AMYN",
+  publisher: "AMYN",
   keywords: [
     "agence web",
     "création site internet",
@@ -47,10 +54,22 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     locale: "fr_FR",
+    url: "/",
     siteName: "AMYN",
     title: "AMYN — Agence Web & Growth",
     description:
       "Des sites qui attirent. Des systèmes qui convertissent.",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "AMYN — Agence Web & Growth",
+    description:
+      "Des sites qui attirent. Des systèmes qui convertissent.",
+  },
+  robots: {
+    index: true,
+    follow: true,
+    googleBot: { index: true, follow: true, "max-image-preview": "large" },
   },
 };
 
