@@ -1,8 +1,7 @@
-import Link from "next/link";
 import type { ReactNode } from "react";
 import { Footer } from "@/components/layout/Footer";
+import { PageHeader } from "@/components/layout/PageHeader";
 import { Container } from "@/components/ui/Container";
-import { Wordmark } from "@/components/ui/Wordmark";
 
 /**
  * Gabarit des pages légales.
@@ -20,13 +19,7 @@ export function LegalShell({
 }) {
   return (
     <>
-      <header className="border-b border-bone/10">
-        <Container className="flex h-16 items-center sm:h-20">
-          <Link href="/" aria-label="AMYN — retour à l'accueil">
-            <Wordmark className="text-base sm:text-lg" />
-          </Link>
-        </Container>
-      </header>
+      <PageHeader />
 
       <main className="py-20 sm:py-28">
         <Container>

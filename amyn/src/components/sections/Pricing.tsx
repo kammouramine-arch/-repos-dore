@@ -221,7 +221,7 @@ function Tier({
         className="mt-9 pt-1"
       >
         <Button
-          href="#contact"
+          href={`/contact?offre=${encodeURIComponent(tier.name)}`}
           variant={featured ? "gold" : "ghost"}
           arrow={false}
           className="w-full"

@@ -108,7 +108,7 @@ export function Header() {
 
           <div className="flex items-center gap-6">
             <a
-              href="#contact"
+              href="/contact"
               className="group hidden font-display text-[0.7rem] font-semibold uppercase tracking-[0.2em] text-bone transition-colors duration-300 hover:text-gold sm:inline"
             >
               Parler à AMYN
@@ -168,7 +168,7 @@ export function Header() {
               </nav>
 
               <motion.a
-                href="#contact"
+                href="/contact"
                 onClick={() => setMenuOpen(false)}
                 initial={{ opacity: 0, y: 18 }}
                 animate={{ opacity: 1, y: 0 }}

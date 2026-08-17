@@ -75,7 +75,7 @@ export function Care() {
               </p>
 
               <div className="mt-8 lg:flex lg:justify-end">
-                <Button href="#contact" arrow={false}>
+                <Button href="/contact" arrow={false}>
                   {care.cta}
                 </Button>
               </div>

@@ -65,15 +65,46 @@ faire de plus pour le SSL.
 > ⚠️ Ne touche à aucun enregistrement **MX** ni **TXT** : ce sont eux qui
 > font fonctionner la messagerie et les vérifications de domaine.
 
-## 4. Vérifier l'adresse e-mail
+## 4. Activer l'envoi du formulaire de contact
+
+Le formulaire (`/contact`) envoie les demandes par l'API HTTP de **Resend**.
+Ce choix évite le SMTP, peu fiable depuis une fonction serverless, et
+n'ajoute aucune dépendance au projet.
+
+1. Crée un compte sur <https://resend.com> et génère une clé dans **API Keys**.
+2. Dans Vercel : **Project → Settings → Environment Variables**, ajoute :
+
+   | Nom | Valeur | Portée |
+   |---|---|---|
+   | `RESEND_API_KEY` | la clé `re_…` | Production + Preview |
+   | `CONTACT_TO_EMAIL` | l'adresse qui reçoit les demandes | Production + Preview |
+   | `CONTACT_FROM_EMAIL` | *(laisser vide au départ)* | — |
+
+3. Redéploie pour que les variables soient prises en compte.
+
+Tant qu'aucun domaine n'est vérifié chez Resend, l'expéditeur par défaut
+`AMYN <onboarding@resend.dev>` fonctionne — et il n'est visible que dans ta
+propre boîte, puisque le **Reply-To porte l'adresse du prospect**.
+
+Pour un expéditeur à ton nom, vérifie un **sous-domaine** chez Resend
+(par exemple `send.amyn.agency`) plutôt que le domaine racine : les
+enregistrements MX d'OVH restent alors intacts. Renseigne ensuite
+`CONTACT_FROM_EMAIL="AMYN <contact@send.amyn.agency>"`.
+
+> Sans `RESEND_API_KEY`, le formulaire ne plante pas : il affiche un message
+> clair et invite à écrire directement par e-mail.
+
+## 5. Vérifier l'adresse e-mail
 
 Le site invite à écrire à **contact@amyn.agency**
 (défini dans `src/lib/content.ts`). Assure-toi que cette boîte existe et
 qu'elle est relevée. Si ton adresse est différente, change la valeur dans
 ce fichier — c'est la seule ligne à modifier.
 
-## 5. Avant d'ouvrir au public
+## 6. Avant d'ouvrir au public
 
+- [ ] Confirmer que `CONTACT_TO_EMAIL` reçoit bien (envoi de test depuis
+      `/contact` en production).
 - [ ] Compléter `src/lib/content.ts` : `instagram`, `linkedin`, `whatsapp`
       (un champ laissé vide n'affiche simplement aucun lien).
 - [ ] Compléter les mentions légales et la politique de confidentialité,

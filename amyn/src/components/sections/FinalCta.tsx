@@ -18,7 +18,7 @@ import { EASE, inView, stagger } from "@/lib/motion";
  * démontrer, il ne reste qu'à répondre.
  */
 export function FinalCta() {
-  const mailto = contact.email ? `mailto:${contact.email}` : null;
+  /* Le bouton mène au formulaire ; l'adresse reste offerte en second recours. */
 
   return (
     <section
@@ -80,7 +80,7 @@ export function FinalCta() {
             }}
             className="mt-12"
           >
-            <Button href={mailto ?? "#contact"}>{finalCta.cta}</Button>
+            <Button href="/contact">{finalCta.cta}</Button>
           </motion.div>
 
           {/* Une seconde porte d'entrée, discrète, pour qui préfère écrire. */}

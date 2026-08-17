@@ -47,7 +47,7 @@ export const hero = {
     { text: "des", accent: "clients." },
   ],
   body: "Nous créons des sites web modernes et des systèmes digitaux conçus pour aider les entreprises locales à attirer, convertir et fidéliser leurs clients.",
-  ctaPrimary: { label: "Parler à AMYN", href: "#contact" },
+  ctaPrimary: { label: "Parler à AMYN", href: "/contact" },
   ctaSecondary: { label: "Découvrir nos services", href: "#services" },
   meta: "Commerces & entreprises locales — France",
 } as const;
