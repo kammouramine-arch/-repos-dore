@@ -123,18 +123,31 @@ Trois verrous indépendants doivent tomber, dans cet ordre.
 
 ```bash
 # 1. Configurer SMTP dans .env — jamais dans le code, jamais dans Git
-SMTP_HOST=proN.mail.ovh.net        # N = numéro de votre serveur OVHcloud
-SMTP_PORT=587
-SMTP_SECURE=false
-SMTP_USER=contact@amyn.agency
+#    Valeurs OVHcloud pour une boîte MX Plan / Zimbra :
+SMTP_HOST=ssl0.ovh.net
+SMTP_PORT=465
+SMTP_SECURE=true
+SMTP_USER=contact@amyn.agency      # l'adresse complète, pas un login court
 SMTP_PASSWORD=…
 
 # 2. Basculer le transport
 MAIL_TRANSPORT=smtp
 
-# 3. Tester la chaîne AVANT d'ouvrir la vanne (toujours en DRY_RUN)
+# 3. Vérifier la connexion SANS rien envoyer (fonctionne en DRY_RUN=true)
+npm run amyn -- smtp-check
+
+# 4. Une fois la connexion validée seulement, ouvrir la vanne puis tester
+DRY_RUN=false
 npm run amyn -- test-email contact@amyn.agency
 ```
+
+`smtp-check` ouvre une connexion, s'authentifie et referme : aucun message
+n'est transmis, aucun destinataire n'est contacté. C'est l'étape à faire avant
+de toucher au verrou.
+
+Autres solutions OVHcloud : Email Pro utilise `proN.mail.ovh.net` et Hosted
+Exchange `exN.mail.ovh.net`. Le serveur exact est indiqué dans votre espace
+client OVHcloud.
 
 Si le test arrive dans votre boîte et pas en spam, alors seulement :
 

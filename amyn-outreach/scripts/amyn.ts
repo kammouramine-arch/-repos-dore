@@ -37,7 +37,8 @@ import {
 import { pipelineSnapshot } from "../lib/analytics";
 import { sourceStatus } from "../lib/research";
 import { claudeAvailability } from "../lib/email/claude";
-import { mailerStatus } from "../lib/mailer";
+import { mailerStatus, readSmtpConfig } from "../lib/mailer";
+import { SmtpMailer } from "../lib/mailer/smtp-mailer";
 import { ALL_RULES } from "../lib/audit/rules";
 
 const C = {
@@ -69,6 +70,7 @@ async function main() {
     case "score": return score(rest);
     case "draft": return draft(rest);
     case "campaign": return campaign(rest);
+    case "smtp-check": return smtpCheck();
     case "test-email": return testEmail(rest);
     case "reply": return reply(rest);
     case "client": return client(rest);
@@ -281,6 +283,59 @@ async function campaign(args: string[]) {
   bad(`Sous-commande inconnue : ${sub}. Utiliser list | approve | send.`);
 }
 
+/**
+ * Verifie la connexion SMTP SANS envoyer d'email.
+ *
+ * Ouvre une connexion vers le serveur, presente les identifiants (EHLO + AUTH)
+ * puis referme. Aucun message n'est transmis, aucun destinataire n'est contacte.
+ * Fonctionne donc en DRY_RUN=true : c'est l'etape a faire AVANT de toucher au
+ * verrou d'envoi.
+ */
+async function smtpCheck() {
+  title("VERIFICATION DE LA CONNEXION SMTP");
+  info("Aucun email n'est envoye : connexion + authentification uniquement.");
+  console.log();
+
+  const { config: smtp, missing } = readSmtpConfig();
+  if (!smtp) {
+    bad(`Configuration incomplete — manquant dans .env : ${missing.join(", ")}`);
+    info("Renseignez ces variables dans amyn-outreach/.env, puis relancez cette commande.");
+    console.log();
+    return;
+  }
+
+  ok(`Serveur   : ${smtp.host}:${smtp.port}`);
+  ok(`Chiffrement : ${smtp.secure ? "SSL/TLS (implicite)" : "STARTTLS"}`);
+  ok(`Identifiant : ${smtp.user}`);
+  info("Mot de passe : lu depuis .env, jamais affiche ni journalise.");
+  console.log();
+
+  try {
+    await new SmtpMailer().verify();
+    ok("Connexion et authentification reussies.");
+    info("Le serveur OVHcloud accepte ces identifiants.");
+    console.log();
+    info("Etape suivante : envoyer UN email de test (necessite DRY_RUN=false).");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    bad(`Echec : ${message}`);
+    console.log();
+    if (/auth|535|password|credentials/i.test(message)) {
+      info("Identifiants refuses. Verifiez SMTP_USER (adresse complete) et SMTP_PASSWORD.");
+      info("Si votre compte OVHcloud a la double authentification, un mot de passe d'application est requis.");
+    } else if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(message)) {
+      info(`Serveur introuvable : verifiez SMTP_HOST (valeur attendue : ssl0.ovh.net).`);
+    } else if (/ETIMEDOUT|ECONNREFUSED|timeout/i.test(message)) {
+      info("Connexion impossible : le port est peut-etre bloque par votre reseau ou votre hebergeur.");
+      info("OVHcloud accepte aussi le port 587 avec SMTP_SECURE=false (STARTTLS).");
+    } else if (/certificate|self.signed|SSL|TLS/i.test(message)) {
+      info("Probleme de chiffrement : avec le port 465 utilisez SMTP_SECURE=true, avec le port 587 SMTP_SECURE=false.");
+    }
+    info("DRY_RUN reste inchange : aucun envoi n'est possible tant que ce test n'est pas concluant.");
+    console.log();
+  }
+}
+
 async function testEmail(args: string[]) {
   const to = args[0] ?? config.from.email;
   title(`TEST D'ENVOI vers ${to}`);
@@ -430,7 +485,8 @@ function help() {
     campaign list              lister les campagnes
     campaign approve <slug>    approuver les emails d'une campagne
     campaign send <slug>       envoyer (simulé si DRY_RUN=true)
-    test-email <adresse>       test de la chaîne d'envoi
+    smtp-check                 vérifier la connexion SMTP (sans rien envoyer)
+    test-email <adresse>       envoyer un email de test (simulé si DRY_RUN=true)
     reply <email> "<texte>"    enregistrer et classer une réponse
     client "<nom>" <OFFRE> [email]
                                créer un dossier client

@@ -83,10 +83,12 @@ export default async function SettingsPage() {
         {!mail.smtpConfigured && (
           <Note>
             Pour activer l&apos;envoi réel depuis <code>contact@amyn.agency</code> (OVHcloud
-            Zimbra), renseignez dans <code>.env</code> :{" "}
-            <code>SMTP_HOST=pro{'{'}n{'}'}.mail.ovh.net</code>, <code>SMTP_PORT=587</code>,{" "}
-            <code>SMTP_USER=contact@amyn.agency</code>, <code>SMTP_PASSWORD=…</code>, puis{" "}
-            <code>MAIL_TRANSPORT=smtp</code> et enfin <code>DRY_RUN=false</code>. Le mot de passe
+            MX&nbsp;Plan / Zimbra), renseignez dans <code>.env</code> :{" "}
+            <code>SMTP_HOST=ssl0.ovh.net</code>, <code>SMTP_PORT=465</code>,{" "}
+            <code>SMTP_SECURE=true</code>, <code>SMTP_USER=contact@amyn.agency</code>,{" "}
+            <code>SMTP_PASSWORD=…</code>, puis <code>MAIL_TRANSPORT=smtp</code>. Vérifiez ensuite
+            la connexion sans rien envoyer avec <code>npm run amyn -- smtp-check</code> — et
+            seulement si elle réussit, passez <code>DRY_RUN=false</code>. Le mot de passe
             n&apos;est jamais écrit dans le code ni versionné.
           </Note>
         )}
