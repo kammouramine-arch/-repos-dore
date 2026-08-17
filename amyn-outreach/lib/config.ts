@@ -34,22 +34,39 @@ export const config = {
     minDelaySeconds: int(process.env.MIN_DELAY_BETWEEN_SENDS_SECONDS, 180),
   },
 
-  /** Lot en cours de developpement — pilote l'affichage de la feuille de route. */
-  currentLot: 1,
 } as const;
 
 /**
  * Verrou global. Tout code d'envoi DOIT appeler cette fonction avant d'agir.
- * Au lot 1, elle refuse systematiquement : aucun transport reel n'existe.
+ * Elle leve une erreur explicite tant que les conditions ne sont pas reunies.
  */
 export function assertSendingAllowed(): void {
   if (config.dryRun) {
     throw new Error(
-      "[AMYN] Envoi bloque : DRY_RUN=true. Aucun email ne peut partir en mode simulation.",
+      "[AMYN] Envoi bloqué : DRY_RUN=true. Aucun email ne peut partir en mode simulation.",
     );
   }
-  throw new Error(
-    "[AMYN] Envoi bloque : aucun transport reel n'est implemente (prevu au lot 5). " +
-      "Passer DRY_RUN=false ne suffit pas — c'est volontaire.",
-  );
+  if (config.mailTransport !== "smtp") {
+    throw new Error(
+      `[AMYN] Envoi bloqué : MAIL_TRANSPORT="${config.mailTransport}". Passer à "smtp" pour un envoi réel.`,
+    );
+  }
+  const missing = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"].filter((k) => !process.env[k]);
+  if (missing.length > 0) {
+    throw new Error(
+      `[AMYN] Envoi bloqué : configuration SMTP incomplète. Manquant dans .env : ${missing.join(", ")}`,
+    );
+  }
+}
+
+/** Etat lisible des conditions d'envoi, pour l'interface et le CLI. */
+export function sendingReadiness() {
+  const missing = ["SMTP_HOST", "SMTP_USER", "SMTP_PASSWORD"].filter((k) => !process.env[k]);
+  return {
+    dryRun: config.dryRun,
+    transport: config.mailTransport,
+    smtpConfigured: missing.length === 0,
+    missing,
+    canSendForReal: !config.dryRun && config.mailTransport === "smtp" && missing.length === 0,
+  };
 }

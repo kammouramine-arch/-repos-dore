@@ -2,7 +2,7 @@
   "name": "amyn-outreach",
   "version": "0.1.0",
   "private": true,
-  "description": "AMYN — agent de prospection interne. Lot 1 : socle, base de donnees, dashboard.",
+  "description": "AMYN Outreach — agent de prospection et de production interne (recherche, audit prouve, redaction verifiee, envoi controle, CRM).",
   "scripts": {
     "dev": "next dev",
     "build": "next build",
@@ -12,22 +12,31 @@
     "db:seed": "tsx prisma/seed.ts",
     "db:reset": "prisma db push --force-reset --skip-generate && npm run db:seed",
     "db:studio": "prisma studio",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "amyn": "tsx scripts/amyn.ts",
+    "test": "tsx scripts/run-tests.ts",
+    "lint": "eslint . --max-warnings=0"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.117.1",
     "@prisma/client": "^6.3.0",
     "next": "^15.1.6",
+    "node-html-parser": "^9.0.1",
+    "nodemailer": "^9.0.5",
     "react": "^19.0.0",
     "react-dom": "^19.0.0"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4.0.0",
     "@types/node": "^22.10.0",
+    "@types/nodemailer": "^8.0.1",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
+    "eslint": "^9.39.5",
+    "eslint-config-next": "^15.5.23",
     "prisma": "^6.3.0",
     "tailwindcss": "^4.0.0",
     "tsx": "^4.19.0",

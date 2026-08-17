@@ -25,8 +25,8 @@ export default function RootLayout({
             </main>
             <footer className="border-t border-line px-5 py-5 lg:px-10">
               <p className="text-[11px] text-zinc-700">
-                AMYN Outreach · outil interne · lot 1 — socle &amp; dashboard ·
-                les données marquées DEMO sont fictives
+                AMYN Outreach · outil interne AMYN · les données marquées DEMO sont
+                fictives et ne peuvent déclencher aucun envoi
               </p>
             </footer>
           </div>

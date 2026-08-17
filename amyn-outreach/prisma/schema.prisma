@@ -1,13 +1,21 @@
-// ---------------------------------------------------------------------------
-// AMYN OUTREACH — schema de base de donnees
+// ===========================================================================
+// AMYN OUTREACH — modele de donnees complet
 //
-// Principe directeur : AUCUN email ne peut citer un probleme qui n'existe pas
-// dans la table `Issue` avec une preuve. Cette regle est structurelle, pas
-// seulement une consigne donnee a l'IA.
+// Chaine metier :
+//   PROSPECT > RECHERCHE > AUDIT > CONTACT > SCORE > EMAIL > ENVOI > REPONSE
+//   > LEAD > CLIENT > ONBOARDING > PROJET > PRODUCTION > LIVRAISON > CARE
 //
-// SQLite ne supporte pas les `enum` Prisma : les valeurs autorisees sont
-// definies et typees dans `lib/constants.ts`.
-// ---------------------------------------------------------------------------
+// INVARIANTS STRUCTURELS (garantis par le modele, pas par des consignes) :
+//   1. Un email ne peut citer qu'une Issue existante, elle-meme adossee a un
+//      AuditCheck VERIFIED. Pas de preuve => pas d'affirmation.
+//   2. Un Contact porte toujours sa source. Une adresse devinee est
+//      impossible : le champ `discoveryMethod` n'accepte pas "GUESS".
+//   3. Tout envoi passe par des ComplianceCheck enregistres. Un echec bloque.
+//   4. Toute action sensible laisse une trace dans ActivityLog.
+//
+// SQLite ne supporte pas les enums Prisma : les valeurs autorisees sont
+// typees dans lib/domain/constants.ts.
+// ===========================================================================
 
 generator client {
   provider = "prisma-client-js"
@@ -19,40 +27,58 @@ datasource db {
 }
 
 // ---------------------------------------------------------------------------
-// PROSPECT — la fiche entreprise
+// PROSPECTION
 // ---------------------------------------------------------------------------
+
 model Prospect {
   id String @id @default(cuid())
 
   // Identite
-  name   String
-  sector String
-  city   String
-  region String?
+  name       String
+  legalName  String?
+  sector     String
+  city       String
+  region     String?
+  country    String  @default("FR")
+  address    String?
+  postalCode String?
 
   // Presence en ligne
   website           String?
   googleBusinessUrl String?
+  googlePlaceId     String?
   instagramUrl      String?
+  facebookUrl       String?
+  phone             String?
 
-  // Contact professionnel public
-  email       String?
-  emailSource String? // d'ou vient l'email : WEBSITE_CONTACT, LEGAL_NOTICE...
-  phone       String?
+  // Contact retenu (toujours issu d'un Contact trace)
+  primaryContactId String?  @unique
+  primaryContact   Contact? @relation("PrimaryContact", fields: [primaryContactId], references: [id], onDelete: SetNull)
 
-  // Diagnostic
-  auditStatus     String  @default("PENDING") // PENDING | COMPLETE | INCOMPLETE | FAILED
-  auditNote       String?
-  auditedAt       DateTime?
+  // Audit
+  auditStatus String    @default("PENDING") // PENDING | COMPLETE | INCOMPLETE | FAILED | BLOCKED_BY_ROBOTS
+  auditNote   String?
+  auditedAt   DateTime?
+
+  // Scoring (0-100). rationale = JSON detaillant chaque composante.
+  fitScore       Int?
+  auditScore     Int?
+  contactScore   Int?
+  overallScore   Int?
+  scoreRationale String?
+  scoredAt       DateTime?
 
   // Recommandation commerciale
-  recommendedOffer String? // ESSENTIAL | PREMIUM | ULTIMATE | CARE
-  recommendedPrice Int? // en euros, HT
+  recommendedOffer String?
+  recommendedPrice Int?
   offerRationale   String?
 
   // Cycle de vie
-  status          String    @default("FOUND")
-  lastContactedAt DateTime?
+  status            String    @default("FOUND")
+  blockedReason     String?
+  lastInteractionAt DateTime?
+  nextAction        String?
+  nextActionAt      DateTime?
 
   // Tracabilite
   isDemo    Boolean  @default(false)
@@ -60,33 +86,52 @@ model Prospect {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  // Relations
-  issues       Issue[]
-  sources      Source[]
-  emailDrafts  EmailDraft[]
-  sendLogs     SendLog[]
-  statusEvents StatusEvent[]
+  issues          Issue[]
+  sources         Source[]
+  contacts        Contact[]        @relation("ProspectContacts")
+  auditRuns       AuditRun[]
+  auditChecks     AuditCheck[]
+  emailDrafts     EmailDraft[]
+  sendLogs        SendLog[]
+  replies         Reply[]
+  statusEvents    StatusEvent[]
+  campaignMembers CampaignMember[]
+  client          Client?
 
   @@unique([name, city])
   @@index([status])
-  @@index([email])
   @@index([city])
+  @@index([overallScore])
 }
 
-// ---------------------------------------------------------------------------
-// ISSUE — un probleme constate, TOUJOURS accompagne d'une preuve
-// ---------------------------------------------------------------------------
+/// Origine de chaque information. Obligation RGPD : pouvoir dire d'ou vient une donnee.
+model Source {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  kind        String // WEBSITE | LEGAL_NOTICE | GOOGLE_BUSINESS | INSTAGRAM | DIRECTORY | OSM | SIRENE | MANUAL
+  label       String
+  url         String?
+  note        String?
+  rawData     String? // JSON brut renvoye par la source
+  collectedAt DateTime @default(now())
+
+  @@index([prospectId])
+}
+
+/// Un probleme PROUVE. N'existe que si un AuditCheck VERIFIED le demontre.
 model Issue {
   id         String   @id @default(cuid())
   prospectId String
   prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
 
-  type     String // NO_WEBSITE, BROKEN_FORM, NOT_MOBILE_FRIENDLY...
-  severity String @default("MEDIUM") // LOW | MEDIUM | HIGH
+  type     String
+  severity String @default("MEDIUM") // HIGH | MEDIUM | LOW
   title    String
   summary  String
 
-  // LA PREUVE — sans elle, l'email ne peut pas mentionner ce probleme
+  // La preuve
   evidenceUrl     String?
   evidenceSnippet String?
   evidenceNote    String?
@@ -94,85 +139,586 @@ model Issue {
   detectionMethod String   @default("AUTOMATED") // AUTOMATED | AI | MANUAL
   detectedAt      DateTime @default(now())
 
+  auditCheckId String?     @unique
+  auditCheck   AuditCheck? @relation(fields: [auditCheckId], references: [id], onDelete: SetNull)
+  ruleId       String?
+  confidence   String      @default("MEDIUM")
+
   @@index([prospectId])
   @@index([type])
 }
 
 // ---------------------------------------------------------------------------
-// SOURCE — d'ou vient chaque information (obligation RGPD : pouvoir indiquer
-// la provenance d'une adresse email si le destinataire le demande)
+// AUDIT
 // ---------------------------------------------------------------------------
-model Source {
+
+model AuditRun {
   id         String   @id @default(cuid())
   prospectId String
   prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
 
-  kind        String // WEBSITE | LEGAL_NOTICE | GOOGLE_BUSINESS | INSTAGRAM | DIRECTORY | MANUAL
-  label       String
-  url         String?
-  note        String?
-  collectedAt DateTime @default(now())
+  status String // COMPLETE | INCOMPLETE | FAILED | BLOCKED_BY_ROBOTS
+  note   String?
+
+  engineVersion String @default("1.0.0")
+  userAgent     String
+
+  pagesFetched Int @default(0)
+  bytesFetched Int @default(0)
+  requestsMade Int @default(0)
+  rulesRun     Int @default(0)
+
+  verifiedCount   Int @default(0)
+  unverifiedCount Int @default(0)
+  notFoundCount   Int @default(0)
+  problemCount    Int @default(0)
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
+
+  checks AuditCheck[]
 
   @@index([prospectId])
+  @@index([startedAt])
+}
+
+/// Le resultat d'UNE regle. On conserve aussi ce qui n'a PAS pu etre prouve.
+/// verdict : VERIFIED (prouve) | UNVERIFIED (insuffisant) | NOT_FOUND (cherche, absent)
+model AuditCheck {
+  id         String   @id @default(cuid())
+  prospectId String
+  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  auditRunId String
+  auditRun   AuditRun @relation(fields: [auditRunId], references: [id], onDelete: Cascade)
+
+  ruleId    String
+  ruleLabel String
+  category  String
+
+  verdict    String
+  confidence String @default("MEDIUM")
+
+  isProblem Boolean @default(false)
+  issueType String?
+  severity  String?
+
+  /// Ce qui a ete OBSERVE. Factuel, chiffre quand mesurable.
+  observation String
+  /// COMMENT cela a ete observe.
+  method      String
+
+  targetUrl       String?
+  evidenceSnippet String?
+  evidenceData    String?
+
+  checkedAt DateTime @default(now())
+  issue     Issue?
+
+  @@index([prospectId])
+  @@index([auditRunId])
+  @@index([verdict])
 }
 
 // ---------------------------------------------------------------------------
-// EMAIL DRAFT — brouillon genere, avec la liste des Issue qu'il cite
+// CONTACTS
 // ---------------------------------------------------------------------------
-model EmailDraft {
+
+/// Une adresse email professionnelle PUBLIQUE, avec sa provenance.
+/// discoveryMethod n'accepte aucune valeur de type "devinee" : c'est le
+/// verrou structurel contre les adresses inventees.
+model Contact {
   id         String   @id @default(cuid())
   prospectId String
+  prospect   Prospect @relation("ProspectContacts", fields: [prospectId], references: [id], onDelete: Cascade)
+
+  email     String
+  firstName String?
+  lastName  String?
+  role      String?
+  phone     String?
+
+  /// true si contact@, info@... (pas une donnee personnelle : regime RGPD plus souple)
+  isGeneric Boolean @default(true)
+
+  /// LEGAL_NOTICE | WEBSITE_CONTACT | WEBSITE_MAILTO | GOOGLE_BUSINESS | INSTAGRAM_BIO | MANUAL
+  discoveryMethod String
+  sourceUrl       String
+  sourceSnippet   String?
+  discoveredAt    DateTime @default(now())
+
+  /// SYNTAX_OK | SYNTAX_INVALID | DISPOSABLE | ROLE_ACCOUNT | UNKNOWN
+  validationStatus String  @default("UNKNOWN")
+  validationNote   String?
+
+  isPrimary Boolean @default(false)
+
+  primaryFor Prospect? @relation("PrimaryContact")
+
+  @@unique([prospectId, email])
+  @@index([email])
+}
+
+// ---------------------------------------------------------------------------
+// CAMPAGNES & EMAILS
+// ---------------------------------------------------------------------------
+
+model Campaign {
+  id   String @id @default(cuid())
+  name String
+  slug String @unique
+
+  /// Criteres de ciblage (JSON) : villes, secteurs, nombre vise...
+  targetCriteria String?
+  targetOffer    String?
+  language       String  @default("fr")
+
+  fromEmail String
+  fromName  String
+
+  status String @default("DRAFT") // DRAFT | READY | RUNNING | PAUSED | DONE | CANCELLED
+
+  dailyLimit        Int @default(15)
+  minDelaySeconds   Int @default(180)
+  maxFollowUps      Int @default(2)
+  followUpDelayDays Int @default(4)
+
+  isDemo    Boolean   @default(false)
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+  startedAt DateTime?
+  endedAt   DateTime?
+
+  members CampaignMember[]
+  drafts  EmailDraft[]
+  sends   SendLog[]
+  replies Reply[]
+
+  @@index([status])
+}
+
+model CampaignMember {
+  id         String   @id @default(cuid())
+  campaignId String
+  campaign   Campaign @relation(fields: [campaignId], references: [id], onDelete: Cascade)
+  prospectId String
   prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+
+  /// PENDING | READY | APPROVED | SENT | REPLIED | BLOCKED | SKIPPED | DONE
+  status        String  @default("PENDING")
+  blockedReason String?
+
+  sequenceStep Int       @default(0) // 0 = email initial, 1..n = relances
+  lastSentAt   DateTime?
+  nextSendAt   DateTime?
+
+  addedAt DateTime @default(now())
+
+  @@unique([campaignId, prospectId])
+  @@index([status])
+}
+
+model EmailDraft {
+  id         String    @id @default(cuid())
+  prospectId String
+  prospect   Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  /// INITIAL | FOLLOWUP_1 | FOLLOWUP_2 | REPLY
+  kind         String @default("INITIAL")
+  sequenceStep Int    @default(0)
 
   subject String
   body    String
 
-  citedIssueIds String @default("[]") // JSON : les Issue reellement citees
+  /// JSON : ids des Issue reellement citees. Verifie avant envoi.
+  citedIssueIds String  @default("[]")
+  generator     String  @default("template") // template | claude
   model         String?
-  generatedAt   DateTime @default(now())
 
-  // Verification anti-invention (lot 4)
   verificationPassed Boolean @default(false)
   verificationNotes  String?
 
-  // Approbation humaine — pose UNIQUEMENT par un clic dans l'interface
   approvedAt DateTime?
   approvedBy String?
 
-  isActive Boolean @default(true)
+  isActive    Boolean  @default(true)
+  generatedAt DateTime @default(now())
 
   sendLogs SendLog[]
 
   @@index([prospectId])
+  @@index([campaignId])
+}
+
+model SendLog {
+  id           String      @id @default(cuid())
+  prospectId   String
+  prospect     Prospect    @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  emailDraftId String?
+  emailDraft   EmailDraft? @relation(fields: [emailDraftId], references: [id], onDelete: SetNull)
+  campaignId   String?
+  campaign     Campaign?   @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  transport String
+  /// SIMULATED | SENT | FAILED | BLOCKED | BOUNCED
+  status    String
+  dryRun    Boolean @default(true)
+
+  toEmail String
+  subject String @default("")
+
+  providerMessageId String?
+  error             String?
+  bounceType        String? // HARD | SOFT
+  bounceDetail      String?
+
+  /// JSON : resultat de chaque controle de conformite avant envoi
+  complianceReport String?
+
+  sequenceStep Int      @default(0)
+  createdAt    DateTime @default(now())
+
+  @@index([prospectId])
+  @@index([campaignId])
+  @@index([createdAt])
+  @@index([status])
+}
+
+model Reply {
+  id         String    @id @default(cuid())
+  prospectId String
+  prospect   Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  campaignId String?
+  campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
+
+  fromEmail  String
+  subject    String
+  body       String
+  receivedAt DateTime @default(now())
+
+  /// INTERESTED | QUESTION | NOT_INTERESTED | OPT_OUT | MEETING_REQUEST |
+  /// PRICE_REQUEST | LATER | BOUNCE | OTHER
+  classification String
+  confidence     String  @default("MEDIUM")
+  /// JSON : expressions qui ont declenche le classement (tracabilite)
+  matchedSignals String?
+
+  handled     Boolean   @default(false)
+  handledAt   DateTime?
+  handledNote String?
+
+  externalId String? @unique
+
+  @@index([prospectId])
+  @@index([classification])
+}
+
+/// Liste d'opposition. Une adresse ou un domaine ici n'est JAMAIS recontacte.
+model Suppression {
+  id     String  @id @default(cuid())
+  email  String? @unique
+  domain String? @unique
+
+  /// UNSUBSCRIBED | BOUNCED | COMPLAINT | MANUAL | DEMO_GUARD
+  reason     String
+  source     String?
+  campaignId String?
+  notes      String?
+  createdAt  DateTime @default(now())
+
+  @@index([reason])
 }
 
 // ---------------------------------------------------------------------------
-// SEND LOG — journal de tout ce qui a ete envoye OU simule
+// CRM — CLIENTS, PROJETS, LIVRAISON
 // ---------------------------------------------------------------------------
-model SendLog {
-  id         String   @id @default(cuid())
-  prospectId String
-  prospect   Prospect @relation(fields: [prospectId], references: [id], onDelete: Cascade)
 
-  emailDraftId String?
-  emailDraft   EmailDraft? @relation(fields: [emailDraftId], references: [id], onDelete: SetNull)
+model Client {
+  id         String    @id @default(cuid())
+  prospectId String?   @unique
+  prospect   Prospect? @relation(fields: [prospectId], references: [id], onDelete: SetNull)
 
-  transport         String // dry-run | smtp
-  status            String // SIMULATED | SENT | FAILED | BLOCKED
-  dryRun            Boolean @default(true)
-  toEmail           String
-  providerMessageId String?
-  error             String?
+  companyName  String
+  contactName  String?
+  contactEmail String
+  contactPhone String?
+  city         String?
+  sector       String?
+
+  offer      String // ESSENTIAL | PREMIUM | ULTIMATE
+  offerPrice Int
+
+  /// ACTIVE | ONBOARDING | IN_PRODUCTION | DELIVERED | CHURNED
+  status String @default("ONBOARDING")
+
+  isDemo    Boolean  @default(false)
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  projects  Project[]
+  documents Document[]
+  payments  Payment[]
+  care      CareSubscription?
+
+  @@index([status])
+}
+
+model Project {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  name  String
+  offer String
+
+  /// ONBOARDING | CONTENT | PRODUCTION | QA | DELIVERY | DONE | BLOCKED
+  phase  String @default("ONBOARDING")
+  status String @default("ACTIVE") // ACTIVE | BLOCKED | DONE | CANCELLED
+
+  blockedReason String?
+  dueAt         DateTime?
+  deliveredAt   DateTime?
+  deliveredUrl  String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  tasks      Task[]
+  onboarding OnboardingItem[]
+  documents  Document[]
+
+  @@index([clientId])
+  @@index([phase])
+}
+
+model Task {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  title       String
+  description String?
+  /// SETUP | CONTENT | DESIGN | DEV | SEO | BOOKING | AUTOMATION | QA | DELIVERY | CARE
+  category    String
+  phase       String
+
+  /// TODO | BLOCKED | IN_PROGRESS | DONE | SKIPPED
+  status          String  @default("TODO")
+  blockedReason   String?
+  /// La tache attend-elle une information client ?
+  waitingOnClient Boolean @default(false)
+
+  requiresApproval Boolean @default(false)
+  position         Int     @default(0)
+
+  createdAt   DateTime  @default(now())
+  completedAt DateTime?
+
+  @@index([projectId])
+  @@index([status])
+}
+
+/// Une information demandee au client pendant l'onboarding.
+model OnboardingItem {
+  id        String  @id @default(cuid())
+  projectId String
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  key       String
+  label     String
+  hint      String?
+  /// TEXT | LONGTEXT | FILE | URL | LIST | COLOR
+  inputType String  @default("TEXT")
+  category  String
+
+  required Boolean @default(true)
+  /// MISSING | RECEIVED | NOT_APPLICABLE
+  status   String  @default("MISSING")
+  value    String?
+
+  receivedAt DateTime?
+  position   Int       @default(0)
+
+  @@unique([projectId, key])
+  @@index([projectId])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  clientId  String
+  client    Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  projectId String?
+  project   Project? @relation(fields: [projectId], references: [id], onDelete: SetNull)
+
+  /// DEVIS | FACTURE | CONTRAT | BRIEF | CHECKLIST | LIVRAISON
+  type   String
+  title  String
+  /// DRAFT | READY | SENT | SIGNED | VOID
+  status String @default("DRAFT")
+
+  content  String? // Markdown genere
+  filePath String?
+
+  /// Un contrat ne peut jamais passer a SIGNED sans validation humaine.
+  requiresApproval Boolean   @default(true)
+  approvedAt       DateTime?
+  approvedBy       String?
 
   createdAt DateTime @default(now())
 
-  @@index([prospectId])
-  @@index([createdAt])
+  @@index([clientId])
+}
+
+model Payment {
+  id       String @id @default(cuid())
+  clientId String
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  label    String
+  amount   Int // en euros
+  currency String @default("EUR")
+
+  /// PAYMENT_PENDING | PAYMENT_RECEIVED | PAYMENT_FAILED | REFUNDED
+  status String  @default("PAYMENT_PENDING")
+  /// Aucun encaissement automatique : renseigne manuellement ou par un
+  /// prestataire de paiement configure ulterieurement.
+  method String?
+
+  dueAt  DateTime?
+  paidAt DateTime?
+  note   String?
+
+  createdAt DateTime @default(now())
+
+  @@index([clientId])
+  @@index([status])
+}
+
+model CareSubscription {
+  id       String @id @default(cuid())
+  clientId String @unique
+  client   Client @relation(fields: [clientId], references: [id], onDelete: Cascade)
+
+  monthlyPrice Int    @default(99)
+  /// ACTIVE | PAUSED | CANCELLED
+  status       String @default("ACTIVE")
+
+  startedAt DateTime  @default(now())
+  renewsAt  DateTime?
+  endedAt   DateTime?
+
+  events CareEvent[]
+}
+
+model CareEvent {
+  id     String           @id @default(cuid())
+  careId String
+  care   CareSubscription @relation(fields: [careId], references: [id], onDelete: Cascade)
+
+  /// MAINTENANCE | BACKUP | INCIDENT | REQUEST | MONITORING | UPDATE
+  type        String
+  title       String
+  description String?
+  /// OPEN | IN_PROGRESS | DONE
+  status      String    @default("OPEN")
+  createdAt   DateTime  @default(now())
+  resolvedAt  DateTime?
+
+  @@index([careId])
 }
 
 // ---------------------------------------------------------------------------
-// STATUS EVENT — historique complet des changements de statut
+// AGENT & ORCHESTRATION
 // ---------------------------------------------------------------------------
+
+/// Une instruction donnee a l'agent et son execution.
+model AgentRun {
+  id          String  @id @default(cuid())
+  instruction String
+  /// Intention reconnue (SEARCH | AUDIT | CONTACT | SCORE | DRAFT | CAMPAIGN |
+  /// SEND | REPLY | NEW_CLIENT | ONBOARDING | PROJECT | STATUS | UNKNOWN)
+  intent      String
+  /// JSON : parametres extraits de l'instruction
+  parameters  String?
+  /// Comment l'intention a ete determinee : PATTERN | CLAUDE | EXPLICIT
+  parsedBy    String  @default("PATTERN")
+
+  /// PLANNED | RUNNING | WAITING_APPROVAL | DONE | FAILED | PARTIAL
+  status  String  @default("PLANNED")
+  summary String?
+  error   String?
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
+
+  actions AgentAction[]
+
+  @@index([status])
+  @@index([startedAt])
+}
+
+/// Une action elementaire decidee par l'agent. Tracabilite complete :
+/// ce qui a ete fait, pourquoi, avec quelle source, quel resultat.
+model AgentAction {
+  id         String   @id @default(cuid())
+  agentRunId String
+  agentRun   AgentRun @relation(fields: [agentRunId], references: [id], onDelete: Cascade)
+
+  module      String // RESEARCH | AUDIT | CONTACT | SCORING | EMAIL | CAMPAIGN | SEND | REPLIES | CRM | PROJECT
+  type        String
+  description String
+  /// Pourquoi cette action a ete decidee
+  rationale   String?
+
+  /// AUTOMATIC | APPROVAL_REQUIRED
+  autonomy String @default("AUTOMATIC")
+  /// PENDING | WAITING_APPROVAL | RUNNING | DONE | FAILED | SKIPPED | REJECTED
+  status   String @default("PENDING")
+
+  approvedAt DateTime?
+  approvedBy String?
+  rejectedAt DateTime?
+
+  /// JSON : entrees, sorties, sources utilisees
+  input  String?
+  result String?
+  error  String?
+
+  position   Int       @default(0)
+  startedAt  DateTime?
+  finishedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([agentRunId])
+  @@index([status])
+}
+
+/// Journal d'audit global. Toute action importante laisse une trace.
+model ActivityLog {
+  id String @id @default(cuid())
+
+  actor      String // SYSTEM | AGENT | HUMAN
+  action     String
+  module     String
+  entityType String?
+  entityId   String?
+
+  summary String
+  /// JSON : details, valeurs avant/apres
+  details String?
+  level   String  @default("INFO") // INFO | WARN | ERROR
+
+  createdAt DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([module])
+  @@index([level])
+}
+
 model StatusEvent {
   id         String   @id @default(cuid())
   prospectId String
@@ -181,19 +727,15 @@ model StatusEvent {
   fromStatus String?
   toStatus   String
   reason     String?
-  actor      String   @default("SYSTEM") // SYSTEM | HUMAN
+  actor      String   @default("SYSTEM")
   createdAt  DateTime @default(now())
 
   @@index([prospectId])
 }
 
-// ---------------------------------------------------------------------------
-// SUPPRESSION — liste noire. Une adresse ici n'est JAMAIS recontactee.
-// ---------------------------------------------------------------------------
-model Suppression {
-  id        String   @id @default(cuid())
-  email     String   @unique
-  reason    String // UNSUBSCRIBED | BOUNCED | MANUAL | COMPLAINT
-  note      String?
-  createdAt DateTime @default(now())
+/// Reglages modifiables sans redeploiement (niveaux d'autonomie, limites...).
+model Setting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
 }

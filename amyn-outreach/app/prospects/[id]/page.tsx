@@ -6,9 +6,10 @@ import {
   offerMeta,
   AUDIT_STATUS_META,
   SOURCE_KIND_LABELS,
-
+  DISCOVERY_METHOD_LABELS,
   statusMeta,
 } from "@/lib/constants";
+import { VERDICT_META, CONFIDENCE_LABEL, type Verdict } from "@/lib/audit/types";
 import { formatDate, formatDateTime, formatPrice, prettyDomain } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
@@ -193,6 +194,44 @@ export default async function ProspectDetailPage({
             )}
           </Section>
 
+          {/* Toutes les vérifications */}
+          <Section
+            title="Toutes les vérifications"
+            hint={`${prospect.auditChecks.length} règle(s) exécutée(s)`}
+          >
+            {prospect.auditChecks.length === 0 ? (
+              <Empty>Aucun audit exécuté.</Empty>
+            ) : (
+              <ul className="divide-y divide-line-soft">
+                {prospect.auditChecks.map((check) => {
+                  const meta = VERDICT_META[check.verdict as Verdict] ?? VERDICT_META.UNVERIFIED;
+                  return (
+                    <li key={check.id} className="px-5 py-3">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className={`inline-flex items-center gap-1.5 rounded-full px-2 py-0.5 text-[11px] ring-1 ring-inset ${meta.badge}`}>
+                          <span className={`size-1.5 rounded-full ${meta.dot}`} />
+                          {meta.label}
+                        </span>
+                        <span className="text-sm text-zinc-200">{check.ruleLabel}</span>
+                        {check.isProblem && (
+                          <span className="rounded bg-rose-500/10 px-1.5 py-0.5 text-[10px] text-rose-300">
+                            problème
+                          </span>
+                        )}
+                        <span className="ml-auto font-mono text-[10px] text-zinc-700">{check.ruleId}</span>
+                      </div>
+                      <p className="mt-1.5 text-xs leading-relaxed text-zinc-400">{check.observation}</p>
+                      <p className="mt-1 text-[11px] text-zinc-600">
+                        Méthode : {check.method} · Confiance{" "}
+                        {CONFIDENCE_LABEL[check.confidence as keyof typeof CONFIDENCE_LABEL] ?? check.confidence}
+                      </p>
+                    </li>
+                  );
+                })}
+              </ul>
+            )}
+          </Section>
+
           {/* Historique */}
           <Section title="Historique">
             {prospect.statusEvents.length === 0 ? (
@@ -237,14 +276,22 @@ export default async function ProspectDetailPage({
           <Section title="Coordonnées">
             <dl className="divide-y divide-line-soft">
               <InfoRow label="Email professionnel">
-                {prospect.email ? (
-                  <span className="font-mono text-xs text-zinc-200" title={prospect.email}>
-                    {prospect.email}
+                {prospect.primaryContact ? (
+                  <span className="font-mono text-xs text-zinc-200" title={prospect.primaryContact.email}>
+                    {prospect.primaryContact.email}
                   </span>
                 ) : (
                   <span className="text-xs text-zinc-600">non trouvé</span>
                 )}
               </InfoRow>
+              {prospect.primaryContact && (
+                <InfoRow label="Origine de l'adresse">
+                  <span className="text-[11px] text-zinc-400">
+                    {DISCOVERY_METHOD_LABELS[prospect.primaryContact.discoveryMethod] ??
+                      prospect.primaryContact.discoveryMethod}
+                  </span>
+                </InfoRow>
+              )}
               <InfoRow label="Téléphone">
                 {prospect.phone ?? <span className="text-xs text-zinc-600">—</span>}
               </InfoRow>
@@ -259,6 +306,53 @@ export default async function ProspectDetailPage({
               </InfoRow>
             </dl>
           </Section>
+
+          {prospect.overallScore !== null && (
+            <Section title="Score" hint="calculé à partir de faits vérifiés">
+              <div className="space-y-3 px-5 py-4">
+                <ScoreBar label="Global" value={prospect.overallScore} accent />
+                <ScoreBar label="Adéquation" value={prospect.fitScore ?? 0} />
+                <ScoreBar label="Audit" value={prospect.auditScore ?? 0} />
+                <ScoreBar label="Contact" value={prospect.contactScore ?? 0} />
+                {prospect.scoreRationale && (
+                  <details className="pt-2">
+                    <summary className="cursor-pointer text-[11px] text-zinc-600 hover:text-zinc-400">
+                      Pourquoi ce score ?
+                    </summary>
+                    <div className="mt-2 space-y-2">
+                      {(() => {
+                        const r = JSON.parse(prospect.scoreRationale) as {
+                          fit: Array<{ label: string; points: number; max: number; reason: string }>;
+                          audit: Array<{ label: string; points: number; max: number; reason: string }>;
+                          contact: Array<{ label: string; points: number; max: number; reason: string }>;
+                          unknowns: string[];
+                        };
+                        return (
+                          <>
+                            {[...r.fit, ...r.audit, ...r.contact].map((c, i) => (
+                              <div key={i} className="text-[11px]">
+                                <span className="text-zinc-400">{c.label}</span>{" "}
+                                <span className="tabular-nums text-zinc-500">{c.points}/{c.max}</span>
+                                <p className="text-zinc-600">{c.reason}</p>
+                              </div>
+                            ))}
+                            {r.unknowns.length > 0 && (
+                              <div className="mt-2 rounded border border-amber-500/20 bg-amber-500/5 p-2">
+                                <p className="label-xs text-amber-400">Ce qui n&apos;est pas connu</p>
+                                {r.unknowns.map((u, i) => (
+                                  <p key={i} className="mt-1 text-[11px] text-amber-200/70">{u}</p>
+                                ))}
+                              </div>
+                            )}
+                          </>
+                        );
+                      })()}
+                    </div>
+                  </details>
+                )}
+              </div>
+            </Section>
+          )}
 
           <Section title="Sources" hint="Origine de chaque information">
             {prospect.sources.length === 0 ? (
@@ -395,6 +489,23 @@ function Field({
         className={`mt-1.5 text-sm ${accent ? "text-gold-300" : (tone ?? "text-zinc-200")}`}
       >
         {value}
+      </div>
+    </div>
+  );
+}
+
+function ScoreBar({ label, value, accent }: { label: string; value: number; accent?: boolean }) {
+  return (
+    <div>
+      <div className="flex items-baseline justify-between">
+        <span className="text-xs text-zinc-500">{label}</span>
+        <span className={`text-sm tabular-nums ${accent ? "text-gold-300" : "text-zinc-300"}`}>{value}</span>
+      </div>
+      <div className="mt-1 h-1 overflow-hidden rounded-full bg-ink-800">
+        <div
+          className={`h-full rounded-full ${accent ? "bg-gold-400" : "bg-zinc-600"}`}
+          style={{ width: `${Math.max(2, value)}%` }}
+        />
       </div>
     </div>
   );

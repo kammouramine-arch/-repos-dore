@@ -1,8 +1,8 @@
 import { mailerStatus } from "@/lib/mailer";
 
 /**
- * Bandeau permanent rappelant qu'aucun envoi n'est possible.
- * Il disparaîtra seulement quand un vrai transport sera branché (lot 5).
+ * Bandeau permanent rappelant l'etat reel de la chaine d'envoi.
+ * Il ne passe en rouge que si un envoi reel est effectivement possible.
  */
 export function DryRunBanner() {
   const status = mailerStatus();
@@ -25,8 +25,11 @@ export function DryRunBanner() {
         DRY RUN
       </span>
       <p className="text-xs text-zinc-500">
-        Aucun envoi possible. Aucun transport réel n&apos;est branché
-        <span className="hidden sm:inline"> — expéditeur prévu&nbsp;: {status.from}</span>
+        Aucun envoi réel possible — les emails sont simulés et journalisés
+        <span className="hidden sm:inline">
+          {" "}
+          · transport {status.transport} · expéditeur prévu&nbsp;: {status.from}
+        </span>
       </p>
     </div>
   );
