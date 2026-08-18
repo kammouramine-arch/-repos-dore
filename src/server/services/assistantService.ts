@@ -1,0 +1,190 @@
+import 'server-only';
+import { prisma } from '@/lib/prisma';
+import { getAIProvider, wrapUntrusted, assistantAnswerSchema } from '@/lib/ai';
+import { ASSISTANT_SYSTEM } from '@/lib/ai/prompts';
+import { normalize } from '@/lib/ai/text';
+import { formatCents } from '@/lib/money';
+import { fullName } from '@/lib/utils';
+import { getDashboardMetrics } from './dashboardService';
+import { revenueToRecover } from './followUpService';
+
+export interface AssistantAnswer {
+  answer: string;
+  actions: { label: string; href?: string | null }[];
+  degraded: boolean;
+  /** Données réelles utilisées pour construire la réponse. */
+  facts: string[];
+}
+
+/**
+ * Assistant du tableau de bord.
+ *
+ * Les chiffres proviennent toujours de requêtes réelles sur la base : le modèle
+ * ne fait que formuler la réponse à partir de ces données. Aucune action
+ * sensible n'est exécutée par l'assistant.
+ */
+export async function askAssistant(
+  organizationId: string,
+  userId: string,
+  question: string,
+): Promise<AssistantAnswer> {
+  const context = await collectContext(organizationId, question);
+  const provider = getAIProvider();
+
+  if (!provider) {
+    return { ...answerLocally(question, context), degraded: true, facts: context.facts };
+  }
+
+  try {
+    const result = await provider.generateStructuredOutput({
+      system: ASSISTANT_SYSTEM,
+      context: context.facts.join('\n'),
+      untrusted: wrapUntrusted(question, 'question_utilisateur'),
+      schema: assistantAnswerSchema,
+      schemaName: 'reponse_assistant',
+      maxTokens: 900,
+      temperature: 0.3,
+    });
+    await prisma.aIRequest
+      .create({
+        data: {
+          organizationId,
+          userId,
+          kind: 'ASSISTANT',
+          provider: result.usage.provider,
+          model: result.usage.model,
+          latencyMs: result.usage.latencyMs,
+          inputTokens: result.usage.inputTokens,
+          outputTokens: result.usage.outputTokens,
+        },
+      })
+      .catch(() => undefined);
+
+    return {
+      answer: result.data.reponse,
+      actions: result.data.actions.map((action) => ({ label: action.libelle, href: action.href })),
+      degraded: false,
+      facts: context.facts,
+    };
+  } catch (error) {
+    console.error('[assistant] IA indisponible', error);
+    return { ...answerLocally(question, context), degraded: true, facts: context.facts };
+  }
+}
+
+interface AssistantContext {
+  facts: string[];
+  metrics: Awaited<ReturnType<typeof getDashboardMetrics>>;
+  toRecover: Awaited<ReturnType<typeof revenueToRecover>>;
+  bigQuotes: { number: string; title: string; totalCents: number; customerName: string; id: string }[];
+  silentCustomers: { name: string; number: string; days: number }[];
+}
+
+async function collectContext(organizationId: string, question: string): Promise<AssistantContext> {
+  const threshold = extractAmountCents(question);
+  const [metrics, toRecover, bigQuotesRaw] = await Promise.all([
+    getDashboardMetrics(organizationId, 30),
+    revenueToRecover(organizationId),
+    prisma.quote.findMany({
+      where: {
+        organizationId,
+        deletedAt: null,
+        ...(threshold ? { totalCents: { gte: threshold } } : {}),
+      },
+      include: { customer: true },
+      orderBy: { totalCents: 'desc' },
+      take: 8,
+    }),
+  ]);
+
+  const bigQuotes = bigQuotesRaw.map((quote) => ({
+    id: quote.id,
+    number: quote.number,
+    title: quote.title,
+    totalCents: quote.totalCents,
+    customerName: fullName(quote.customer.firstName, quote.customer.lastName, quote.customer.companyName),
+  }));
+
+  const silentCustomers = toRecover.quotes
+    .filter((quote) => quote.daysWaiting >= 2)
+    .slice(0, 8)
+    .map((quote) => ({ name: quote.customerName, number: quote.number, days: quote.daysWaiting }));
+
+  const facts = [
+    `Période analysée : 30 derniers jours.`,
+    `Chiffre d'affaires gagné : ${formatCents(metrics.revenueWonCents)}.`,
+    `Devis envoyés : ${metrics.quotesSent}. Devis acceptés : ${metrics.quotesAccepted}.`,
+    `Taux d'acceptation : ${metrics.acceptanceRate} %.`,
+    `Panier moyen : ${formatCents(metrics.averageQuoteCents)}.`,
+    `Nouveaux prospects : ${metrics.newLeads}.`,
+    `Chiffre d'affaires en attente de réponse : ${formatCents(toRecover.totalCents)} sur ${toRecover.quoteCount} devis et ${toRecover.customerCount} clients.`,
+    threshold
+      ? `Devis d'au moins ${formatCents(threshold)} : ${bigQuotes.length}.`
+      : `Devis les plus élevés :`,
+    ...bigQuotes.map(
+      (quote) => `- ${quote.number} | ${quote.customerName} | ${quote.title} | ${formatCents(quote.totalCents)}`,
+    ),
+    silentCustomers.length > 0 ? 'Clients sans réponse :' : 'Aucun client sans réponse.',
+    ...silentCustomers.map((customer) => `- ${customer.name} (devis ${customer.number}, ${customer.days} jours)`),
+  ];
+
+  return { facts, metrics, toRecover, bigQuotes, silentCustomers };
+}
+
+/** Extrait un seuil de montant : « devis supérieurs à 2 000 € ». */
+function extractAmountCents(question: string): number | null {
+  const text = normalize(question).replace(/\s/g, '');
+  const match = text.match(/(?:superieura|plusde|au-delade|>)(\d+(?:[.,]\d+)?)(k?)/);
+  if (!match) return null;
+  const value = Number(match[1]!.replace(',', '.')) * (match[2] === 'k' ? 1000 : 1);
+  return Math.round(value * 100);
+}
+
+/** Réponse déterministe lorsqu'aucun fournisseur d'IA n'est configuré. */
+function answerLocally(
+  question: string,
+  context: AssistantContext,
+): { answer: string; actions: { label: string; href?: string | null }[] } {
+  const text = normalize(question);
+  const { metrics, toRecover, bigQuotes, silentCustomers } = context;
+
+  if (/taux.*acceptation|combien.*accept/.test(text)) {
+    return {
+      answer: `Sur les 30 derniers jours, votre taux d'acceptation est de ${metrics.acceptanceRate} % (${metrics.quotesAccepted} devis acceptés sur ${metrics.quotesSent} envoyés).`,
+      actions: [{ label: 'Voir les devis', href: '/app/devis' }],
+    };
+  }
+  if (/gagne|chiffre|ca\b|revenu|mois/.test(text)) {
+    return {
+      answer: `Vous avez gagné ${formatCents(metrics.revenueWonCents)} sur les 30 derniers jours, et ${formatCents(toRecover.totalCents)} sont encore en attente de réponse sur ${toRecover.quoteCount} devis.`,
+      actions: [{ label: 'Relancer maintenant', href: '/app/relances' }],
+    };
+  }
+  if (/pas repondu|sans reponse|relance|attente/.test(text)) {
+    if (silentCustomers.length === 0) {
+      return { answer: 'Aucun client en attente de réponse : tous vos devis ont été traités.', actions: [] };
+    }
+    return {
+      answer: `${silentCustomers.length} client(s) n'ont pas encore répondu :\n${silentCustomers
+        .map((customer) => `• ${customer.name} — devis ${customer.number}, ${customer.days} jours`)
+        .join('\n')}`,
+      actions: [{ label: 'Préparer les relances', href: '/app/relances' }],
+    };
+  }
+  if (/devis/.test(text) && bigQuotes.length > 0) {
+    return {
+      answer: `Voici les devis correspondants :\n${bigQuotes
+        .map((quote) => `• ${quote.number} — ${quote.customerName} — ${formatCents(quote.totalCents)}`)
+        .join('\n')}`,
+      actions: [{ label: 'Ouvrir les devis', href: '/app/devis' }],
+    };
+  }
+
+  return {
+    answer: `Sur 30 jours : ${metrics.quotesSent} devis envoyés, ${metrics.quotesAccepted} acceptés (${metrics.acceptanceRate} %), ${formatCents(metrics.revenueWonCents)} gagnés et ${formatCents(toRecover.totalCents)} en attente de réponse.`,
+    actions: [
+      { label: 'Tableau de bord', href: '/app' },
+      { label: 'Relances', href: '/app/relances' },
+    ],
+  };
+}

@@ -1,0 +1,1048 @@
+// DEVISIA — schéma de base de données
+// Toutes les données commerciales appartiennent à une Organization (multi-tenant strict).
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ---------------------------------------------------------------------------
+// Enums
+// ---------------------------------------------------------------------------
+
+enum Language {
+  fr
+  en
+}
+
+enum MemberRole {
+  OWNER
+  ADMIN
+  MEMBER
+}
+
+enum InvitationStatus {
+  PENDING
+  ACCEPTED
+  REVOKED
+  EXPIRED
+}
+
+enum Trade {
+  PLOMBIER
+  ELECTRICIEN
+  CHAUFFAGISTE
+  CLIMATICIEN
+  PEINTRE
+  COUVREUR
+  MENUISIER
+  MACON
+  PAYSAGISTE
+  RENOVATION
+  NETTOYAGE
+  DEPANNAGE
+  AUTRE
+}
+
+enum VatStatus {
+  ASSUJETTI
+  FRANCHISE_EN_BASE
+  AUTOLIQUIDATION
+}
+
+enum LeadStatus {
+  NOUVEAU
+  CONTACTE
+  QUALIFIE
+  DEVIS_ENVOYE
+  RELANCE
+  GAGNE
+  PERDU
+}
+
+enum LeadSourceType {
+  MANUEL
+  FORMULAIRE_WEB
+  EMAIL
+  SMS
+  WHATSAPP
+  TELEPHONE
+  STANDARD_IA
+  IMPORT
+  AUTRE
+}
+
+enum JobStatus {
+  A_PLANIFIER
+  PLANIFIE
+  EN_COURS
+  TERMINE
+  ANNULE
+}
+
+enum QuoteStatus {
+  BROUILLON
+  ENVOYE
+  CONSULTE
+  ACCEPTE
+  REFUSE
+  MODIFICATION_DEMANDEE
+  EXPIRE
+  ANNULE
+}
+
+enum QuoteItemKind {
+  MATERIAU
+  MAIN_OEUVRE
+  SERVICE
+  PACK
+  FRAIS
+  REMISE
+}
+
+enum PriceBookCategory {
+  MATERIAU
+  SERVICE
+  MAIN_OEUVRE
+  PACK
+}
+
+enum FollowUpChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  APPEL
+}
+
+enum FollowUpStatus {
+  SUGGEREE
+  PLANIFIEE
+  ENVOYEE
+  ANNULEE
+  ECHOUEE
+}
+
+enum AutomationTrigger {
+  DEVIS_NON_CONSULTE
+  DEVIS_CONSULTE_SANS_REPONSE
+  DEVIS_SANS_REPONSE
+  FACTURE_IMPAYEE
+  PROSPECT_SANS_SUITE
+}
+
+enum InvoiceStatus {
+  BROUILLON
+  ENVOYEE
+  PARTIELLE
+  PAYEE
+  EN_RETARD
+  ANNULEE
+}
+
+enum PaymentMethod {
+  VIREMENT
+  CARTE
+  ESPECES
+  CHEQUE
+  AUTRE
+}
+
+enum NotificationType {
+  DEVIS_CONSULTE
+  DEVIS_ACCEPTE
+  DEVIS_REFUSE
+  DEVIS_MODIFICATION
+  DEVIS_ENVOYE
+  RELANCE_A_FAIRE
+  RELANCE_ENVOYEE
+  NOUVEAU_PROSPECT
+  FACTURE_PAYEE
+  ABONNEMENT
+  SYSTEME
+}
+
+enum SubscriptionPlan {
+  ESSENTIEL
+  PRO
+  ENTREPRISE
+}
+
+enum SubscriptionStatus {
+  trialing
+  active
+  past_due
+  canceled
+  incomplete
+}
+
+enum UsageMetric {
+  AI_GENERATION
+  AI_TRANSCRIPTION
+  AI_IMAGE_ANALYSIS
+  FOLLOWUP_SENT
+  QUOTE_SENT
+  SEAT
+}
+
+enum FileKind {
+  LOGO
+  PHOTO_CHANTIER
+  PIECE_JOINTE
+  DEVIS_IMPORTE
+  CATALOGUE_IMPORTE
+  AUTRE
+}
+
+enum AIRequestKind {
+  QUOTE_DRAFT
+  TRANSCRIPTION
+  IMAGE_ANALYSIS
+  MESSAGE_DRAFT
+  PRICEBOOK_EXTRACTION
+  ASSISTANT
+}
+
+enum AIRequestStatus {
+  OK
+  ERREUR
+}
+
+enum MessageChannel {
+  EMAIL
+  SMS
+  WHATSAPP
+  APPEL
+  NOTE
+  PORTAIL
+}
+
+enum MessageDirection {
+  ENTRANT
+  SORTANT
+}
+
+enum IntegrationProvider {
+  STRIPE
+  RESEND
+  TWILIO
+  WHATSAPP
+  GOOGLE_CALENDAR
+  GOOGLE_BUSINESS
+  QUICKBOOKS
+  XERO
+  SAGE
+  ZAPIER
+  MAKE
+}
+
+enum IntegrationStatus {
+  DISPONIBLE
+  CONNECTEE
+  ERREUR
+  BIENTOT
+}
+
+// ---------------------------------------------------------------------------
+// Identité & accès
+// ---------------------------------------------------------------------------
+
+model User {
+  id              String    @id @default(uuid()) @db.Uuid
+  email           String    @unique
+  passwordHash    String
+  firstName       String?
+  lastName        String?
+  phone           String?
+  locale          Language  @default(fr)
+  emailVerifiedAt DateTime?
+  isPlatformAdmin Boolean   @default(false)
+  lastLoginAt     DateTime?
+  deletedAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  memberships   OrganizationMember[]
+  sessions      Session[]
+  tokens        AuthToken[]
+  notifications Notification[]
+  auditLogs     AuditLog[]
+  aiRequests    AIRequest[]
+
+  @@index([deletedAt])
+  @@map("users")
+}
+
+model Session {
+  id         String    @id @default(uuid()) @db.Uuid
+  userId     String    @db.Uuid
+  tokenHash  String    @unique
+  userAgent  String?
+  ipAddress  String?
+  expiresAt  DateTime
+  revokedAt  DateTime?
+  lastSeenAt DateTime  @default(now())
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+  @@map("sessions")
+}
+
+enum AuthTokenKind {
+  EMAIL_VERIFICATION
+  PASSWORD_RESET
+}
+
+model AuthToken {
+  id        String        @id @default(uuid()) @db.Uuid
+  userId    String        @db.Uuid
+  kind      AuthTokenKind
+  tokenHash String        @unique
+  expiresAt DateTime
+  usedAt    DateTime?
+  createdAt DateTime      @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, kind])
+  @@map("auth_tokens")
+}
+
+// ---------------------------------------------------------------------------
+// Organisation (tenant)
+// ---------------------------------------------------------------------------
+
+model Organization {
+  id        String    @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String    @unique
+  locale    Language  @default(fr)
+  country   String    @default("FR")
+  timezone  String    @default("Europe/Paris")
+  currency  String    @default("EUR")
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  members         OrganizationMember[]
+  invitations     TeamInvitation[]
+  businessProfile BusinessProfile?
+  settings        Settings?
+  subscription    Subscription?
+  customers       Customer[]
+  leads           Lead[]
+  jobs            Job[]
+  quotes          Quote[]
+  priceBookItems  PriceBookItem[]
+  conversations   Conversation[]
+  followUps       FollowUp[]
+  automations     Automation[]
+  invoices        Invoice[]
+  payments        Payment[]
+  notifications   Notification[]
+  usageRecords    UsageRecord[]
+  files           File[]
+  aiRequests      AIRequest[]
+  auditLogs       AuditLog[]
+  integrations    Integration[]
+  counters        DocumentCounter[]
+  analyticsEvents AnalyticsEvent[]
+
+  @@index([deletedAt])
+  @@map("organizations")
+}
+
+model OrganizationMember {
+  id             String     @id @default(uuid()) @db.Uuid
+  organizationId String     @db.Uuid
+  userId         String     @db.Uuid
+  role           MemberRole @default(MEMBER)
+  deletedAt      DateTime?
+  createdAt      DateTime   @default(now())
+  updatedAt      DateTime   @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@index([userId])
+  @@map("organization_members")
+}
+
+model TeamInvitation {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  email          String
+  role           MemberRole       @default(MEMBER)
+  tokenHash      String           @unique
+  status         InvitationStatus @default(PENDING)
+  invitedById    String?          @db.Uuid
+  expiresAt      DateTime
+  acceptedAt     DateTime?
+  createdAt      DateTime         @default(now())
+  updatedAt      DateTime         @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status])
+  @@index([email])
+  @@map("team_invitations")
+}
+
+model BusinessProfile {
+  id                  String    @id @default(uuid()) @db.Uuid
+  organizationId      String    @unique @db.Uuid
+  legalName           String
+  ownerName           String?
+  email               String?
+  phone               String?
+  website             String?
+  addressLine1        String?
+  addressLine2        String?
+  city                String?
+  postalCode          String?
+  country             String    @default("FR")
+  siret               String?
+  vatNumber           String?
+  insurance           String?
+  trade               Trade     @default(AUTRE)
+  vatStatus           VatStatus @default(ASSUJETTI)
+  defaultVatRate      Decimal   @default(20) @db.Decimal(5, 2)
+  defaultHourlyCents  Int       @default(4500)
+  paymentTerms        String?
+  quoteValidityDays   Int       @default(30)
+  quoteFooter         String?
+  quoteTerms          String?
+  brandColor          String    @default("#0F62FE")
+  logoFileId          String?   @db.Uuid
+  onboardingCompleted Boolean   @default(false)
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  logo         File?        @relation("BusinessLogo", fields: [logoFileId], references: [id], onDelete: SetNull)
+
+  @@map("business_profiles")
+}
+
+model Settings {
+  id                    String   @id @default(uuid()) @db.Uuid
+  organizationId        String   @unique @db.Uuid
+  notifyOnQuoteViewed   Boolean  @default(true)
+  notifyOnQuoteAccepted Boolean  @default(true)
+  notifyOnQuoteRefused  Boolean  @default(true)
+  notifyOnNewLead       Boolean  @default(true)
+  notifyByEmail         Boolean  @default(true)
+  followUpsEnabled      Boolean  @default(true)
+  aiTone                String   @default("professionnel")
+  aiSignature           String?
+  publicLeadFormEnabled Boolean  @default(true)
+  publicLeadFormToken   String   @unique @default(uuid())
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@map("settings")
+}
+
+model DocumentCounter {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @db.Uuid
+  kind           String
+  year           Int
+  lastNumber     Int      @default(0)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, kind, year])
+  @@map("document_counters")
+}
+
+// ---------------------------------------------------------------------------
+// CRM
+// ---------------------------------------------------------------------------
+
+model Customer {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  firstName      String?
+  lastName       String?
+  companyName    String?
+  email          String?
+  phone          String?
+  addressLine1   String?
+  addressLine2   String?
+  city           String?
+  postalCode     String?
+  country        String         @default("FR")
+  notes          String?
+  tags           String[]       @default([])
+  source         LeadSourceType @default(MANUEL)
+  lastContactAt  DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization  Organization   @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  leads         Lead[]
+  jobs          Job[]
+  quotes        Quote[]
+  invoices      Invoice[]
+  conversations Conversation[]
+
+  @@index([organizationId, deletedAt])
+  @@index([organizationId, lastName])
+  @@index([organizationId, email])
+  @@map("customers")
+}
+
+model Lead {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  customerId     String?        @db.Uuid
+  contactName    String
+  email          String?
+  phone          String?
+  city           String?
+  postalCode     String?
+  addressLine1   String?
+  title          String
+  description    String?
+  jobType        String?
+  status         LeadStatus     @default(NOUVEAU)
+  source         LeadSourceType @default(MANUEL)
+  sourceDetail   String?
+  estimatedCents Int?
+  lastActivityAt DateTime       @default(now())
+  nextFollowUpAt DateTime?
+  lostReason     String?
+  deletedAt      DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  jobs         Job[]
+  quotes       Quote[]
+  files        File[]
+
+  @@index([organizationId, status, deletedAt])
+  @@index([organizationId, nextFollowUpAt])
+  @@map("leads")
+}
+
+model Job {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  customerId     String    @db.Uuid
+  leadId         String?   @db.Uuid
+  title          String
+  description    String?
+  status         JobStatus @default(A_PLANIFIER)
+  addressLine1   String?
+  city           String?
+  postalCode     String?
+  scheduledAt    DateTime?
+  completedAt    DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  quotes       Quote[]
+  invoices     Invoice[]
+  files        File[]
+
+  @@index([organizationId, status, deletedAt])
+  @@index([customerId])
+  @@map("jobs")
+}
+
+// ---------------------------------------------------------------------------
+// Devis
+// ---------------------------------------------------------------------------
+
+model Quote {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  customerId     String      @db.Uuid
+  leadId         String?     @db.Uuid
+  jobId          String?     @db.Uuid
+  createdById    String?     @db.Uuid
+  number         String
+  title          String
+  summary        String?
+  introduction   String?
+  status         QuoteStatus @default(BROUILLON)
+
+  // Montants — tous en centimes, calculés par le serveur (jamais par l'IA).
+  subtotalCents    Int     @default(0)
+  discountRate     Decimal @default(0) @db.Decimal(5, 2)
+  discountCents    Int     @default(0)
+  netSubtotalCents Int     @default(0)
+  vatCents         Int     @default(0)
+  totalCents       Int     @default(0)
+  depositRate      Decimal @default(0) @db.Decimal(5, 2)
+  depositCents     Int     @default(0)
+
+  estimatedDurationMin Int?
+  notes                String?
+  terms                String?
+  paymentTerms         String?
+  validUntil           DateTime?
+
+  // Suivi client
+  publicToken   String    @unique
+  sentAt        DateTime?
+  firstViewedAt DateTime?
+  lastViewedAt  DateTime?
+  viewCount     Int       @default(0)
+  respondedAt   DateTime?
+  acceptedAt    DateTime?
+  refusedAt     DateTime?
+  clientMessage String?
+  signatureName String?
+
+  // Provenance IA
+  aiGenerated  Boolean  @default(false)
+  aiConfidence Int?
+  aiWarnings   String[] @default([])
+  aiQuestions  String[] @default([])
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  job          Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  items        QuoteItem[]
+  events       QuoteEvent[]
+  followUps    FollowUp[]
+  invoices     Invoice[]
+  files        File[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status, deletedAt])
+  @@index([organizationId, createdAt])
+  @@index([customerId])
+  @@map("quotes")
+}
+
+model QuoteItem {
+  id              String        @id @default(uuid()) @db.Uuid
+  quoteId         String        @db.Uuid
+  priceBookItemId String?       @db.Uuid
+  kind            QuoteItemKind @default(MATERIAU)
+  label           String
+  description     String?
+  unit            String        @default("u")
+  quantity        Decimal       @default(1) @db.Decimal(12, 3)
+  unitPriceCents  Int           @default(0)
+  costPriceCents  Int?
+  discountRate    Decimal       @default(0) @db.Decimal(5, 2)
+  vatRate         Decimal       @default(20) @db.Decimal(5, 2)
+  lineTotalCents  Int           @default(0)
+  vatCents        Int           @default(0)
+  position        Int           @default(0)
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  quote         Quote          @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  priceBookItem PriceBookItem? @relation(fields: [priceBookItemId], references: [id], onDelete: SetNull)
+
+  @@index([quoteId, position])
+  @@map("quote_items")
+}
+
+enum QuoteEventType {
+  CREE
+  MODIFIE
+  ENVOYE
+  CONSULTE
+  ACCEPTE
+  REFUSE
+  MODIFICATION_DEMANDEE
+  RELANCE
+  PDF_TELECHARGE
+  ANNULE
+}
+
+model QuoteEvent {
+  id        String         @id @default(uuid()) @db.Uuid
+  quoteId   String         @db.Uuid
+  type      QuoteEventType
+  actor     String? // "client" | "user:<id>" | "system"
+  ipHash    String?
+  userAgent String?
+  metadata  Json?
+  createdAt DateTime       @default(now())
+
+  quote Quote @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, createdAt])
+  @@map("quote_events")
+}
+
+model PriceBookItem {
+  id             String            @id @default(uuid()) @db.Uuid
+  organizationId String            @db.Uuid
+  reference      String?
+  sku            String?
+  name           String
+  description    String?
+  category       PriceBookCategory @default(MATERIAU)
+  unit           String            @default("u")
+  costPriceCents Int               @default(0)
+  salePriceCents Int               @default(0)
+  vatRate        Decimal           @default(20) @db.Decimal(5, 2)
+  supplier       String?
+  keywords       String[]          @default([])
+  isActive       Boolean           @default(true)
+  deletedAt      DateTime?
+  createdAt      DateTime          @default(now())
+  updatedAt      DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quoteItems   QuoteItem[]
+
+  @@unique([organizationId, reference])
+  @@index([organizationId, category, deletedAt])
+  @@index([organizationId, name])
+  @@map("price_book_items")
+}
+
+// ---------------------------------------------------------------------------
+// Relances & automatisations
+// ---------------------------------------------------------------------------
+
+model Automation {
+  id              String            @id @default(uuid()) @db.Uuid
+  organizationId  String            @db.Uuid
+  name            String
+  trigger         AutomationTrigger
+  channel         FollowUpChannel   @default(EMAIL)
+  delayHours      Int               @default(24)
+  maxAttempts     Int               @default(3)
+  requireApproval Boolean           @default(true)
+  isActive        Boolean           @default(true)
+  template        String?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  followUps    FollowUp[]
+
+  @@unique([organizationId, trigger, delayHours])
+  @@index([organizationId, isActive])
+  @@map("automations")
+}
+
+model FollowUp {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  quoteId        String?         @db.Uuid
+  invoiceId      String?         @db.Uuid
+  automationId   String?         @db.Uuid
+  channel        FollowUpChannel @default(EMAIL)
+  status         FollowUpStatus  @default(SUGGEREE)
+  attempt        Int             @default(1)
+  subject        String?
+  body           String
+  scheduledFor   DateTime
+  sentAt         DateTime?
+  error          String?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quote        Quote?       @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+  invoice      Invoice?     @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  automation   Automation?  @relation(fields: [automationId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, status, scheduledFor])
+  @@index([quoteId])
+  @@map("follow_ups")
+}
+
+// ---------------------------------------------------------------------------
+// Conversations
+// ---------------------------------------------------------------------------
+
+model Conversation {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  customerId     String?        @db.Uuid
+  channel        MessageChannel @default(EMAIL)
+  subject        String?
+  lastMessageAt  DateTime       @default(now())
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer?    @relation(fields: [customerId], references: [id], onDelete: Cascade)
+  messages     Message[]
+
+  @@index([organizationId, lastMessageAt])
+  @@map("conversations")
+}
+
+model Message {
+  id             String           @id @default(uuid()) @db.Uuid
+  conversationId String           @db.Uuid
+  direction      MessageDirection @default(SORTANT)
+  channel        MessageChannel   @default(EMAIL)
+  authorName     String?
+  subject        String?
+  body           String
+  metadata       Json?
+  createdAt      DateTime         @default(now())
+
+  conversation Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+
+  @@index([conversationId, createdAt])
+  @@map("messages")
+}
+
+// ---------------------------------------------------------------------------
+// Facturation client
+// ---------------------------------------------------------------------------
+
+model Invoice {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  customerId     String        @db.Uuid
+  quoteId        String?       @db.Uuid
+  jobId          String?       @db.Uuid
+  number         String
+  status         InvoiceStatus @default(BROUILLON)
+  issuedAt       DateTime?
+  dueAt          DateTime?
+  subtotalCents  Int           @default(0)
+  vatCents       Int           @default(0)
+  totalCents     Int           @default(0)
+  paidCents      Int           @default(0)
+  notes          String?
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quote        Quote?       @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  job          Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  payments     Payment[]
+  followUps    FollowUp[]
+
+  @@unique([organizationId, number])
+  @@index([organizationId, status])
+  @@map("invoices")
+}
+
+model Payment {
+  id             String        @id @default(uuid()) @db.Uuid
+  organizationId String        @db.Uuid
+  invoiceId      String        @db.Uuid
+  amountCents    Int
+  method         PaymentMethod @default(VIREMENT)
+  reference      String?
+  receivedAt     DateTime      @default(now())
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  invoice      Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
+
+  @@index([organizationId, receivedAt])
+  @@map("payments")
+}
+
+// ---------------------------------------------------------------------------
+// Abonnement DEVISIA & usage
+// ---------------------------------------------------------------------------
+
+model Subscription {
+  id                   String             @id @default(uuid()) @db.Uuid
+  organizationId       String             @unique @db.Uuid
+  plan                 SubscriptionPlan   @default(ESSENTIEL)
+  status               SubscriptionStatus @default(trialing)
+  stripeCustomerId     String?            @unique
+  stripeSubscriptionId String?            @unique
+  currentPeriodEnd     DateTime?
+  trialEndsAt          DateTime?
+  cancelAtPeriodEnd    Boolean            @default(false)
+  seats                Int                @default(1)
+  createdAt            DateTime           @default(now())
+  updatedAt            DateTime           @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([status])
+  @@map("subscriptions")
+}
+
+model UsageRecord {
+  id             String      @id @default(uuid()) @db.Uuid
+  organizationId String      @db.Uuid
+  metric         UsageMetric
+  period         String // "YYYY-MM"
+  count          Int         @default(0)
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, metric, period])
+  @@map("usage_records")
+}
+
+// ---------------------------------------------------------------------------
+// Fichiers, IA, audit, notifications, intégrations
+// ---------------------------------------------------------------------------
+
+model File {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  kind           FileKind  @default(AUTRE)
+  storageKey     String    @unique
+  fileName       String
+  mimeType       String
+  sizeBytes      Int
+  width          Int?
+  height         Int?
+  quoteId        String?   @db.Uuid
+  leadId         String?   @db.Uuid
+  jobId          String?   @db.Uuid
+  uploadedById   String?   @db.Uuid
+  metadata       Json?
+  deletedAt      DateTime?
+  createdAt      DateTime  @default(now())
+  updatedAt      DateTime  @updatedAt
+
+  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quote         Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  lead          Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  job           Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  businessLogos BusinessProfile[] @relation("BusinessLogo")
+
+  @@index([organizationId, kind])
+  @@map("files")
+}
+
+model AIRequest {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  userId         String?         @db.Uuid
+  kind           AIRequestKind
+  provider       String
+  model          String?
+  status         AIRequestStatus @default(OK)
+  latencyMs      Int?
+  inputTokens    Int?
+  outputTokens   Int?
+  costCents      Int?
+  error          String?
+  createdAt      DateTime        @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([kind, createdAt])
+  @@map("ai_requests")
+}
+
+model AuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @db.Uuid
+  userId         String?  @db.Uuid
+  action         String
+  entityType     String?
+  entityId       String?
+  ipHash         String?
+  metadata       Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?         @relation(fields: [userId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@index([action, createdAt])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id             String           @id @default(uuid()) @db.Uuid
+  organizationId String           @db.Uuid
+  userId         String?          @db.Uuid
+  type           NotificationType
+  title          String
+  body           String?
+  href           String?
+  readAt         DateTime?
+  createdAt      DateTime         @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User?        @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, readAt, createdAt])
+  @@index([userId, readAt])
+  @@map("notifications")
+}
+
+model Integration {
+  id             String              @id @default(uuid()) @db.Uuid
+  organizationId String              @db.Uuid
+  provider       IntegrationProvider
+  status         IntegrationStatus   @default(DISPONIBLE)
+  externalId     String?
+  config         Json?
+  connectedAt    DateTime?
+  createdAt      DateTime            @default(now())
+  updatedAt      DateTime            @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, provider])
+  @@map("integrations")
+}
+
+model AnalyticsEvent {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String?  @db.Uuid
+  userId         String?  @db.Uuid
+  name           String
+  properties     Json?
+  createdAt      DateTime @default(now())
+
+  organization Organization? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([name, createdAt])
+  @@index([organizationId, createdAt])
+  @@map("analytics_events")
+}
+
+model WebhookEvent {
+  id          String    @id @default(uuid()) @db.Uuid
+  provider    String
+  externalId  String
+  type        String
+  payload     Json
+  processedAt DateTime?
+  error       String?
+  createdAt   DateTime  @default(now())
+
+  @@unique([provider, externalId])
+  @@map("webhook_events")
+}
