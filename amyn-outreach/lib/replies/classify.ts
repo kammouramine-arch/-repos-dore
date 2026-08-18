@@ -9,7 +9,7 @@
 // on protege le destinataire.
 // ---------------------------------------------------------------------------
 
-import type { ReplyClass } from "@/lib/constants";
+import { REPLY_META, type ReplyClass } from "@/lib/constants";
 
 type Rule = {
   cls: ReplyClass;
@@ -35,6 +35,14 @@ const RULES: Rule[] = [
       /arr[êe]tez de m'/i,
       /spam/i,
       /\brgpd\b/i,
+      // Formulations anglaises : les boutons de desinscription des clients mail
+      // les emploient meme dans des messages en francais.
+      /\bunsubscribe\b/i,
+      /\bremove me\b/i,
+      /\bopt[- ]?out\b/i,
+      /\btake me off\b/i,
+      /\bdo not (contact|email|mail) me\b/i,
+      /\bstop (emailing|contacting|mailing) me\b/i,
     ],
   },
   {
@@ -120,8 +128,24 @@ const RULES: Rule[] = [
     ],
   },
   {
-    cls: "QUESTION",
+    // Message clairement hostile, juridique ou hors sujet commercial : il ne
+    // doit surtout pas etre traite par un automatisme.
+    cls: "NEEDS_HUMAN",
     priority: 7,
+    patterns: [
+      /\b(avocat|juridique|mise en demeure|poursuite|plainte)\b/i,
+      /\b(cnil|mise en conformit[ée])\b/i,
+      /(d'o[uù]|comment) (avez[- ]vous|vous [êe]tes[- ]vous) (eu|obtenu|procur[ée]) (mon|mes|nos|notre)/i,
+      /\b(harc[èe]lement|inadmissible|scandaleux|honteux)\b/i,
+      /supprimez (toutes |l'ensemble de |)(mes|nos) donn[ée]es/i,
+      /droit (d'acc[èe]s|a l'effacement|à l'effacement)/i,
+      /\berreur de destinataire\b/i,
+      /(je ne suis pas|ce n'est pas) (le |la |)(bon|bonne) (interlocuteur|interlocutrice|personne)/i,
+    ],
+  },
+  {
+    cls: "QUESTION",
+    priority: 8,
     patterns: [
       /\?\s*$/m,
       /pouvez[- ]vous (me |nous |)(pr[ée]ciser|expliquer|dire|envoyer)/i,
@@ -130,6 +154,32 @@ const RULES: Rule[] = [
       /qui [êe]tes[- ]vous/i,
       /d'o[uù] (vient|tenez[- ]vous)/i,
       /quel(le|s|les)? (d[ée]lai|garantie|d[ée]marche)/i,
+    ],
+  },
+  {
+    // Ton favorable sans engagement explicite : « merci, c'est bien vu ».
+    // On ne le compte PAS comme un prospect interesse : on ne surinterprete pas.
+    cls: "POSITIVE",
+    priority: 9,
+    patterns: [
+      /\bmerci (beaucoup |bien |pour |de |)/i,
+      /c'est (gentil|sympa|aimable|bien vu|not[ée])/i,
+      /\bbonne (initiative|d[ée]marche|remarque)\b/i,
+      /je (prends|garde) (bonne |)note/i,
+      /\bint[ée]ressant\b/i,
+      /\bbravo\b/i,
+    ],
+  },
+  {
+    // Ton defavorable sans refus explicite de l'offre.
+    cls: "NEGATIVE",
+    priority: 10,
+    patterns: [
+      /\b(d[ée]sol[ée]|malheureusement)\b/i,
+      /\bpas (le temps|disponible|possible)\b/i,
+      /\bce n'est pas (le moment|opportun)\b/i,
+      /\bnous ne (souhaitons|voulons) pas\b/i,
+      /\bje passe\b/i,
     ],
   },
 ];
@@ -156,30 +206,85 @@ export function classifyReply(input: { subject: string; body: string }): Classif
 
   if (matches.length === 0) {
     return {
-      classification: "OTHER",
+      classification: "UNKNOWN",
       confidence: "LOW",
       matchedSignals: [],
       reason:
-        "Aucune expression reconnue. Classée OTHER : à lire manuellement plutôt que d'être interprétée.",
+        "Aucune expression reconnue. Classée UNKNOWN : elle sera lue par un humain plutôt qu'interprétée au hasard.",
     };
   }
 
   matches.sort((a, b) => a.rule.priority - b.rule.priority);
   const best = matches[0];
+  const distinct = [...new Set(matches.map((m) => m.rule.cls))];
 
-  // Plusieurs categories differentes = ambiguite : on baisse la confiance.
-  const distinct = new Set(matches.map((m) => m.rule.cls));
+  // -------------------------------------------------------------------------
+  // PRIORITE ABSOLUE : opposition et rebond.
+  //
+  // Ces deux classements protegent le destinataire et la reputation du
+  // domaine. Ils ne sont JAMAIS degrades par la regle d'ambiguite ci-dessous :
+  // dans le doute, on protege.
+  // -------------------------------------------------------------------------
+  if (best.rule.cls === "OPT_OUT" || best.rule.cls === "BOUNCE") {
+    return {
+      classification: best.rule.cls,
+      confidence: "HIGH",
+      matchedSignals: best.signals,
+      reason:
+        `Classée ${best.rule.cls} sur ${best.signals.length} expression(s) reconnue(s) : ` +
+        `${best.signals.map((x) => `« ${x} »`).join(", ")}. ` +
+        (best.rule.cls === "OPT_OUT"
+          ? "L'opposition est prioritaire sur tout autre classement."
+          : "Le rebond est prioritaire sur tout autre classement."),
+    };
+  }
+
+  // -------------------------------------------------------------------------
+  // AMBIGUITE : on ne tranche pas au hasard.
+  //
+  // L'ambiguite n'est PAS le nombre de categories reconnues. « Ça m'intéresse,
+  // quel est votre tarif ? » en declenche trois — toutes favorables, et toutes
+  // d'accord entre elles : c'est un signal net, pas un doute.
+  //
+  // Le vrai doute, c'est le CONFLIT DE SENS : des expressions favorables ET
+  // defavorables dans le meme message, sans qu'un camp l'emporte nettement.
+  // Dans ce cas on ne choisit pas : NEEDS_HUMAN.
+  // -------------------------------------------------------------------------
+  const opposing = matches.filter(
+    (m) => REPLY_META[m.rule.cls].positive !== REPLY_META[best.rule.cls].positive,
+  );
+  const bestStrength = best.signals.length;
+  const opposingStrength = Math.max(0, ...opposing.map((m) => m.signals.length));
+
+  // Conflit non tranche : le camp adverse est aussi fourni que le camp retenu.
+  if (opposing.length > 0 && opposingStrength >= bestStrength) {
+    return {
+      classification: "NEEDS_HUMAN",
+      confidence: "LOW",
+      matchedSignals: matches.flatMap((m) => m.signals).slice(0, 6),
+      reason:
+        `Message contradictoire : des expressions favorables (${best.rule.cls}) et défavorables ` +
+        `(${opposing.map((m) => m.rule.cls).join(", ")}) coexistent sans qu'aucune ne l'emporte. ` +
+        "Le message doit être lu par un humain plutôt qu'interprété.",
+    };
+  }
+
+  const agreeing = distinct.filter(
+    (c) => REPLY_META[c].positive === REPLY_META[best.rule.cls].positive,
+  );
   const confidence: Classification["confidence"] =
-    best.signals.length >= 2 && distinct.size === 1
-      ? "HIGH"
-      : distinct.size > 2
-        ? "LOW"
-        : "MEDIUM";
+    bestStrength >= 2 || agreeing.length >= 2 ? "HIGH" : opposing.length > 0 ? "MEDIUM" : "MEDIUM";
 
   return {
     classification: best.rule.cls,
     confidence,
     matchedSignals: best.signals,
-    reason: `Classée ${best.rule.cls} sur ${best.signals.length} expression(s) reconnue(s) : ${best.signals.map((s) => `« ${s} »`).join(", ")}.${distinct.size > 1 ? ` D'autres catégories possibles : ${[...distinct].slice(1).join(", ")}.` : ""}`,
+    reason:
+      `Classée ${best.rule.cls} sur ${best.signals.length} expression(s) reconnue(s) : ` +
+      `${best.signals.map((x) => `« ${x} »`).join(", ")}.` +
+      (agreeing.length > 1 ? ` Lectures concordantes : ${agreeing.join(", ")}.` : "") +
+      (opposing.length > 0
+        ? ` Une expression allant dans l'autre sens a été relevée (${opposing[0].rule.cls}) mais reste minoritaire.`
+        : ""),
   };
 }

@@ -2,6 +2,7 @@ import { PageHeader } from "@/components/PageHeader";
 import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
 import { mailerStatus } from "@/lib/mailer";
+import { imapStatus } from "@/lib/imap/config";
 import { sourceStatus } from "@/lib/research";
 import { claudeAvailability } from "@/lib/email/claude";
 import { autonomyMatrix } from "@/lib/agent/autonomy";
@@ -13,6 +14,7 @@ export const dynamic = "force-dynamic";
 
 export default async function SettingsPage() {
   const mail = mailerStatus();
+  const imap = imapStatus();
   const dbPath = (process.env.DATABASE_URL ?? "non défini").replace(/^file:/, "prisma/");
   const sources = sourceStatus();
   const claude = claudeAvailability();
@@ -28,6 +30,8 @@ export default async function SettingsPage() {
       prisma.sendLog.count(),
       prisma.sendLog.count({ where: { status: "SENT" } }),
       prisma.suppression.count(),
+      prisma.reply.count(),
+      prisma.reply.count({ where: { source: "IMAP" } }),
       prisma.client.count(),
       prisma.activityLog.count(),
     ]),
@@ -43,6 +47,8 @@ export default async function SettingsPage() {
     sends,
     realSends,
     suppressions,
+    replies,
+    imapReplies,
     clients,
     logs,
   ] = counts;
@@ -90,6 +96,47 @@ export default async function SettingsPage() {
             la connexion sans rien envoyer avec <code>npm run amyn -- smtp-check</code> — et
             seulement si elle réussit, passez <code>DRY_RUN=false</code>. Le mot de passe
             n&apos;est jamais écrit dans le code ni versionné.
+          </Note>
+        )}
+      </Block>
+
+      {/* --- LECTURE DES REPONSES ---------------------------------------- */}
+      <Block
+        title="Lecture des réponses"
+        subtitle="La boîte contact@amyn.agency est lue en lecture seule : aucun message n'est supprimé, déplacé, ni marqué comme lu."
+      >
+        <Line
+          label="Connexion IMAP"
+          value={
+            imap.configured
+              ? `configurée (${imap.host}:${imap.port}, ${imap.secure ? "SSL/TLS" : "STARTTLS"})`
+              : `incomplète — manquant : ${imap.missing.join(", ")}`
+          }
+          state={imap.configured ? "ok" : "todo"}
+        />
+        <Line label="Boîte lue" value={imap.user ? `${imap.user} · dossier ${imap.folder}` : "—"} />
+        <Line
+          label="Mot de passe"
+          value={
+            imap.passwordPresent
+              ? "présent dans .env — jamais affiché ni journalisé"
+              : "absent de .env"
+          }
+          state={imap.passwordPresent ? "ok" : "todo"}
+        />
+        <Line
+          label="Réponse automatique"
+          value="Aucune. L'agent propose une action pour chaque réponse, il n'en exécute aucune."
+          state="ok"
+        />
+        {!imap.configured && (
+          <Note>
+            Pour connecter la boîte (OVHcloud MX&nbsp;Plan / Zimbra), renseignez dans{" "}
+            <code>.env</code> : <code>IMAP_HOST=ssl0.ovh.net</code>, <code>IMAP_PORT=993</code>,{" "}
+            <code>IMAP_SECURE=true</code>, <code>IMAP_USER=contact@amyn.agency</code>,{" "}
+            <code>IMAP_PASSWORD=…</code>. Vérifiez ensuite sans rien lire avec{" "}
+            <code>npm run amyn -- imap-check</code>, puis lisez les réponses avec{" "}
+            <code>npm run amyn -- sync-replies</code>.
           </Note>
         )}
       </Block>
@@ -194,6 +241,7 @@ export default async function SettingsPage() {
           <Count label="Contacts trouvés" value={contacts} />
           <Count label="Emails rédigés" value={drafts} />
           <Count label="Tentatives d'envoi" value={sends} hint={`dont ${realSends} réels`} />
+          <Count label="Réponses reçues" value={replies} hint={`dont ${imapReplies} par la boîte`} />
           <Count label="Oppositions" value={suppressions} />
           <Count label="Clients" value={clients} />
           <Count label="Entrées de journal" value={logs} />

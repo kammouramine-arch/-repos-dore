@@ -19,6 +19,7 @@ export const INTENTS = [
   "SEND",
   "FOLLOWUP",
   "REPLY",
+  "SYNC_REPLIES",
   "NEW_CLIENT",
   "ONBOARDING",
   "PROJECT",
@@ -62,8 +63,22 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
     patterns: [/(email|mail|envoi) (de )?test/i, /teste? l'envoi/i, /envoie(-| )moi un test/i],
   },
   {
-    intent: "REPLY",
+    // Prioritaire sur REPLY : « vérifie les réponses » demande de LIRE la
+    // boite, pas de classer une reponse fournie a la main.
+    intent: "SYNC_REPLIES",
     priority: 2,
+    patterns: [
+      /(v[ée]rifie|regarde|consulte|rel[èe]ve|synchronise|check)\s+(les? |mes |la |)(nouvelles? |)(r[ée]ponses?|mails?|emails?|messages?|bo[îi]te)/i,
+      /(nouvelles?|nouveaux)\s+(r[ée]ponses?|messages?|mails?)/i,
+      /(rel[èe]ve|releve) (du |le |)(courrier|courriel)/i,
+      /qui (m'|nous |)a r[ée]pondu/i,
+      /y a[- ]t[- ]il des r[ée]ponses/i,
+      /sync[- ]?replies/i,
+    ],
+  },
+  {
+    intent: "REPLY",
+    priority: 3,
     patterns: [
       /voici une r[ée]ponse/i,
       /(il|elle|le prospect|le client) a r[ée]pondu/i,
@@ -73,7 +88,7 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "ONBOARDING",
-    priority: 3,
+    priority: 4,
     patterns: [
       /onboarding/i,
       /(a |)envoy[ée] (son|ses|le|les) (logo|photos?|informations?|textes?)/i,
@@ -83,7 +98,7 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "PROJECT",
-    priority: 4,
+    priority: 5,
     patterns: [
       /(le |)projet est (termin[ée]|fini|pr[êe]t)/i,
       /pr[ée]pare (la |)livraison/i,
@@ -94,7 +109,7 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "PIPELINE",
-    priority: 5,
+    priority: 6,
     patterns: [
       /trouve.{0,40}(analyse|audit).{0,60}(email|mail|campagne)/i,
       /(fais|lance) tout/i,
@@ -107,7 +122,7 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
     // Prioritaire sur SEARCH : « cherche les emails » n'est pas une recherche
     // d'entreprises mais une recherche de contacts.
     intent: "CONTACT",
-    priority: 6,
+    priority: 7,
     patterns: [
       /(trouve|cherche|r[ée]cup[èe]re|collecte)\s+(-?\s*(moi|nous)\s+)?(les?\s+|leurs?\s+|des\s+)?(emails?|mails?|adresses?(\s+mail)?|coordonn[ée]es|contacts?)/i,
       /emails? professionnels?/i,
@@ -116,7 +131,7 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "SEARCH",
-    priority: 7,
+    priority: 8,
     patterns: [
       /trouve(-| )(moi |nous |)/i,
       /cherche(-| )(moi |nous |)/i,
@@ -127,18 +142,18 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "AUDIT",
-    priority: 8,
+    priority: 9,
     patterns: [/audite/i, /analyse (ces|les|le|la|\d)/i, /lance (un |l'|les |)audits?/i, /diagnostic/i],
   },
 
   {
     intent: "SCORE",
-    priority: 9,
+    priority: 10,
     patterns: [/score/i, /note (les|ces|ce)/i, /classe (les|ces) prospects?/i, /priorise/i],
   },
   {
     intent: "DRAFT",
-    priority: 10,
+    priority: 11,
     patterns: [
       /(r[ée]dige|[ée]cris|g[ée]n[èe]re|pr[ée]pare) (les? |des? |)(emails?|mails?|messages?)/i,
       /brouillons?/i,
@@ -146,22 +161,22 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   },
   {
     intent: "FOLLOWUP",
-    priority: 11,
+    priority: 12,
     patterns: [/relance/i, /follow[- ]?up/i, /reviens vers/i],
   },
   {
     intent: "CAMPAIGN",
-    priority: 12,
+    priority: 13,
     patterns: [/campagne/i, /(cr[ée]e|lance) une? (campagne|s[ée]quence)/i],
   },
   {
     intent: "SEND",
-    priority: 13,
+    priority: 14,
     patterns: [/envoie/i, /envoyer? les/i, /expedie/i, /approve & send/i, /approuve et envoie/i],
   },
   {
     intent: "STATUS",
-    priority: 14,
+    priority: 15,
     patterns: [
       /(o[uù] en (est|sommes)|[ée]tat|statut|situation|r[ée]sum[ée]|bilan)/i,
       /fais (le |un )point/i,

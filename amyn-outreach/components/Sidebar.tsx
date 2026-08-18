@@ -19,7 +19,7 @@ const NAV_GROUPS: Array<{
     items: [
       { href: "/prospects", label: "Prospects", hint: "Fiches et diagnostics" },
       { href: "/campaigns", label: "Campagnes", hint: "Emails et envois" },
-      { href: "/replies", label: "Réponses", hint: "Boîte qualifiée" },
+      { href: "/replies", label: "Réponses", hint: "Centre de traitement" },
     ],
   },
   {

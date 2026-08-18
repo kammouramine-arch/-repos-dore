@@ -277,11 +277,14 @@ export const REPLY_CLASSES = [
   "PRICE_REQUEST",
   "MEETING_REQUEST",
   "QUESTION",
+  "POSITIVE",
   "LATER",
   "NOT_INTERESTED",
+  "NEGATIVE",
   "OPT_OUT",
   "BOUNCE",
-  "OTHER",
+  "NEEDS_HUMAN",
+  "UNKNOWN",
 ] as const;
 export type ReplyClass = (typeof REPLY_CLASSES)[number];
 
@@ -294,8 +297,66 @@ export const REPLY_META: Record<ReplyClass, { label: string; badge: string; posi
   NOT_INTERESTED: { label: "Pas intéressé", badge: "bg-stone-500/10 text-stone-400 ring-stone-400/20", positive: false },
   OPT_OUT: { label: "Opposition", badge: "bg-rose-500/10 text-rose-300 ring-rose-400/20", positive: false },
   BOUNCE: { label: "Rebond", badge: "bg-orange-500/10 text-orange-300 ring-orange-400/20", positive: false },
-  OTHER: { label: "Autre", badge: "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20", positive: false },
+  POSITIVE: { label: "Ton favorable", badge: "bg-emerald-500/10 text-emerald-200 ring-emerald-400/15", positive: true },
+  NEGATIVE: { label: "Ton défavorable", badge: "bg-stone-500/10 text-stone-300 ring-stone-400/20", positive: false },
+  NEEDS_HUMAN: { label: "Intervention requise", badge: "bg-amber-500/10 text-amber-300 ring-amber-400/25", positive: false },
+  UNKNOWN: { label: "Non classée", badge: "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20", positive: false },
 };
+
+/**
+ * Prochaine action suggeree pour chaque classement.
+ *
+ * REGLE : l'agent PROPOSE, il n'execute pas. Aucune de ces actions n'est
+ * declenchee automatiquement — aucune reponse n'est envoyee sans vous.
+ */
+export const RECOMMENDED_ACTION: Record<ReplyClass, string> = {
+  INTERESTED: "Proposer un appel",
+  PRICE_REQUEST: "Envoyer le devis correspondant à l'offre recommandée",
+  MEETING_REQUEST: "Proposer un créneau",
+  QUESTION: "Préparer une réponse",
+  POSITIVE: "Relancer avec une proposition concrète",
+  LATER: "Reprogrammer un contact à la date indiquée",
+  NOT_INTERESTED: "Arrêter la séquence",
+  NEGATIVE: "Arrêter la séquence et relire le message",
+  OPT_OUT: "Aucune action — blacklist",
+  BOUNCE: "Adresse invalide — retirer du circuit",
+  NEEDS_HUMAN: "Intervention humaine requise",
+  UNKNOWN: "À lire : le classement automatique n'a rien reconnu",
+};
+
+/** Etat de traitement d'une reponse dans le centre de tri. */
+export const REVIEW_STATUSES = ["NEW", "REVIEWED", "ACTION_REQUIRED", "RESOLVED"] as const;
+export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
+
+export const REVIEW_META: Record<ReviewStatus, { label: string; badge: string }> = {
+  NEW: { label: "Nouvelle", badge: "bg-sky-500/10 text-sky-300 ring-sky-400/20" },
+  REVIEWED: { label: "Lue", badge: "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20" },
+  ACTION_REQUIRED: { label: "Action requise", badge: "bg-amber-500/10 text-amber-300 ring-amber-400/25" },
+  RESOLVED: { label: "Traitée", badge: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/20" },
+};
+
+/** Comment le prospect a ete rattache a une reponse. */
+export const MATCHED_BY_LABEL: Record<string, string> = {
+  CONTACT: "Adresse enregistrée dans la fiche prospect",
+  SEND_LOG: "Adresse à laquelle un email a été envoyé",
+  CLIENT: "Adresse de contact d'un client",
+  DOMAIN: "Même domaine que le site du prospect",
+  MANUAL: "Prospect indiqué à la saisie",
+  NONE: "Expéditeur inconnu — aucun prospect rattaché",
+};
+
+/**
+ * Libelle du rattachement, coherent avec ce qui est reellement affiche.
+ *
+ * Les reponses enregistrees avant l'ajout du champ `matchedBy` portent la
+ * valeur par defaut "NONE" tout en ayant un prospect : on ne les presente pas
+ * comme des expediteurs inconnus, ce serait faux.
+ */
+export function matchedByLabel(matchedBy: string, hasProspect: boolean): string {
+  if (!hasProspect) return MATCHED_BY_LABEL.NONE;
+  if (matchedBy === "NONE") return "Rattachement enregistré avant le suivi de provenance";
+  return MATCHED_BY_LABEL[matchedBy] ?? matchedBy;
+}
 
 // === PHASES PROJET =========================================================
 export const PROJECT_PHASES = ["ONBOARDING", "CONTENT", "PRODUCTION", "QA", "DELIVERY", "DONE"] as const;
@@ -337,6 +398,8 @@ export const DEFAULT_AUTONOMY: Record<string, "AUTOMATIC" | "APPROVAL_REQUIRED">
   "campaign.followup": "APPROVAL_REQUIRED",
   "send.test": "APPROVAL_REQUIRED",
   "replies.classify": "AUTOMATIC",
+  // Lecture seule de la boite : rien n'est envoye, rien n'est modifie.
+  "replies.sync": "AUTOMATIC",
   "crm.create_client": "AUTOMATIC",
   "project.create": "AUTOMATIC",
   "project.tasks": "AUTOMATIC",

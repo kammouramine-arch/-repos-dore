@@ -355,6 +355,51 @@ export async function executeAction(
     }
 
     // --- REPONSES ----------------------------------------------------------
+    case "replies.sync": {
+      const { imapStatus } = await import("@/lib/imap/config");
+      const status = imapStatus();
+      if (!status.configured) {
+        return {
+          skipped: true,
+          reason: `Boîte non configurée — manquant dans .env : ${status.missing.join(", ")}`,
+          needsFromYou: [
+            `Renseignez ${status.missing.join(", ")} dans .env, puis vérifiez avec : npm run amyn -- imap-check`,
+          ],
+        };
+      }
+
+      const { ImapSource } = await import("@/lib/imap/client");
+      const { syncReplies } = await import("@/lib/replies/sync");
+      const report = await syncReplies(new ImapSource());
+
+      if (report.error) {
+        return { skipped: true, reason: `Lecture de la boîte impossible : ${report.error}` };
+      }
+
+      const needs: string[] = [];
+      if (report.interested > 0) {
+        needs.push(`${report.interested} prospect(s) intéressé(s) : à rappeler — voir /replies.`);
+      }
+      if (report.needsHuman > 0) {
+        needs.push(`${report.needsHuman} réponse(s) nécessitent votre lecture : trop ambiguës pour être classées.`);
+      }
+      if (report.unmatched > 0) {
+        needs.push(`${report.unmatched} expéditeur(s) inconnu(s) : enregistrés sans prospect rattaché.`);
+      }
+
+      return {
+        examined: report.fetched,
+        stored: report.stored,
+        duplicates: report.duplicates,
+        interested: report.interested,
+        optOuts: report.optOuts,
+        needsHuman: report.needsHuman,
+        unmatched: report.unmatched,
+        note: "Boîte lue en lecture seule. Aucun email envoyé, aucun message modifié ou supprimé.",
+        ...(needs.length > 0 ? { needsFromYou: needs } : {}),
+      };
+    }
+
     case "replies.classify": {
       const email = input.email as unknown as string | undefined;
       const body = (input.body as unknown as string) ?? "";

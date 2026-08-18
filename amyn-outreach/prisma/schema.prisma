@@ -387,32 +387,74 @@ model SendLog {
 }
 
 model Reply {
-  id         String    @id @default(cuid())
-  prospectId String
-  prospect   Prospect  @relation(fields: [prospectId], references: [id], onDelete: Cascade)
+  id String @id @default(cuid())
+
+  /// Optionnel : une reponse peut venir d'un expediteur inconnu. On l'enregistre
+  /// quand meme plutot que de la perdre, avec matchedBy = "NONE".
+  prospectId String?
+  prospect   Prospect? @relation(fields: [prospectId], references: [id], onDelete: SetNull)
   campaignId String?
   campaign   Campaign? @relation(fields: [campaignId], references: [id], onDelete: SetNull)
 
   fromEmail  String
+  fromName   String?
+  toEmail    String?
   subject    String
   body       String
   receivedAt DateTime @default(now())
 
-  /// INTERESTED | QUESTION | NOT_INTERESTED | OPT_OUT | MEETING_REQUEST |
-  /// PRICE_REQUEST | LATER | BOUNCE | OTHER
-  classification String
-  confidence     String  @default("MEDIUM")
+  /// INTERESTED | PRICE_REQUEST | MEETING_REQUEST | QUESTION | POSITIVE |
+  /// LATER | NOT_INTERESTED | NEGATIVE | OPT_OUT | BOUNCE | NEEDS_HUMAN | UNKNOWN
+  classification    String
+  confidence        String  @default("MEDIUM")
   /// JSON : expressions qui ont declenche le classement (tracabilite)
-  matchedSignals String?
+  matchedSignals    String?
+  /// Prochaine action suggeree. JAMAIS executee automatiquement.
+  recommendedAction String?
 
-  handled     Boolean   @default(false)
-  handledAt   DateTime?
-  handledNote String?
+  /// Comment le prospect a ete retrouve : CONTACT | SEND_LOG | CLIENT | DOMAIN | NONE
+  matchedBy String @default("NONE")
+
+  /// Provenance : MANUAL (saisie CLI) | IMAP (boite contact@amyn.agency)
+  source     String  @default("MANUAL")
+  /// En-tete Message-ID du courriel. Cle de deduplication durable.
+  messageId  String? @unique
+  /// Dossier IMAP et UID d'origine, pour retrouver le message dans la boite.
+  imapFolder String?
+  imapUid    Int?
+
+  /// NEW | REVIEWED | ACTION_REQUIRED | RESOLVED
+  reviewStatus String    @default("NEW")
+  handled      Boolean   @default(false)
+  handledAt    DateTime?
+  handledNote  String?
 
   externalId String? @unique
 
   @@index([prospectId])
   @@index([classification])
+  @@index([reviewStatus])
+  @@index([receivedAt])
+}
+
+/// Etat de synchronisation IMAP, par dossier. Permet de ne relire que les
+/// messages nouveaux au lieu de reparcourir toute la boite.
+model ImapSyncState {
+  id     String @id @default(cuid())
+  folder String @unique
+
+  /// Dernier UID traite dans ce dossier.
+  lastSeenUid Int     @default(0)
+  /// UIDVALIDITY du dossier : s'il change, les UID precedents ne valent plus
+  /// rien et la synchronisation repart de zero.
+  uidValidity String?
+
+  lastRunAt      DateTime?
+  lastError      String?
+  messagesSeen   Int       @default(0)
+  messagesStored Int       @default(0)
+
+  updatedAt DateTime @updatedAt
 }
 
 /// Liste d'opposition. Une adresse ou un domaine ici n'est JAMAIS recontacte.

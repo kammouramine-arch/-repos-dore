@@ -187,7 +187,68 @@ du client.
 
 ---
 
-## 7. Opposition et RGPD
+## 7. Lire les réponses reçues
+
+AMYN lit la boîte `contact@amyn.agency` en **lecture seule** et transforme les
+réponses en événements CRM. Aucun message n'est supprimé, déplacé, ni marqué
+comme lu — vos emails restent intacts dans votre client habituel.
+
+```bash
+# 1. Configurer l'accès dans .env (valeurs OVHcloud MX Plan / Zimbra)
+IMAP_HOST=ssl0.ovh.net
+IMAP_PORT=993
+IMAP_SECURE=true
+IMAP_USER=contact@amyn.agency
+IMAP_PASSWORD=…
+
+# 2. Vérifier la connexion SANS rien lire
+npm run amyn -- imap-check
+
+# 3. Lire les nouvelles réponses
+npm run amyn -- sync-replies
+
+# 4. État du centre de tri
+npm run amyn -- inbox
+```
+
+Ou en langage naturel : `npm run amyn -- "Vérifie les nouvelles réponses"`.
+
+### Ce que fait la lecture
+
+| Étape | Garantie |
+|---|---|
+| Citation retirée | Le texte de notre email d'origine est coupé **avant** analyse. Sans cela, notre propre « Répondez STOP » serait lu comme une opposition du prospect. |
+| Déduplication | Le `Message-ID` est la clé unique. Une relecture complète de la boîte ne crée aucun doublon. |
+| Rattachement | Uniquement sur preuve : adresse enregistrée dans une fiche, ou adresse à laquelle nous avons réellement écrit. Un domaine partagé par deux prospects est **refusé** plutôt que deviné. |
+| Expéditeur inconnu | La réponse est conservée sans prospect (`matchedBy: NONE`) plutôt que perdue ou rattachée au hasard. |
+| Opposition | Traitée **avant** tout le reste, et même si l'expéditeur est inconnu. |
+| Aucun envoi | Les modules de lecture n'importent pas le mailer. Un test le vérifie. |
+
+### Catégories
+
+`INTERESTED` · `PRICE_REQUEST` · `MEETING_REQUEST` · `QUESTION` · `POSITIVE` ·
+`LATER` · `NOT_INTERESTED` · `NEGATIVE` · `OPT_OUT` · `BOUNCE` ·
+`NEEDS_HUMAN` · `UNKNOWN`
+
+Un message **contradictoire** (des expressions favorables et défavorables sans
+qu'aucune ne l'emporte) devient `NEEDS_HUMAN` : l'agent ne tranche pas au
+hasard. Un message dont rien n'est reconnu devient `UNKNOWN`.
+
+L'opposition et le rebond ne sont **jamais** dégradés par cette règle : dans le
+doute, on protège le destinataire.
+
+### Action recommandée
+
+Chaque réponse porte une action suggérée — **jamais exécutée** :
+`INTERESTED → Proposer un appel`, `QUESTION → Préparer une réponse`,
+`NOT_INTERESTED → Arrêter la séquence`, `OPT_OUT → Aucune action — blacklist`,
+`NEEDS_HUMAN → Intervention humaine requise`.
+
+Aucune réponse automatique n'est envoyée à personne.
+
+---
+
+## 8. Opposition et RGPD
 
 ```bash
 npm run amyn -- optout contact@exemple.fr
@@ -201,7 +262,7 @@ désinscription, sans quoi il est refusé.
 
 ---
 
-## 8. Ce qui tourne sans rien configurer
+## 9. Ce qui tourne sans rien configurer
 
 | Capacité | État | Ce qu'il faut |
 |---|---|---|
@@ -217,7 +278,7 @@ désinscription, sans quoi il est refusé.
 | Campagnes, conformité, opt-out | ✅ | rien |
 | Envoi simulé | ✅ | rien |
 | **Envoi réel** | ⚙️ prêt, verrouillé | SMTP + `MAIL_TRANSPORT=smtp` + `DRY_RUN=false` |
-| Lecture automatique des réponses | ❌ non construit | une intégration IMAP ; en attendant, `npm run amyn -- reply` |
+| Lecture des réponses (IMAP) | ⚙️ prête, verrouillée | `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD` dans `.env` |
 | CRM, projets, onboarding, Care | ✅ | rien |
 
 L'interface et le CLI disent toujours l'état réel : une capacité qui dépend
@@ -225,7 +286,7 @@ d'une clé absente est affichée comme indisponible, jamais comme fonctionnelle.
 
 ---
 
-## 9. Interface
+## 10. Interface
 
 | Page | Contenu |
 |---|---|
@@ -235,20 +296,21 @@ d'une clé absente est affichée comme indisponible, jamais comme fonctionnelle.
 | `/prospects/[id]` | Toutes les vérifications avec verdict et preuve, score détaillé, email généré, historique |
 | `/campaigns` | Campagnes, membres, emails, journal d'envoi avec rapports de conformité |
 | `/clients` | Portefeuille, projets, avancement, onboarding, documents, échéancier, Care |
-| `/replies` | Réponses classées avec les expressions qui ont déclenché le classement + liste d'opposition |
+| `/replies` | Centre de traitement : inbox, catégorie, prospect, aperçu, confiance, action recommandée, états NEW / REVIEWED / ACTION_REQUIRED / RESOLVED |
+| `/replies/[id]` | Détail d'une réponse : message nettoyé, expressions détectées, action suggérée, provenance IMAP, opposition |
 | `/activity` | Journal complet, filtrable par niveau et par module |
 | `/settings` | Ce qui marche, ce qui manque, ce qu'il faut configurer |
 
 ---
 
-## 10. Développement
+## 11. Développement
 
 ```bash
 npm run dev          # serveur de développement
 npm run build        # build de production
 npm run typecheck    # TypeScript, zéro erreur attendue
 npm run lint         # ESLint, zéro avertissement toléré
-npm test             # 137 tests, base isolée, aucun appel réseau
+npm test             # 186 tests, base isolée, aucun appel réseau
 npm run db:studio    # explorer la base
 npm run amyn -- rules   # lister les 19 règles d'audit
 ```
@@ -271,7 +333,7 @@ contrat de preuve.
 
 ---
 
-## 11. Architecture
+## 12. Architecture
 
 ```
 app/          pages Next.js (App Router, composants serveur)
@@ -284,10 +346,11 @@ lib/
   email/      angles, génération (template & Claude), vérification
   campaign/   conformité, envoi, relances
   mailer/     transports interchangeables (dry-run, SMTP)
-  replies/    classement déterministe des réponses
+  imap/       lecture seule de la boîte (config, client, parsing)
+  replies/    classement, rattachement, ingestion, synchronisation
   crm/        clients, projets, tâches, onboarding, documents
   agent/      intentions, planification, autonomie, exécuteurs
 prisma/       schéma et seed de démonstration
 scripts/      CLI `amyn` et lanceur de tests
-tests/        137 tests
+tests/        186 tests
 ```

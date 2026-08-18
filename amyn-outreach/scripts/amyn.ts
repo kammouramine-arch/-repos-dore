@@ -27,7 +27,9 @@ import { scoreProspect } from "../lib/scoring";
 import { generateEmail } from "../lib/email/generate";
 import { approveCampaignMembers, runCampaign, sendTestEmail } from "../lib/campaign";
 import { addToSuppressionList } from "../lib/campaign/compliance";
-import { recordReply } from "../lib/replies";
+import { recordReply, syncReplies, replyInbox } from "../lib/replies";
+import { imapStatus } from "../lib/imap/config";
+import { ImapSource } from "../lib/imap/client";
 import {
   createClientFromProspect,
   projectStatus,
@@ -71,6 +73,9 @@ async function main() {
     case "draft": return draft(rest);
     case "campaign": return campaign(rest);
     case "smtp-check": return smtpCheck();
+    case "imap-check": return imapCheck();
+    case "sync-replies": return syncRepliesCommand(rest);
+    case "inbox": return inbox();
     case "test-email": return testEmail(rest);
     case "reply": return reply(rest);
     case "client": return client(rest);
@@ -161,6 +166,17 @@ async function doctor() {
   else bad(`SMTP incomplet — manquant : ${readiness.missing.join(", ")}`);
   console.log(`    expéditeur : ${config.from.name} <${config.from.email}>`);
   console.log(`    ${readiness.canSendForReal ? C.green + "Envoi réel possible" : C.dim + "Envoi réel impossible en l'état"}${C.reset}`);
+
+  console.log(`\n  ${C.bold}Lecture des réponses${C.reset}`);
+  const imap = imapStatus();
+  if (imap.configured) {
+    ok(`IMAP configuré (${imap.host}:${imap.port}) — boîte ${imap.user}, dossier ${imap.folder}`);
+    info("Lecture seule : aucun message n'est supprimé, déplacé ni marqué comme lu.");
+    info("Vérifier la connexion : npm run amyn -- imap-check");
+  } else {
+    bad(`IMAP incomplet — manquant : ${imap.missing.join(", ")}`);
+    info("Sans IMAP, les réponses se saisissent à la main : npm run amyn -- reply <email> \"<texte>\"");
+  }
 
   console.log(`\n  ${C.bold}Sources de recherche${C.reset}`);
   for (const s of sourceStatus()) {
@@ -336,6 +352,123 @@ async function smtpCheck() {
   }
 }
 
+/**
+ * Verifie la connexion IMAP SANS lire ni modifier le moindre message.
+ * Ouvre le dossier en lecture seule, releve son etat, referme.
+ */
+async function imapCheck() {
+  title("VERIFICATION DE LA CONNEXION IMAP");
+  info("Aucun message n'est lu, deplace, marque ni supprime.");
+  console.log();
+
+  const status = imapStatus();
+  if (!status.configured) {
+    bad(`Configuration incomplete — manquant dans .env : ${status.missing.join(", ")}`);
+    info("Renseignez ces variables dans amyn-outreach/.env, puis relancez cette commande.");
+    console.log();
+    return;
+  }
+
+  ok(`Serveur     : ${status.host}:${status.port}`);
+  ok(`Chiffrement : ${status.secure ? "SSL/TLS (implicite)" : "STARTTLS"}`);
+  ok(`Identifiant : ${status.user}`);
+  ok(`Dossier lu  : ${status.folder}`);
+  info("Mot de passe : lu depuis .env, jamais affiche ni journalise.");
+  console.log();
+
+  try {
+    const info_ = await new ImapSource().verify();
+    ok("Connexion et authentification reussies.");
+    ok(`Dossier « ${info_.folder} » ouvert en LECTURE SEULE — ${info_.totalMessages} message(s).`);
+    info(`UIDVALIDITY : ${info_.uidValidity}`);
+    console.log();
+    info("Etape suivante : npm run amyn -- sync-replies");
+  } catch (error) {
+    const message = error instanceof Error ? error.message : String(error);
+    bad(`Echec : ${message}`);
+    console.log();
+    if (/auth|login|invalid credentials|AUTHENTICATIONFAILED/i.test(message)) {
+      info("Identifiants refuses. Verifiez IMAP_USER (adresse complete) et IMAP_PASSWORD.");
+      info("Si la double authentification est active, un mot de passe d'application est requis.");
+    } else if (/ENOTFOUND|EAI_AGAIN|getaddrinfo/i.test(message)) {
+      info("Serveur introuvable : verifiez IMAP_HOST (valeur attendue : ssl0.ovh.net).");
+    } else if (/ETIMEDOUT|ECONNREFUSED|timeout/i.test(message)) {
+      info("Connexion impossible : le port 993 est peut-etre bloque par votre reseau.");
+    } else if (/NONEXISTENT|Mailbox does not exist/i.test(message)) {
+      info(`Le dossier « ${status.folder} » n'existe pas. Ajustez IMAP_FOLDER dans .env.`);
+    }
+    console.log();
+  }
+}
+
+/**
+ * Lit les nouveaux messages de la boite et les transforme en reponses
+ * exploitables. N'ENVOIE AUCUN EMAIL et ne modifie jamais la boite.
+ */
+async function syncRepliesCommand(args: string[]) {
+  title("LECTURE DES REPONSES");
+
+  const status = imapStatus();
+  if (!status.configured) {
+    bad(`Configuration IMAP incomplete — manquant dans .env : ${status.missing.join(", ")}`);
+    info("Verifiez d'abord la connexion : npm run amyn -- imap-check");
+    console.log();
+    return;
+  }
+
+  const maxArg = args.find((a) => a.startsWith("--max="));
+  const max = maxArg ? Number.parseInt(maxArg.slice(6), 10) : undefined;
+
+  info(`Boite ${status.user} · dossier ${status.folder} · lecture seule`);
+  info("Aucune reponse automatique ne sera envoyee.");
+  console.log();
+
+  const report = await syncReplies(new ImapSource(), { max });
+
+  if (report.error) {
+    bad(`Lecture impossible : ${report.error}`);
+    console.log();
+    return;
+  }
+
+  ok(`${report.fetched} message(s) examine(s)`);
+  ok(`${report.stored} reponse(s) enregistree(s)`);
+  if (report.duplicates > 0) info(`${report.duplicates} deja traite(s) — aucun doublon cree`);
+  if (report.skipped.length > 0) info(`${report.skipped.length} ignore(s) (nos propres envois)`);
+  if (report.optOuts > 0) warn(`${report.optOuts} opposition(s) — adresse(s) ajoutee(s) a la liste noire`);
+  if (report.needsHuman > 0) warn(`${report.needsHuman} necessitant votre intervention`);
+  if (report.unmatched > 0) info(`${report.unmatched} expediteur(s) inconnu(s) — enregistres sans prospect`);
+
+  if (report.outcomes.length > 0) {
+    console.log();
+    console.table(
+      report.outcomes.slice(0, 25).map((o) => ({
+        de: o.prospectName ?? "(inconnu)",
+        classement: o.classification,
+        confiance: o.confidence,
+        action: o.recommendedAction,
+        nouveau: o.duplicate ? "non" : "oui",
+      })),
+    );
+  }
+  console.log();
+  info("Aucun email n'a ete envoye. Ouvrez /replies pour traiter les reponses.");
+  console.log();
+}
+
+/** Etat du centre de tri des reponses. */
+async function inbox() {
+  const state = await replyInbox();
+  title("CENTRE DE TRI DES REPONSES");
+  console.log(`  total ${state.total} · nouvelles ${state.new} · action requise ${state.actionRequired} · traitees ${state.resolved}`);
+  console.log(`  interesses ${state.interested} · oppositions ${state.optOuts} · intervention requise ${state.needsHuman} · non classees ${state.unknown}`);
+  console.log(`  recues ces 7 derniers jours : ${state.last7Days}`);
+  if (state.lastSyncAt) info(`derniere lecture de la boite : ${state.lastSyncAt.toISOString()}`);
+  else info("la boite n'a jamais ete lue (npm run amyn -- sync-replies)");
+  if (state.lastSyncError) bad(`derniere erreur : ${state.lastSyncError}`);
+  console.log();
+}
+
 async function testEmail(args: string[]) {
   const to = args[0] ?? config.from.email;
   title(`TEST D'ENVOI vers ${to}`);
@@ -473,6 +606,7 @@ function help() {
     npm run amyn -- "Trouve 20 coiffeurs à Roubaix"
     npm run amyn -- "Audite les prospects"
     npm run amyn -- "Prépare une campagne pour les restaurants à Lille"
+    npm run amyn -- "Vérifie les nouvelles réponses"
     npm run amyn -- "Nouveau client. Entreprise : Salon Éclat. Offre : PREMIUM"
 
   ${C.bold}Commandes directes${C.reset}
@@ -486,8 +620,11 @@ function help() {
     campaign approve <slug>    approuver les emails d'une campagne
     campaign send <slug>       envoyer (simulé si DRY_RUN=true)
     smtp-check                 vérifier la connexion SMTP (sans rien envoyer)
+    imap-check                 vérifier la connexion IMAP (sans rien lire)
+    sync-replies [--max=N]     lire les nouvelles réponses de la boîte
+    inbox                      état du centre de tri des réponses
     test-email <adresse>       envoyer un email de test (simulé si DRY_RUN=true)
-    reply <email> "<texte>"    enregistrer et classer une réponse
+    reply <email> "<texte>"    enregistrer et classer une réponse à la main
     client "<nom>" <OFFRE> [email]
                                créer un dossier client
     client list                lister les clients et leurs projets

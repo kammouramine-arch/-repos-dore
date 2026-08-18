@@ -26,6 +26,23 @@ describe("Compréhension des instructions", () => {
     assert.equal(String(parsed.parameters.offer).toUpperCase(), "PREMIUM");
   });
 
+  test("reconnaît la demande de lecture de la boîte", () => {
+    for (const instruction of [
+      "Vérifie les nouvelles réponses",
+      "Y a-t-il des réponses ?",
+      "Qui m'a répondu ?",
+      "Relève le courrier",
+      "Regarde les nouveaux messages",
+    ]) {
+      assert.equal(parseInstruction(instruction).intent, "SYNC_REPLIES", instruction);
+    }
+  });
+
+  test("« vérifie les réponses » ne se confond pas avec « le prospect a répondu »", () => {
+    assert.equal(parseInstruction("Vérifie les nouvelles réponses").intent, "SYNC_REPLIES");
+    assert.equal(parseInstruction("Le prospect a répondu").intent, "REPLY");
+  });
+
   test("reconnaît les autres intentions courantes", () => {
     const cases: Array<[string, string]> = [
       ["Audite les prospects", "AUDIT"],
@@ -112,6 +129,7 @@ describe("Permissions", () => {
       "Où en est le projet",
       "Avance le projet",
       "Le prospect a répondu",
+      "Vérifie les nouvelles réponses",
       "Fais le point",
       "Trouve 20 coiffeurs à Lille, analyse leurs sites et prépare les emails",
     ]) {
@@ -169,6 +187,22 @@ describe("Exécution", () => {
       "aucune action n'attend de validation",
     );
     assert.ok(result.needsFromYou.some((n) => /validation/i.test(n)));
+  });
+
+  test("la lecture de la boîte s'arrête proprement si elle n'est pas configurée", async () => {
+    const result = await runAgent("Vérifie les nouvelles réponses");
+    const action = result.actions.find((a) => a.type === "replies.sync");
+
+    assert.ok(action, "aucune action de lecture planifiée");
+    // Sans identifiants IMAP, l'agent doit le dire au lieu d'echouer en silence.
+    assert.ok(
+      result.needsFromYou.some((n) => /IMAP/i.test(n)) || action.status === "DONE",
+      `l'agent n'explique pas ce qui manque : ${JSON.stringify(result.needsFromYou)}`,
+    );
+  });
+
+  test("lire la boîte est autorisé sans validation : c'est une lecture seule", async () => {
+    assert.equal(await getAutonomy("replies.sync"), "AUTOMATIC");
   });
 
   test("une exécution autorisée est tracée avec ses actions", async () => {

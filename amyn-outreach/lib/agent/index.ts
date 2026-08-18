@@ -224,6 +224,18 @@ export function planActions(parsed: ParsedInstruction): PlannedAction[] {
         },
       ];
 
+    case "SYNC_REPLIES":
+      return [
+        {
+          module: "REPLIES",
+          type: "replies.sync",
+          description: "Lire les nouvelles réponses reçues dans contact@amyn.agency",
+          rationale:
+            "Une réponse non lue, c'est une opposition non appliquée ou un client perdu. La boîte est lue en lecture seule.",
+          input: p,
+        },
+      ];
+
     case "REPLY":
       return [
         {

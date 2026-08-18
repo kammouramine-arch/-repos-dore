@@ -203,7 +203,7 @@ export default async function CampaignDetailPage({
             {campaign.replies.map((r) => (
               <li key={r.id} className="px-4 py-3">
                 <div className="flex items-center justify-between gap-2">
-                  <span className="text-sm text-zinc-200">{r.prospect.name}</span>
+                  <span className="text-sm text-zinc-200">{r.prospect?.name ?? r.fromEmail}</span>
                   <span className="text-[11px] text-zinc-600">{formatDateTime(r.receivedAt)}</span>
                 </div>
                 <p className="mt-1 text-[12px] text-zinc-500">{r.classification} · {r.subject}</p>
