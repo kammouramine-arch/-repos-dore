@@ -211,3 +211,14 @@ Chrome, Edge, Firefox et Safari récents, desktop et mobile.
 proprement sur les navigateurs anciens : le contenu reste visible, seules les
 animations disparaissent.
 Points de rupture : 1180 / 1024 / 900 / 620 px.
+
+---
+
+## 8. Meridian — application mobile « AI Life Planner »
+
+Le dossier [`meridian/`](meridian/) contient une application mobile distincte du site
+RÉVA : un planificateur de vie piloté par IA (Expo / React Native / TypeScript,
+backend Supabase, assistant exécuté côté serveur).
+
+Les deux projets sont indépendants — le site vitrine reste inchangé.
+Installation et documentation : [`meridian/README.md`](meridian/README.md).

@@ -1,0 +1,13 @@
+{
+  "name": "Meridian",
+  "shortName": "Meridian",
+  "tagline": "Your life, planned with you.",
+  "scheme": "meridian",
+  "slug": "meridian",
+  "bundleIdentifier": "app.meridian.planner",
+  "androidPackage": "app.meridian.planner",
+  "supportEmail": "support@example.com",
+  "privacyUrl": "https://example.com/privacy",
+  "termsUrl": "https://example.com/terms",
+  "aiName": "Meridian"
+}

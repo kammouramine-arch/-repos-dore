@@ -1,0 +1,21 @@
+node_modules/
+.expo/
+dist/
+web-build/
+*.orig.*
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+.env
+.env.local
+.DS_Store
+npm-debug.*
+coverage/
+ios/
+android/
+supabase/.temp/
+
+# Deno resolves edge-function deps in supabase/functions; nothing belongs at the root.
+deno.lock
