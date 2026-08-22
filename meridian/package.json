@@ -16,6 +16,7 @@
     "expo-crypto": "~57.0.1",
     "expo-device": "~57.0.1",
     "expo-haptics": "~57.0.1",
+    "expo-iap": "^5.3.2",
     "expo-linear-gradient": "~57.0.1",
     "expo-linking": "~57.0.6",
     "expo-notifications": "~57.0.12",
@@ -47,6 +48,7 @@
     "eslint-config-expo": "^57.0.1",
     "jest": "^29.7.0",
     "jest-expo": "^57.0.4",
+    "pgsql-parser": "^18.2.6",
     "prettier": "^3.9.6",
     "react-test-renderer": "^19.2.3",
     "test-renderer": "^1.2.0",
@@ -68,12 +70,15 @@
     "db:push": "supabase db push",
     "seed:demo": "node scripts/seed-demo.mjs",
     "functions:serve": "supabase functions serve --env-file .env",
-    "functions:deploy": "supabase functions deploy ai-chat transcribe daily-brief",
+    "functions:deploy": "supabase functions deploy ai-chat transcribe daily-brief subscription-verify && supabase functions deploy store-notifications --no-verify-jwt",
     "build:ios": "eas build --platform ios --profile production",
     "build:android": "eas build --platform android --profile production",
     "prebuild": "expo prebuild --clean",
     "doctor": "npx expo-doctor",
-    "seed:clear": "node scripts/seed-demo.mjs --clear"
+    "seed:clear": "node scripts/seed-demo.mjs --clear",
+    "build:dev": "eas build --profile development --platform all",
+    "submit:ios": "eas submit --profile production --platform ios",
+    "submit:android": "eas submit --profile production --platform android"
   },
   "private": true,
   "jest": {

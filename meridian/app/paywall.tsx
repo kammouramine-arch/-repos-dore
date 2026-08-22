@@ -16,10 +16,13 @@ import {
 } from '@/config/subscription';
 import {
   PurchasesUnavailableError,
+  getStoreProducts,
   purchase,
   purchasesAvailable,
   restorePurchases,
+  type StoreProduct,
 } from '@/services/purchases';
+import { brand } from '@/config/brand';
 import { track } from '@/services/analytics';
 import { AppError } from '@/lib/errors';
 import { friendlyDate } from '@/utils/date';
@@ -49,9 +52,25 @@ export default function Paywall() {
   const [busy, setBusy] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
+  const [storeProducts, setStoreProducts] = useState<StoreProduct[]>([]);
 
   React.useEffect(() => {
     track('paywall_viewed');
+  }, []);
+
+  /*
+    Prices come from the store when it is reachable, so what the user reads is what
+    their account is actually charged in their currency and region. The catalogue is
+    the fallback and the source of the product ids either way.
+  */
+  React.useEffect(() => {
+    let active = true;
+    void getStoreProducts([]).then((products) => {
+      if (active) setStoreProducts(products);
+    });
+    return () => {
+      active = false;
+    };
   }, []);
 
   const plans = useMemo(
@@ -167,6 +186,9 @@ export default function Paywall() {
               width={cardWidth}
               current={item.tier === tier}
               busy={busy === item.pricing[period]?.productId}
+              storePrice={
+                storeProducts.find((p) => p.productId === item.pricing[period]?.productId) ?? null
+              }
               onSelect={() => buy(item)}
             />
           ))}
@@ -175,8 +197,8 @@ export default function Paywall() {
         {!purchasesAvailable() ? (
           <Banner
             tone="info"
-            title="Purchases are not enabled in this build"
-            body="The billing library and store products are configured at release time. Everything else — plans, entitlements, limits, verification and restore — is already wired. See docs/BILLING.md."
+            title="Buying needs the full app"
+            body="StoreKit and Play Billing are native, so purchases work in a development or App Store build — not in Expo Go. Everything else on this screen is live."
           />
         ) : null}
 
@@ -236,11 +258,38 @@ export default function Paywall() {
           ) : null}
         </View>
 
-        <Text variant="caption" color="tertiary" align="center">
-          Prices are charged through your app store account and renew automatically until
-          cancelled. Cancel any time in your store settings. High limits are subject to
-          fair use so the service stays fast for everyone.
-        </Text>
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="caption" color="tertiary" align="center">
+            Payment is charged to your{' '}
+            {Platform.OS === 'ios' ? 'Apple Account' : 'Google Play account'} at confirmation.
+            Subscriptions renew automatically unless auto-renew is turned off at least 24 hours
+            before the end of the period. Manage or cancel any time in your store account
+            settings. A free trial, where offered, converts to a paid subscription unless
+            cancelled before it ends. High limits are subject to fair use so the service stays
+            fast for everyone.
+          </Text>
+
+          <View style={{ flexDirection: 'row', justifyContent: 'center', gap: theme.spacing.lg }}>
+            <Pressable
+              onPress={() => Linking.openURL(brand.termsUrl)}
+              accessibilityRole="link"
+              accessibilityLabel="Terms of use"
+            >
+              <Text variant="caption" color="accent">
+                Terms of use
+              </Text>
+            </Pressable>
+            <Pressable
+              onPress={() => Linking.openURL(brand.privacyUrl)}
+              accessibilityRole="link"
+              accessibilityLabel="Privacy policy"
+            >
+              <Text variant="caption" color="accent">
+                Privacy policy
+              </Text>
+            </Pressable>
+          </View>
+        </View>
       </View>
     </Screen>
   );
@@ -252,6 +301,7 @@ function PlanCard({
   width,
   current,
   busy,
+  storePrice,
   onSelect,
 }: {
   plan: Plan;
@@ -259,12 +309,16 @@ function PlanCard({
   width: number;
   current: boolean;
   busy: boolean;
+  storePrice: StoreProduct | null;
   onSelect: () => void;
 }) {
   const theme = useTheme();
   const price = plan.pricing[period];
   const saving = period === 'yearly' ? yearlySaving(plan) : null;
   const free = plan.tier === 'free';
+  // The store's price is the one that will actually be charged.
+  const displayPrice = storePrice?.displayPrice ?? formatPrice(price);
+  const trialDays = storePrice ? (storePrice.hasTrial ? plan.trialDays : 0) : plan.trialDays;
 
   return (
     <View
@@ -297,7 +351,7 @@ function PlanCard({
       </Text>
 
       <View style={{ gap: 2 }}>
-        <Text variant="title1">{free ? 'Free' : formatPrice(price)}</Text>
+        <Text variant="title1">{free ? 'Free' : displayPrice}</Text>
         <Text variant="footnote" color="tertiary">
           {free
             ? 'no card needed'
@@ -326,8 +380,8 @@ function PlanCard({
             label={
               current
                 ? 'Current plan'
-                : plan.trialDays > 0
-                  ? `Try ${plan.trialDays} days free`
+                : trialDays > 0
+                  ? `Try ${trialDays} days free`
                   : `Choose ${plan.name}`
             }
             full
@@ -335,9 +389,9 @@ function PlanCard({
             loading={busy}
             onPress={onSelect}
           />
-          {plan.trialDays > 0 && !current ? (
+          {trialDays > 0 && !current ? (
             <Text variant="caption" color="tertiary" align="center">
-              Then {formatPrice(price)} {period === 'monthly' ? 'a month' : 'a year'}. Cancel any time.
+              Then {displayPrice} {period === 'monthly' ? 'a month' : 'a year'}. Cancel any time.
             </Text>
           ) : null}
         </View>

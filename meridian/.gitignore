@@ -10,6 +10,18 @@ web-build/
 *.mobileprovision
 .env
 .env.local
+.env.development
+.env.staging
+.env.production
+
+# Store credentials — never commit these
+*.p8
+*.p12
+*.mobileprovision
+play-service-account*.json
+service-account*.json
+AuthKey_*.p8
+SubscriptionKey_*.p8
 .DS_Store
 npm-debug.*
 coverage/

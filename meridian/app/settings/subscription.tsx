@@ -19,7 +19,8 @@ const STATUS_COPY: Record<string, string> = {
   expired: 'Expired',
 };
 
-const SHOWN: Meter[] = METERS.filter((m) => m !== 'agent_runs');
+/** Agent runs only appear once a plan actually includes them. */
+const ALWAYS: Meter[] = METERS.filter((m) => m !== 'agent_runs');
 
 /**
  * Your plan: what you have, what you have used, and what changes if you move. Also the
@@ -46,7 +47,9 @@ export default function SubscriptionSettings() {
   const [notice, setNotice] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  const quotas = SHOWN.map(quota);
+  const quotas = [...ALWAYS, ...(quota('agent_runs').included ? (['agent_runs'] as Meter[]) : [])].map(
+    quota,
+  );
   const headline = quota('ai_requests');
   const upgrade = nextPlan();
 

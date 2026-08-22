@@ -31,7 +31,8 @@ supabase/
   functions/ai-chat/     The assistant: context, tools, execution, receipts
   functions/transcribe/  Speech to text (needs a provider key)
   functions/daily-brief/ Morning briefing generation
-  functions/subscription-verify/  Apple / Google receipt verification
+  functions/subscription-verify/  Apple / Google purchase verification
+  functions/store-notifications/  Renewal and cancellation webhooks
 __tests__/               Unit, integration and security tests
 scripts/seed-demo.mjs    Realistic demo account, one command to add or remove
 docs/                    AI, backend, auth and billing notes
@@ -68,7 +69,20 @@ EXPO_PUBLIC_SUPABASE_ANON_KEY=<anon key>
 The anon key is safe in the app: every table has row level security and all policies
 are scoped to `auth.uid()`.
 
-### 3. The assistant
+### 3. Builds
+
+Purchases are native (StoreKit 2 / Play Billing), so they need a development or store
+build — not Expo Go:
+
+```bash
+npm install -g eas-cli && eas login
+eas build --profile development --platform ios      # or android
+```
+
+Everything else runs in Expo Go. Full store setup is in
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md).
+
+### 4. The assistant
 
 The AI runs in a Supabase Edge Function so the API key never reaches the device:
 
@@ -80,7 +94,7 @@ supabase functions deploy ai-chat transcribe daily-brief
 Without `ANTHROPIC_API_KEY` the app still works as a planner — the assistant returns a
 clear "not configured" message rather than pretending. See [docs/AI.md](docs/AI.md).
 
-### 4. Demo data (optional)
+### 5. Demo data (optional)
 
 ```bash
 SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run seed:demo
@@ -88,7 +102,7 @@ SUPABASE_URL=... SUPABASE_SERVICE_ROLE_KEY=... npm run seed:demo
 npm run seed:demo -- --clear       # removes the demo account entirely
 ```
 
-### 5. Run
+### 6. Run
 
 ```bash
 npm start          # then press i for iOS, a for Android, or scan with Expo Go
@@ -109,7 +123,7 @@ build use `npx expo prebuild` and `npm run ios` / `npm run android`.
 | `npm run lint` | ESLint |
 | `npm run db:push` | Apply migrations |
 | `npm run functions:serve` | Run edge functions locally with `.env` |
-| `npm run functions:deploy` | Deploy all three functions |
+| `npm run functions:deploy` | Deploy all five functions |
 | `npm run seed:demo` | Create the demo account |
 | `npm run build:ios` / `build:android` | EAS production builds |
 
@@ -149,7 +163,9 @@ credentials (`APPLE_SHARED_SECRET`, `GOOGLE_SERVICE_ACCOUNT_JSON`,
    UI renders receipts under the reply, which is why the assistant cannot claim
    something it did not do.
 
-More detail: [docs/AI.md](docs/AI.md).
+More detail: [docs/AI.md](docs/AI.md). Deployment and store setup:
+[docs/DEPLOYMENT.md](docs/DEPLOYMENT.md). Every variable:
+[docs/ENVIRONMENT.md](docs/ENVIRONMENT.md).
 
 ---
 

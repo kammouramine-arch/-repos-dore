@@ -8,6 +8,7 @@ import { executeTool } from '../_shared/executor.ts';
 import { anthropicTools, describeAction, isToolName, requiresConfirmation } from '../_shared/tools.ts';
 import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
 import { AGENTS, type AgentKey, agentInstructions, isAgentKey } from '../_shared/agents.ts';
+import { checkRateLimit } from '../_shared/ratelimit.ts';
 import { type Meter, type Operation, planFor, type EntitlementKey } from '../_shared/plans.ts';
 
 /**
@@ -23,6 +24,14 @@ import { type Meter, type Operation, planFor, type EntitlementKey } from '../_sh
 const MAX_TOOL_ROUNDS = 8;
 /** Agents are allowed to work for longer — that is the point of them. */
 const MAX_AGENT_ROUNDS = 16;
+
+/**
+ * Wall-clock ceiling for a single model call. Long enough for a real planning turn,
+ * short enough that a stuck request cannot hold an isolate — or a user's allowance —
+ * open indefinitely.
+ */
+const MODEL_TIMEOUT_MS = 120_000;
+const AGENT_TIMEOUT_MS = 240_000;
 const HISTORY_LIMIT = 24;
 
 type ActionReceipt = {
@@ -165,6 +174,13 @@ Deno.serve(async (req) => {
   const userText = String(body.message ?? '').slice(0, 8000).trim();
   if (!userText) return fail('bad_request', 'Message is empty');
 
+  // Abuse protection in front of the meter: a client cannot hammer the endpoint even
+  // with allowance left. The meter below is still what enforces the plan.
+  const rate = await checkRateLimit(admin, user.id, 'ai_chat', 30, 60);
+  if (!rate.allowed) {
+    return fail('rate_limited', `Slow down a moment — try again in ${rate.retryAfter}s.`, 429);
+  }
+
   // ------------------------------------------------- entitlement and usage --
   // One central check for capability and allowance, spent atomically before any
   // model call. Nothing else in the codebase decides whether a request may run.
@@ -253,14 +269,21 @@ Deno.serve(async (req) => {
 
   const maxRounds = mode === 'agent_run' ? MAX_AGENT_ROUNDS : MAX_TOOL_ROUNDS;
 
+  const timeoutMs = mode === 'agent_run' ? AGENT_TIMEOUT_MS : MODEL_TIMEOUT_MS;
+
   const callModel = async (payload: any) => {
+    const options = { timeout: timeoutMs };
+
     if (refusalFallbackEnabled) {
       try {
-        return await anthropic.beta.messages.create({
-          ...payload,
-          betas: ['server-side-fallback-2026-07-01'],
-          fallbacks: 'default',
-        });
+        return await anthropic.beta.messages.create(
+          {
+            ...payload,
+            betas: ['server-side-fallback-2026-07-01'],
+            fallbacks: 'default',
+          },
+          options,
+        );
       } catch (e: any) {
         // If the account is not enrolled in the beta, fall back to the standard call
         // for this and every later request in this isolate.
@@ -269,7 +292,7 @@ Deno.serve(async (req) => {
         else throw e;
       }
     }
-    return await anthropic.messages.create(payload);
+    return await anthropic.messages.create(payload, options);
   };
 
   const receipts: ActionReceipt[] = [];
@@ -396,8 +419,15 @@ Deno.serve(async (req) => {
     }
   } catch (e: any) {
     const status = e?.status ?? 500;
+    const timedOut = e?.name === 'APIConnectionTimeoutError' || /timeout/i.test(String(e?.message ?? ''));
     const code =
-      status === 429 ? 'rate_limited' : status === 401 ? 'ai_auth' : 'ai_unavailable';
+      status === 429
+        ? 'rate_limited'
+        : status === 401
+          ? 'ai_auth'
+          : timedOut
+            ? 'ai_timeout'
+            : 'ai_unavailable';
     // A request that never produced anything should not cost the user their allowance.
     if (receipts.length === 0) {
       await refundAll(admin, user.id, billing.period.start, spend.spent as Partial<Record<Meter, number>>);
@@ -413,7 +443,13 @@ Deno.serve(async (req) => {
         actions: receipts,
       });
     }
-    return fail(code, 'The assistant is unreachable right now. Your plan is unchanged.', 503);
+    return fail(
+      code,
+      timedOut
+        ? 'That took longer than expected and was stopped. Nothing was charged — try a smaller ask.'
+        : 'The assistant is unreachable right now. Your plan is unchanged.',
+      503,
+    );
   }
 
   if (!assistantText) {

@@ -32,7 +32,12 @@ const config: ExpoConfig = {
       monochromeImage: './assets/android-icon-monochrome.png',
       backgroundColor: '#0E1014',
     },
-    permissions: ['RECORD_AUDIO', 'POST_NOTIFICATIONS', 'SCHEDULE_EXACT_ALARM'],
+    permissions: [
+      'RECORD_AUDIO',
+      'POST_NOTIFICATIONS',
+      'SCHEDULE_EXACT_ALARM',
+      'com.android.vending.BILLING',
+    ],
   },
   web: { favicon: './assets/favicon.png', bundler: 'metro' },
   plugins: [
@@ -47,6 +52,9 @@ const config: ExpoConfig = {
       'expo-notifications',
       { color: '#5B63E8', defaultChannel: 'default' },
     ],
+    // StoreKit 2 and Play Billing. Native, so purchases need a development or store
+    // build — in Expo Go the app says so rather than pretending.
+    'expo-iap',
     [
       'expo-splash-screen',
       { image: './assets/splash-icon.png', resizeMode: 'contain', backgroundColor: '#0E1014' },

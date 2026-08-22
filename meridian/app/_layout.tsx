@@ -10,6 +10,7 @@ import { AuthProvider } from '@/state/AuthProvider';
 import { QueryProvider } from '@/state/QueryProvider';
 import { ConnectivityProvider } from '@/state/ConnectivityProvider';
 import { track } from '@/services/analytics';
+import { initPurchases } from '@/services/purchases';
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 
@@ -23,6 +24,8 @@ function Navigator() {
 
   useEffect(() => {
     track('app_opened');
+    // Connects to StoreKit / Play Billing in a build that has them; a no-op elsewhere.
+    void initPurchases();
   }, []);
 
   return (

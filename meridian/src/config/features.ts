@@ -13,8 +13,12 @@ export const features = {
   /** Voice needs a transcription provider configured on the server (see docs/AI.md). */
   voiceCapture: true,
   pushNotifications: true,
-  /** Store purchases need an IAP library plus products configured — see docs/BILLING.md. */
-  inAppPurchases: false,
+  /**
+   * Store purchases are implemented against StoreKit 2 and Play Billing. Whether they
+   * are usable depends on the build: `purchasesAvailable()` answers that at runtime,
+   * and the paywall reads it. This flag stays for a deliberate kill switch.
+   */
+  inAppPurchases: true,
 } as const;
 
 export type FeatureKey = keyof typeof features;
