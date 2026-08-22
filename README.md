@@ -214,11 +214,12 @@ Points de rupture : 1180 / 1024 / 900 / 620 px.
 
 ---
 
-## 8. Meridian — application mobile « AI Life Planner »
+## 8. LifeOS — application mobile
 
-Le dossier [`meridian/`](meridian/) contient une application mobile distincte du site
-RÉVA : un planificateur de vie piloté par IA (Expo / React Native / TypeScript,
-backend Supabase, assistant exécuté côté serveur).
+Le dossier [`lifeos/`](lifeos/) contient une application mobile distincte du site
+RÉVA : **LifeOS — Your AI Operating System for Life**, un système d'exploitation
+personnel piloté par IA (Expo / React Native / TypeScript, backend Supabase,
+assistant exécuté côté serveur).
 
 Les deux projets sont indépendants — le site vitrine reste inchangé.
-Installation et documentation : [`meridian/README.md`](meridian/README.md).
+Installation et documentation : [`lifeos/README.md`](lifeos/README.md).

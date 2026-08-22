@@ -1,0 +1,16 @@
+{
+  "name": "LifeOS",
+  "shortName": "LifeOS",
+  "tagline": "Your AI Operating System for Life.",
+  "positioning": "Plan your life. Understand yourself. Move forward.",
+  "scheme": "lifeos",
+  "slug": "lifeos",
+  "bundleIdentifier": "app.lifeos",
+  "androidPackage": "app.lifeos",
+  "storageNamespace": "lifeos",
+  "productPrefix": "lifeos",
+  "supportEmail": "",
+  "privacyUrl": "",
+  "termsUrl": "",
+  "aiName": "LifeOS"
+}
