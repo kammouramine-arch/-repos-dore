@@ -16,7 +16,7 @@ import {
 } from '@/components/ui';
 import { DateField } from '@/components/fields';
 import { useProjectActions, useProjects } from '@/hooks/useProjects';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { friendlyDate } from '@/utils/date';
 
 export default function Projects() {
@@ -24,14 +24,15 @@ export default function Projects() {
   const router = useRouter();
   const projects = useProjects('active');
   const actions = useProjectActions();
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
 
   const [open, setOpen] = useState(false);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [due, setDue] = useState<string | null>(null);
 
-  const atLimit = !entitlement.isPro && (projects.data?.length ?? 0) >= entitlement.limits.projects;
+  const allowance = entitlements.objects('projects', projects.data?.length ?? 0);
+  const atLimit = allowance.atLimit;
 
   return (
     <Screen refreshing={projects.isRefetching} onRefresh={() => void projects.refetch()}>
@@ -55,9 +56,9 @@ export default function Projects() {
         {atLimit ? (
           <Banner
             tone="info"
-            title="One active project on the free plan"
-            body="Pro lets you run several at once, with AI roadmaps for each."
-            actionLabel="See Pro"
+            title={`${allowance.limit} active project${allowance.limit === 1 ? '' : 's'} on ${entitlements.plan.name}`}
+            body={`${allowance.upgradeTo?.name ?? 'A higher plan'} lets you run several at once, with AI roadmaps for each.`}
+            actionLabel={allowance.upgradeTo ? `See ${allowance.upgradeTo.name}` : 'See plans'}
             onAction={() => router.push('/paywall')}
           />
         ) : null}

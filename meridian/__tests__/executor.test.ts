@@ -1,10 +1,26 @@
 import { executeTool } from '@shared/executor';
 import { createFakeDb, errorResponse, okResponse, type RecordedCall } from './helpers/fakeSupabase';
+import { DEFAULT_CATALOGUE, resolveEntitlement } from '@shared/plans';
 
 const UUID = '3f2504e0-4f89-11d3-9a0c-0305e82c3301';
 const OTHER_UUID = '9a8b7c6d-5e4f-4a3b-8c2d-1e0f9a8b7c6d';
 
-const baseCtx = { userId: 'user-1', today: '2026-03-10', weekStart: '2026-03-09', tier: 'pro' as const };
+const entitlementsFor = (tier: 'free' | 'plus' | 'pro') =>
+  resolveEntitlement(DEFAULT_CATALOGUE, {
+    tier,
+    status: tier === 'free' ? 'free' : 'active',
+    current_period_end: '2099-01-01T00:00:00Z',
+  });
+
+const proEntitlement = entitlementsFor('pro');
+
+const baseCtx = {
+  userId: 'user-1',
+  today: '2026-03-10',
+  weekStart: '2026-03-09',
+  entitlements: proEntitlement.entitlements,
+  memoryLimit: proEntitlement.quotas.memory_items,
+};
 
 function ctxWith(respond: (call: RecordedCall) => { data: unknown; error: { message: string } | null }) {
   const { db, calls } = createFakeDb(respond);
@@ -139,10 +155,16 @@ describe('executeTool — writes', () => {
 });
 
 describe('executeTool — entitlements', () => {
-  it('blocks Pro-only tools for free accounts without touching the database', async () => {
+  it('blocks a capability the plan does not include, without touching the database', async () => {
+    const free = entitlementsFor('free');
     const { db, calls } = createFakeDb(() => okResponse({ id: UUID }));
     const result = await executeTool(
-      { ...baseCtx, tier: 'free', db: db as never },
+      {
+        ...baseCtx,
+        entitlements: free.entitlements,
+        memoryLimit: free.quotas.memory_items,
+        db: db as never,
+      },
       'generate_90_day_plan',
       {
         vision: 'A calmer, healthier three months',
@@ -155,11 +177,11 @@ describe('executeTool — entitlements', () => {
     );
 
     expect(result.ok).toBe(false);
-    expect(result.error).toBe('requires_pro');
+    expect(result.error).toBe('not_entitled:PLANNING_ADVANCED');
     expect(calls).toHaveLength(0);
   });
 
-  it('allows the same tool on Pro', async () => {
+  it('allows the same tool on a plan that includes it', async () => {
     const { ctx } = ctxWith(() => okResponse({ id: UUID }));
     const result = await executeTool(ctx, 'generate_90_day_plan', {
       vision: 'A calmer, healthier three months',
@@ -172,6 +194,45 @@ describe('executeTool — entitlements', () => {
 
     expect(result.ok).toBe(true);
     expect(result.summary).toMatch(/90-day plan/i);
+  });
+});
+
+describe('executeTool — plan capacity', () => {
+  it('refuses a new memory once the plan is full, and says where more is', async () => {
+    const { ctx } = ctxWith((call) => {
+      if (call.table === 'user_preferences') return okResponse({ memory_enabled: true });
+      if (call.table === 'ai_memory') {
+        // No existing row for this key, and the count is already at the limit.
+        const isCount = call.filters.some((f) => f.method === 'select' && f.args[1] !== undefined);
+        return isCount ? { data: null, error: null, count: 5 } : okResponse(null);
+      }
+      return okResponse({ id: UUID });
+    });
+
+    const result = await executeTool(
+      { ...ctx, memoryLimit: 5 },
+      'remember',
+      { kind: 'fact', key: 'new_thing', value: 'Something worth keeping' },
+    );
+
+    expect(result.ok).toBe(false);
+    expect(result.summary).toMatch(/holds 5 memories/i);
+  });
+
+  it('still updates an existing memory when the plan is full', async () => {
+    const { ctx } = ctxWith((call) => {
+      if (call.table === 'user_preferences') return okResponse({ memory_enabled: true });
+      if (call.table === 'ai_memory') return okResponse({ id: UUID });
+      return okResponse({ id: UUID });
+    });
+
+    const result = await executeTool(
+      { ...ctx, memoryLimit: 1 },
+      'remember',
+      { kind: 'schedule', key: 'work_hours', value: 'Now works 08:00 to 16:00' },
+    );
+
+    expect(result.ok).toBe(true);
   });
 });
 

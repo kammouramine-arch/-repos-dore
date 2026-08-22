@@ -1,6 +1,8 @@
 // deno-lint-ignore-file no-explicit-any
 import { fail, json, preflight } from '../_shared/http.ts';
-import { requireUser } from '../_shared/supabase.ts';
+import { adminClient, requireUser } from '../_shared/supabase.ts';
+import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
+import type { Meter } from '../_shared/plans.ts';
 
 /**
  * Speech to text for the hold-to-talk button.
@@ -31,8 +33,8 @@ Deno.serve(async (req) => {
     return fail('transcription_not_configured', 'OPENAI_API_KEY is not set.', 501);
   }
 
-  const { user, error } = await requireUser(req);
-  if (!user) return fail('unauthorized', error ?? 'Not authenticated', 401);
+  const { client: db, user, error } = await requireUser(req);
+  if (!db || !user) return fail('unauthorized', error ?? 'Not authenticated', 401);
 
   let form: FormData;
   try {
@@ -44,6 +46,32 @@ Deno.serve(async (req) => {
   const file = form.get('file');
   if (!(file instanceof File)) return fail('bad_request', 'Missing "file".');
   if (file.size > 25 * 1024 * 1024) return fail('too_large', 'Recording is larger than 25 MB.', 413);
+
+  // Voice is metered in seconds. The client reports the recording length; the size of
+  // the upload is used as a sanity floor so the number cannot be under-reported.
+  const reported = Number(form.get('duration_seconds') ?? 0);
+  const seconds = Math.max(1, Math.round(Number.isFinite(reported) && reported > 0 ? reported : file.size / 4000));
+
+  const admin = adminClient();
+  const billing = await loadBilling(db);
+  const spend = await spendForOperation(admin, billing, user.id, 'voice_transcription', {
+    multiplier: seconds,
+  });
+  if (!spend.ok) {
+    return json(
+      {
+        error: {
+          code: spend.code,
+          message: spend.message,
+          meter: spend.meter ?? null,
+          upgrade_to: spend.upgradeTo ?? null,
+          upgrade_name: spend.upgradeName ?? null,
+          period_end: billing.period.end,
+        },
+      },
+      spend.code === 'quota_exceeded' ? 402 : 403,
+    );
+  }
 
   const upstream = new FormData();
   upstream.append('file', file, file.name || 'audio.m4a');
@@ -57,10 +85,11 @@ Deno.serve(async (req) => {
   });
 
   if (!res.ok) {
+    await refundAll(admin, user.id, billing.period.start, spend.spent as Partial<Record<Meter, number>>);
     const detail = await res.text();
     return fail('transcription_failed', `Transcription failed (${res.status}). ${detail.slice(0, 200)}`, 502);
   }
 
   const data: any = await res.json();
-  return json({ text: String(data.text ?? '').trim() });
+  return json({ text: String(data.text ?? '').trim(), seconds });
 });

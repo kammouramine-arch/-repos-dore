@@ -6,7 +6,8 @@ import { buildContext } from '../_shared/context.ts';
 import { contextBlock, identityBlock, type Mode } from '../_shared/prompt.ts';
 import { executeTool } from '../_shared/executor.ts';
 import { anthropicTools, describeAction, isToolName, requiresConfirmation } from '../_shared/tools.ts';
-import { AI_EFFORT_DEFAULT, AI_MODEL_DEFAULT, FREE_LIMITS } from '../_shared/limits.ts';
+import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
+import { type Meter, type Operation, planFor, type EntitlementKey } from '../_shared/plans.ts';
 
 /**
  * The assistant endpoint.
@@ -28,11 +29,26 @@ type ActionReceipt = {
   entity_id?: string | null;
   entity_type?: string | null;
   error?: string | null;
+  /** Set when the action needs a different plan, so the UI can offer the right one. */
+  upgrade_to?: string | null;
+  upgrade_name?: string | null;
   /** Stored so a confirmed action replays exactly what was proposed. */
   input?: Record<string, unknown>;
 };
 
 let refusalFallbackEnabled = (Deno.env.get('AI_REFUSAL_FALLBACK') ?? 'true') !== 'false';
+
+/** Conversation modes map one-to-one onto metered operations. */
+const MODE_OPERATION: Record<Mode, Operation> = {
+  chat: 'chat',
+  onboarding: 'onboarding',
+  plan_day: 'plan_day',
+  plan_week: 'plan_week',
+  daily_reset: 'daily_reset',
+  life_reset: 'life_reset',
+  ninety_day: 'ninety_day',
+  morning_brief: 'morning_brief',
+};
 
 function suggestFollowUps(mode: Mode, receipts: ActionReceipt[]): string[] {
   if (receipts.some((r) => r.status === 'awaiting_confirmation')) return ['Yes, do it', 'No, leave it'];
@@ -78,13 +94,17 @@ Deno.serve(async (req) => {
 
   const mode: Mode = (body.mode ?? 'chat') as Mode;
   const offset = Number.isFinite(body.timezone_offset_minutes) ? Number(body.timezone_offset_minutes) : 0;
-  const context = await buildContext(db, offset);
+  const admin = adminClient();
+  const [context, billing] = await Promise.all([buildContext(db, offset), loadBilling(db)]);
+  const { entitlement } = billing;
+
   const execCtx = {
     db,
     userId: user.id,
     today: context.today,
     weekStart: context.weekStart,
-    tier: context.tier,
+    entitlements: entitlement.entitlements,
+    memoryLimit: entitlement.quotas.memory_items,
   };
 
   // ---------------------------------------------------------- confirmation --
@@ -130,22 +150,28 @@ Deno.serve(async (req) => {
   const userText = String(body.message ?? '').slice(0, 8000).trim();
   if (!userText) return fail('bad_request', 'Message is empty');
 
-  // ----------------------------------------------------------------- quota --
-  const admin = adminClient();
-  if (context.tier === 'free') {
-    const { data: usage } = await admin
-      .from('ai_usage')
-      .select('message_count')
-      .eq('user_id', user.id)
-      .eq('date', context.today)
-      .maybeSingle();
-    if ((usage?.message_count ?? 0) >= FREE_LIMITS.aiMessagesPerDay) {
-      return fail(
-        'quota_exceeded',
-        `You have used your ${FREE_LIMITS.aiMessagesPerDay} conversations for today. Pro removes the limit.`,
-        402,
-      );
-    }
+  // ------------------------------------------------- entitlement and usage --
+  // One central check for capability and allowance, spent atomically before any
+  // model call. Nothing else in the codebase decides whether a request may run.
+  const operation = MODE_OPERATION[mode] ?? 'chat';
+  const spend = await spendForOperation(admin, billing, user.id, operation);
+
+  if (!spend.ok) {
+    return json(
+      {
+        error: {
+          code: spend.code,
+          message: spend.message,
+          meter: spend.meter ?? null,
+          operation,
+          plan: entitlement.plan.tier,
+          upgrade_to: spend.upgradeTo ?? null,
+          upgrade_name: spend.upgradeName ?? null,
+          period_end: billing.period.end,
+        },
+      },
+      spend.code === 'quota_exceeded' ? 402 : 403,
+    );
   }
 
   // ---------------------------------------------------------- conversation --
@@ -187,8 +213,8 @@ Deno.serve(async (req) => {
 
   // ------------------------------------------------------------ model loop --
   const anthropic = new Anthropic({ apiKey });
-  const model = Deno.env.get('AI_MODEL') ?? AI_MODEL_DEFAULT;
-  const effort = Deno.env.get('AI_EFFORT') ?? AI_EFFORT_DEFAULT;
+  // Model and effort come from the plan's routing table, never from a constant here.
+  const { model, effort, priority } = spend;
   const tools = anthropicTools();
 
   // Stable half first so the prefix caches across turns; volatile context after.
@@ -196,7 +222,7 @@ Deno.serve(async (req) => {
   const system = [
     {
       type: 'text',
-      text: identityBlock({ aiName, mode, tier: context.tier }),
+      text: identityBlock({ aiName, mode, plan: entitlement.plan.name, entitlements: entitlement.entitlements }),
       cache_control: { type: 'ephemeral' },
     },
     { type: 'text', text: contextBlock(context.text) },
@@ -295,20 +321,26 @@ Deno.serve(async (req) => {
         }
 
         const result = await executeTool(execCtx, name, use.input);
-        if (result.error === 'requires_pro') {
+        if (result.error?.startsWith('not_entitled')) {
+          const required = result.error.split(':')[1] as EntitlementKey | undefined;
+          const upgrade = required ? planFor(billing.catalogue, required) : null;
           receipts.push({
             tool: name,
             status: 'failed',
-            summary: 'That is a Pro feature',
-            error: 'requires_pro',
+            summary: upgrade ? `That is part of ${upgrade.name}` : 'Not available on this plan',
+            error: 'not_entitled',
+            upgrade_to: upgrade?.tier ?? null,
+            upgrade_name: upgrade?.name ?? null,
           });
           results.push({
             type: 'tool_result',
             tool_use_id: use.id,
             is_error: true,
             content: JSON.stringify({
-              status: 'requires_pro',
-              note: 'This is a Pro feature and was not performed. Say so plainly.',
+              status: 'not_entitled',
+              note: upgrade
+                ? `This capability belongs to the ${upgrade.name} plan and was not performed. Say so plainly and offer what you can do instead.`
+                : 'This capability is not on their plan and was not performed. Say so plainly.',
             }),
           });
           continue;
@@ -341,6 +373,10 @@ Deno.serve(async (req) => {
     const status = e?.status ?? 500;
     const code =
       status === 429 ? 'rate_limited' : status === 401 ? 'ai_auth' : 'ai_unavailable';
+    // A request that never produced anything should not cost the user their allowance.
+    if (receipts.length === 0) {
+      await refundAll(admin, user.id, billing.period.start, spend.spent as Partial<Record<Meter, number>>);
+    }
     // Anything the model already did is real and stays recorded.
     if (receipts.length) {
       await db.from('ai_messages').insert({
@@ -379,14 +415,6 @@ Deno.serve(async (req) => {
 
   await db.from('ai_conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
 
-  // Usage counter is server-owned so the limit cannot be bypassed by the client.
-  await admin.rpc('increment_ai_usage', {
-    p_user: user.id,
-    p_date: context.today,
-    p_input: inputTokens,
-    p_output: outputTokens,
-  });
-
   return new Response(
     JSON.stringify({
       conversation_id: conversationId,
@@ -398,7 +426,13 @@ Deno.serve(async (req) => {
         suggestions,
         created_at: saved.created_at,
       },
-      tier: context.tier,
+      plan: {
+        tier: entitlement.tier,
+        name: entitlement.plan.name,
+        status: entitlement.status,
+      },
+      usage: { spent: spend.spent, period_end: billing.period.end },
+      model: priority ? `${model} (priority)` : model,
     }),
     { headers: { ...corsHeaders, 'Content-Type': 'application/json' } },
   );

@@ -17,7 +17,7 @@ import {
 import { useAreas, useLifePlan, useLifeProgress, useReflections } from '@/hooks/useLife';
 import { useHabits } from '@/hooks/useHabits';
 import { useProjects } from '@/hooks/useProjects';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { friendlyDate } from '@/utils/date';
 
 /** The Life Map: how each part of your life is actually going, and the long view. */
@@ -30,7 +30,8 @@ export default function Life() {
   const projects = useProjects('active');
   const lifePlan = useLifePlan();
   const reflections = useReflections(5);
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
+  const ninetyDay = entitlements.canRun('ninety_day');
 
   const rows = progress.data ?? [];
   const overall = useMemo(
@@ -116,16 +117,22 @@ export default function Life() {
             <Card tone="accent" elevated={false}>
               <Text variant="title3">Where do you want to be in 90 days?</Text>
               <Text variant="footnote" color="secondary" style={{ marginTop: 6 }}>
-                {entitlement.can('ninety_day_plan')
+                {ninetyDay.allowed
                   ? 'Three months, broken into weeks and first actions — built from what you have already told me.'
-                  : '90-day planning is part of Pro.'}
+                  : `90-day planning is part of ${ninetyDay.upgradeTo?.name ?? 'a higher plan'}.`}
               </Text>
               <Button
-                label={entitlement.can('ninety_day_plan') ? 'Build my 90-day plan' : 'See Pro'}
+                label={
+                  ninetyDay.allowed
+                    ? 'Build my 90-day plan'
+                    : ninetyDay.upgradeTo
+                      ? `See ${ninetyDay.upgradeTo.name}`
+                      : 'See plans'
+                }
                 size="sm"
                 style={{ marginTop: 12 }}
                 onPress={() =>
-                  entitlement.can('ninety_day_plan')
+                  ninetyDay.allowed
                     ? router.push('/(tabs)/talk?mode=ninety_day')
                     : router.push('/paywall')
                 }

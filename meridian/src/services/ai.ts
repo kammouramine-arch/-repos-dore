@@ -28,10 +28,47 @@ export type AiReply = {
     suggestions: string[];
     created_at: string;
   };
-  tier: 'free' | 'pro';
+  plan: { tier: string; name: string; status: string };
+  usage: { spent: Record<string, number>; period_end: string };
+  /** Which model actually served the request, for the plan screen. */
+  model: string;
 };
 
-type EdgeError = { error?: { code?: string; message?: string } };
+type EdgeError = {
+  error?: {
+    code?: string;
+    message?: string;
+    meter?: string | null;
+    operation?: string | null;
+    upgrade_to?: string | null;
+    upgrade_name?: string | null;
+    period_end?: string | null;
+  };
+};
+
+/**
+ * An entitlement or allowance failure carries what the UI needs to offer the right
+ * upgrade: which meter ran out, which plan raises it, and when it resets.
+ */
+export class LimitError extends AppError {
+  readonly meter: string | null;
+  readonly upgradeTo: string | null;
+  readonly upgradeName: string | null;
+  readonly resetsAt: string | null;
+
+  constructor(
+    message: string,
+    code: string,
+    details: { meter?: string | null; upgradeTo?: string | null; upgradeName?: string | null; resetsAt?: string | null },
+  ) {
+    super(message, code, false);
+    this.name = 'LimitError';
+    this.meter = details.meter ?? null;
+    this.upgradeTo = details.upgradeTo ?? null;
+    this.upgradeName = details.upgradeName ?? null;
+    this.resetsAt = details.resetsAt ?? null;
+  }
+}
 
 /** Turns an edge-function failure into an error the UI can explain. */
 async function toEdgeError(error: unknown): Promise<AppError> {
@@ -41,7 +78,16 @@ async function toEdgeError(error: unknown): Promise<AppError> {
       const body = (await context.json()) as EdgeError;
       const code = body.error?.code ?? 'ai_unavailable';
       const message = body.error?.message ?? AI_UNAVAILABLE_MESSAGE;
-      return new AppError(message, code, code !== 'quota_exceeded' && code !== 'ai_not_configured');
+
+      if (code === 'quota_exceeded' || code === 'not_entitled') {
+        return new LimitError(message, code, {
+          meter: body.error?.meter,
+          upgradeTo: body.error?.upgrade_to,
+          upgradeName: body.error?.upgrade_name,
+          resetsAt: body.error?.period_end,
+        });
+      }
+      return new AppError(message, code, code !== 'ai_not_configured');
     } catch {
       /* fall through to the generic message */
     }
@@ -106,13 +152,17 @@ export async function generateMorningBrief(): Promise<{ date: string; headline: 
  * transcription provider configured — the caller then tells the user plainly
  * instead of pretending the recording was understood.
  */
-export async function transcribe(uri: string): Promise<string | null> {
+export async function transcribe(uri: string, durationSeconds?: number): Promise<string | null> {
   const form = new FormData();
   form.append('file', {
     uri,
     name: 'speech.m4a',
     type: 'audio/m4a',
   } as unknown as Blob);
+  // Voice is metered by the second; the server floors this against the upload size.
+  if (durationSeconds && durationSeconds > 0) {
+    form.append('duration_seconds', String(Math.ceil(durationSeconds)));
+  }
 
   const { data, error } = await supabase.functions.invoke<{ text: string }>('transcribe', {
     body: form,

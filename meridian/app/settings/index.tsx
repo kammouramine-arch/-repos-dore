@@ -4,7 +4,8 @@ import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
 import { Button, Card, Row, Screen, SectionHeader, Text } from '@/components/ui';
-import { useProfile, useSubscription } from '@/hooks/useProfile';
+import { useProfile } from '@/hooks/useProfile';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { signOut } from '@/services/auth';
 import { brand } from '@/config/brand';
 
@@ -12,7 +13,7 @@ export default function Settings() {
   const theme = useTheme();
   const router = useRouter();
   const profile = useProfile();
-  const subscription = useSubscription();
+  const { plan, isTrial } = useEntitlements();
 
   return (
     <Screen>
@@ -42,7 +43,8 @@ export default function Settings() {
             <View style={{ flex: 1 }}>
               <Text variant="bodyStrong">{profile.data?.full_name ?? 'Your profile'}</Text>
               <Text variant="footnote" color="tertiary">
-                {subscription.data?.tier === 'pro' ? `${brand.name} Pro` : 'Free plan'}
+                {plan.tier === 'free' ? 'Free plan' : `${brand.name} ${plan.name}`}
+                {isTrial ? ' · trial' : ''}
               </Text>
             </View>
             <Feather name="chevron-right" size={18} color={theme.colors.textTertiary} />
@@ -64,7 +66,12 @@ export default function Settings() {
           <Card padded={false} style={{ paddingHorizontal: theme.spacing.base }}>
             <Row icon="moon" label="Appearance" onPress={() => router.push('/settings/appearance')} />
             <Row icon="calendar" label="Calendar integrations" onPress={() => router.push('/settings/integrations')} />
-            <Row icon="star" label="Subscription" onPress={() => router.push('/settings/subscription')} />
+            <Row
+              icon="star"
+              label="Your plan"
+              value={plan.name}
+              onPress={() => router.push('/settings/subscription')}
+            />
             <Row icon="shield" label="Privacy & data" onPress={() => router.push('/settings/privacy')} />
             <Row icon="help-circle" label="Help" onPress={() => router.push('/settings/help')} last />
           </Card>

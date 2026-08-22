@@ -8,7 +8,7 @@ import { HabitRow } from '@/components/HabitRow';
 import { HabitSheet } from '@/components/HabitSheet';
 import { useHabitActions, useHabitLogs, useHabits } from '@/hooks/useHabits';
 import { useAreas } from '@/hooks/useLife';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import type { Habit } from '@/types/database';
 import { todayISO } from '@/utils/date';
 
@@ -20,13 +20,14 @@ export default function Habits() {
   const logs = useHabitLogs(28);
   const areas = useAreas();
   const actions = useHabitActions();
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
   const [sheet, setSheet] = useState<{ open: boolean; habit: Habit | null }>({
     open: false,
     habit: null,
   });
 
-  const atLimit = !entitlement.isPro && (habits.data?.length ?? 0) >= entitlement.limits.habits;
+  const allowance = entitlements.objects('habits', habits.data?.length ?? 0);
+  const atLimit = allowance.atLimit;
 
   return (
     <Screen refreshing={habits.isRefetching} onRefresh={() => void habits.refetch()}>
@@ -50,9 +51,9 @@ export default function Habits() {
         {atLimit ? (
           <Banner
             tone="info"
-            title={`${entitlement.limits.habits} habits on the free plan`}
-            body="Consistency beats volume, but Pro removes the cap."
-            actionLabel="See Pro"
+            title={`${allowance.limit} habits on ${entitlements.plan.name}`}
+            body={`Consistency beats volume, but ${allowance.upgradeTo?.name ?? 'a higher plan'} removes the cap.`}
+            actionLabel={allowance.upgradeTo ? `See ${allowance.upgradeTo.name}` : 'See plans'}
             onAction={() => router.push('/paywall')}
           />
         ) : null}

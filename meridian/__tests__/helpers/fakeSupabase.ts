@@ -10,7 +10,9 @@ export type RecordedCall = {
   filters: { method: string; args: unknown[] }[];
 };
 
-export type Responder = (call: RecordedCall) => { data: unknown; error: { message: string } | null };
+export type Responder = (
+  call: RecordedCall,
+) => { data: unknown; error: { message: string } | null; count?: number | null };
 
 export function createFakeDb(respond: Responder) {
   const calls: RecordedCall[] = [];

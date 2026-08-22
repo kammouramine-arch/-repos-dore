@@ -19,7 +19,7 @@ import { GoalSheet } from '@/components/GoalSheet';
 import { useGoalActions, useGoals } from '@/hooks/useGoals';
 import { useAreas } from '@/hooks/useLife';
 import { useProjects } from '@/hooks/useProjects';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import type { Goal } from '@/types/database';
 
 export default function Goals() {
@@ -34,17 +34,15 @@ export default function Goals() {
   const areas = useAreas();
   const projects = useProjects('active');
   const actions = useGoalActions();
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
 
   const areaById = useMemo(
     () => new Map((areas.data ?? []).map((a) => [a.id, a])),
     [areas.data],
   );
 
-  const atLimit =
-    !entitlement.isPro &&
-    filter === 'active' &&
-    (goals.data?.length ?? 0) >= entitlement.limits.activeGoals;
+  const allowance = entitlements.objects('goals', goals.data?.length ?? 0);
+  const atLimit = filter === 'active' && allowance.atLimit;
 
   return (
     <Screen refreshing={goals.isRefetching} onRefresh={() => void goals.refetch()}>
@@ -85,9 +83,9 @@ export default function Goals() {
         {atLimit ? (
           <Banner
             tone="info"
-            title={`${entitlement.limits.activeGoals} active goals on the free plan`}
-            body="Focus is the point — but Pro lifts the limit when you genuinely need more."
-            actionLabel="See Pro"
+            title={`${allowance.limit} active goals on ${entitlements.plan.name}`}
+            body={`Focus is the point — but ${allowance.upgradeTo?.name ?? 'a higher plan'} lifts the limit when you genuinely need more. Your existing goals stay exactly as they are.`}
+            actionLabel={allowance.upgradeTo ? `See ${allowance.upgradeTo.name}` : 'See plans'}
             onAction={() => router.push('/paywall')}
           />
         ) : null}

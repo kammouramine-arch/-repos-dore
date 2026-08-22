@@ -1,5 +1,6 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
 import { type ToolName, toolMeta, validateToolInput } from './tools.ts';
+import type { EntitlementKey } from './plans.ts';
 
 /**
  * Executes a validated tool call against the database using the caller's own
@@ -23,7 +24,10 @@ type Ctx = {
   userId: string;
   today: string;
   weekStart: string;
-  tier: 'free' | 'pro';
+  /** Capabilities the caller currently has, resolved from their plan. */
+  entitlements: Set<EntitlementKey>;
+  /** How many durable memories their plan allows. */
+  memoryLimit: number;
 };
 
 const ok = (summary: string, extra: Partial<ToolResult> = {}): ToolResult => ({
@@ -658,6 +662,21 @@ const handlers: Record<ToolName, Handler> = {
     if (prefs.data && prefs.data.memory_enabled === false) {
       return err('Memory is turned off in their privacy settings, so nothing was stored');
     }
+
+    // Memory capacity is part of the plan. Updating an existing key is always allowed;
+    // only growing past the limit is refused, and it says which plan holds more.
+    const existing = await ctx.db.from('ai_memory').select('id').eq('key', input.key).maybeSingle();
+    if (!existing.data) {
+      const { count } = await ctx.db
+        .from('ai_memory')
+        .select('id', { count: 'exact', head: true })
+        .eq('is_active', true);
+      if ((count ?? 0) >= ctx.memoryLimit) {
+        return err(
+          `Their plan holds ${ctx.memoryLimit} memories and that is full. A higher plan remembers more, or they can delete one in Settings.`,
+        );
+      }
+    }
     const { data, error } = await ctx.db.from('ai_memory').upsert(
       {
         kind: input.kind,
@@ -713,8 +732,9 @@ export async function executeTool(
   rawInput: unknown,
 ): Promise<ToolResult> {
   const meta = toolMeta[tool];
-  if (meta.proOnly && ctx.tier !== 'pro') {
-    return { ok: false, summary: 'requires_pro', error: 'requires_pro' };
+  if (meta.entitlement && !ctx.entitlements.has(meta.entitlement)) {
+    // The caller turns this into an upgrade prompt naming the right plan.
+    return { ok: false, summary: 'not_entitled', error: `not_entitled:${meta.entitlement}` };
   }
 
   const validated = validateToolInput(tool, rawInput);

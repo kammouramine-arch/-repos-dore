@@ -20,7 +20,22 @@ export type ConversationKind =
 export type MessageRole = 'user' | 'assistant' | 'system';
 export type MemoryKind =
   | 'preference' | 'routine' | 'constraint' | 'fact' | 'relationship' | 'schedule' | 'value';
-export type SubscriptionTier = 'free' | 'pro';
+export type SubscriptionTier = 'free' | 'plus' | 'pro' | 'ultra';
+export type SubscriptionState =
+  | 'free'
+  | 'trialing'
+  | 'active'
+  | 'grace_period'
+  | 'canceled'
+  | 'expired';
+export type UsageMeter =
+  | 'ai_requests'
+  | 'advanced_requests'
+  | 'voice_seconds'
+  | 'life_resets'
+  | 'planning_requests'
+  | 'memory_items'
+  | 'agent_runs';
 export type RecordSource = 'user' | 'ai' | 'import';
 
 type Timestamps = { created_at: string; updated_at: string };
@@ -62,13 +77,50 @@ export type UserPreferences = {
 export type Subscription = {
   user_id: string;
   tier: SubscriptionTier;
-  status: string;
+  status: SubscriptionState;
   platform: string | null;
+  provider: 'none' | 'apple' | 'google' | 'promo';
   product_id: string | null;
   started_at: string;
+  current_period_start: string | null;
   current_period_end: string | null;
+  trial_ends_at: string | null;
+  grace_until: string | null;
+  canceled_at: string | null;
   cancel_at: string | null;
+  will_renew: boolean;
+  store_transaction_id: string | null;
+  store_original_transaction_id: string | null;
+  last_verified_at: string | null;
   updated_at: string;
+};
+
+/** Remotely configurable plan catalogue overrides. Public rows only. */
+export type AppConfig = {
+  key: string;
+  value: Record<string, unknown>;
+  is_public: boolean;
+  updated_at: string;
+};
+
+export type UsageCounter = {
+  user_id: string;
+  period_start: string;
+  meter: UsageMeter;
+  used: number;
+  updated_at: string;
+};
+
+export type UsageEvent = {
+  id: string;
+  user_id: string;
+  period_start: string;
+  meter: UsageMeter;
+  amount: number;
+  operation: string;
+  tier: string | null;
+  model: string | null;
+  created_at: string;
 };
 
 export type LifeArea = Owned & {
@@ -242,6 +294,9 @@ export type AiActionReceipt = {
   entity_id?: string | null;
   entity_type?: string | null;
   error?: string | null;
+  /** Present when an action needs a plan the user does not have. */
+  upgrade_to?: string | null;
+  upgrade_name?: string | null;
 };
 
 export type AiMessage = Owned & {
@@ -263,14 +318,6 @@ export type AiMemory = Owned & {
   is_active: boolean;
   source_conversation_id: string | null;
 } & Timestamps;
-
-export type AiUsage = {
-  user_id: string;
-  date: string;
-  message_count: number;
-  input_tokens: number;
-  output_tokens: number;
-};
 
 export type AppNotification = Owned & {
   kind: string;
@@ -334,13 +381,16 @@ export type Database = {
       ai_conversations: Def<AiConversation>;
       ai_messages: Def<AiMessage>;
       ai_memory: Def<AiMemory>;
-      ai_usage: Def<AiUsage>;
+      app_config: Def<AppConfig>;
+      usage_counters: Def<UsageCounter>;
+      usage_events: Def<UsageEvent>;
       notifications: Def<AppNotification>;
       analytics_events: Def<AnalyticsEvent>;
     };
     Views: Record<string, never>;
     Functions: {
       get_life_progress: { Args: Record<string, never>; Returns: LifeProgressRow[] };
+      get_usage_summary: { Args: { p_period_start: string }; Returns: { meter: string; used: number }[] };
       get_habit_streak: { Args: { p_habit_id: string }; Returns: number };
       export_my_data: { Args: Record<string, never>; Returns: Record<string, unknown> };
       delete_my_account: { Args: Record<string, never>; Returns: undefined };

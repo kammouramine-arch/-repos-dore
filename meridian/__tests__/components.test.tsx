@@ -4,6 +4,8 @@ import { ThemeProvider } from '@/theme';
 import { ChatMessage } from '@/components/ChatMessage';
 import { TaskRow } from '@/components/TaskRow';
 import { EmptyState } from '@/components/ui';
+import { LimitReached } from '@/components/LimitReached';
+import { UsageMeter } from '@/components/UsageMeter';
 import type { AiActionReceipt, Task } from '@/types/database';
 
 const wrap = (ui: React.ReactElement) => render(<ThemeProvider>{ui}</ThemeProvider>);
@@ -72,12 +74,22 @@ describe('ChatMessage receipts', () => {
     expect(onResolve).toHaveBeenCalledWith(0, false);
   });
 
-  it('explains a Pro-gated action instead of showing a raw error code', async () => {
+  it('turns a plan-gated action into an offer, not a raw error code', async () => {
     const actions: AiActionReceipt[] = [
-      { tool: 'generate_90_day_plan', status: 'failed', summary: 'That is a Pro feature', error: 'requires_pro' },
+      {
+        tool: 'generate_90_day_plan',
+        status: 'failed',
+        summary: 'That is part of Plus',
+        error: 'not_entitled',
+        upgrade_name: 'Plus',
+        upgrade_to: 'plus',
+      },
     ];
-    const view = await wrap(<ChatMessage role="assistant" content="That one is part of Pro." actions={actions} />);
-    expect(view.getByText('Not done — this is a Pro feature')).toBeTruthy();
+    const view = await wrap(
+      <ChatMessage role="assistant" content="That one is part of Plus." actions={actions} />,
+    );
+    expect(view.getByText('Not done — part of Plus')).toBeTruthy();
+    expect(view.getByText('See Plus')).toBeTruthy();
   });
 });
 
@@ -102,6 +114,60 @@ describe('TaskRow', () => {
   it('marks a completed task as checked for screen readers', async () => {
     const view = await wrap(<TaskRow task={{ ...task, status: 'done' }} onToggle={jest.fn()} />);
     expect(view.getByRole('checkbox').props.accessibilityState.checked).toBe(true);
+  });
+});
+
+describe('LimitReached', () => {
+  it('offers an upgrade without suggesting anything is taken away', async () => {
+    const view = await wrap(
+      <LimitReached
+        kind="quota_exceeded"
+        upgradeName="Plus"
+        resetsAt="2026-04-01"
+        message="You have used your Free allowance for this period."
+      />,
+    );
+
+    expect(view.getByText("You've reached your current AI limit.")).toBeTruthy();
+    expect(view.getByText('Upgrade to Plus')).toBeTruthy();
+    // The promise that matters: their own data is never held hostage.
+    expect(
+      view.getByText(/goals, tasks, habits, projects, calendar and Life Map are open/i),
+    ).toBeTruthy();
+  });
+
+  it('explains a capability gate differently from a spent allowance', async () => {
+    const view = await wrap(<LimitReached kind="not_entitled" upgradeName="Pro" />);
+    expect(view.getByText('That needs a different plan.')).toBeTruthy();
+    expect(view.getByText('Upgrade to Pro')).toBeTruthy();
+  });
+});
+
+describe('UsageMeter', () => {
+  const quota = {
+    meter: 'ai_requests' as const,
+    label: 'AI conversations',
+    unit: 'requests',
+    limit: 120,
+    used: 90,
+    remaining: 30,
+    percentRemaining: 25,
+    fairUse: false,
+    included: true,
+    description: '120 requests a month',
+  };
+
+  it('leads with how much is left and when it comes back', async () => {
+    const view = await wrap(<UsageMeter headline={quota} resetsAt="2026-04-01" />);
+    expect(view.getByText('25%')).toBeTruthy();
+    expect(view.getByText(/30 of 120 requests left/)).toBeTruthy();
+  });
+
+  it('says fair use rather than counting down a generous allowance', async () => {
+    const view = await wrap(
+      <UsageMeter headline={{ ...quota, fairUse: true }} resetsAt={null} />,
+    );
+    expect(view.getByText(/high limits on your plan, subject to fair use/i)).toBeTruthy();
   });
 });
 

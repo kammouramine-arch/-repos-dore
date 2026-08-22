@@ -1,6 +1,6 @@
 export * from './useCachedQuery';
 export * from './useConversation';
-export * from './useEntitlement';
+export * from './useEntitlements';
 export * from './useGoals';
 export * from './useHabits';
 export * from './useLife';

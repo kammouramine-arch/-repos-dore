@@ -26,9 +26,11 @@ src/
   utils/                 Dates and local planning heuristics
 supabase/
   migrations/            Schema, row level security, triggers and RPCs
+  functions/_shared/plans.ts  Tiers, entitlements, quotas, weighted costs, model routing
   functions/ai-chat/     The assistant: context, tools, execution, receipts
   functions/transcribe/  Speech to text (needs a provider key)
   functions/daily-brief/ Morning briefing generation
+  functions/subscription-verify/  Apple / Google receipt verification
 __tests__/               Unit, integration and security tests
 scripts/seed-demo.mjs    Realistic demo account, one command to add or remove
 docs/                    AI, backend, auth and billing notes
@@ -119,8 +121,11 @@ Every variable is documented in [`.env.example`](.env.example). In short:
 **Client (bundled, safe):** `EXPO_PUBLIC_SUPABASE_URL`, `EXPO_PUBLIC_SUPABASE_ANON_KEY`,
 `EXPO_PUBLIC_ANALYTICS_ENABLED`, `EAS_PROJECT_ID`.
 
-**Server (Supabase secrets, never bundled):** `ANTHROPIC_API_KEY`, `AI_MODEL`,
-`AI_EFFORT`, `AI_REFUSAL_FALLBACK`, `TRANSCRIBE_PROVIDER`, `OPENAI_API_KEY`.
+**Server (Supabase secrets, never bundled):** `ANTHROPIC_API_KEY`, `AI_NAME`,
+`AI_REFUSAL_FALLBACK`, `TRANSCRIBE_PROVIDER`, `OPENAI_API_KEY`, the per-tier model
+overrides (`AI_MODEL_FREE` / `AI_MODEL_PLUS` / `AI_MODEL_PRO` …), and the store
+credentials (`APPLE_SHARED_SECRET`, `GOOGLE_SERVICE_ACCOUNT_JSON`,
+`ANDROID_PACKAGE_NAME`).
 
 ---
 
@@ -147,6 +152,34 @@ More detail: [docs/AI.md](docs/AI.md).
 
 ---
 
+## Plans and usage
+
+Four tiers — Free, Plus, Pro, and Ultra (defined but not on sale until its
+capabilities exist) — described by capability rather than by counters:
+
+* **Free** — *Meet your AI.* The whole planner, a real assistant, one Life Reset a
+  month and a taste of voice. Not a demo.
+* **Plus** — *Build your life with your AI.* A more capable model, 90-day and advanced
+  weekly planning, replanning, voice conversations, deeper memory, no caps on goals,
+  habits or projects.
+* **Pro** — *Unlock your AI's full potential.* The most capable model, advanced
+  reasoning and deep life analysis, the largest memory, priority processing.
+
+Everything about the tiers lives in
+[`supabase/functions/_shared/plans.ts`](supabase/functions/_shared/plans.ts) and can be
+changed at runtime from the `app_config.plans` row — prices, quotas, entitlements,
+trial lengths and even which model each tier uses — without shipping a build. No screen
+contains a price, a limit, a plan name or a model id.
+
+Usage is metered per billing period and weighted: a quick question costs one AI
+request, a 90-day plan costs eight plus an advanced request. Everything metered goes
+through one function on the server, which checks and spends atomically and refunds if
+the work fails.
+
+Reaching a limit never locks anyone out of their own life — goals, tasks, habits,
+projects, the calendar and the Life Map stay open, and only new AI requests pause.
+Cancelling deletes nothing. Details in [docs/BILLING.md](docs/BILLING.md).
+
 ## Offline
 
 Recent plans, tasks, goals and habits are cached per user. Completing a task, creating
@@ -170,7 +203,10 @@ npm test
 ```
 
 Covers the tool catalogue and argument validation, the tool executor against a fake
-database (including ownership checks and Pro gating), the offline queue and cache,
-local planning heuristics, date handling, the confirmation UI, and a security audit
-that fails if a table ships without row level security or a secret appears in client
-code.
+database (ownership checks, entitlement gating, memory capacity), the whole
+subscription system (entitlement resolution across trial, grace, cancellation and
+expiry; weighted usage; model routing; runtime configuration overrides), the offline
+queue and cache, local planning heuristics, date handling, the confirmation and
+limit-reached UI, and a security audit that fails if a table ships without row level
+security, if a device could write its own usage or entitlement, if a model name is
+hardcoded outside the catalogue, or if a secret appears in client code.

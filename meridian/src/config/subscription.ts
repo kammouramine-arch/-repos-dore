@@ -1,54 +1,49 @@
 /**
- * Monetisation configuration. Pricing and limits are declared once here so they can be
- * changed (or fetched remotely later) without touching screens.
- * Product identifiers must match the ones created in App Store Connect / Play Console.
+ * Client-side view of the subscription catalogue.
+ *
+ * Everything real lives in the shared catalogue that the edge functions enforce; this
+ * module only re-exports it and adds the loader that pulls the runtime override from
+ * `app_config`, so prices and limits shown in the app always match what the server
+ * applies, and can be changed without shipping a build.
  */
-import { FREE_LIMITS } from '@shared/limits';
+export {
+  DEFAULT_CATALOGUE,
+  METERS,
+  METER_LABELS,
+  OPERATIONS,
+  checkOperation,
+  currentPeriod,
+  describeQuota,
+  formatPrice,
+  hasEntitlement,
+  mergeCatalogue,
+  objectAllowance,
+  planFor,
+  planForMoreObjects,
+  planForMoreOf,
+  resolveEntitlement,
+  routeModel,
+  yearlySaving,
+} from '@shared/plans';
 
-export type Tier = 'free' | 'pro';
+export type {
+  Catalogue,
+  ObjectKind,
+  Entitlement,
+  EntitlementKey,
+  Meter,
+  Operation,
+  Plan,
+  Price,
+  QuotaCheck,
+  SubscriptionRecord,
+  SubscriptionStatus,
+  Tier,
+  UsageState,
+} from '@shared/plans';
 
-// Limits live next to the edge function that enforces them, so the number shown in
-// the app can never drift from the number the server applies.
-export { FREE_LIMITS };
-
-export const PRO_FEATURES = [
-  { key: 'ai', title: 'Unlimited conversations', detail: 'Talk as much as your life needs.' },
-  { key: 'ninety', title: '90-day life plans', detail: 'Month, week and day level roadmaps.' },
-  { key: 'weekly', title: 'AI weekly planning', detail: 'Realistic weeks with conflict detection.' },
-  { key: 'replan', title: 'Intelligent replanning', detail: 'One sentence rebuilds your day.' },
-  { key: 'memory', title: 'Advanced memory', detail: 'Deeper context, fewer repeated questions.' },
-  { key: 'voice', title: 'Voice capture', detail: 'Speak instead of typing.' },
-  { key: 'insights', title: 'Progress insights', detail: 'See what actually moves your life.' },
-] as const;
-
-/** Feature gates checked by `useEntitlement`. */
-export const PRO_ONLY = [
-  'ninety_day_plan',
-  'weekly_ai_plan',
-  'life_reset',
-  'voice',
-  'advanced_memory',
-  'insights',
-] as const;
-export type ProFeature = (typeof PRO_ONLY)[number];
-
-export const PLANS = [
-  {
-    id: 'monthly',
-    productId: 'meridian.pro.monthly',
-    label: 'Monthly',
-    price: '€9.99',
-    period: 'per month',
-    note: null as string | null,
-  },
-  {
-    id: 'annual',
-    productId: 'meridian.pro.annual',
-    label: 'Annual',
-    price: '€59.99',
-    period: 'per year',
-    note: 'Save 50%',
-  },
-] as const;
-
-export type PlanId = (typeof PLANS)[number]['id'];
+/** Where "manage subscription" sends people, per platform. */
+export const MANAGE_SUBSCRIPTION_URL = {
+  ios: 'https://apps.apple.com/account/subscriptions',
+  android: 'https://play.google.com/store/account/subscriptions',
+} as const;

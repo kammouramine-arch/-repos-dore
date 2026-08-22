@@ -1,12 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useLocalSearchParams } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
-import { AIOrb, Banner, Text } from '@/components/ui';
+import { AIOrb, Text } from '@/components/ui';
+import { LimitReached } from '@/components/LimitReached';
 import { ConversationView } from '@/components/ConversationView';
 import { useConversation } from '@/hooks/useConversation';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import type { AiMode } from '@/services/ai';
 import { brand } from '@/config/brand';
 
@@ -23,10 +24,15 @@ const MODE_TITLES: Record<string, string> = {
  */
 export default function Talk() {
   const theme = useTheme();
-  const router = useRouter();
   const params = useLocalSearchParams<{ mode?: string }>();
   const mode = (params.mode ?? 'chat') as AiMode;
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
+
+  const operation =
+    mode === 'plan_day' || mode === 'plan_week' || mode === 'ninety_day' ? mode : 'chat';
+  // Checked against the same catalogue the server enforces, so the composer can warn
+  // before a request is spent rather than after it is refused.
+  const allowance = entitlements.canRun(operation);
 
   const autoStart =
     mode === 'plan_day'
@@ -43,17 +49,24 @@ export default function Talk() {
     autoStart,
   });
 
-  const [showLimit, setShowLimit] = useState(false);
+  const [dismissed, setDismissed] = useState(false);
   useEffect(() => {
-    setShowLimit(!entitlement.canSendMessage);
-  }, [entitlement.canSendMessage]);
+    setDismissed(false);
+  }, [allowance.allowed]);
+
+  // A limit reported by the server always wins over the local pre-check.
+  const limitError =
+    conversation.error && (conversation.error.code === 'quota_exceeded' || conversation.error.code === 'not_entitled')
+      ? conversation.error
+      : null;
+  const blocked = !allowance.allowed || Boolean(limitError);
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
       <ConversationView
         messages={conversation.messages}
         thinking={conversation.thinking}
-        error={conversation.error}
+        error={limitError ? null : conversation.error}
         onSend={conversation.send}
         onResolve={conversation.resolve}
         suggestions={
@@ -61,10 +74,8 @@ export default function Talk() {
             ? ["I don't know what to do", 'Plan my day', 'I want to change something']
             : conversation.suggestions
         }
-        disabled={!entitlement.canSendMessage}
-        placeholder={
-          entitlement.canSendMessage ? 'Tell me what is going on…' : 'Daily limit reached'
-        }
+        disabled={blocked}
+        placeholder={blocked ? 'Your AI allowance is used up' : 'Tell me what is going on…'}
         header={
           <View style={{ gap: theme.spacing.base, paddingBottom: theme.spacing.lg }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -72,12 +83,12 @@ export default function Talk() {
                 <AIOrb size={30} state={conversation.thinking ? 'thinking' : 'idle'} />
                 <View>
                   <Text variant="title3">{MODE_TITLES[mode] ?? brand.aiName}</Text>
-                  {!entitlement.isPro ? (
-                    <Text variant="caption" color="tertiary">
-                      {entitlement.remainingMessages} message
-                      {entitlement.remainingMessages === 1 ? '' : 's'} left today
-                    </Text>
-                  ) : null}
+                  <Text variant="caption" color="tertiary">
+                    {entitlements.plan.name}
+                    {entitlements.quota('ai_requests').fairUse
+                      ? ''
+                      : ` · ${entitlements.quota('ai_requests').remaining} left this period`}
+                  </Text>
                 </View>
               </View>
               <Pressable
@@ -90,14 +101,22 @@ export default function Talk() {
               </Pressable>
             </View>
 
-            {showLimit ? (
-              <Banner
-                tone="warning"
-                title="You have used today's conversations"
-                body="Pro removes the daily limit and unlocks weekly and 90-day planning."
-                actionLabel="See Pro"
-                onAction={() => router.push('/paywall')}
-                onDismiss={() => setShowLimit(false)}
+            {blocked && !dismissed ? (
+              <LimitReached
+                kind={
+                  limitError?.code === 'not_entitled' ||
+                  (!allowance.allowed && allowance.reason === 'not_entitled')
+                    ? 'not_entitled'
+                    : 'quota_exceeded'
+                }
+                message={limitError?.message}
+                upgradeName={
+                  limitError && 'upgradeName' in limitError
+                    ? (limitError as { upgradeName?: string | null }).upgradeName
+                    : (!allowance.allowed ? allowance.upgradeTo?.name : null)
+                }
+                resetsAt={entitlements.resetsAt}
+                onDismiss={() => setDismissed(true)}
               />
             ) : null}
 

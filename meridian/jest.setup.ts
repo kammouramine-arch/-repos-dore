@@ -54,3 +54,14 @@ jest.mock('expo-linear-gradient', () => {
   const { View } = require('react-native');
   return { LinearGradient: View };
 });
+
+// expo-router pulls in the whole navigation stack; component tests only need the API.
+jest.mock('expo-router', () => ({
+  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
+  useLocalSearchParams: () => ({}),
+  usePathname: () => '/',
+  Link: ({ children }: { children: React.ReactNode }) => children,
+  Redirect: () => null,
+  Stack: Object.assign(() => null, { Screen: () => null }),
+  Tabs: Object.assign(() => null, { Screen: () => null }),
+}));

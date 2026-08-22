@@ -6,8 +6,9 @@ import { useTheme } from '@/theme';
 import { AIOrb, Banner, Button, Card, Screen, Text } from '@/components/ui';
 import { ConversationView } from '@/components/ConversationView';
 import { useConversation } from '@/hooks/useConversation';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { track } from '@/services/analytics';
+import { friendlyDate } from '@/utils/date';
 
 /**
  * Life Reset. A deeper conversation than planning: what is wrong, what they want
@@ -16,11 +17,12 @@ import { track } from '@/services/analytics';
 export default function LifeReset() {
   const theme = useTheme();
   const router = useRouter();
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
+  const allowance = entitlements.canRun('life_reset');
   const [started, setStarted] = useState(false);
   const conversation = useConversation({ kind: 'life_reset', mode: 'life_reset' });
 
-  if (!entitlement.can('life_reset')) {
+  if (!allowance.allowed) {
     return (
       <Screen>
         <View style={{ gap: theme.spacing.lg, paddingTop: theme.spacing.xl }}>
@@ -30,10 +32,22 @@ export default function LifeReset() {
           <Text variant="display">Life Reset</Text>
           <Banner
             tone="info"
-            title="Part of Pro"
-            body="Life Reset rebuilds your goals, habits, weekly structure and first actions in one conversation."
+            title={
+              allowance.reason === 'quota_exceeded'
+                ? `You have used the Life Resets included in ${entitlements.plan.name}`
+                : `Part of ${allowance.upgradeTo?.name ?? 'a higher plan'}`
+            }
+            body={
+              allowance.reason === 'quota_exceeded'
+                ? `Your allowance resets ${entitlements.resetsAt ? friendlyDate(entitlements.resetsAt) : 'next period'}. Everything you have built stays exactly where it is.`
+                : 'Life Reset rebuilds your goals, habits, weekly structure and first actions in one conversation.'
+            }
           />
-          <Button label="See Pro" full onPress={() => router.replace('/paywall')} />
+          <Button
+            label={allowance.upgradeTo ? `See ${allowance.upgradeTo.name}` : 'See plans'}
+            full
+            onPress={() => router.replace('/paywall')}
+          />
         </View>
       </Screen>
     );

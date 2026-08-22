@@ -2,6 +2,7 @@ import React from 'react';
 import { View } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
+import { useRouter } from 'expo-router';
 import { AIOrb, Button, Card, Text } from '@/components/ui';
 import type { AiActionReceipt } from '@/types/database';
 
@@ -81,6 +82,7 @@ function ActionReceiptRow({
   resolving?: boolean;
 }) {
   const theme = useTheme();
+  const router = useRouter();
 
   if (action.status === 'awaiting_confirmation') {
     return (
@@ -115,13 +117,29 @@ function ActionReceiptRow({
     awaiting_confirmation: { icon: 'clock' as const, color: theme.colors.accentText },
   }[action.status];
 
+  // A capability the plan does not include is an offer, not an error.
+  if (action.status === 'failed' && action.error === 'not_entitled') {
+    return (
+      <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
+        <Feather name="lock" size={12} color={theme.colors.accentText} />
+        <Text variant="footnote" color="secondary" style={{ flex: 1 }}>
+          Not done — {action.upgrade_name ? `part of ${action.upgrade_name}` : 'not on your plan'}
+        </Text>
+        <Button
+          label={action.upgrade_name ? `See ${action.upgrade_name}` : 'See plans'}
+          size="sm"
+          variant="ghost"
+          onPress={() => router.push('/paywall')}
+        />
+      </View>
+    );
+  }
+
   return (
     <View style={{ flexDirection: 'row', gap: 8, alignItems: 'center' }}>
       <Feather name={map.icon} size={12} color={map.color} />
       <Text variant="footnote" color={action.status === 'failed' ? 'danger' : 'secondary'} style={{ flex: 1 }}>
-        {action.status === 'failed' && action.error === 'requires_pro'
-          ? 'Not done — this is a Pro feature'
-          : action.summary}
+        {action.summary}
       </Text>
     </View>
   );

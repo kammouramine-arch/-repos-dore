@@ -19,7 +19,7 @@ export function userClient(req: Request): SupabaseClient | null {
   );
 }
 
-/** Service-role client, used only for tables the user may not write (ai_usage). */
+/** Service-role client, used only for tables the user may not write (usage, subscriptions). */
 export function adminClient(): SupabaseClient {
   return createClient(
     Deno.env.get('SUPABASE_URL') ?? '',

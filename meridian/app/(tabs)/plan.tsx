@@ -21,7 +21,7 @@ import { TaskSheet } from '@/components/TaskSheet';
 import { EventSheet } from '@/components/EventSheet';
 import { useTaskActions, useUnscheduledTasks, useWeek } from '@/hooks/usePlanner';
 import { usePreferences } from '@/hooks/useProfile';
-import { useEntitlement } from '@/hooks/useEntitlement';
+import { useEntitlements } from '@/hooks/useEntitlements';
 import { createEvent } from '@/services/events';
 import { dayLoad, orderDay, plannedMinutes, suggestMoves } from '@/utils/planning';
 import { addDays, friendlyDate, toISODate, todayISO, weekRange, weekStartISO } from '@/utils/date';
@@ -36,7 +36,8 @@ export default function Plan() {
   const router = useRouter();
   const params = useLocalSearchParams<{ new?: string }>();
   const queryClient = useQueryClient();
-  const entitlement = useEntitlement();
+  const entitlements = useEntitlements();
+  const weeklyPlanning = entitlements.canRun('plan_week');
 
   const [view, setView] = useState<PlanView>('day');
   const [anchor, setAnchor] = useState(todayISO());
@@ -186,13 +187,14 @@ export default function Plan() {
             capacityHours={Math.round(weekCapacity / 60)}
             moves={moves}
             plan={week.plan.data ?? null}
-            canPlan={entitlement.can('weekly_ai_plan')}
+            canPlan={weeklyPlanning.allowed}
             onSelectDay={(d) => {
               setAnchor(d);
               setView('day');
             }}
+            upgradeName={weeklyPlanning.allowed ? null : (weeklyPlanning.upgradeTo?.name ?? null)}
             onPlanWeek={() =>
-              entitlement.can('weekly_ai_plan')
+              weeklyPlanning.allowed
                 ? router.push('/(tabs)/talk?mode=plan_week')
                 : router.push('/paywall')
             }
@@ -350,6 +352,7 @@ function WeekView({
   moves,
   plan,
   canPlan,
+  upgradeName,
   onSelectDay,
   onPlanWeek,
   onMove,
@@ -363,6 +366,7 @@ function WeekView({
   moves: Task[];
   plan: { summary: string | null; priorities: { title: string }[]; risks: { title: string }[] } | null;
   canPlan: boolean;
+  upgradeName: string | null;
   onSelectDay: (d: string) => void;
   onPlanWeek: () => void;
   onMove: (task: Task) => void;
@@ -420,10 +424,10 @@ function WeekView({
           <Text variant="footnote" color="secondary" style={{ marginTop: 4 }}>
             {canPlan
               ? 'Your planner can look at the whole week, spot conflicts and tell you what to move.'
-              : 'Weekly planning is part of Pro.'}
+              : `Weekly planning is part of ${upgradeName ?? 'a higher plan'}.`}
           </Text>
           <Button
-            label={canPlan ? 'Plan my week' : 'See Pro'}
+            label={canPlan ? 'Plan my week' : upgradeName ? `See ${upgradeName}` : 'See plans'}
             size="sm"
             style={{ marginTop: 12 }}
             onPress={onPlanWeek}

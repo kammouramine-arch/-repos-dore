@@ -1,136 +1,351 @@
-import React, { useState } from 'react';
-import { Linking, Pressable, View } from 'react-native';
+import React, { useMemo, useState } from 'react';
+import { Dimensions, Linking, Platform, Pressable, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
-import { AIOrb, Banner, Button, Card, Screen, Text } from '@/components/ui';
-import { PLANS, PRO_FEATURES, type PlanId } from '@/config/subscription';
-import { features } from '@/config/features';
-import { brand } from '@/config/brand';
-import { useSubscription } from '@/hooks/useProfile';
+import { AIOrb, Banner, Button, Card, Screen, SectionHeader, Segmented, Text } from '@/components/ui';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import {
+  MANAGE_SUBSCRIPTION_URL,
+  METER_LABELS,
+  describeQuota,
+  formatPrice,
+  yearlySaving,
+  type Meter,
+  type Plan,
+} from '@/config/subscription';
+import {
+  PurchasesUnavailableError,
+  purchase,
+  purchasesAvailable,
+  restorePurchases,
+} from '@/services/purchases';
 import { track } from '@/services/analytics';
+import { AppError } from '@/lib/errors';
+import { friendlyDate } from '@/utils/date';
+
+type Period = 'monthly' | 'yearly';
+
+const COMPARED: Meter[] = [
+  'ai_requests',
+  'planning_requests',
+  'voice_seconds',
+  'life_resets',
+  'memory_items',
+];
 
 /**
- * Pro. The free app stays a working planner — Pro buys depth: unlimited conversation,
- * weekly and 90-day planning, replanning, memory, voice.
+ * Plans, side by side.
  *
- * Purchases are not wired to the stores in this build. Rather than showing a button
- * that does nothing, the state is stated plainly (see docs/BILLING.md).
+ * Written in capability, not counters: what the AI can do with you at each level. The
+ * numbers are there for anyone who wants them, and never dressed up as "unlimited"
+ * when a cap exists.
  */
 export default function Paywall() {
   const theme = useTheme();
   const router = useRouter();
-  const subscription = useSubscription();
-  const [plan, setPlan] = useState<PlanId>('annual');
+  const { catalogue, tier, plan: currentPlan, isTrial, accessUntil, refetch } = useEntitlements();
+  const [period, setPeriod] = useState<Period>('yearly');
+  const [busy, setBusy] = useState<string | null>(null);
+  const [error, setError] = useState<string | null>(null);
+  const [notice, setNotice] = useState<string | null>(null);
 
   React.useEffect(() => {
     track('paywall_viewed');
   }, []);
 
-  const isPro = subscription.data?.tier === 'pro';
+  const plans = useMemo(
+    () => catalogue.order.map((t) => catalogue.plans[t]).filter((p): p is Plan => Boolean(p?.available)),
+    [catalogue],
+  );
+
+  const width = Dimensions.get('window').width;
+  const cardWidth = Math.min(300, width - 88);
+
+  const buy = async (target: Plan) => {
+    const price = target.pricing[period];
+    if (!price) return;
+
+    setError(null);
+    setNotice(null);
+    setBusy(price.productId);
+    try {
+      const verified = await purchase(price.productId);
+      track('subscription_started', { tier: verified.tier, period });
+      refetch();
+      setNotice(`You are on ${target.name}. Everything is unlocked.`);
+    } catch (e) {
+      setError(
+        e instanceof PurchasesUnavailableError || e instanceof AppError
+          ? e.message
+          : 'That purchase could not be completed.',
+      );
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  const restore = async () => {
+    setError(null);
+    setNotice(null);
+    setBusy('restore');
+    try {
+      const found = await restorePurchases();
+      refetch();
+      setNotice(
+        found
+          ? `Restored your ${found.tier} subscription.`
+          : 'No previous purchase was found on this store account.',
+      );
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not restore purchases.');
+    } finally {
+      setBusy(null);
+    }
+  };
 
   return (
     <Screen>
       <View style={{ gap: theme.spacing.xl }}>
         <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
           <AIOrb size={34} state="idle" />
-          <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Close">
+          <Pressable
+            onPress={() => router.back()}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Close"
+          >
             <Feather name="x" size={22} color={theme.colors.textTertiary} />
           </Pressable>
         </View>
 
         <View style={{ gap: theme.spacing.sm }}>
           <Text variant="overline" color="accent">
-            {brand.name.toUpperCase()} PRO
+            PLANS
           </Text>
-          <Text variant="display">
-            {isPro ? 'You are on Pro.' : 'The more you talk, the better the plan gets.'}
-          </Text>
+          <Text variant="display">Choose how much AI you want.</Text>
           <Text variant="body" color="secondary">
-            Pro removes the daily conversation limit and unlocks the planning that needs
-            real context: your week, your 90 days, and rebuilding both when life moves.
+            Every plan keeps your goals, habits, projects and plans. What changes is how
+            much thinking the AI does with you, and how far ahead it can plan.
           </Text>
         </View>
 
-        <Card>
-          <View style={{ gap: theme.spacing.base }}>
-            {PRO_FEATURES.map((feature) => (
-              <View key={feature.key} style={{ flexDirection: 'row', gap: 12 }}>
-                <Feather name="check" size={16} color={theme.colors.success} style={{ marginTop: 3 }} />
-                <View style={{ flex: 1 }}>
-                  <Text variant="bodyStrong">{feature.title}</Text>
-                  <Text variant="footnote" color="secondary">
-                    {feature.detail}
-                  </Text>
+        {error ? (
+          <Banner tone="danger" title="Not completed" body={error} onDismiss={() => setError(null)} />
+        ) : null}
+        {notice ? <Banner tone="success" title={notice} onDismiss={() => setNotice(null)} /> : null}
+
+        {isTrial && accessUntil ? (
+          <Banner
+            tone="info"
+            title={`You are trialling ${currentPlan.name}`}
+            body={`Your trial runs until ${friendlyDate(accessUntil.slice(0, 10))}.`}
+          />
+        ) : null}
+
+        <Segmented
+          value={period}
+          onChange={setPeriod}
+          options={[
+            { value: 'monthly', label: 'Monthly' },
+            { value: 'yearly', label: 'Yearly' },
+          ]}
+        />
+
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          snapToInterval={cardWidth + theme.spacing.md}
+          decelerationRate="fast"
+          contentContainerStyle={{ gap: theme.spacing.md, paddingRight: theme.spacing.lg }}
+        >
+          {plans.map((item) => (
+            <PlanCard
+              key={item.tier}
+              plan={item}
+              period={period}
+              width={cardWidth}
+              current={item.tier === tier}
+              busy={busy === item.pricing[period]?.productId}
+              onSelect={() => buy(item)}
+            />
+          ))}
+        </ScrollView>
+
+        {!purchasesAvailable() ? (
+          <Banner
+            tone="info"
+            title="Purchases are not enabled in this build"
+            body="The billing library and store products are configured at release time. Everything else — plans, entitlements, limits, verification and restore — is already wired. See docs/BILLING.md."
+          />
+        ) : null}
+
+        <View>
+          <SectionHeader title="What you get" caption="Allowances are per month" />
+          <Card>
+            {COMPARED.map((meter, index) => (
+              <View
+                key={meter}
+                style={{
+                  paddingVertical: theme.spacing.md,
+                  borderBottomWidth: index === COMPARED.length - 1 ? 0 : 1,
+                  borderBottomColor: theme.colors.border,
+                  gap: 8,
+                }}
+              >
+                <Text variant="subhead">{METER_LABELS[meter].label}</Text>
+                <View style={{ gap: 4 }}>
+                  {plans.map((item) => (
+                    <View
+                      key={item.tier}
+                      style={{ flexDirection: 'row', justifyContent: 'space-between' }}
+                    >
+                      <Text variant="footnote" color="tertiary">
+                        {item.name}
+                      </Text>
+                      <Text variant="footnote" color={item.quotas[meter] > 0 ? 'secondary' : 'tertiary'}>
+                        {describeQuota(item, meter)}
+                      </Text>
+                    </View>
+                  ))}
                 </View>
               </View>
             ))}
-          </View>
-        </Card>
+          </Card>
+        </View>
 
-        {!isPro ? (
-          <>
-            <View style={{ gap: theme.spacing.sm }}>
-              {PLANS.map((option) => {
-                const selected = option.id === plan;
-                return (
-                  <Pressable
-                    key={option.id}
-                    onPress={() => setPlan(option.id)}
-                    accessibilityRole="radio"
-                    accessibilityState={{ selected }}
-                    accessibilityLabel={`${option.label}, ${option.price} ${option.period}`}
-                    style={{
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 12,
-                      padding: theme.spacing.base,
-                      borderRadius: theme.radius.md,
-                      borderWidth: 2,
-                      borderColor: selected ? theme.colors.accent : theme.colors.border,
-                      backgroundColor: selected ? theme.colors.accentSoft : theme.colors.surface,
-                    }}
-                  >
-                    <Feather
-                      name={selected ? 'check-circle' : 'circle'}
-                      size={18}
-                      color={selected ? theme.colors.accent : theme.colors.borderStrong}
-                    />
-                    <View style={{ flex: 1 }}>
-                      <Text variant="bodyStrong">{option.label}</Text>
-                      <Text variant="footnote" color="secondary">
-                        {option.price} {option.period}
-                      </Text>
-                    </View>
-                    {option.note ? (
-                      <Text variant="caption" color="accent">
-                        {option.note}
-                      </Text>
-                    ) : null}
-                  </Pressable>
-                );
-              })}
-            </View>
-
-            {features.inAppPurchases ? (
-              <Button label="Start Pro" full size="lg" onPress={() => track('subscription_started')} />
-            ) : (
-              <Banner
-                tone="info"
-                title="Purchases are not enabled in this build"
-                body="Store products and the purchase library are configured at release time. Until then, Pro can be switched on for an account directly in the database — see docs/BILLING.md."
-              />
-            )}
-          </>
-        ) : (
-          <Button label="Manage subscription" variant="secondary" full onPress={() => Linking.openURL(brand.termsUrl)} />
-        )}
+        <View style={{ gap: theme.spacing.sm }}>
+          <Button
+            label="Restore purchases"
+            variant="secondary"
+            full
+            loading={busy === 'restore'}
+            onPress={restore}
+          />
+          {tier !== 'free' ? (
+            <Button
+              label="Manage subscription"
+              variant="ghost"
+              full
+              onPress={() =>
+                Linking.openURL(
+                  Platform.OS === 'ios' ? MANAGE_SUBSCRIPTION_URL.ios : MANAGE_SUBSCRIPTION_URL.android,
+                )
+              }
+            />
+          ) : null}
+        </View>
 
         <Text variant="caption" color="tertiary" align="center">
-          Subscriptions renew automatically until cancelled. Cancel any time in your store
-          account settings.
+          Prices are charged through your app store account and renew automatically until
+          cancelled. Cancel any time in your store settings. High limits are subject to
+          fair use so the service stays fast for everyone.
         </Text>
       </View>
     </Screen>
+  );
+}
+
+function PlanCard({
+  plan,
+  period,
+  width,
+  current,
+  busy,
+  onSelect,
+}: {
+  plan: Plan;
+  period: Period;
+  width: number;
+  current: boolean;
+  busy: boolean;
+  onSelect: () => void;
+}) {
+  const theme = useTheme();
+  const price = plan.pricing[period];
+  const saving = period === 'yearly' ? yearlySaving(plan) : null;
+  const free = plan.tier === 'free';
+
+  return (
+    <View
+      style={{
+        width,
+        borderRadius: theme.radius.lg,
+        borderWidth: plan.recommended ? 2 : 1,
+        borderColor: plan.recommended ? theme.colors.accent : theme.colors.border,
+        backgroundColor: theme.colors.surface,
+        padding: theme.spacing.lg,
+        gap: theme.spacing.base,
+        ...theme.elevation.card,
+      }}
+    >
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Text variant="title2">{plan.name}</Text>
+        {current ? (
+          <Text variant="caption" color="accent">
+            YOUR PLAN
+          </Text>
+        ) : plan.recommended ? (
+          <Text variant="caption" color="accent">
+            MOST CHOSEN
+          </Text>
+        ) : null}
+      </View>
+
+      <Text variant="bodyStrong" color="accent">
+        {plan.tagline}
+      </Text>
+
+      <View style={{ gap: 2 }}>
+        <Text variant="title1">{free ? 'Free' : formatPrice(price)}</Text>
+        <Text variant="footnote" color="tertiary">
+          {free
+            ? 'no card needed'
+            : `${period === 'monthly' ? 'per month' : 'per year'}${saving ? ` · save ${saving}%` : ''}`}
+        </Text>
+      </View>
+
+      <Text variant="callout" color="secondary">
+        {plan.summary}
+      </Text>
+
+      <View style={{ gap: 8 }}>
+        {plan.highlights.map((line) => (
+          <View key={line} style={{ flexDirection: 'row', gap: 8 }}>
+            <Feather name="check" size={14} color={theme.colors.success} style={{ marginTop: 3 }} />
+            <Text variant="footnote" color="secondary" style={{ flex: 1 }}>
+              {line}
+            </Text>
+          </View>
+        ))}
+      </View>
+
+      {!free ? (
+        <View style={{ gap: 6 }}>
+          <Button
+            label={
+              current
+                ? 'Current plan'
+                : plan.trialDays > 0
+                  ? `Try ${plan.trialDays} days free`
+                  : `Choose ${plan.name}`
+            }
+            full
+            disabled={current}
+            loading={busy}
+            onPress={onSelect}
+          />
+          {plan.trialDays > 0 && !current ? (
+            <Text variant="caption" color="tertiary" align="center">
+              Then {formatPrice(price)} {period === 'monthly' ? 'a month' : 'a year'}. Cancel any time.
+            </Text>
+          ) : null}
+        </View>
+      ) : (
+        <Text variant="caption" color="tertiary" align="center">
+          {current ? 'You are here' : 'Always available'}
+        </Text>
+      )}
+    </View>
   );
 }

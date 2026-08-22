@@ -2,8 +2,9 @@
 /**
  * Creates a realistic demo account so the app can be explored immediately.
  *
- *   npm run seed:demo              # create (or refresh) the demo account
- *   npm run seed:demo -- --clear   # remove the demo account and everything in it
+ *   npm run seed:demo                 # create (or refresh) the demo account on Free
+ *   npm run seed:demo -- --plan=plus  # ...on a paid plan, to see the paid experience
+ *   npm run seed:demo -- --clear      # remove the demo account and everything in it
  *
  * Requires SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY in the environment (a local
  * `supabase start` prints both). The service role key is only ever used here, from a
@@ -75,6 +76,26 @@ async function seed() {
     .from('profiles')
     .update({ onboarding_completed: true, onboarding_completed_at: new Date().toISOString() })
     .eq('id', userId);
+
+  // Optional paid plan, so the subscription experience can be seen without a store.
+  const planArg = process.argv.find((a) => a.startsWith('--plan='));
+  const plan = planArg ? planArg.split('=')[1] : 'free';
+  if (['plus', 'pro', 'ultra'].includes(plan)) {
+    const periodEnd = new Date();
+    periodEnd.setMonth(periodEnd.getMonth() + 1);
+    await admin
+      .from('subscriptions')
+      .update({
+        tier: plan,
+        status: 'active',
+        provider: 'promo',
+        platform: 'promo',
+        current_period_start: new Date().toISOString(),
+        current_period_end: periodEnd.toISOString(),
+        will_renew: true,
+      })
+      .eq('user_id', userId);
+  }
 
   const { data: areas } = await admin.from('life_areas').select('id, key').eq('user_id', userId);
   const area = (key) => areas?.find((a) => a.key === key)?.id ?? null;
@@ -239,7 +260,9 @@ async function seed() {
     { user_id: userId, kind: 'value', key: 'why_business', value: 'Wants income independent of one employer.', importance: 3 },
   ]);
 
-  console.log(`Demo account ready.\n  email:    ${DEMO_EMAIL}\n  password: ${DEMO_PASSWORD}\n\nRemove it with: npm run seed:demo -- --clear`);
+  console.log(
+    `Demo account ready on the ${plan} plan.\n  email:    ${DEMO_EMAIL}\n  password: ${DEMO_PASSWORD}\n\nRemove it with: npm run seed:demo -- --clear`,
+  );
 }
 
 const clearing = process.argv.includes('--clear');

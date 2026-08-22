@@ -136,18 +136,28 @@ see. Five lines maximum. No motivation, no preamble.`,
 };
 
 /** The stable half of the system prompt: identity, mode and plan. Cacheable. */
-export function identityBlock(args: { aiName: string; mode: Mode; tier: 'free' | 'pro' }): string {
-  const proNote =
-    args.tier === 'free'
-      ? `\n\nThis user is on the free plan. Weekly AI planning, 90-day plans and week-wide
-replanning are Pro features — those tools will return "requires_pro". If that happens,
-say plainly that it is part of Pro, and do the most useful thing you can without it.`
-      : '';
+export function identityBlock(args: {
+  aiName: string;
+  mode: Mode;
+  plan: string;
+  entitlements: Set<string>;
+}): string {
+  const missing: string[] = [];
+  if (!args.entitlements.has('PLANNING_ADVANCED')) missing.push('weekly AI planning, 90-day plans and week-wide replanning');
+  if (!args.entitlements.has('ADVANCED_REASONING')) missing.push('deep life analysis');
+  if (!args.entitlements.has('AI_AGENTS')) missing.push('specialised agents');
+
+  const planNote = missing.length
+    ? `\n\nThis user is on the ${args.plan} plan, which does not include ${missing.join('; ')}.
+Those tools come back as "not_entitled". If that happens, say plainly which plan it
+belongs to, then do the most useful thing you can without it. Never imply their own
+goals, tasks or plans are locked — those always belong to them.`
+    : `\n\nThis user is on the ${args.plan} plan and has every planning capability available.`;
 
   return `${IDENTITY(args.aiName)}
 
 # This conversation
-${MODE_INSTRUCTIONS[args.mode]}${proNote}`;
+${MODE_INSTRUCTIONS[args.mode]}${planNote}`;
 }
 
 /** The volatile half: everything about this user right now. */
@@ -160,7 +170,8 @@ export function systemPrompt(args: {
   aiName: string;
   mode: Mode;
   context: string;
-  tier: 'free' | 'pro';
+  plan: string;
+  entitlements: Set<string>;
 }): string {
   return `${identityBlock(args)}\n\n${contextBlock(args.context)}`;
 }

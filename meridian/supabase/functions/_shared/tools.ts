@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import type { EntitlementKey } from './plans.ts';
 
 /**
  * The complete set of actions the assistant is allowed to take.
@@ -346,8 +347,11 @@ type ToolMeta = {
   mutating: boolean;
   /** Destructive or wide-reaching changes must be approved by the user first. */
   requiresConfirmation: boolean;
-  /** Gated behind Pro. */
-  proOnly?: boolean;
+  /**
+   * Capability required to run this tool. Which plan grants it is decided by the
+   * catalogue, so a tool never knows or cares about plan names.
+   */
+  entitlement?: EntitlementKey;
 };
 
 export const toolMeta: Record<ToolName, ToolMeta> = {
@@ -390,9 +394,9 @@ export const toolMeta: Record<ToolName, ToolMeta> = {
 
   create_daily_plan: { description: "Write the day's headline and up to three priorities.", mutating: true, requiresConfirmation: false },
   reorganize_day: { description: 'Move several tasks at once to restructure a day.', mutating: true, requiresConfirmation: true },
-  create_weekly_plan: { description: 'Write the weekly plan: priorities, risks and suggested moves.', mutating: true, requiresConfirmation: false, proOnly: true },
-  replan_week: { description: 'Move many tasks across the week at once.', mutating: true, requiresConfirmation: true, proOnly: true },
-  generate_90_day_plan: { description: 'Create a 90-day plan with three months and weekly objectives.', mutating: true, requiresConfirmation: false, proOnly: true },
+  create_weekly_plan: { description: 'Write the weekly plan: priorities, risks and suggested moves.', mutating: true, requiresConfirmation: false, entitlement: 'PLANNING_ADVANCED' },
+  replan_week: { description: 'Move many tasks across the week at once.', mutating: true, requiresConfirmation: true, entitlement: 'PLANNING_ADVANCED' },
+  generate_90_day_plan: { description: 'Create a 90-day plan with three months and weekly objectives.', mutating: true, requiresConfirmation: false, entitlement: 'PLANNING_ADVANCED' },
 
   create_life_area: { description: 'Add a life area to the Life Map.', mutating: true, requiresConfirmation: false },
   update_life_area: { description: 'Rename a life area or record how satisfied they are with it.', mutating: true, requiresConfirmation: false },
@@ -412,6 +416,11 @@ export function isToolName(value: string): value is ToolName {
 
 export function requiresConfirmation(tool: ToolName): boolean {
   return toolMeta[tool].requiresConfirmation;
+}
+
+/** The capability a tool needs, if any. */
+export function toolEntitlement(tool: ToolName): EntitlementKey | undefined {
+  return toolMeta[tool].entitlement;
 }
 
 /** Anthropic tool definitions, generated from the same zod schemas used to validate. */

@@ -5,7 +5,7 @@ import {
   setAudioModeAsync,
   useAudioRecorder,
 } from 'expo-audio';
-import { transcribe } from '@/services/ai';
+import { LimitError, transcribe } from '@/services/ai';
 import { AppError } from '@/lib/errors';
 
 export type VoiceState = 'idle' | 'recording' | 'transcribing' | 'unavailable';
@@ -19,6 +19,7 @@ export function useVoice() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
   const [state, setState] = useState<VoiceState>('idle');
   const [error, setError] = useState<string | null>(null);
+  const [startedAt, setStartedAt] = useState<number | null>(null);
 
   const start = useCallback(async () => {
     setError(null);
@@ -31,6 +32,7 @@ export function useVoice() {
       await setAudioModeAsync({ allowsRecording: true, playsInSilentMode: true });
       await recorder.prepareToRecordAsync();
       recorder.record();
+      setStartedAt(Date.now());
       setState('recording');
       return true;
     } catch {
@@ -47,12 +49,14 @@ export function useVoice() {
     try {
       await recorder.stop();
       const uri = recorder.uri;
+      const seconds = startedAt ? (Date.now() - startedAt) / 1000 : 0;
+      setStartedAt(null);
       if (!uri) {
         setError('The recording was empty.');
         setState('idle');
         return null;
       }
-      const text = await transcribe(uri);
+      const text = await transcribe(uri, seconds);
       if (text === null) {
         setError('Voice input is not configured on this server yet.');
         setState('unavailable');
@@ -61,11 +65,13 @@ export function useVoice() {
       setState('idle');
       return text;
     } catch (e) {
-      setError(e instanceof AppError ? e.message : 'Could not transcribe that.');
+      // A spent voice allowance is a plan message, not a failure of the microphone.
+      if (e instanceof LimitError) setError(e.message);
+      else setError(e instanceof AppError ? e.message : 'Could not transcribe that.');
       setState('idle');
       return null;
     }
-  }, [recorder, state]);
+  }, [recorder, startedAt, state]);
 
   const cancel = useCallback(async () => {
     if (state === 'recording') {
