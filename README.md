@@ -50,6 +50,22 @@ minute.
 | **Abonnements** | Trois formules, période d'essai, quotas d'usage, Stripe Checkout + portail + webhooks. |
 | **Administration** | Espace interne DEVISIA : entreprises, abonnements, usage IA, erreurs. |
 
+### DEVISIA mobile
+
+L'application mobile n'est ni une WebView ni un site responsive : c'est une
+application React Native qui parle au même backend.
+
+| Capacité | Détail |
+| --- | --- |
+| Dictée | Enregistrement natif, transcription serveur, gestion explicite des refus de permission |
+| Photos | Appareil photo et galerie, compression avant envoi, retrait individuel |
+| Devis | Génération par IA, vérification, enregistrement, envoi |
+| Partage | Feuille de partage native (WhatsApp, Messages, email, copie du lien) |
+| Relances | Rédaction assistée avec choix du ton, envoi après validation |
+| Notifications | Push iOS et Android, badge d'application, désinscription à la déconnexion |
+| Abonnement | Consommation, changement de formule, portail de facturation, résiliation |
+| Session | Jeton stocké dans le trousseau iOS / Keystore Android |
+
 ### Le parcours principal
 
 ```
@@ -60,6 +76,29 @@ OUVRIR DEVISIA → NOUVEAU DEVIS → PARLER → IA → VÉRIFIER → ENVOYER
 ---
 
 ## Architecture
+
+DEVISIA est un dépôt à trois briques : une application web, une application
+mobile et un paquet de code partagé, tous adossés au même backend et à la même
+base PostgreSQL.
+
+```
+.
+├── src/                 Application web + backend (Next.js, API, services)
+├── mobile/              Application iOS et Android (Expo, React Native)
+├── packages/shared/     Code partagé web ↔ mobile (TypeScript pur)
+└── prisma/              Schéma, migrations et données de démonstration
+```
+
+Le paquet partagé contient ce qui ne doit jamais diverger entre les plateformes :
+
+| Module | Contenu |
+| --- | --- |
+| `money.ts` | Moteur financier : centimes entiers, TVA multi-taux, remises, marges |
+| `plans.ts` | Formules, prix, limites et fonctionnalités |
+| `entitlements.ts` | Droits d'accès, essai gratuit, montée et descente en gamme |
+| `contracts.ts` | Types exacts des réponses de l'API |
+| `api-client.ts` | Client d'API typé utilisé par le mobile |
+| `labels.ts` | Libellés métier (statuts de devis, de prospects, tons de relance) |
 
 ```
 src/
@@ -108,6 +147,27 @@ src/
 
 ---
 
+## Cycle commercial
+
+```
+Inscription → Onboarding → 7 jours d'essai → Utilisation → Abonnement
+```
+
+- **Essai de 7 jours, sans carte bancaire.** `trialStartedAt` et `trialEndsAt`
+  sont enregistrés à la création de l'entreprise ; l'échéance est calculée par
+  `packages/shared/src/entitlements.ts`, seule source de vérité.
+- **À l'expiration**, l'écriture se ferme (création et envoi de devis, relances)
+  et la page d'abonnement s'ouvre. **Rien n'est supprimé** : les données restent
+  lisibles et exportables.
+- **Changement de formule** : la montée en gamme prend effet immédiatement avec
+  proratisation, la descente à la fin de la période déjà payée.
+- **Résiliation** : par défaut à l'échéance, réversible d'un clic tant que la
+  période court.
+- **Paiement échoué** : l'abonnement passe en `past_due`, l'accès reste ouvert et
+  un bandeau invite à mettre à jour le moyen de paiement.
+- **Stripe est la seule source de vérité** de l'état d'abonnement : le frontend
+  n'écrit jamais cet état, les webhooks sont vérifiés et idempotents.
+
 ## Technologies
 
 - **Next.js 16** (App Router, Server Components, Server Actions) · **React 19** · **TypeScript strict**
@@ -118,6 +178,7 @@ src/
 - **Recharts** pour la visualisation
 - **Stripe** pour les abonnements · **Resend** pour les emails · **S3** pour le stockage
 - **Vitest** (unitaire + intégration) et **Playwright** (bout en bout)
+- **Expo SDK 57**, **React Native**, **expo-router** pour iOS et Android
 
 Authentification maison : sessions serveur en base, cookies `httpOnly`, jetons hachés (SHA-256),
 mots de passe `bcrypt` (12 tours), révocation globale au changement de mot de passe.
@@ -291,6 +352,31 @@ Sur Vercel, ajouter à `vercel.json` :
 
 ---
 
+## Application mobile
+
+```bash
+cd mobile
+cp .env.example .env            # EXPO_PUBLIC_API_URL vers votre API
+npm install
+npm start                       # Expo Go / build de développement
+```
+
+### Builds et publication
+
+```bash
+npx eas init                    # crée le projet EAS (une seule fois)
+npm run build:preview           # APK Android + build interne iOS
+npm run build:production        # builds stores
+npm run submit:ios              # App Store Connect
+npm run submit:android          # Google Play
+```
+
+La configuration est prête (`app.config.ts`, `eas.json`) : identifiants de
+bundle, permissions rédigées en français, icônes, écran de démarrage, liens
+profonds `devisia://` et `https://devisia.fr/devis/...`, canal de notification
+Android. Seuls les identifiants de comptes développeur restent à renseigner —
+voir « Credentials à fournir ».
+
 ## Tests
 
 ```bash
@@ -379,6 +465,24 @@ Compatible Vercel (ou toute plateforme Node 20+).
   rédigé en français source.
 
 ---
+
+## Credentials à fournir
+
+Tout est intégré côté code : ces valeurs sont les seules choses qui manquent
+pour un lancement commercial.
+
+| Domaine | À renseigner | Où |
+| --- | --- | --- |
+| IA | `ANTHROPIC_API_KEY` (+ `AI_PROVIDER=anthropic`) | `.env` |
+| Transcription | `TRANSCRIPTION_API_KEY` (+ `TRANSCRIPTION_PROVIDER=openai`) | `.env` |
+| Emails | `RESEND_API_KEY`, `EMAIL_FROM` sur domaine vérifié | `.env` |
+| Stockage | `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION` | `.env` |
+| Paiements | `STRIPE_SECRET_KEY`, `NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY`, `STRIPE_WEBHOOK_SECRET`, les trois `STRIPE_PRICE_*` | `.env` |
+| Push | `EXPO_ACCESS_TOKEN` (facultatif), clé APNs et compte de service FCM | `.env` + EAS |
+| iOS | Compte Apple Developer, `appleId`, `ascAppId`, `appleTeamId` | `mobile/eas.json` |
+| Android | Compte Google Play, `google-play-service-account.json` | `mobile/` (non versionné) |
+| EAS | `EAS_PROJECT_ID` généré par `eas init` | `mobile/.env` |
+| Tâches | `CRON_SECRET` | `.env` |
 
 ## Limites connues
 

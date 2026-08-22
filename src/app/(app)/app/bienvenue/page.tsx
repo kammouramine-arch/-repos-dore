@@ -4,6 +4,7 @@ import { requireAuth } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { loadBusinessProfileValue } from '@/server/profile';
 import { BusinessProfileForm } from '@/components/app/business-form';
+import { OnboardingProgress } from '@/components/app/onboarding-progress';
 import { completeOnboardingAction } from '../parametres/actions';
 
 export const metadata: Metadata = { title: 'Bienvenue' };
@@ -22,6 +23,8 @@ export default async function OnboardingPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-7">
+      <OnboardingProgress current={1} />
+
       <header>
         <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-accent">
           Configuration

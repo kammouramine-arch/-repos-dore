@@ -36,7 +36,7 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
               <span className="text-[13px] text-muted">/ mois HT</span>
             </p>
             <p className="mt-1 text-[12.5px] text-subtle">
-              {TRIAL_DAYS} jours d’essai, sans carte bancaire.
+              {TRIAL_DAYS} jours d’essai gratuit, sans carte bancaire.
             </p>
 
             <ul className="mt-6 flex-1 space-y-2.5">
@@ -56,7 +56,7 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
                 size="lg"
               >
                 <Link href={`/inscription?formule=${plan.id.toLowerCase()}`}>
-                  Commencer avec {plan.name}
+                  Commencer mon essai gratuit de {TRIAL_DAYS} jours
                 </Link>
               </Button>
             ) : null}

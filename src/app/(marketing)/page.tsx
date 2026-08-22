@@ -93,7 +93,7 @@ export default function HomePage() {
             <div className="animate-in-up delay-3 mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link href="/inscription">
-                  Créer mon compte gratuitement
+                  Essayer gratuitement
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </Button>
@@ -103,7 +103,7 @@ export default function HomePage() {
             </div>
 
             <p className="animate-in-up delay-4 mt-4 text-[12.5px] text-subtle">
-              {TRIAL_DAYS} jours d’essai · Sans carte bancaire · Résiliable à tout moment
+              {TRIAL_DAYS} jours d’essai gratuit. Aucune carte bancaire requise.
             </p>
           </div>
 
@@ -378,7 +378,7 @@ export default function HomePage() {
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">
                 <Link href="/inscription">
-                  Créer mon compte gratuitement
+                  Essayer gratuitement
                   <ArrowRight className="h-4 w-4" aria-hidden />
                 </Link>
               </Button>

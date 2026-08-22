@@ -119,9 +119,12 @@ export default async function SubscriptionPage({
 
           <PlanActions
             currentPlan={plan}
+            status={subscription?.status ?? 'trialing'}
             hasSubscription={Boolean(subscription?.stripeSubscriptionId)}
             billingReady={billingReady}
             canManage={auth.organization.role === 'OWNER'}
+            cancelAtPeriodEnd={subscription?.cancelAtPeriodEnd ?? false}
+            periodEnd={subscription?.currentPeriodEnd?.toISOString() ?? null}
           />
         </CardContent>
       </Card>

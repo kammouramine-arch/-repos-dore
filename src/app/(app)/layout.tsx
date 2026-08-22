@@ -2,6 +2,8 @@ import { redirect } from 'next/navigation';
 import { getAuthContext, switchOrganization } from '@/lib/auth/session';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { countUnread } from '@/server/services/notificationService';
+import { prisma } from '@/lib/prisma';
+import { SubscriptionBanner } from '@/components/app/subscription-banner';
 import { AppShell, type ShellUser } from '@/components/app/shell';
 import { LocaleHtml } from '@/components/app/locale-html';
 import { getLocale } from '@/lib/i18n';
@@ -13,9 +15,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   const auth = await getAuthContext();
   if (!auth) redirect('/connexion');
 
-  const [unread, locale] = await Promise.all([
+  const [unread, locale, subscription] = await Promise.all([
     countUnread(auth.organization.organizationId),
     getLocale(),
+    prisma.subscription.findUnique({
+      where: { organizationId: auth.organization.organizationId },
+      select: {
+        plan: true,
+        status: true,
+        trialEndsAt: true,
+        currentPeriodEnd: true,
+        cancelAtPeriodEnd: true,
+      },
+    }),
   ]);
 
   const user: ShellUser = {
@@ -44,6 +56,19 @@ export default async function AppLayout({ children }: { children: React.ReactNod
       onSwitchOrganization={handleSwitch}
     >
       <LocaleHtml locale={locale} />
+      <SubscriptionBanner
+        subscription={
+          subscription
+            ? {
+                plan: subscription.plan,
+                status: subscription.status,
+                trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
+                currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
+                cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+              }
+            : null
+        }
+      />
       {children}
     </AppShell>
   );
