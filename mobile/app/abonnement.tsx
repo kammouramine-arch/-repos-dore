@@ -209,16 +209,18 @@ export default function AbonnementScreen() {
                 {quota.limit == null ? ' · illimité' : ` / ${quota.limit}`}
               </Body>
             </View>
-            <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surface2, overflow: 'hidden' }}>
-              <View
-                style={{
-                  height: 6,
-                  borderRadius: 3,
-                  backgroundColor: colors.accent,
-                  width: `${quota.limit == null ? 6 : Math.min(100, (quota.used / quota.limit) * 100)}%`,
-                }}
-              />
-            </View>
+            {quota.limit == null ? null : (
+              <View style={{ height: 6, borderRadius: 3, backgroundColor: colors.surface2, overflow: 'hidden' }}>
+                <View
+                  style={{
+                    height: 6,
+                    borderRadius: 3,
+                    backgroundColor: colors.accent,
+                    width: `${Math.min(100, (quota.used / quota.limit) * 100)}%`,
+                  }}
+                />
+              </View>
+            )}
           </View>
         ))}
       </Card>

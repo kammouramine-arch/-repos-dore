@@ -79,10 +79,9 @@ export default async function AnalyticsPage() {
                   {quota.used} {quota.limit == null ? '· illimité' : `/ ${quota.limit}`}
                 </span>
               </div>
-              <Progress
-                className="mt-2"
-                value={quota.limit == null ? 8 : (quota.used / quota.limit) * 100}
-              />
+              {quota.limit == null ? null : (
+                <Progress className="mt-2" value={(quota.used / quota.limit) * 100} />
+              )}
             </div>
           ))}
         </CardContent>

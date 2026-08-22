@@ -109,10 +109,9 @@ export default async function SubscriptionPage({
                     {quota.used} {quota.limit == null ? '· illimité' : `/ ${quota.limit}`}
                   </span>
                 </div>
-                <Progress
-                  className="mt-2"
-                  value={quota.limit == null ? 6 : (quota.used / quota.limit) * 100}
-                />
+                {quota.limit == null ? null : (
+                  <Progress className="mt-2" value={(quota.used / quota.limit) * 100} />
+                )}
               </div>
             ))}
           </div>

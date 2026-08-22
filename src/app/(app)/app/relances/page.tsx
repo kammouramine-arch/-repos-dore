@@ -57,7 +57,7 @@ export default async function FollowUpsPage() {
         <Card>
           <CardHeader>
             <CardTitle>Devis sans réponse</CardTitle>
-            <span className="text-[12.5px] text-subtle">Du plus ancien au plus récent</span>
+            <span className="text-[12.5px] text-subtle">Les plus urgents d’abord</span>
           </CardHeader>
           <CardContent className="space-y-2.5 pt-1">
             {toRecover.quotes.map((quote) => (
