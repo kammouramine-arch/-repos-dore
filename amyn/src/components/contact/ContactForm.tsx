@@ -14,13 +14,14 @@ import {
   type ContactErrors,
   type ContactField,
   type ContactValues,
+  type FieldDefinition,
 } from "@/lib/contact-form";
 import { EASE } from "@/lib/motion";
 
 type Status = "idle" | "sending" | "sent";
 
 /**
- * Formulaire de contact.
+ * Formulaire de projet.
  *
  * Même langage visuel que le reste du site : pas de champs encadrés, un
  * simple filet sous chaque ligne, qui passe à l'or quand on écrit dedans.
@@ -31,18 +32,22 @@ type Status = "idle" | "sending" | "sent";
  */
 export function ContactForm() {
   const params = useSearchParams();
-  const offer = params.get("offre");
 
-  /* Arrivée depuis une offre : le message est amorcé dès le premier rendu
-     plutôt que réécrit après coup — le visiteur ne voit jamais le champ
-     changer sous ses doigts. */
+  /* Le visiteur arrive d'une offre, d'une formule Care ou des services de
+     visibilité : on amorce son message plutôt que de lui faire réécrire ce
+     qu'il vient de choisir. */
+  const opener = (() => {
+    const offer = params.get("offre");
+    if (offer) return `Bonjour, je suis intéressé par l'offre ${offer}.`;
+    const plan = params.get("formule");
+    if (plan) return `Bonjour, je souhaite des informations sur AMYN ${plan}.`;
+    if (params.get("sujet") === "visibilite")
+      return "Bonjour, je souhaite des informations sur les services de visibilité.";
+    return null;
+  })();
+
   const [values, setValues] = useState<ContactValues>(() =>
-    offer
-      ? {
-          ...EMPTY_CONTACT,
-          message: `Bonjour, je suis intéressé par l'offre ${offer.toUpperCase()}.\n\n`,
-        }
-      : EMPTY_CONTACT,
+    opener ? { ...EMPTY_CONTACT, message: `${opener}\n\n` } : EMPTY_CONTACT,
   );
   const [errors, setErrors] = useState<ContactErrors>({});
   const [status, setStatus] = useState<Status>("idle");
@@ -53,8 +58,7 @@ export function ContactForm() {
   const honeypot = useRef<HTMLInputElement>(null);
 
   /* `latest` suit toujours la dernière saisie, y compris quand plusieurs
-     champs changent dans le même cycle de rendu. Sans lui, la revalidation
-     lisait un état périmé et laissait un champ valide marqué en erreur. */
+     champs changent dans le même cycle de rendu. */
   const latest = useRef(values);
 
   const update = (field: ContactField, value: string) => {
@@ -110,9 +114,7 @@ export function ContactForm() {
       setErrors({});
       setStatus("sent");
     } catch {
-      setServerError(
-        "Connexion impossible. Vérifiez votre réseau et réessayez.",
-      );
+      setServerError("Connexion impossible. Vérifiez votre réseau et réessayez.");
       setStatus("idle");
     }
   }
@@ -133,8 +135,8 @@ export function ContactForm() {
           Demande envoyée.
         </h2>
         <p className="mt-6 max-w-md text-balance text-[0.975rem] leading-[1.75] text-bone-dim">
-          Merci. Nous revenons vers vous rapidement, à l&apos;adresse que vous
-          venez d&apos;indiquer.
+          Merci. Nous revenons vers vous à l&apos;adresse que vous venez
+          d&apos;indiquer, avec une première proposition.
         </p>
 
         <Link
@@ -166,68 +168,16 @@ export function ContactForm() {
       </div>
 
       <div className="grid gap-x-10 gap-y-8 sm:grid-cols-2">
-        {FIELDS.map((field) => {
-          const error = errors[field.name];
-          const full = field.type === "textarea";
-
-          return (
-            <div key={field.name} className={full ? "sm:col-span-2" : undefined}>
-              <label
-                htmlFor={field.name}
-                className="eyebrow block text-bone-mute"
-              >
-                {field.label}
-                {field.optional && (
-                  <span className="ml-2 normal-case tracking-normal text-bone-mute/70">
-                    (facultatif)
-                  </span>
-                )}
-              </label>
-
-              {full ? (
-                <textarea
-                  id={field.name}
-                  name={field.name}
-                  rows={5}
-                  value={values[field.name]}
-                  onChange={(e) => update(field.name, e.target.value)}
-                  disabled={sending}
-                  maxLength={LIMITS.message.max}
-                  aria-invalid={error ? true : undefined}
-                  aria-describedby={error ? `${field.name}-error` : undefined}
-                  className={`mt-3 block w-full resize-y border-b bg-transparent py-3 text-[0.975rem] leading-[1.7] text-bone outline-none transition-colors duration-300 disabled:opacity-50 ${
-                    error ? "border-[#c46a5c]" : "border-bone/15 focus:border-gold"
-                  }`}
-                />
-              ) : (
-                <input
-                  id={field.name}
-                  name={field.name}
-                  type={field.type}
-                  inputMode={field.type === "tel" ? "tel" : undefined}
-                  autoComplete={field.autoComplete}
-                  value={values[field.name]}
-                  onChange={(e) => update(field.name, e.target.value)}
-                  disabled={sending}
-                  aria-invalid={error ? true : undefined}
-                  aria-describedby={error ? `${field.name}-error` : undefined}
-                  className={`mt-3 block w-full border-b bg-transparent py-3 text-[0.975rem] text-bone outline-none transition-colors duration-300 disabled:opacity-50 ${
-                    error ? "border-[#c46a5c]" : "border-bone/15 focus:border-gold"
-                  }`}
-                />
-              )}
-
-              {error && (
-                <p
-                  id={`${field.name}-error`}
-                  className="mt-2.5 text-[0.8rem] text-[#d08476]"
-                >
-                  {error}
-                </p>
-              )}
-            </div>
-          );
-        })}
+        {FIELDS.map((field) => (
+          <Field
+            key={field.name}
+            field={field}
+            value={values[field.name]}
+            error={errors[field.name]}
+            disabled={sending}
+            onChange={(value) => update(field.name, value)}
+          />
+        ))}
       </div>
 
       <div className="mt-14 flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
@@ -264,5 +214,103 @@ export function ContactForm() {
         </p>
       </div>
     </form>
+  );
+}
+
+/** Un champ : filet fin, label en capitales, erreur reliée par aria. */
+function Field({
+  field,
+  value,
+  error,
+  disabled,
+  onChange,
+}: {
+  field: FieldDefinition;
+  value: string;
+  error?: string;
+  disabled: boolean;
+  onChange: (value: string) => void;
+}) {
+  const full = field.type === "textarea";
+  const base = `mt-3 block w-full border-b bg-transparent py-3 text-[0.975rem] text-bone outline-none transition-colors duration-300 disabled:opacity-50 ${
+    error ? "border-[#c46a5c]" : "border-bone/15 focus:border-gold"
+  }`;
+  const aria = {
+    "aria-invalid": error ? (true as const) : undefined,
+    "aria-describedby": error ? `${field.name}-error` : undefined,
+  };
+
+  return (
+    <div className={full ? "sm:col-span-2" : undefined}>
+      <label htmlFor={field.name} className="eyebrow block text-bone-mute">
+        {field.label}
+        {field.optional && (
+          <span className="ml-2 normal-case tracking-normal text-bone-mute/70">
+            (facultatif)
+          </span>
+        )}
+      </label>
+
+      {full ? (
+        <textarea
+          id={field.name}
+          name={field.name}
+          rows={5}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          maxLength={LIMITS.message.max}
+          {...aria}
+          className={`${base} resize-y leading-[1.7]`}
+        />
+      ) : field.type === "select" ? (
+        /* `appearance-none` retire le rendu natif du navigateur, qui casserait
+           la ligne de filets fins. Le chevron est dessiné en CSS. */
+        <div className="relative">
+          <select
+            id={field.name}
+            name={field.name}
+            value={value}
+            onChange={(e) => onChange(e.target.value)}
+            disabled={disabled}
+            {...aria}
+            className={`${base} cursor-pointer appearance-none pr-8 ${
+              value ? "text-bone" : "text-bone-mute"
+            }`}
+          >
+            <option value="">Sélectionner…</option>
+            {field.options?.map((option) => (
+              <option key={option} value={option} className="bg-ink text-bone">
+                {option}
+              </option>
+            ))}
+          </select>
+          <span
+            aria-hidden
+            className="pointer-events-none absolute bottom-4 right-1 h-1.5 w-1.5 rotate-45 border-b border-r border-bone-mute"
+          />
+        </div>
+      ) : (
+        <input
+          id={field.name}
+          name={field.name}
+          type={field.type}
+          inputMode={field.type === "tel" ? "tel" : undefined}
+          autoComplete={field.autoComplete}
+          placeholder={field.placeholder}
+          value={value}
+          onChange={(e) => onChange(e.target.value)}
+          disabled={disabled}
+          {...aria}
+          className={`${base} placeholder:text-bone-mute/60`}
+        />
+      )}
+
+      {error && (
+        <p id={`${field.name}-error`} className="mt-2.5 text-[0.8rem] text-[#d08476]">
+          {error}
+        </p>
+      )}
+    </div>
   );
 }

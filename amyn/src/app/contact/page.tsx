@@ -8,14 +8,14 @@ import { GridLines } from "@/components/ui/GridLines";
 import { contact } from "@/lib/content";
 
 export const metadata: Metadata = {
-  title: "Parler à AMYN",
+  title: "Démarrer mon projet",
   description:
-    "Décrivez votre projet en quelques lignes. Nous revenons vers vous avec une proposition claire.",
+    "Décrivez votre entreprise et votre projet en quelques lignes. Nous revenons vers vous avec une proposition claire.",
   alternates: { canonical: "/contact" },
   openGraph: {
-    title: "Parler à AMYN",
+    title: "Démarrer mon projet",
     description:
-      "Décrivez votre projet en quelques lignes. Nous revenons vers vous avec une proposition claire.",
+      "Décrivez votre entreprise et votre projet en quelques lignes. Nous revenons vers vous avec une proposition claire.",
     url: "/contact",
   },
 };
@@ -30,7 +30,6 @@ export default function ContactPage() {
 
         <Container className="relative">
           <div className="flex items-center gap-4">
-            <span className="eyebrow text-bone-mute">09</span>
             <span className="h-px w-8 bg-gold/60" />
             <span className="eyebrow text-gold">Votre projet</span>
           </div>
@@ -41,9 +40,9 @@ export default function ContactPage() {
           </h1>
 
           <p className="mt-8 max-w-xl text-balance text-[0.975rem] leading-[1.75] text-bone-dim sm:text-base">
-            Quelques lignes suffisent : votre activité, ce qui ne va pas
-            aujourd&apos;hui, et ce que vous aimeriez obtenir. Nous revenons vers
-            vous avec une proposition claire.
+            Quelques lignes suffisent : votre activité, ce que le site doit
+            vous apporter, et ce que vous avez en tête. Nous revenons vers vous
+            avec une proposition claire.
           </p>
 
           <div className="mt-16 max-w-4xl sm:mt-20">

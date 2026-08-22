@@ -1,444 +1,454 @@
 /**
  * Tous les textes du site sont regroupés ici.
  *
- * Pourquoi ? Pour changer un prix ou une phrase sans jamais toucher au code
- * des composants. Tu modifies ce fichier, le site suit.
+ * Tu modifies ce fichier, le site suit. Aucun composant ne contient de
+ * texte marketing en dur.
+ *
+ * RÈGLES D'ÉCRITURE — non négociables :
+ *  · aucune statistique, aucun résultat, aucun témoignage inventés ;
+ *  · aucune promesse qu'AMYN ne peut pas tenir (jamais de classement
+ *    Google garanti, jamais de « premier sur Google ») ;
+ *  · aucun jargon d'agence : pas de « solutions 360° », pas de
+ *    « propulsez », pas de « révolutionnez » ;
+ *  · les projets de démonstration sont toujours annoncés comme des
+ *    concepts, jamais comme des clients réels.
  */
 
 export const site = {
   name: "AMYN",
   domain: "amyn.agency",
-  tagline: "Web & Growth",
-  promise: "Des sites qui attirent. Des systèmes qui convertissent.",
+  tagline: "Studio web",
+  promise: "Nous créons des sites web professionnels, sur mesure.",
 } as const;
 
 /**
  * COORDONNÉES — À COMPLÉTER AVANT LA MISE EN LIGNE.
  *
  * Rien n'est inventé ici : tant qu'une valeur est vide, le lien correspondant
- * n'est tout simplement pas affiché sur le site. Renseigne une chaîne et le
- * lien apparaît. Ne mets jamais d'adresse ou de compte fictif.
+ * n'est tout simplement pas affiché sur le site.
  */
 export const contact = {
-  /* ⚠️ VALEUR PAR DÉFAUT, DÉDUITE DU DOMAINE — À CONFIRMER.
-     Elle n'a pas été vérifiée : remplace-la par ta vraie adresse, ou
-     assure-toi que celle-ci reçoit bien les messages. */
+  /* ⚠️ VALEUR PAR DÉFAUT, DÉDUITE DU DOMAINE — À CONFIRMER. */
   email: "contact@amyn.agency",
-  /* Ex. "https://wa.me/33XXXXXXXXX" */
   whatsapp: "",
-  /* Ex. "https://instagram.com/…" */
   instagram: "",
-  /* Ex. "https://linkedin.com/company/…" */
   linkedin: "",
 } as const;
 
-/**
- * Le titre du hero est découpé ligne par ligne : chaque ligne se révèle
- * derrière son propre masque. `accent` = le mot en serif italique doré.
- * Il ne doit y en avoir qu'UN sur tout le titre.
- */
+/* ==========================================================================
+   01 — HERO
+   ========================================================================== */
+
 export const hero = {
   index: "01",
-  eyebrow: "Web & Growth",
+  eyebrow: "Studio web",
   title: [
-    { text: "Votre site ne doit pas" },
-    { text: "seulement être beau." },
-    { text: "Il doit vous apporter" },
-    { text: "des", accent: "clients." },
+    { text: "Votre entreprise mérite" },
+    { text: "un site à sa", accent: "hauteur." },
   ],
-  body: "Nous créons des sites web modernes et des systèmes digitaux conçus pour aider les entreprises locales à attirer, convertir et fidéliser leurs clients.",
-  ctaPrimary: { label: "Parler à AMYN", href: "/contact" },
-  ctaSecondary: { label: "Découvrir nos services", href: "#services" },
-  meta: "Commerces & entreprises locales — France",
+  body: "Nous créons des sites web professionnels, modernes et sur mesure, conçus autour de votre activité.",
+  ctaPrimary: { label: "Créer mon site", href: "/contact" },
+  ctaSecondary: { label: "Voir nos créations", href: "#creations" },
+  meta: "Studio de création de sites web — France",
 } as const;
 
+/* ==========================================================================
+   02 — CRÉATIONS
+   ========================================================================== */
+
 /**
- * SECTION 02 — LE CONSTAT.
+ * Le portfolio est la pièce maîtresse du site : c'est ce qui prouve.
  *
- * Règle de ton : aucune statistique inventée, aucune promesse exagérée.
- * Chaque conséquence décrit une scène que le lecteur a déjà vécue.
+ * Les six écrans sont de vrais rendus HTML, pas des images. Le squelette est
+ * identique d'un métier à l'autre — seule l'identité change — ce qui montre
+ * en un geste que le site est monté autour de l'activité du client.
+ *
+ * `notes.at` = hauteur en pourcentage de l'élément désigné par l'annotation :
+ * bouton d'action 33, statut 41, prestations 65, barre de contact 95.
  */
-export const problem = {
+export const work = {
   index: "02",
-  eyebrow: "Le constat",
-  question: [
-    { text: "Votre présence en ligne" },
-    { text: "travaille-t-elle", accent: "vraiment" },
-    { text: "pour vous ?" },
-  ],
-  items: [
-    {
-      n: "01",
-      title: "Site vieillissant",
-      body: "Votre vitrine annonce « fermé » avant même qu'on pousse la porte.",
-    },
-    {
-      n: "02",
-      title: "Illisible sur mobile",
-      body: "On pince, on zoome, on renonce.",
-    },
-    {
-      n: "03",
-      title: "Aucune direction",
-      body: "Le visiteur ne sait pas quoi faire. Alors il ne fait rien.",
-    },
-    {
-      n: "04",
-      title: "Réservation impossible",
-      body: "L'envie d'acheter ne survit pas à un appel non décroché.",
-    },
-    {
-      n: "05",
-      title: "Introuvable à côté",
-      body: "On vous cherche à trois rues d'ici. On trouve votre concurrent.",
-    },
-    {
-      n: "06",
-      title: "Demandes perdues",
-      body: "Un formulaire qui n'alerte personne est un client qui n'existe pas.",
-    },
-  ],
-  closing: [
-    { text: "Chaque jour, des clients" },
-    { text: "cherchent ce que vous vendez." },
-    { text: "Et trouvent", accent: "quelqu'un d'autre." },
-  ],
-} as const;
-
-/**
- * SECTION 03 — LA RÉPONSE.
- *
- * `mirror` est la phrase-miroir : elle retourne mot pour mot un problème de
- * la section 02. C'est la transformation rendue lisible, pas seulement
- * visible. Ne les modifie jamais sans relire les conséquences du CONSTAT.
- */
-export const solution = {
-  index: "03",
-  eyebrow: "La réponse",
-  title: [
-    { text: "Nous", accent: "transformons" },
-    { text: "votre présence" },
-    { text: "en ligne." },
-  ],
-  pillars: [
-    {
-      name: "Build",
-      body: "Sites web modernes.",
-      mirror: "Une vitrine qui donne envie d'entrer.",
-    },
-    {
-      name: "Convert",
-      body: "Réservation, formulaires, WhatsApp, parcours client.",
-      mirror: "Le visiteur sait quoi faire, et il le fait.",
-    },
-    {
-      name: "Grow",
-      body: "SEO local, Google Business, optimisation.",
-      mirror: "On vous trouve avant de trouver le voisin.",
-    },
-  ],
-  promise: [
-    { text: "Des sites qui attirent." },
-    { text: "Des systèmes qui", accent: "convertissent." },
-  ],
-} as const;
-
-/**
- * SECTION 04 — LE SYSTÈME.
- *
- * Neuf services = 3 × 3. Chaque circuit prolonge un pilier de la RÉPONSE :
- * les services forment un système par construction, pas parce qu'un texte
- * l'affirme. L'ordre des pièces est celui du parcours du courant — sur la
- * deuxième passe, le circuit va de droite à gauche.
- */
-export const services = {
-  index: "04",
-  eyebrow: "Le système",
-  title: [{ text: "Neuf pièces." }, { text: "Un seul", accent: "système." }],
-  circuits: [
-    {
-      name: "Build",
-      items: [
-        {
-          name: "Création de sites web",
-          body: "La base : rapide, clair, à votre image.",
-        },
-        {
-          name: "Design responsive",
-          body: "Aussi net dans la poche qu'au bureau.",
-        },
-        {
-          name: "Landing pages",
-          body: "Une page, un objectif, zéro distraction.",
-        },
-      ],
-    },
-    {
-      name: "Convert",
-      items: [
-        {
-          name: "Systèmes de réservation",
-          body: "Le client réserve pendant que vous travaillez.",
-        },
-        {
-          name: "Formulaires & WhatsApp",
-          body: "La demande arrive. Vous le savez tout de suite.",
-        },
-        {
-          name: "Optimisation de conversion",
-          body: "On règle les détails qui décident.",
-        },
-      ],
-    },
-    {
-      name: "Grow",
-      items: [
-        {
-          name: "SEO local",
-          body: "Être là quand on cherche à côté de chez vous.",
-        },
-        {
-          name: "Google Business",
-          body: "Votre fiche, tenue comme une vitrine.",
-        },
-        {
-          name: "Automatisations",
-          body: "Les relances et les avis, sans y penser.",
-        },
-      ],
-    },
-  ],
-  bridge: "Le même système, monté sur mesure.",
-} as const;
-
-/**
- * SECTION 05 — DÉMONSTRATIONS.
- *
- * Quatre métiers, un seul squelette : les blocs sont aux mêmes places dans
- * les quatre démos, seule l'identité change. C'est la démonstration visuelle
- * de « le même système, monté sur mesure ».
- *
- * HONNÊTETÉ — règles non négociables :
- *  · les enseignes sont volontairement génériques (aucun risque de
- *    ressembler à un vrai commerce, et le visiteur y projette la sienne) ;
- *  · aucun avis, aucune note, aucun chiffre inventé — ni ici, ni ailleurs ;
- *  · le badge CONCEPT et la mention de bas de section ne disparaissent jamais.
- *
- * `notes.at` est la hauteur, en pourcentage de l'écran, de l'élément que
- * l'annotation désigne : bouton d'action 33, statut 41, prestations 65,
- * barre de contact 95. Ces valeurs sont mesurées sur le rendu réel. Les notes sont rangées de haut en bas pour que les
- * filets ne se croisent jamais.
- *
- * `accent` est une couleur d'accent propre au métier, en hexadécimal parce
- * que l'animation doit pouvoir l'interpoler. Toutes sont désaturées et
- * n'apparaissent que sur deux éléments : le bouton d'action et la pastille
- * de statut. L'or reste dehors — il est à AMYN, pas aux clients.
- */
-export const showcase = {
-  index: "05",
-  eyebrow: "Démonstrations",
-  title: [{ text: "Même système." }, { text: "Quatre", accent: "métiers." }],
+  eyebrow: "Créations",
+  title: [{ text: "Ce que nous" }, { text: "savons", accent: "construire." }],
+  intro:
+    "Six concepts, six métiers. Le même soin, une identité à chaque fois différente.",
   disclaimer:
-    "Projets de démonstration créés par AMYN. Aucun client réel n'est représenté.",
-  bridge: "Chacun de ces systèmes tient dans une offre.",
-  /* Identique dans les quatre démos : c'est le squelette. */
+    "Concepts créés par AMYN pour illustrer notre travail. Aucun client réel n'est représenté.",
+  bridge: "Aucun de ces sites ne ressemble au précédent.",
   actions: ["Appeler", "WhatsApp", "Itinéraire"],
   demos: [
     {
-      trade: "Barbier",
-      name: "Le Barbier",
-      accent: "#B0764A", // cuivre
-      headline: ["Coupe, barbe,", "soin du visage."],
-      action: "Réserver",
-      status: "Ouvert jusqu'à 19 h",
-      services: ["Coupe", "Barbe", "Coupe + barbe"],
-      hours: "Du mardi au samedi",
-      notes: [
-        { text: "Réservation en 2 clics", at: 33 },
-        { text: "Horaires toujours à jour", at: 41 },
-        { text: "Appel direct au pouce", at: 95 },
-      ],
-    },
-    {
       trade: "Restaurant",
       name: "La Table",
-      accent: "#96453B", // braise
+      accent: "#96453B",
       headline: ["Cuisine de saison,", "produits du marché."],
       action: "Réserver une table",
       status: "Service ce soir dès 19 h",
       services: ["Le midi", "Le soir", "La carte"],
       hours: "Du mardi au dimanche",
       notes: [
-        { text: "Réserver une table sans appeler", at: 33 },
-        { text: "Menu toujours à jour", at: 65 },
+        { text: "Réserver sans décrocher le téléphone", at: 33 },
+        { text: "Une carte modifiable en deux minutes", at: 65 },
         { text: "Itinéraire en un geste", at: 95 },
       ],
     },
     {
-      trade: "Institut",
-      name: "L'Institut",
-      accent: "#B08289", // poudre
-      headline: ["Soins du visage", "et du corps."],
+      trade: "Coiffeur",
+      name: "Le Salon",
+      accent: "#B0764A",
+      headline: ["Coupe, couleur,", "soin du cheveu."],
       action: "Prendre rendez-vous",
-      status: "Prochaine disponibilité demain",
-      services: ["Soin du visage", "Épilation", "Massage"],
-      hours: "Du lundi au samedi",
+      status: "Ouvert jusqu'à 19 h",
+      services: ["Coupe", "Couleur", "Coupe + barbe"],
+      hours: "Du mardi au samedi",
       notes: [
-        { text: "Rendez-vous 24 h/24", at: 33 },
-        { text: "Rappels automatiques", at: 41 },
+        { text: "Rendez-vous pris en deux clics", at: 33 },
+        { text: "Horaires toujours à jour", at: 41 },
         { text: "Prestations et tarifs visibles", at: 65 },
       ],
     },
     {
-      trade: "Garage",
-      name: "Le Garage",
-      accent: "#5F7E9B", // acier
-      headline: ["Entretien, pneus,", "révision."],
+      trade: "Artisan",
+      name: "L'Atelier",
+      accent: "#8A7B53",
+      headline: ["Menuiserie sur mesure,", "pose comprise."],
       action: "Demander un devis",
-      status: "Rendez-vous sous 48 h",
-      services: ["Révision", "Pneus", "Diagnostic"],
+      status: "Réponse sous 48 h",
+      services: ["Cuisine", "Dressing", "Escalier"],
       hours: "Du lundi au vendredi",
       notes: [
-        { text: "Demande de devis en 1 minute", at: 33 },
-        { text: "Créneau réservé en ligne", at: 41 },
-        { text: "Demande reçue directement", at: 95 },
+        { text: "Demande de devis en une minute", at: 33 },
+        { text: "Réalisations mises en avant", at: 65 },
+        { text: "La demande arrive directement", at: 95 },
+      ],
+    },
+    {
+      trade: "Immobilier",
+      name: "L'Agence",
+      accent: "#5F7E9B",
+      headline: ["Vendre, acheter,", "estimer."],
+      action: "Estimer mon bien",
+      status: "Nouveaux biens chaque semaine",
+      services: ["À vendre", "À louer", "Estimation"],
+      hours: "Du lundi au samedi",
+      notes: [
+        { text: "Estimation demandée en ligne", at: 33 },
+        { text: "Biens présentés proprement", at: 65 },
+        { text: "Contact direct depuis l'annonce", at: 95 },
+      ],
+    },
+    {
+      trade: "Commerce",
+      name: "La Boutique",
+      accent: "#A0657F",
+      headline: ["Sélection choisie,", "au cœur de la ville."],
+      action: "Voir la sélection",
+      status: "Ouvert aujourd'hui",
+      services: ["Nouveautés", "La sélection", "Nous trouver"],
+      hours: "Du mardi au samedi",
+      notes: [
+        { text: "Catalogue tenu à jour", at: 33 },
+        { text: "Les nouveautés en avant", at: 65 },
+        { text: "On vous trouve du premier coup", at: 95 },
+      ],
+    },
+    {
+      trade: "Entreprise",
+      name: "Le Cabinet",
+      accent: "#6E7F8C",
+      headline: ["Conseil et", "accompagnement."],
+      action: "Prendre contact",
+      status: "Premier échange sans engagement",
+      services: ["Nos expertises", "Notre méthode", "L'équipe"],
+      hours: "Du lundi au vendredi",
+      notes: [
+        { text: "Un parcours qui mène au contact", at: 33 },
+        { text: "Expertises présentées clairement", at: 65 },
+        { text: "Chaque demande est tracée", at: 95 },
       ],
     },
   ],
 } as const;
 
-export const nav = [
-  { label: "Système", href: "#services" },
-  { label: "Démonstrations", href: "#showcase" },
-  { label: "Offres", href: "#offres" },
-  { label: "Care", href: "#care" },
-] as const;
+/* ==========================================================================
+   03 — SUR MESURE
+   ========================================================================== */
+
+export const tailored = {
+  index: "03",
+  eyebrow: "Sur mesure",
+  title: [
+    { text: "Pas de modèle imposé." },
+    { text: "Pas de site", accent: "générique." },
+  ],
+  body: "Chaque entreprise est différente. Votre site doit l'être aussi.",
+  /* Ce sur quoi le site est construit — pas une liste de fonctionnalités. */
+  pillars: [
+    { name: "Votre activité", body: "Ce que vous faites, et comment vous le faites." },
+    { name: "Vos clients", body: "Qui vous cherche, et ce qu'ils viennent y faire." },
+    { name: "Votre image", body: "Le ton, les couleurs, la façon dont on vous voit." },
+    { name: "Vos objectifs", body: "Des appels, des réservations, des devis, de la visibilité." },
+  ],
+  closing: "Le site est construit autour de tout ça. Pas l'inverse.",
+} as const;
+
+/* ==========================================================================
+   04 — PAR MÉTIER
+   ========================================================================== */
 
 /**
- * SECTION 06 — LES OFFRES.
+ * Ce que chaque métier a tendance à demander. Formulé comme un usage
+ * fréquent, jamais comme une liste incluse d'office : les fonctionnalités
+ * entrent dans un projet quand elles servent l'activité, pas par principe.
+ */
+export const sectors = {
+  index: "04",
+  eyebrow: "Par métier",
+  title: [{ text: "Un site pensé pour" }, { text: "votre", accent: "activité." }],
+  note: "Nous adaptons le site à votre métier. Rien n'est inclus d'office : ce qui entre dans le projet est ce qui vous sert.",
+  items: [
+    { name: "Restaurant", needs: "Carte, réservation, présentation du lieu." },
+    { name: "Coiffeur", needs: "Prestations, tarifs, prise de rendez-vous, galerie." },
+    { name: "Artisan", needs: "Métiers, réalisations, demande de devis." },
+    { name: "Immobilier", needs: "Biens, estimation, demandes de contact." },
+    { name: "Commerce", needs: "Sélection, nouveautés, horaires, itinéraire." },
+    { name: "Entreprise", needs: "Présentation, expertises, parcours vers le contact." },
+  ],
+} as const;
+
+/* ==========================================================================
+   05 — LA MÉTHODE
+   ========================================================================== */
+
+export const process = {
+  index: "05",
+  eyebrow: "La méthode",
+  title: [{ text: "Quatre étapes." }, { text: "Aucune", accent: "surprise." }],
+  steps: [
+    {
+      n: "01",
+      name: "Vous nous parlez de votre entreprise",
+      body: "Votre activité, vos clients, ce que le site doit vous apporter.",
+    },
+    {
+      n: "02",
+      name: "Nous concevons l'expérience",
+      body: "Structure, direction artistique, parcours du visiteur.",
+    },
+    {
+      n: "03",
+      name: "Nous construisons le site",
+      body: "Design, développement, fonctionnalités utiles à votre métier.",
+    },
+    {
+      n: "04",
+      name: "Le site est mis en ligne",
+      body: "Il vous appartient. AMYN peut ensuite l'entretenir, si vous le voulez.",
+    },
+  ],
+} as const;
+
+/* ==========================================================================
+   06 — LES OFFRES
+   ========================================================================== */
+
+/**
+ * Trois niveaux d'ambition, jamais trois quotas.
  *
- * Trois paliers du même système, pas trois produits concurrents : chaque
- * offre reprend la précédente. C'est pour cela que PREMIUM et ULTIMATE
- * commencent par une ligne d'héritage plutôt que de répéter la liste.
- *
- * PREMIUM est mis en avant par la composition (encadré, surélevé, seul
- * bouton doré de l'écran), jamais par une couleur criarde.
- *
- * Les prix sont fixés par AMYN : ne les modifie pas sans instruction.
+ * Aucun nombre de pages, aucune fonctionnalité facturée à l'unité : ce qui
+ * entre dans un projet dépend de l'activité du client. Les prix sont des
+ * points de départ — d'où le « À partir de », qui doit rester.
  */
 export const pricing = {
   index: "06",
   eyebrow: "Les offres",
-  title: [{ text: "Nouvelle présence." }, { text: "Nouveau", accent: "niveau." }],
+  title: [{ text: "Un projet." }, { text: "Trois", accent: "niveaux." }],
+  from: "À partir de",
   tiers: [
     {
-      name: "Essential",
-      price: "790 €",
-      pitch: "Pour une présence professionnelle.",
-      /* Les trois paliers ouvrent par une ligne de même nature : c'est ce qui
-         aligne les listes entre elles et rend l'héritage lisible. */
-      inherits: "Inclus :",
+      name: "AMYN Site",
+      price: "990 €",
+      pitch: "Un site web professionnel, conçu sur mesure pour votre entreprise.",
+      intro: "La création complète du site, adaptée au projet :",
       features: [
-        "Site jusqu'à 5 pages",
-        "100 % responsive",
-        "Bouton d'appel",
-        "WhatsApp intégré",
-        "Google Maps",
-        "Formulaire de contact",
-        "Connexion du domaine",
+        "Design personnalisé",
+        "Développement du site",
+        "Mobile, tablette et ordinateur",
+        "Les pages nécessaires au projet",
+        "Présentation de l'activité et des services",
+        "Formulaire de contact et boutons d'appel",
+        "Les fonctionnalités utiles au métier",
         "Mise en ligne",
       ],
       featured: false,
     },
     {
-      name: "Premium",
-      price: "1 290 €",
-      badge: "Recommandé",
-      pitch: "Notre offre la plus populaire.",
-      inherits: "Tout Essential, plus :",
+      name: "AMYN Pro",
+      price: "1 490 €",
+      badge: "Le plus choisi",
+      pitch:
+        "Une expérience web plus poussée, pour les entreprises qui veulent aller plus loin.",
+      intro: "Tout AMYN Site, avec un cran d'exigence supplémentaire :",
       features: [
-        "Système de réservation",
-        "Optimisation Google Business",
-        "SEO local de base",
-        "Automatisation des demandes",
-        "Google Analytics",
-        "Pages optimisées pour convertir",
-        "Galerie / portfolio",
-        "1 mois de petites modifications inclus",
+        "Direction artistique approfondie",
+        "UX travaillée de bout en bout",
+        "Animations et micro-interactions",
+        "Expérience mobile particulièrement soignée",
+        "Architecture de site plus avancée",
+        "Fonctionnalités métier plus poussées",
+        "Parcours optimisé vers la prise de contact",
+        "Analytics et accompagnement au lancement",
       ],
       featured: true,
     },
     {
-      name: "Ultimate",
-      price: "1 990 €",
-      pitch: "Le système complet, pour une croissance maximale.",
-      inherits: "Tout Premium, plus :",
+      name: "AMYN Signature",
+      price: "2 490 €",
+      pitch:
+        "Un projet web entièrement personnalisé, quand le site devient une pièce centrale de votre image.",
+      intro: "Un accompagnement complet, du positionnement à la mise en ligne :",
       features: [
-        "SEO local avancé",
-        "Automatisations avancées",
-        "Suivi automatique des prospects",
-        "Système de réservation avancé",
-        "Landing pages orientées conversion",
-        "Tableau de suivi des prospects",
-        "Gestion et optimisation Google Business",
-        "3 mois de maintenance inclus",
-        "Support prioritaire",
+        "Analyse approfondie du besoin et des objectifs",
+        "Architecture UX entièrement personnalisée",
+        "Direction artistique et identité visuelle digitale",
+        "Interface sur mesure, animations avancées",
+        "Fonctionnalités métier spécifiques",
+        "Espace client ou réservation avancée si nécessaire",
+        "Intégrations avec vos outils existants",
+        "Accompagnement complet au lancement",
       ],
       featured: false,
     },
   ],
-  cta: "Choisir cette offre",
-  bridge: "Et après la mise en ligne ?",
+  cta: "Parler de mon projet",
+  /* Le haut de gamme n'a pas de plafond : au-delà, c'est un devis. */
+  note: "Un projet plus ambitieux ? Il est chiffré sur devis, après un premier échange.",
+  bridge: "Et une fois le site en ligne ?",
 } as const;
 
+/* ==========================================================================
+   07 — SERVICES COMPLÉMENTAIRES
+   ========================================================================== */
+
 /**
- * SECTION 07 — AMYN CARE.
+ * Volontairement présentés comme des options. Le client doit pouvoir
+ * repartir avec son site, et rien d'autre.
  *
- * La seule section du site où quelque chose bouge sans qu'on scrolle.
- * Partout ailleurs le mouvement s'arrête quand le visiteur s'arrête ; ici
- * l'impulsion continue toute seule. C'est l'argument de l'abonnement, rendu
- * sensible avant d'être lu.
+ * Aucune promesse de classement : personne ne peut garantir une position
+ * sur Google, et le prétendre décrédibiliserait tout le reste du site.
  */
-export const care = {
+export const visibility = {
   index: "07",
-  eyebrow: "La continuité",
-  title: [{ text: "Your website." }, { text: "Always", accent: "moving." }],
-  name: "AMYN Care",
-  price: "99 €",
-  period: "/ mois",
-  pitch: "Gardez votre site rapide, sécurisé et toujours à jour.",
-  status: "Surveillance active",
-  benefits: [
-    "Hébergement sécurisé",
-    "Maintenance technique",
-    "Sécurité & sauvegardes",
-    "Petites modifications",
-    "Surveillance du site",
-    "Support continu",
+  eyebrow: "En option",
+  title: [{ text: "Être trouvé," }, { text: "si vous le", accent: "souhaitez." }],
+  body: "Des prestations séparées, à ajouter au projet ou à prendre plus tard. Elles ne conditionnent jamais la création de votre site.",
+  items: [
+    {
+      name: "Fiche Google Business",
+      body: "Création ou reprise de votre fiche, informations, photos, cohérence avec le site.",
+    },
+    {
+      name: "Visibilité locale",
+      body: "Travail sur les informations qui aident les gens à vous trouver près de chez eux.",
+    },
+    {
+      name: "SEO local",
+      body: "Structure, contenus et balises du site travaillés pour vos recherches locales.",
+    },
+    {
+      name: "Présence en ligne",
+      body: "Mise en cohérence de vos pages et de vos informations d'un service à l'autre.",
+    },
   ],
-  cta: "Activer AMYN Care",
+  /* Phrase de crédibilité — ne jamais la retirer. */
+  honesty:
+    "Aucune position sur Google ne peut être garantie, ni par nous ni par personne. Nous travaillons ce qui dépend réellement de nous.",
+  cta: "Demander un devis",
 } as const;
 
-/**
- * SECTION 08 — L'APPEL.
- *
- * Le conducteur qui court depuis le logo de l'intro s'achève ici, sur le
- * seul bouton de la page. Rien d'autre à l'écran.
- */
-export const finalCta = {
+/* ==========================================================================
+   08 — AMYN CARE
+   ========================================================================== */
+
+export const care = {
   index: "08",
-  eyebrow: "Parlons-en",
-  title: [
-    { text: "Prêt à faire grandir" },
-    { text: "votre", accent: "activité ?" },
+  eyebrow: "Maintenance",
+  title: [{ text: "Votre site," }, { text: "entre de", accent: "bonnes mains." }],
+  optional:
+    "Facultatif. Vous pouvez acheter votre site seul, sans aucun abonnement.",
+  status: "Surveillance active",
+  tiers: [
+    {
+      name: "Care",
+      price: "39 €",
+      pitch: "Votre site reste entretenu et surveillé.",
+      features: [
+        "Hébergement et maintenance technique",
+        "Surveillance du site",
+        "Sauvegardes régulières",
+        "Sécurité et mises à jour",
+        "Petites corrections techniques",
+        "Assistance par email",
+      ],
+      featured: false,
+    },
+    {
+      name: "Care Plus",
+      price: "69 €",
+      badge: "Le plus choisi",
+      pitch: "Plus d'accompagnement, moins de contraintes.",
+      intro: "Tout Care, plus :",
+      features: [
+        "Petites modifications de contenu",
+        "Assistance prioritaire",
+        "Suivi technique régulier",
+        "Interventions courantes prises en charge",
+      ],
+      featured: true,
+    },
+    {
+      name: "Care Pro",
+      price: "99 €",
+      pitch: "Un accompagnement web suivi, mois après mois.",
+      intro: "Tout Care Plus, plus :",
+      features: [
+        "Modifications plus nombreuses",
+        "Support prioritaire",
+        "Interventions plus fréquentes",
+        "Suivi plus poussé du site",
+      ],
+      featured: false,
+    },
   ],
-  body: "Parlons de votre projet et voyons comment AMYN peut améliorer votre présence en ligne.",
-  cta: "Parler à AMYN",
+  period: "/ mois",
+  cta: "Choisir cette formule",
 } as const;
 
-/** Pied de page. Les liens vides ne sont pas rendus (voir `contact`). */
+/* ==========================================================================
+   09 — L'APPEL
+   ========================================================================== */
+
+export const finalCta = {
+  index: "09",
+  eyebrow: "Parlons-en",
+  title: [{ text: "Parlons de" }, { text: "votre", accent: "projet." }],
+  body: "Décrivez-nous votre entreprise en quelques lignes. Nous revenons vers vous avec une proposition claire.",
+  cta: "Créer mon site",
+} as const;
+
+/* ==========================================================================
+   NAVIGATION & PIED DE PAGE
+   ========================================================================== */
+
+export const nav = [
+  { label: "Créations", href: "#creations" },
+  { label: "Méthode", href: "#methode" },
+  { label: "Tarifs", href: "#tarifs" },
+  { label: "Care", href: "#care" },
+] as const;
+
 export const footer = {
-  line: "Sites web · Conversion · SEO local",
+  line: "Création de sites web · Sur mesure · France",
   legal: [
     { label: "Mentions légales", href: "/mentions-legales" },
     { label: "Politique de confidentialité", href: "/confidentialite" },

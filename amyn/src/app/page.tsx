@@ -1,15 +1,26 @@
 import { Footer } from "@/components/layout/Footer";
 import { Header } from "@/components/layout/Header";
 import { IntroGate } from "@/components/layout/IntroGate";
-import { Hero } from "@/components/sections/Hero";
-import { Problem } from "@/components/sections/Problem";
-import { Services } from "@/components/sections/Services";
 import { Care } from "@/components/sections/Care";
 import { FinalCta } from "@/components/sections/FinalCta";
+import { Hero } from "@/components/sections/Hero";
 import { Pricing } from "@/components/sections/Pricing";
-import { Showcase } from "@/components/sections/Showcase";
-import { Solution } from "@/components/sections/Solution";
+import { Process } from "@/components/sections/Process";
+import { Sectors } from "@/components/sections/Sectors";
+import { Tailored } from "@/components/sections/Tailored";
+import { Visibility } from "@/components/sections/Visibility";
+import { Work } from "@/components/sections/Work";
 
+/**
+ * Le parcours de la page d'accueil, dans l'ordre où il convainc :
+ *
+ *   ce que nous faisons → la preuve → pourquoi c'est sur mesure →
+ *   pour votre métier → comment ça se passe → combien →
+ *   les options → l'entretien → parlons-en.
+ *
+ * La preuve arrive tout de suite après la promesse : c'est elle qui donne
+ * le droit de parler de prix trois sections plus bas.
+ */
 export default function Home() {
   return (
     <IntroGate>
@@ -22,11 +33,12 @@ export default function Home() {
       <Header />
       <main id="contenu">
         <Hero />
-        <Problem />
-        <Solution />
-        <Services />
-        <Showcase />
+        <Work />
+        <Tailored />
+        <Sectors />
+        <Process />
         <Pricing />
+        <Visibility />
         <Care />
         <FinalCta />
       </main>

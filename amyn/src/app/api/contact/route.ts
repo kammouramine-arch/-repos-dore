@@ -23,7 +23,7 @@ const TO = process.env.CONTACT_TO_EMAIL || "contact@amyn.agency";
    c'est le Reply-To qui porte l'adresse du prospect. */
 const FROM = process.env.CONTACT_FROM_EMAIL || "AMYN <onboarding@resend.dev>";
 
-const SUBJECT = "Nouvelle demande de contact — AMYN";
+const SUBJECT = "Nouvelle demande de projet — AMYN";
 
 /**
  * Limitation de débit, au mieux.
@@ -65,8 +65,12 @@ function buildEmail(v: ContactValues, receivedAt: string) {
     ["Prénom", v.firstName],
     ["Nom", v.lastName],
     ["Entreprise", v.company],
+    ["Secteur", v.sector],
     ["Email", v.email],
     ["Téléphone", v.phone || "—"],
+    ["Site actuel", v.currentSite || "—"],
+    ["Budget envisagé", v.budget],
+    ["Échéance", v.timeline || "—"],
     ["Reçue le", receivedAt],
   ];
 
@@ -77,7 +81,7 @@ function buildEmail(v: ContactValues, receivedAt: string) {
   <table role="presentation" cellpadding="0" cellspacing="0" style="max-width:600px;margin:0 auto;background:#ffffff;border:1px solid #e4e0d7">
     <tr><td style="padding:28px 32px;border-bottom:1px solid #e4e0d7">
       <div style="font-size:12px;letter-spacing:.28em;text-transform:uppercase;color:#a1854b;font-weight:600">AMYN</div>
-      <div style="margin-top:10px;font-size:19px;font-weight:600">Nouvelle demande de contact</div>
+      <div style="margin-top:10px;font-size:19px;font-weight:600">Nouvelle demande de projet</div>
     </td></tr>
     <tr><td style="padding:8px 32px 24px">
       <table role="presentation" cellpadding="0" cellspacing="0" width="100%">
@@ -100,7 +104,7 @@ function buildEmail(v: ContactValues, receivedAt: string) {
 </body></html>`;
 
   const text = [
-    "Nouvelle demande de contact — AMYN",
+    "Nouvelle demande de projet — AMYN",
     "",
     ...rows.map(([label, value]) => `${label} : ${value}`),
     "",
@@ -132,6 +136,10 @@ export async function POST(request: Request) {
     company: String(payload.company ?? "").trim(),
     email: String(payload.email ?? "").trim(),
     phone: String(payload.phone ?? "").trim(),
+    sector: String(payload.sector ?? "").trim(),
+    currentSite: String(payload.currentSite ?? "").trim(),
+    budget: String(payload.budget ?? "").trim(),
+    timeline: String(payload.timeline ?? "").trim(),
     message: String(payload.message ?? "").trim(),
   };
 

@@ -10,22 +10,23 @@ import { pricing } from "@/lib/content";
 import { EASE, inView, stagger } from "@/lib/motion";
 
 /**
- * SECTION 06 — LES OFFRES — « LES TROIS PALIERS »
+ * SECTION 06 — LES OFFRES
  *
- * Trois paliers du même système, pas trois produits qui se disputent le
- * choix : chaque offre reprend la précédente, et le dit en une ligne au
- * lieu de répéter la liste.
+ * Trois niveaux d'ambition sur un même métier, jamais trois quotas.
  *
- * La hiérarchie est portée par la composition, jamais par la couleur :
- * PREMIUM est le seul palier encadré, le seul surélevé, et le seul à
- * recevoir le bouton doré. Les deux autres restent ouverts, sans cadre.
- * C'est la règle de la maison appliquée au pricing — un seul or par écran.
+ * Aucun nombre de pages, aucune fonctionnalité facturée à l'unité : ce qui
+ * entre dans un projet dépend de l'activité du client. Chaque prix est un
+ * point de départ, annoncé comme tel — le « À partir de » fait partie de
+ * l'offre, pas de la mise en page.
+ *
+ * PRO est mis en avant par la composition seule : seul palier encadré,
+ * seul surélevé, seul à recevoir le bouton doré.
  */
 export function Pricing() {
   const [hovered, setHovered] = useState<number | null>(null);
 
   return (
-    <section id="offres" className="relative pb-32 pt-24 sm:pb-40 sm:pt-32">
+    <section id="tarifs" className="relative pb-32 pt-24 sm:pb-40 sm:pt-32">
       <GridLines />
 
       <Container className="relative">
@@ -63,11 +64,21 @@ export function Pricing() {
           ))}
         </div>
 
-        {/* Le conducteur repart vers AMYN Care. */}
+        <motion.p
+          {...inView}
+          variants={{
+            hidden: { opacity: 0 },
+            visible: { opacity: 1, transition: { duration: 0.8, ease: EASE } },
+          }}
+          className="mx-auto mt-16 max-w-lg text-center text-balance text-[0.875rem] leading-[1.7] text-bone-mute sm:mt-20"
+        >
+          {pricing.note}
+        </motion.p>
+
         <motion.div
           {...inView}
           variants={stagger(0.12)}
-          className="mt-24 flex flex-col items-center text-center sm:mt-28"
+          className="mt-20 flex flex-col items-center text-center sm:mt-24"
         >
           <motion.p
             variants={{
@@ -147,15 +158,20 @@ function Tier({
           {tier.name}
         </p>
 
+        {/* Le prix est un point de départ : la mention le dit, au-dessus du
+            chiffre, pour qu'on ne puisse pas la manquer. */}
+        <p className="mt-6 text-[0.72rem] uppercase tracking-[0.16em] text-bone-mute">
+          {pricing.from}
+        </p>
         <p
-          className={`display mt-5 text-[clamp(2rem,3.6vw,3rem)] ${
+          className={`display mt-1.5 text-[clamp(2rem,3.6vw,3rem)] ${
             featured ? "text-metal" : "text-bone"
           }`}
         >
           {tier.price}
         </p>
 
-        <p className="mt-4 max-w-[19rem] text-balance text-[0.9rem] leading-[1.65] text-bone-dim lg:min-h-[3.1rem]">
+        <p className="mt-4 max-w-[19rem] text-balance text-[0.9rem] leading-[1.65] text-bone-dim lg:min-h-[4.7rem]">
           {tier.pitch}
         </p>
       </motion.div>
@@ -171,26 +187,23 @@ function Tier({
         className={`mt-8 h-px w-full origin-left ${featured ? "bg-gold/25" : "bg-bone/12"}`}
       />
 
-      {/* Chaque palier reprend le précédent : on le dit, on ne le répète pas. */}
-      {tier.inherits && (
-        <motion.p
-          variants={{
-            hidden: { opacity: 0 },
-            visible: {
-              opacity: 1,
-              transition: { duration: 0.7, delay: 0.2, ease: EASE },
-            },
-          }}
-          className={`mt-6 font-display text-[0.72rem] font-semibold uppercase tracking-[0.16em] ${
-            featured ? "text-gold/80" : "text-bone-dim"
-          }`}
-        >
-          {tier.inherits}
-        </motion.p>
-      )}
+      <motion.p
+        variants={{
+          hidden: { opacity: 0 },
+          visible: {
+            opacity: 1,
+            transition: { duration: 0.7, delay: 0.2, ease: EASE },
+          },
+        }}
+        className={`mt-6 max-w-[19rem] text-balance font-display text-[0.78rem] font-semibold leading-[1.5] ${
+          featured ? "text-gold/80" : "text-bone-dim"
+        }`}
+      >
+        {tier.intro}
+      </motion.p>
 
       {/* Pas de coches, pas d'icônes : un filet fin suffit à séparer. */}
-      <ul className="mt-4">
+      <ul className="mt-5">
         {tier.features.map((feature, i) => (
           <motion.li
             key={feature}
@@ -218,7 +231,7 @@ function Tier({
             transition: { duration: 0.7, delay: 0.4, ease: EASE },
           },
         }}
-        className="mt-9 pt-1"
+        className="mt-auto pt-9"
       >
         <Button
           href={`/contact?offre=${encodeURIComponent(tier.name)}`}
