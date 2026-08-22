@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { requirePermission } from '@/lib/auth/session';
 import { ok, parseBody, route } from '@/server/api';
+import { assertCanWrite } from '@/server/services/accessService';
 import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { assertWithinPlan } from '@/server/services/usageService';
 import { generateQuoteDraft } from '@/server/services/aiQuoteService';
@@ -15,6 +16,7 @@ const bodySchema = z.object({
 export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('quote:write');
+    await assertCanWrite(auth.organization.organizationId);
     const organizationId = auth.organization.organizationId;
 
     await enforceRateLimit({ key: `ai:${organizationId}`, ...RATE_LIMITS.aiGeneration });

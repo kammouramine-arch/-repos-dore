@@ -179,6 +179,17 @@ enum SubscriptionStatus {
   incomplete
 }
 
+enum BillingPeriod {
+  MENSUEL
+  ANNUEL
+}
+
+enum DevicePlatform {
+  IOS
+  ANDROID
+  WEB
+}
+
 enum UsageMetric {
   AI_GENERATION
   AI_TRANSCRIPTION
@@ -271,6 +282,7 @@ model User {
   notifications Notification[]
   auditLogs     AuditLog[]
   aiRequests    AIRequest[]
+  deviceTokens  DeviceToken[]
 
   @@index([deletedAt])
   @@map("users")
@@ -353,6 +365,7 @@ model Organization {
   integrations    Integration[]
   counters        DocumentCounter[]
   analyticsEvents AnalyticsEvent[]
+  deviceTokens    DeviceToken[]
 
   @@index([deletedAt])
   @@map("organizations")
@@ -879,9 +892,12 @@ model Subscription {
   status               SubscriptionStatus @default(trialing)
   stripeCustomerId     String?            @unique
   stripeSubscriptionId String?            @unique
+  billingPeriod        BillingPeriod      @default(MENSUEL)
   currentPeriodEnd     DateTime?
+  trialStartedAt       DateTime?
   trialEndsAt          DateTime?
   cancelAtPeriodEnd    Boolean            @default(false)
+  canceledAt           DateTime?
   seats                Int                @default(1)
   createdAt            DateTime           @default(now())
   updatedAt            DateTime           @updatedAt
@@ -1016,6 +1032,28 @@ model Integration {
 
   @@unique([organizationId, provider])
   @@map("integrations")
+}
+
+/// Jeton de notification push d'un appareil mobile.
+model DeviceToken {
+  id             String         @id @default(uuid()) @db.Uuid
+  organizationId String         @db.Uuid
+  userId         String         @db.Uuid
+  token          String         @unique
+  platform       DevicePlatform
+  deviceName     String?
+  appVersion     String?
+  lastSeenAt     DateTime       @default(now())
+  disabledAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, disabledAt])
+  @@index([userId])
+  @@map("device_tokens")
 }
 
 model AnalyticsEvent {

@@ -1,6 +1,7 @@
 import { z } from 'zod';
 import { requirePermission } from '@/lib/auth/session';
 import { idSchema, ok, parseBody, route } from '@/server/api';
+import { assertCanWrite } from '@/server/services/accessService';
 import { sendQuote } from '@/server/services/quoteSendService';
 import { toQuoteDTO } from '@/server/dto';
 
@@ -14,6 +15,7 @@ const bodySchema = z.object({
 export async function POST(request: Request, { params }: Params) {
   return route(async () => {
     const auth = await requirePermission('quote:send');
+    await assertCanWrite(auth.organization.organizationId);
     const id = idSchema.parse((await params).id);
     const body = await parseBody(request, bodySchema);
 

@@ -8,6 +8,8 @@ const eslintConfig = [
       'node_modules/**',
       '.next/**',
       'archive/**',
+      // L'application mobile a sa propre configuration (règles React Native).
+      'mobile/**',
       'coverage/**',
       'playwright-report/**',
       'test-results/**',

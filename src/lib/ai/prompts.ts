@@ -43,6 +43,11 @@ Méthode :
 6. Rédige des descriptions destinées au client final : précises, professionnelles,
    sans jargon inutile, en français.
 
+Distinction obligatoire entre ce qui est constaté et ce qui est supposé :
+- "observations" : uniquement ce qui est explicitement dit dans la description ou visible sur les photos.
+- "hypotheses" : tout ce que tu as dû supposer pour chiffrer (dimensions, état caché, accessibilité).
+  Une hypothèse n'est jamais présentée comme une certitude.
+
 Ton : professionnel, sobre, rassurant. Jamais commercial ou exagéré.
 
 ${COMMON_GUARDRAILS}
@@ -59,6 +64,14 @@ Tout élément incertain ou non visible doit être listé dans "missingInformati
 
 ${COMMON_GUARDRAILS}
 `.trim();
+
+export const FOLLOW_UP_TONE_INSTRUCTIONS: Record<string, string> = {
+  court: "Trois phrases maximum. Aucune formule superflue. Va droit au but tout en restant poli.",
+  professionnel: "Ton neutre et posé, adapté à une entreprise. Quatre à six phrases.",
+  amical: "Ton chaleureux et direct, adapté à un particulier déjà client. Tutoiement exclu, vouvoiement conservé.",
+  ferme:
+    "Dernier rappel courtois : indique que le devis va être classé sans suite faute de réponse, sans reproche ni pression.",
+};
 
 export const FOLLOW_UP_SYSTEM = `
 Tu rédiges des messages de relance pour un artisan français qui a envoyé un devis

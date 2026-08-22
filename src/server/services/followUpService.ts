@@ -4,7 +4,8 @@ import { prisma } from '@/lib/prisma';
 import { AppError, notFound } from '@/lib/errors';
 import { appUrl } from '@/lib/env';
 import { buildTemplateFollowUp, getAIProvider, wrapUntrusted, followUpDraftSchema } from '@/lib/ai';
-import { FOLLOW_UP_SYSTEM } from '@/lib/ai/prompts';
+import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS } from '@/lib/ai/prompts';
+import type { FollowUpTone } from '@devisia/shared';
 import { followUpEmail, getEmailProvider } from '@/lib/email';
 import { formatCents } from '@/lib/money';
 import { fullName } from '@/lib/utils';
@@ -80,8 +81,18 @@ export async function scheduleFollowUpsForQuote(organizationId: string, quoteId:
   return created;
 }
 
-/** Rédige une relance : IA si disponible, gabarit professionnel sinon. */
-export async function draftFollowUpMessage(organizationId: string, quoteId: string, attempt = 1) {
+/**
+ * Rédige une relance : IA si disponible, gabarit professionnel sinon.
+ *
+ * Le ton est choisi par l'utilisateur ; le contexte transmis au modèle ne
+ * contient que des données réelles du devis.
+ */
+export async function draftFollowUpMessage(
+  organizationId: string,
+  quoteId: string,
+  attempt = 1,
+  tone: FollowUpTone = 'professionnel',
+) {
   const quote = await prisma.quote.findFirst({
     where: { id: quoteId, organizationId, deletedAt: null },
     include: { customer: true, organization: { include: { businessProfile: true, settings: true } } },
@@ -119,7 +130,7 @@ export async function draftFollowUpMessage(organizationId: string, quoteId: stri
         `Montant : ${formatCents(quote.totalCents)} TTC`,
         `Devis consulté par le client : ${quote.viewCount > 0 ? 'oui' : 'non'}`,
         `Relance numéro ${attempt}`,
-        quote.organization.settings?.aiTone ? `Ton souhaité : ${quote.organization.settings.aiTone}` : '',
+        `Ton demandé : ${FOLLOW_UP_TONE_INSTRUCTIONS[tone] ?? FOLLOW_UP_TONE_INSTRUCTIONS.professionnel}`,
       ]
         .filter(Boolean)
         .join('\n'),

@@ -91,6 +91,8 @@ export async function createOrganization(input: CreateOrganizationInput) {
           create: {
             plan: 'ESSENTIEL',
             status: 'trialing',
+            billingPeriod: 'MENSUEL',
+            trialStartedAt: new Date(),
             trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
           },
         },

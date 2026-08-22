@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { appUrl } from '@/lib/env';
 import { AppError, notFound } from '@/lib/errors';
 import { planFromPriceId, requireStripe, stripePriceId } from '@/lib/billing/stripe';
-import { PLANS, TRIAL_DAYS } from '@/lib/billing/plans';
+import { PLANS, TRIAL_DAYS, planChange } from '@/lib/billing/plans';
 import { getEmailProvider, paymentReceiptEmail } from '@/lib/email';
 import { notify } from './notificationService';
 import { recordAudit } from './auditService';
@@ -70,6 +70,135 @@ export async function createBillingPortalSession(organizationId: string) {
     return_url: appUrl('/app/parametres/abonnement'),
   });
   return session.url;
+}
+
+/**
+ * Changement de formule sur un abonnement existant.
+ *
+ * Une montée en gamme prend effet immédiatement, avec proratisation par Stripe.
+ * Une descente prend effet à la fin de la période en cours : l'utilisateur
+ * conserve ce qu'il a déjà payé, et aucune donnée n'est supprimée.
+ */
+export async function changePlan(organizationId: string, plan: SubscriptionPlan) {
+  const stripe = requireStripe();
+  const subscription = await prisma.subscription.findUnique({ where: { organizationId } });
+  if (!subscription?.stripeSubscriptionId) {
+    throw notFound('Aucun abonnement actif à modifier.');
+  }
+
+  const priceId = stripePriceId(plan);
+  if (!priceId) {
+    throw new AppError(
+      'PROVIDER_UNAVAILABLE',
+      `Aucun tarif Stripe configuré pour la formule ${PLANS[plan].name}.`,
+    );
+  }
+
+  const current = await stripe.subscriptions.retrieve(subscription.stripeSubscriptionId);
+  const item = current.items.data[0];
+  if (!item) throw new AppError('CONFLICT', "L'abonnement Stripe est incomplet.");
+
+  const direction = planChange(subscription.plan, plan);
+  const immediate = direction !== 'downgrade';
+
+  const updated = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+    items: [{ id: item.id, price: priceId }],
+    proration_behavior: immediate ? 'create_prorations' : 'none',
+    billing_cycle_anchor: immediate ? 'now' : undefined,
+    cancel_at_period_end: false,
+    metadata: { organizationId, plan },
+  });
+
+  const periodEnd = updated.items.data[0]?.current_period_end;
+  const effectiveAt = immediate ? null : periodEnd ? new Date(periodEnd * 1000) : null;
+
+  // Une descente ne s'applique qu'à l'échéance : la base garde la formule
+  // actuelle jusqu'à ce que le webhook confirme le changement.
+  if (immediate) {
+    await prisma.subscription.update({
+      where: { organizationId },
+      data: { plan, currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : undefined },
+    });
+  }
+
+  await recordAudit({
+    action: 'subscription.updated',
+    organizationId,
+    metadata: { from: subscription.plan, to: plan, direction },
+  });
+
+  await notify({
+    organizationId,
+    type: 'ABONNEMENT',
+    title: immediate
+      ? `Votre formule est désormais ${PLANS[plan].name}.`
+      : `Le passage en formule ${PLANS[plan].name} prendra effet à votre prochaine échéance.`,
+    href: '/app/parametres/abonnement',
+  });
+
+  return { plan, effectiveAt: effectiveAt?.toISOString() ?? null, immediate };
+}
+
+/**
+ * Résiliation. Par défaut à la fin de la période payée : l'utilisateur garde
+ * son accès jusqu'au bout et peut revenir en arrière.
+ */
+export async function cancelSubscription(organizationId: string, immediate = false) {
+  const stripe = requireStripe();
+  const subscription = await prisma.subscription.findUnique({ where: { organizationId } });
+  if (!subscription?.stripeSubscriptionId) {
+    throw notFound('Aucun abonnement actif à résilier.');
+  }
+
+  if (immediate) {
+    await stripe.subscriptions.cancel(subscription.stripeSubscriptionId);
+    await prisma.subscription.update({
+      where: { organizationId },
+      data: { status: 'canceled', cancelAtPeriodEnd: false, canceledAt: new Date() },
+    });
+    await recordAudit({ action: 'subscription.updated', organizationId, metadata: { canceled: 'immediate' } });
+    return { cancelAtPeriodEnd: false, endsAt: null };
+  }
+
+  const updated = await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: true,
+  });
+  const periodEnd = updated.items.data[0]?.current_period_end;
+
+  await prisma.subscription.update({
+    where: { organizationId },
+    data: {
+      cancelAtPeriodEnd: true,
+      canceledAt: new Date(),
+      currentPeriodEnd: periodEnd ? new Date(periodEnd * 1000) : undefined,
+    },
+  });
+  await recordAudit({ action: 'subscription.updated', organizationId, metadata: { canceled: 'period_end' } });
+
+  return {
+    cancelAtPeriodEnd: true,
+    endsAt: periodEnd ? new Date(periodEnd * 1000).toISOString() : null,
+  };
+}
+
+/** Reprise d'un abonnement dont la résiliation était programmée. */
+export async function resumeSubscription(organizationId: string) {
+  const stripe = requireStripe();
+  const subscription = await prisma.subscription.findUnique({ where: { organizationId } });
+  if (!subscription?.stripeSubscriptionId) {
+    throw notFound('Aucun abonnement à reprendre.');
+  }
+
+  await stripe.subscriptions.update(subscription.stripeSubscriptionId, {
+    cancel_at_period_end: false,
+  });
+  await prisma.subscription.update({
+    where: { organizationId },
+    data: { cancelAtPeriodEnd: false, canceledAt: null },
+  });
+  await recordAudit({ action: 'subscription.updated', organizationId, metadata: { resumed: true } });
+
+  return { resumed: true };
 }
 
 const STATUS_MAP: Record<string, SubscriptionStatus> = {
@@ -167,12 +296,22 @@ export async function handleStripeEvent(event: Stripe.Event) {
       break;
     }
 
+    case 'invoice.paid':
     case 'invoice.payment_succeeded': {
       const invoice = event.data.object as Stripe.Invoice;
       const record = await prisma.subscription.findFirst({
         where: { stripeCustomerId: String(invoice.customer) },
         include: { organization: { include: { businessProfile: true } } },
       });
+
+      // Un paiement réussi remet toujours l'abonnement en état actif.
+      if (record && record.status !== 'active') {
+        await prisma.subscription.update({
+          where: { organizationId: record.organizationId },
+          data: { status: 'active' },
+        });
+      }
+
       if (record?.organization.businessProfile?.email) {
         await getEmailProvider()
           .send({

@@ -22,6 +22,18 @@ const nextConfig: NextConfig = {
   async headers() {
     return [
       { source: '/:path*', headers: securityHeaders },
+      // L'API sert aussi les applications mobiles, qui s'authentifient par
+      // jeton porteur. L'origine est ouverte mais SANS `Allow-Credentials` :
+      // un site tiers ne peut donc jamais rejouer le cookie de session.
+      {
+        source: '/api/:path*',
+        headers: [
+          { key: 'Access-Control-Allow-Origin', value: '*' },
+          { key: 'Access-Control-Allow-Methods', value: 'GET, POST, PATCH, DELETE, OPTIONS' },
+          { key: 'Access-Control-Allow-Headers', value: 'Content-Type, Authorization' },
+          { key: 'Access-Control-Max-Age', value: '86400' },
+        ],
+      },
       // The public quote page is designed to be embedded/shared with clients.
       { source: '/devis/:token', headers: [{ key: 'X-Robots-Tag', value: 'noindex, nofollow' }] },
     ];

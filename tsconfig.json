@@ -26,6 +26,12 @@
     "paths": {
       "@/*": [
         "./src/*"
+      ],
+      "@devisia/shared": [
+        "./packages/shared/src/index.ts"
+      ],
+      "@devisia/shared/*": [
+        "./packages/shared/src/*"
       ]
     }
   },
@@ -34,11 +40,14 @@
     "**/*.ts",
     "**/*.tsx",
     ".next/types/**/*.ts",
-    ".next/dev/types/**/*.ts"
+    ".next/dev/types/**/*.ts",
+    "packages/shared/src/**/*.ts"
   ],
   "exclude": [
     "node_modules",
     "archive",
-    ".next"
+    ".next",
+    "mobile",
+    "packages/shared/node_modules"
   ]
 }

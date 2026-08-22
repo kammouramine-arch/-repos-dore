@@ -43,20 +43,36 @@ export interface AuthContext {
   sessionId: string;
 }
 
-/** Crée une session serveur et pose le cookie httpOnly correspondant. */
-export async function createSession(userId: string): Promise<string> {
+/**
+ * Crée une session serveur et renvoie le jeton en clair.
+ *
+ * Utilisée telle quelle par les clients mobiles (jeton porteur) ; le web
+ * l'enveloppe dans `createSession` qui pose en plus le cookie httpOnly.
+ */
+export async function issueSessionToken(
+  userId: string,
+  options: { deviceName?: string | null } = {},
+): Promise<{ token: string; expiresAt: Date }> {
   const token = generateToken(48);
   const headerList = await headers();
+  const expiresAt = new Date(Date.now() + SESSION_TTL_MS);
+
   await prisma.session.create({
     data: {
       userId,
       tokenHash: hashToken(token),
-      expiresAt: new Date(Date.now() + SESSION_TTL_MS),
-      userAgent: headerList.get('user-agent')?.slice(0, 255) ?? null,
+      expiresAt,
+      userAgent: (options.deviceName ?? headerList.get('user-agent'))?.slice(0, 255) ?? null,
       ipAddress: hashIp(clientIpFrom(headerList)),
     },
   });
 
+  return { token, expiresAt };
+}
+
+/** Crée une session serveur et pose le cookie httpOnly correspondant. */
+export async function createSession(userId: string): Promise<string> {
+  const { token } = await issueSessionToken(userId);
   const store = await cookies();
   store.set(SESSION_COOKIE, token, {
     httpOnly: true,
@@ -70,7 +86,7 @@ export async function createSession(userId: string): Promise<string> {
 
 export async function destroySession(): Promise<void> {
   const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
+  const token = await currentSessionToken();
   if (token) {
     await prisma.session
       .updateMany({ where: { tokenHash: hashToken(token) }, data: { revokedAt: new Date() } })
@@ -80,10 +96,27 @@ export async function destroySession(): Promise<void> {
   store.delete(ORG_COOKIE);
 }
 
+/**
+ * Jeton de session de la requête courante.
+ *
+ * Deux transports sont acceptés : le cookie httpOnly (navigateur) et l'en-tête
+ * `Authorization: Bearer` (applications mobiles). Le cookie reste prioritaire.
+ */
+async function currentSessionToken(): Promise<string | null> {
+  const store = await cookies();
+  const cookieToken = store.get(SESSION_COOKIE)?.value;
+  if (cookieToken) return cookieToken;
+
+  const authorization = (await headers()).get('authorization');
+  if (!authorization) return null;
+  const [scheme, value] = authorization.split(' ');
+  if (!value || scheme?.toLowerCase() !== 'bearer') return null;
+  return value.trim() || null;
+}
+
 /** Contexte d'authentification, ou null si non connecté. Ne lève jamais. */
 export async function getAuthContext(): Promise<AuthContext | null> {
-  const store = await cookies();
-  const token = store.get(SESSION_COOKIE)?.value;
+  const token = await currentSessionToken();
   if (!token) return null;
 
   const session = await prisma.session.findUnique({
@@ -121,7 +154,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 
   if (memberships.length === 0) return null;
 
-  const preferredId = store.get(ORG_COOKIE)?.value;
+  const preferredId = (await cookies()).get(ORG_COOKIE)?.value;
   const organization = memberships.find((m) => m.organizationId === preferredId) ?? memberships[0]!;
 
   return {

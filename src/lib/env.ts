@@ -46,10 +46,18 @@ const serverSchema = z.object({
 
   // Paiements
   STRIPE_SECRET_KEY: z.string().optional(),
+  NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ESSENTIEL: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_ENTREPRISE: z.string().optional(),
+
+  // Notifications push mobiles (Expo)
+  EXPO_ACCESS_TOKEN: z.string().optional(),
+  PUSH_ENABLED: z
+    .enum(['true', 'false'])
+    .default('true')
+    .transform((value) => value === 'true'),
 
   // Automatisations
   CRON_SECRET: z.string().optional(),

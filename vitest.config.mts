@@ -15,7 +15,9 @@ export default defineConfig({
   },
   resolve: {
     alias: {
+      '@devisia/shared/': fileURLToPath(new URL('./packages/shared/src/', import.meta.url)),
       '@': fileURLToPath(new URL('./src', import.meta.url)),
+      '@devisia/shared': fileURLToPath(new URL('./packages/shared/src/index.ts', import.meta.url)),
       // `server-only` refuse de se charger hors contexte serveur React.
       'server-only': fileURLToPath(new URL('./tests/stubs/server-only.ts', import.meta.url)),
     },

@@ -110,6 +110,15 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
     mainOeuvre,
     questions: dedupe(questions).slice(0, 6),
     alertes: dedupe(alertes).slice(0, 5),
+    observations: dedupe(descriptionTravaux).slice(0, 6),
+    hypotheses: dedupe([
+      durationMinutes
+        ? null
+        : "Durée d'intervention estimée à défaut d'indication : à confirmer.",
+      matches.length > 0
+        ? 'Quantités déduites de votre description : vérifiez-les avant envoi.'
+        : null,
+    ].filter((item): item is string => item != null)).slice(0, 5),
     dureeEstimeeMinutes: durationMinutes,
     confiance: confidenceScore({
       matched: matches.length,

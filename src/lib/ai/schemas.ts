@@ -36,8 +36,12 @@ export const quoteDraftSchema = z.object({
   mainOeuvre: z.array(aiLabourSchema).max(20).default([]),
   /** Informations manquantes que l'artisan doit compléter avant envoi. */
   questions: z.array(z.string().max(300)).max(12).default([]),
-  /** Points de vigilance (risques, hypothèses, non-inclus). */
+  /** Points de vigilance (risques, non-inclus). */
   alertes: z.array(z.string().max(300)).max(12).default([]),
+  /** Ce qui est réellement visible sur les photos ou explicite dans la description. */
+  observations: z.array(z.string().max(300)).max(12).default([]),
+  /** Ce que l'IA a supposé faute d'information : à confirmer par l'artisan. */
+  hypotheses: z.array(z.string().max(300)).max(12).default([]),
   dureeEstimeeMinutes: z.number().int().min(0).max(100_000).nullish(),
   /** Confiance de l'IA sur l'exhaustivité du devis, de 0 à 100. */
   confiance: z.number().min(0).max(100).default(50),

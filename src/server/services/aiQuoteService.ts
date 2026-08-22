@@ -39,6 +39,10 @@ export interface GeneratedQuote {
   lines: GeneratedLine[];
   questions: string[];
   warnings: string[];
+  /** Ce qui a été réellement constaté (description, photos). */
+  observations: string[];
+  /** Ce qui a été supposé et reste à confirmer par l'artisan. */
+  assumptions: string[];
   confidence: number;
   estimatedDurationMin: number | null;
   totals: ReturnType<typeof totalsFor>;
@@ -138,6 +142,8 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     lines,
     questions: [...draft.questions, ...extraQuestions].slice(0, 8),
     warnings: draft.alertes,
+    observations: draft.observations,
+    assumptions: draft.hypotheses,
     confidence: Math.round(draft.confiance),
     estimatedDurationMin: draft.dureeEstimeeMinutes ?? null,
     totals,
