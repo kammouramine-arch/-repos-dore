@@ -59,115 +59,21 @@ export const hero = {
 /**
  * Le portfolio est la pièce maîtresse du site : c'est ce qui prouve.
  *
- * Les six écrans sont de vrais rendus HTML, pas des images. Le squelette est
- * identique d'un métier à l'autre — seule l'identité change — ce qui montre
- * en un geste que le site est monté autour de l'activité du client.
- *
- * `notes.at` = hauteur en pourcentage de l'élément désigné par l'annotation :
- * bouton d'action 33, statut 41, prestations 65, barre de contact 95.
+ * Les concepts eux-mêmes (marques, palettes, compositions) vivent dans
+ * src/lib/concepts.ts — ajouter un métier s'y fait en une entrée.
  */
 export const work = {
   index: "02",
   eyebrow: "Créations",
-  title: [{ text: "Ce que nous" }, { text: "savons", accent: "construire." }],
-  intro:
-    "Six concepts, six métiers. Le même soin, une identité à chaque fois différente.",
-  disclaimer:
-    "Concepts créés par AMYN pour illustrer notre travail. Aucun client réel n'est représenté.",
-  bridge: "Aucun de ces sites ne ressemble au précédent.",
-  actions: ["Appeler", "WhatsApp", "Itinéraire"],
-  demos: [
-    {
-      trade: "Restaurant",
-      name: "La Table",
-      accent: "#96453B",
-      headline: ["Cuisine de saison,", "produits du marché."],
-      action: "Réserver une table",
-      status: "Service ce soir dès 19 h",
-      services: ["Le midi", "Le soir", "La carte"],
-      hours: "Du mardi au dimanche",
-      notes: [
-        { text: "Réserver sans décrocher le téléphone", at: 33 },
-        { text: "Une carte modifiable en deux minutes", at: 65 },
-        { text: "Itinéraire en un geste", at: 95 },
-      ],
-    },
-    {
-      trade: "Coiffeur",
-      name: "Le Salon",
-      accent: "#B0764A",
-      headline: ["Coupe, couleur,", "soin du cheveu."],
-      action: "Prendre rendez-vous",
-      status: "Ouvert jusqu'à 19 h",
-      services: ["Coupe", "Couleur", "Coupe + barbe"],
-      hours: "Du mardi au samedi",
-      notes: [
-        { text: "Rendez-vous pris en deux clics", at: 33 },
-        { text: "Horaires toujours à jour", at: 41 },
-        { text: "Prestations et tarifs visibles", at: 65 },
-      ],
-    },
-    {
-      trade: "Artisan",
-      name: "L'Atelier",
-      accent: "#8A7B53",
-      headline: ["Menuiserie sur mesure,", "pose comprise."],
-      action: "Demander un devis",
-      status: "Réponse sous 48 h",
-      services: ["Cuisine", "Dressing", "Escalier"],
-      hours: "Du lundi au vendredi",
-      notes: [
-        { text: "Demande de devis en une minute", at: 33 },
-        { text: "Réalisations mises en avant", at: 65 },
-        { text: "La demande arrive directement", at: 95 },
-      ],
-    },
-    {
-      trade: "Immobilier",
-      name: "L'Agence",
-      accent: "#5F7E9B",
-      headline: ["Vendre, acheter,", "estimer."],
-      action: "Estimer mon bien",
-      status: "Nouveaux biens chaque semaine",
-      services: ["À vendre", "À louer", "Estimation"],
-      hours: "Du lundi au samedi",
-      notes: [
-        { text: "Estimation demandée en ligne", at: 33 },
-        { text: "Biens présentés proprement", at: 65 },
-        { text: "Contact direct depuis l'annonce", at: 95 },
-      ],
-    },
-    {
-      trade: "Commerce",
-      name: "La Boutique",
-      accent: "#A0657F",
-      headline: ["Sélection choisie,", "au cœur de la ville."],
-      action: "Voir la sélection",
-      status: "Ouvert aujourd'hui",
-      services: ["Nouveautés", "La sélection", "Nous trouver"],
-      hours: "Du mardi au samedi",
-      notes: [
-        { text: "Catalogue tenu à jour", at: 33 },
-        { text: "Les nouveautés en avant", at: 65 },
-        { text: "On vous trouve du premier coup", at: 95 },
-      ],
-    },
-    {
-      trade: "Entreprise",
-      name: "Le Cabinet",
-      accent: "#6E7F8C",
-      headline: ["Conseil et", "accompagnement."],
-      action: "Prendre contact",
-      status: "Premier échange sans engagement",
-      services: ["Nos expertises", "Notre méthode", "L'équipe"],
-      hours: "Du lundi au vendredi",
-      notes: [
-        { text: "Un parcours qui mène au contact", at: 33 },
-        { text: "Expertises présentées clairement", at: 65 },
-        { text: "Chaque demande est tracée", at: 95 },
-      ],
-    },
+  title: [
+    { text: "Ce que nous savons construire" },
+    { text: "pour votre", accent: "entreprise." },
   ],
+  intro:
+    "Six concepts de sites, six univers. Chaque projet est dessiné à partir du métier, de l'image et des objectifs de l'entreprise — jamais posé sur un modèle existant.",
+  disclaimer:
+    "Concepts de sites créés par AMYN pour illustrer notre travail. Les marques présentées sont fictives ; aucun client réel n'est représenté.",
+  bridge: "Le vôtre n'existe pas encore.",
 } as const;
 
 /* ==========================================================================

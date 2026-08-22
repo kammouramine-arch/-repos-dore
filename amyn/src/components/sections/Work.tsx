@@ -2,9 +2,11 @@
 
 import { motion } from "framer-motion";
 import { useState, type ReactNode } from "react";
+import { BrowserFrame } from "@/components/work/BrowserFrame";
 import { Container } from "@/components/ui/Container";
 import { DisplayLines } from "@/components/ui/DisplayLines";
 import { GridLines } from "@/components/ui/GridLines";
+import { concepts } from "@/lib/concepts";
 import { work } from "@/lib/content";
 import { EASE, inView, stagger } from "@/lib/motion";
 
@@ -13,21 +15,24 @@ import { EASE, inView, stagger } from "@/lib/motion";
  *
  * La pièce maîtresse : c'est elle qui prouve qu'AMYN sait faire des sites.
  *
- * Pas quatre captures d'écran — un seul appareil et six métiers, avec de
- * vrais rendus HTML à l'intérieur. Quand le métier change, le squelette
- * reste en place et seul le contenu se ré-imprime : on voit en un geste que
- * le site est monté autour de l'activité, pas décalqué d'un modèle.
+ * Chaque métier ouvre un vrai site web, rendu en HTML aux dimensions d'un
+ * écran d'ordinateur, dans une fenêtre de navigateur. Le prospect ne
+ * regarde pas une vignette : il regarde une page d'accueil finie, avec sa
+ * navigation, son hero, ses sections et son pied de page.
  *
- * Chaque écran est annoncé comme un concept. Aucun client réel n'est
- * représenté, et le badge qui le dit ne disparaît jamais.
+ * Six univers différents — palette, typographie, composition : rien n'est
+ * partagé d'un concept à l'autre, parce que c'est exactement l'argument.
+ *
+ * Les marques sont fictives et le badge « Concept AMYN » de la fenêtre le
+ * dit en permanence.
  */
 export function Work() {
-  /* Le survol prime sur le clic : on balaie les six métiers sans rien
-     cliquer, et un clic fige celui qu'on veut regarder. */
+  /* Le survol prime sur le clic : on balaie les métiers sans rien cliquer,
+     et un clic fige celui qu'on veut regarder. */
   const [locked, setLocked] = useState(0);
   const [preview, setPreview] = useState<number | null>(null);
   const active = preview ?? locked;
-  const demo = work.demos[active];
+  const concept = concepts[active];
 
   return (
     <section id="creations" className="relative pb-32 pt-24 sm:pb-40 sm:pt-32">
@@ -60,122 +65,107 @@ export function Work() {
                 transition: { duration: 0.8, delay: 0.2, ease: EASE },
               },
             }}
-            className="mt-8 max-w-lg text-balance text-[0.975rem] leading-[1.75] text-bone-dim"
+            className="mt-8 max-w-xl text-balance text-[0.975rem] leading-[1.75] text-bone-dim"
           >
             {work.intro}
           </motion.p>
         </motion.div>
 
-        {/* Onglets de métier — petit écran. */}
-        <div className="mt-12 flex flex-wrap gap-x-6 gap-y-3 lg:hidden">
-          {work.demos.map((item, i) => (
+        {/* Les métiers. Une seule rangée : le site, lui, doit prendre toute
+            la largeur en dessous. */}
+        <motion.div
+          {...inView}
+          variants={{
+            hidden: { opacity: 0, y: 14 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.7, ease: EASE },
+            },
+          }}
+          className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-4 border-b border-bone/10 pb-5 sm:mt-16 sm:gap-x-10"
+        >
+          {concepts.map((item, i) => (
             <button
-              key={item.trade}
+              key={item.id}
               type="button"
+              onMouseEnter={() => setPreview(i)}
+              onMouseLeave={() => setPreview(null)}
+              onFocus={() => setPreview(i)}
+              onBlur={() => setPreview(null)}
               onClick={() => setLocked(i)}
-              className={`font-display text-[0.7rem] font-semibold uppercase tracking-[0.18em] transition-colors duration-400 ${
-                i === active ? "text-gold" : "text-bone/35"
+              aria-pressed={i === active}
+              className={`relative font-display text-[0.78rem] font-semibold uppercase tracking-[0.18em] transition-colors duration-400 sm:text-[0.85rem] ${
+                i === active ? "text-bone" : "text-bone/35 hover:text-bone/70"
               }`}
             >
               {item.trade}
+              {i === active && (
+                /* Le trait se tient sous son propre mot : la rangée passe à
+                   la ligne sur les petits écrans, il ne doit jamais tomber
+                   sur le métier d'en dessous. */
+                <motion.span
+                  layoutId="concept-marker"
+                  transition={{ duration: 0.45, ease: EASE }}
+                  className="absolute -bottom-[10px] left-0 h-px w-full bg-gold"
+                />
+              )}
             </button>
           ))}
-        </div>
+        </motion.div>
 
-        <div className="mt-14 lg:mt-20 lg:flex lg:items-center lg:gap-16">
-          {/* Liste des métiers — grand écran. */}
-          <div className="hidden flex-1 lg:block">
-            {work.demos.map((item, i) => (
-              <button
-                key={item.trade}
-                type="button"
-                onMouseEnter={() => setPreview(i)}
-                onMouseLeave={() => setPreview(null)}
-                onFocus={() => setPreview(i)}
-                onBlur={() => setPreview(null)}
-                onClick={() => setLocked(i)}
-                className={`display relative block w-full py-1.5 pl-14 text-left text-[clamp(1.4rem,2.7vw,2.35rem)] uppercase transition-colors duration-500 ${
-                  i === active ? "text-bone" : "text-bone/25 hover:text-bone/50"
-                }`}
-              >
-                {i === active && (
-                  <motion.span
-                    layoutId="work-marker"
-                    transition={{ duration: 0.5, ease: EASE }}
-                    className="absolute left-0 top-1/2 h-px w-9 -translate-y-1/2 bg-gold"
-                  />
-                )}
-                {item.trade}
-              </button>
-            ))}
+        {/* Le site. */}
+        <motion.div
+          {...inView}
+          variants={{
+            hidden: { opacity: 0, y: 28 },
+            visible: {
+              opacity: 1,
+              y: 0,
+              transition: { duration: 0.9, ease: EASE },
+            },
+          }}
+          className="mt-12 sm:mt-14"
+        >
+          <BrowserFrame concept={concept} />
+        </motion.div>
+
+        {/* La légende : ce que ce site cherche à obtenir, et ce qu'il
+            embarque. Elle se ré-imprime au changement de métier. */}
+        <div className="mt-10 flex flex-col gap-8 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+          <div className="lg:max-w-md">
+            <Reprint
+              id={active}
+              className="font-display text-[0.72rem] font-semibold uppercase tracking-[0.22em] text-gold"
+            >
+              {concept.brand}
+            </Reprint>
+            <Reprint
+              id={active}
+              delay={0.06}
+              className="mt-4 text-balance text-[0.975rem] leading-[1.7] text-bone-dim"
+            >
+              {concept.intent}
+            </Reprint>
           </div>
 
-          {/* L'appareil. */}
-          <motion.div
-            {...inView}
-            variants={{
-              hidden: { opacity: 0, y: 28 },
-              visible: {
-                opacity: 1,
-                y: 0,
-                transition: { duration: 0.9, ease: EASE },
-              },
-            }}
-            className="relative mx-auto w-full max-w-[19rem] shrink-0"
-          >
-            {/* Le badge ne disparaît jamais : ces sites sont des concepts. */}
-            <span className="eyebrow absolute -top-3 right-6 z-10 rounded-full border border-gold/40 bg-ink px-3 py-1 text-[0.5rem] text-gold">
-              Concept AMYN
-            </span>
-
-            <div className="rounded-[2rem] border border-bone/12 bg-ink-soft p-2 lg:rounded-[2.6rem] lg:p-2.5">
-              <div className="overflow-hidden rounded-[1.7rem] bg-ink lg:rounded-[2.2rem]">
-                <DemoScreen demo={demo} id={active} />
-              </div>
-            </div>
-
-            {/* Annotations : ce n'est pas une galerie, c'est une pièce
-                annotée — chaque filet nomme ce que l'élément rapporte. */}
-            <div className="pointer-events-none absolute inset-y-0 left-full hidden lg:block">
-              {demo.notes.map((note, i) => (
-                <div
-                  key={note.text}
-                  className="absolute flex w-[18rem] -translate-y-1/2 items-center gap-4"
-                  style={{ top: `${note.at}%` }}
+          <ul className="flex flex-wrap gap-x-8 gap-y-3 lg:max-w-lg lg:justify-end">
+            {concept.features.map((feature, i) => (
+              <li key={feature} className="flex items-center gap-2.5">
+                <span aria-hidden className="h-px w-4 shrink-0 bg-gold/45" />
+                <Reprint
+                  id={active}
+                  delay={0.1 + i * 0.05}
+                  className="text-[0.85rem] text-bone-mute"
                 >
-                  <span className="h-px w-14 shrink-0 bg-gold/35" />
-                  <Reprint
-                    id={active}
-                    delay={0.1 + i * 0.06}
-                    className="text-[0.82rem] leading-[1.5] text-bone-dim"
-                  >
-                    {note.text}
-                  </Reprint>
-                </div>
-              ))}
-            </div>
-          </motion.div>
-
-          <div className="hidden flex-1 lg:block" />
+                  {feature}
+                </Reprint>
+              </li>
+            ))}
+          </ul>
         </div>
 
-        {/* Annotations — petit écran, en liste sous l'appareil. */}
-        <ul className="mx-auto mt-10 max-w-[19rem] space-y-3 lg:hidden">
-          {demo.notes.map((note, i) => (
-            <li key={note.text} className="flex items-center gap-3">
-              <span className="h-px w-6 shrink-0 bg-gold/35" />
-              <Reprint
-                id={active}
-                delay={0.08 + i * 0.05}
-                className="text-[0.85rem] text-bone-dim"
-              >
-                {note.text}
-              </Reprint>
-            </li>
-          ))}
-        </ul>
-
-        <p className="mx-auto mt-14 max-w-md text-center text-[0.72rem] leading-[1.6] text-bone-mute sm:mt-16">
+        <p className="mx-auto mt-16 max-w-lg text-center text-[0.72rem] leading-[1.6] text-bone-mute sm:mt-20">
           {work.disclaimer}
         </p>
 
@@ -199,9 +189,8 @@ export function Work() {
 }
 
 /**
- * Ré-impression d'un morceau de contenu : le bloc reste, le texte est
- * remplacé. L'ancien disparaît net, le nouveau remonte derrière son masque —
- * la sensation d'une presse qui ré-imprime la même maquette.
+ * Ré-impression d'un morceau de texte : le bloc reste, le contenu est
+ * remplacé et remonte derrière son masque.
  */
 function Reprint({
   id,
@@ -226,120 +215,5 @@ function Reprint({
         {children}
       </motion.span>
     </span>
-  );
-}
-
-/** Le site de démonstration : du vrai HTML, pas une capture. */
-function DemoScreen({
-  demo,
-  id,
-}: {
-  demo: (typeof work.demos)[number];
-  id: number;
-}) {
-  return (
-    <div className="flex h-[34rem] flex-col">
-      <div className="flex items-center justify-between px-5 pb-4 pt-6">
-        <Reprint
-          id={id}
-          className="font-display text-[0.7rem] font-semibold uppercase tracking-[0.26em] text-bone"
-        >
-          {demo.name}
-        </Reprint>
-        <span aria-hidden className="flex flex-col gap-[3px]">
-          <span className="block h-px w-4 bg-bone/40" />
-          <span className="block h-px w-4 bg-bone/40" />
-        </span>
-      </div>
-
-      <div className="flex-1 px-5">
-        <div className="mt-5">
-          {demo.headline.map((line, i) => (
-            <Reprint
-              key={i}
-              id={id}
-              delay={0.04 + i * 0.05}
-              className="font-display text-[1.15rem] leading-[1.3] text-bone"
-            >
-              {line}
-            </Reprint>
-          ))}
-        </div>
-
-        {/* Seul aplat de couleur de la démo : l'or reste à AMYN. */}
-        <motion.div
-          initial={false}
-          animate={{ backgroundColor: demo.accent }}
-          transition={{ duration: 0.5, ease: EASE }}
-          className="mt-6 w-full rounded-full px-4 py-3 text-center"
-        >
-          <Reprint
-            id={id}
-            delay={0.12}
-            className="font-display text-[0.66rem] font-semibold uppercase tracking-[0.16em] text-ink"
-          >
-            {demo.action}
-          </Reprint>
-        </motion.div>
-
-        <div className="mt-5 flex items-center gap-2">
-          <motion.span
-            initial={false}
-            animate={{ backgroundColor: demo.accent }}
-            transition={{ duration: 0.5, ease: EASE }}
-            className="h-1.5 w-1.5 shrink-0 rounded-full"
-          />
-          <Reprint id={id} delay={0.17} className="text-[0.72rem] text-bone-dim">
-            {demo.status}
-          </Reprint>
-        </div>
-
-        <div className="mt-7 border-t border-bone/10 pt-4">
-          <p className="eyebrow text-[0.5rem] text-bone-mute">Prestations</p>
-          <ul className="mt-3">
-            {demo.services.map((service, i) => (
-              <li
-                key={service}
-                className="flex items-center justify-between border-b border-bone/[0.07] py-2.5"
-              >
-                <Reprint
-                  id={id}
-                  delay={0.21 + i * 0.05}
-                  className="text-[0.78rem] text-bone"
-                >
-                  {service}
-                </Reprint>
-                <span aria-hidden className="text-[0.7rem] text-bone-mute">
-                  →
-                </span>
-              </li>
-            ))}
-          </ul>
-        </div>
-
-        <div className="mt-6">
-          <p className="eyebrow text-[0.5rem] text-bone-mute">Nous trouver</p>
-          <Reprint
-            id={id}
-            delay={0.36}
-            className="mt-2 text-[0.78rem] text-bone-dim"
-          >
-            {demo.hours}
-          </Reprint>
-        </div>
-      </div>
-
-      {/* Identique dans les six démos : c'est le squelette. */}
-      <div className="grid grid-cols-3 border-t border-bone/12">
-        {work.actions.map((label) => (
-          <span
-            key={label}
-            className="py-3.5 text-center font-display text-[0.58rem] font-semibold uppercase tracking-[0.1em] text-bone-dim"
-          >
-            {label}
-          </span>
-        ))}
-      </div>
-    </div>
   );
 }
