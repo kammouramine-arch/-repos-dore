@@ -18,6 +18,8 @@ import { Field, Input, Textarea } from '@/components/ui/field';
 import { Alert } from '@/components/ui/feedback';
 import { useToast } from '@/components/ui/toast';
 import { formatCents } from '@/lib/money';
+import { FOLLOW_UP_TONE_LABELS, type FollowUpTone } from '@devisia/shared';
+import { Badge } from '@/components/ui/badge';
 
 interface QuoteSummary {
   id: string;
@@ -29,6 +31,12 @@ interface QuoteSummary {
   daysWaiting: number;
   viewCount: number;
   lastFollowUpAt: string | null;
+  suggestion: {
+    situation: string;
+    tone: FollowUpTone;
+    reason: string;
+    recommended: boolean;
+  };
 }
 
 export function FollowUpItem({ quote }: { quote: QuoteSummary }) {
@@ -39,12 +47,12 @@ export function FollowUpItem({ quote }: { quote: QuoteSummary }) {
   const [error, setError] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<{ objet: string; message: string } | null>(null);
 
-  async function prepare() {
+  async function prepare(tone: FollowUpTone = quote.suggestion.tone) {
     setOpen(true);
     setDraft(null);
     setError(null);
     try {
-      const response = await fetch(`/api/quotes/${quote.id}/relance`);
+      const response = await fetch(`/api/quotes/${quote.id}/relance?ton=${tone}`);
       const payload = (await response.json()) as
         | { data: { objet: string; message: string } }
         | { error: { message: string } };
@@ -120,13 +128,24 @@ export function FollowUpItem({ quote }: { quote: QuoteSummary }) {
               </>
             ) : null}
           </p>
+          <p className="mt-1.5 flex flex-wrap items-center gap-2 text-[12.5px] text-muted">
+            <Badge tone={quote.suggestion.recommended ? 'accent' : 'neutral'}>
+              Ton {FOLLOW_UP_TONE_LABELS[quote.suggestion.tone].toLowerCase()}
+            </Badge>
+            {quote.suggestion.reason}
+          </p>
         </div>
 
         <div className="flex items-center gap-3">
           <span className="text-[15px] font-semibold text-ink tabular">
             {formatCents(quote.totalCents)}
           </span>
-          <Button size="sm" onClick={() => void prepare()} disabled={!quote.customerEmail}>
+          <Button
+            size="sm"
+            variant={quote.suggestion.recommended ? 'primary' : 'secondary'}
+            onClick={() => void prepare()}
+            disabled={!quote.customerEmail}
+          >
             <Send className="h-3.5 w-3.5" aria-hidden />
             Relancer
           </Button>

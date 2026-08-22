@@ -121,8 +121,8 @@ export default function AccueilScreen() {
                       <Body style={{ fontWeight: '600' }} numberOfLines={1}>
                         {quote.customerName}
                       </Body>
-                      <Muted style={{ fontSize: 12 }}>
-                        {quote.number} · {quote.daysWaiting} j sans réponse
+                      <Muted style={{ fontSize: 12 }} numberOfLines={1}>
+                        {quote.suggestion.reason}
                       </Muted>
                     </View>
                     <Body style={{ fontWeight: '700' }}>{formatCents(quote.totalCents, { compact: true })}</Body>

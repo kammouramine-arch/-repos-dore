@@ -73,6 +73,7 @@ export default async function FollowUpsPage() {
                   daysWaiting: quote.daysWaiting,
                   viewCount: quote.viewCount,
                   lastFollowUpAt: quote.lastFollowUpAt,
+                  suggestion: quote.suggestion,
                 }}
               />
             ))}

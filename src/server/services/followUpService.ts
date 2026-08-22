@@ -310,7 +310,100 @@ export async function processDueFollowUps(now = new Date()) {
   return { sent, suggested, processed: due.length };
 }
 
+/**
+ * Situation d'un devis en attente, et relance adaptée.
+ *
+ * Un devis jamais ouvert, un devis lu sans réponse et un devis ancien
+ * n'appellent pas le même message : la suggestion porte donc un motif et un ton.
+ */
+export type FollowUpSituation =
+  | 'NON_CONSULTE'
+  | 'CONSULTE_SANS_REPONSE'
+  | 'ANCIEN'
+  | 'MODIFICATION_ATTENDUE'
+  | 'RECENT';
+
+export interface FollowUpSuggestion {
+  situation: FollowUpSituation;
+  /** Priorité d'action, la plus élevée d'abord. */
+  priority: number;
+  tone: FollowUpTone;
+  reason: string;
+  recommended: boolean;
+}
+
+const SITUATION_TONES: Record<FollowUpSituation, FollowUpTone> = {
+  NON_CONSULTE: 'court',
+  CONSULTE_SANS_REPONSE: 'professionnel',
+  ANCIEN: 'ferme',
+  MODIFICATION_ATTENDUE: 'professionnel',
+  RECENT: 'amical',
+};
+
+/**
+ * Analyse un devis en attente pour proposer la relance la plus juste.
+ * Aucun envoi n'est déclenché : la décision reste à l'artisan.
+ */
+export function suggestFollowUp(quote: {
+  status: string;
+  viewCount: number;
+  daysWaiting: number;
+  alreadyFollowedUp: boolean;
+}): FollowUpSuggestion {
+  if (quote.status === 'MODIFICATION_DEMANDEE') {
+    return {
+      situation: 'MODIFICATION_ATTENDUE',
+      priority: 100,
+      tone: SITUATION_TONES.MODIFICATION_ATTENDUE,
+      reason: 'Le client attend une proposition modifiée.',
+      recommended: true,
+    };
+  }
+
+  if (quote.daysWaiting >= 14) {
+    return {
+      situation: 'ANCIEN',
+      priority: 80,
+      tone: SITUATION_TONES.ANCIEN,
+      reason: `Sans réponse depuis ${quote.daysWaiting} jours : dernier rappel avant classement.`,
+      recommended: true,
+    };
+  }
+
+  if (quote.viewCount === 0 && quote.daysWaiting >= 2) {
+    return {
+      situation: 'NON_CONSULTE',
+      priority: 70,
+      tone: SITUATION_TONES.NON_CONSULTE,
+      reason: "Le devis n'a jamais été ouvert : un rappel court suffit souvent.",
+      recommended: true,
+    };
+  }
+
+  if (quote.viewCount > 0 && quote.daysWaiting >= 2) {
+    return {
+      situation: 'CONSULTE_SANS_REPONSE',
+      priority: 60,
+      tone: SITUATION_TONES.CONSULTE_SANS_REPONSE,
+      reason: `Devis consulté ${quote.viewCount} fois sans réponse : proposez votre aide.`,
+      recommended: true,
+    };
+  }
+
+  return {
+    situation: 'RECENT',
+    priority: 10,
+    tone: SITUATION_TONES.RECENT,
+    reason: 'Devis envoyé récemment : laissez encore un peu de temps au client.',
+    recommended: false,
+  };
+}
+
 /** Chiffre d'affaires en attente de réponse — argument commercial central de DEVISIA. */
+function daysWaitingFor(sentAt: Date | null): number {
+  return sentAt ? Math.floor((Date.now() - sentAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
+}
+
 export async function revenueToRecover(organizationId: string) {
   const quotes = await prisma.quote.findMany({
     where: {
@@ -340,9 +433,14 @@ export async function revenueToRecover(organizationId: string) {
       customerName: fullName(quote.customer.firstName, quote.customer.lastName, quote.customer.companyName),
       customerEmail: quote.customer.email,
       lastFollowUpAt: quote.followUps[0]?.sentAt?.toISOString() ?? null,
-      daysWaiting: quote.sentAt
-        ? Math.floor((Date.now() - quote.sentAt.getTime()) / (1000 * 60 * 60 * 24))
-        : 0,
-    })),
+      daysWaiting: daysWaitingFor(quote.sentAt),
+      suggestion: suggestFollowUp({
+        status: quote.status,
+        viewCount: quote.viewCount,
+        daysWaiting: daysWaitingFor(quote.sentAt),
+        alreadyFollowedUp: quote.followUps.length > 0,
+      }),
+    }))
+      .sort((a, b) => b.suggestion.priority - a.suggestion.priority),
   };
 }

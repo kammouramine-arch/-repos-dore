@@ -49,6 +49,7 @@ export async function GET(request: Request) {
           daysWaiting: quote.daysWaiting,
           viewCount: quote.viewCount,
           lastFollowUpAt: quote.lastFollowUpAt,
+          suggestion: quote.suggestion,
         })),
       },
       recentActivity: activity.map((event) => ({

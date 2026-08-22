@@ -6,7 +6,7 @@
  * compilation des deux clients plutôt que de passer inaperçue.
  */
 import type { PlanId, SubscriptionStatusId } from './plans';
-import type { LeadStatusId, QuoteItemKindId, QuoteStatusId } from './labels';
+import type { FollowUpTone, LeadStatusId, QuoteItemKindId, QuoteStatusId } from './labels';
 
 export interface ApiError {
   code:
@@ -150,6 +150,14 @@ export interface LeadDTO {
   createdAt: string;
 }
 
+export interface FollowUpSuggestionDTO {
+  situation: 'NON_CONSULTE' | 'CONSULTE_SANS_REPONSE' | 'ANCIEN' | 'MODIFICATION_ATTENDUE' | 'RECENT';
+  priority: number;
+  tone: FollowUpTone;
+  reason: string;
+  recommended: boolean;
+}
+
 export interface RecoverableQuoteDTO {
   id: string;
   number: string;
@@ -161,6 +169,7 @@ export interface RecoverableQuoteDTO {
   daysWaiting: number;
   viewCount: number;
   lastFollowUpAt: string | null;
+  suggestion: FollowUpSuggestionDTO;
 }
 
 export interface DashboardDTO {

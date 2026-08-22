@@ -123,3 +123,65 @@ describe('formules', () => {
     expect(PLANS.ENTREPRISE.limits.aiGenerations).toBeNull();
   });
 });
+
+describe('relances intelligentes', () => {
+  it('traite en priorité une demande de modification', async () => {
+    const { suggestFollowUp } = await import('@/server/services/followUpService');
+    const suggestion = suggestFollowUp({
+      status: 'MODIFICATION_DEMANDEE',
+      viewCount: 3,
+      daysWaiting: 1,
+      alreadyFollowedUp: false,
+    });
+    expect(suggestion.situation).toBe('MODIFICATION_ATTENDUE');
+    expect(suggestion.recommended).toBe(true);
+  });
+
+  it('propose un message court quand le devis n’a jamais été ouvert', async () => {
+    const { suggestFollowUp } = await import('@/server/services/followUpService');
+    const suggestion = suggestFollowUp({
+      status: 'ENVOYE',
+      viewCount: 0,
+      daysWaiting: 3,
+      alreadyFollowedUp: false,
+    });
+    expect(suggestion.situation).toBe('NON_CONSULTE');
+    expect(suggestion.tone).toBe('court');
+  });
+
+  it('propose un message professionnel quand le devis est lu sans réponse', async () => {
+    const { suggestFollowUp } = await import('@/server/services/followUpService');
+    const suggestion = suggestFollowUp({
+      status: 'CONSULTE',
+      viewCount: 4,
+      daysWaiting: 4,
+      alreadyFollowedUp: false,
+    });
+    expect(suggestion.situation).toBe('CONSULTE_SANS_REPONSE');
+    expect(suggestion.tone).toBe('professionnel');
+  });
+
+  it('passe à un dernier rappel ferme au-delà de deux semaines', async () => {
+    const { suggestFollowUp } = await import('@/server/services/followUpService');
+    const suggestion = suggestFollowUp({
+      status: 'ENVOYE',
+      viewCount: 1,
+      daysWaiting: 21,
+      alreadyFollowedUp: true,
+    });
+    expect(suggestion.situation).toBe('ANCIEN');
+    expect(suggestion.tone).toBe('ferme');
+    expect(suggestion.priority).toBeGreaterThan(70);
+  });
+
+  it('ne recommande pas de relancer un devis tout juste envoyé', async () => {
+    const { suggestFollowUp } = await import('@/server/services/followUpService');
+    const suggestion = suggestFollowUp({
+      status: 'ENVOYE',
+      viewCount: 0,
+      daysWaiting: 0,
+      alreadyFollowedUp: false,
+    });
+    expect(suggestion.recommended).toBe(false);
+  });
+});
