@@ -1,3 +1,6 @@
+import fs from 'fs';
+import path from 'path';
+import { toolMeta } from '@shared/tools';
 import {
   DEFAULT_CATALOGUE,
   METERS,
@@ -17,6 +20,36 @@ import {
   type Catalogue,
   type SubscriptionRecord,
 } from '@shared/plans';
+
+/** Every entitlement key referenced anywhere in the app or the functions. */
+function sourceEntitlements(): string[] {
+  const root = path.resolve(__dirname, '..');
+  const found: string[] = [];
+
+  const walk = (dir: string) => {
+    for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
+      if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+      const full = path.join(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.(ts|tsx)$/.test(entry.name) && !full.includes('_shared/plans.ts')) {
+        const body = fs.readFileSync(full, 'utf8');
+        for (const match of body.matchAll(/'([A-Z][A-Z_]{3,})'/g)) found.push(match[1]);
+      }
+    }
+  };
+
+  for (const dir of ['src', 'app', 'supabase/functions']) walk(path.join(root, dir));
+
+  // Also count the routing logic inside the catalogue file, but not the plan
+  // definitions themselves — otherwise a key would "back" itself by being listed.
+  const plans = fs.readFileSync(path.join(root, 'supabase/functions/_shared/plans.ts'), 'utf8');
+  const logicOnly =
+    plans.slice(0, plans.indexOf('export const DEFAULT_CATALOGUE')) +
+    plans.slice(plans.indexOf('runtime overrides'));
+  for (const match of logicOnly.matchAll(/'([A-Z][A-Z_]{3,})'/g)) found.push(match[1]);
+
+  return found;
+}
 
 const NOW = new Date('2026-03-10T12:00:00Z');
 const iso = (days: number) => new Date(NOW.getTime() + days * 86_400_000).toISOString();
@@ -47,9 +80,32 @@ describe('catalogue shape', () => {
     expect(pro).toBeGreaterThan(plus);
   });
 
-  it('keeps Ultra defined but not on sale until its capabilities exist', () => {
-    expect(DEFAULT_CATALOGUE.plans.ultra.available).toBe(false);
-    expect(DEFAULT_CATALOGUE.plans.ultra.entitlements).toContain('AI_AGENTS');
+  it('sells Ultra on a capability that is actually built', () => {
+    const ultra = DEFAULT_CATALOGUE.plans.ultra;
+    expect(ultra.available).toBe(true);
+    expect(ultra.entitlements).toContain('AI_AGENTS');
+    // Agents are the thing Ultra is for, so the meter has to be real.
+    expect(ultra.quotas.agent_runs).toBeGreaterThan(0);
+    expect(DEFAULT_CATALOGUE.plans.pro.quotas.agent_runs).toBe(0);
+    // And the operation that spends it has to exist and require the entitlement.
+    expect(OPERATIONS.agent_run.requires).toBe('AI_AGENTS');
+    expect(OPERATIONS.agent_run.costs.agent_runs).toBeGreaterThan(0);
+  });
+
+  it('every capability an available plan sells is wired to something', () => {
+    // Guards against a plan advertising an entitlement no code ever checks.
+    const referenced = new Set<string>();
+    for (const spec of Object.values(OPERATIONS)) if (spec.requires) referenced.add(spec.requires);
+    for (const meta of Object.values(toolMeta)) if (meta.entitlement) referenced.add(meta.entitlement);
+    for (const key of sourceEntitlements()) referenced.add(key);
+
+    for (const tier of DEFAULT_CATALOGUE.order) {
+      const plan = DEFAULT_CATALOGUE.plans[tier];
+      if (!plan.available) continue;
+      for (const key of plan.entitlements) {
+        expect(`${tier}/${key}: ${referenced.has(key)}`).toBe(`${tier}/${key}: true`);
+      }
+    }
   });
 
   it('gives the free plan a genuinely usable product, not a demo', () => {
@@ -286,8 +342,15 @@ describe('upgrade targeting', () => {
     expect(planForMoreOf(DEFAULT_CATALOGUE, 'ai_requests', free)?.tier).toBe('plus');
   });
 
+  it('points agents at Ultra, the only plan that has them', () => {
+    expect(planFor(DEFAULT_CATALOGUE, 'AI_AGENTS')?.tier).toBe('ultra');
+  });
+
   it('returns nothing when no available plan offers a capability', () => {
-    expect(planFor(DEFAULT_CATALOGUE, 'AI_AGENTS')).toBeNull();
+    const noneAvailable = mergeCatalogue(DEFAULT_CATALOGUE, {
+      plans: { ultra: { available: false } },
+    } as never);
+    expect(planFor(noneAvailable, 'AI_AGENTS')).toBeNull();
   });
 });
 

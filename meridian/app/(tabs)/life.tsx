@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
@@ -6,19 +6,38 @@ import { useTheme, areaPalette } from '@/theme';
 import {
   Button,
   Card,
+  Chip,
   EmptyState,
+  Field,
   ProgressBar,
   ProgressRing,
   Screen,
   SectionHeader,
+  Sheet,
   Skeleton,
   Text,
 } from '@/components/ui';
-import { useAreas, useLifePlan, useLifeProgress, useReflections } from '@/hooks/useLife';
+import { useAreaActions, useAreas, useLifePlan, useLifeProgress, useReflections } from '@/hooks/useLife';
 import { useHabits } from '@/hooks/useHabits';
 import { useProjects } from '@/hooks/useProjects';
 import { useEntitlements } from '@/hooks/useEntitlements';
 import { friendlyDate } from '@/utils/date';
+import type { LifeAreaKey } from '@/types/database';
+
+const AREA_OPTIONS: { key: LifeAreaKey; name: string }[] = [
+  { key: 'health', name: 'Health' },
+  { key: 'career', name: 'Career' },
+  { key: 'money', name: 'Money' },
+  { key: 'relationships', name: 'Relationships' },
+  { key: 'family', name: 'Family' },
+  { key: 'growth', name: 'Personal growth' },
+  { key: 'learning', name: 'Learning' },
+  { key: 'business', name: 'Business' },
+  { key: 'social', name: 'Social life' },
+  { key: 'travel', name: 'Travel' },
+  { key: 'hobbies', name: 'Hobbies' },
+  { key: 'other', name: 'Something else' },
+];
 
 /** The Life Map: how each part of your life is actually going, and the long view. */
 export default function Life() {
@@ -32,6 +51,11 @@ export default function Life() {
   const reflections = useReflections(5);
   const entitlements = useEntitlements();
   const ninetyDay = entitlements.canRun('ninety_day');
+  const areaActions = useAreaActions();
+
+  const [adding, setAdding] = useState(false);
+  const [newKey, setNewKey] = useState<LifeAreaKey>('health');
+  const [newName, setNewName] = useState('');
 
   const rows = progress.data ?? [];
   const overall = useMemo(
@@ -164,6 +188,22 @@ export default function Life() {
             onPress={() => router.push('/projects')}
           />
           <NavCard
+            icon="zap"
+            title="Agents"
+            caption={
+              entitlements.can('AI_AGENTS')
+                ? 'Let your AI do the work'
+                : `Part of ${entitlements.upgradeForCapability('AI_AGENTS')?.name ?? 'Ultra'}`
+            }
+            onPress={() => router.push('/agents')}
+          />
+          <NavCard
+            icon="activity"
+            title="Insights & deep analysis"
+            caption="What your plan is telling you"
+            onPress={() => router.push('/analysis')}
+          />
+          <NavCard
             icon="book-open"
             title="Reflections"
             caption={
@@ -177,7 +217,18 @@ export default function Life() {
 
         {/* ------------------------------------------------------ life areas */}
         <View>
-          <SectionHeader title="Life map" caption="The parts of your life this app plans around" />
+          <SectionHeader
+            title="Life map"
+            caption="The parts of your life this app plans around"
+            action="Add"
+            onAction={() => {
+              const taken = new Set((areas.data ?? []).map((a) => a.key));
+              const next = AREA_OPTIONS.find((o) => !taken.has(o.key)) ?? AREA_OPTIONS[0];
+              setNewKey(next.key);
+              setNewName(next.name);
+              setAdding(true);
+            }}
+          />
           {(areas.data?.length ?? 0) === 0 ? (
             <EmptyState
               icon="compass"
@@ -228,6 +279,50 @@ export default function Life() {
           />
         </Card>
       </View>
+
+      <Sheet visible={adding} onClose={() => setAdding(false)} title="Add a life area">
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="subhead" color="secondary">
+            What part of your life is this?
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {AREA_OPTIONS.filter(
+              (option) => !(areas.data ?? []).some((a) => a.key === option.key),
+            ).map((option) => (
+              <Chip
+                key={option.key}
+                label={option.name}
+                small
+                selected={newKey === option.key}
+                onPress={() => {
+                  setNewKey(option.key);
+                  setNewName(option.name);
+                }}
+              />
+            ))}
+          </View>
+        </View>
+
+        <Field label="Call it" value={newName} onChangeText={setNewName} placeholder="Health" />
+
+        <Button
+          label="Add to my Life Map"
+          full
+          loading={areaActions.create.isPending}
+          onPress={async () => {
+            if (newName.trim().length < 2) return;
+            await areaActions.create.mutateAsync({
+              key: newKey,
+              name: newName.trim(),
+              sort_order: (areas.data?.length ?? 0) + 1,
+            });
+            setAdding(false);
+          }}
+        />
+        <Text variant="caption" color="tertiary" align="center">
+          Your planner will start using it for goals, habits and time in that part of your life.
+        </Text>
+      </Sheet>
     </Screen>
   );
 }

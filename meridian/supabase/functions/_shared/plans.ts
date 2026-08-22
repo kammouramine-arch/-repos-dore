@@ -28,26 +28,30 @@ export type SubscriptionStatus =
  * code.
  */
 export type EntitlementKey =
-  | 'AI_BASIC'
-  | 'AI_PLUS'
-  | 'AI_PRO'
-  | 'VOICE_BASIC'
-  | 'VOICE_PLUS'
-  | 'VOICE_PRO'
-  | 'MEMORY_BASIC'
-  | 'MEMORY_ADVANCED'
-  | 'LIFE_RESET_BASIC'
-  | 'LIFE_RESET_ADVANCED'
+  /** Daily and weekly planning. */
   | 'PLANNING_BASIC'
+  /** 90-day plans, weekly AI plans, week-wide replanning. */
   | 'PLANNING_ADVANCED'
-  | 'PLANNING_PRO'
+  /** Speaking instead of typing. */
+  | 'VOICE_BASIC'
+  /** Running a Life Reset. */
+  | 'LIFE_RESET_BASIC'
+  /** Deep Life Analysis, and the higher-effort model on advanced work. */
   | 'ADVANCED_REASONING'
+  /** The assistant reaching out when something is drifting. */
   | 'PROACTIVE_AI'
+  /** Specialised agents that do the work themselves. */
   | 'AI_AGENTS'
-  | 'ADVANCED_INTEGRATIONS'
-  | 'ADVANCED_INSIGHTS'
-  | 'PRIORITY_PROCESSING'
-  | 'EARLY_ACCESS';
+  /** Reduced latency where the model supports it. */
+  | 'PRIORITY_PROCESSING';
+
+/*
+  Every key above gates real behaviour somewhere in the codebase — a tool, an
+  operation, a route or a scheduler. Nothing decorative lives here: a test walks the
+  source and fails the build if a plan sells a capability nothing checks. Depth that
+  is expressed as a number (memory capacity, voice minutes, how much AI) belongs in
+  `quotas`, not in a capability flag.
+*/
 
 /** Metered resources. Everything the AI does draws on one or more of these. */
 export type Meter =
@@ -245,7 +249,7 @@ export const DEFAULT_CATALOGUE: Catalogue = {
         'Daily Reset every day',
         'A taste of Life Reset and voice',
       ],
-      entitlements: ['AI_BASIC', 'PLANNING_BASIC', 'MEMORY_BASIC', 'LIFE_RESET_BASIC', 'VOICE_BASIC'],
+      entitlements: ['PLANNING_BASIC', 'LIFE_RESET_BASIC', 'VOICE_BASIC'],
       quotas: {
         ai_requests: 120,
         advanced_requests: 0,
@@ -276,20 +280,14 @@ export const DEFAULT_CATALOGUE: Catalogue = {
         'Advanced weekly reviews and 90-day planning',
         'Voice conversations',
         'Intelligent replanning when the day changes',
-        'Advanced memory and proactive nudges',
+        'A bigger memory, and a planner that speaks up when something drifts',
       ],
       entitlements: [
-        'AI_BASIC',
-        'AI_PLUS',
         'PLANNING_BASIC',
         'PLANNING_ADVANCED',
-        'MEMORY_BASIC',
-        'MEMORY_ADVANCED',
         'LIFE_RESET_BASIC',
         'VOICE_BASIC',
-        'VOICE_PLUS',
         'PROACTIVE_AI',
-        'ADVANCED_INTEGRATIONS',
       ],
       quotas: {
         ai_requests: 1500,
@@ -326,34 +324,20 @@ export const DEFAULT_CATALOGUE: Catalogue = {
       highlights: [
         'The highest standard AI limits',
         'The most capable model we offer',
-        'Advanced reasoning and deep life analysis',
+        'Deep Life Analysis — the pass that reads your whole file',
         'Long-term memory with more capacity',
         'Complex multi-step planning and goal strategy',
         'Higher voice limits',
-        'Advanced progress insights',
         'Priority processing where available',
-        'Early access to new capabilities',
       ],
       entitlements: [
-        'AI_BASIC',
-        'AI_PLUS',
-        'AI_PRO',
         'PLANNING_BASIC',
         'PLANNING_ADVANCED',
-        'PLANNING_PRO',
-        'MEMORY_BASIC',
-        'MEMORY_ADVANCED',
         'LIFE_RESET_BASIC',
-        'LIFE_RESET_ADVANCED',
         'VOICE_BASIC',
-        'VOICE_PLUS',
-        'VOICE_PRO',
         'ADVANCED_REASONING',
         'PROACTIVE_AI',
-        'ADVANCED_INTEGRATIONS',
-        'ADVANCED_INSIGHTS',
         'PRIORITY_PROCESSING',
-        'EARLY_ACCESS',
       ],
       quotas: {
         ai_requests: 5000,
@@ -382,45 +366,34 @@ export const DEFAULT_CATALOGUE: Catalogue = {
     },
 
     /**
-     * Ultra is defined so the system can carry it, but it is not offered: its extra
-     * entitlements gate capabilities that do not exist yet (agents, execution). It
-     * becomes real by flipping `available` once those ship — no pricing page fiction
-     * in the meantime.
+     * Ultra is on sale because what it gates is built: specialised agents that read
+     * widely and work through many rounds of tool calls, making the changes
+     * themselves. Anything genuinely not implemented yet stays out of its list.
      */
     ultra: {
       tier: 'ultra',
       name: 'Ultra',
       tagline: 'Let your AI do more.',
-      summary: 'For delegating the work itself: multiple specialised agents and automation.',
+      summary:
+        'For delegating the work itself: specialised agents that read your whole plan, decide what to change, and change it.',
       highlights: [
-        'Extremely high AI limits',
-        'Maximum available models',
-        'Multiple specialised AI agents',
-        'Multi-step automation',
-        'Priority compute',
-        'Highest voice limits',
+        'Specialised AI agents that do the work, not just advise',
+        'Life, career, business, fitness, finance and learning agents',
+        'The highest AI limits we offer',
+        'Maximum reasoning on every request',
+        'The largest long-term memory',
+        'Highest voice allowance',
+        'Priority processing where available',
       ],
       entitlements: [
-        'AI_BASIC',
-        'AI_PLUS',
-        'AI_PRO',
         'PLANNING_BASIC',
         'PLANNING_ADVANCED',
-        'PLANNING_PRO',
-        'MEMORY_BASIC',
-        'MEMORY_ADVANCED',
         'LIFE_RESET_BASIC',
-        'LIFE_RESET_ADVANCED',
         'VOICE_BASIC',
-        'VOICE_PLUS',
-        'VOICE_PRO',
         'ADVANCED_REASONING',
         'PROACTIVE_AI',
         'AI_AGENTS',
-        'ADVANCED_INTEGRATIONS',
-        'ADVANCED_INSIGHTS',
         'PRIORITY_PROCESSING',
-        'EARLY_ACCESS',
       ],
       quotas: {
         ai_requests: 20000,
@@ -437,7 +410,7 @@ export const DEFAULT_CATALOGUE: Catalogue = {
         monthly: { amount: 4999, currency: 'EUR', productId: 'meridian.ultra.monthly' },
         yearly: { amount: 39999, currency: 'EUR', productId: 'meridian.ultra.yearly' },
       },
-      trialDays: 0,
+      trialDays: 7,
       models: {
         model: MODEL_CAPABLE,
         effort: 'xhigh',
@@ -445,7 +418,7 @@ export const DEFAULT_CATALOGUE: Catalogue = {
         advancedEffort: 'max',
         priority: true,
       },
-      available: false,
+      available: true,
     },
   },
 };

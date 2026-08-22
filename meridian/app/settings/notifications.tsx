@@ -7,6 +7,8 @@ import { Banner, Button, Card, Row, Screen, SectionHeader, Text } from '@/compon
 import { TimeField } from '@/components/fields';
 import { usePreferences, useUpdatePreferences } from '@/hooks/useProfile';
 import { useTasksForDate } from '@/hooks/usePlanner';
+import { useEntitlements } from '@/hooks/useEntitlements';
+import { useInsights } from '@/hooks/useInsights';
 import { syncPendingReminders, syncSchedule } from '@/services/notifications';
 import { todayISO } from '@/utils/date';
 
@@ -17,6 +19,9 @@ export default function NotificationSettings() {
   const preferences = usePreferences();
   const update = useUpdatePreferences();
   const tasks = useTasksForDate(todayISO());
+  const { can, upgradeForCapability } = useEntitlements();
+  const { insights } = useInsights();
+  const proactive = can('PROACTIVE_AI');
   const [status, setStatus] = useState<string | null>(null);
   const [denied, setDenied] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -25,7 +30,7 @@ export default function NotificationSettings() {
   const apply = async (patch: Parameters<typeof update.mutateAsync>[0]) => {
     const next = await update.mutateAsync(patch);
     setBusy(true);
-    const result = await syncSchedule(next, tasks.data ?? []);
+    const result = await syncSchedule(next, tasks.data ?? [], { insights, proactive });
     setBusy(false);
     setDenied(!result.permission);
     setStatus(
@@ -92,6 +97,26 @@ export default function NotificationSettings() {
         </Card>
 
         <View>
+          <SectionHeader title="Proactive assistance" />
+          <Card>
+            <Text variant="body" color={proactive ? 'primary' : 'tertiary'}>
+              {proactive
+                ? 'On. When something is drifting or a week stops fitting, your planner reaches out once — never more than once a day, and never at night.'
+                : `Your planner still notices these things and shows them in the app. Reaching out about them is part of ${upgradeForCapability('PROACTIVE_AI')?.name ?? 'a higher plan'}.`}
+            </Text>
+            {!proactive ? (
+              <Button
+                label="See plans"
+                size="sm"
+                variant="secondary"
+                style={{ marginTop: 12 }}
+                onPress={() => router.push('/paywall')}
+              />
+            ) : null}
+          </Card>
+        </View>
+
+        <View>
           <SectionHeader title="Timing" />
           <Card>
             <View style={{ gap: theme.spacing.lg }}>
@@ -118,7 +143,7 @@ export default function NotificationSettings() {
           loading={busy}
           onPress={async () => {
             setBusy(true);
-            const result = await syncSchedule(p ?? null, tasks.data ?? []);
+            const result = await syncSchedule(p ?? null, tasks.data ?? [], { insights, proactive });
             const reminders = await syncPendingReminders();
             setBusy(false);
             setDenied(!result.permission);

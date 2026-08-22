@@ -26,6 +26,8 @@ import {
   useTasksForDate,
 } from '@/hooks/usePlanner';
 import { useHabitActions, useHabitLogs, useHabits } from '@/hooks/useHabits';
+import { useInsights } from '@/hooks/useInsights';
+import { InsightCard } from '@/components/InsightCard';
 import { usePreferences, useProfile } from '@/hooks/useProfile';
 import { useConnectivity } from '@/state/ConnectivityProvider';
 import { dayCompletion, dayLoad, localHeadline, orderDay, pickFocus } from '@/utils/planning';
@@ -47,6 +49,7 @@ export default function Home() {
   const habitLogs = useHabitLogs(7);
   const actions = useTaskActions(today);
   const habitActions = useHabitActions();
+  const { insights, headline: topInsight } = useInsights();
   const { online, pending, sync, syncing } = useConnectivity();
 
   const [expanded, setExpanded] = useState(false);
@@ -230,6 +233,22 @@ export default function Home() {
           </View>
         ) : null}
 
+        {/* --------------------------------------------------------- noticed */}
+        {insights.length > 0 ? (
+          <View>
+            <SectionHeader
+              title="Noticed"
+              action={insights.length > 1 ? 'All' : undefined}
+              onAction={() => router.push('/analysis')}
+            />
+            <View style={{ gap: theme.spacing.md }}>
+              {(topInsight ? [topInsight] : []).map((insight) => (
+                <InsightCard key={insight.fingerprint} insight={insight} />
+              ))}
+            </View>
+          </View>
+        ) : null}
+
         {/* --------------------------------------------------- quick actions */}
         <View>
           <SectionHeader title="Quick actions" />
@@ -240,6 +259,8 @@ export default function Home() {
             <QuickAction icon="moon" label="Daily reset" onPress={() => router.push('/daily-reset')} />
             <QuickAction icon="sunrise" label="Briefing" onPress={() => router.push('/briefing')} />
             <QuickAction icon="refresh-cw" label="Life reset" onPress={() => router.push('/life-reset')} />
+            <QuickAction icon="calendar" label="Weekly review" onPress={() => router.push('/weekly-review')} />
+            <QuickAction icon="zap" label="Agents" onPress={() => router.push('/agents')} />
           </View>
         </View>
       </View>

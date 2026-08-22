@@ -7,6 +7,7 @@ import { contextBlock, identityBlock, type Mode } from '../_shared/prompt.ts';
 import { executeTool } from '../_shared/executor.ts';
 import { anthropicTools, describeAction, isToolName, requiresConfirmation } from '../_shared/tools.ts';
 import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
+import { AGENTS, type AgentKey, agentInstructions, isAgentKey } from '../_shared/agents.ts';
 import { type Meter, type Operation, planFor, type EntitlementKey } from '../_shared/plans.ts';
 
 /**
@@ -20,6 +21,8 @@ import { type Meter, type Operation, planFor, type EntitlementKey } from '../_sh
  */
 
 const MAX_TOOL_ROUNDS = 8;
+/** Agents are allowed to work for longer — that is the point of them. */
+const MAX_AGENT_ROUNDS = 16;
 const HISTORY_LIMIT = 24;
 
 type ActionReceipt = {
@@ -44,10 +47,13 @@ const MODE_OPERATION: Record<Mode, Operation> = {
   onboarding: 'onboarding',
   plan_day: 'plan_day',
   plan_week: 'plan_week',
+  weekly_review: 'plan_week',
   daily_reset: 'daily_reset',
   life_reset: 'life_reset',
   ninety_day: 'ninety_day',
   morning_brief: 'morning_brief',
+  deep_analysis: 'deep_analysis',
+  agent_run: 'agent_run',
 };
 
 function suggestFollowUps(mode: Mode, receipts: ActionReceipt[]): string[] {
@@ -61,6 +67,12 @@ function suggestFollowUps(mode: Mode, receipts: ActionReceipt[]): string[] {
       return ['Plan tomorrow', 'Tomorrow should be lighter'];
     case 'onboarding':
       return ['That sounds right', 'Change something'];
+    case 'weekly_review':
+      return ['Plan next week', 'What should I drop?'];
+    case 'deep_analysis':
+      return ['Act on this', 'Tell me more about that'];
+    case 'agent_run':
+      return ['Looks right', 'Change something'];
     case 'life_reset':
       return ['Build the 90-day plan', 'Start with this week'];
     default:
@@ -93,6 +105,9 @@ Deno.serve(async (req) => {
   }
 
   const mode: Mode = (body.mode ?? 'chat') as Mode;
+  // An agent run is the same assistant with a narrower brief and a longer leash.
+  const agentKey: AgentKey | null =
+    typeof body.agent === 'string' && isAgentKey(body.agent) ? body.agent : null;
   const offset = Number.isFinite(body.timezone_offset_minutes) ? Number(body.timezone_offset_minutes) : 0;
   const admin = adminClient();
   const [context, billing] = await Promise.all([buildContext(db, offset), loadBilling(db)]);
@@ -222,11 +237,21 @@ Deno.serve(async (req) => {
   const system = [
     {
       type: 'text',
-      text: identityBlock({ aiName, mode, plan: entitlement.plan.name, entitlements: entitlement.entitlements }),
+      text: [
+        identityBlock({
+          aiName,
+          mode,
+          plan: entitlement.plan.name,
+          entitlements: entitlement.entitlements,
+        }),
+        agentKey ? `\n\n# Your brief\n${agentInstructions(agentKey)}` : '',
+      ].join(''),
       cache_control: { type: 'ephemeral' },
     },
     { type: 'text', text: contextBlock(context.text) },
   ];
+
+  const maxRounds = mode === 'agent_run' ? MAX_AGENT_ROUNDS : MAX_TOOL_ROUNDS;
 
   const callModel = async (payload: any) => {
     if (refusalFallbackEnabled) {
@@ -253,7 +278,7 @@ Deno.serve(async (req) => {
   let outputTokens = 0;
 
   try {
-    for (let round = 0; round < MAX_TOOL_ROUNDS; round += 1) {
+    for (let round = 0; round < maxRounds; round += 1) {
       const response: any = await callModel({
         model,
         max_tokens: 8000,
@@ -412,6 +437,23 @@ Deno.serve(async (req) => {
     .select('id, created_at')
     .single();
   if (saveError) return fail('db_error', saveError.message, 500);
+
+  // Deliverable runs leave something behind that outlives the conversation.
+  if (mode === 'deep_analysis' || mode === 'agent_run' || mode === 'weekly_review') {
+    await db.from('ai_reports').insert({
+      kind: mode,
+      agent_key: agentKey,
+      title:
+        mode === 'agent_run' && agentKey
+          ? AGENTS[agentKey].name
+          : mode === 'deep_analysis'
+            ? 'Deep life analysis'
+            : 'Weekly review',
+      body: assistantText,
+      actions: receipts,
+      conversation_id: conversationId,
+    });
+  }
 
   await db.from('ai_conversations').update({ updated_at: new Date().toISOString() }).eq('id', conversationId);
 

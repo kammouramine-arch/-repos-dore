@@ -18,7 +18,7 @@ const USER_TABLES = [
   'projects', 'project_milestones', 'habits', 'habit_logs', 'tasks', 'calendar_events',
   'daily_plans', 'weekly_plans', 'life_plans', 'life_plan_items', 'reflections',
   'ai_conversations', 'ai_messages', 'ai_memory', 'notifications', 'analytics_events',
-  'usage_counters', 'usage_events',
+  'usage_counters', 'usage_events', 'ai_reports', 'insights',
 ];
 
 /** Splits SQL into statements so multi-line policies are matched as a whole. */
@@ -52,17 +52,15 @@ describe('row level security', () => {
       path.join(root, 'supabase/migrations/20260101000100_rls.sql'),
       'utf8',
     );
-    const subs = fs.readFileSync(
-      path.join(root, 'supabase/migrations/20260101000300_subscriptions.sql'),
-      'utf8',
-    );
     expect(rls).toContain('enable row level security');
     expect(rls).toContain('force row level security');
 
+    // Later migrations add their own tables; every one must turn RLS on somewhere.
     for (const table of USER_TABLES) {
       const covered =
         rls.includes(`'${table}'`) ||
-        subs.includes(`alter table public.${table} enable row level security`);
+        migrations.includes(`alter table public.${table} enable row level security`) ||
+        new RegExp(`array\\[[^\\]]*'${table}'`).test(migrations);
       expect(`${table}: ${covered}`).toBe(`${table}: true`);
     }
   });
@@ -192,6 +190,20 @@ describe('AI integration is real', () => {
     expect(fn).toContain('anthropicTools()');
     expect(fn).toContain('executeTool');
     expect(fn).toContain('requiresConfirmation');
+  });
+
+  it('takes an agent brief from our catalogue, never from the request', () => {
+    const fn = fs.readFileSync(path.join(root, 'supabase/functions/ai-chat/index.ts'), 'utf8');
+    // The client sends a key, which is validated; the brief text comes from the server.
+    expect(fn).toContain('isAgentKey(body.agent)');
+    expect(fn).toContain('agentInstructions(agentKey)');
+    expect(fn).not.toMatch(/body\.(brief|system|instructions|prompt)/);
+  });
+
+  it('gates agent runs and deep analysis on entitlements, not on a client flag', () => {
+    const plans = fs.readFileSync(path.join(root, 'supabase/functions/_shared/plans.ts'), 'utf8');
+    expect(plans).toMatch(/agent_run:[\s\S]*requires: 'AI_AGENTS'/);
+    expect(plans).toMatch(/deep_analysis:[\s\S]*requires: 'ADVANCED_REASONING'/);
   });
 
   it('has no path from model output to raw SQL', () => {

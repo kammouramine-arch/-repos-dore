@@ -43,6 +43,8 @@ function Navigator() {
         <Stack.Screen name="daily-reset" options={{ presentation: 'modal' }} />
         <Stack.Screen name="life-reset" options={{ presentation: 'modal' }} />
         <Stack.Screen name="briefing" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="weekly-review" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="agent/[key]" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );

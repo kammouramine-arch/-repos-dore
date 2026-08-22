@@ -6,26 +6,48 @@ Four tiers, positioned by capability rather than by counters.
 
 | | **Free** — Meet your AI | **Plus** — Build your life with your AI | **Pro** — Unlock your AI's full potential | **Ultra** — Let your AI do more |
 |---|---|---|---|---|
-| Price | €0 | €9.99 / month · €79.99 / year | €19.99 / month · €159.99 / year | not on sale yet |
+| Price | €0 | €9.99 / month · €79.99 / year | €19.99 / month · €159.99 / year | €49.99 / month · €399.99 / year |
 | AI conversations | 120 a month | high limits · fair use | high limits · fair use | high limits · fair use |
 | Model | standard | more capable | most capable we offer | maximum |
-| Planning | daily + weekly | + 90-day, advanced weekly, replanning | + multi-step, deep analysis | + automation |
+| Planning | daily + weekly | + 90-day, advanced weekly, replanning | + multi-step planning | + agents that execute |
 | Memory | 40 items | 400 | 1,500 | 5,000 |
 | Voice | 10 min a month | 3 h | 10 h | 30 h |
 | Life Resets | 1 a month | 12 | 40 | 100 |
 | Goals / habits / projects | 3 / 3 / 1 | no cap | no cap | no cap |
 | Advanced reasoning | — | — | ✓ | ✓ |
 | Priority processing | — | — | ✓ | ✓ |
-| AI agents | — | — | — | ✓ |
+| Deep Life Analysis | — | — | ✓ | ✓ |
+| AI agents | — | — | — | 500 runs a month |
+| Free trial | — | 7 days | 7 days | 7 days |
 
 Free is a working product, not a demo: the whole planner, a real assistant, a Life
 Reset and a taste of voice. What paid plans buy is **more thinking** — more requests,
 a more capable model, deeper planning and longer memory.
 
-**Ultra exists in the system but is not sold.** Its extra entitlements
-(`AI_AGENTS`, automation) gate capabilities that have not shipped. Setting
-`available: true` turns it on the day they do — there is no pricing-page fiction in
-the meantime.
+**Ultra is sold because what it gates is built.** `AI_AGENTS` unlocks the specialised
+agents in `supabase/functions/_shared/agents.ts` — life, career, business, fitness,
+finance and learning — which read the whole plan, work through up to sixteen rounds of
+tool calls, make the changes themselves and file a report. That is a real capability
+difference, not a bigger number.
+
+### Capabilities are never decorative
+
+The entitlement union is deliberately small:
+
+| Key | What it actually gates |
+|---|---|
+| `PLANNING_BASIC` | Daily and weekly planning operations |
+| `PLANNING_ADVANCED` | 90-day plans, weekly AI plans, week-wide replanning tools |
+| `VOICE_BASIC` | The transcription endpoint |
+| `LIFE_RESET_BASIC` | Running a Life Reset |
+| `ADVANCED_REASONING` | Deep Life Analysis, and the higher-effort model on advanced work |
+| `PROACTIVE_AI` | The assistant scheduling a notification when something drifts |
+| `AI_AGENTS` | Agent runs |
+| `PRIORITY_PROCESSING` | Reduced latency where the model supports it |
+
+Depth that is a number — memory capacity, voice minutes, how much AI — lives in
+`quotas`, not in a flag. A test walks the source tree and **fails the build if an
+available plan sells an entitlement that nothing in the codebase checks**.
 
 ## Where it all lives
 
@@ -43,7 +65,7 @@ so what the UI promises and what the server allows cannot drift apart.
 ### Nothing is hardcoded elsewhere
 
 * No screen contains a price, a limit or a plan name.
-* No screen asks "is this user Pro?" — it asks for a capability (`can('VOICE_PLUS')`)
+* No screen asks "is this user Pro?" — it asks for a capability (`can('AI_AGENTS')`)
   or an allowance (`quota('ai_requests')`) through `useEntitlements()`.
 * No model id appears outside the catalogue.
 
@@ -63,9 +85,9 @@ update public.app_config
    set value = '{"plans":{"free":{"quotas":{"ai_requests":200}}}}'::jsonb
  where key = 'plans';
 
--- Turn Ultra on when its capabilities ship
+-- Take a plan off sale, or put a future one on, without a release
 update public.app_config
-   set value = '{"plans":{"ultra":{"available":true}}}'::jsonb
+   set value = '{"plans":{"ultra":{"available":false}}}'::jsonb
  where key = 'plans';
 ```
 
@@ -93,6 +115,7 @@ or per-endpoint quota logic anywhere.
 | Life Reset | 4 AI + 1 reset + 2 planning |
 | 90-day plan | 8 AI + 1 advanced + 4 planning |
 | Deep life analysis | 6 AI + 2 advanced |
+| Agent run | 4 AI + 1 agent run |
 | Voice | 1 voice-second per second recorded |
 
 The check and the increment happen together inside `consume_usage()`, so two
@@ -162,7 +185,7 @@ To enable purchases:
 
 1. Create the products with the ids from the catalogue —
    `meridian.plus.monthly`, `meridian.plus.yearly`, `meridian.pro.monthly`,
-   `meridian.pro.yearly` (and the Ultra pair when it ships).
+   `meridian.pro.yearly`, `meridian.ultra.monthly`, `meridian.ultra.yearly`.
 2. Add a billing library (`react-native-iap` or `expo-in-app-purchases`) and write an
    adapter implementing `PurchaseAdapter` from
    [`src/services/purchases/types.ts`](../src/services/purchases/types.ts):

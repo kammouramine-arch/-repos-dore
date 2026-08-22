@@ -26,7 +26,8 @@ src/
   utils/                 Dates and local planning heuristics
 supabase/
   migrations/            Schema, row level security, triggers and RPCs
-  functions/_shared/plans.ts  Tiers, entitlements, quotas, weighted costs, model routing
+  functions/_shared/plans.ts   Tiers, entitlements, quotas, weighted costs, model routing
+  functions/_shared/agents.ts  The specialised agent briefs
   functions/ai-chat/     The assistant: context, tools, execution, receipts
   functions/transcribe/  Speech to text (needs a provider key)
   functions/daily-brief/ Morning briefing generation
@@ -154,8 +155,7 @@ More detail: [docs/AI.md](docs/AI.md).
 
 ## Plans and usage
 
-Four tiers — Free, Plus, Pro, and Ultra (defined but not on sale until its
-capabilities exist) — described by capability rather than by counters:
+Four tiers — Free, Plus, Pro and Ultra — described by capability rather than by counters:
 
 * **Free** — *Meet your AI.* The whole planner, a real assistant, one Life Reset a
   month and a taste of voice. Not a demo.
@@ -163,7 +163,10 @@ capabilities exist) — described by capability rather than by counters:
   weekly planning, replanning, voice conversations, deeper memory, no caps on goals,
   habits or projects.
 * **Pro** — *Unlock your AI's full potential.* The most capable model, advanced
-  reasoning and deep life analysis, the largest memory, priority processing.
+  reasoning, Deep Life Analysis, the largest memory, priority processing.
+* **Ultra** — *Let your AI do more.* Specialised agents — life, career, business,
+  fitness, finance, learning — that read your whole plan, decide what to change and
+  change it, then file a report.
 
 Everything about the tiers lives in
 [`supabase/functions/_shared/plans.ts`](supabase/functions/_shared/plans.ts) and can be
@@ -179,6 +182,19 @@ the work fails.
 Reaching a limit never locks anyone out of their own life — goals, tasks, habits,
 projects, the calendar and the Life Map stay open, and only new AI requests pause.
 Cancelling deletes nothing. Details in [docs/BILLING.md](docs/BILLING.md).
+
+## What the assistant can do
+
+Beyond conversation, four things it produces are stored and readable later:
+
+* **Deep Life Analysis** — a wide pass over goals against their dates, habits over
+  weeks, and where time actually goes. It changes nothing; it is for seeing.
+* **Agent runs** — a specialised agent works through up to sixteen rounds of tool
+  calls, makes the changes and files a report of what it changed and what it left.
+* **Weekly review** — an honest look back, then next week set up.
+* **Proactive insights** — computed on device from your own data, so they are instant,
+  free and available offline on every plan. A goal that has stopped moving, a deadline
+  the current pace will miss, a week that does not fit, a habit that has slipped.
 
 ## Offline
 

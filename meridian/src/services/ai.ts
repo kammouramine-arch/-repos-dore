@@ -13,10 +13,13 @@ export type AiMode =
   | 'onboarding'
   | 'plan_day'
   | 'plan_week'
+  | 'weekly_review'
   | 'daily_reset'
   | 'life_reset'
   | 'ninety_day'
-  | 'morning_brief';
+  | 'morning_brief'
+  | 'deep_analysis'
+  | 'agent_run';
 
 export type AiReply = {
   conversation_id: string;
@@ -102,6 +105,8 @@ export async function sendMessage(input: {
   conversationId?: string | null;
   mode?: AiMode;
   kind?: ConversationKind;
+  /** Runs the same assistant under a specialised agent brief. */
+  agent?: string;
 }): Promise<AiReply> {
   const { data, error } = await supabase.functions.invoke<AiReply>('ai-chat', {
     body: {
@@ -109,6 +114,7 @@ export async function sendMessage(input: {
       conversation_id: input.conversationId ?? null,
       mode: input.mode ?? 'chat',
       kind: input.kind ?? 'general',
+      agent: input.agent ?? null,
       timezone_offset_minutes: offsetMinutes(),
     },
   });

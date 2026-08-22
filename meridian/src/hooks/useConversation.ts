@@ -18,7 +18,15 @@ type Draft = AiMessage & { pending?: boolean };
  * reply arrives with its receipts, and a failure leaves the transcript honest — the
  * user's line stays, and the error is shown rather than a fabricated answer.
  */
-export function useConversation(options: { kind: ConversationKind; mode: AiMode; autoStart?: string }) {
+export function useConversation(options: {
+  kind: ConversationKind;
+  mode: AiMode;
+  autoStart?: string;
+  /** Runs the conversation as a specialised agent. */
+  agent?: string;
+  /** Starts a new conversation each time instead of resuming the last one. */
+  fresh?: boolean;
+}) {
   const { userId } = useAuth();
   const queryClient = useQueryClient();
   const [conversationId, setConversationId] = useState<string | null>(null);
@@ -32,6 +40,11 @@ export function useConversation(options: { kind: ConversationKind; mode: AiMode;
     if (!userId) return;
     setLoading(true);
     try {
+      if (options.fresh) {
+        setConversationId(null);
+        setMessages([]);
+        return;
+      }
       const existing = await fetchLatestConversation(options.kind);
       if (existing) {
         setConversationId(existing.id);
@@ -45,7 +58,7 @@ export function useConversation(options: { kind: ConversationKind; mode: AiMode;
     } finally {
       setLoading(false);
     }
-  }, [options.kind, userId]);
+  }, [options.fresh, options.kind, userId]);
 
   useEffect(() => {
     void load();
@@ -81,6 +94,7 @@ export function useConversation(options: { kind: ConversationKind; mode: AiMode;
           conversationId,
           mode: options.mode,
           kind: options.kind,
+          agent: options.agent,
         });
         setConversationId(reply.conversation_id);
         setMessages((prev) => [
@@ -109,7 +123,7 @@ export function useConversation(options: { kind: ConversationKind; mode: AiMode;
         setThinking(false);
       }
     },
-    [conversationId, options.kind, options.mode, queryClient, thinking, userId],
+    [conversationId, options.agent, options.kind, options.mode, queryClient, thinking, userId],
   );
 
   /** Approve or cancel an action the assistant proposed but did not perform. */

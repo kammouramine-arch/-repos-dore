@@ -25,7 +25,11 @@ export type AnalyticsName =
   | 'week_planned'
   | 'ninety_day_generated'
   | 'daily_reset_completed'
+  | 'weekly_review_completed'
   | 'life_reset_started'
+  | 'agent_run_started'
+  | 'deep_analysis_run'
+  | 'insight_acted'
   | 'paywall_viewed'
   | 'subscription_started';
 

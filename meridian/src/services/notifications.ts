@@ -4,6 +4,7 @@ import * as Device from 'expo-device';
 import Constants from 'expo-constants';
 import { supabase } from '@/lib/supabase';
 import type { Task, UserPreferences } from '@/types/database';
+import type { Insight } from '@/utils/insights';
 import { fromISODate } from '@/utils/date';
 
 /**
@@ -70,10 +71,15 @@ export async function cancelAll(): Promise<void> {
   await Notifications.cancelAllScheduledNotificationsAsync();
 }
 
-/** Rebuilds the whole schedule from preferences and today's tasks. Idempotent. */
+/**
+ * Rebuilds the whole schedule from preferences, today's tasks and — for plans that
+ * include proactive assistance — anything the app has noticed that is worth raising
+ * before it becomes a problem. Idempotent: it cancels and rebuilds every time.
+ */
 export async function syncSchedule(
   preferences: UserPreferences | null,
   todaysTasks: Task[],
+  options: { insights?: Insight[]; proactive?: boolean } = {},
 ): Promise<{ scheduled: number; permission: boolean }> {
   const granted = await ensurePermission();
   if (!granted) return { scheduled: 0, permission: false };
@@ -103,6 +109,52 @@ export async function syncSchedule(
       trigger: { type: Notifications.SchedulableTriggerInputTypes.DAILY, hour, minute },
     });
     scheduled += 1;
+  }
+
+  if (preferences.weekly_review_enabled) {
+    const { hour, minute } = parseClock(preferences.daily_reset_time);
+    await Notifications.scheduleNotificationAsync({
+      content: {
+        title: 'Your weekly review',
+        body: 'Fifteen minutes now makes next week realistic.',
+        data: { route: '/weekly-review' },
+      },
+      // Sunday evening, before the week starts.
+      trigger: {
+        type: Notifications.SchedulableTriggerInputTypes.WEEKLY,
+        weekday: 1,
+        hour,
+        minute,
+      },
+    });
+    scheduled += 1;
+  }
+
+  /*
+    Proactive assistance: at most one a day, only for something that actually needs a
+    decision, and only on plans that include it. Everything the app notices is still
+    visible in the app for everyone — this is the part that reaches out.
+  */
+  if (options.proactive && preferences.notifications_enabled) {
+    const worth = (options.insights ?? []).filter((i) => i.severity !== 'info').slice(0, 1);
+    for (const insight of worth) {
+      const when = new Date();
+      when.setHours(when.getHours() + 2, 0, 0, 0);
+      // Never in the middle of the night.
+      const { hour: wake } = parseClock(preferences.wake_time);
+      if (when.getHours() < wake) when.setHours(wake, 30, 0, 0);
+      if (when.getTime() <= Date.now()) continue;
+
+      await Notifications.scheduleNotificationAsync({
+        content: {
+          title: insight.title,
+          body: insight.body,
+          data: { route: '/analysis', insight: insight.kind },
+        },
+        trigger: { type: Notifications.SchedulableTriggerInputTypes.DATE, date: when },
+      });
+      scheduled += 1;
+    }
   }
 
   if (preferences.task_reminders_enabled) {

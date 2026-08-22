@@ -46,7 +46,36 @@ available."* Everything that is not the assistant keeps working.
 | `daily_reset` | Daily Reset | Records the reflection, ticks off work, reshapes tomorrow |
 | `life_reset` | Life Reset | Deeper interview, then rebuilds the plan (Pro) |
 | `ninety_day` | 90-day plan | Three months, weekly objectives (Pro) |
+| `weekly_review` | Weekly review | Reviews the week honestly, then sets up the next one |
 | `morning_brief` | Briefing | Writes today's headline and summary onto the daily plan |
+| `deep_analysis` | Insights screen | A wide, slow read of everything; changes nothing (Pro+) |
+| `agent_run` | Agents | A specialised agent that reads widely and makes the changes (Ultra) |
+
+## Agents
+
+An agent is the same assistant with a narrower brief and a longer leash — not a
+separate product and not a separate logic path. `supabase/functions/_shared/agents.ts`
+holds six briefs (life, career, business, fitness, finance, learning); a run appends
+the brief to the shared identity, raises the tool-call ceiling from 8 rounds to 16, and
+files an `ai_reports` row with the receipts for everything it changed.
+
+Confirmation still applies: an agent proposes destructive changes rather than making
+them. It gets more room to work, not more authority.
+
+## Proactive intelligence
+
+`src/utils/insights.ts` detects, from data the app already has:
+
+* a goal with no recent work and nothing scheduled
+* a goal whose pace will not reach its date, with the arithmetic
+* a week or a day that does not fit the user's real capacity
+* a habit that has slipped against the week before (and streaks worth noticing)
+* a project with no next action
+* the part of the day where completions actually happen
+
+Detection is pure and runs on device, so it is instant, free and works offline — every
+plan sees it. `PROACTIVE_AI` gates the assistant *reaching out*: at most one
+notification a day, only for something that needs a decision, never at night.
 
 ## The tool catalogue
 

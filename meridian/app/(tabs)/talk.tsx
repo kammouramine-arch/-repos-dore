@@ -24,7 +24,7 @@ const MODE_TITLES: Record<string, string> = {
  */
 export default function Talk() {
   const theme = useTheme();
-  const params = useLocalSearchParams<{ mode?: string }>();
+  const params = useLocalSearchParams<{ mode?: string; prompt?: string; agent?: string }>();
   const mode = (params.mode ?? 'chat') as AiMode;
   const entitlements = useEntitlements();
 
@@ -34,14 +34,16 @@ export default function Talk() {
   // before a request is spent rather than after it is refused.
   const allowance = entitlements.canRun(operation);
 
+  // An insight, a shortcut or a deep link can hand the assistant its first sentence.
   const autoStart =
-    mode === 'plan_day'
+    params.prompt ||
+    (mode === 'plan_day'
       ? 'Plan my day.'
       : mode === 'plan_week'
         ? 'Plan my week.'
         : mode === 'ninety_day'
           ? 'Build my 90-day plan.'
-          : undefined;
+          : undefined);
 
   const conversation = useConversation({
     kind: mode === 'chat' ? 'general' : 'planning',

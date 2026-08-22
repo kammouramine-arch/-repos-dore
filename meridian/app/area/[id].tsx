@@ -1,12 +1,12 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme, areaPalette } from '@/theme';
-import { Card, EmptyState, ProgressBar, Screen, SectionHeader, Text } from '@/components/ui';
+import { Button, Card, EmptyState, Field, ProgressBar, Screen, SectionHeader, Sheet, Text } from '@/components/ui';
 import { GoalCard } from '@/components/GoalCard';
 import { HabitRow } from '@/components/HabitRow';
-import { useAreas, useLifeProgress } from '@/hooks/useLife';
+import { useAreaActions, useAreas, useLifeProgress } from '@/hooks/useLife';
 import { useGoals } from '@/hooks/useGoals';
 import { useHabitActions, useHabitLogs, useHabits } from '@/hooks/useHabits';
 import { useProjects } from '@/hooks/useProjects';
@@ -26,8 +26,21 @@ export default function AreaDetail() {
   const habitLogs = useHabitLogs(7);
   const habitActions = useHabitActions();
   const projects = useProjects('active');
+  const areaActions = useAreaActions();
+
+  const [editing, setEditing] = useState(false);
+  const [name, setName] = useState('');
+  const [description, setDescription] = useState('');
+  const [satisfaction, setSatisfaction] = useState<number | null>(null);
 
   const area = (areas.data ?? []).find((a) => a.id === id);
+
+  useEffect(() => {
+    if (!editing || !area) return;
+    setName(area.name);
+    setDescription(area.description ?? '');
+    setSatisfaction(area.satisfaction);
+  }, [editing, area]);
   const row = (progress.data ?? []).find((r) => r.life_area_id === id);
   const tint = area ? areaPalette[area.key]?.[theme.scheme] ?? theme.colors.accent : theme.colors.accent;
 
@@ -46,12 +59,32 @@ export default function AreaDetail() {
   return (
     <Screen>
       <View style={{ gap: theme.spacing.xl }}>
-        <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
-          <Feather name="chevron-left" size={24} color={theme.colors.text} />
-        </Pressable>
+        <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Pressable onPress={() => router.back()} hitSlop={12} accessibilityRole="button" accessibilityLabel="Back">
+            <Feather name="chevron-left" size={24} color={theme.colors.text} />
+          </Pressable>
+          <Pressable
+            onPress={() => setEditing(true)}
+            hitSlop={12}
+            accessibilityRole="button"
+            accessibilityLabel="Edit this area"
+          >
+            <Feather name="edit-2" size={18} color={theme.colors.textSecondary} />
+          </Pressable>
+        </View>
 
         <View style={{ gap: theme.spacing.md }}>
           <Text variant="display">{area.name}</Text>
+          {area.description ? (
+            <Text variant="body" color="secondary">
+              {area.description}
+            </Text>
+          ) : null}
+          {area.satisfaction != null ? (
+            <Text variant="footnote" color="tertiary">
+              You rated this part of your life {area.satisfaction}/100
+            </Text>
+          ) : null}
           {row ? (
             <>
               <Text variant="title3" style={{ color: tint }}>
@@ -134,6 +167,81 @@ export default function AreaDetail() {
           </View>
         ) : null}
       </View>
+
+      <Sheet visible={editing} onClose={() => setEditing(false)} title="Edit this area">
+        <Field label="Name" value={name} onChangeText={setName} placeholder="Health" />
+        <Field
+          label="What this part of your life is about"
+          value={description}
+          onChangeText={setDescription}
+          placeholder="Optional — it helps your planner understand what matters here."
+          multiline
+          style={{ minHeight: 80, textAlignVertical: 'top' }}
+        />
+
+        <View style={{ gap: theme.spacing.sm }}>
+          <Text variant="subhead" color="secondary">
+            How satisfied are you with this area right now?
+          </Text>
+          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: theme.spacing.sm }}>
+            {[20, 40, 60, 80, 100].map((value) => (
+              <Pressable
+                key={value}
+                onPress={() => setSatisfaction(value)}
+                accessibilityRole="button"
+                accessibilityState={{ selected: satisfaction === value }}
+                accessibilityLabel={`${value} out of 100`}
+                style={{
+                  paddingHorizontal: 14,
+                  paddingVertical: 8,
+                  borderRadius: theme.radius.pill,
+                  backgroundColor: satisfaction === value ? tint : theme.colors.surfaceAlt,
+                  borderWidth: 1,
+                  borderColor: satisfaction === value ? tint : theme.colors.border,
+                }}
+              >
+                <Text
+                  variant="subhead"
+                  style={{ color: satisfaction === value ? theme.colors.onAccent : theme.colors.text }}
+                >
+                  {value}
+                </Text>
+              </Pressable>
+            ))}
+          </View>
+        </View>
+
+        <Button
+          label="Save"
+          full
+          loading={areaActions.update.isPending}
+          onPress={async () => {
+            if (name.trim().length < 2) return;
+            await areaActions.update.mutateAsync({
+              id: area.id,
+              patch: {
+                name: name.trim(),
+                description: description.trim() || null,
+                satisfaction,
+              },
+            });
+            setEditing(false);
+          }}
+        />
+        <Button
+          label="Hide this area"
+          variant="secondary"
+          full
+          onPress={async () => {
+            await areaActions.update.mutateAsync({ id: area.id, patch: { is_active: false } });
+            setEditing(false);
+            router.back();
+          }}
+        />
+        <Text variant="caption" color="tertiary" align="center">
+          Hiding keeps everything inside it — goals and habits stay exactly where they are.
+        </Text>
+      </Sheet>
     </Screen>
   );
 }

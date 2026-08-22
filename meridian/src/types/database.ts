@@ -339,6 +339,29 @@ export type AnalyticsEvent = {
   created_at: string;
 };
 
+export type AiReport = Owned & {
+  kind: 'deep_analysis' | 'agent_run' | 'weekly_review';
+  agent_key: string | null;
+  title: string;
+  body: string;
+  actions: AiActionReceipt[];
+  conversation_id: string | null;
+  created_at: string;
+};
+
+export type AppInsight = Owned & {
+  kind: string;
+  title: string;
+  body: string | null;
+  severity: 'info' | 'attention' | 'urgent';
+  entity_type: string | null;
+  entity_id: string | null;
+  status: 'new' | 'seen' | 'dismissed' | 'acted';
+  fingerprint: string;
+  valid_until: string | null;
+  created_at: string;
+};
+
 export type LifeProgressRow = {
   life_area_id: string;
   area_key: LifeAreaKey;
@@ -384,6 +407,8 @@ export type Database = {
       app_config: Def<AppConfig>;
       usage_counters: Def<UsageCounter>;
       usage_events: Def<UsageEvent>;
+      ai_reports: Def<AiReport>;
+      insights: Def<AppInsight>;
       notifications: Def<AppNotification>;
       analytics_events: Def<AnalyticsEvent>;
     };
