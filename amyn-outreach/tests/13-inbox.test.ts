@@ -42,10 +42,20 @@ describe("Classification des réponses entrantes", () => {
   });
 
   test("réponse ambiguë → NEEDS_HUMAN, jamais une invention", () => {
-    const r = classifyReply({ subject: "Re:", body: "Merci beaucoup, mais non merci." });
+    // Signaux favorables ET défavorables, aucun ne l'emporte : on ne tranche pas.
+    const r = classifyReply({
+      subject: "Re:",
+      body: "C'est très intéressant et bien vu, mais non merci.",
+    });
     assert.equal(r.classification, "NEEDS_HUMAN");
     assert.equal(r.confidence, "LOW");
     assert.match(r.reason, /humain/i);
+  });
+
+  test("un refus poli reste un refus, pas une ambiguïté", () => {
+    // « merci » est une formule de politesse, pas un signe favorable.
+    const r = classifyReply({ subject: "Re:", body: "Merci beaucoup, mais non merci." });
+    assert.equal(r.classification, "NOT_INTERESTED");
   });
 
   test("message incompréhensible → UNKNOWN, jamais INTERESTED", () => {
@@ -345,7 +355,7 @@ describe("Synchronisation de la boîte", () => {
     { uid: 11, from: "contact@refus-sync.fr", subject: "Re:", body: "Non merci." },
     { uid: 12, from: "contact@stop-sync.fr", subject: "Re:", body: "Désinscrivez-moi." },
     { uid: 13, from: "inconnu@nulle-part.fr", subject: "Bonjour", body: "Qui êtes-vous ?" },
-    { uid: 14, from: "contact@ambigu-sync.fr", subject: "Re:", body: "Merci beaucoup, mais non merci." },
+    { uid: 14, from: "contact@ambigu-sync.fr", subject: "Re:", body: "C'est très intéressant et bien vu, mais non merci." },
   ];
 
   test("lit tous les messages, les classe et rend des chiffres exacts", async () => {

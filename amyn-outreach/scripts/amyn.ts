@@ -634,6 +634,9 @@ function help() {
     client advance <id>        passer le projet à la phase suivante
     optout <email>             ajouter à la liste d'opposition
     rules                      lister les règles d'audit
+
+  Démonstration
+    npm run demo               rejoue tout le parcours sur une base jetable
 `);
 }
 

@@ -224,6 +224,19 @@ Ou en langage naturel : `npm run amyn -- "Vérifie les nouvelles réponses"`.
 | Opposition | Traitée **avant** tout le reste, et même si l'expéditeur est inconnu. |
 | Aucun envoi | Les modules de lecture n'importent pas le mailer. Un test le vérifie. |
 
+### Voir le parcours complet en une commande
+
+```bash
+npm run demo
+```
+
+Rejoue la chaîne entière sur une base **jetable** (`prisma/demo.db`, supprimée
+à la fin) : 7 prospects, audit prouvé, emails rédigés, campagne bloquée sans
+approbation, envoi simulé, 7 réponses réalistes lues dans une boîte simulée,
+classement, mise à jour CRM, blocage d'un envoi après opposition, calcul des
+relances. Votre base de travail n'est jamais touchée, aucun email ne part,
+aucun accès réseau.
+
 ### Catégories
 
 `INTERESTED` · `PRICE_REQUEST` · `MEETING_REQUEST` · `QUESTION` · `POSITIVE` ·
@@ -290,7 +303,7 @@ d'une clé absente est affichée comme indisponible, jamais comme fonctionnelle.
 
 | Page | Contenu |
 |---|---|
-| `/` | Tableau de bord : prospection, commercial, revenus, envois, réponses, journal |
+| `/` | Tableau de bord : prospection, commercial, revenus, envois, réponses à traiter, journal |
 | `/agent` | Console d'instruction, exécutions récentes, matrice d'autonomie |
 | `/prospects` | Fiches, filtres par statut |
 | `/prospects/[id]` | Toutes les vérifications avec verdict et preuve, score détaillé, email généré, historique |
@@ -310,7 +323,8 @@ npm run dev          # serveur de développement
 npm run build        # build de production
 npm run typecheck    # TypeScript, zéro erreur attendue
 npm run lint         # ESLint, zéro avertissement toléré
-npm test             # 186 tests, base isolée, aucun appel réseau
+npm test             # 208 tests, base isolée, aucun appel réseau
+npm run demo         # rejoue TOUT le parcours sur une base jetable
 npm run db:studio    # explorer la base
 npm run amyn -- rules   # lister les 19 règles d'audit
 ```
@@ -352,5 +366,5 @@ lib/
   agent/      intentions, planification, autonomie, exécuteurs
 prisma/       schéma et seed de démonstration
 scripts/      CLI `amyn` et lanceur de tests
-tests/        186 tests
+tests/        208 tests
 ```

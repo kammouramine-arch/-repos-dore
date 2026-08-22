@@ -7,16 +7,20 @@ import { pipelineSnapshot } from "@/lib/analytics";
 import { recentActivity } from "@/lib/activity";
 import { DASHBOARD_STATUSES, STATUS_META, REPLY_META, type ReplyClass } from "@/lib/constants";
 import { mailerStatus } from "@/lib/mailer";
+import { replyInbox } from "@/lib/replies/sync";
+import { imapStatus } from "@/lib/imap/config";
 import { formatDateTime } from "@/lib/format";
 
 export const dynamic = "force-dynamic";
 
 export default async function DashboardPage() {
-  const [snap, prospects, activity] = await Promise.all([
+  const [snap, prospects, activity, inbox] = await Promise.all([
     pipelineSnapshot(),
     listProspects(undefined, 25),
     recentActivity(8),
+    replyInbox(),
   ]);
+  const imap = imapStatus();
   const mailer = mailerStatus();
 
   return (
@@ -102,22 +106,71 @@ export default async function DashboardPage() {
         </div>
       </section>
 
-      {/* Réponses par catégorie */}
-      {snap.replies.total > 0 && (
-        <section className="space-y-3">
-          <h2 className="label-xs text-zinc-600">Réponses reçues</h2>
-          <div className="flex flex-wrap gap-2">
-            {Object.entries(snap.replies.byClass).map(([cls, n]) => {
-              const meta = REPLY_META[cls as ReplyClass];
-              return (
-                <span key={cls} className={`rounded-lg px-3 py-1.5 text-sm ring-1 ring-inset ${meta?.badge ?? "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20"}`}>
-                  {meta?.label ?? cls} <span className="tabular-nums opacity-70">{n}</span>
-                </span>
-              );
-            })}
+      {/* Centre de tri des réponses */}
+      <section className="space-y-3">
+        <div className="flex flex-wrap items-end justify-between gap-2">
+          <h2 className="label-xs text-zinc-600">Réponses à traiter</h2>
+          <Link href="/replies" className="text-xs text-zinc-600 hover:text-zinc-400">
+            ouvrir le centre de traitement
+          </Link>
+        </div>
+
+        {snap.replies.total === 0 ? (
+          <div className="panel p-5">
+            <p className="text-sm text-zinc-500">Aucune réponse enregistrée.</p>
+            <p className="mt-1.5 text-[12px] leading-relaxed text-zinc-600">
+              {imap.configured
+                ? "Lisez la boîte : npm run amyn -- sync-replies"
+                : `Boîte non connectée — manquant dans .env : ${imap.missing.join(", ")}`}
+            </p>
           </div>
-        </section>
-      )}
+        ) : (
+          <>
+            <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+              <StatCard
+                label="Action requise"
+                value={inbox.actionRequired}
+                href="/replies?status=ACTION_REQUIRED"
+                accent={inbox.actionRequired > 0}
+                hint={inbox.actionRequired > 0 ? "à traiter aujourd'hui" : undefined}
+              />
+              <StatCard label="Nouvelles" value={inbox.new} href="/replies?status=NEW" />
+              <StatCard
+                label="Intervention requise"
+                value={inbox.needsHuman}
+                href="/replies?class=NEEDS_HUMAN"
+                hint={inbox.needsHuman > 0 ? "trop ambigu pour être classé" : undefined}
+              />
+              <StatCard label="Traitées" value={inbox.resolved} href="/replies?status=RESOLVED" />
+            </div>
+
+            <div className="flex flex-wrap gap-2">
+              {Object.entries(snap.replies.byClass).map(([cls, n]) => {
+                const meta = REPLY_META[cls as ReplyClass];
+                return (
+                  <Link
+                    key={cls}
+                    href={`/replies?class=${cls}`}
+                    className={`rounded-lg px-3 py-1.5 text-sm ring-1 ring-inset transition-opacity hover:opacity-80 ${meta?.badge ?? "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20"}`}
+                  >
+                    {meta?.label ?? cls} <span className="tabular-nums opacity-70">{n}</span>
+                  </Link>
+                );
+              })}
+            </div>
+
+            <p className="text-[11px] text-zinc-700">
+              {inbox.lastSyncAt
+                ? `Boîte lue pour la dernière fois le ${inbox.lastSyncAt.toLocaleString("fr-FR")}.`
+                : "La boîte n'a jamais été lue."}
+              {inbox.lastSyncError && (
+                <span className="ml-2 text-rose-300">Dernière erreur : {inbox.lastSyncError}</span>
+              )}
+              {" "}Aucune réponse n&apos;est envoyée automatiquement.
+            </p>
+          </>
+        )}
+      </section>
 
       {/* Pipeline */}
       <section className="space-y-3">

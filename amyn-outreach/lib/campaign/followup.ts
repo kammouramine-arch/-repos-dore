@@ -27,9 +27,13 @@ export async function findFollowUpCandidates(campaignId?: string): Promise<{
   candidates: FollowUpCandidate[];
   skipped: Array<{ name: string; reason: string }>;
 }> {
+  // On inclut volontairement les membres deja passes en REPLIED : ils seront
+  // ecartes plus bas AVEC une raison lisible. Les filtrer ici les ferait
+  // disparaitre sans un mot, contrairement au principe « aucune action
+  // silencieuse ».
   const members = await prisma.campaignMember.findMany({
     where: {
-      status: "SENT",
+      status: { in: ["SENT", "REPLIED"] },
       ...(campaignId ? { campaignId } : {}),
     },
     include: { campaign: true, prospect: { include: { primaryContact: true } } },
@@ -47,7 +51,7 @@ export async function findFollowUpCandidates(campaignId?: string): Promise<{
     }
 
     const replied = await prisma.reply.count({ where: { prospectId: p.id } });
-    if (replied > 0) {
+    if (replied > 0 || member.status === "REPLIED") {
       skipped.push({ name: p.name, reason: "A déjà répondu : la séquence s'arrête." });
       continue;
     }

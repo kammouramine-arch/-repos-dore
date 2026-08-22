@@ -62,8 +62,10 @@ const RULES: Rule[] = [
     cls: "MEETING_REQUEST",
     priority: 2,
     patterns: [
-      /appelez[- ]moi/i,
-      /rappelez[- ]moi/i,
+      /appelez[- ]moi(?!\s+(dans|en|apr[èe]s|plus tard|ult[ée]rieurement))/i,
+      // « rappelez-moi dans six mois » est un report, pas un rendez-vous :
+      // on refuse de matcher quand un delai suit.
+      /rappelez[- ]moi(?!\s+(dans|en|apr[èe]s|plus tard|ult[ée]rieurement|peut[- ]?[êe]tre dans))/i,
       /on (peut|pourrait) (se voir|se rencontrer|en discuter|s'appeler)/i,
       /prendre? (un )?(rendez[- ]vous|rdv)/i,
       /disponible (lundi|mardi|mercredi|jeudi|vendredi|demain|cette semaine)/i,
@@ -162,12 +164,17 @@ const RULES: Rule[] = [
     cls: "POSITIVE",
     priority: 9,
     patterns: [
-      /\bmerci (beaucoup |bien |pour |de |)/i,
-      /c'est (gentil|sympa|aimable|bien vu|not[ée])/i,
-      /\bbonne (initiative|d[ée]marche|remarque)\b/i,
+      // « merci » seul est une formule de politesse, presente aussi bien dans
+      // « merci beaucoup ! » que dans « merci mais non merci ». Ce n'est PAS
+      // un signe favorable : seules les formulations qui portent reellement un
+      // jugement positif comptent ici.
+      /c'est (gentil|sympa|aimable|bien vu|not[ée]|utile)/i,
+      /\bbonne (initiative|d[ée]marche|remarque|analyse)\b/i,
       /je (prends|garde) (bonne |)note/i,
-      /\bint[ée]ressant\b/i,
+      /\b(c'est |tr[èe]s |plut[ôo]t |assez |)int[ée]ressant\b/i,
       /\bbravo\b/i,
+      /\bpertinent\b/i,
+      /vous avez raison/i,
     ],
   },
   {
