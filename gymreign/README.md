@@ -13,8 +13,9 @@ Premium athletic-luxury brand, print-on-demand infrastructure, Europe-first.
 
 | # | Phase | Status | Output |
 |---|---|---|---|
-| **01** | **Master brand strategy** | **✅ Complete — awaiting approval** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
-| 02 | Visual identity | ⏸ Blocked on Phase 01 approval | — |
+| **01** | **Master brand strategy** | **✅ Complete** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
+| **01a** | **Founder decision brief** | **✅ Complete — awaiting six answers** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
+| 02 | Visual identity | ⏸ **Gate held** — blocked until all six decisions are resolved | — |
 | 03 | Chapter 001 design | ⏸ | — |
 | 04 | POD provider + product validation | ⏸ | — |
 | 05 | Samples | ⏸ | — |
@@ -35,6 +36,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | File | Purpose |
 |---|---|
 | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) | The Phase 01 deliverable. 18 sections, from positioning through to the execution roadmap |
+| [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) | The six gating decisions, each with why it matters, recommendation, what was modelled, what changes under the alternative, confidence and reversibility — plus the trademark position split into five distinct questions |
 | [`strategy/assumptions-register.md`](./strategy/assumptions-register.md) | Every factual claim in the strategy, marked verified / search-level / assumption, with the method for closing each one |
 
 **No artwork, no logo, no products and no website code exist yet.** That is correct for
@@ -44,7 +46,11 @@ this phase.
 
 ## THE SIX DECISIONS WAITING ON YOU
 
-Full context in the strategy document's closing section.
+Full treatment — confidence and reversibility per decision — in the
+[decision brief](./strategy/02-founder-decision-brief.md).
+
+**The thing most founders get backwards:** decision 1 feels small and is nearly
+irreversible; decision 2 feels large and is almost free to change.
 
 1. **Collection architecture** — adopt `CHAPTER 001 — ASCENSION`, separating the
    permanent chapter number from the changeable theme? *Recommended: yes.*
