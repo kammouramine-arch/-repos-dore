@@ -355,6 +355,54 @@ export async function executeAction(
     }
 
     // --- REPONSES ----------------------------------------------------------
+    case "operator.mission": {
+      const { runMission } = await import("@/lib/operator/mission");
+      const result = await runMission({
+        brief: (input.brief as unknown as string) ?? "Mission de prospection",
+        city: input.city as unknown as string | undefined,
+        sectors: input.sectors as unknown as string[] | undefined,
+        limit: input.limit as unknown as number | undefined,
+      });
+      return {
+        missionId: result.missionId,
+        statut: result.status,
+        trouvés: result.found,
+        qualifiés: result.qualified,
+        écartés: result.rejected,
+        "à trancher": result.needsHuman,
+        "emails prêts": result.emailsPrepared,
+        étapes: result.steps,
+        ...(result.needsFromYou.length > 0 ? { needsFromYou: result.needsFromYou } : {}),
+      };
+    }
+
+    case "operator.tick": {
+      const { runAllJobs } = await import("@/lib/scheduler/jobs");
+      const results = await runAllJobs();
+      const needs: string[] = [];
+
+      const decisions = results.find((r) => r.job === "decide-replies");
+      const humaines = (decisions?.details?.HUMAN_REVIEW as number) ?? 0;
+      if (humaines > 0) {
+        needs.push(`${humaines} réponse(s) nécessitent votre lecture — voir /replies.`);
+      }
+      const relances = results.find((r) => r.job === "due-followups");
+      if ((relances?.itemsChanged ?? 0) > 0) {
+        needs.push(`${relances!.itemsChanged} relance(s) préparée(s) : elles attendent votre approbation.`);
+      }
+
+      return {
+        jobs: results.map((r) => ({
+          job: r.job,
+          exécuté: r.ran && !r.skipped,
+          ignoré: r.skipped,
+          résumé: r.summary,
+        })),
+        note: "Aucun email envoyé : un tour d'opérateur prépare, il n'expédie pas.",
+        ...(needs.length > 0 ? { needsFromYou: needs } : {}),
+      };
+    }
+
     case "replies.sync": {
       const { imapStatus } = await import("@/lib/imap/config");
       const status = imapStatus();

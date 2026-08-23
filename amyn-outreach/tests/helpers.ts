@@ -243,6 +243,9 @@ export async function resetDatabase() {
     prisma.activityLog.deleteMany(),
     prisma.setting.deleteMany(),
     prisma.imapSyncState.deleteMany(),
+    prisma.jobRun.deleteMany(),
+    prisma.missionStep.deleteMany(),
+    prisma.mission.deleteMany(),
   ]);
   // Les contacts referencent les prospects et inversement : on casse le lien.
   await prisma.prospect.updateMany({ data: { primaryContactId: null } });

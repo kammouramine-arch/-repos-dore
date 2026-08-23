@@ -12,6 +12,7 @@ const NAV_GROUPS: Array<{
     items: [
       { href: "/", label: "Dashboard", hint: "Vue d'ensemble" },
       { href: "/agent", label: "Agent", hint: "Donner une instruction" },
+      { href: "/operator", label: "Opérateur", hint: "Centre de contrôle" },
     ],
   },
   {

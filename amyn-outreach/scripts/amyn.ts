@@ -72,6 +72,10 @@ async function main() {
     case "score": return score(rest);
     case "draft": return draft(rest);
     case "campaign": return campaign(rest);
+    case "mission": return missionCommand(rest);
+    case "tick": case "worker": return tickCommand();
+    case "policy": return policyCommand(rest);
+    case "qualify": return qualifyCommand(rest);
     case "smtp-check": return smtpCheck();
     case "imap-check": return imapCheck();
     case "sync-replies": return syncRepliesCommand(rest);
@@ -356,6 +360,119 @@ async function smtpCheck() {
  * Verifie la connexion IMAP SANS lire ni modifier le moindre message.
  * Ouvre le dossier en lecture seule, releve son etat, referme.
  */
+/** Lance une mission de prospection complete. S'arrete avant l'envoi. */
+async function missionCommand(args: string[]) {
+  const brief = args.join(" ");
+  if (!brief) {
+    bad('Usage : npm run amyn -- mission "Prospecte les coiffeurs à Lille"');
+    return;
+  }
+
+  const { parseInstruction } = await import("../lib/agent/intents");
+  const { runMission } = await import("../lib/operator/mission");
+  const parsed = parseInstruction(brief);
+
+  title("MISSION DE PROSPECTION");
+  info(`« ${brief} »`);
+  console.log();
+
+  const result = await runMission({
+    brief,
+    city: parsed.parameters.city as string | undefined,
+    sectors: parsed.parameters.sectors as string[] | undefined,
+    limit: parsed.parameters.limit as number | undefined,
+  });
+
+  for (const step of result.steps) {
+    const marque = step.status === "FAILED" ? bad : step.status === "SKIPPED" ? warn : ok;
+    marque(`${step.stage.padEnd(9)} ${step.description}`);
+    info(step.detail);
+  }
+
+  console.log();
+  console.log(`  ${C.bold}${result.summary}${C.reset}`);
+
+  if (result.needsFromYou.length > 0) {
+    console.log(`\n  ${C.amber}${C.bold}Ce que l'opérateur attend de vous${C.reset}`);
+    result.needsFromYou.forEach((n) => console.log(`  → ${n}`));
+  }
+  info(`\nTrace : Mission ${result.missionId}`);
+  console.log();
+}
+
+/** Un tour complet de l'operateur : boite, decisions, relances dues, maintenance. */
+async function tickCommand() {
+  const { runAllJobs } = await import("../lib/scheduler/jobs");
+  title("TOUR D'OPÉRATEUR");
+  info("Lecture, décisions et préparation. Aucun email n'est envoyé.");
+  console.log();
+
+  for (const r of await runAllJobs()) {
+    if (r.skipped) warn(`${r.job.padEnd(16)} ignoré — ${r.summary}`);
+    else if (r.error) bad(`${r.job.padEnd(16)} ${r.summary}`);
+    else ok(`${r.job.padEnd(16)} ${r.summary}`);
+  }
+  console.log();
+}
+
+/** Consulte ou modifie la politique d'envoi. */
+async function policyCommand(args: string[]) {
+  const { getPolicy, setPolicy, POLICY_LABELS, POLICY_DEFAULTS, checkSendWindow, remainingToday } =
+    await import("../lib/policy");
+  const [cle, valeur] = args;
+
+  if (cle && valeur !== undefined) {
+    if (!(cle in POLICY_DEFAULTS)) {
+      bad(`Réglage inconnu : ${cle}`);
+      info(`Réglages : ${Object.keys(POLICY_DEFAULTS).join(", ")}`);
+      return;
+    }
+    const attendu = POLICY_DEFAULTS[cle as keyof typeof POLICY_DEFAULTS];
+    const converti = typeof attendu === "boolean" ? valeur === "true" : Number.parseInt(valeur, 10);
+    await setPolicy(cle as never, converti as never);
+    ok(`${POLICY_LABELS[cle as keyof typeof POLICY_LABELS].label} → ${converti}`);
+    return;
+  }
+
+  const policy = await getPolicy();
+  title("POLITIQUE D'ENVOI");
+  console.table(
+    Object.entries(policy).map(([k, v]) => ({
+      réglage: POLICY_LABELS[k as keyof typeof POLICY_LABELS].label,
+      valeur: String(v),
+      défaut: String(POLICY_DEFAULTS[k as keyof typeof POLICY_DEFAULTS]),
+      clé: k,
+    })),
+  );
+  const fenetre = checkSendWindow(policy);
+  const quota = await remainingToday(policy);
+  info(fenetre.open ? `Fenêtre ouverte. ${fenetre.reason}` : `Fenêtre FERMÉE. ${fenetre.reason}`);
+  info(`Quota du jour : ${quota.used}/${policy.dailyLimit} utilisé(s), ${quota.remaining} restant(s).`);
+  info('Modifier : npm run amyn -- policy dailyLimit 25');
+  console.log();
+}
+
+/** Qualifie un ou tous les prospects. */
+async function qualifyCommand(args: string[]) {
+  const { qualifyProspect } = await import("../lib/qualification");
+  const cible = args[0];
+
+  const prospects = cible && cible !== "--all"
+    ? await prisma.prospect.findMany({ where: { id: cible } })
+    : await prisma.prospect.findMany({ where: { isDemo: false }, take: 100 });
+
+  if (prospects.length === 0) { bad("Aucun prospect à qualifier."); return; }
+
+  title(`QUALIFICATION — ${prospects.length} prospect(s)`);
+  const lignes = [];
+  for (const p of prospects) {
+    const q = await qualifyProspect(p.id);
+    lignes.push({ entreprise: p.name, verdict: q.verdict, raison: q.summary.slice(0, 70) });
+  }
+  console.table(lignes);
+  console.log();
+}
+
 async function imapCheck() {
   title("VERIFICATION DE LA CONNEXION IMAP");
   info("Aucun message n'est lu, deplace, marque ni supprime.");
@@ -606,6 +723,8 @@ function help() {
     npm run amyn -- "Trouve 20 coiffeurs à Roubaix"
     npm run amyn -- "Audite les prospects"
     npm run amyn -- "Prépare une campagne pour les restaurants à Lille"
+    npm run amyn -- "Prospecte les coiffeurs à Lille"
+    npm run amyn -- "Fais un tour"
     npm run amyn -- "Vérifie les nouvelles réponses"
     npm run amyn -- "Nouveau client. Entreprise : Salon Éclat. Offre : PREMIUM"
 
@@ -619,6 +738,13 @@ function help() {
     campaign list              lister les campagnes
     campaign approve <slug>    approuver les emails d'une campagne
     campaign send <slug>       envoyer (simulé si DRY_RUN=true)
+  ${C.bold}Opérateur${C.reset}
+    mission "<instruction>"    mission complète : recherche → qualification →
+                               audit → contact → score → rédaction → campagne
+    tick                       un tour : boîte, décisions, relances, maintenance
+    qualify [id|--all]         qualifier des prospects
+    policy [clé valeur]        voir ou modifier la politique d'envoi
+
     smtp-check                 vérifier la connexion SMTP (sans rien envoyer)
     imap-check                 vérifier la connexion IMAP (sans rien lire)
     sync-replies [--max=N]     lire les nouvelles réponses de la boîte

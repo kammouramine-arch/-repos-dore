@@ -91,6 +91,11 @@ async function main() {
   const { findFollowUpCandidates } = await import("../lib/campaign/followup");
   const { syncReplies, replyInbox } = await import("../lib/replies/sync");
   const { FakeMailbox, QUOTED_ORIGINAL } = await import("../tests/fake-mailbox");
+  const { qualifyProspect } = await import("../lib/qualification");
+  const { decideOnReply } = await import("../lib/operator/decide");
+  const { composeReply } = await import("../lib/email/replies");
+  const { getPolicy, checkSendWindow, remainingToday } = await import("../lib/policy");
+  const { jobDecideReplies, jobDueFollowUps, jobMaintenance } = await import("../lib/scheduler/jobs");
 
 
   console.log(`\n${C.gold}${C.bold}AMYN OUTREACH — parcours complet, de bout en bout${C.reset}`);
@@ -104,6 +109,20 @@ async function main() {
       data: {
         name: p.nom, sector: "coiffeur", city: p.ville,
         website: `https://${p.email.split("@")[1]}`, status: "AUDITED",
+        // Comme apres un vrai import : source tracee, audit fait, score calcule.
+        auditStatus: "COMPLETE",
+        auditedAt: new Date(),
+        overallScore: 62 + (PANEL.indexOf(p) % 5) * 4,
+        fitScore: 80, auditScore: 55, contactScore: 70,
+        recommendedOffer: "PREMIUM", recommendedPrice: 1290,
+        sources: {
+          create: [{
+            kind: "OSM",
+            label: "OpenStreetMap",
+            url: "https://www.openstreetmap.org/",
+            note: "Import de démonstration — entreprise fictive.",
+          }],
+        },
       },
     });
     ids[p.nom] = prospect.id;
@@ -141,8 +160,28 @@ async function main() {
   ok(`${PANEL.length} prospects, chacun avec un problème PROUVÉ (vérification VERIFIED liée)`);
   info("Un problème sans preuve serait refusé par le moteur.");
 
+  // === 1 bis. QUALIFICATION ===============================================
+  etape(2, "Qualification — qui mérite d'être contacté ?");
+  const policy = await getPolicy();
+  const verdicts: Record<string, number> = {};
+  const lignesQual = [];
+  for (const p of PANEL) {
+    const q = await qualifyProspect(ids[p.nom], { policy });
+    verdicts[q.verdict] = (verdicts[q.verdict] ?? 0) + 1;
+    lignesQual.push({ prospect: p.nom, verdict: q.verdict, raison: q.summary.slice(0, 62) });
+  }
+  console.table(lignesQual);
+  ok(`${verdicts.QUALIFIED ?? 0} qualifié(s) · ${verdicts.NOT_QUALIFIED ?? 0} écarté(s) · ${verdicts.NEEDS_HUMAN ?? 0} à trancher`);
+  info("Une information manquante donne NEEDS_HUMAN, jamais « probablement bon ».");
+
+  // === POLITIQUE ==========================================================
+  const fen = checkSendWindow(policy);
+  const quota = await remainingToday(policy);
+  info(`Politique : ${policy.dailyLimit} envois/jour · fenêtre ${policy.sendWindowStartHour}–${policy.sendWindowEndHour} h · relances max ${policy.maxFollowUps} · réponse auto ${policy.autoReplyEnabled ? "ACTIVE" : "désactivée"}`);
+  info(`Fenêtre ${fen.open ? "ouverte" : "fermée"} — ${fen.reason} · quota ${quota.used}/${policy.dailyLimit}`);
+
   // === 2. RÉDACTION ========================================================
-  etape(2, "Rédaction des emails");
+  etape(3, "Rédaction des emails");
   for (const p of PANEL) await generateEmail(ids[p.nom]);
   const exemple = await prisma.emailDraft.findFirstOrThrow({ where: { prospectId: ids["Salon Lemaire"] } });
   ok(`${PANEL.length} emails rédigés, chacun vérifié avant d'être retenu`);
@@ -150,7 +189,7 @@ async function main() {
   info(`         cite ${JSON.parse(exemple.citedIssueIds).length} problème(s) prouvé(s) · vérification ${exemple.verificationPassed ? "passée" : "ÉCHOUÉE"}`);
 
   // === 3. CAMPAGNE, SANS APPROBATION =======================================
-  etape(3, "Campagne — tentative d'envoi SANS approbation");
+  etape(4, "Campagne — tentative d'envoi SANS approbation");
   const campagne = await createCampaign({ name: "Coiffeurs métropole lilloise", targetCriteria: { city: "Lille" } });
   await addProspectsToCampaign(campagne.id, Object.values(ids));
   await prepareCampaign(campagne.id);
@@ -159,7 +198,7 @@ async function main() {
   info(avant.details[0] ?? "");
 
   // === 4. APPROBATION + ENVOI ==============================================
-  etape(4, "Approbation puis envoi (SIMULÉ, DRY_RUN=true)");
+  etape(5, "Approbation puis envoi (SIMULÉ, DRY_RUN=true)");
   const appro = await approveCampaignMembers(campagne.id, "DÉMO");
   ok(`${appro.approved} email(s) approuvé(s)`);
   const envoi = await runCampaign(campagne.id);
@@ -167,7 +206,7 @@ async function main() {
   info("Chacun a passé les 12 contrôles de conformité avant d'être simulé.");
 
   // === 5. LES RÉPONSES ARRIVENT ============================================
-  etape(5, "Les prospects répondent — lecture de la boîte");
+  etape(6, "Les prospects répondent — lecture de la boîte");
   const hier = new Date(Date.now() - 86400000);
   const boite = new FakeMailbox([
     { uid: 101, from: "contact@salon-lemaire.fr", fromName: "Sophie Lemaire",
@@ -215,7 +254,7 @@ async function main() {
   );
 
   // === 6. CE QUE LE CRM A FAIT =============================================
-  etape(6, "Mise à jour du CRM");
+  etape(7, "Mise à jour du CRM");
   const suivis = await prisma.prospect.findMany({
     where: { id: { in: Object.values(ids) } },
     orderBy: { name: "asc" },
@@ -229,8 +268,42 @@ async function main() {
     })),
   );
 
+  // === DÉCISIONS ==========================================================
+  etape(8, "Décision de l'opérateur pour chaque réponse");
+  const decisions = [];
+  for (const o of rapport.outcomes) {
+    if (!o.replyId) continue;
+    const d = await decideOnReply(o.replyId);
+    decisions.push({
+      prospect: o.prospectName ?? "(inconnu)",
+      classement: o.classification,
+      décision: d.action,
+      "sans validation": d.autoAllowed ? "oui" : "non",
+      "pourquoi": d.reason.slice(0, 54),
+    });
+  }
+  console.table(decisions);
+  info("Aucune décision n'exécute quoi que ce soit : elle propose.");
+
+  // === RÉPONSE PROPOSÉE ===================================================
+  etape(9, "Réponse rédigée pour un prospect intéressé");
+  const aRepondre = rapport.outcomes.find(
+    (o) => o.replyId && ["INTERESTED", "PRICE_REQUEST", "MEETING_REQUEST"].includes(o.classification),
+  );
+  if (aRepondre?.replyId) {
+    const proposee = await composeReply(aRepondre.replyId);
+    ok(`Réponse rédigée pour ${aRepondre.prospectName} (${proposee.kind}) — vérification ${proposee.verification.passed ? "PASSÉE" : "ÉCHOUÉE"}`);
+    console.log(`\n${C.dim}┌─ Objet : ${proposee.subject}${C.reset}`);
+    proposee.body.split("\n").forEach((l) => console.log(`${C.dim}│${C.reset} ${l}`));
+    console.log(`${C.dim}└─${C.reset}`);
+    proposee.avoided.forEach((a) => info(`évité : ${a}`));
+    warn("Cette réponse N'EST PAS ENVOYÉE : elle attend votre approbation.");
+  } else {
+    info("Aucune réponse à rédiger dans ce lot.");
+  }
+
   // === 7. LA PROTECTION OPT-OUT ============================================
-  etape(7, "Preuve : l'opposition bloque tout envoi futur");
+  etape(10, "Preuve : l'opposition bloque tout envoi futur");
   const optOutId = ids["Institut Merlin"];
   const draft = await prisma.emailDraft.findFirstOrThrow({ where: { prospectId: optOutId, isActive: true } });
   await prisma.emailDraft.update({ where: { id: draft.id }, data: { approvedAt: new Date() } });
@@ -243,7 +316,7 @@ async function main() {
   }
 
   // === 8. RELANCES =========================================================
-  etape(8, "Qui reste à relancer ?");
+  etape(11, "Qui reste à relancer ?");
   await prisma.campaignMember.updateMany({
     where: { campaignId: campagne.id, status: { in: ["APPROVED", "SENT", "PENDING"] } },
     data: { status: "SENT", lastSentAt: new Date(Date.now() - 10 * 86400000) },
@@ -253,13 +326,26 @@ async function main() {
   for (const s of skipped) info(`${s.name} — ${s.reason}`);
 
   // === 9. ÉTAT FINAL =======================================================
-  etape(9, "Centre de tri");
+  etape(12, "Centre de tri");
   const inbox = await replyInbox();
   console.log(`  ${inbox.total} réponse(s) · ${inbox.new} nouvelle(s) · ${inbox.actionRequired} action requise · ${inbox.resolved} traitée(s)`);
   console.log(`  ${inbox.interested} intéressé(s) · ${inbox.optOuts} opposition(s) · ${inbox.needsHuman} intervention requise · ${inbox.unknown} non classée(s)`);
 
   // === GARANTIE ============================================================
-  etape(10, "Garantie finale");
+  // === JOBS ===============================================================
+  etape(13, "Tour d'opérateur — idempotence");
+  const t1 = await jobDecideReplies();
+  const t2 = await jobDecideReplies();
+  ok(`1er passage : ${t1.summary}`);
+  ok(`2e passage : ${t2.skipped ? "ignoré (verrou) — rien n'a été refait" : t2.summary}`);
+  const m = await jobMaintenance();
+  ok(`maintenance : ${m.summary}`);
+  const f1 = await jobDueFollowUps();
+  const f2 = await jobDueFollowUps();
+  ok(`relances : ${f1.summary}`);
+  ok(`relances (2e appel le même jour) : ${f2.skipped ? "ignoré — aucun doublon" : f2.summary}`);
+
+  etape(14, "Garantie finale");
   const reels = await prisma.sendLog.count({ where: { status: "SENT" } });
   const horsSimu = await prisma.sendLog.count({ where: { dryRun: false } });
   const total = await prisma.sendLog.count();

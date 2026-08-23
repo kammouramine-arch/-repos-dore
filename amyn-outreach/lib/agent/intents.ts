@@ -26,12 +26,16 @@ export const INTENTS = [
   "STATUS",
   "TEST_EMAIL",
   "PIPELINE",
+  "MISSION",
+  "WORKER",
   "UNKNOWN",
 ] as const;
 export type Intent = (typeof INTENTS)[number];
 
 export type ParsedInstruction = {
   intent: Intent;
+  /** Instruction d'origine, conservee mot pour mot. */
+  raw: string;
   parameters: Record<string, unknown>;
   matchedOn: string[];
   confidence: "HIGH" | "MEDIUM" | "LOW";
@@ -61,6 +65,32 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
     intent: "TEST_EMAIL",
     priority: 1,
     patterns: [/(email|mail|envoi) (de )?test/i, /teste? l'envoi/i, /envoie(-| )moi un test/i],
+  },
+  {
+    // « Fais un tour » : lancer les jobs de l'operateur.
+    intent: "WORKER",
+    priority: 1.5,
+    patterns: [
+      /(fais|lance|ex[ée]cute) (un |le |)tour/i,
+      /(lance|d[ée]marre) (l'|le |les |)(op[ée]rateur|jobs?|worker)/i,
+      /au (boulot|travail)/i,
+      /\bfais ton travail\b/i,
+    ],
+  },
+  {
+    // « Prospecte les coiffeurs de Lille » : une mission complete, pas une
+    // simple recherche. Prioritaire sur SEARCH.
+    intent: "MISSION",
+    priority: 1.8,
+    patterns: [
+      /\bprospecte\b/i,
+      /mission (de |)prospection/i,
+      /campagne compl[èe]te/i,
+      /(occupe|charge)[- ]toi (de|des|du)\b/i,
+      /trouve[- ]?(moi |nous |)des? (entreprises?|soci[ée]t[ée]s?|clients?|prospects?)/i,
+      /qui (pourrai(en)?t|aurai(en)?t) (avoir |)besoin/i,
+      /(ont|auraient) besoin d'un (nouveau |)site/i,
+    ],
   },
   {
     // Prioritaire sur REPLY : « vérifie les réponses » demande de LIRE la
@@ -258,6 +288,7 @@ export function parseInstruction(instruction: string): ParsedInstruction {
     return {
       intent: "UNKNOWN",
       parameters,
+      raw: text,
       matchedOn: [],
       confidence: "LOW",
       explanation:
@@ -272,6 +303,7 @@ export function parseInstruction(instruction: string): ParsedInstruction {
   return {
     intent: best.intent,
     parameters,
+    raw: text,
     matchedOn: best.signals,
     confidence: best.signals.length >= 2 ? "HIGH" : distinct.size > 2 ? "LOW" : "MEDIUM",
     explanation: `Intention ${best.intent} reconnue sur : ${best.signals.map((s) => `« ${s} »`).join(", ")}.${

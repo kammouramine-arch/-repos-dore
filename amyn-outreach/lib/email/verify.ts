@@ -24,6 +24,18 @@ export type VerificationInput = {
   allowedNumbers: number[];
   companyName: string;
   senderEmail: string;
+  /**
+   * L'email doit-il s'appuyer sur un probleme prouve ?
+   *
+   * true (defaut) pour un email de prospection : affirmer quelque chose sur le
+   * site de quelqu'un sans preuve est exactement ce qu'on s'interdit.
+   *
+   * false UNIQUEMENT pour un message qui n'affirme rien sur l'entreprise —
+   * une reponse dans une conversation que le prospect a lui-meme ouverte
+   * (accuse de reception, tarifs, prise de rendez-vous). Des qu'un message
+   * reprend un constat, il doit le citer et repasser a true.
+   */
+  requiresCitedIssue?: boolean;
 };
 
 export type VerificationResult = {
@@ -82,7 +94,7 @@ export function verifyEmail(input: VerificationInput): VerificationResult {
       `L'email cite ${unknown.length} problème(s) absent(s) de la base de preuves : ${unknown.join(", ")}`,
     );
   }
-  if (input.citedIssueIds.length === 0) {
+  if ((input.requiresCitedIssue ?? true) && input.citedIssueIds.length === 0) {
     problems.push("L'email ne s'appuie sur aucun problème prouvé.");
   }
 

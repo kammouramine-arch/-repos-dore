@@ -224,6 +224,29 @@ export function planActions(parsed: ParsedInstruction): PlannedAction[] {
         },
       ];
 
+    case "MISSION":
+      return [
+        {
+          module: "OPERATOR",
+          type: "operator.mission",
+          description: `Mission de prospection${p.city ? ` — ${p.city}` : ""}${p.sectors ? ` (${(p.sectors as string[]).join(", ")})` : ""}`,
+          rationale:
+            "Enchaîner recherche, qualification, audit, contact, score et rédaction, puis s'arrêter avant l'envoi.",
+          input: { ...p, brief: parsed.raw },
+        },
+      ];
+
+    case "WORKER":
+      return [
+        {
+          module: "OPERATOR",
+          type: "operator.tick",
+          description: "Faire un tour complet : boîte, décisions, relances dues, maintenance",
+          rationale: "Un tour d'opérateur ne fait avancer que ce qui peut l'être sans vous.",
+          input: p,
+        },
+      ];
+
     case "SYNC_REPLIES":
       return [
         {

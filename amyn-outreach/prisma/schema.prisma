@@ -68,6 +68,13 @@ model Prospect {
   scoreRationale String?
   scoredAt       DateTime?
 
+  // Qualification : le prospect merite-t-il d'etre contacte ?
+  /// QUALIFIED | NOT_QUALIFIED | NEEDS_HUMAN | PENDING
+  qualification       String    @default("PENDING")
+  /// JSON : raisons retenues et blocages, pour pouvoir relire la decision
+  qualificationReason String?
+  qualifiedAt         DateTime?
+
   // Recommandation commerciale
   recommendedOffer String?
   recommendedPrice Int?
@@ -423,6 +430,21 @@ model Reply {
   imapFolder String?
   imapUid    Int?
 
+  /// Decision de l'operateur : REPLY | SCHEDULE_FOLLOWUP | STOP_SEQUENCE |
+  /// BLACKLIST | HUMAN_REVIEW | NONE
+  decisionAction String?
+  /// La decision peut-elle s'executer sans validation humaine ?
+  decisionAuto   Boolean @default(false)
+  decisionReason String?
+
+  /// Reponse REDIGEE par l'agent, jamais envoyee sans approbation.
+  proposedSubject String?
+  proposedBody    String?
+  /// DRAFT | APPROVED | SENT | REJECTED
+  proposedStatus  String?
+  proposedAt      DateTime?
+  approvedBy      String?
+
   /// NEW | REVIEWED | ACTION_REQUIRED | RESOLVED
   reviewStatus String    @default("NEW")
   handled      Boolean   @default(false)
@@ -435,6 +457,38 @@ model Reply {
   @@index([classification])
   @@index([reviewStatus])
   @@index([receivedAt])
+}
+
+/// Execution d'un job planifie.
+///
+/// IDEMPOTENCE : `lockKey` est unique. Un job qui tourne deux fois pour la
+/// meme fenetre ne peut pas creer deux executions — la seconde echoue a
+/// l'insertion et s'arrete proprement.
+model JobRun {
+  id  String @id @default(cuid())
+  job String
+
+  /// Cle d'unicite : "<job>:<fenetre>". Empeche tout doublon.
+  lockKey String @unique
+
+  /// RUNNING | DONE | FAILED | SKIPPED
+  status  String  @default("RUNNING")
+  summary String?
+  error   String?
+
+  /// JSON : compteurs de l'execution
+  result String?
+
+  itemsSeen    Int @default(0)
+  itemsChanged Int @default(0)
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+  durationMs Int?
+
+  @@index([job])
+  @@index([startedAt])
+  @@index([status])
 }
 
 /// Etat de synchronisation IMAP, par dossier. Permet de ne relire que les
@@ -677,6 +731,63 @@ model CareEvent {
 // ---------------------------------------------------------------------------
 
 /// Une instruction donnee a l'agent et son execution.
+/// Mission commerciale confiee a l'operateur.
+///
+/// Relie une instruction ("Prospecte les coiffeurs de Lille") a tout ce qu'elle
+/// a produit : prospects trouves, qualifies, emails prepares, blocages.
+model Mission {
+  id    String @id @default(cuid())
+  brief String
+
+  /// JSON : criteres extraits (secteur, ville, nombre vise...)
+  criteria String?
+
+  /// PLANNED | RUNNING | WAITING_APPROVAL | DONE | FAILED | PARTIAL
+  status  String  @default("PLANNED")
+  summary String?
+
+  /// JSON : ce que l'operateur attend de vous
+  needsHuman String?
+
+  prospectsFound     Int @default(0)
+  prospectsQualified Int @default(0)
+  prospectsRejected  Int @default(0)
+  emailsPrepared     Int @default(0)
+
+  campaignId String?
+
+  startedAt  DateTime  @default(now())
+  finishedAt DateTime?
+
+  steps MissionStep[]
+
+  @@index([status])
+  @@index([startedAt])
+}
+
+/// Une etape de mission. Chaque etape dit ce qu'elle a fait ET pourquoi.
+model MissionStep {
+  id        String  @id @default(cuid())
+  missionId String
+  mission   Mission @relation(fields: [missionId], references: [id], onDelete: Cascade)
+
+  /// RESEARCH | QUALIFY | AUDIT | CONTACT | SCORE | DRAFT | CAMPAIGN | SEND
+  stage       String
+  description String
+  rationale   String?
+
+  /// DONE | SKIPPED | FAILED | WAITING_APPROVAL
+  status String  @default("DONE")
+  /// JSON : entrees et sorties
+  result String?
+  error  String?
+
+  position  Int      @default(0)
+  createdAt DateTime @default(now())
+
+  @@index([missionId])
+}
+
 model AgentRun {
   id          String  @id @default(cuid())
   instruction String

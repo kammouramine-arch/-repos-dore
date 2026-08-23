@@ -51,7 +51,81 @@ npm run amyn -- status    # état du pipeline en chiffres
 
 ---
 
-## 3. Piloter l'agent
+## 3. L'opérateur
+
+Une mission commerciale en une phrase :
+
+```bash
+npm run amyn -- "Prospecte les coiffeurs indépendants de Lille"
+```
+
+L'opérateur enchaîne alors, en s'arrêtant **avant** l'envoi :
+
+```
+RECHERCHE → QUALIFICATION → AUDIT → CONTACT → SCORE →
+QUALIFICATION (passe finale) → RÉDACTION → CAMPAGNE → votre approbation
+```
+
+La qualification tourne deux fois volontairement : une première passe écarte
+tout de suite ce qui est bloqué (opposition, contact récent) pour ne pas
+auditer inutilement ; la seconde tranche une fois les preuves réunies.
+
+### Le tour d'opérateur
+
+```bash
+npm run amyn -- tick        # ou : npm run amyn -- "Fais un tour"
+```
+
+Quatre jobs, dans cet ordre : lire la boîte → décider quoi faire des réponses
+→ préparer les relances dues → vérifier la cohérence. **Aucun n'envoie
+d'email.**
+
+Chaque job pose un verrou en base (`JobRun.lockKey`). Deux crons qui se
+chevauchent, un worker relancé après un crash, un double-clic : la seconde
+exécution s'arrête sans rien refaire. Le verrou étant en base et non en
+mémoire, il survit à un redémarrage. Les relances sont verrouillées à la
+**journée**, pas à la minute.
+
+### Décision
+
+Pour chaque réponse, l'opérateur décide — sans jamais exécuter :
+
+| Réponse | Décision | Sans validation ? |
+|---|---|---|
+| Intéressé, prix, rendez-vous | `REPLY` | seulement si vous l'activez |
+| Refus poli | `STOP_SEQUENCE` | oui |
+| Opposition | `BLACKLIST` | oui (ne rien envoyer est toujours permis) |
+| Ambigu, inconnu, expéditeur non identifié | `HUMAN_REVIEW` | **jamais** |
+| Rebond | `STOP_SEQUENCE` | oui |
+
+Trois interdits que **rien** ne contourne, pas même un réglage :
+l'opposition, les cas incertains, et l'absence de validation quand elle est
+requise. Un test le vérifie en activant la réponse automatique et en
+constatant que l'ambiguïté reste humaine.
+
+### Politique d'envoi
+
+```bash
+npm run amyn -- policy                    # voir
+npm run amyn -- policy dailyLimit 25      # modifier, à chaud
+```
+
+Plafond quotidien, délai entre envois, fenêtre horaire, week-end, nombre et
+délai de relances, délai de recontact, score minimum, réponse automatique.
+Stockée en base : modifiable sans redéploiement.
+
+**`autoReplyEnabled` vaut `false` par défaut.** Toute réponse rédigée attend
+votre validation.
+
+### Centre de contrôle
+
+`/operator` — l'état de la chaîne d'envoi, les missions, chaque conversation
+avec sa décision et sa réponse proposée, les derniers tours, la politique.
+Actions : **Rédiger · Approuver · Écarter · Ne plus contacter**.
+
+---
+
+## 4. Piloter l'agent
 
 Une instruction en français, depuis la page **Agent** (`/agent`) ou en ligne
 de commande :
@@ -84,7 +158,7 @@ Verrouillés en `APPROVAL_REQUIRED` par défaut : `campaign.send`,
 
 ---
 
-## 4. Lancer une première campagne de test
+## 5. Lancer une première campagne de test
 
 ```bash
 # 1. Trouver des entreprises réelles (OpenStreetMap, aucune clé requise)
@@ -117,7 +191,7 @@ prospect ne passe pas en `CONTACTED`.
 
 ---
 
-## 5. Passer à l'envoi réel
+## 6. Passer à l'envoi réel
 
 Trois verrous indépendants doivent tomber, dans cet ordre.
 
@@ -166,7 +240,7 @@ Un seul échec = pas d'envoi, et un `SendLog` en `BLOCKED` qui dit lequel.
 
 ---
 
-## 6. Après la signature
+## 7. Après la signature
 
 ```bash
 npm run amyn -- "Nouveau client. Entreprise : Studio Nord. Offre : PREMIUM. Prends le relais."
@@ -187,7 +261,7 @@ du client.
 
 ---
 
-## 7. Lire les réponses reçues
+## 8. Lire les réponses reçues
 
 AMYN lit la boîte `contact@amyn.agency` en **lecture seule** et transforme les
 réponses en événements CRM. Aucun message n'est supprimé, déplacé, ni marqué
@@ -261,7 +335,7 @@ Aucune réponse automatique n'est envoyée à personne.
 
 ---
 
-## 8. Opposition et RGPD
+## 9. Opposition et RGPD
 
 ```bash
 npm run amyn -- optout contact@exemple.fr
@@ -275,7 +349,7 @@ désinscription, sans quoi il est refusé.
 
 ---
 
-## 9. Ce qui tourne sans rien configurer
+## 10. Ce qui tourne sans rien configurer
 
 | Capacité | État | Ce qu'il faut |
 |---|---|---|
@@ -292,6 +366,12 @@ désinscription, sans quoi il est refusé.
 | Envoi simulé | ✅ | rien |
 | **Envoi réel** | ⚙️ prêt, verrouillé | SMTP + `MAIL_TRANSPORT=smtp` + `DRY_RUN=false` |
 | Lecture des réponses (IMAP) | ⚙️ prête, verrouillée | `IMAP_HOST`, `IMAP_USER`, `IMAP_PASSWORD` dans `.env` |
+| Qualification des prospects | ✅ | rien |
+| Décision sur les réponses | ✅ | rien |
+| Rédaction des réponses et relances | ✅ | rien |
+| Politique d'envoi | ✅ | rien |
+| Jobs idempotents | ✅ | un cron pour les déclencher (voir §12) |
+| **Réponse automatique** | ⚙️ prête, désactivée | `policy autoReplyEnabled true` — après validation manuelle prolongée |
 | CRM, projets, onboarding, Care | ✅ | rien |
 
 L'interface et le CLI disent toujours l'état réel : une capacité qui dépend
@@ -299,12 +379,13 @@ d'une clé absente est affichée comme indisponible, jamais comme fonctionnelle.
 
 ---
 
-## 10. Interface
+## 11. Interface
 
 | Page | Contenu |
 |---|---|
 | `/` | Tableau de bord : prospection, commercial, revenus, envois, réponses à traiter, journal |
 | `/agent` | Console d'instruction, exécutions récentes, matrice d'autonomie |
+| `/operator` | Centre de contrôle : missions, conversations, décisions, réponses proposées, jobs, politique |
 | `/prospects` | Fiches, filtres par statut |
 | `/prospects/[id]` | Toutes les vérifications avec verdict et preuve, score détaillé, email généré, historique |
 | `/campaigns` | Campagnes, membres, emails, journal d'envoi avec rapports de conformité |
@@ -316,14 +397,14 @@ d'une clé absente est affichée comme indisponible, jamais comme fonctionnelle.
 
 ---
 
-## 11. Développement
+## 12. Développement
 
 ```bash
 npm run dev          # serveur de développement
 npm run build        # build de production
 npm run typecheck    # TypeScript, zéro erreur attendue
 npm run lint         # ESLint, zéro avertissement toléré
-npm test             # 208 tests, base isolée, aucun appel réseau
+npm test             # 264 tests, base isolée, aucun appel réseau
 npm run demo         # rejoue TOUT le parcours sur une base jetable
 npm run db:studio    # explorer la base
 npm run amyn -- rules   # lister les 19 règles d'audit
@@ -347,7 +428,7 @@ contrat de preuve.
 
 ---
 
-## 12. Architecture
+## 13. Architecture
 
 ```
 app/          pages Next.js (App Router, composants serveur)
@@ -360,11 +441,15 @@ lib/
   email/      angles, génération (template & Claude), vérification
   campaign/   conformité, envoi, relances
   mailer/     transports interchangeables (dry-run, SMTP)
+  policy/     politique d'envoi centralisée, modifiable à chaud
+  qualification/ le prospect mérite-t-il d'être contacté ?
+  operator/   orchestrateur de mission + moteur de décision
+  scheduler/  jobs idempotents (verrou en base)
   imap/       lecture seule de la boîte (config, client, parsing)
   replies/    classement, rattachement, ingestion, synchronisation
   crm/        clients, projets, tâches, onboarding, documents
   agent/      intentions, planification, autonomie, exécuteurs
 prisma/       schéma et seed de démonstration
 scripts/      CLI `amyn` et lanceur de tests
-tests/        208 tests
+tests/        264 tests
 ```

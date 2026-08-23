@@ -406,6 +406,10 @@ export const DEFAULT_AUTONOMY: Record<string, "AUTOMATIC" | "APPROVAL_REQUIRED">
   "project.onboarding_status": "AUTOMATIC",
   "project.advance": "AUTOMATIC",
   "status.report": "AUTOMATIC",
+  // Une mission prepare et s'arrete avant l'envoi : rien ne part sans vous.
+  "operator.mission": "AUTOMATIC",
+  // Un tour d'operateur lit, decide et prepare. Il n'expedie jamais.
+  "operator.tick": "AUTOMATIC",
   "prospect.delete": "APPROVAL_REQUIRED",
   "document.sign_contract": "APPROVAL_REQUIRED",
   "payment.charge": "APPROVAL_REQUIRED",
