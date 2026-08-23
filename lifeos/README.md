@@ -63,6 +63,10 @@ supabase start                     # local stack, or use a cloud project
 supabase db push                   # apply supabase/migrations
 ```
 
+No terminal? Paste [`supabase/dist/all-migrations.sql`](supabase/dist/all-migrations.sql)
+into the Supabase SQL Editor instead, then
+[`supabase/tests/verify.sql`](supabase/tests/verify.sql) to check it.
+
 Put the project URL and anon key in `.env`:
 
 ```
@@ -125,7 +129,9 @@ build use `npx expo prebuild` and `npm run ios` / `npm run android`.
 | `npm test` | Jest — logic, executor, offline queue, security and component tests |
 | `npm run typecheck` | `tsc --noEmit` |
 | `npm run lint` | ESLint |
-| `npm run db:push` | Apply migrations |
+| `npm run db:push` | Apply migrations with the CLI |
+| `npm run db:bundle` | Regenerate the single pasteable setup file |
+| `npm run db:verify` | Run the live database assertions (needs `DATABASE_URL`) |
 | `npm run functions:serve` | Run edge functions locally with `.env` |
 | `npm run functions:deploy` | Deploy all five functions |
 | `npm run seed:demo` | Create the demo account |

@@ -82,7 +82,9 @@
     "submit:ios": "eas submit --profile production --platform ios",
     "submit:android": "eas submit --profile production --platform android",
     "release:check": "node scripts/release-check.mjs",
-    "icons": "node scripts/generate-icons.mjs"
+    "icons": "node scripts/generate-icons.mjs",
+    "db:verify": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/verify.sql",
+    "db:bundle": "node scripts/build-sql.mjs"
   },
   "private": true,
   "jest": {

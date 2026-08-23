@@ -116,8 +116,12 @@ describe('idempotency', () => {
     expect(migration).toContain('create table public.store_events');
     expect(migration).toContain('unique (provider, event_id)');
     expect(migration).toMatch(/insert into public\.store_events[\s\S]*on conflict \(provider, event_id\) do nothing/);
-    // A duplicate returns early, before the subscription is touched.
-    expect(migration).toMatch(/if v_inserted = false then[\s\S]*return query select false, true;/);
+    // A duplicate must return *early*. Without the RETURN the function falls through
+    // and rewrites the subscription — a live database caught exactly that, where a
+    // replayed webhook downgraded a paying account.
+    expect(migration).toMatch(
+      /if v_inserted = 0 then[\s\S]*?return query select false, true;\s*\n\s*return;\s*\n\s*end if;/,
+    );
   });
 
   it('writes entitlement only through that function', () => {

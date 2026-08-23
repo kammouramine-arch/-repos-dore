@@ -179,7 +179,7 @@ end $$;
 /* What the user has spent this period — the numbers behind the usage screen. */
 create or replace function public.get_usage_summary(p_period_start date)
 returns table (meter text, used numeric)
-language sql stable security invoker as $$
+language sql stable security definer set search_path = public, auth as $$
   select uc.meter, uc.used
   from public.usage_counters uc
   where uc.user_id = auth.uid() and uc.period_start = p_period_start;

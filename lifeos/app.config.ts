@@ -20,7 +20,9 @@ const config: ExpoConfig = {
     infoPlist: {
       NSMicrophoneUsageDescription:
         'Used only when you hold the microphone button to speak to your planner.',
-      UIBackgroundModes: ['remote-notification'],
+      // No background modes are declared: notifications are scheduled locally, and
+      // nothing sends silent pushes. Declaring one we do not use invites a review
+      // question we cannot answer honestly.
       ITSAppUsesNonExemptEncryption: false,
     },
   },

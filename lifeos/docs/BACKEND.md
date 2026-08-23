@@ -70,6 +70,25 @@ JWT, so a scheduled job must mint one per user rather than using the service rol
 This is deliberately not wired up by default: a half-working scheduler that silently
 skips users is worse than none.
 
+## Verifying a database
+
+`supabase/tests/verify.sql` is the proof, not a smoke test. Run it in the SQL Editor or
+with `npm run db:verify` (set `DATABASE_URL` first). It creates two throwaway accounts,
+asserts and then deletes them, and it fails loudly rather than printing rows:
+
+| Group | What it proves |
+|---|---|
+| 1 | A new account gets a profile, preferences, a free subscription and life areas |
+| 2 | Metering is atomic, refuses past the limit, refunds, and never goes negative |
+| 3 | Rate limiting refuses the call after the limit and returns exactly one answer |
+| 4 | A replayed store event is reported as a duplicate and **changes no entitlement** |
+| 5 | A store transaction stays attached to the one account that owns it |
+| 6 | User B cannot read or write user A's rows, cannot promote themselves, and a signed-out visitor sees nothing |
+| 7 | Derived progress, streaks, export and forget-everything behave, and the owner's data survived group 6 |
+| 8 | Deleting an account removes it and cascades its data away |
+
+CI runs exactly this against a real PostgreSQL 16 on every push.
+
 ## Adding a new AI capability
 
 1. Add the zod schema and metadata to `supabase/functions/_shared/tools.ts`.
