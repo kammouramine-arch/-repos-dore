@@ -2,7 +2,15 @@
 
 **EARN YOUR REIGN.**
 
-Premium athletic-luxury brand, print-on-demand infrastructure, Europe-first.
+Premium athletic-luxury brand. **Global brand market · French legal jurisdiction ·
+print-on-demand infrastructure.**
+
+```
+GYMREIGN
+EARN YOUR REIGN.
+CHAPTER 001 — ASCENSION
+BEGIN AT GROUND LEVEL.
+```
 
 > **Repository note:** this directory is a self-contained workstream. The RÉVA site at
 > the repository root is a separate, unrelated project and has not been modified.
@@ -13,9 +21,9 @@ Premium athletic-luxury brand, print-on-demand infrastructure, Europe-first.
 
 | # | Phase | Status | Output |
 |---|---|---|---|
-| **01** | **Master brand strategy** | **✅ Complete** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
-| **01a** | **Founder decision brief** | **✅ Complete — awaiting six answers** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
-| 02 | Visual identity | ⏸ **Gate held** — blocked until all six decisions are resolved | — |
+| **01** | **Master brand strategy** | **✅ Approved — Revision 2** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
+| **01a** | **Founder decision brief** | **✅ Resolved — all six locked** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
+| 02 | Visual identity | ⏸ **Awaiting explicit founder approval to begin** | — |
 | 03 | Chapter 001 design | ⏸ | — |
 | 04 | POD provider + product validation | ⏸ | — |
 | 05 | Samples | ⏸ | — |
@@ -44,13 +52,20 @@ this phase.
 
 ---
 
-## THE SIX DECISIONS WAITING ON YOU
+## THE SIX DECISIONS — RESOLVED
 
-Full treatment — confidence and reversibility per decision — in the
-[decision brief](./strategy/02-founder-decision-brief.md).
+| # | Decision | Locked outcome |
+|---|---|---|
+| 1 | Collection architecture | `CHAPTER 001 — ASCENSION`; future chapters keep the CHAPTER system without the word |
+| 2 | First assortment | Tee · hoodie · **sweatpants** · cap. Long-sleeve dropped. Phase 04 validates everything |
+| 3 | No-discount policy | Approved. Access, never price — and **no-discount ≠ no legal returns** |
+| 4 | Budget | €2,500 ceiling, tranched, large reserve |
+| 5 | Launch window | 10–19 Nov 2026, behind a six-condition readiness gate |
+| 6 | Jurisdiction | France — legal only, not the brand's market |
 
-**The thing most founders get backwards:** decision 1 feels small and is nearly
-irreversible; decision 2 feels large and is almost free to change.
+**Global brand principle, locked separately:** the brand market is global from day one;
+France is the jurisdiction for tax, VAT and consumer law. GYMREIGN is never positioned
+as French or European-only apparel.
 
 1. **Collection architecture** — adopt `CHAPTER 001 — ASCENSION`, separating the
    permanent chapter number from the changeable theme? *Recommended: yes.*
@@ -69,7 +84,7 @@ irreversible; decision 2 feels large and is almost free to change.
 
 ---
 
-## TWO THINGS THAT NEED ACTING ON THIS WEEK
+## WHAT NEEDS ACTING ON THIS WEEK
 
 Both are cheap now and expensive later.
 

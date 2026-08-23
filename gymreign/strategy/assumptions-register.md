@@ -25,6 +25,10 @@ primary source checked on a stated date.**
 | V4 | Live apparel trademarks exist for REIGN (Class 25), REIGN SPORT (Class 25) and REIGN APPAREL | Trademark database listings via search | 2026-08-23 | US records. **EUIPO not yet searched.** Presence of similar marks in the same class is a likelihood-of-confusion risk. Not legal advice |
 | V5 | No apparent brand or registration for "GYMREIGN" as one word | Search across trademark databases and the open web | 2026-08-23 | Absence of search evidence is not clearance |
 | V6 | At least six active gym/athletic apparel brands trade on Ascension/Ascend | Live storefronts and social profiles observed: Ascension Apparel, Ascension Clothing, Gym Ascension Apparel, Ascension Athletics, Ascend Athletic, Ascend | 2026-08-23 | Drives the §11.2 recommendation |
+| V7 | **French standard VAT rate is 20%** | economie.gouv.fr and impots.gouv.fr | 2026-08-23 | Replaces the 21% placeholder. Entire §15 re-derived |
+| V8 | **French textile EPR is mandatory.** Anyone first placing clothing, household linen or footwear on the French market must register with Refashion, obtain an ADEME-issued unique identifier (IDU) and pay an annual eco-contribution | refashion.fr — in force 1 Jan 2022, Law 2020-105, art. L541-10-9 Code de l'environnement | 2026-08-23 | Confirm scope and current contribution scale directly with Refashion. Launch-readiness condition |
+| V9 | **French 14-day withdrawal right** on distance contracts (art. L221-18), with an exception at art. L221-28 for goods made to consumer specifications or clearly personalised | Légifrance | 2026-08-23 | The text is verified. **Whether the exception covers POD is not** — see A-L2 |
+| V10 | Where a withdrawal right does not apply, French pre-contractual information rules require the customer to be informed before the contract is concluded; sellers must also inform consumers of the consumer-mediation route | Légifrance / economie.gouv.fr | 2026-08-23 | Both are launch-readiness items |
 
 ---
 
@@ -41,6 +45,7 @@ primary source checked on a stated date.**
 | S7 | Printful is the more consistent on quality and deepest on branding options | Comparison articles | 2026-08-23 | Only closable by physically sampling both (§14.4) |
 | S8 | Printify has the widest catalogue via third-party providers | Comparison articles | 2026-08-23 | Confirm which specific EU providers serve our articles, and their individual quality |
 | S9 | Heavyweight blanks with boxy/dropped-shoulder blocks exist in POD catalogues (Stanley/Stella, Bella+Canvas 3010, Shaka Wear ranges) | Provider blog content | 2026-08-23 | Confirm exact model, GSM, size run, colour fidelity and EU stock in the live catalogue |
+| S10 | **Franchise en base de TVA thresholds for goods: €85,000 (prior year) / €93,500 (current year).** A 2025 reform to lower the threshold was suspended and subsequent legislation maintained the thresholds | Reported from official French sources via search | 2026-08-23 | **Confirm with an accountant — this has moved recently and may move again.** Drives the §15.3 two-regime model |
 
 **None of the above may be quoted to a customer or used in a final cost model until closed.**
 
@@ -73,13 +78,32 @@ primary source checked on a stated date.**
 | True deep black and non-yellow bone available | Assumed | **Only closable by physical sample** |
 | Single provider can supply all four articles | Assumed | Catalogue check, then samples |
 
+### C2b. France, jurisdiction and the global mandate (§0, §15, §16)
+
+| Input | Assumed | How to close |
+|---|---|---|
+| Legal entity actually established in France | Founder-stated, conditional on it being true | Confirm at registration |
+| Which VAT regime applies at launch | Franchise en base assumed likely; both regimes modelled | Accountant |
+| Landed cost treatment — VAT-exclusive in Régime B, grossed up 20% in Régime A | A modelling convention, not an accounting rule | **Accountant. This convention drives the price ladder** |
+| Whether the POD provider charges VAT to a French merchant, and at what rate under each regime | Unmodelled | Provider VAT policy + accountant |
+| **How the franchise regime interacts with sales outside France** | **Unresolved — flagged, not modelled** | Accountant, before any second market opens |
+| Non-French EPR/textile regimes in target markets | **Not researched at all.** Assumed to exist and to differ | Research per market, before opening it — never after |
+| US sales tax nexus, UK VAT and import thresholds, Swiss/other import rules | **Not researched.** Named only as a known compliance surface | Per market, at the point of opening |
+
+**A-L2 — the open legal question that most affects the numbers.** Whether art. L221-28's
+customised-goods exception applies to print-on-demand apparel sold from a standard
+catalogue in standard sizes. The strategy assumes **it does not** and prices returns at
+8% accordingly. If a lawyer concludes otherwise, returns cost falls and contribution
+rises — but the conservative assumption is the correct one to build on, and the founder
+has instructed that POD is not assumed to remove withdrawal rights.
+
 ### C3. Market and customer (§4, §8)
 
 | Input | Status |
 |---|---|
 | Entire customer profile — demographics, income, wardrobe, media habits | **Constructed from general market knowledge, not from research.** Not yet validated by a single customer interview. Highest-value cheap validation available: 10 conversations with people who fit the profile |
 | All competitor characterisations in §8 | Structural and qualitative only. **No competitor pricing is stated anywhere in the strategy because none was verified.** Closed by the §8.3 teardown |
-| Target market countries | Assumed EU-wide, English-first with later localisation. Confirm against founder location and shipping economics |
+| Target market | **Brand market is global (locked, §0); controlled initial market is the EU.** English-first. The customer profile is a person-type assumed to exist across markets in similar form — **unvalidated outside Europe** |
 
 ### C4. Bulk-transition triggers (§14.5)
 

@@ -1,7 +1,17 @@
 # GYMREIGN — MASTER BRAND STRATEGY
 
-**Phase 01 of 12. Status: awaiting founder approval.**
-Date of issue: 2026-08-23 · Market: Europe-first · Infrastructure: print-on-demand
+**Phase 01 of 12. Revision 2 — all six founder decisions APPROVED and LOCKED.**
+Issued 2026-08-23 · Revised 2026-08-23
+**Brand market: GLOBAL** · **Legal jurisdiction: FRANCE** · Infrastructure: print-on-demand
+
+> **Revision 2 changelog.** Six founder decisions approved (recorded in full at the end
+> of this document). Three substantive changes followed: the brand is now designed as
+> **global from day one** with France as legal jurisdiction only (§0); **premium
+> sweatpants replace the long-sleeve** in the first assortment (§13); and the entire
+> financial model is re-derived against **French VAT at 20%**, including a
+> franchise-en-base scenario that did not exist in Revision 1 (§15). Differentiation
+> pillar 5, the POD provider strategy, the launch gate and the risk register all changed
+> as a consequence.
 
 ---
 
@@ -44,6 +54,93 @@ genuinely good news — but a dense field of similar marks in the same class is 
 where "likelihood of confusion" objections come from. **This is not legal clearance and
 I am not qualified to give it.** Before you spend money on a logo, get a professional
 EUIPO clearance search. Cost is small relative to rebranding after a first drop. See §16.
+
+---
+
+# 0. THE GLOBAL BRAND PRINCIPLE — LOCKED
+
+> Founder decision, locked. This section governs every other section in this document.
+> Where anything below contradicts it, this section wins.
+
+## 0.1 The distinction that runs through everything
+
+Two questions are routinely collapsed into one, and collapsing them is how brands end
+up permanently regional. They are separate:
+
+| | |
+|---|---|
+| **BRAND MARKET** | **GLOBAL.** GYMREIGN is designed for an international audience from its foundation. English-first. Not culturally dependent on France or on Europe |
+| **LEGAL ESTABLISHMENT** | **FRANCE.** The jurisdiction for VAT, tax, consumer law and compliance modelling — provided the entity owning GYMREIGN is in fact established there |
+
+**France is where the company pays tax. It is not who the brand is for.** GYMREIGN is
+never positioned as French gymwear, French fitness clothing, or European-only apparel.
+Nothing in the identity, naming, storytelling or visual language may depend on a French
+or European frame of reference to make sense.
+
+## 0.2 Why this distinction is affordable — and where it is not
+
+The single most useful fact about this decision:
+
+> **Global brand design costs nothing extra. Global operational selling is expensive.**
+
+Making the identity, naming, language, sizing conventions and storytelling globally
+legible is free — it is a set of choices made once, at the beginning, and they cost the
+same as parochial choices would have. Opening a market operationally is not free: each
+jurisdiction carries its own tax registration, consumer law, labelling rules and
+extended-producer-responsibility obligations (§16.11).
+
+Which produces the sequencing the founder specified, now with a reason attached:
+
+```
+GLOBAL BRAND FOUNDATION   →   CONTROLLED INITIAL MARKET   →   EXPANSION   →   GLOBAL
+   free, do it now            compliance-bounded            per-market      distribution
+```
+
+The compliance surface is the argument for phased *market opening*. It is never an
+argument for parochial *brand design*.
+
+## 0.3 What "global" obliges us to do from day one
+
+These are cheap now and expensive to retrofit:
+
+- **English-first**, in a register that reads naturally to a non-native speaker.
+  No idiom, no wordplay that dies in translation, no cultural in-jokes
+- **Sizing published as flat measurements in centimetres and inches**, alongside
+  EU/UK/US letter equivalents. This is the honest answer to international sizing chaos,
+  and it is the same spec-honesty pillar we already committed to (§7.2) — the global
+  requirement and the brand pillar turn out to be the same instrument
+- **Product names that are globally pronounceable and carry no local meaning.**
+  The article-code system (§11.4) is inherently international: `GR-001-TS-BLK` reads
+  identically in Paris, Toronto and Seoul
+- **Currency and country architecture designed in, not bolted on** (§0.4)
+- **No national flags, no "Made in", no city names, no national colour codes** anywhere
+  in the identity
+- **Photography that is not geographically identifiable.** Concrete, low light and
+  architecture read as anywhere; a recognisable Paris backdrop reads as French
+
+## 0.4 Website architecture implications — for Phase 07, decided now
+
+Recorded here so Phase 07 inherits them rather than discovering them:
+
+English-first with a localisation path that does not require rebuilding · international
+sizing with published measurements in both unit systems · country and region selection ·
+multi-currency display where it is supported without misrepresenting tax · international
+payment methods · a shipping architecture that can add a region without restructuring ·
+duty and import expectations stated honestly per destination.
+
+**Design for it; do not launch all of it.** An architecture that can accept a second
+market is a design decision. Opening that market is a compliance decision taken later.
+
+## 0.5 The one risk in "global from day one", stated plainly
+
+A brand that tries to speak to everyone usually speaks to no one. Global relevance does
+not come from removing all specificity until nothing is left — that produces the beige,
+placeless brand that is the standing failure mode of "international" positioning.
+
+It comes from being **aesthetically specific and nationally unbounded.** Discipline,
+architecture, restraint and earned progress are legible in every market we listed. They
+are specific ideas. They are simply not French ideas, or American ones. That is the
+target, and Phase 02 will be judged against it.
 
 ---
 
@@ -211,7 +308,7 @@ for whom the gym is a fixed structural part of life rather than a project.
 |---|---|
 | **Age** | 24–34 (core 26–31) |
 | **Gender** | Male-leaning at launch, ~70/30. See §4.3 before treating this as permanent |
-| **Location** | Urban and peri-urban EU: Germany, Netherlands, France, Spain, Italy, Nordics, Belgium, Austria, Poland. UK as an adjacent market with different logistics `[A]` |
+| **Location** | **Globally distributed, initially served in the EU.** The profile below describes a person, not a nationality — he exists in Paris, London, Berlin, Toronto, Dubai, Sydney and Los Angeles in recognisably the same form. The *controlled initial market* is the EU for compliance reasons (§0.2), not because the customer is European `[A]` |
 | **Income** | €32k–70k, or student/early-career with high discretionary share |
 | **Training** | 4–6 sessions/week, 2+ years consistent, hypertrophy or strength-led |
 | **Occupation** | Skilled trades, tech, sales, healthcare, service management, self-employed |
@@ -513,16 +610,29 @@ slogans. Serves the customer who wants to wear one garment from gym to street.
 A permanent price integrity position, published as policy. Structurally difficult for
 discount-dependent competitors to adopt without repricing their entire catalogue.
 
-**5. EUROPEAN SPEED** (§17.1)
-EU fulfilment, EU delivery windows, EU consumer rights, no customs surprises. A direct
-structural advantage over Block 3, and one they cannot fix without opening EU
-operations.
+**5. FULFILMENT PROXIMITY** (§17.1)
+*Revised in Revision 2 — this pillar was "European speed"; the global mandate makes the
+general form both stronger and more durable.*
+
+We produce close to the customer, in whichever market the customer is in. Short
+delivery, local consumer rights, and no customs surprise at the door.
+
+This is not a European advantage that happens to scale. It is **the one structural
+advantage print-on-demand confers on a brand with no capital**: distributed
+manufacturing without distributed inventory. A bulk-manufacturing competitor needs
+warehouses in three regions and the working capital to stock them. We need a provider
+with facilities in three regions. That is the entire difference, and it is the reason
+POD and a global-from-day-one brand fit together rather than fighting each other.
+
+In the initial market this shows up as an advantage over US hype brands shipping into
+Europe (§8.1, Block 3). In every later market it shows up as the same advantage against
+whoever is shipping in from outside.
 
 ## 9.2 The one-sentence answer
 
 > **GYMREIGN is the quiet one.** Numbered chapters of heavyweight, restrained garments,
-> shipped fast inside Europe, with every specification published and no discount ever
-> offered.
+> made close to whoever is buying them, with every specification published and no
+> discount ever offered.
 
 ## 9.3 Honest self-assessment
 
@@ -629,7 +739,7 @@ packaging card:
 ```
 GR–001–TS–BLK
 │   │   │   └── Colourway
-│   │   └────── Article type (TS tee · HD hoodie · LS long-sleeve · CP cap)
+│   │   └────── Article type (TS tee · HD hoodie · SP sweatpants · CP cap)
 │   └────────── Chapter of origin
 └────────────── House
 ```
@@ -723,21 +833,44 @@ photograph properly."** That is a much lower number than most founders assume.
 |---|---|---|---|
 | 1 | **Heavyweight T-shirt** `GR-001-TS` | Hero | Lowest entry price, highest volume, best POD quality ceiling, most wearable outside the gym |
 | 2 | **Heavyweight Hoodie** `GR-001-HD` | Margin & AOV anchor | Highest contribution per unit; the garment that makes the brand feel real |
-| 3 | **Long-sleeve** `GR-001-LS` | Season & range | Autumn-correct, cheaper than a hoodie, adds range without adding a category |
-| 4 | **Embroidered Cap** `GR-000-CP` | Basket-builder | **The most important item in the list — see §13.4** |
+| 3 | **Premium Sweatpants** `GR-001-SP` | Set completion & top AOV | Completes the set with the hoodie. The highest-value basket in the range — and the highest execution risk (§13.3) |
+| 4 | **Embroidered Cap** `GR-000-CP` | Basket-builder | **See §13.4** |
 
 **Colourways:** tee in black and bone. Everything else black only. Roughly 6–7 sellable
 variants, before sizes.
 
-## 13.3 What we are deliberately not launching
+**Founder decision, locked.** Revision 1 recommended a long-sleeve here and deferred
+sweatpants to Chapter 002. The founder approved sweatpants in Chapter 001; the
+long-sleeve is dropped. **The commercial logic is sound** — a hoodie-and-sweatpant set
+is the single strongest AOV instrument available to us, and at a set price of roughly
+€230 it does more for the CAC ceiling than any other combination in the range. The
+concern was never commercial. It was execution risk, and execution risk is managed with
+a gate rather than a deferral (§13.3, §14.4).
 
-**Sweatpants** — the obvious matching-set play, and the highest-risk item in POD. Tonal
-matching between a hoodie and joggers from different blank suppliers is the single most
-common way a POD "set" reveals itself as one, and a black that doesn't match under
-daylight destroys the premium perception of both garments. **Deferred to Chapter 002,
-conditional on a physical side-by-side sample test against the chosen hoodie.**
+## 13.3 The sweatpants gate — the one condition on Decision 2
 
-**Tanks and shorts** — seasonally wrong for an autumn EU launch, and tanks sit close to
+Tonal mismatch between a hoodie and sweatpants from different blank suppliers is the
+most common way a POD "set" reveals itself as one. A black that does not match in
+daylight damages **both** garments, not one. Since the set is now in Chapter 001, that
+risk is carried rather than avoided, and it needs a hard gate:
+
+> **SET MATCH GATE — pass/fail, binding.**
+> Hoodie and sweatpants are sampled **in the same order, in the same colourway**, and
+> judged side by side in daylight and under 4000K artificial light. This is separate
+> from and additional to the 80/100 quality score — a pair can pass on quality and still
+> fail on match.
+
+If the gate fails, in order of preference: source **both** garments from a single
+provider and re-sample; launch them as **separate articles never marketed as a set**;
+or hold sweatpants for Chapter 002 as originally scoped. **The decision on which is the
+founder's — but launching a mismatched set is not one of the options.**
+
+## 13.3b What we are still deliberately not launching
+
+**Long-sleeve** — dropped in Revision 2. It was a range-filler; the sweatpants do more
+for AOV and more for the set narrative. It remains an obvious Chapter 002 candidate.
+
+**Tanks and shorts** — seasonally wrong for a November launch, and tanks sit close to
 the bodybuilding cliché the brand is positioned against. Revisit for a spring chapter.
 
 **Shorts, training tees, technical fabrics** — all require performance credibility we
@@ -818,10 +951,30 @@ dashboard pricing. What is decided now is the *method*:
   reported as more consistent on quality and branding depth; Printify offers the widest
   catalogue via third-party providers `[S, 2026-08-23]`
 
-**Decision principle:** for a brand whose entire proposition is consistency and
-restraint, **provider quality consistency outranks unit cost, and EU fulfilment
-outranks catalogue breadth.** A brand that cannot promise the same black twice does not
-survive contact with its second chapter.
+**Decision principle — revised in Revision 2 for the global mandate:** for a brand
+whose entire proposition is consistency and restraint, **provider quality consistency
+outranks unit cost, and multi-region fulfilment capability outranks catalogue breadth.**
+A brand that cannot promise the same black twice does not survive contact with its
+second chapter — and one that cannot follow its customers into a second region has
+capped itself at the start.
+
+**Do not select a provider because it is convenient for France.** France is where the
+company is registered (§0); it is not the market. The provider must be evaluated on:
+
+| Requirement | Why it is a selection criterion, not a nice-to-have |
+|---|---|
+| **EU fulfilment** | The controlled initial market |
+| **UK fulfilment** | Post-Brexit, EU-fulfilled orders into the UK carry import friction that destroys the proximity pillar (§9.1) |
+| **US fulfilment** | The largest addressable market for this category. A brand that must ship from Europe into the US cannot compete there on delivery |
+| **Cross-region consistency** | **The hardest and most important.** The same garment in the same black, produced in three regions, must be the same product. A brand whose US customers get a visibly different black than its EU customers has two brands, not one |
+| **International shipping and production times** | Published per region, honestly (§16.7) |
+| **Scalability** | Can the provider add a region without us changing platform, artwork or SKU structure? |
+
+**Cross-region colour consistency deserves separate emphasis**, because it is the
+failure mode nobody anticipates: it cannot be checked from a dashboard and it cannot be
+inferred from reviews. **It requires ordering the same SKU from two regions and
+comparing them physically.** Budget for this at the point of opening a second market —
+not at launch, but never later than the market opening.
 
 **Single-provider bias.** Split fulfilment across providers means split parcels, split
 delivery dates, and mismatched blacks. Accept a worse unit price to keep one provider,
@@ -853,6 +1006,10 @@ physically ordered, in the intended colour, with the intended print, and scored:
 | **Total** | **100** |
 
 **Launch threshold: 80/100, with no single criterion below 6/10.**
+
+**Additionally, for the hoodie and sweatpants: the SET MATCH GATE (§13.3) is a separate
+binding pass/fail.** Quality score and tonal match are different tests and a pair can
+pass one while failing the other.
 Wash durability is tested before launch, not after. A product that fails is not
 "improved with better photography" — it is replaced.
 
@@ -887,16 +1044,45 @@ everything POD cannot touch.
 > is replaced with a real figure in Phase 04, at which point the price ladder in §15.3
 > is re-derived. Do not treat any euro figure here as final.
 
-## 15.1 The VAT correction most brands get wrong
+## 15.1 French VAT — and the regime question that changes everything
 
-EU consumer prices are displayed inclusive of VAT. **The VAT is not our revenue.** At a
-21% rate, a €65 T-shirt is €53.72 of net revenue, not €65. Margin models that skip this
-overstate contribution by roughly a fifth and are the reason many EU DTC brands
-discover they are unprofitable at scale.
+**The standard French VAT rate is 20%.** `[V, 2026-08-23 — economie.gouv.fr /
+impots.gouv.fr]` Revision 1 modelled 21% as a placeholder; every figure below is
+re-derived at 20%.
 
-Rates vary by country (≈19–25% across the EU). Once distance selling passes the EU-wide
-€10,000 threshold, destination-country VAT applies via OSS — **which means our margin
-varies by customer country.** Model at 21%; verify with an accountant `[A]`.
+But the rate is the *second* most important thing. The first is which VAT regime the
+French entity is in, because the two regimes produce materially different economics:
+
+**Régime A — franchise en base de TVA.** Below the turnover thresholds, a French
+business does not charge VAT to customers and correspondingly **cannot deduct the VAT
+its suppliers charge it.** For goods, the thresholds are **€85,000** (prior year) and
+**€93,500** (current year); a 2025 reform to lower them was suspended and legislation
+subsequently maintained them. `[S, 2026-08-23 — reported from official sources; confirm
+current status with an accountant, this has moved recently and may move again]`
+
+**Régime B — VAT-registered.** 20% charged to the customer, input VAT on fulfilment
+reclaimable.
+
+A new brand almost certainly starts in Régime A. Both are modelled in §15.3.
+
+### The trap, and the rule that avoids it
+
+Crossing the threshold mid-year makes you liable for VAT from the date of crossing. A
+brand that priced comfortably under franchise then faces an ugly choice: absorb 20% —
+roughly a sixth of revenue — or raise every price at once and explain why.
+
+> **Price from day one as if VAT-registered. Treat the franchise-period VAT saving as a
+> temporary reserve, never as margin.**
+
+The saving funds the contingency in §15.7 and the first bulk run. Crossing the threshold
+then changes nothing the customer can see, which is the entire point.
+
+### International sales complicate the regime
+Selling outside France interacts with the franchise regime in ways that are genuinely
+non-obvious — OSS is designed around VAT-registered sellers, and exports outside the EU
+are a separate treatment again. **Given the global mandate in §0, this is not a
+theoretical concern.** `[A — requires an accountant before any market beyond France is
+opened. Do not resolve this from a strategy document.]`
 
 ## 15.2 The cost stack
 
@@ -922,32 +1108,40 @@ Every article is modelled against the same eleven-line stack:
 = NET CONTRIBUTION
 ```
 
-## 15.3 Modelled unit economics `[A]`
+## 15.3 Modelled unit economics — both regimes `[A]`
 
-**Heavyweight T-shirt**
+**Modelling convention, stated so it can be checked:** landed cost is shown **excluding
+recoverable VAT in Régime B** and **including unrecoverable VAT in Régime A** (the same
+cost, grossed up at 20%). This is the honest way to compare the regimes, and it needs an
+accountant's confirmation before it drives a real price. `[A]`
 
-| Line | Amount |
-|---|---|
-| Fulfilment cost (blank + DTG + label) | €17.00 |
-| Shipping to EU customer | €6.00 |
-| **Landed cost** | **€23.00** |
-| Retail (VAT incl.) | **€65.00** |
-| Less VAT @21% | −€11.28 |
-| Net revenue | €53.72 |
-| Less landed cost | −€23.00 |
-| Less payment fees | −€1.88 |
-| Less returns allowance @8% | −€4.30 |
-| **Contribution margin** | **€24.54 — 45.7% of net revenue** |
+**Heavyweight T-shirt at €65**
 
-**Heavyweight Hoodie**
+| Line | Régime A — franchise | Régime B — VAT-registered |
+|---|---|---|
+| Price to customer | €65.00 | €65.00 |
+| VAT charged out | none | −€10.83 |
+| **Revenue to us** | **€65.00** | **€54.17** |
+| Landed cost | −€27.60 *(incl. unrecoverable VAT)* | −€23.00 *(net, VAT reclaimed)* |
+| Payment fees | −€1.88 | −€1.88 |
+| Returns allowance @8% | −€5.20 | −€4.33 |
+| **Contribution** | **€30.32 — 46.6%** | **€24.96 — 46.1%** |
 
-| Line | Amount |
-|---|---|
-| **Landed cost** (fulfilment €34 + shipping €6) | **€40.00** |
-| Retail (VAT incl.) | **€125.00** |
-| Net revenue after VAT | €103.31 |
-| Less landed, fees, returns | −€51.7 |
-| **Contribution margin** | **≈€51.60 — 50% of net revenue** |
+**The two regimes land within half a percentage point of each other.** That is worth
+understanding rather than glossing: the franchise saves €10.83 of output VAT but costs
+€4.60 of input VAT it cannot reclaim. Net benefit ≈ **€5.36 per tee** — real, but not
+transformative, and it disappears the moment the threshold is crossed. It is a reserve,
+not a business model.
+
+**Heavyweight Hoodie at €125, Régime B:** landed €40.00 · revenue after VAT €104.17 ·
+contribution **≈€56.5, 54%**.
+
+**Premium Sweatpants at €105, Régime B:** landed €34.00 `[A]` · revenue after VAT €87.50 ·
+contribution **≈€44.6, 51%**.
+
+**The set — hoodie + sweatpants at €230:** contribution **≈€101** on a single order with
+one shipping event. This is the strongest basket in the range and the clearest
+justification for the founder's Decision 2.
 
 ## 15.4 The two decision rules that fall out of this
 
@@ -962,10 +1156,12 @@ launch** — no matter how good it looks.
 
 **RULE 2 — Single-unit orders cannot be bought with advertising.**
 
-A one-tee order contributes €24.54. To retain a 15% net margin, CAC must stay under
-roughly €16 — which is not achievable on cold paid social for a new apparel brand
-`[A]`. At an AOV of €120 (tee + cap, or a hoodie), contribution rises to €45–52 and the
-CAC ceiling reaches €28–32, which is workable.
+A one-tee order contributes €24.96 in Régime B. To retain a 15% net margin, CAC must
+stay under roughly **€17** — not achievable on cold paid social for a new apparel brand
+`[A]`. At an AOV of €120, contribution rises to €45–56 and the CAC ceiling reaches
+**€29–33**, which is workable. On the €230 set, contribution near €101 supports a CAC
+ceiling around **€88** — an order of magnitude different, and the reason the set matters
+strategically and not just commercially.
 
 **The strategic consequences are not optional:**
 
@@ -982,12 +1178,17 @@ CAC ceiling reaches €28–32, which is workable.
 
 | Article | Landed `[A]` | Retail | Multiple |
 |---|---|---|---|
-| Embroidered cap | €13 | €40 | 3.1× |
-| Heavyweight tee | €23 | €65 | 2.8× |
-| Long-sleeve | €29 | €85 | 2.9× |
-| Hoodie | €40 | €125 | 3.1× |
+| Embroidered cap `GR-000-CP` | €13 | €40 | 3.1× |
+| Heavyweight tee `GR-001-TS` | €23 | €65 | 2.8× |
+| Premium sweatpants `GR-001-SP` | €34 | €105 | 3.1× |
+| Heavyweight hoodie `GR-001-HD` | €40 | €125 | 3.1× |
+| **The set** — hoodie + sweatpants | €74 | **€230** | 3.1× |
 
-Free shipping from €90. Target AOV €110–130.
+Free shipping from €90. Target AOV €110–140.
+
+The tee sits exactly on the 2.8× floor and is the only article with no headroom. If
+Phase 04 returns a landed cost above €23, **the tee price rises — the floor does not
+bend.**
 
 ## 15.6 Break-even
 
@@ -1010,10 +1211,41 @@ proven.
 | **€5,000** | Two shoots including motion, full sample matrix with wash testing, 10–15 creator seeds, €1,000–1,500 structured paid testing | Strong, if there is patience to spend it in sequence rather than at once |
 | **€10,000** | Above, plus a campaign film, deeper creator network, €3,000 paid, and reserve capital toward the first bulk run of a proven SKU | Only sensible **after** Chapter 001 has produced sell-through data. Spending this pre-launch buys confidence, not information |
 
-**Recommendation: €2,500, spent in this order** — samples first, photography second,
-platform third, paid media last and only after a creative has proven itself organically.
-The most common way to lose €10,000 in this category is to spend it before knowing
-which product people want.
+## 15.8 The approved budget — €2,500 maximum, released in tranches
+
+**Founder decision, locked: €2,500 is a ceiling, not a plan, and it is not to be spent
+immediately.** The structure below releases money only against evidence, and holds a
+deliberately large reserve.
+
+| Tranche | Released when | Allocation | € |
+|---|---|---|---|
+| **1 — Verify** | Now | Trademark clearance (word mark), domain registration, entity/admin verification | 400 |
+| | | Sample round 1 — all four articles, doubled, incl. the hoodie/sweatpants set pair | 350 |
+| **2 — Build** | **Only once samples pass §14.4 and the §13.3 set gate** | Photography — the highest-leverage spend in the business | 600 |
+| | | Website platform, domain year, email tool, 6 months running cost | 300 |
+| | | Packaging test — card stock, print, one mailer trial | 100 |
+| **3 — Test** | Only once launch-readiness (§18.1) is met | Controlled marketing tests. Not scaling — testing | 250 |
+| **Reserve** | Held | **Contingency — 20%** | **500** |
+| | | **Total ceiling** | **2,500** |
+
+**Why the reserve is this large.** It is not vague prudence — it is sized against a
+named, likely event: **a failed sample round.** If a garment misses the 80/100 gate or
+the set pair fails tonal match, round two costs roughly what round one did, plus two to
+three weeks. A brand that has spent its last euro on photography before testing the
+garment has no way to recover from the most probable setback in the plan.
+
+**Two honest gaps in this allocation:**
+
+- **Professional trademark clearance may cost more than the €400 allocated.** I have not
+  quoted it and will not guess `[A]`. Get a quote first; if it exceeds the tranche, the
+  clearance still happens and something else gives — it is the one item with no
+  substitute.
+- **The franchise-en-base VAT saving (§15.1) is not counted as budget.** If it
+  materialises it flows to the reserve or the first bulk run. It is never spent on
+  marketing.
+
+**Spending discipline, restated:** no paid advertising before organic and product
+validation. Tranche 3 is a test, not a launch channel.
 
 ---
 
@@ -1034,10 +1266,24 @@ funded by the 8% allowance in §15.
 
 ### 16.3 Returns liability — HIGH likelihood, HIGH damage
 **The most underestimated risk in POD.** Providers generally do not accept customer
-returns on printed-to-order goods — the merchant absorbs them. Meanwhile EU consumer law
-grants a 14-day withdrawal right; the customised-goods exemption is **doubtful** for
-print-on-demand items sold from a standard catalogue in standard sizes.
-**This requires professional legal verification and I am not providing it.** `[A]`
+returns on printed-to-order goods — the merchant absorbs them. Meanwhile French law
+grants a 14-day right of withdrawal on distance contracts (Code de la consommation,
+art. L221-18), and art. L221-28 excepts *"biens confectionnés selon les spécifications
+du consommateur ou nettement personnalisés"* — goods made to the consumer's
+specifications or clearly personalised. `[V, 2026-08-23 — Légifrance]`
+
+**Do not assume that exception covers print-on-demand.** A customer choosing a size and
+colourway from our published range is not specifying anything; the design is ours, and
+it is offered identically to everyone. On its face this looks like a standard catalogue
+sale with a standard withdrawal right. **The founder's instruction is correct and is
+adopted: POD is not assumed to remove withdrawal rights.**
+
+There is a second obligation attached: where a withdrawal right does not apply, French
+pre-contractual information rules require the customer to be told so **before** the
+contract is concluded. `[V, 2026-08-23]` A brand cannot discover this position at the
+first refund request.
+
+**This requires a lawyer and I am not providing legal advice.** `[A]`
 **Mitigation:** assume we accept returns, price 8% into every unit (§15), and treat
 generous returns as a conversion asset that answers the "is this a scam" fear directly.
 Publish accurate flat measurements to suppress size-driven returns, which are the
@@ -1052,6 +1298,28 @@ Cheap now, ruinous after a launch.
 Six-plus active gym brands on the name `[V]`. Costs search visibility and
 distinctiveness. **Mitigation:** §11.2 — the chapter number carries the equity, not the
 theme word.
+
+### 16.5b French EPR for textiles — CERTAIN, MEDIUM damage if missed
+**New in Revision 2, and a direct consequence of establishing in France.**
+
+Anyone placing clothing, household linen or footwear on the French market for the first
+time is a *metteur en marché* under the extended-producer-responsibility scheme and must
+register with the eco-organisme **Refashion**, obtain a **unique identifier (IDU)**
+issued by ADEME, and pay an annual eco-contribution. In force since 1 January 2022 under
+Law 2020-105 and art. L541-10-9 of the Code de l'environnement.
+`[V, 2026-08-23 — refashion.fr]`
+
+This is not optional and it is not expensive at our volumes — but it is **easy to not
+know about**, and it is exactly the kind of obligation that surfaces at the worst
+moment. **Mitigation:** register before the first sale, not after; treat the IDU as a
+launch-readiness condition (§18.1, condition 5); confirm scope and the current
+contribution scale directly with Refashion `[A]`.
+
+**Global note:** EPR regimes are national. Other markets have or are introducing their
+own textile schemes. **Each new market opened carries its own compliance surface** —
+which is the concrete argument for the phased market opening in §0.2, and a cost line to
+research *before* opening a market, never after. I have not verified any non-French
+regime and will not assume they mirror this one.
 
 ### 16.6 Low-AOV ad economics — HIGH likelihood, HIGH damage
 Proven by the §15.4 math. This is how POD brands actually die: profitable per order,
@@ -1080,16 +1348,46 @@ week. The first discount, the first big chest logo, the first hype post. **Mitig
 §7.4 published publicly as policy — a public commitment is much harder to abandon
 quietly.
 
+### 16.11 French compliance surface — the launch-readiness legal list
+
+Consolidated so condition 5 of §18.1 is checkable rather than vague. **Every row needs a
+professional; none of this is legal advice.**
+
+| Item | Status | Who closes it |
+|---|---|---|
+| VAT regime — franchise en base vs registered (§15.1) | Thresholds €85,000 / €93,500 for goods `[S]` | Accountant |
+| VAT on international sales under the chosen regime | **Unresolved and non-trivial** `[A]` | Accountant |
+| Right of withdrawal & the L221-28 question (§16.3) | Exception assumed **not** to apply `[V on the text, A on application]` | Lawyer |
+| Pre-contractual information obligations | Required `[V]` | Lawyer |
+| Consumer mediation — customers must be informed of the mediation route | Required `[V, 2026-08-23]` | Lawyer / mediation body |
+| Refashion EPR registration + IDU (§16.5b) | Required `[V]` | Founder, direct with Refashion |
+| Textile labelling — fibre composition, care | Provider labels may not suffice `[A]` | Lawyer + provider |
+| Legal entity form, registration | Not started | Accountant |
+| GDPR, cookie consent, privacy policy | Phase 07 | Standard compliance work |
+| Trademark clearance and filing strategy | **Not started — the gate on branding spend** | Trademark attorney |
+
 ---
 
 # 17. OPPORTUNITIES
 
-### 17.1 European fulfilment as structural advantage — HIGHEST VALUE
-US hype brands (§8.1 Block 3) serve European customers badly: long transit, customs
-handling, duty on delivery, and painful returns. An EU-fulfilled brand offers short
-delivery, VAT-inclusive pricing with no surprise at the door, and EU consumer rights.
-**They cannot fix this without building EU operations.** This should be stated plainly
-on the site, not buried in a shipping page.
+### 17.1 Distributed manufacturing without distributed capital — HIGHEST VALUE
+*Revised in Revision 2.*
+
+In the initial market this is the familiar argument: US hype brands (§8.1, Block 3)
+serve European customers badly — long transit, customs handling, duty on delivery,
+painful returns. An EU-fulfilled brand offers short delivery, tax-inclusive pricing with
+no surprise at the door, and local consumer rights. They cannot fix it without building
+EU operations.
+
+**The general form is the larger opportunity.** A global brand normally needs regional
+warehouses and the working capital to stock them — which is precisely what a new brand
+does not have. POD supplies regional production without regional inventory. It is the
+only infrastructure that makes "global from day one" (§0) financially possible at this
+stage, and it converts the thing that looks like our biggest limitation into the
+mechanism for our biggest ambition.
+
+State the delivery promise plainly on the site, per region, not buried in a shipping
+page.
 
 ### 17.2 Spec honesty is an unoccupied position
 Almost nobody in this category publishes GSM, flat measurements and print method. It
@@ -1124,16 +1422,34 @@ publicly quiet during Black Friday. Free earned attention, perfectly on-brand.
 
 # 18. RECOMMENDED EXECUTION ROADMAP
 
-## 18.1 Launch timing recommendation
+## 18.1 Launch window — approved, and conditional
 
-Working back from a Phase-01 approval in late August 2026, a realistic first-chapter
-opening is **early-to-mid November 2026** — heavyweight product in the right season,
-and critically, **before Black Friday rather than during it.**
+**Target: 10–19 November 2026.** Heavyweight product in the right season, and
+deliberately before Black Friday rather than into it. Then **silence through Black
+Friday week** — one line if anything at all: *"We don't discount."*
 
-Then, deliberately: **go silent through Black Friday week.** One line if anything at
-all — *"We don't discount."* A no-discount brand launching into the loudest discount
-week of the year would be drowned out; a no-discount brand that visibly refuses to
-participate is memorable. January's fitness peak is then the target for Chapter 002.
+### The launch-readiness gate — all six, or the date moves
+
+> **Founder decision, locked: no public launch date is announced until every condition
+> below is met. If they are not met, we delay rather than launch an inferior product.**
+
+| # | Condition | Evidence that closes it |
+|---|---|---|
+| 1 | **Samples pass** | Every article ≥80/100 (§14.4) and the set pair passes the tonal-match gate (§13.3) |
+| 2 | **POD provider validated** | Provider confirmed against the §14.3 matrix, including multi-region capability |
+| 3 | **Product economics pass** | Real landed costs in, every article clears the 2.8× floor, ladder re-derived (§15) |
+| 4 | **Website ready** | Built, mobile-tested, full specs published per product |
+| 5 | **Legal basics ready** | §16.11 — VAT regime confirmed, returns policy drafted to French law, Refashion/EPR registration understood, mediation route in place, trademark clearance returned |
+| 6 | **Launch content ready** | Photography complete, pre-launch sequence built and scheduled |
+
+**Announcing a date before condition 1 is the single most damaging thing we could do**,
+because a slipped launch date costs credibility with exactly the people who joined
+early. The date is ours to move freely until it is public — and worthless to us the
+moment it is.
+
+If conditions slip past mid-November: **do not launch into Black Friday.** Move to early
+December or, better, to January with Chapter 001 — the fitness peak is a legitimate
+fallback, and a delayed good launch beats an on-time compromised one.
 
 ## 18.2 Days 1–30 — Identity (Phases 02–03)
 
@@ -1191,23 +1507,47 @@ Not revenue targets — those would be invented. The real indicators:
 
 ---
 
-# DECISIONS REQUESTED AT APPROVAL
+# DECISIONS — RESOLVED AND LOCKED
 
-Six items. Everything else proceeds on the recommendations above.
+All six approved by the founder. Two departed from my recommendation; both are recorded
+as approved and implemented, not re-argued.
 
-1. **Collection architecture** — adopt `CHAPTER 001 — ASCENSION` (§11.2)?
-   *Recommendation: yes.*
-2. **First assortment** — tee, hoodie, long-sleeve, cap; sweatpants deferred (§13)?
-   *Recommendation: yes.*
-3. **No-discount policy, published** (§7.4)? *Recommendation: yes — it is a financial
-   requirement as well as a brand position.*
-4. **Budget** — which §15.7 scenario? *Recommendation: €2,500, spent in the stated
-   order.*
-5. **Launch window** — early-to-mid November 2026, silent through Black Friday (§18.1)?
-   *Recommendation: yes.*
-6. **Country of establishment** — needed to finalise VAT, OSS registration, returns
-   obligations and consumer-law wording. **I have assumed EU-established at a 21% VAT
-   rate; please confirm.** This is the one open input that changes real numbers.
+| # | Decision | Outcome | Change from recommendation |
+|---|---|---|---|
+| 1 | Collection architecture | **`CHAPTER 001 — ASCENSION`** approved. Future chapters use the CHAPTER system without being forced to carry the word ASCENSION | As recommended |
+| 2 | First assortment | **Four articles: hero heavyweight/oversized tee · premium hoodie · premium sweatpants · embroidered cap.** Not product models — Phase 04 validates blanks, quality, print/embroidery, landed cost and margin before anything is final | **Changed.** Sweatpants approved into Chapter 001; long-sleeve dropped. Risk now managed by the §13.3 set gate |
+| 3 | No-discount policy | **Approved.** No permanent welcome discounts, no fake countdowns, no promotional codes, no discount-led positioning. Value delivered through early access, chapter access, chronological scarcity, community access and product/story | As recommended, with the founder's clarification below |
+| 4 | Budget | **€2,500 maximum**, not to be spent immediately. Priority: samples → trademark/domain/admin → website/tools → content → packaging tests → controlled marketing tests, with a large contingency reserve | As recommended; tranche structure in §15.8 |
+| 5 | Launch window | **10–19 November 2026**, subject to the six-condition readiness gate. Delay rather than launch inferior | As recommended, with the gate formalised |
+| 6 | Jurisdiction | **FRANCE** as legal/tax jurisdiction, provided the owning entity is in fact established there | Answered. §15 fully re-derived at 20% |
+
+**The full brand identity lock:**
+
+```
+GYMREIGN
+EARN YOUR REIGN.
+CHAPTER 001 — ASCENSION
+BEGIN AT GROUND LEVEL.
+```
+
+The primary tagline **EARN YOUR REIGN** is not to be changed without explicit founder
+approval.
+
+### Founder clarification on Decision 3 — recorded and adopted
+
+> **No-discount does not mean no legal consumer returns or refunds.**
+
+These are different things and must never be conflated. The no-discount policy is a
+*pricing* position. Statutory withdrawal, refund and conformity rights are *legal
+obligations* that exist regardless of pricing policy, and POD is not assumed to remove
+them (§16.3). A legally compliant French/EU returns and consumer-rights framework is a
+launch-readiness condition (§18.1, condition 5), not an optional refinement.
+
+### The global brand principle
+
+Locked separately and recorded in full at §0. In short: **the brand market is global;
+France is the legal jurisdiction only.** GYMREIGN is not positioned as French gymwear,
+French fitness clothing, or European-only apparel.
 
 ---
 

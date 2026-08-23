@@ -1,7 +1,72 @@
 # GYMREIGN — FOUNDER DECISION BRIEF
 
 **Gate document. Phase 01 → Phase 02.**
-Issued 2026-08-23 · Phase 02 does not begin until all six are resolved.
+Issued 2026-08-23 · **RESOLVED 2026-08-23 — all six approved and locked.**
+
+> **STATUS: CLOSED.** Every decision below has been answered by the founder. The
+> recommendations, confidence levels and reversibility notes are retained as the record
+> of what was advised and why. **The resolutions are at the top; the reasoning follows
+> unchanged.** Where the founder departed from a recommendation, that is recorded as
+> approved and implemented — not re-argued.
+>
+> A seventh principle was added at approval and is now locked: **GYMREIGN is a global
+> brand from day one; France is the legal jurisdiction only.** See the end of this
+> document.
+
+---
+
+## RESOLUTIONS
+
+| # | Decision | Founder outcome | vs. recommendation |
+|---|---|---|---|
+| 1 | Collection architecture | **`CHAPTER 001 — ASCENSION`** approved. Future chapters use the CHAPTER system without being forced to carry the word ASCENSION | ✔ As recommended |
+| 2 | First assortment | **Four articles: hero heavyweight/oversized tee · premium hoodie · premium sweatpants · embroidered cap.** Not product models — Phase 04 validates blanks, quality, print/embroidery, landed cost and margin first | **✱ Changed.** Sweatpants in, long-sleeve out |
+| 3 | No-discount policy | **Approved.** No permanent welcome discounts, fake countdowns, promotional codes or discount-led positioning. Value via early access, chapter access, chronological scarcity, community access, product/story | ✔ As recommended, with a clarification |
+| 4 | Budget | **€2,500 maximum**, not to be spent immediately, with a large contingency reserve | ✔ As recommended, now tranched |
+| 5 | Launch window | **10–19 November 2026**, subject to a six-condition readiness gate. Delay rather than launch inferior | ✔ As recommended, gate formalised |
+| 6 | Jurisdiction | **FRANCE**, provided the owning entity is in fact established there | ✔ Answered |
+
+### On Decision 2 — the one that departed from my recommendation
+
+I recommended deferring sweatpants and running a long-sleeve instead. The founder
+approved sweatpants into Chapter 001. **That is the right commercial call** — a
+hoodie-and-sweatpant set at roughly €230 supports a CAC ceiling near €88, against €17
+for a single tee. Nothing else in the range comes close.
+
+My concern was never commercial; it was tonal mismatch between two garments from
+different suppliers, which damages both. That risk is now **carried rather than
+avoided**, so it is managed by a hard gate instead of a deferral: the pair is sampled in
+one order, in one colourway, and judged side by side in daylight and 4000K artificial
+light — pass/fail, separate from the 80/100 quality score. If it fails, we re-source
+both from one provider, or sell them as separate articles never marketed as a set.
+Launching a mismatched set is not among the options.
+
+### On Decision 3 — founder clarification, adopted
+
+> **No-discount does not mean no legal consumer returns or refunds.**
+
+Correct, and the distinction matters. No-discount is a *pricing* position. Statutory
+withdrawal, refund and conformity rights are *legal obligations* that exist regardless
+of pricing policy. POD is **not** assumed to remove them — see the French analysis below.
+
+### On Decision 6 — what France changed
+
+Three things, none cosmetic:
+
+- **VAT modelled at 20%, not the 21% placeholder** `[V — economie.gouv.fr / impots.gouv.fr]`
+- **A second regime appeared that did not exist in the model.** Under *franchise en base
+  de TVA* — thresholds €85,000 prior year / €93,500 current year for goods `[S — confirm
+  with an accountant]` — no VAT is charged out and no input VAT is reclaimable. The two
+  regimes land within half a point of each other on margin percentage, but the franchise
+  is worth about **€5.36 more per tee** in absolute contribution. **Price as if
+  VAT-registered from day one and treat the difference as reserve** — otherwise crossing
+  the threshold forces an ugly choice between absorbing 20% and repricing everything
+- **Two French obligations surfaced that were not in Revision 1**: mandatory **Refashion
+  EPR registration with an ADEME unique identifier** for anyone placing textiles on the
+  French market `[V — refashion.fr]`, and the **consumer-mediation information duty**
+  `[V]`. Both are now launch-readiness conditions
+
+---
 
 ---
 
@@ -385,7 +450,7 @@ parallel. It is the mark on the garment that waits.
 
 ---
 
-# WHAT HAPPENS WHEN YOU ANSWER
+# WHAT HAPPENS WHEN YOU ANSWER — *superseded; answered in full above*
 
 On Decisions 1, 2, 3 and 5 — a yes is enough, and Phase 02 begins.
 
@@ -395,6 +460,77 @@ On Decision 6 — name the country, and I will re-derive the entire §15 model a
 real VAT rate and update the price ladder before any product is specified.
 
 **Phase 02 — Visual Identity does not begin until all six are resolved.**
+
+---
+
+# THE GLOBAL BRAND PRINCIPLE — LOCKED AT APPROVAL
+
+Added by the founder at approval, and it governs everything above it.
+
+| | |
+|---|---|
+| **BRAND MARKET** | **GLOBAL.** Designed for an international audience from the foundation. English-first. Not culturally dependent on France or Europe |
+| **LEGAL ESTABLISHMENT** | **FRANCE.** The jurisdiction for VAT, tax, consumer law and compliance modelling only |
+
+**France is where the company pays tax. It is not who the brand is for.** GYMREIGN is
+never positioned as French gymwear, French fitness clothing or European-only apparel.
+
+### The principle that makes this affordable
+
+> **Global brand design costs nothing extra. Global operational selling is expensive.**
+
+Identity, naming, language, sizing conventions and storytelling cost the same to make
+globally legible as they would to make parochial — so do that now. Each market opened
+operationally carries its own tax registration, consumer law, labelling and
+extended-producer-responsibility surface — so sequence that.
+
+```
+GLOBAL BRAND FOUNDATION  →  CONTROLLED INITIAL MARKET  →  EXPANSION  →  GLOBAL
+    free, do it now           compliance-bounded          per-market     distribution
+```
+
+The compliance surface is an argument for phased **market opening**. It is never an
+argument for parochial **brand design**.
+
+### What changed in the strategy as a result
+
+Differentiation pillar 5 was "European speed"; it is now **fulfilment proximity** — we
+produce close to the customer, in whichever market the customer is in. The general form
+is stronger, because it names the real advantage: **POD gives distributed manufacturing
+without distributed capital.** A bulk competitor needs warehouses in three regions and
+the money to stock them. We need a provider with facilities in three regions. That is
+what makes global-from-day-one financially possible now rather than in year three.
+
+POD provider selection changed accordingly: **do not choose a provider because it is
+convenient for France.** EU, UK and US fulfilment, cross-region colour consistency, and
+scalability are now selection criteria, not preferences. Cross-region consistency is the
+one that cannot be checked from a dashboard — it requires ordering the same SKU from two
+regions and comparing them physically.
+
+### The one risk, stated plainly
+
+A brand that tries to speak to everyone speaks to no one. Global relevance is not
+achieved by removing specificity until nothing remains — that produces the placeless,
+beige brand that is the standing failure mode of "international" positioning. It comes
+from being **aesthetically specific and nationally unbounded.** Discipline, architecture,
+restraint and earned progress are legible in every market on the list. They are specific
+ideas. They are simply not French ones, or American ones.
+
+**Phase 02 will be judged against exactly this.**
+
+---
+
+# THE IDENTITY LOCK
+
+```
+GYMREIGN
+EARN YOUR REIGN.
+CHAPTER 001 — ASCENSION
+BEGIN AT GROUND LEVEL.
+```
+
+The primary tagline **EARN YOUR REIGN** is not to be changed without explicit founder
+approval.
 
 ---
 
