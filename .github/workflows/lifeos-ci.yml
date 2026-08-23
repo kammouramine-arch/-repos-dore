@@ -1,0 +1,88 @@
+name: LifeOS CI
+
+# The full quality gate. Runs on every push and pull request touching the app.
+on:
+  push:
+    paths: ['lifeos/**', '.github/workflows/lifeos-ci.yml']
+  pull_request:
+    paths: ['lifeos/**']
+  workflow_dispatch:
+
+defaults:
+  run:
+    working-directory: lifeos
+
+jobs:
+  quality:
+    name: Typecheck, lint, tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: lifeos/package-lock.json
+
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test -- --ci
+
+  database:
+    name: Migrations against a real PostgreSQL
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_PASSWORD: postgres
+        options: >-
+          --health-cmd pg_isready --health-interval 10s
+          --health-timeout 5s --health-retries 5
+        ports: ['5432:5432']
+    env:
+      PGPASSWORD: postgres
+      PSQL: psql -h localhost -U postgres -v ON_ERROR_STOP=1
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Create the database and the Supabase auth stand-in
+        run: |
+          $PSQL -d postgres -c "create database lifeos;"
+          $PSQL -d lifeos -f supabase/tests/auth-stub.sql
+
+      - name: Apply every migration in order
+        run: for f in supabase/migrations/*.sql; do echo "→ $f"; $PSQL -d lifeos -f "$f"; done
+
+      - name: Grant the Supabase roles their table privileges
+        run: $PSQL -d lifeos -c "grant select, insert, update, delete on all tables in schema public to anon, authenticated;"
+
+      - name: Verify — provisioning, metering, billing idempotency, user isolation
+        run: $PSQL -d lifeos -f supabase/tests/verify.sql
+
+  functions:
+    name: Edge functions typecheck
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: denoland/setup-deno@v2
+        with:
+          deno-version: v2.x
+      - name: deno check
+        working-directory: lifeos/supabase/functions
+        run: deno check ai-chat/index.ts transcribe/index.ts daily-brief/index.ts subscription-verify/index.ts store-notifications/index.ts
+
+  bundle:
+    name: App bundles
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: lifeos/package-lock.json
+      - run: npm ci
+      - run: npx expo export --platform ios --output-dir /tmp/ios
+      - run: npx expo export --platform android --output-dir /tmp/android

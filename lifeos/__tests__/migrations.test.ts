@@ -1,5 +1,6 @@
 import fs from 'fs';
 import path from 'path';
+import { execFileSync } from 'child_process';
 import { loadModule, parseSync } from 'pgsql-parser';
 
 /**
@@ -10,7 +11,8 @@ import { loadModule, parseSync } from 'pgsql-parser';
  * the statements succeed against a real schema: only `supabase db push` does that.
  */
 
-const dir = path.resolve(__dirname, '../supabase/migrations');
+const root = path.resolve(__dirname, '..');
+const dir = path.resolve(root, 'supabase/migrations');
 const files = fs.readdirSync(dir).filter((f) => f.endsWith('.sql')).sort();
 const read = (file: string) => fs.readFileSync(path.join(dir, file), 'utf8');
 
@@ -77,6 +79,60 @@ describe('migrations', () => {
         new RegExp(`array\\[[^\\]]*'${table}'`).test(all);
       expect(`${table}: ${enabled}`).toBe(`${table}: true`);
     }
+  });
+
+  it('stops after the duplicate branch, so a replayed store event cannot rewrite entitlement', () => {
+    // A live database found this: without the RETURN the function fell through and
+    // re-applied the payload, downgrading a paying account on a replayed webhook.
+    const sql = read('20260101000500_store_events.sql');
+    const body = sql.slice(
+      sql.indexOf('create or replace function public.apply_store_subscription'),
+      sql.indexOf('revoke all on function public.apply_store_subscription'),
+    );
+    expect(body).toMatch(/if v_inserted = 0 then[\s\S]*?return query select false, true;\s*\n\s*return;/);
+  });
+
+  it('stops after refusing a rate-limited call, so it cannot also report success', () => {
+    const sql = read('20260101000500_store_events.sql');
+    const body = sql.slice(
+      sql.indexOf('create or replace function public.check_rate_limit'),
+      sql.indexOf('revoke all on function public.check_rate_limit'),
+    );
+    expect(body).toMatch(/if v_count > p_limit then[\s\S]*?return;\s*\n\s*end if;/);
+  });
+
+  it('keeps every user-facing RPC self-sufficient about the auth schema', () => {
+    // security invoker functions calling auth.uid() depend on the caller's privileges
+    // on the auth schema, which is not guaranteed. Definer + explicit auth.uid()
+    // filtering removes that dependency.
+    const all = files.map(read).join('\n');
+    expect(all).not.toContain('security invoker');
+    for (const fn of ['get_life_progress', 'get_habit_streak', 'export_my_data', 'forget_everything', 'get_usage_summary']) {
+      const at = all.lastIndexOf(`function public.${fn}`);
+      expect(`${fn}: ${all.slice(at, at + 400).includes('security definer')}`).toBe(`${fn}: true`);
+    }
+  });
+
+  it('ships the live verification script the deployment guide points at', () => {
+    const verify = fs.readFileSync(path.resolve(__dirname, '../supabase/tests/verify.sql'), 'utf8');
+    // It must assert isolation, not just run queries.
+    expect(verify).toMatch(/user B can READ user A/);
+    expect(verify).toMatch(/a user promoted themselves/);
+    expect(verify).toMatch(/idempotency is broken/);
+    // And clean up after itself so it is safe on a real project.
+    expect(verify).toMatch(/delete from auth\.users where id in \(a, b\)/);
+  });
+
+  it('keeps the pasteable bundle identical to the migrations', () => {
+    // supabase/dist/all-migrations.sql is what someone copies into the SQL editor when
+    // they are setting a project up without a terminal. It must never drift.
+    let result = 'in sync';
+    try {
+      execFileSync('node', ['scripts/build-sql.mjs', '--check'], { cwd: root, stdio: 'pipe' });
+    } catch {
+      result = 'STALE — run: npm run db:bundle';
+    }
+    expect(result).toBe('in sync');
   });
 
   it('marks every security definer function with a pinned search_path', () => {

@@ -47,10 +47,15 @@ Deno.serve(async (req) => {
   if (!(file instanceof File)) return fail('bad_request', 'Missing "file".');
   if (file.size > 25 * 1024 * 1024) return fail('too_large', 'Recording is larger than 25 MB.', 413);
 
-  // Voice is metered in seconds. The client reports the recording length; the size of
-  // the upload is used as a sanity floor so the number cannot be under-reported.
+  /*
+    Voice is metered in seconds. The client reports the recording length, but a client
+    can lie, so the upload's size sets a floor: at the recorder's bitrate a second of
+    audio is roughly 4 KB, and whichever number is larger is the one charged.
+  */
   const reported = Number(form.get('duration_seconds') ?? 0);
-  const seconds = Math.max(1, Math.round(Number.isFinite(reported) && reported > 0 ? reported : file.size / 4000));
+  const claimed = Number.isFinite(reported) && reported > 0 ? reported : 0;
+  const fromSize = file.size / 4000;
+  const seconds = Math.max(1, Math.round(Math.max(claimed, fromSize)));
 
   const admin = adminClient();
   const billing = await loadBilling(db);

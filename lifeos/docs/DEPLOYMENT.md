@@ -41,6 +41,28 @@ cp .env.example .env.production      # never committed — see .gitignore
 
 ## 2. Database
 
+There are three ways to do this. Pick one.
+
+### a. No terminal at all (recommended if you are not a developer)
+
+1. Supabase dashboard → **SQL Editor** → **New query**.
+2. Open [`supabase/dist/all-migrations.sql`](../supabase/dist/all-migrations.sql),
+   copy the whole file, paste it in, press **Run**.
+3. New query again → paste [`supabase/tests/verify.sql`](../supabase/tests/verify.sql)
+   → **Run**. It ends with `ALL CHECKS PASSED` if the database is correct.
+
+That single file is generated from the migrations and a test fails the build if the
+two ever differ, so it is always the same schema the CLI would apply.
+
+### b. From GitHub, by clicking
+
+Add three repository secrets (Settings → Secrets and variables → Actions):
+`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. Then
+Actions → **LifeOS — deploy to Supabase** → **Run workflow**. This also deploys the
+edge functions, which the SQL editor cannot do.
+
+### c. With the CLI
+
 ```bash
 supabase link --project-ref <ref>
 supabase db push                     # applies supabase/migrations in order
@@ -57,7 +79,9 @@ Migrations, in order:
 | `20260101000400_agents_insights.sql` | Agent/analysis reports, insights |
 | `20260101000500_store_events.sql` | Store event ledger, rate limits, idempotent entitlement |
 
-Verify afterwards:
+Verify afterwards — the scripted way is `supabase/tests/verify.sql`, which asserts
+provisioning, metering, billing idempotency and that one user cannot read or write
+another user's data. For a quick manual look:
 
 ```sql
 -- Every table must have RLS on.
@@ -96,7 +120,7 @@ supabase secrets set \
 supabase secrets set TRANSCRIBE_PROVIDER=openai OPENAI_API_KEY=sk-...
 ```
 
-Then deploy the functions:
+Then deploy the functions (or use the GitHub workflow above, which does this for you):
 
 ```bash
 supabase functions deploy ai-chat transcribe daily-brief subscription-verify

@@ -175,7 +175,9 @@ returns table (
   goal_count int,
   habit_count int
 )
-language sql stable security invoker as $$
+-- Definer, with every query filtered by auth.uid() below: the function is the
+-- boundary, so it does not depend on the caller having rights on the auth schema.
+language sql stable security definer set search_path = public, auth as $$
   with areas as (
     select a.id, a.key, a.name from public.life_areas a
     where a.user_id = auth.uid() and a.is_active
@@ -230,7 +232,7 @@ $$;
 
 -- Streak = consecutive days ending today (or yesterday) with a 'done' log.
 create or replace function public.get_habit_streak(p_habit_id uuid)
-returns int language plpgsql stable security invoker as $$
+returns int language plpgsql stable security definer set search_path = public, auth as $$
 declare
   streak int := 0;
   cursor_date date := current_date;
@@ -260,7 +262,7 @@ end $$;
 -- --------------------------------------------------------- privacy tools ---
 -- Full export of everything we hold about the caller.
 create or replace function public.export_my_data()
-returns jsonb language sql stable security invoker as $$
+returns jsonb language sql stable security definer set search_path = public, auth as $$
   select jsonb_build_object(
     'exported_at', now(),
     'profile',        (select to_jsonb(p) from public.profiles p where p.id = auth.uid()),
@@ -294,7 +296,7 @@ end $$;
 
 -- Wipes conversations and memory without deleting the account.
 create or replace function public.forget_everything()
-returns void language plpgsql security invoker as $$
+returns void language plpgsql security definer set search_path = public, auth as $$
 begin
   delete from public.ai_messages where user_id = auth.uid();
   delete from public.ai_conversations where user_id = auth.uid();

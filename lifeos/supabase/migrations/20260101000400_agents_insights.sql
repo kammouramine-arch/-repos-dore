@@ -69,7 +69,7 @@ end $$;
 
 -- Reports and insights are part of the export and of "forget everything".
 create or replace function public.forget_everything()
-returns void language plpgsql security invoker as $$
+returns void language plpgsql security definer set search_path = public, auth as $$
 begin
   delete from public.ai_messages where user_id = auth.uid();
   delete from public.ai_conversations where user_id = auth.uid();
@@ -79,7 +79,7 @@ begin
 end $$;
 
 create or replace function public.export_my_data()
-returns jsonb language sql stable security invoker as $$
+returns jsonb language sql stable security definer set search_path = public, auth as $$
   select jsonb_build_object(
     'exported_at', now(),
     'profile',        (select to_jsonb(p) from public.profiles p where p.id = auth.uid()),

@@ -74,6 +74,8 @@ begin
   if v_count > p_limit then
     return query select false,
       greatest(1, p_window_seconds - floor(extract(epoch from now() - v_window))::int);
+    -- Stop here: falling through would append a contradictory "allowed" row.
+    return;
   end if;
 
   return query select true, 0;
@@ -107,7 +109,9 @@ create or replace function public.apply_store_subscription(
 ) returns table (applied boolean, duplicate boolean)
 language plpgsql security definer set search_path = public as $$
 declare
-  v_inserted boolean := false;
+  -- GET DIAGNOSTICS yields an integer row count; keeping the type honest avoids
+  -- relying on an implicit cast.
+  v_inserted int := 0;
 begin
   insert into public.store_events (
     provider, event_id, kind, user_id, original_transaction_id, product_id, payload
@@ -119,9 +123,12 @@ begin
 
   get diagnostics v_inserted = row_count;
 
-  if v_inserted = false then
-    -- Already handled: a duplicate notification or a re-sent receipt.
+  if v_inserted = 0 then
+    -- Already handled: a duplicate notification or a re-sent receipt. Returning here
+    -- is what makes this idempotent — without it a replayed event would fall through
+    -- and rewrite the subscription, which can downgrade a paying account.
     return query select false, true;
+    return;
   end if;
 
   update public.subscriptions
