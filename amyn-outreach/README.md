@@ -286,6 +286,29 @@ npm run amyn -- tick                         # 11. surveillance
 
 ---
 
+### Fonctionnement automatique
+
+```bash
+npm run worker                        # une passe (pour un cron)
+npm run worker -- --loop              # boucle continue (pour un service)
+```
+
+Un tour = lire la boîte → décider des réponses → préparer les relances dues →
+vérifier la cohérence. **Le worker n'envoie jamais.** Il prépare et s'arrête ;
+l'envoi reste une action que vous déclenchez après approbation.
+
+Deux fichiers prêts à l'emploi :
+
+| Fichier | Usage |
+|---|---|
+| `ops/crontab.example` | toutes les 15 min en semaine, un tour le samedi, rapport hebdo, contrôle quotidien |
+| `ops/amyn-worker.service` | service systemd en boucle, redémarrage automatique |
+
+Les jobs sont idempotents : deux crons qui se chevauchent, un redémarrage en
+plein tour, un double lancement — rien n'est refait deux fois.
+
+---
+
 ## 6 bis. Détail du basculement
 
 Trois verrous indépendants doivent tomber, dans cet ordre.

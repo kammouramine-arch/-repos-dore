@@ -1,0 +1,32 @@
+# ---------------------------------------------------------------------------
+# Alternative au cron : service systemd en boucle continue.
+#
+#   sudo cp ops/amyn-worker.service /etc/systemd/system/
+#   sudo systemctl daemon-reload
+#   sudo systemctl enable --now amyn-worker
+#   journalctl -u amyn-worker -f
+#
+# Redémarre tout seul en cas d'incident. L'idempotence garantit qu'un
+# redémarrage ne provoque ni double email, ni double relance.
+# ---------------------------------------------------------------------------
+[Unit]
+Description=AMYN Outreach — worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=amyn
+WorkingDirectory=/home/user/-repos-dore/amyn-outreach
+ExecStart=/usr/bin/npm run worker -- --loop --interval=15
+Restart=always
+RestartSec=60
+
+# Le fichier .env contient les mots de passe : lecture seule, et jamais dans
+# l'environnement du service (le worker le lit lui-même via loadEnvFile).
+ReadWritePaths=/home/user/-repos-dore/amyn-outreach/data
+NoNewPrivileges=true
+PrivateTmp=true
+
+[Install]
+WantedBy=multi-user.target

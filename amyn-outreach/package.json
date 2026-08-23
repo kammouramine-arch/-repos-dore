@@ -16,7 +16,8 @@
     "amyn": "tsx scripts/amyn.ts",
     "test": "tsx scripts/run-tests.ts",
     "lint": "eslint . --max-warnings=0",
-    "demo": "tsx scripts/demo-workflow.ts"
+    "demo": "tsx scripts/demo-workflow.ts",
+    "worker": "tsx scripts/worker.ts"
   },
   "prisma": {
     "seed": "tsx prisma/seed.ts"

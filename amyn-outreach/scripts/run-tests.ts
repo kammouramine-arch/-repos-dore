@@ -29,6 +29,16 @@ const env: NodeJS.ProcessEnv = {
   DRY_RUN: "true",
   MAIL_TRANSPORT: "dry-run",
   NODE_ENV: "test" as const,
+
+  // Les tests doivent etre HERMETIQUES : leur resultat ne peut pas dependre
+  // des reglages de production. Sans ces valeurs fixes, ajuster la cadence
+  // dans .env ferait echouer la suite sans qu'aucun code n'ait change.
+  DAILY_SEND_LIMIT: "15",
+  MIN_DELAY_BETWEEN_SENDS_SECONDS: "180",
+
+  // Aucun identifiant reel ne doit atteindre les tests.
+  SMTP_HOST: "", SMTP_USER: "", SMTP_PASSWORD: "",
+  IMAP_HOST: "", IMAP_USER: "", IMAP_PASSWORD: "",
   // Aucune cle : les tests ne doivent appeler aucun service externe.
   ANTHROPIC_API_KEY: "",
   GOOGLE_PLACES_API_KEY: "",

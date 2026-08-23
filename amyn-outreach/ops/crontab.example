@@ -1,0 +1,31 @@
+# ---------------------------------------------------------------------------
+# AMYN OUTREACH — planification
+#
+# Installation :
+#   crontab -e
+#   puis coller les lignes ci-dessous en adaptant le chemin.
+#
+# Le worker N'ENVOIE JAMAIS d'email. Il lit la boîte, décide, prépare les
+# relances et vérifie la cohérence. L'envoi reste une action que vous
+# déclenchez après approbation.
+#
+# Les jobs sont idempotents : deux exécutions qui se chevauchent ne font pas
+# le travail deux fois. Le verrou est en base, il survit à un redémarrage.
+# ---------------------------------------------------------------------------
+
+AMYN=/home/user/-repos-dore/amyn-outreach
+
+# Un tour toutes les 15 minutes, en semaine, pendant les heures ouvrables.
+# La lecture de la boîte hors de ces heures n'apporte rien : vous ne traiterez
+# les réponses que le lendemain de toute façon.
+*/15 8-19 * * 1-5   cd $AMYN && /usr/bin/npm run worker >> $AMYN/logs/worker.log 2>&1
+
+# Un tour le samedi matin, pour ne pas découvrir le lundi une opposition
+# arrivée le vendredi soir.
+0 10 * * 6          cd $AMYN && /usr/bin/npm run worker >> $AMYN/logs/worker.log 2>&1
+
+# Rapport hebdomadaire, le lundi matin.
+0 8 * * 1           cd $AMYN && /usr/bin/npm run amyn -- report --jours=7 >> $AMYN/logs/rapport.log 2>&1
+
+# Contrôle de cohérence quotidien : alerte si la configuration a dérivé.
+30 7 * * *          cd $AMYN && /usr/bin/npm run amyn -- preflight >> $AMYN/logs/preflight.log 2>&1

@@ -342,6 +342,23 @@ describe("Garde-fous du chemin réel", () => {
     }
   });
 
+  test("les tests sont hermétiques : ils ne dépendent pas du .env de production", async () => {
+    // Sans cette garantie, ajuster la cadence en production ferait échouer la
+    // suite sans qu'aucun code n'ait changé — et on finirait par ne plus la
+    // croire.
+    const runner = await readFile(join(ROOT, "scripts/run-tests.ts"), "utf8");
+    for (const cle of [
+      "DAILY_SEND_LIMIT", "MIN_DELAY_BETWEEN_SENDS_SECONDS",
+      "SMTP_PASSWORD", "IMAP_PASSWORD",
+    ]) {
+      assert.ok(runner.includes(cle), `${cle} n'est pas neutralisé pour les tests`);
+    }
+
+    // Et concrètement : aucun identifiant réel n'atteint les tests.
+    assert.ok(!process.env.SMTP_PASSWORD, "un mot de passe SMTP réel est visible depuis les tests");
+    assert.ok(!process.env.IMAP_PASSWORD, "un mot de passe IMAP réel est visible depuis les tests");
+  });
+
   test("les valeurs par défaut de la politique restent prudentes", () => {
     assert.ok(POLICY_DEFAULTS.dailyLimit <= 50, "plafond par défaut trop élevé");
     assert.ok(POLICY_DEFAULTS.minDelaySeconds >= 60, "délai par défaut trop court");
