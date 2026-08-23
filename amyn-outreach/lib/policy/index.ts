@@ -185,8 +185,10 @@ export async function remainingToday(policy: Policy): Promise<{ used: number; re
   const debut = new Date();
   debut.setHours(0, 0, 0, 0);
 
+  // Cohérent avec CHECK_RATE_LIMIT : seuls les envois réels consomment le
+  // quota. Les simulations n'engagent rien.
   const used = await prisma.sendLog.count({
-    where: { createdAt: { gte: debut }, status: { in: ["SENT", "SIMULATED"] } },
+    where: { createdAt: { gte: debut }, status: "SENT" },
   });
   return { used, remaining: Math.max(0, policy.dailyLimit - used) };
 }

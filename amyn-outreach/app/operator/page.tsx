@@ -9,6 +9,8 @@ import { recentJobs } from "@/lib/scheduler";
 import { imapStatus } from "@/lib/imap/config";
 import { mailerStatus } from "@/lib/mailer";
 import { REPLY_META, type ReplyClass } from "@/lib/constants";
+import { preflight } from "@/lib/launch/preflight";
+import { buildReport } from "@/lib/reporting";
 
 export const dynamic = "force-dynamic";
 
@@ -24,7 +26,7 @@ const DECISION_META: Record<string, { label: string; cls: string }> = {
 export default async function OperatorPage() {
   const policy = await getPolicy();
 
-  const [conversations, missions, jobs, quota, attente, oppositions] = await Promise.all([
+  const [conversations, missions, jobs, quota, attente, oppositions, check, rapport, files] = await Promise.all([
     prisma.reply.findMany({
       where: { decisionAction: { not: "BLACKLIST" } },
       orderBy: [{ reviewStatus: "asc" }, { receivedAt: "desc" }],
@@ -40,7 +42,29 @@ export default async function OperatorPage() {
     remainingToday(policy),
     prisma.campaignMember.count({ where: { status: "READY" } }),
     prisma.reply.count({ where: { decisionAction: "BLACKLIST" } }),
+    preflight(),
+    buildReport(),
+    Promise.all([
+      // À CONTACTER : qualifiés, avec email, jamais contactés.
+      prisma.prospect.count({
+        where: { isDemo: false, qualification: "QUALIFIED", primaryContactId: { not: null }, sendLogs: { none: {} } },
+      }),
+      // EN ATTENTE : emails prêts, non approuvés.
+      prisma.campaignMember.count({ where: { status: "READY" } }),
+      // ENVOYÉS : réels uniquement.
+      prisma.sendLog.count({ where: { status: "SENT" } }),
+      // SIMULÉS.
+      prisma.sendLog.count({ where: { status: "SIMULATED" } }),
+      // RELANCES programmées.
+      prisma.campaignMember.count({ where: { status: "SENT" } }),
+      // ERREURS d'envoi.
+      prisma.sendLog.count({ where: { status: { in: ["FAILED", "BLOCKED"] } } }),
+      // NEEDS_HUMAN côté prospects.
+      prisma.prospect.count({ where: { isDemo: false, qualification: "NEEDS_HUMAN" } }),
+    ]),
   ]);
+
+  const [aContacter, enAttenteAppro, envoyesReels, envoyesSimules, relancesEnCours, erreursEnvoi, prospectsATrancher] = files;
 
   const fenetre = checkSendWindow(policy);
   const imap = imapStatus();
@@ -87,6 +111,73 @@ export default async function OperatorPage() {
           <Ligne label="Oppositions" valeur={String(oppositions)} />
         </Panneau>
       </div>
+
+      {/* --- Alerte de cohérence -------------------------------------------- */}
+      {!check.coherent && (
+        <div className="rounded-lg border border-rose-500/30 bg-rose-500/5 px-4 py-3">
+          <p className="text-sm text-rose-200">
+            Configuration incohérente — {check.blockers.length} point(s) bloquant(s). Aucun envoi
+            réel n&apos;est possible en l&apos;état.
+          </p>
+          <ul className="mt-2 space-y-1">
+            {check.blockers.map((b) => (
+              <li key={b.id} className="text-[12px] text-zinc-400">
+                <span className="text-rose-300">{b.label}</span> — {b.detail}
+                {b.fix && <span className="ml-1.5 text-zinc-600">→ {b.fix}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+
+      {/* --- Files d'attente ------------------------------------------------ */}
+      <section className="space-y-3">
+        <h2 className="label-xs text-zinc-500">Où en est le pipeline</h2>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <File label="À contacter" value={aContacter} href="/prospects?status=READY_TO_SEND" ton={aContacter > 0 ? "gold" : undefined} />
+          <File label="En attente d'approbation" value={enAttenteAppro} href="/campaigns" ton={enAttenteAppro > 0 ? "warn" : undefined} />
+          <File label="Envoyés (réels)" value={envoyesReels} href="/campaigns" />
+          <File label="Simulés" value={envoyesSimules} href="/campaigns" />
+          <File label="Relances en cours" value={relancesEnCours} />
+          <File label="Erreurs d'envoi" value={erreursEnvoi} ton={erreursEnvoi > 0 ? "danger" : undefined} />
+        </div>
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-4 lg:grid-cols-6">
+          <File label="Réponses" value={rapport.reponses.total} href="/replies" />
+          <File label="Intéressés" value={rapport.reponses.positives} href="/replies?class=INTERESTED" ton={rapport.reponses.positives > 0 ? "ok" : undefined} />
+          <File label="Rendez-vous" value={rapport.reponses.rendezVous} href="/replies?class=MEETING_REQUEST" ton={rapport.reponses.rendezVous > 0 ? "ok" : undefined} />
+          <File label="Questions" value={rapport.reponses.questions} href="/replies?class=QUESTION" />
+          <File label="Intervention requise" value={rapport.reponses.needsHuman + prospectsATrancher} href="/replies?class=NEEDS_HUMAN" ton={rapport.reponses.needsHuman > 0 ? "warn" : undefined} />
+          <File label="Oppositions" value={rapport.reponses.optOuts} href="/replies?class=OPT_OUT" />
+        </div>
+      </section>
+
+      {/* --- Reporting ------------------------------------------------------ */}
+      <section className="space-y-2">
+        <h2 className="label-xs text-zinc-500">Chiffres</h2>
+        <div className="panel p-4">
+          <div className="grid gap-x-8 gap-y-2 sm:grid-cols-2 lg:grid-cols-3">
+            <Chiffre label="Prospects trouvés" valeur={String(rapport.prospection.trouves)} />
+            <Chiffre label="Qualifiés" valeur={String(rapport.prospection.qualifies)} />
+            <Chiffre label="Avec email vérifié" valeur={String(rapport.prospection.avecEmail)} />
+            <Chiffre label="Taux de réponse" valeur={fmtTaux(rapport.reponses.tauxReponse)} />
+            <Chiffre label="Taux de réponse positive" valeur={fmtTaux(rapport.reponses.tauxPositif)} />
+            <Chiffre label="Taux d'opposition" valeur={fmtTaux(rapport.reponses.tauxOptOut)} />
+            <Chiffre label="Clients signés" valeur={String(rapport.conversion.clients)} />
+            <Chiffre label="CA signé" valeur={`${rapport.conversion.caSigne} €`} />
+            <Chiffre label="Rebonds" valeur={fmtTaux(rapport.sante.tauxRebond)} />
+          </div>
+          {rapport.nonMesure.length > 0 && (
+            <div className="mt-4 border-t border-line pt-3">
+              <div className="label-xs text-zinc-600">Ce que ces chiffres ne disent pas</div>
+              <ul className="mt-1.5 space-y-1">
+                {rapport.nonMesure.map((n) => (
+                  <li key={n} className="text-[11.5px] leading-relaxed text-zinc-600">— {n}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      </section>
 
       {/* --- Missions ------------------------------------------------------ */}
       {missions.length > 0 && (
@@ -289,6 +380,39 @@ export default async function OperatorPage() {
           La réponse automatique est désactivée : toute réponse rédigée attend votre validation.
         </p>
       </section>
+    </div>
+  );
+}
+
+function fmtTaux(t: { value: number | null; numerator: number; denominator: number }): string {
+  return t.value === null ? "indisponible" : `${t.value} % (${t.numerator}/${t.denominator})`;
+}
+
+function File({
+  label, value, href, ton,
+}: {
+  label: string; value: number; href?: string; ton?: "ok" | "warn" | "danger" | "gold";
+}) {
+  const couleur =
+    ton === "ok" ? "text-emerald-300"
+    : ton === "warn" ? "text-amber-300"
+    : ton === "danger" ? "text-rose-300"
+    : ton === "gold" ? "text-gold-300"
+    : "text-zinc-200";
+  const corps = (
+    <div className={`panel p-3 ${href ? "panel-hover hover:border-zinc-600" : ""}`}>
+      <div className="label-xs text-zinc-600">{label}</div>
+      <div className={`mt-1.5 text-2xl font-light tabular-nums ${couleur}`}>{value}</div>
+    </div>
+  );
+  return href ? <Link href={href} className="block">{corps}</Link> : corps;
+}
+
+function Chiffre({ label, valeur }: { label: string; valeur: string }) {
+  return (
+    <div className="flex items-baseline justify-between gap-3 border-b border-line/60 py-1.5">
+      <span className="text-[12px] text-zinc-500">{label}</span>
+      <span className="shrink-0 text-[12.5px] tabular-nums text-zinc-300">{valeur}</span>
     </div>
   );
 }

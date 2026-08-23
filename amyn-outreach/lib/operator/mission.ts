@@ -317,6 +317,7 @@ async function close(
         prospectsFound: counts.found,
         prospectsQualified: counts.qualified,
         prospectsRejected: counts.rejected,
+        prospectsNeedsHuman: counts.needsHuman,
         emailsPrepared: counts.emailsPrepared,
         campaignId: counts.campaignId ?? null,
         finishedAt: new Date(),

@@ -212,22 +212,52 @@ export async function runComplianceChecks(candidate: SendCandidate): Promise<Com
   const rate = await checkRateLimit(candidate.campaignId ?? undefined);
   checks.push(rate);
 
+  // --- 13. Fenetre horaire -------------------------------------------------
+  const { getPolicy: lirePolitique, checkSendWindow } = await import("@/lib/policy");
+  const politique = await lirePolitique();
+  const fenetre = checkSendWindow(politique);
+  // En simulation, rien ne quitte la machine : la fenetre n'a donc pas a
+  // bloquer, sinon on ne pourrait pas tester hors horaires ouvrables. Le
+  // controle reste affiche et dit ce qu'il ferait en envoi reel.
+  const fenetreBloque = !fenetre.open && !config.dryRun;
+  checks.push({
+    name: "CHECK_SEND_WINDOW",
+    passed: !fenetreBloque,
+    detail: fenetre.open
+      ? fenetre.reason
+      : config.dryRun
+        ? `${fenetre.reason} (simulation : non bloquant, mais un envoi réel serait refusé)`
+        : `${fenetre.reason}${fenetre.nextOpening ? ` Prochaine ouverture : ${fenetre.nextOpening.toLocaleString("fr-FR")}.` : ""}`,
+  });
+
   const blockedBy = checks.filter((c) => !c.passed).map((c) => c.name);
   return { allowed: blockedBy.length === 0, checks, blockedBy };
 }
 
-/** Plafond quotidien + delai minimum entre deux envois. */
+/**
+ * Plafond quotidien + delai minimum entre deux envois.
+ *
+ * La politique centralisee fait foi. Une campagne peut RESTREINDRE davantage
+ * (plafond plus bas, delai plus long) mais jamais assouplir : on retient donc
+ * toujours la valeur la plus prudente des deux.
+ */
 export async function checkRateLimit(campaignId?: string): Promise<CheckOutcome> {
+  const { getPolicy } = await import("@/lib/policy");
+  const policy = await getPolicy();
+
   const campaign = campaignId
     ? await prisma.campaign.findUnique({ where: { id: campaignId } })
     : null;
 
-  const dailyLimit = campaign?.dailyLimit ?? config.limits.dailySend;
-  const minDelay = campaign?.minDelaySeconds ?? config.limits.minDelaySeconds;
+  const dailyLimit = Math.min(policy.dailyLimit, campaign?.dailyLimit ?? policy.dailyLimit);
+  const minDelay = Math.max(policy.minDelaySeconds, campaign?.minDelaySeconds ?? 0);
 
   const since = new Date(Date.now() - 24 * 60 * 60 * 1000);
+  // Seuls les envois REELS comptent : ce sont eux qui engagent la reputation
+  // du domaine. Une simulation ne consomme pas le quota du jour, sinon une
+  // demonstration bloquerait le pilote reel pendant 24 h.
   const sentToday = await prisma.sendLog.count({
-    where: { createdAt: { gte: since }, status: { in: ["SENT"] } },
+    where: { createdAt: { gte: since }, status: "SENT" },
   });
 
   if (sentToday >= dailyLimit) {

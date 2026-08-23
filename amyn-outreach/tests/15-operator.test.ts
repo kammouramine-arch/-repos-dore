@@ -93,19 +93,33 @@ describe("Politique d'envoi", () => {
     assert.equal(checkSendWindow(p, new Date("2026-08-23T11:00:00")).open, true);
   });
 
-  test("le quota du jour compte les envois simulés comme les réels", async () => {
+  test("le quota du jour ne compte que les envois RÉELS", async () => {
     const prospect = await seedProspect({ email: "contact@quota.fr" });
+
+    // Trois simulations : elles n'engagent rien, donc ne consomment rien.
     for (let i = 0; i < 3; i += 1) {
       await prisma.sendLog.create({
         data: {
           prospectId: prospect.id, transport: "dry-run", status: "SIMULATED",
-          dryRun: true, toEmail: "contact@quota.fr", subject: `Test ${i}`,
+          dryRun: true, toEmail: "contact@quota.fr", subject: `Simulé ${i}`,
         },
       });
     }
-    const q = await remainingToday(await getPolicy());
-    assert.equal(q.used, 3);
-    assert.equal(q.remaining, POLICY_DEFAULTS.dailyLimit - 3);
+    let q = await remainingToday(await getPolicy());
+    assert.equal(q.used, 0, "une simulation a consommé du quota réel");
+
+    // Deux envois réels : eux comptent.
+    for (let i = 0; i < 2; i += 1) {
+      await prisma.sendLog.create({
+        data: {
+          prospectId: prospect.id, transport: "smtp", status: "SENT",
+          dryRun: false, toEmail: "contact@quota.fr", subject: `Réel ${i}`,
+        },
+      });
+    }
+    q = await remainingToday(await getPolicy());
+    assert.equal(q.used, 2);
+    assert.equal(q.remaining, POLICY_DEFAULTS.dailyLimit - 2);
   });
 });
 

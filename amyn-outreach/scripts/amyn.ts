@@ -72,6 +72,10 @@ async function main() {
     case "score": return score(rest);
     case "draft": return draft(rest);
     case "campaign": return campaign(rest);
+    case "preflight": return preflightCommand();
+    case "pilot": case "pilote": return pilotCommand(rest);
+    case "report": case "rapport": return reportCommand(rest);
+    case "dns": case "dns-check": return dnsCommand(rest);
     case "mission": return missionCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
@@ -360,6 +364,148 @@ async function smtpCheck() {
  * Verifie la connexion IMAP SANS lire ni modifier le moindre message.
  * Ouvre le dossier en lecture seule, releve son etat, referme.
  */
+/** Controle complet avant tout envoi reel. */
+async function preflightCommand() {
+  const { preflight } = await import("../lib/launch/preflight");
+  const r = await preflight();
+
+  title(`CONTRÔLE AVANT LANCEMENT — mode ${r.mode}`);
+  console.log();
+
+  for (const c of r.checks) {
+    const marque = c.level === "OK" ? ok : c.level === "WARN" ? warn : bad;
+    marque(`${c.label.padEnd(26)} ${c.detail}`);
+    if (c.fix) info(`→ ${c.fix}`);
+  }
+
+  console.log();
+  if (!r.coherent) {
+    bad(r.summary);
+    console.log(`\n  ${C.red}${C.bold}ENVOI RÉEL IMPOSSIBLE : configuration incohérente.${C.reset}`);
+  } else if (r.canSendForReal) {
+    ok(r.summary);
+    console.log(`\n  ${C.amber}${C.bold}ENVOI RÉEL POSSIBLE. Chaque email passera malgré tout les 13 contrôles de conformité.${C.reset}`);
+  } else {
+    ok(r.summary);
+    console.log(`\n  ${C.green}${C.bold}Mode simulation : aucun email ne peut partir.${C.reset}`);
+  }
+  console.log();
+}
+
+/** Prepare une campagne pilote : petit volume, plafond en dur. */
+async function pilotCommand(args: string[]) {
+  const { preparePilot } = await import("../lib/launch/pilot");
+  const { PILOT_MAX_PROSPECTS } = await import("../lib/launch/preflight");
+
+  const maxArg = args.find((a) => a.startsWith("--max="));
+  const villeArg = args.find((a) => a.startsWith("--ville="));
+  const secteurArg = args.find((a) => a.startsWith("--secteur="));
+
+  title("CAMPAGNE PILOTE");
+  info(`Plafond en dur : ${PILOT_MAX_PROSPECTS} prospects maximum, quelle que soit la configuration.`);
+  console.log();
+
+  const plan = await preparePilot({
+    max: maxArg ? Number.parseInt(maxArg.slice(6), 10) : undefined,
+    city: villeArg?.slice(8),
+    sector: secteurArg?.slice(10),
+  });
+
+  plan.blockers.forEach((b) => bad(b));
+  plan.warnings.forEach((w) => warn(w));
+
+  if (!plan.ok) {
+    console.log();
+    bad(plan.summary);
+    plan.nextSteps.forEach((n) => info(n));
+    console.log();
+    return;
+  }
+
+  console.log();
+  ok(plan.summary);
+  console.log();
+  console.table(
+    plan.selected.map((s) => ({ entreprise: s.name, ville: s.city, email: s.email, score: s.score ?? "—" })),
+  );
+  if (plan.rejected.length > 0) {
+    info(`${plan.rejected.length} prospect(s) écarté(s) :`);
+    plan.rejected.slice(0, 5).forEach((r) => info(`  ${r.name} — ${r.reason.slice(0, 80)}`));
+  }
+
+  console.log(`\n  ${C.bold}Étapes suivantes${C.reset}`);
+  plan.nextSteps.forEach((n, i) => console.log(`  ${i + 1}. ${n}`));
+  console.log();
+}
+
+/** Rapport chiffre, sans metrique inventee. */
+async function reportCommand(args: string[]) {
+  const { buildReport } = await import("../lib/reporting");
+  const joursArg = args.find((a) => a.startsWith("--jours="));
+  const jours = joursArg ? Number.parseInt(joursArg.slice(8), 10) : undefined;
+  const depuis = jours ? new Date(Date.now() - jours * 86400000) : undefined;
+
+  const r = await buildReport({ depuis });
+  const t = (x: { value: number | null; numerator: number; denominator: number }) =>
+    x.value === null ? "indisponible" : `${x.value} % (${x.numerator}/${x.denominator})`;
+
+  title(`RAPPORT — ${r.periode.libelle}`);
+
+  console.log(`\n  ${C.bold}Prospection${C.reset}`);
+  console.log(`    trouvés ${r.prospection.trouves} · qualifiés ${r.prospection.qualifies} · à trancher ${r.prospection.aTrancher} · écartés ${r.prospection.ecartes}`);
+  console.log(`    avec email ${r.prospection.avecEmail} · taux de qualification ${t(r.prospection.tauxQualification)}`);
+
+  console.log(`\n  ${C.bold}Envois${C.reset}`);
+  console.log(`    préparés ${r.envois.prepares} · en attente d'approbation ${r.envois.enAttenteApprobation}`);
+  console.log(`    RÉELS ${r.envois.reels} · simulés ${r.envois.simules} · bloqués ${r.envois.bloques} · échecs ${r.envois.echecs}`);
+
+  console.log(`\n  ${C.bold}Réponses${C.reset}`);
+  console.log(`    total ${r.reponses.total} · positives ${r.reponses.positives} · rendez-vous ${r.reponses.rendezVous} · questions ${r.reponses.questions}`);
+  console.log(`    oppositions ${r.reponses.optOuts} · intervention requise ${r.reponses.needsHuman}`);
+  console.log(`    taux de réponse ${t(r.reponses.tauxReponse)} · positif ${t(r.reponses.tauxPositif)} · opposition ${t(r.reponses.tauxOptOut)}`);
+
+  console.log(`\n  ${C.bold}Relances${C.reset}`);
+  console.log(`    préparées ${r.relances.preparees} · envoyées ${r.relances.envoyees} · prospects relançables ${r.relances.prospectsRelancables}`);
+
+  console.log(`\n  ${C.bold}Conversion${C.reset}`);
+  console.log(`    clients ${r.conversion.clients} · CA signé ${r.conversion.caSigne} € · taux ${t(r.conversion.tauxConversion)}`);
+
+  console.log(`\n  ${C.bold}Santé${C.reset}`);
+  console.log(`    erreurs 24 h ${r.sante.erreurs24h} · rebonds ${r.sante.rebonds} ${t(r.sante.tauxRebond)} · jobs en échec ${r.sante.jobsEnEchec}`);
+  console.log(`    dernier tour : ${r.sante.dernierTour ? r.sante.dernierTour.toLocaleString("fr-FR") : "jamais"}`);
+
+  console.log(`\n  ${C.bold}Ce que ce rapport ne peut pas dire${C.reset}`);
+  r.nonMesure.forEach((n) => info(n));
+  console.log();
+}
+
+/** Verifie SPF, DKIM et DMARC sur le domaine d'expedition. */
+async function dnsCommand(args: string[]) {
+  const { checkDeliverability } = await import("../lib/deliverability");
+  const domaine = args[0] ?? config.from.email.split("@")[1];
+
+  title(`DÉLIVRABILITÉ — ${domaine}`);
+  info("Interrogation DNS en cours…");
+  console.log();
+
+  const r = await checkDeliverability(domaine);
+  for (const c of r.checks) {
+    const marque = c.status === "OK" ? ok : c.status === "WARN" ? warn : bad;
+    marque(`${c.label.padEnd(28)} ${c.detail}`);
+    c.found.forEach((f) => info(f.slice(0, 110)));
+    if (c.fix) {
+      info(`À POSER — hôte : ${c.fix.host}`);
+      info(`          type : ${c.fix.type}`);
+      info(`         valeur : ${c.fix.value}`);
+    }
+  }
+
+  console.log();
+  (r.ready ? ok : warn)(r.summary);
+  console.log(`\n  ${C.dim}${r.disclaimer}${C.reset}`);
+  console.log();
+}
+
 /** Lance une mission de prospection complete. S'arrete avant l'envoi. */
 async function missionCommand(args: string[]) {
   const brief = args.join(" ");
@@ -738,6 +884,12 @@ function help() {
     campaign list              lister les campagnes
     campaign approve <slug>    approuver les emails d'une campagne
     campaign send <slug>       envoyer (simulé si DRY_RUN=true)
+  ${C.bold}Lancement réel${C.reset}
+    preflight                  contrôle complet avant tout envoi réel
+    pilot [--max=N --ville=X]  préparer une campagne pilote (5 prospects max)
+    dns [domaine]              vérifier SPF, DKIM, DMARC
+    report [--jours=N]         rapport chiffré
+
   ${C.bold}Opérateur${C.reset}
     mission "<instruction>"    mission complète : recherche → qualification →
                                audit → contact → score → rédaction → campagne

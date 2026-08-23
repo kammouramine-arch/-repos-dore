@@ -191,6 +191,28 @@ export async function runCampaign(campaignId: string, options: { max?: number } 
   const campaign = await prisma.campaign.findUnique({ where: { id: campaignId } });
   if (!campaign) throw new Error("Campagne introuvable.");
 
+  // --- Verrou de cohérence, une fois par campagne --------------------------
+  // En envoi RÉEL, une configuration incohérente arrête tout avant le premier
+  // email : mieux vaut ne rien envoyer que d'envoyer mal. En simulation, on
+  // laisse passer — c'est justement là qu'on teste.
+  if (!config.dryRun) {
+    const { preflight } = await import("@/lib/launch/preflight");
+    const check = await preflight();
+    if (!check.coherent) {
+      const raisons = check.blockers.map((b) => `${b.label} : ${b.detail}`).join(" | ");
+      await logActivity({
+        actor: "SYSTEM", module: "SEND", action: "send.preflight_blocked",
+        entityType: "Campaign", entityId: campaignId,
+        summary: `Campagne « ${campaign.name} » arrêtée avant tout envoi : ${check.summary}`,
+        details: { blockers: check.blockers }, level: "ERROR",
+      });
+      throw new Error(
+        `[AMYN] Envoi réel refusé — configuration incohérente. ${raisons}\n` +
+        `Diagnostic complet : npm run amyn -- preflight`,
+      );
+    }
+  }
+
   await prisma.campaign.update({
     where: { id: campaignId },
     data: { status: "RUNNING", startedAt: campaign.startedAt ?? new Date() },

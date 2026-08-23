@@ -193,6 +193,101 @@ prospect ne passe pas en `CONTACTED`.
 
 ## 6. Passer à l'envoi réel
 
+### Contrôle avant lancement
+
+```bash
+npm run amyn -- preflight
+```
+
+Dix points vérifiés. Un seul point rouge empêche le départ — et le même
+contrôle s'exécute automatiquement dans `runCampaign` dès que `DRY_RUN=false` :
+une campagne réelle mal configurée s'arrête **avant** le premier email.
+
+Ce qui bloque : transport incohérent, expéditeur différent du compte SMTP
+(SPF/DKIM échoueraient), IMAP absent en envoi réel (une opposition ne serait
+jamais vue), politique absurde (fenêtre vide, délai < 30 s, plafond > 200,
+plus de 4 relances, recontact < 30 jours), plafond trop haut en phase pilote,
+aucun email de test effectué.
+
+### Délivrabilité
+
+```bash
+npm run amyn -- dns
+```
+
+Interroge réellement le DNS de `amyn.agency` et rapporte SPF, DKIM, DMARC, MX.
+Pour chaque enregistrement manquant, il donne l'hôte, le type et la valeur
+exacte à poser.
+
+**Aucune promesse** : ces enregistrements évitent d'être rejeté d'emblée. Ils
+ne garantissent pas l'arrivée en boîte principale — cela dépend aussi de la
+réputation, du volume, du contenu et du destinataire.
+
+### Le pilote
+
+```bash
+npm run amyn -- pilot
+```
+
+Sélectionne au maximum **5 prospects** — plafond en dur, non contournable par
+la configuration. Exclut ceux en opposition, déjà contactés, sans email, ayant
+déjà répondu, et nomme chaque exclusion avec sa raison. Les emails restent en
+attente d'approbation ; la campagne pilote ne relance pas.
+
+### Montée en volume — manuelle, jamais automatique
+
+Rien n'augmente le volume tout seul. Vous décidez, palier par palier, et
+seulement si le palier précédent s'est bien passé.
+
+| Palier | `dailyLimit` | Passez au suivant si |
+|---|---|---|
+| Pilote | 5 | les 5 emails partent, aucune erreur SMTP, les réponses arrivent et sont classées |
+| Semaine 1 | 10 | 0 rebond dur, 0 plainte, taux d'opposition < 5 % |
+| Semaine 2 | 20 | idem, et les réponses `NEEDS_HUMAN` restent rares |
+| Semaine 3 | 30 | idem |
+| Régime | 40–50 | ne dépassez pas 50/jour sur un domaine de PME |
+
+```bash
+npm run amyn -- policy dailyLimit 10
+npm run amyn -- report --jours=7     # avant chaque palier
+```
+
+Tant que moins de 20 envois réels ont eu lieu, le contrôle refuse un plafond
+supérieur à 5.
+
+### Reporting
+
+```bash
+npm run amyn -- report
+```
+
+Aucune métrique inventée : un taux sans base de calcul affiche
+**« indisponible »**, jamais 0 %. Les envois simulés ne comptent pas comme des
+envois. Le rapport liste explicitement ce qu'il ne peut pas mesurer — les
+ouvertures et les clics ne le sont pas, aucun pixel de traçage n'est inséré.
+
+### La séquence complète
+
+```bash
+npm run amyn -- preflight                    # 1. cohérence
+npm run amyn -- dns                          # 2. SPF/DKIM/DMARC
+npm run amyn -- smtp-check                   # 3. identifiants SMTP
+npm run amyn -- imap-check                   # 4. identifiants IMAP
+npm run amyn -- test-email contact@amyn.agency   # 5. un email de test
+# → vérifiez qu'il arrive, et PAS en spam
+npm run amyn -- policy dailyLimit 5          # 6. plafond pilote
+# → puis DRY_RUN=false dans .env
+npm run amyn -- preflight                    # 7. re-contrôle en mode réel
+npm run amyn -- pilot                        # 8. sélection de 5 prospects
+npm run amyn -- campaign approve <slug>      # 9. après relecture
+npm run amyn -- campaign send <slug>         # 10. envoi réel
+npm run amyn -- tick                         # 11. surveillance
+```
+
+---
+
+## 6 bis. Détail du basculement
+
 Trois verrous indépendants doivent tomber, dans cet ordre.
 
 ```bash

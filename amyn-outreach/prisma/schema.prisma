@@ -749,10 +749,11 @@ model Mission {
   /// JSON : ce que l'operateur attend de vous
   needsHuman String?
 
-  prospectsFound     Int @default(0)
-  prospectsQualified Int @default(0)
-  prospectsRejected  Int @default(0)
-  emailsPrepared     Int @default(0)
+  prospectsFound      Int @default(0)
+  prospectsQualified  Int @default(0)
+  prospectsRejected   Int @default(0)
+  prospectsNeedsHuman Int @default(0)
+  emailsPrepared      Int @default(0)
 
   campaignId String?
 
