@@ -1,4 +1,3 @@
-// deno-lint-ignore-file no-explicit-any
 import { fail, json, preflight } from '../_shared/http.ts';
 import { adminClient, requireUser } from '../_shared/supabase.ts';
 import { loadCatalogue } from '../_shared/config.ts';

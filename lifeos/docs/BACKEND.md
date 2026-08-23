@@ -7,6 +7,9 @@
 | `20260101000000_init.sql` | Enums, all tables, indexes |
 | `20260101000100_rls.sql` | Row level security: enable, force, and per-table policies |
 | `20260101000200_functions.sql` | Triggers, derived progress, life score, privacy RPCs |
+| `20260101000300_subscriptions.sql` | Tiers, metering, `app_config`, usage functions |
+| `20260101000400_agents_insights.sql` | Agent/analysis reports, insights |
+| `20260101000500_store_events.sql` | Store event ledger, rate limits, idempotent entitlement |
 
 Apply with `supabase db push`, or `supabase db reset` locally to rebuild from scratch.
 
@@ -20,8 +23,10 @@ Apply with `supabase db push`, or `supabase db reset` locally to rebuild from sc
   verified purchase path using the service role.
 * `ai_usage` is readable by its owner and written only by a `security definer`
   function, so the free-tier limit cannot be reset from a device.
-* The service role key is used in exactly two places: the `increment_ai_usage` call
-  inside the edge function, and the local demo-seed script.
+* The service role key is used only server-side: inside each edge function (for the
+  metering, entitlement and store-verification RPCs, all of which are `revoke all from
+  public` and therefore unreachable with the anon/authenticated key) and in the local
+  demo-seed script. It never reaches the device.
 
 ## Derived data
 
@@ -51,6 +56,8 @@ Progress is computed, never trusted from the client:
 | `ai-chat` | User JWT | The assistant: context, tools, execution, receipts |
 | `transcribe` | User JWT | Speech to text (needs a provider) |
 | `daily-brief` | User JWT | Generates the morning briefing and stores it on today's plan |
+| `subscription-verify` | User JWT | Verifies an Apple/Google purchase and writes the entitlement |
+| `store-notifications` | Shared secret in the URL (`--no-verify-jwt`) | Apple/Google renewal, cancellation and refund webhooks |
 
 Run locally with `npm run functions:serve` (reads `.env`).
 
