@@ -1,0 +1,4 @@
+# Le dossier doit exister dans le depot (Prisma ecrit dedans), mais la base
+# contient des donnees de prospects : elle n'est JAMAIS commitee.
+*
+!.gitignore
