@@ -56,10 +56,19 @@ two ever differ, so it is always the same schema the CLI would apply.
 
 ### b. From GitHub, by clicking
 
-Add three repository secrets (Settings → Secrets and variables → Actions):
-`SUPABASE_ACCESS_TOKEN`, `SUPABASE_PROJECT_REF`, `SUPABASE_DB_PASSWORD`. Then
+Add repository secrets (Settings → Secrets and variables → Actions), then
 Actions → **LifeOS — deploy to Supabase** → **Run workflow**. This also deploys the
 edge functions, which the SQL editor cannot do.
+
+| Secret | Needed for |
+|---|---|
+| `SUPABASE_ACCESS_TOKEN` | always |
+| `SUPABASE_PROJECT_REF` | always |
+| `SUPABASE_DB_PASSWORD` | only *Apply database migrations* |
+
+Deploying the functions alone never touches the database, so if the schema was
+applied by hand with method (a) the first two secrets are enough — turn *Apply
+database migrations* off when you run the workflow.
 
 ### c. With the CLI
 

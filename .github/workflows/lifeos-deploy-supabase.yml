@@ -2,14 +2,17 @@ name: LifeOS — deploy to Supabase
 
 # Deploys the database and the edge functions to the Supabase project.
 #
-# This exists so deployment needs no terminal: add the three secrets once under
+# This exists so deployment needs no terminal: add the secrets once under
 # Settings → Secrets and variables → Actions, then run this workflow from the
 # Actions tab whenever the backend changes.
 #
 # Required repository secrets:
 #   SUPABASE_ACCESS_TOKEN   Supabase dashboard → Account → Access Tokens
 #   SUPABASE_PROJECT_REF    The project ref from the project's URL
-#   SUPABASE_DB_PASSWORD    The database password chosen when the project was created
+#   SUPABASE_DB_PASSWORD    Only needed to apply migrations. Deploying just the
+#                           edge functions does not touch the database, so a
+#                           schema applied by hand in the SQL Editor needs only
+#                           the two secrets above.
 #
 # The function secrets themselves (Anthropic key, store credentials) are set in the
 # Supabase dashboard, not here — they are never needed by this workflow.
@@ -43,16 +46,29 @@ jobs:
       - name: Check the secrets are present
         run: |
           missing=0
-          for name in SUPABASE_ACCESS_TOKEN SUPABASE_DB_PASSWORD PROJECT_REF; do
+          for name in SUPABASE_ACCESS_TOKEN PROJECT_REF; do
             if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set."; missing=1; fi
           done
+          # The password is a database credential; only ask for it when there is a
+          # database step to run.
+          if [ "${{ inputs.deploy_database }}" = "true" ] && [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "::error::Repository secret SUPABASE_DB_PASSWORD is not set, and 'Apply database migrations' is on."
+            missing=1
+          fi
+          if [ "${{ inputs.deploy_database }}" != "true" ] && [ "${{ inputs.deploy_functions }}" != "true" ]; then
+            echo "::error::Nothing selected to deploy."
+            missing=1
+          fi
           [ "$missing" = "0" ] || exit 1
 
       - uses: supabase/setup-cli@v1
         with:
           version: latest
 
+      # Linking authenticates against the database, so it only happens on the path
+      # that needs the database. Function deploys address the project directly.
       - name: Link the project
+        if: ${{ inputs.deploy_database }}
         run: supabase link --project-ref "$PROJECT_REF"
 
       - name: Apply migrations
@@ -64,8 +80,10 @@ jobs:
       - name: Deploy edge functions
         if: ${{ inputs.deploy_functions }}
         run: |
-          supabase functions deploy ai-chat transcribe daily-brief subscription-verify
-          supabase functions deploy store-notifications --no-verify-jwt
+          supabase functions deploy ai-chat transcribe daily-brief subscription-verify \
+            --project-ref "$PROJECT_REF"
+          supabase functions deploy store-notifications --no-verify-jwt \
+            --project-ref "$PROJECT_REF"
 
       - name: Summary
         run: |
