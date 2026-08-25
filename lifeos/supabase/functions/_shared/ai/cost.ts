@@ -46,6 +46,15 @@ export function estimateCost(model: ModelConfig, inputTokens: number, maxOutputT
   });
 }
 
+/**
+ * Speech models bill by audio length. Falls back to zero only for a model that has no
+ * audio price at all, which the verification gate keeps out of production anyway.
+ */
+export function priceForAudio(model: ModelConfig, seconds: number): number {
+  const perMinute = model.audioPricePerMinute ?? 0;
+  return (Math.max(0, seconds) / 60) * perMinute;
+}
+
 export type CostRecord = {
   estimated: number;
   actual: number;

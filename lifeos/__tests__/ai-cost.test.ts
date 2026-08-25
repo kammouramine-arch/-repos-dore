@@ -3,7 +3,9 @@ import { DEFAULT_REGISTRY } from '@shared/ai/registry';
 
 const flash = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'gemini-2.5-flash')!;
 const lite = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'gemini-2.5-flash-lite')!;
-const llama = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'llama-3.3-70b-versatile')!;
+// A model that publishes no cached-input rate. (llama-3.3-70b-versatile used to serve
+// here but is now disabled — Groq lists it as "Contact Sales" with no public price.)
+const noCacheRate = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'mistral-small-latest')!;
 
 describe('cost engine', () => {
   it('prices a typical turn from the registry', () => {
@@ -21,9 +23,9 @@ describe('cost engine', () => {
   });
 
   it('never treats cached input as free when a provider publishes no cached rate', () => {
-    expect(llama.cachedInputPrice).toBeNull();
-    const cached = priceFor(llama, { inputTokens: 1000, outputTokens: 0, cachedTokens: 1000 });
-    const fresh = priceFor(llama, { inputTokens: 1000, outputTokens: 0, cachedTokens: 0 });
+    expect(noCacheRate.cachedInputPrice).toBeNull();
+    const cached = priceFor(noCacheRate, { inputTokens: 1000, outputTokens: 0, cachedTokens: 1000 });
+    const fresh = priceFor(noCacheRate, { inputTokens: 1000, outputTokens: 0, cachedTokens: 0 });
     expect(cached).toBeCloseTo(fresh, 10);
     expect(cached).toBeGreaterThan(0);
   });

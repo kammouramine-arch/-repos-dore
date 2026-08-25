@@ -58,6 +58,8 @@ export type ModelConfig = {
   inputPrice: number;
   outputPrice: number;
   cachedInputPrice: number | null;
+  /** Speech models are billed by audio length, not tokens. USD per minute. */
+  audioPricePerMinute?: number;
   currency: 'USD';
   pricingVerification: Verification;
   pricingSource: string;
@@ -92,6 +94,8 @@ export const FREE_TIER_POLICY = [
 
 const GOOGLE_PRICING = 'https://ai.google.dev/gemini-api/docs/pricing';
 const OPENAI_PRICING = 'https://developers.openai.com/api/docs/pricing';
+const GROQ_PRICING = 'https://console.groq.com/docs/models.md';
+const MISTRAL_PRICING = 'https://mistral.ai/pricing/api/';
 
 export const DEFAULT_REGISTRY: Registry = {
   version: 1,
@@ -233,17 +237,23 @@ export const DEFAULT_REGISTRY: Registry = {
       provider: 'groq', modelId: 'openai/gpt-oss-120b', label: 'GPT-OSS 120B (Groq)',
       enabled: true, qualityClass: 'standard', speedClass: 'fast',
       inputPrice: 0.15, outputPrice: 0.60, cachedInputPrice: 0.075, currency: 'USD',
-      pricingVerification: 'secondary', pricingSource: 'https://groq.com/pricing',
+      pricingVerification: 'official', pricingSource: GROQ_PRICING,
       pricingEffective: '2026-08-25',
       maxContext: 131_072, maxOutput: 32_768,
       capabilities: ['tools', 'structured_output'],
       supportedTasks: [], fallbackPriority: 15,
     },
     {
+      /*
+        Groq's own model list shows this one as "Contact Sales" — it has no published
+        per-token price. A secondary source quoted $0.59/$0.79, and using that would mean
+        billing users against a number the provider does not publish. Off until Groq
+        quotes a price in writing.
+      */
       provider: 'groq', modelId: 'llama-3.3-70b-versatile', label: 'Llama 3.3 70B (Groq)',
-      enabled: true, qualityClass: 'standard', speedClass: 'fast',
-      inputPrice: 0.59, outputPrice: 0.79, cachedInputPrice: null, currency: 'USD',
-      pricingVerification: 'secondary', pricingSource: 'https://groq.com/pricing',
+      enabled: false, qualityClass: 'standard', speedClass: 'fast',
+      inputPrice: 0, outputPrice: 0, cachedInputPrice: null, currency: 'USD',
+      pricingVerification: 'unverified', pricingSource: GROQ_PRICING,
       pricingEffective: '2026-08-25',
       maxContext: 131_072, maxOutput: 32_768,
       capabilities: ['tools', 'structured_output'],
@@ -252,8 +262,10 @@ export const DEFAULT_REGISTRY: Registry = {
     {
       provider: 'groq', modelId: 'whisper-large-v3-turbo', label: 'Whisper Large v3 Turbo',
       enabled: true, qualityClass: 'standard', speedClass: 'fast',
-      inputPrice: 0, outputPrice: 0, cachedInputPrice: null, currency: 'USD',
-      pricingVerification: 'unverified', pricingSource: 'https://groq.com/pricing',
+      // $0.04 per hour of audio, published by Groq.
+      inputPrice: 0, outputPrice: 0, cachedInputPrice: null,
+      audioPricePerMinute: 0.04 / 60, currency: 'USD',
+      pricingVerification: 'official', pricingSource: GROQ_PRICING,
       pricingEffective: '2026-08-25',
       maxContext: 0, maxOutput: 0,
       capabilities: ['audio'],
@@ -261,26 +273,65 @@ export const DEFAULT_REGISTRY: Registry = {
       supportedTasks: ['transcription'], fallbackPriority: 10,
     },
 
+    {
+      provider: 'groq', modelId: 'openai/gpt-oss-20b', label: 'GPT-OSS 20B (Groq)',
+      enabled: true, qualityClass: 'basic', speedClass: 'fast',
+      inputPrice: 0.075, outputPrice: 0.30, cachedInputPrice: null, currency: 'USD',
+      pricingVerification: 'official', pricingSource: GROQ_PRICING,
+      pricingEffective: '2026-08-25',
+      maxContext: 131_072, maxOutput: 32_768,
+      capabilities: ['tools', 'structured_output'],
+      supportedTasks: [], fallbackPriority: 12,
+    },
+
     // ── Mistral ───────────────────────────────────────────────────────────────
     {
-      provider: 'mistral', modelId: 'mistral-small-latest', label: 'Mistral Small',
+      provider: 'mistral', modelId: 'mistral-small-latest', label: 'Mistral Small 4',
       enabled: true, qualityClass: 'standard', speedClass: 'fast',
-      inputPrice: 0.10, outputPrice: 0.30, cachedInputPrice: null, currency: 'USD',
-      pricingVerification: 'secondary', pricingSource: 'https://mistral.ai/pricing',
+      // Official pricing is $0.15/$0.60. A secondary source had quoted $0.10/$0.30,
+      // which would have under-billed every Mistral request by a third.
+      inputPrice: 0.15, outputPrice: 0.60, cachedInputPrice: null, currency: 'USD',
+      pricingVerification: 'official', pricingSource: MISTRAL_PRICING,
       pricingEffective: '2026-08-25',
       maxContext: 128_000, maxOutput: 8192,
       capabilities: ['tools', 'structured_output'],
       supportedTasks: [], fallbackPriority: 20,
     },
     {
-      provider: 'mistral', modelId: 'mistral-medium-latest', label: 'Mistral Medium',
+      provider: 'mistral', modelId: 'mistral-medium-latest', label: 'Mistral Medium 3.5',
       enabled: true, qualityClass: 'advanced', speedClass: 'normal',
       inputPrice: 1.50, outputPrice: 7.50, cachedInputPrice: null, currency: 'USD',
-      pricingVerification: 'secondary', pricingSource: 'https://mistral.ai/pricing',
+      pricingVerification: 'official', pricingSource: MISTRAL_PRICING,
       pricingEffective: '2026-08-25',
       maxContext: 128_000, maxOutput: 8192,
       capabilities: ['tools', 'structured_output', 'reasoning', 'vision'],
       supportedTasks: [], fallbackPriority: 30,
+    },
+
+    {
+      provider: 'mistral', modelId: 'mistral-large-latest', label: 'Mistral Large 3',
+      enabled: true, qualityClass: 'advanced', speedClass: 'normal',
+      inputPrice: 0.50, outputPrice: 1.50, cachedInputPrice: null, currency: 'USD',
+      pricingVerification: 'official', pricingSource: MISTRAL_PRICING,
+      pricingEffective: '2026-08-25',
+      maxContext: 128_000, maxOutput: 8192,
+      capabilities: ['tools', 'structured_output', 'reasoning'],
+      supportedTasks: [], fallbackPriority: 22,
+    },
+    {
+      /*
+        A second, EU-based transcription option. Matters because Groq is held to normal
+        data only, so a sensitive recording has somewhere lawful to go.
+      */
+      provider: 'mistral', modelId: 'voxtral-mini-transcribe-2', label: 'Voxtral Mini Transcribe 2',
+      enabled: true, qualityClass: 'standard', speedClass: 'normal',
+      inputPrice: 0, outputPrice: 0, cachedInputPrice: null,
+      audioPricePerMinute: 0.003, currency: 'USD',
+      pricingVerification: 'official', pricingSource: MISTRAL_PRICING,
+      pricingEffective: '2026-08-25',
+      maxContext: 0, maxOutput: 0,
+      capabilities: ['audio'],
+      supportedTasks: ['transcription'], fallbackPriority: 20,
     },
 
     // ── OpenAI — present, disabled with its provider ───────────────────────────

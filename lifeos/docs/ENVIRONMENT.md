@@ -26,20 +26,22 @@ the repo.
 
 ### The assistant
 
-| Variable | Required | Default | What it is |
-|---|---|---|---|
-| `ANTHROPIC_API_KEY` | yes | — | Without it, the assistant returns a clear 503 and the rest of the app still works. |
-| `AI_NAME` | no | `LifeOS` | What the assistant calls itself. |
-| `AI_REFUSAL_FALLBACK` | no | `true` | `false` disables the server-side refusal fallback beta. |
+Model choice is not an environment variable. Providers and models live in the
+`ai_registry` row of `app_config`, and routing policy in `ai_policy` — both private,
+both changeable without a release.
 
-### Model routing (per tier)
+| Variable | Required | What it is |
+|---|---|---|
+| `GOOGLE_GEMINI_API_KEY` | primary | Google AI Studio key. **Paid billing must be enabled** — on the free tier Google may use the content to improve its products. |
+| `GROQ_API_KEY` | fast tier | Groq Developer tier. Fast, cheap, and holds the cheapest transcription. |
+| `MISTRAL_API_KEY` | EU / sensitive | The only provider cleared for finance and personal reflection. |
+| `OPENAI_API_KEY` | no | **Not required.** Implemented but disabled; it bills from prepaid credit. |
+| `ANTHROPIC_API_KEY` | migration only | Used only while `ai_policy.routerEnabled` is false. Removed in Phase 14. |
+| `AI_NAME` | no | What the assistant calls itself. Defaults to the brand name. |
 
-Optional overrides of `supabase/functions/_shared/plans.ts`, useful for trying a model
-on staging first. Anything unset falls back to the catalogue.
-
-`AI_MODEL_FREE`, `AI_MODEL_PLUS`, `AI_MODEL_PRO`, `AI_MODEL_ULTRA`,
-`AI_MODEL_PRO_ADVANCED`, and the matching `AI_EFFORT_*`
-(`low` · `medium` · `high` · `xhigh` · `max`).
+Without any provider key the assistant returns a clear 503 and the rest of the app
+still works. A model whose price is not confirmed from the provider's own
+documentation is refused for production routing.
 
 ### Store billing
 
@@ -58,14 +60,14 @@ variable named — never a granted entitlement.
 
 ### Voice
 
-| Variable | Required for | What it is |
-|---|---|---|
-| `TRANSCRIBE_PROVIDER` | voice input | `openai`, or unset to disable |
-| `OPENAI_API_KEY` | voice input | Whisper key |
-| `TRANSCRIBE_MODEL` | no | Defaults to `whisper-1` |
+Transcription is routed like every other model call — there is no transcription
+provider variable any more. `TRANSCRIBE_PROVIDER` and the OpenAI key used to gate it,
+which quietly made OpenAI mandatory for voice. The router now picks an audio-capable
+model that is enabled, priced and cleared for the recording's privacy class, or the
+microphone stays disabled and says so.
 
-Without these the microphone button explains that voice is not configured. It never
-fabricates a transcript.
+Two audio routes ship: Groq Whisper ($0.04/hour, normal-privacy data only) and Mistral
+Voxtral ($0.003/minute, EU, cleared for sensitive recordings).
 
 ### Injected automatically
 

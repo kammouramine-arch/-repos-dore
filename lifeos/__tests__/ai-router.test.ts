@@ -272,35 +272,52 @@ describe('production pricing verification gate', () => {
     for (const c of d.candidates) expect(c.model.pricingVerification).toBe('official');
   });
 
-  it('currently leaves Gemini as the only production-eligible provider', () => {
-    // Groq and Mistral pricing came from secondary sources, so the gate holds them back.
-    // When either is verified against its console, this expectation should be updated
-    // deliberately — it is the record of what production routing actually allows today.
+  it('now admits all three launch providers, since pricing is officially verified', () => {
     const d = route(request(), ctx({ requireVerifiedPricing: true }));
     expect(d.ok).toBe(true);
     if (!d.ok) return;
-    expect(new Set(d.candidates.map((c) => c.model.provider))).toEqual(new Set(['gemini']));
+    expect(new Set(d.candidates.map((c) => c.model.provider))).toEqual(
+      new Set(['gemini', 'groq', 'mistral']),
+    );
   });
 
-  it('leaves highly sensitive work with no provider at all, and refuses rather than downgrading', () => {
-    // Mistral is the only provider cleared for this class, and it is gated on pricing.
-    // Refusing is correct: the alternative is sending finance and reflection data to a
-    // provider that is not cleared for it.
+  it('routes highly sensitive work to the EU provider under the production gate', () => {
     const d = route(
       request({ privacyRequirement: 'highly_sensitive' as PrivacyClass }),
       ctx({ requireVerifiedPricing: true }),
     );
-    expect(d.ok).toBe(false);
-    if (d.ok) return;
-    expect(d.code).toBe('PRIVACY_NOT_PERMITTED');
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    for (const c of d.candidates) expect(c.model.provider).toBe('mistral');
   });
 
-  it('leaves transcription with no provider until Whisper pricing is verified', () => {
+  it('has a production-eligible transcription route on two providers', () => {
     const d = route(
-      request({ taskType: 'transcription' as TaskType, requiredCapabilities: ['audio' as Capability] }),
+      request({
+        taskType: 'transcription' as TaskType,
+        requiredCapabilities: ['audio' as Capability],
+        privacyRequirement: 'normal' as PrivacyClass,
+      }),
       ctx({ requireVerifiedPricing: true }),
     );
-    expect(d.ok).toBe(false);
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    expect(d.candidates.length).toBeGreaterThanOrEqual(2);
+  });
+
+  it('sends a sensitive recording only to a provider cleared for it', () => {
+    const d = route(
+      request({
+        taskType: 'transcription' as TaskType,
+        requiredCapabilities: ['audio' as Capability],
+        privacyRequirement: 'sensitive' as PrivacyClass,
+      }),
+      ctx({ requireVerifiedPricing: true }),
+    );
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    // Groq is held to normal data, so only the EU route survives.
+    for (const c of d.candidates) expect(c.model.provider).toBe('mistral');
   });
 
   it('restores the full roster the moment pricing is verified', () => {

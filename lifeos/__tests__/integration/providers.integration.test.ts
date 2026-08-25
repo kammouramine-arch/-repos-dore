@@ -16,6 +16,7 @@ import { DEFAULT_REGISTRY, mergeRegistry, type ProviderName } from '@shared/ai/r
 import { fromAnthropicTools } from '@shared/ai/toolTranslate';
 import type { AIRequest } from '@shared/ai/types';
 import { anthropicTools } from '@shared/tools';
+import { transcribeOpenAIStyle } from '@shared/ai/adapters/audio';
 
 const TIMEOUT = 60_000;
 
@@ -117,6 +118,111 @@ for (const provider of PROVIDERS) {
     }, TIMEOUT);
   });
 }
+
+/**
+ * Routing, fallback and cost accounting across whichever providers are configured.
+ * These need at least two keys to mean anything, and say so when they cannot run.
+ */
+describe('router behaviour across real providers', () => {
+  const configured = PROVIDERS.filter((p) => keyFor(p));
+  const multi = configured.length >= 2 ? describe : describe.skip;
+
+  multi('with two or more providers configured', () => {
+    const options = {
+      registry: DEFAULT_REGISTRY,
+      health: {},
+      readKey: (name: string) => process.env[name],
+      requireVerifiedPricing: true,
+      maxAttempts: 3,
+    };
+
+    it('picks a cheap model for a simple task', async () => {
+      const res = await runAI(baseRequest(), options as any);
+      expect(res.actualCost).toBeLessThan(0.01);
+      console.log(`[routing] simple task -> ${res.provider}:${res.model} $${res.actualCost.toFixed(6)}`);
+    }, TIMEOUT);
+
+    it('picks a stronger model when the task demands quality', async () => {
+      const res = await runAI(
+        baseRequest({
+          taskType: 'deep_analysis',
+          qualityRequirement: 'advanced',
+          privacyRequirement: 'highly_sensitive',
+          latencyRequirement: 'batch',
+        }),
+        options as any,
+      );
+      expect(['advanced', 'frontier']).toContain(
+        DEFAULT_REGISTRY.models.find((m) => m.modelId === res.model)?.qualityClass,
+      );
+      console.log(`[routing] deep analysis -> ${res.provider}:${res.model}`);
+    }, TIMEOUT);
+
+    it('falls back to a second provider when the first is unreachable', async () => {
+      // A deliberately broken base URL for the top candidate forces a real failover.
+      const broken = mergeRegistry(DEFAULT_REGISTRY, {
+        providers: { gemini: { baseUrl: 'https://generativelanguage.googleapis.com/does-not-exist' } } as any,
+      });
+      const res = await runAI(baseRequest(), { ...options, registry: broken } as any);
+      expect(res.fallbackUsed).toBe(true);
+      expect(res.fallbackReason).toBeTruthy();
+      console.log(`[fallback] recovered on ${res.provider}:${res.model} after ${res.fallbackReason}`);
+    }, TIMEOUT);
+
+    it('records a cost for every attempt, including the failed one', async () => {
+      const broken = mergeRegistry(DEFAULT_REGISTRY, {
+        providers: { gemini: { baseUrl: 'https://generativelanguage.googleapis.com/does-not-exist' } } as any,
+      });
+      const records: any[] = [];
+      await runAI(baseRequest(), {
+        ...options, registry: broken, onAttempt: (r: any) => records.push(r),
+      } as any);
+      expect(records.length).toBeGreaterThan(1);
+      expect(records[0].success).toBe(false);
+      expect(records[0].actualCost).toBe(0);
+      expect(records[records.length - 1].actualCost).toBeGreaterThan(0);
+    }, TIMEOUT);
+  });
+});
+
+describe('transcription against a real provider', () => {
+  const audioProviders: ProviderName[] = ['groq', 'mistral'];
+  for (const provider of audioProviders) {
+    const key = keyFor(provider);
+    const run = key ? it : it.skip;
+    run(`${provider} transcribes a short clip`, async () => {
+      // A one-second silent WAV, generated here so no fixture and no real speech is
+      // ever sent to a provider from a test.
+      const sampleRate = 8000;
+      const samples = sampleRate;
+      const buffer = new ArrayBuffer(44 + samples * 2);
+      const view = new DataView(buffer);
+      const ascii = (off: number, str: string) => {
+        for (let i = 0; i < str.length; i++) view.setUint8(off + i, str.charCodeAt(i));
+      };
+      ascii(0, 'RIFF'); view.setUint32(4, 36 + samples * 2, true); ascii(8, 'WAVE');
+      ascii(12, 'fmt '); view.setUint32(16, 16, true); view.setUint16(20, 1, true);
+      view.setUint16(22, 1, true); view.setUint32(24, sampleRate, true);
+      view.setUint32(28, sampleRate * 2, true); view.setUint16(32, 2, true);
+      view.setUint16(34, 16, true); ascii(36, 'data'); view.setUint32(40, samples * 2, true);
+
+      const file = new File([buffer], 'silence.wav', { type: 'audio/wav' });
+      const model = DEFAULT_REGISTRY.models.find(
+        (m) => m.provider === provider && m.capabilities.includes('audio'),
+      )!;
+      const result = await transcribeOpenAIStyle(
+        { requestId: 'it-audio', file, durationSeconds: 1 },
+        model,
+        DEFAULT_REGISTRY.providers[provider],
+        key!,
+        TIMEOUT,
+      );
+      expect(typeof result.text).toBe('string');
+      expect(result.durationSeconds).toBeGreaterThan(0);
+      console.log(`[${provider}] transcript="${result.text.slice(0, 40)}" duration=${result.durationSeconds}s`);
+    }, TIMEOUT);
+  }
+});
 
 describe('integration harness', () => {
   it('never requires an OpenAI key', () => {

@@ -1,0 +1,98 @@
+name: LifeOS — deploy to staging
+
+# Staging is a separate Supabase project from production, with its own secrets.
+# It exists so the AI router can be proven against real providers without any
+# production data, subscription or user being involved.
+#
+# Required repository secrets (all distinct from the production ones):
+#   STAGING_SUPABASE_ACCESS_TOKEN
+#   STAGING_SUPABASE_PROJECT_REF
+#   STAGING_SUPABASE_DB_PASSWORD   (only when applying migrations)
+#
+# Provider keys are set in the staging project's Edge Function secrets, never here.
+on:
+  workflow_dispatch:
+    inputs:
+      deploy_database:
+        description: 'Apply database migrations to staging'
+        type: boolean
+        default: true
+      deploy_functions:
+        description: 'Deploy edge functions to staging'
+        type: boolean
+        default: true
+
+defaults:
+  run:
+    working-directory: lifeos
+
+jobs:
+  deploy:
+    name: Deploy to staging
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.STAGING_SUPABASE_ACCESS_TOKEN }}
+      SUPABASE_DB_PASSWORD: ${{ secrets.STAGING_SUPABASE_DB_PASSWORD }}
+      PROJECT_REF: ${{ secrets.STAGING_SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check this branch contains LifeOS
+        working-directory: .
+        run: |
+          if [ ! -d lifeos/supabase/functions ]; then
+            echo "::error::This branch has no lifeos/ directory. Choose the LifeOS branch in 'Use workflow from'."
+            exit 1
+          fi
+
+      - name: Check the staging secrets are present
+        run: |
+          missing=0
+          for name in SUPABASE_ACCESS_TOKEN PROJECT_REF; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret STAGING_$name is not set."; missing=1; fi
+          done
+          if [ "${{ inputs.deploy_database }}" = "true" ] && [ -z "$SUPABASE_DB_PASSWORD" ]; then
+            echo "::error::STAGING_SUPABASE_DB_PASSWORD is not set, and 'Apply database migrations' is on."
+            missing=1
+          fi
+          [ "$missing" = "0" ] || exit 1
+
+      # A staging ref identical to production would deploy this workflow's changes
+      # straight into production, which is the one thing it exists to prevent.
+      - name: Refuse to run against the production project
+        run: |
+          if [ -n "${{ secrets.SUPABASE_PROJECT_REF }}" ] && [ "$PROJECT_REF" = "${{ secrets.SUPABASE_PROJECT_REF }}" ]; then
+            echo "::error::STAGING_SUPABASE_PROJECT_REF matches the production project ref. Refusing."
+            exit 1
+          fi
+
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+
+      - name: Link the staging project
+        if: ${{ inputs.deploy_database }}
+        run: supabase link --project-ref "$PROJECT_REF"
+
+      - name: Apply migrations
+        if: ${{ inputs.deploy_database }}
+        run: supabase db push
+
+      - name: Deploy edge functions
+        if: ${{ inputs.deploy_functions }}
+        run: |
+          supabase functions deploy ai-chat transcribe daily-brief subscription-verify \
+            --project-ref "$PROJECT_REF"
+          supabase functions deploy store-notifications --no-verify-jwt \
+            --project-ref "$PROJECT_REF"
+
+      - name: Summary
+        run: |
+          {
+            echo "### LifeOS staging deployed"
+            echo ""
+            echo "- Migrations: ${{ inputs.deploy_database }}"
+            echo "- Edge functions: ${{ inputs.deploy_functions }}"
+            echo ""
+            echo "Next: run supabase/tests/verify.sql in the staging SQL Editor, then the smoke test."
+          } >> "$GITHUB_STEP_SUMMARY"

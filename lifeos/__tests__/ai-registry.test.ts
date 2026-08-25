@@ -49,9 +49,38 @@ describe('provider registry', () => {
   it('records how well each price is known, so unverified terms stay visible', () => {
     const levels = new Set(DEFAULT_REGISTRY.models.map((m) => m.pricingVerification));
     for (const level of levels) expect(['official', 'secondary', 'unverified']).toContain(level);
-    // Mistral ids could not be confirmed from official docs and must not read as verified.
-    const mistral = DEFAULT_REGISTRY.models.filter((m) => m.provider === 'mistral');
-    for (const m of mistral) expect(m.pricingVerification).not.toBe('official');
+  });
+
+  it('prices every enabled model from official documentation', () => {
+    // Groq and Mistral were verified against their own docs; anything still unverified
+    // must be switched off rather than routed to.
+    for (const model of activeModels(DEFAULT_REGISTRY)) {
+      expect(`${model.provider}:${model.modelId}: ${model.pricingVerification}`)
+        .toBe(`${model.provider}:${model.modelId}: official`);
+    }
+  });
+
+  it('keeps a model with no published price switched off', () => {
+    // Groq lists llama-3.3-70b-versatile as "Contact Sales" — no per-token price exists,
+    // so billing a user against a guessed number is not an option.
+    const llama = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'llama-3.3-70b-versatile');
+    expect(llama?.enabled).toBe(false);
+    expect(llama?.pricingVerification).toBe('unverified');
+  });
+
+  it('prices speech models by the minute rather than by the token', () => {
+    const audio = DEFAULT_REGISTRY.models.filter((m) => m.capabilities.includes('audio'));
+    expect(audio.length).toBeGreaterThan(1);
+    for (const m of audio) {
+      expect(m.audioPricePerMinute).toBeGreaterThan(0);
+      expect(m.supportedTasks).toEqual(['transcription']);
+    }
+  });
+
+  it('offers an EU transcription route for data Groq may not receive', () => {
+    const voxtral = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'voxtral-mini-transcribe-2');
+    expect(voxtral?.provider).toBe('mistral');
+    expect(DEFAULT_REGISTRY.providers.mistral.maxPrivacyClass).toBe('highly_sensitive');
   });
 
   it('restricts the transcription model to transcription', () => {

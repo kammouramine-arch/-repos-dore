@@ -86,8 +86,13 @@ export async function transcribeOpenAIStyle(
   }
 }
 
-/** Audio adapters by provider. Only providers with an audio-capable model appear. */
+/**
+ * Audio adapters by provider. All three expose the same OpenAI-compatible multipart
+ * endpoint, so one implementation serves them; the registry decides which is eligible
+ * for a given recording's privacy class.
+ */
 export const AUDIO_ADAPTERS: Record<string, typeof transcribeOpenAIStyle> = {
   groq: transcribeOpenAIStyle,
+  mistral: transcribeOpenAIStyle,
   openai: transcribeOpenAIStyle,
 };

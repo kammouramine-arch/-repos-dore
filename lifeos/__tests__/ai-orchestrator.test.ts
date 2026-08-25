@@ -178,7 +178,9 @@ describe('registry diagnostics', () => {
     const d = describeRegistry(DEFAULT_REGISTRY);
     expect(d.providersEnabled).toEqual(expect.arrayContaining(['gemini', 'groq', 'mistral']));
     expect(d.providersDisabled).toContain('openai');
-    expect(d.unverifiedPricing.length).toBeGreaterThan(0);
+    // Every active model is now priced from official documentation. If this ever goes
+    // above zero, a model was enabled without its price being confirmed.
+    expect(d.unverifiedPricing).toEqual([]);
     expect(JSON.stringify(d)).not.toMatch(/key|secret|token/i);
   });
 });
