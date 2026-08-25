@@ -24,9 +24,9 @@ test-results/
 .env.*.local
 !.env.example
 
-# storage (local driver)
-storage/
-public/uploads/
+# storage (local driver) — ancré à la racine : `src/lib/storage/` est du code source
+/storage/
+/public/uploads/
 
 # misc
 .DS_Store
