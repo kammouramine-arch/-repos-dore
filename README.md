@@ -348,11 +348,21 @@ Les prix et quotas sont centralisés dans `src/lib/billing/plans.ts`.
 `POST /api/cron/relances` traite les relances arrivées à échéance et expire les devis dépassés.
 Protégé par `Authorization: Bearer $CRON_SECRET`.
 
-Sur Vercel, ajouter à `vercel.json` :
+Sur Vercel, la planification est déclarée dans `vercel.json` :
 
 ```json
-{ "crons": [{ "path": "/api/cron/relances", "schedule": "0 * * * *" }] }
+{ "crons": [{ "path": "/api/cron/relances", "schedule": "0 7 * * *" }] }
 ```
+
+Une exécution quotidienne, à 07:00 UTC (début de matinée en France), compatible avec le plan
+Hobby de Vercel, qui refuse les expressions s'exécutant plus d'une fois par jour et applique une
+précision à l'heure près (déclenchement entre 07:00 et 07:59 UTC). La route traite à chaque
+passage **toutes** les relances arrivées à échéance depuis la précédente : le classement et le
+contenu des relances sont inchangés, seule la fréquence de passage l'est. Un plan Pro permet de
+revenir à `0 * * * *` pour un traitement horaire.
+
+En dehors de Vercel, n'importe quel ordonnanceur convient (cron système, GitHub Actions,
+Cloudflare Workers…) : il suffit d'appeler la route avec l'en-tête `Authorization`.
 
 ---
 
