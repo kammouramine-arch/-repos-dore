@@ -25,7 +25,8 @@ BEGIN AT GROUND LEVEL.
 | **01a** | **Founder decision brief** | **✅ Resolved — all six locked** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
 | **02** | **Visual identity** | **✅ Approved — Revision 2** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
 | **03** | **CHAPTER 001 — ASCENSION** | **✅ Approved** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
-| **04** | **POD provider + product validation** | **✅ Complete — awaiting approval · 1 blocking unknown** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
+| **04** | **POD provider + product validation** | **✅ Approved as evidence report** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
+| **04.5** | **POD verification** | **✅ Printful exhausted · Printify blocked on 1 question** | [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) |
 | 05 | Samples | ⏸ **Nothing purchased** — blocked on Phase 04 approval | — |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
@@ -50,6 +51,8 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`identity/assets/`](./identity/assets/) | Vector assets: GR monogram, datum device, datum principle diagram |
 | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) | Chapter 001 concept, product architecture, four-product requirements and the Phase 04 test sheet |
 | [`production/05-pod-validation.md`](./production/05-pod-validation.md) | Provider comparison, verified blank specifications, cost model template, sample plan and scorecard |
+| [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) | Catalogue-API verification, the exhaustive EU bottoms check, real cost model and the conditional sample order |
+| [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
 
 **Exploratory identity concepts exist. No production assets, no cleared marks, no products
 and no website code.** That is correct for this phase.
@@ -66,7 +69,16 @@ must be custom-drawn from the Datum concept rather than used as Archivo unchange
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
 
-**Phase 04 surfaced one blocking unknown.** Stanley/Stella make a 350 GSM oversized hoodie
+**Phase 04.5 answered the blocking question for Printful, exhaustively.** Every one of the
+12 bottoms in Printful's catalogue was checked against its own API: only 4 have EU stock
+and **all 4 are all-over-print polyester**. Every branded cotton sweatpant is US-only, so
+**the matched set is not achievable on Printful for an EU launch**. Printify's catalogue
+*does* carry both the Slammer hoodie and the Flyer jogger — but which print providers
+serve them, and whether any is EU-located, needs an account token. **The sweatpants are not
+dropped.** Real prices also show the Phase 01 ladder is materially wrong: the cap needs
+€60–65 rather than €40, which breaks its purpose as a low-risk entry item.
+
+**Original Phase 04 context.** Stanley/Stella make a 350 GSM oversized hoodie
 (Slammer 2.0) and 350 GSM full-length joggers (Flyer) in one heavyweight collection —
 verified, and the best possible matched-set pair. **Whether any POD provider carries the
 jogger is unconfirmed**, because provider catalogues are JavaScript-rendered and need a
