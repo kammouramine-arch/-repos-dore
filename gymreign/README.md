@@ -24,9 +24,9 @@ BEGIN AT GROUND LEVEL.
 | **01** | **Master brand strategy** | **✅ Approved — Revision 2** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
 | **01a** | **Founder decision brief** | **✅ Resolved — all six locked** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
 | **02** | **Visual identity** | **✅ Approved — Revision 2** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
-| **03** | **CHAPTER 001 — ASCENSION** | **✅ Complete — awaiting approval** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
-| 04 | POD provider + product validation | ⏸ **Gate held** — blocked on Phase 03 approval | — |
-| 05 | Samples | ⏸ | — |
+| **03** | **CHAPTER 001 — ASCENSION** | **✅ Approved** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
+| **04** | **POD provider + product validation** | **✅ Complete — awaiting approval · 1 blocking unknown** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
+| 05 | Samples | ⏸ **Nothing purchased** — blocked on Phase 04 approval | — |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
 | 08 | Content | ⏸ | — |
@@ -49,6 +49,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) | The Phase 02 identity manual — three territories, one recommendation, and the full system |
 | [`identity/assets/`](./identity/assets/) | Vector assets: GR monogram, datum device, datum principle diagram |
 | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) | Chapter 001 concept, product architecture, four-product requirements and the Phase 04 test sheet |
+| [`production/05-pod-validation.md`](./production/05-pod-validation.md) | Provider comparison, verified blank specifications, cost model template, sample plan and scorecard |
 
 **Exploratory identity concepts exist. No production assets, no cleared marks, no products
 and no website code.** That is correct for this phase.
@@ -64,6 +65,14 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+**Phase 04 surfaced one blocking unknown.** Stanley/Stella make a 350 GSM oversized hoodie
+(Slammer 2.0) and 350 GSM full-length joggers (Flyer) in one heavyweight collection —
+verified, and the best possible matched-set pair. **Whether any POD provider carries the
+jogger is unconfirmed**, because provider catalogues are JavaScript-rendered and need a
+logged-in dashboard. If none does, the matched set cannot be produced on POD and there are
+four documented ways forward. Gelato is disqualified (Nike/Champion/UA branded blanks);
+Apliiq is disqualified as primary (US-only fulfilment). **Printful leads, conditionally.**
 
 **Chapter 001 — ASCENSION** is *establishing zero*: the measurement taken before the climb.
 Four articles — heavyweight tee, hoodie, sweatpants, embroidered cap — held together by
