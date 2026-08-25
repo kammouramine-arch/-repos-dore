@@ -175,37 +175,59 @@ exactly where they left off.
 * Restore purchases: every receipt the store account owns is re-verified, and the one
   granting access furthest into the future wins.
 
-### What is not implemented
+### The native billing SDK
 
-The **native billing SDK**. It needs a development build and products configured in
-App Store Connect / Play Console, so the app ships with an adapter that reports
-"not configured" instead of a button that silently does nothing.
+Implemented with [`expo-iap`](https://github.com/hyochan/expo-iap) — StoreKit 2 on iOS,
+Google Play Billing on Android:
 
-To enable purchases:
+* [`src/services/purchases/storeAdapter.ts`](../src/services/purchases/storeAdapter.ts)
+  implements `PurchaseAdapter` (`isAvailable`, `init`, `getProducts`, `purchase`,
+  `restore`) against `expo-iap`'s event-based purchase API, bridging
+  `purchaseUpdatedListener`/`purchaseErrorListener` back to a plain promise.
+* [`src/services/purchases/index.ts`](../src/services/purchases/index.ts) wires it up
+  at startup (`initPurchases`) only in a build where the native module actually exists
+  (`Constants.appOwnership !== 'expo'`); in Expo Go, or if the module fails to load, the
+  app keeps `unavailableAdapter`, which reports "not configured" honestly instead of a
+  button that silently does nothing.
+* A purchase is never granted client-side: `purchase()` opens the store sheet, sends the
+  resulting receipt (a StoreKit 2 JWS on iOS, a purchase token on Android) to
+  `subscription-verify`, and only calls `finishTransaction` **after** the server
+  verifies it. If verification fails, the transaction stays open and the store
+  redelivers it on next launch — a paid purchase is never silently lost.
+* Restore purchases re-verifies every receipt the store account owns and keeps the one
+  that grants access furthest into the future (`pickBetter`).
+* `store-notifications` handles Apple's App Store Server Notifications V2 and Google's
+  Real-Time Developer Notifications, so renewals, cancellations and refunds update
+  `subscriptions` without the app needing to open. `store_events` (unique on
+  `(provider, event_id)`) makes replays a no-op on both the verification and
+  notification paths.
 
-1. Create the products with the ids from the catalogue —
+To turn this on for a specific store:
+
+1. Create the six products with the ids from the catalogue —
    `lifeos.plus.monthly`, `lifeos.plus.yearly`, `lifeos.pro.monthly`,
    `lifeos.pro.yearly`, `lifeos.ultra.monthly`, `lifeos.ultra.yearly`.
-2. Add a billing library (`react-native-iap` or `expo-in-app-purchases`) and write an
-   adapter implementing `PurchaseAdapter` from
-   [`src/services/purchases/types.ts`](../src/services/purchases/types.ts):
-   `isAvailable`, `init`, `getProducts`, `purchase`, `restore`.
-3. Call `setPurchaseAdapter(yourAdapter)` at startup. Everything above it — paywall,
-   verification, entitlement, restore — already works.
-4. Set the server secrets:
+2. Set the server secrets (see [ENVIRONMENT.md](ENVIRONMENT.md)):
    ```bash
-   supabase secrets set APPLE_SHARED_SECRET=... \
+   supabase secrets set \
+     APPLE_ISSUER_ID=... APPLE_KEY_ID=... APPLE_BUNDLE_ID=app.lifeos \
+     APPLE_PRIVATE_KEY="$(cat SubscriptionKey_XXXXXXX.p8)"
+   supabase secrets set \
      GOOGLE_SERVICE_ACCOUNT_JSON="$(cat service-account.json | tr -d '\n')" \
      ANDROID_PACKAGE_NAME=app.lifeos
-   supabase functions deploy subscription-verify
+   supabase secrets set STORE_WEBHOOK_SECRET=$(openssl rand -hex 32)
+   supabase functions deploy subscription-verify store-notifications --no-verify-jwt
    ```
-5. For production, also subscribe to App Store Server Notifications and Google RTDN so
-   renewals, cancellations and refunds update `subscriptions` without waiting for the
-   app to open. The same verification code handles the payload.
+3. Point App Store Server Notifications V2 and Google RTDN at
+   `https://<ref>.functions.supabase.co/store-notifications?key=<STORE_WEBHOOK_SECRET>`
+   (see [DEPLOYMENT.md](DEPLOYMENT.md) §4–5 for the exact console steps).
+4. Purchases only work in a development or store build — `expo-iap` is a native module,
+   so Expo Go cannot load it.
 
 > The verification requests are written to the documented shapes of both stores, but
 > they have not been run against live store credentials from this environment. Test
-> them with a sandbox purchase before release.
+> them with a sandbox purchase (iOS) and a licence-test account (Android) before
+> release — see [QA.md](QA.md) section D.
 
 ## Trials
 

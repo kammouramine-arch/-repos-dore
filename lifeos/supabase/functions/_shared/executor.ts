@@ -1,6 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js';
-import { type ToolName, toolMeta, validateToolInput } from './tools.ts';
+import type { z } from 'zod';
+import { type ToolName, toolMeta, toolSchemas, validateToolInput } from './tools.ts';
 import type { EntitlementKey } from './plans.ts';
+type Infer<K extends ToolName> = z.infer<(typeof toolSchemas)[K]>;
 
 /**
  * Executes a validated tool call against the database using the caller's own
@@ -64,6 +66,12 @@ async function owns(ctx: Ctx, table: string, id: string): Promise<boolean> {
   return Boolean(data);
 }
 
+// Each handler's `input` is validated against `toolSchemas[tool]` before dispatch (see
+// `executeTool`), but a `Record<ToolName, Handler>` calling `handlers[tool](ctx, validated.data)`
+// with a dynamic `tool: ToolName` collapses the union of per-tool input types to `never` —
+// a known TypeScript limitation with this dispatch shape. `any` here is the deliberate,
+// narrow escape hatch; handlers that need their specific shape narrow it themselves via `Infer<'tool_name'>`.
+// deno-lint-ignore no-explicit-any
 type Handler = (ctx: Ctx, input: any) => Promise<ToolResult>;
 
 const handlers: Record<ToolName, Handler> = {
@@ -570,7 +578,8 @@ const handlers: Record<ToolName, Handler> = {
     });
   },
 
-  async generate_90_day_plan(ctx, input) {
+  async generate_90_day_plan(ctx, rawInput) {
+    const input: Infer<'generate_90_day_plan'> = rawInput;
     const start = input.start_date ?? ctx.today;
     const end = addDays(start, 89);
 
@@ -586,11 +595,11 @@ const handlers: Record<ToolName, Handler> = {
     if (error) return err(error.message);
 
     const items = [
-      ...(input.months ?? []).map((m: any) => ({
-        life_plan_id: data.id, horizon: 'month', position: m.position,
+      ...(input.months ?? []).map((m) => ({
+        life_plan_id: data.id, horizon: 'month' as const, position: m.position,
         title: m.title, description: m.description ?? null, objectives: m.objectives ?? [],
       })),
-      ...(input.weeks ?? []).map((w: any) => ({
+      ...(input.weeks ?? []).map((w) => ({
         life_plan_id: data.id, horizon: 'week', position: w.position,
         title: w.title, description: null, objectives: w.objectives ?? [],
       })),

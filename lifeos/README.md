@@ -151,8 +151,8 @@ Every variable is documented in [`.env.example`](.env.example). In short:
 **Server (Supabase secrets, never bundled):** `ANTHROPIC_API_KEY`, `AI_NAME`,
 `AI_REFUSAL_FALLBACK`, `TRANSCRIBE_PROVIDER`, `OPENAI_API_KEY`, the per-tier model
 overrides (`AI_MODEL_FREE` / `AI_MODEL_PLUS` / `AI_MODEL_PRO` …), and the store
-credentials (`APPLE_SHARED_SECRET`, `GOOGLE_SERVICE_ACCOUNT_JSON`,
-`ANDROID_PACKAGE_NAME`).
+credentials (`APPLE_ISSUER_ID`, `APPLE_KEY_ID`, `APPLE_PRIVATE_KEY`,
+`GOOGLE_SERVICE_ACCOUNT_JSON`, `ANDROID_PACKAGE_NAME`, `STORE_WEBHOOK_SECRET`).
 
 ---
 

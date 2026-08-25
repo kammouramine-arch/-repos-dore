@@ -141,7 +141,7 @@ export async function verifyApple(input: {
   if (!originalTransactionId) throw new VerificationFailed('No transaction to verify.');
 
   const token = await appleToken();
-  const fetchStatuses = async (host: string) =>
+  const fetchStatuses = (host: string) =>
     fetch(`${host}/inApps/v1/subscriptions/${originalTransactionId}`, {
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -311,7 +311,7 @@ export async function verifyGoogle(purchaseToken: string): Promise<StoreSubscrip
 }
 
 /** One entry point for both stores. */
-export async function verifyPurchase(input: {
+export function verifyPurchase(input: {
   provider: 'apple' | 'google';
   token: string;
 }): Promise<StoreSubscription> {

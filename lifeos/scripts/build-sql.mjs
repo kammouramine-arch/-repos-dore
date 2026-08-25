@@ -10,7 +10,7 @@
  */
 import { readFileSync, readdirSync, writeFileSync, mkdirSync, existsSync } from 'node:fs';
 import { resolve, dirname } from 'node:path';
-import { fileURLToPath } from 'node:url';
+import { fileURLToPath, pathToFileURL } from 'node:url';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const from = resolve(root, 'supabase/migrations');
@@ -50,7 +50,12 @@ ${files.map((f) => `--   ${f}`).join('\n')}
   return { files, sql: header + body };
 }
 
-if (import.meta.url === `file://${process.argv[1]}`) {
+// `file://${process.argv[1]}` is not a valid file URL on Windows (backslashes, no
+// drive-letter encoding) and silently never matches, which used to make this whole
+// block a no-op there: `npm run db:bundle` produced nothing, and the "is the bundle
+// stale" check always reported success without checking anything. pathToFileURL fixes
+// both platforms the same way.
+if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   const { files, sql } = buildSql();
   const target = resolve(to, 'all-migrations.sql');
 

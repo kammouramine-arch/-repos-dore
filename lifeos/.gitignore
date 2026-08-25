@@ -1,6 +1,7 @@
 node_modules/
 .expo/
-dist/
+# Expo's own build output at the repo root — not supabase/dist/, which is committed.
+/dist/
 web-build/
 *.orig.*
 *.jks

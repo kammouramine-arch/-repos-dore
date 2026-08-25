@@ -18,14 +18,16 @@ call the model provider directly — there is a test that fails if it ever does.
 
 ```bash
 supabase secrets set ANTHROPIC_API_KEY=sk-ant-...
-supabase secrets set AI_MODEL=claude-opus-5          # optional, this is the default
-supabase secrets set AI_EFFORT=high                  # low | medium | high | xhigh | max
 supabase secrets set AI_REFUSAL_FALLBACK=true        # optional
 supabase functions deploy ai-chat transcribe daily-brief
 ```
 
-`AI_EFFORT` trades latency for depth. `high` is the default and suits planning work;
-`medium` noticeably shortens onboarding turns if you want a snappier first run.
+Models and effort are chosen per subscription tier by the catalogue in
+`supabase/functions/_shared/plans.ts` (`claude-sonnet-5` for Free/Plus, `claude-opus-5`
+for Pro/Ultra). Override per environment without a release with the per-tier secrets
+`AI_MODEL_FREE` / `AI_MODEL_PLUS` / `AI_MODEL_PRO` / `AI_MODEL_ULTRA` /
+`AI_MODEL_PRO_ADVANCED` and the matching `AI_EFFORT_*`
+(`low` · `medium` · `high` · `xhigh` · `max`) — see [ENVIRONMENT.md](ENVIRONMENT.md).
 
 `AI_REFUSAL_FALLBACK` opts into the server-side refusal fallback. If the account is not
 enrolled in that beta, the function detects the rejection once and quietly falls back to
