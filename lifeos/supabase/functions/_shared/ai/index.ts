@@ -24,6 +24,8 @@ export type RunOptions = {
   now?: () => number;
   timeoutMs?: number;
   allowPrepaidProviders?: boolean;
+  /** Production requires officially documented pricing; see RouteContext. */
+  requireVerifiedPricing?: boolean;
   /** How many candidates to try before giving up. 1 disables fallback. */
   maxAttempts?: number;
   /** Called once per attempt, successful or not, so every attempt is accounted for. */
@@ -57,6 +59,7 @@ export async function runAI(request: AIRequest, options: RunOptions): Promise<AI
     health: options.health,
     now: now(),
     allowPrepaidProviders: options.allowPrepaidProviders,
+    requireVerifiedPricing: options.requireVerifiedPricing,
   };
 
   const decision = route(request, ctx);

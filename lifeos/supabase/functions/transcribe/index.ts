@@ -3,36 +3,26 @@ import { fail, json, preflight } from '../_shared/http.ts';
 import { adminClient, requireUser } from '../_shared/supabase.ts';
 import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
 import type { Meter } from '../_shared/plans.ts';
+import { loadPolicy, loadRegistry, loadHealth, transcribeMetered } from '../_shared/ai/runtime.ts';
 
 /**
  * Speech to text for the hold-to-talk button.
  *
- * The integration is complete, but it needs a provider key. Without one this returns
- * a clear 501 and the app disables the microphone rather than pretending to listen.
- * Configure with:  supabase secrets set TRANSCRIBE_PROVIDER=openai OPENAI_API_KEY=...
+ * Routed through the AI Router like every other model call, so this function names no
+ * provider. Without an eligible audio model it returns a clear 501 and the app disables
+ * the microphone rather than pretending to listen.
  */
 Deno.serve(async (req) => {
   const cors = preflight(req);
   if (cors) return cors;
   if (req.method !== 'POST') return fail('method_not_allowed', 'Use POST', 405);
 
-  const provider = (Deno.env.get('TRANSCRIBE_PROVIDER') ?? '').toLowerCase();
-  const openaiKey = Deno.env.get('OPENAI_API_KEY');
-
-  if (!provider) {
-    return fail(
-      'transcription_not_configured',
-      'Voice input is not configured on this server. See docs/AI.md.',
-      501,
-    );
-  }
-  if (provider !== 'openai') {
-    return fail('transcription_not_configured', `Unsupported TRANSCRIBE_PROVIDER "${provider}".`, 501);
-  }
-  if (!openaiKey) {
-    return fail('transcription_not_configured', 'OPENAI_API_KEY is not set.', 501);
-  }
-
+  /*
+    No provider preamble here any more. TRANSCRIBE_PROVIDER and OPENAI_API_KEY used to
+    gate this endpoint, which quietly made OpenAI a required dependency for voice. The
+    router now answers "is any audio provider available" from the registry, so voice
+    follows the same eligibility rules — verification, privacy, health — as everything else.
+  */
   const { client: db, user, error } = await requireUser(req);
   if (!db || !user) return fail('unauthorized', error ?? 'Not authenticated', 401);
 
@@ -78,23 +68,50 @@ Deno.serve(async (req) => {
     );
   }
 
-  const upstream = new FormData();
-  upstream.append('file', file, file.name || 'audio.m4a');
-  upstream.append('model', Deno.env.get('TRANSCRIBE_MODEL') ?? 'whisper-1');
-  upstream.append('response_format', 'json');
+  /*
+    Routed like everything else: this function no longer knows which provider transcribes
+    audio, and no longer holds a provider URL. The router picks an audio-capable model
+    that is enabled, verified and cleared for this data class, or refuses.
+  */
+  const policy = await loadPolicy(db);
+  const registry = await loadRegistry(db);
+  const health = await loadHealth(admin);
 
-  const res = await fetch('https://api.openai.com/v1/audio/transcriptions', {
-    method: 'POST',
-    headers: { Authorization: `Bearer ${openaiKey}` },
-    body: upstream,
-  });
+  try {
+    const result = await transcribeMetered(
+      {
+        requestId: `voice:${user.id}:${Date.now()}`,
+        file,
+        durationSeconds: seconds,
+        language: typeof form.get('language') === 'string' ? String(form.get('language')) : undefined,
+      },
+      {
+        userId: user.id,
+        tier: billing.entitlement.plan.tier,
+        registry,
+        policy,
+        health,
+        readKey: (name) => Deno.env.get(name),
+      },
+    );
 
-  if (!res.ok) {
+    return json({ text: result.text.trim(), seconds: Math.round(result.durationSeconds) });
+  } catch (e: any) {
+    // Nothing usable was produced, so the allowance goes back.
     await refundAll(admin, user.id, billing.period.start, spend.spent as Partial<Record<Meter, number>>);
-    const detail = await res.text();
-    return fail('transcription_failed', `Transcription failed (${res.status}). ${detail.slice(0, 200)}`, 502);
+    console.error('[transcribe] failed', JSON.stringify({
+      code: e?.code ?? null,
+      message: String(e?.message ?? '').slice(0, 300),
+    }));
+    const notConfigured = e?.code === 'PROVIDER_CONFIGURATION_ERROR'
+      || e?.code === 'NO_ELIGIBLE_MODEL'
+      || e?.code === 'PRIVACY_NOT_PERMITTED';
+    return fail(
+      notConfigured ? 'transcription_not_configured' : 'transcription_failed',
+      notConfigured
+        ? 'Voice input is not configured on this server. See docs/AI.md.'
+        : 'Transcription failed. Nothing was charged.',
+      notConfigured ? 501 : 502,
+    );
   }
-
-  const data: any = await res.json();
-  return json({ text: String(data.text ?? '').trim(), seconds });
 });

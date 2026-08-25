@@ -1,8 +1,8 @@
 {
   // The edge functions are Deno code and are excluded from the app's tsconfig, so
   // nothing typechecked them outside CI's `deno check`. This configuration checks the
-  // provider-neutral AI layer with plain tsc — it is pure TypeScript with no Deno
-  // globals, so a type error is caught here in seconds rather than at deploy time.
+  // provider-neutral AI layer and the migrated entrypoints with plain tsc, so a
+  // mistake surfaces in seconds rather than at deploy time.
   "compilerOptions": {
     "target": "ES2022",
     "lib": ["ES2022", "DOM"],
@@ -14,5 +14,11 @@
     "skipLibCheck": true,
     "types": []
   },
-  "include": ["_shared/ai/**/*.ts"]
+  "include": [
+    "edge-shims.d.ts",
+    "_shared/ai/**/*.ts",
+    "ai-chat/index.ts",
+    "daily-brief/index.ts",
+    "transcribe/index.ts"
+  ]
 }

@@ -23,6 +23,7 @@ import {
  */
 export type RejectionCategory =
   | 'billing'
+  | 'verification'
   | 'task'
   | 'capability'
   | 'privacy'
@@ -63,6 +64,15 @@ export type RouteContext = {
   now: number;
   /** Set true only where the business has explicitly accepted prepaid funding. */
   allowPrepaidProviders?: boolean;
+  /**
+   * Production routing requires pricing read from official documentation.
+   *
+   * A model priced from a secondary source can still be routed to in development, but
+   * it must not carry production traffic: an unverified price means the cost engine,
+   * the budget ceiling and every margin figure downstream are built on a guess. Set
+   * false only in tests and local work.
+   */
+  requireVerifiedPricing?: boolean;
 };
 
 export function modelKey(m: { provider: string; modelId: string }): string {
@@ -91,6 +101,11 @@ export function route(request: AIRequest, ctx: RouteContext): RoutingDecision {
     // ── Hard gates ────────────────────────────────────────────────────────────
     if (provider.billingMode === 'prepaid' && !ctx.allowPrepaidProviders) {
       reject('billing', 'provider requires prepaid funding and prepaid providers are not enabled');
+      continue;
+    }
+    const verificationRequired = ctx.requireVerifiedPricing !== false;
+    if (verificationRequired && model.pricingVerification !== 'official') {
+      reject('verification', `pricing is ${model.pricingVerification}, not confirmed from official documentation`);
       continue;
     }
     if (model.supportedTasks.length > 0 && !model.supportedTasks.includes(request.taskType)) {
@@ -142,7 +157,9 @@ export function route(request: AIRequest, ctx: RouteContext): RoutingDecision {
       went wrong".
     */
     const has = (c: RejectionCategory) => rejected.some((r) => r.category === c);
-    const code: AIErrorCode = has('budget')
+    const code: AIErrorCode = has('verification') && !has('budget') && !has('privacy')
+      ? 'PROVIDER_CONFIGURATION_ERROR'
+      : has('budget')
       ? 'BUDGET_EXCEEDED'
       : has('privacy')
         ? 'PRIVACY_NOT_PERMITTED'

@@ -27,9 +27,17 @@ let group = '';
 
 const section = (name) => { group = name; console.log(`\n── ${name} ${'─'.repeat(Math.max(0, 58 - name.length))}`); };
 
+/*
+  Four outcomes, deliberately distinct. BLOCKED means a prerequisite failed so this never
+  ran; NOT CONFIGURED means the credentials for it are absent. Neither is a pass, and
+  neither is a failure of the code — collapsing them into either one is how a smoke test
+  starts lying.
+*/
 function record(id, name, status, detail) {
   results.push({ id, group, name, status, detail });
-  const mark = { pass: 'PASS', fail: 'FAIL', skip: 'SKIP', warn: 'WARN' }[status];
+  const mark = {
+    pass: 'PASS', fail: 'FAIL', blocked: 'BLOCKED', unconfigured: 'NOT CONFIGURED', warn: 'WARN',
+  }[status];
   console.log(`  ${String(id).padStart(2)}. [${mark}] ${name}${detail ? ` — ${detail}` : ''}`);
 }
 
@@ -38,7 +46,8 @@ async function check(name, fn) {
   const id = ++counter;
   try {
     const detail = await fn();
-    if (detail && detail.skip) return record(id, name, 'skip', detail.skip);
+    if (detail && detail.skip) return record(id, name, 'blocked', detail.skip);
+    if (detail && detail.unconfigured) return record(id, name, 'unconfigured', detail.unconfigured);
     if (detail && detail.warn) return record(id, name, 'warn', detail.warn);
     record(id, name, 'pass', typeof detail === 'string' ? detail : '');
   } catch (e) {
@@ -104,6 +113,12 @@ async function signUp(u) {
 let goalId = null;
 let taskId = null;
 let confirmationRequired = false;
+/*
+  Set by the first router check. Without it, every later router check "passes" on a 404
+  from a table that does not exist — a refusal for the wrong reason, which is a false
+  pass rather than evidence of anything.
+*/
+let routerTablesPresent = false;
 /** Set when a model call fails, so the metering check can tell a refund from a bug. */
 let aiCallsFailed = false;
 
@@ -531,6 +546,66 @@ async function main() {
     return `refused with ${res.status} (${res.json?.error?.code ?? 'no code'}), upgrade offered: ${res.json?.error?.upgrade_to ?? 'none'}`;
   });
 
+  // ── J. AI router architecture ──────────────────────────────────────
+  section('J. AI router');
+
+  await check('The AI budget tables exist', async () => {
+    const res = await rest('/ai_requests?select=id&limit=0');
+    if (res.status === 404 || res.json?.code === 'PGRST205') {
+      throw new Error('ai_requests is missing — the AI router migration has not been applied');
+    }
+    routerTablesPresent = true;
+    return 'ai_requests reachable';
+  });
+
+  const routerReady = () => (routerTablesPresent ? null : { skip: 'the AI router migration is not applied' });
+
+  await check('A client cannot write its own AI budget', async () => {
+    if (routerReady()) return routerReady();
+    if (ready()) return ready();
+    const res = await rest('/ai_budgets', {
+      method: 'POST', token: users.a.token,
+      body: { period_start: periodStart(), ceiling: 9999, spent: 0 },
+    });
+    assert(res.status >= 400, `ai_budgets insert succeeded with ${res.status}`);
+    return `refused with ${res.status}`;
+  });
+
+  await check('A client cannot read another account\'s AI spend', async () => {
+    if (routerReady()) return routerReady();
+    if (!users.b.token) return { skip: 'need account B' };
+    const res = await rest('/ai_requests?select=id', { token: users.b.token });
+    assert(res.ok, `read returned ${res.status}`);
+    assert(res.json.length === 0, `B saw ${res.json.length} of A's AI requests`);
+    return 'empty result set';
+  });
+
+  await check('Budget reservation is not callable by a client', async () => {
+    if (routerReady()) return routerReady();
+    if (ready()) return ready();
+    const res = await rpc('reserve_ai_budget', {
+      p_user: users.a.id, p_period_start: periodStart(),
+      p_request_id: 'smoke', p_amount: 0, p_ceiling: 999,
+    }, users.a.token);
+    assert(res.status >= 400, `a client could call reserve_ai_budget (${res.status})`);
+    return `refused with ${res.status}`;
+  });
+
+  await check('Provider health is invisible to clients', async () => {
+    if (routerReady()) return routerReady();
+    if (ready()) return ready();
+    const res = await rest('/ai_provider_health?select=key', { token: users.a.token });
+    const hidden = res.status >= 400 || (Array.isArray(res.json) && res.json.length === 0);
+    assert(hidden, `provider health was readable (${res.status})`);
+    return res.status >= 400 ? `refused with ${res.status}` : 'empty result set';
+  });
+
+  await check('Which providers are configured on the server', async () => {
+    // Reported, never asserted: the smoke test cannot see server secrets, and guessing
+    // would be worse than saying so.
+    return { unconfigured: 'provider keys are server-side; verify with the integration suite' };
+  });
+
   // ── I. Cleanup ─────────────────────────────────────────────────────
   section('I. Cleanup');
 
@@ -548,7 +623,11 @@ async function main() {
   // ── Summary ────────────────────────────────────────────────────────
   const tally = results.reduce((a, r) => ({ ...a, [r.status]: (a[r.status] ?? 0) + 1 }), {});
   console.log(`\n${'═'.repeat(62)}`);
-  console.log(`  ${tally.pass ?? 0} passed · ${tally.fail ?? 0} failed · ${tally.warn ?? 0} warnings · ${tally.skip ?? 0} skipped`);
+  console.log(
+    `  ${tally.pass ?? 0} passed · ${tally.fail ?? 0} failed · ` +
+    `${tally.blocked ?? 0} blocked · ${tally.unconfigured ?? 0} not configured · ${tally.warn ?? 0} warnings`,
+  );
+  console.log(`  ${results.length} checks total — a blocked or unconfigured check is not a pass.`);
   console.log('═'.repeat(62));
 
   if (tally.fail) {

@@ -61,16 +61,6 @@ describe('no agent or feature reaches a provider directly', () => {
   const aiDir = path.join(root, 'supabase/functions/_shared/ai');
   const adapterDir = path.join(aiDir, 'adapters');
 
-  /*
-    Paths that still talk to a provider without going through the router. Each one is a
-    scheduled migration step, listed here so the exception is visible and the list can
-    only shrink — a new file reaching a provider directly fails this test immediately.
-  */
-  const PRE_ROUTER_PATHS = [
-    // Phase 10: transcription moves to capability-based routing (Groq Whisper).
-    'supabase/functions/transcribe/index.ts',
-  ];
-
   it('confines every provider hostname to the adapters', () => {
     const hosts = PROVIDER_NAMES.map((p) => new URL(DEFAULT_REGISTRY.providers[p].baseUrl).host);
     const pattern = new RegExp(hosts.join('|').replace(/\./g, '\\.'));
@@ -81,18 +71,30 @@ describe('no agent or feature reaches a provider directly', () => {
       if (rel.includes('ai/registry.ts')) continue;
       const body = fs.readFileSync(file, 'utf8');
       const hit = pattern.test(body);
-      const allowed = file.startsWith(adapterDir) || PRE_ROUTER_PATHS.includes(rel);
+      const allowed = file.startsWith(adapterDir);
       expect(`${rel}: ${hit && !allowed}`).toBe(`${rel}: false`);
     }
   });
 
-  it('has not grown the list of pre-router paths', () => {
-    // If this number goes up, something bypassed the router. If it goes down, a phase
-    // landed. Either way it should be a deliberate edit, not a silent drift.
-    expect(PRE_ROUTER_PATHS).toHaveLength(1);
-    for (const rel of PRE_ROUTER_PATHS) {
-      expect(fs.existsSync(path.join(root, rel))).toBe(true);
+  it('has ZERO direct provider calls outside the adapters', () => {
+    /*
+      The final architecture rule, enforced rather than asserted in a document: no file
+      in the repository may reach a provider except through an adapter. transcribe was
+      the last exception and was migrated in Phase 10; this test is what stops a new one
+      appearing.
+    */
+    const hosts = PROVIDER_NAMES.map((p) => new URL(DEFAULT_REGISTRY.providers[p].baseUrl).host);
+    const extra = ['api.anthropic.com'];
+    const pattern = new RegExp([...hosts, ...extra].join('|').replace(/\./g, '\\.'));
+
+    const offenders: string[] = [];
+    for (const file of walk(path.join(root, 'supabase/functions'))) {
+      const rel = path.relative(root, file);
+      if (rel.includes('ai/registry.ts')) continue;   // URLs as data
+      if (file.startsWith(adapterDir)) continue;      // the sanctioned boundary
+      if (pattern.test(fs.readFileSync(file, 'utf8'))) offenders.push(rel);
     }
+    expect(offenders).toEqual([]);
   });
 
   it('keeps fetch() to providers inside the adapter directory', () => {

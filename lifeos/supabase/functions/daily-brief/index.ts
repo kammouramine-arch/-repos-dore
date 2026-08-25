@@ -7,6 +7,8 @@ import { systemPrompt } from '../_shared/prompt.ts';
 import { adminClient } from '../_shared/supabase.ts';
 import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
 import type { Meter } from '../_shared/plans.ts';
+import { loadPolicy, loadRegistry, loadHealth, readBudget, runMetered, periodStart } from '../_shared/ai/runtime.ts';
+import { TASK_PRIVACY } from '../_shared/ai/types.ts';
 
 /**
  * Generates the morning briefing for the calling user and stores it on today's plan.
@@ -47,28 +49,65 @@ Deno.serve(async (req) => {
     );
   }
 
-  const anthropic = new Anthropic({ apiKey });
+  const prompt = systemPrompt({
+    aiName: Deno.env.get('AI_NAME') ?? 'LifeOS',
+    mode: 'morning_brief',
+    context: context.text,
+    plan: billing.entitlement.plan.name,
+    entitlements: billing.entitlement.entitlements,
+  });
+
+  /*
+    Same two suppliers as ai-chat, same rule: the router is the only thing that ever
+    selects a provider, and the Anthropic branch below selects nothing — it calls the
+    single model the plan's routing table already named. Phase 14 removes it.
+  */
+  const policy = await loadPolicy(db);
   let text: string;
   try {
-    const response: any = await anthropic.messages.create({
-      model: spend.model,
-      max_tokens: 1200,
-      system: systemPrompt({
-        aiName: Deno.env.get('AI_NAME') ?? 'LifeOS',
-        mode: 'morning_brief',
-        context: context.text,
-        plan: billing.entitlement.plan.name,
-        entitlements: billing.entitlement.entitlements,
-      }),
-      messages: [{ role: 'user', content: 'Write my briefing for today.' }],
-      thinking: { type: 'adaptive' },
-      output_config: { effort: 'low' },
-    });
-    text = (response.content ?? [])
-      .filter((b: any) => b.type === 'text')
-      .map((b: any) => b.text)
-      .join('\n')
-      .trim();
+    if (policy.routerEnabled) {
+      const registry = await loadRegistry(db);
+      const health = await loadHealth(admin);
+      const tier = billing.entitlement.plan.tier;
+      const budget = await readBudget(admin, user.id, tier, policy);
+      const budgetPolicy = policy.budgets[tier];
+
+      const response = await runMetered(
+        {
+          requestId: `brief:${user.id}:${context.today}`,
+          userId: user.id,
+          tier,
+          taskType: 'daily_planning',
+          system: prompt,
+          messages: [{ role: 'user', content: 'Write my briefing for today.' }],
+          requiredCapabilities: [],
+          qualityRequirement: budget.degraded ? 'basic' : 'standard',
+          latencyRequirement: 'normal',
+          privacyRequirement: TASK_PRIVACY.daily_planning,
+          maxCost: Math.min(budgetPolicy.perRequestMax, budget.remaining),
+          maxOutputTokens: Math.min(1200, budgetPolicy.maxOutputTokens),
+          budgetRemaining: budget.remaining,
+          metadata: { estimatedInputTokens: Math.ceil(prompt.length / 4) },
+        },
+        { admin, registry, policy, health, readKey: (name) => Deno.env.get(name), period: periodStart() },
+      );
+      text = response.text.trim();
+    } else {
+      const anthropic = new Anthropic({ apiKey });
+      const response: any = await anthropic.messages.create({
+        model: spend.model,
+        max_tokens: 1200,
+        system: prompt,
+        messages: [{ role: 'user', content: 'Write my briefing for today.' }],
+        thinking: { type: 'adaptive' },
+        output_config: { effort: 'low' },
+      });
+      text = (response.content ?? [])
+        .filter((b: any) => b.type === 'text')
+        .map((b: any) => b.text)
+        .join('\n')
+        .trim();
+    }
   } catch (e: any) {
     // Same reasoning as ai-chat: vague to the caller, specific in the logs.
     console.error('[daily-brief] model call failed', JSON.stringify({

@@ -85,7 +85,8 @@
     "icons": "node scripts/generate-icons.mjs",
     "db:verify": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/verify.sql",
     "db:bundle": "node scripts/build-sql.mjs",
-    "typecheck:ai": "tsc -p supabase/functions/tsconfig.check.json"
+    "typecheck:ai": "tsc -p supabase/functions/tsconfig.check.json",
+    "test:integration": "jest --testPathIgnorePatterns=/node_modules/ --testMatch=\"**/__tests__/integration/**/*.test.ts\""
   },
   "private": true,
   "jest": {
@@ -108,7 +109,8 @@
     },
     "testPathIgnorePatterns": [
       "<rootDir>/node_modules/",
-      "<rootDir>/__tests__/helpers/"
+      "<rootDir>/__tests__/helpers/",
+      "<rootDir>/__tests__/integration/"
     ]
   },
   "description": "LifeOS \u2014 your AI operating system for life."

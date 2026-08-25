@@ -9,6 +9,10 @@ import { anthropicTools, describeAction, isToolName, requiresConfirmation } from
 import { loadBilling, refundAll, spendForOperation } from '../_shared/config.ts';
 import { AGENTS, type AgentKey, agentInstructions, isAgentKey } from '../_shared/agents.ts';
 import { checkRateLimit } from '../_shared/ratelimit.ts';
+import { fromAnthropicTools } from '../_shared/ai/toolTranslate.ts';
+import { loadPolicy, loadRegistry, loadHealth, readBudget, runMetered, periodStart } from '../_shared/ai/runtime.ts';
+import type { AIMessage, AIResponse, TaskType } from '../_shared/ai/types.ts';
+import { TASK_PRIVACY } from '../_shared/ai/types.ts';
 import { type Meter, type Operation, planFor, type EntitlementKey } from '../_shared/plans.ts';
 
 /**
@@ -49,6 +53,40 @@ type ActionReceipt = {
 };
 
 let refusalFallbackEnabled = (Deno.env.get('AI_REFUSAL_FALLBACK') ?? 'true') !== 'false';
+
+/**
+ * Modes also map onto router task types. The mode says what the user is doing; the task
+ * type is what the router needs in order to choose — they are deliberately separate so
+ * routing policy can change without touching the product's vocabulary.
+ */
+const MODE_TASK: Record<Mode, TaskType> = {
+  chat: 'casual_chat',
+  onboarding: 'life_analysis',
+  plan_day: 'daily_planning',
+  plan_week: 'weekly_planning',
+  weekly_review: 'weekly_planning',
+  daily_reset: 'daily_planning',
+  life_reset: 'life_analysis',
+  ninety_day: 'goal_planning',
+  morning_brief: 'daily_planning',
+  deep_analysis: 'deep_analysis',
+  agent_run: 'agent_execution',
+};
+
+/** The quality floor per mode. The router may go higher, never lower. */
+const MODE_QUALITY: Record<Mode, 'basic' | 'standard' | 'advanced' | 'frontier'> = {
+  chat: 'basic',
+  onboarding: 'standard',
+  plan_day: 'basic',
+  plan_week: 'standard',
+  weekly_review: 'standard',
+  daily_reset: 'basic',
+  life_reset: 'advanced',
+  ninety_day: 'standard',
+  morning_brief: 'basic',
+  deep_analysis: 'advanced',
+  agent_run: 'advanced',
+};
 
 /** Conversation modes map one-to-one onto metered operations. */
 const MODE_OPERATION: Record<Mode, Operation> = {
@@ -243,10 +281,30 @@ Deno.serve(async (req) => {
   }
 
   // ------------------------------------------------------------ model loop --
+  /*
+    Two suppliers, one loop.
+
+    The loop below works on the neutral AIResponse shape, so it does not know or care
+    which of them answered. The router is the destination; `callLegacyModel` is the
+    Anthropic path being replaced, kept only so the migration has a rollback that needs
+    no deploy. Phase 14 deletes the legacy supplier and this comment with it.
+  */
+  const policy = await loadPolicy(db);
+  const registry = policy.routerEnabled ? await loadRegistry(db) : null;
+  const health = policy.routerEnabled ? await loadHealth(admin) : {};
+  const budget = policy.routerEnabled
+    ? await readBudget(admin, user.id, entitlement.plan.tier, policy)
+    : null;
+
   const anthropic = new Anthropic({ apiKey });
   // Model and effort come from the plan's routing table, never from a constant here.
   const { model, effort, priority } = spend;
-  const tools = anthropicTools();
+  const anthropicToolDefs = anthropicTools();
+  const neutralTools = fromAnthropicTools(anthropicToolDefs);
+  const tools = anthropicToolDefs;
+
+  const taskType = MODE_TASK[mode];
+  const budgetPolicy = policy.budgets[entitlement.plan.tier];
 
   // Stable half first so the prefix caches across turns; volatile context after.
   const aiName = Deno.env.get('AI_NAME') ?? 'LifeOS';
@@ -267,11 +325,44 @@ Deno.serve(async (req) => {
     { type: 'text', text: contextBlock(context.text) },
   ];
 
+  /*
+    The same prompt as one string, for providers that take a single system instruction.
+    Built from the identical pieces so the two suppliers cannot drift apart — the
+    Anthropic form only adds the cache_control breakpoint, which is a caching hint, not
+    content.
+  */
+  const systemText = system.map((block) => block.text).join('\n\n');
+
+  /** Conversation in the neutral shape. The Anthropic form is derived when needed. */
+  const convo: AIMessage[] = messages.map((m: any) => ({
+    role: m.role === 'assistant' ? 'assistant' : 'user',
+    content: m.content,
+  }));
+
+  /** Turn counter, so each router call gets its own request id and budget hold. */
+  let round = 0;
+
   const maxRounds = mode === 'agent_run' ? MAX_AGENT_ROUNDS : MAX_TOOL_ROUNDS;
 
   const timeoutMs = mode === 'agent_run' ? AGENT_TIMEOUT_MS : MODEL_TIMEOUT_MS;
 
-  const callModel = async (payload: any) => {
+  /**
+   * Neutral conversation to Anthropic's wire form. Deleted in Phase 14 with the rest of
+   * the legacy supplier.
+   */
+  const toAnthropicMessages = (items: AIMessage[]): any[] =>
+    items.map((m) => {
+      if (typeof m.content === 'string') return { role: m.role, content: m.content };
+      const blocks = m.content.map((b) => {
+        if (b.type === 'text') return { type: 'text', text: b.text };
+        if (b.type === 'tool_call') return { type: 'tool_use', id: b.id, name: b.name, input: b.input };
+        return { type: 'tool_result', tool_use_id: b.id, is_error: b.isError ?? false, content: b.result };
+      });
+      return { role: m.role, content: blocks };
+    });
+
+  /** The Anthropic path. Deleted in Phase 14 once the router has carried real traffic. */
+  const callLegacyModel = async (payload: any) => {
     const options = { timeout: timeoutMs };
 
     if (refusalFallbackEnabled) {
@@ -295,55 +386,134 @@ Deno.serve(async (req) => {
     return await anthropic.messages.create(payload, options);
   };
 
+  /**
+   * Runs one turn and returns it in the neutral shape, whichever supplier answered.
+   *
+   * Every provider decision above this line belongs to the router; the legacy branch
+   * exists only until Phase 14 and selects nothing — it calls the one model the plan's
+   * routing table already named.
+   */
+  const runTurn = async (convo: AIMessage[]): Promise<AIResponse> => {
+    if (policy.routerEnabled && registry && budget && budgetPolicy) {
+      return await runMetered(
+        {
+          requestId: `${conversationId}:${round}`,
+          userId: user.id,
+          tier: entitlement.plan.tier,
+          taskType,
+          system: systemText,
+          messages: convo,
+          tools: neutralTools,
+          requiredCapabilities: ['tools'],
+          // Near the ceiling the router is asked for cheaper work rather than refusing.
+          qualityRequirement: budget.degraded ? 'basic' : MODE_QUALITY[mode],
+          latencyRequirement: mode === 'chat' ? 'realtime' : 'normal',
+          privacyRequirement: TASK_PRIVACY[taskType],
+          maxCost: Math.min(budgetPolicy.perRequestMax, budget.remaining),
+          maxOutputTokens: budgetPolicy.maxOutputTokens,
+          budgetRemaining: budget.remaining,
+          metadata: { estimatedInputTokens: Math.ceil(systemText.length / 4) },
+        },
+        { admin, registry, policy, health, readKey: (name) => Deno.env.get(name), period: periodStart() },
+      );
+    }
+
+    const response: any = await callLegacyModel({
+      model,
+      max_tokens: 8000,
+      system,
+      messages: toAnthropicMessages(convo),
+      tools,
+      thinking: { type: 'adaptive' },
+      output_config: { effort },
+    });
+
+    const text = (response.content ?? [])
+      .filter((b: any) => b.type === 'text')
+      .map((b: any) => b.text)
+      .join('\n')
+      .trim();
+
+    return {
+      text,
+      toolCalls: (response.content ?? [])
+        .filter((b: any) => b.type === 'tool_use')
+        .map((b: any) => ({ id: b.id, name: String(b.name), input: b.input ?? {} })),
+      structuredOutput: null,
+      provider: 'anthropic',
+      model,
+      usage: {
+        inputTokens: response.usage?.input_tokens ?? 0,
+        outputTokens: response.usage?.output_tokens ?? 0,
+        cachedTokens: response.usage?.cache_read_input_tokens ?? 0,
+      },
+      // The legacy path predates the cost engine and never priced itself.
+      estimatedCost: 0,
+      actualCost: 0,
+      accountingMethod: 'estimated',
+      latencyMs: 0,
+      requestId: String(conversationId),
+      providerRequestId: response.id ?? null,
+      finishReason:
+        response.stop_reason === 'refusal' ? 'filtered'
+          : response.stop_reason === 'tool_use' ? 'tool_use'
+            : response.stop_reason === 'max_tokens' ? 'length'
+              : 'stop',
+      fallbackUsed: false,
+      fallbackReason: null,
+    };
+  };
+
   const receipts: ActionReceipt[] = [];
   let assistantText = '';
   let inputTokens = 0;
   let outputTokens = 0;
+  // Recorded for the receipt trail: which supplier actually answered, and what it cost.
+  let lastProvider = 'anthropic';
+  let lastModel = model;
+  let turnCost = 0;
+  let fallbackReason: string | null = null;
 
   try {
-    for (let round = 0; round < maxRounds; round += 1) {
-      const response: any = await callModel({
-        model,
-        max_tokens: 8000,
-        system,
-        messages,
-        tools,
-        thinking: { type: 'adaptive' },
-        output_config: { effort },
-      });
+    for (; round < maxRounds; round += 1) {
+      const response = await runTurn(convo);
 
-      inputTokens += response.usage?.input_tokens ?? 0;
-      outputTokens += response.usage?.output_tokens ?? 0;
+      inputTokens += response.usage.inputTokens;
+      outputTokens += response.usage.outputTokens;
+      lastProvider = response.provider;
+      lastModel = response.model;
+      turnCost += response.actualCost;
+      if (response.fallbackUsed) fallbackReason = response.fallbackReason;
 
-      const text = (response.content ?? [])
-        .filter((b: any) => b.type === 'text')
-        .map((b: any) => b.text)
-        .join('\n')
-        .trim();
-      if (text) assistantText = text;
+      if (response.text) assistantText = response.text;
 
-      if (response.stop_reason === 'refusal') {
+      if (response.finishReason === 'filtered') {
         assistantText =
           assistantText ||
           "I can't help with that one. If it's something else about your plans, I'm here.";
         break;
       }
 
-      const toolUses = (response.content ?? []).filter((b: any) => b.type === 'tool_use');
-      if (response.stop_reason !== 'tool_use' || toolUses.length === 0) break;
+      const toolUses = response.toolCalls;
+      if (toolUses.length === 0) break;
 
-      // Thinking and tool_use blocks must be echoed back unchanged.
-      messages.push({ role: 'assistant', content: response.content });
+      // The assistant's own turn goes back verbatim, so the model sees what it asked for.
+      convo.push({
+        role: 'assistant',
+        content: [
+          ...(response.text ? [{ type: 'text' as const, text: response.text }] : []),
+          ...toolUses.map((c) => ({ type: 'tool_call' as const, id: c.id, name: c.name, input: c.input })),
+        ],
+      });
 
       const results: any[] = [];
       for (const use of toolUses) {
         const name = String(use.name);
         if (!isToolName(name)) {
           results.push({
-            type: 'tool_result',
-            tool_use_id: use.id,
-            is_error: true,
-            content: `Unknown tool "${name}".`,
+            type: 'tool_result', id: use.id, name,
+            isError: true,
+            result: `Unknown tool "${name}".`,
           });
           continue;
         }
@@ -357,9 +527,8 @@ Deno.serve(async (req) => {
             input: use.input ?? {},
           });
           results.push({
-            type: 'tool_result',
-            tool_use_id: use.id,
-            content: JSON.stringify({
+            type: 'tool_result', id: use.id, name,
+            result: JSON.stringify({
               status: 'awaiting_confirmation',
               note:
                 'NOT DONE. The user must approve this first. Tell them what you plan to do and ask for confirmation. Do not say it is done.',
@@ -381,10 +550,9 @@ Deno.serve(async (req) => {
             upgrade_name: upgrade?.name ?? null,
           });
           results.push({
-            type: 'tool_result',
-            tool_use_id: use.id,
-            is_error: true,
-            content: JSON.stringify({
+            type: 'tool_result', id: use.id, name,
+            isError: true,
+            result: JSON.stringify({
               status: 'not_entitled',
               note: upgrade
                 ? `This capability belongs to the ${upgrade.name} plan and was not performed. Say so plainly and offer what you can do instead.`
@@ -403,10 +571,9 @@ Deno.serve(async (req) => {
           error: result.ok ? null : (result.error ?? 'failed'),
         });
         results.push({
-          type: 'tool_result',
-          tool_use_id: use.id,
-          is_error: !result.ok,
-          content: JSON.stringify({
+          type: 'tool_result', id: use.id, name,
+          isError: !result.ok,
+          result: JSON.stringify({
             status: result.ok ? 'succeeded' : 'failed',
             summary: result.summary,
             data: result.data ?? null,
@@ -415,7 +582,7 @@ Deno.serve(async (req) => {
         });
       }
 
-      messages.push({ role: 'user', content: results });
+      convo.push({ role: 'user', content: results });
     }
   } catch (e: any) {
     const status = e?.status ?? 500;

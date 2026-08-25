@@ -40,6 +40,9 @@ function opts(over: Partial<Parameters<typeof runAI>[1]> = {}) {
     health,
     readKey: () => 'test-key',
     now: () => 1_000_000,
+    // Orchestration is tested against the whole registry; the production pricing gate
+    // has its own tests in ai-router.test.ts.
+    requireVerifiedPricing: false,
     ...over,
   };
 }

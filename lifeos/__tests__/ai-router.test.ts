@@ -15,8 +15,18 @@ function request(over: Partial<AIRequest> = {}): AIRequest {
   };
 }
 
+/*
+  Routing-logic tests exercise the whole registry, so they opt out of the pricing
+  verification gate. That gate is production policy, not routing behaviour, and it has
+  its own tests below — mixing the two would mean every routing test silently became a
+  test of which prices happen to be verified today.
+*/
 function ctx(over: Partial<RouteContext> = {}): RouteContext {
-  return { registry: DEFAULT_REGISTRY, health: {}, now: 1_000_000, ...over };
+  return {
+    registry: DEFAULT_REGISTRY, health: {}, now: 1_000_000,
+    requireVerifiedPricing: false,
+    ...over,
+  };
 }
 
 describe('router — eligibility', () => {
@@ -250,5 +260,60 @@ describe('privacy taxonomy', () => {
   it('gives every task a classification', () => {
     const tasks = Object.keys(TASK_PRIVACY) as TaskType[];
     for (const t of tasks) expect(TASK_PRIVACY[t]).toBeDefined();
+  });
+});
+
+
+describe('production pricing verification gate', () => {
+  it('refuses to route to a model whose price is not from official documentation', () => {
+    const d = route(request(), ctx({ requireVerifiedPricing: true }));
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    for (const c of d.candidates) expect(c.model.pricingVerification).toBe('official');
+  });
+
+  it('currently leaves Gemini as the only production-eligible provider', () => {
+    // Groq and Mistral pricing came from secondary sources, so the gate holds them back.
+    // When either is verified against its console, this expectation should be updated
+    // deliberately — it is the record of what production routing actually allows today.
+    const d = route(request(), ctx({ requireVerifiedPricing: true }));
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    expect(new Set(d.candidates.map((c) => c.model.provider))).toEqual(new Set(['gemini']));
+  });
+
+  it('leaves highly sensitive work with no provider at all, and refuses rather than downgrading', () => {
+    // Mistral is the only provider cleared for this class, and it is gated on pricing.
+    // Refusing is correct: the alternative is sending finance and reflection data to a
+    // provider that is not cleared for it.
+    const d = route(
+      request({ privacyRequirement: 'highly_sensitive' as PrivacyClass }),
+      ctx({ requireVerifiedPricing: true }),
+    );
+    expect(d.ok).toBe(false);
+    if (d.ok) return;
+    expect(d.code).toBe('PRIVACY_NOT_PERMITTED');
+  });
+
+  it('leaves transcription with no provider until Whisper pricing is verified', () => {
+    const d = route(
+      request({ taskType: 'transcription' as TaskType, requiredCapabilities: ['audio' as Capability] }),
+      ctx({ requireVerifiedPricing: true }),
+    );
+    expect(d.ok).toBe(false);
+  });
+
+  it('restores the full roster the moment pricing is verified', () => {
+    const verified = mergeRegistry(DEFAULT_REGISTRY, {
+      models: DEFAULT_REGISTRY.models.map((m) => ({
+        provider: m.provider, modelId: m.modelId, pricingVerification: 'official',
+      })) as any,
+    });
+    const d = route(request(), ctx({ registry: verified, requireVerifiedPricing: true }));
+    expect(d.ok).toBe(true);
+    if (!d.ok) return;
+    expect(new Set(d.candidates.map((c) => c.model.provider))).toEqual(
+      new Set(['gemini', 'groq', 'mistral']),
+    );
   });
 });
