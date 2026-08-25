@@ -76,11 +76,11 @@ const periodStart = () => { const d = new Date(); return `${d.getUTCFullYear()}-
 
 const stamp = Date.now();
 /*
-  .test is reserved by RFC 6761 and can never resolve, so these addresses cannot
-  reach a real inbox even by accident. Override the domain if the project restricts
-  which ones may sign up.
+  Supabase rejects an address whose domain does not resolve, so a reserved TLD like
+  .test is refused outright. mailinator.com is a real throwaway-mail domain that
+  exists for exactly this purpose. Override it if your project restricts sign-ups.
 */
-const MAIL_DOMAIN = process.env.SMOKE_EMAIL_DOMAIN ?? 'lifeos.test';
+const MAIL_DOMAIN = process.env.SMOKE_EMAIL_DOMAIN ?? 'mailinator.com';
 const users = {
   a: { email: `lifeos.smoke.${stamp}.a@${MAIL_DOMAIN}`, password: `Sm0ke!${stamp}aA`, token: null, id: null },
   b: { email: `lifeos.smoke.${stamp}.b@${MAIL_DOMAIN}`, password: `Sm0ke!${stamp}bB`, token: null, id: null },
@@ -88,6 +88,10 @@ const users = {
 
 async function signUp(u) {
   const res = await api('/auth/v1/signup', { method: 'POST', body: { email: u.email, password: u.password } });
+  if (res.json?.error_code === 'over_email_send_rate_limit') {
+    throw new Error('the project\'s built-in SMTP allowance is spent — this happens when '
+      + '"Confirm email" is on, because every sign-up sends a mail. Turn it off and retry in an hour.');
+  }
   if (res.status >= 400) {
     throw new Error(`signup ${res.status}: ${res.json?.msg ?? res.json?.error_description ?? res.text?.slice(0, 200)}`);
   }
@@ -107,16 +111,24 @@ async function main() {
   // ── A. Reachability ────────────────────────────────────────────────
   section('A. Reachability and configuration');
 
-  await check('REST endpoint is PostgREST and accepts the anon key', async () => {
-    // Asking only that this is not a 5xx would pass against any web server on earth.
-    // A real project answers with its OpenAPI description of the schema.
-    const res = await rest('/');
-    assert(res.status === 200, `expected 200 from PostgREST, got ${res.status}`);
-    assert(res.json && (res.json.paths || res.json.swagger || res.json.openapi),
-      'the response is not a PostgREST schema description — is SUPABASE_URL really a Supabase project?');
-    const tables = Object.keys(res.json.paths ?? {}).filter((k) => k !== '/').length;
-    assert(tables > 20, `only ${tables} tables exposed — the migrations may not be applied`);
-    return `${tables} tables exposed`;
+  await check('PostgREST is serving the LifeOS schema', async () => {
+    /*
+      The OpenAPI root is service_role-only, so an anon key cannot read it. Probe the
+      schema the way the app does instead: ask each core table for zero rows. A table
+      that is present answers 200 (or 401/403 if the anon role holds no grant on it,
+      which is itself correct); one that is missing answers PGRST205.
+    */
+    const core = ['profiles', 'user_preferences', 'subscriptions', 'life_areas', 'goals',
+      'tasks', 'habits', 'habit_logs', 'daily_plans', 'weekly_plans', 'reflections',
+      'ai_conversations', 'ai_messages', 'ai_memory', 'store_events', 'usage_counters'];
+    const missing = [];
+    for (const t of core) {
+      const res = await rest(`/${t}?select=*&limit=0`);
+      if (res.status === 404 || res.json?.code === 'PGRST205') missing.push(t);
+      else if (res.status >= 500) throw new Error(`${t} returned ${res.status}`);
+    }
+    assert(missing.length === 0, `tables not found: ${missing.join(', ')} — are the migrations applied?`);
+    return `all ${core.length} core tables present`;
   });
 
   await check('Auth endpoint reports its settings', async () => {
@@ -140,19 +152,29 @@ async function main() {
   // ── B. Authentication ──────────────────────────────────────────────
   section('B. Authentication');
 
-  await check('Sign up account A', async () => {
-    await signUp(users.a);
-    if (!users.a.token) {
+  await check('Sign-up can issue a session (Confirm email is off)', async () => {
+    const res = await api('/auth/v1/settings');
+    assert(res.ok, `settings returned ${res.status}`);
+    if (res.json?.mailer_autoconfirm === false) {
       confirmationRequired = true;
-      return { warn: 'account created but no session — "Confirm email" is ON, so the rest cannot run' };
+      return { warn: '"Confirm email" is ON — a script cannot complete a sign-in' };
     }
-    return `user created, session issued`;
+    return 'new sign-ups are auto-confirmed';
+  });
+
+  await check('Sign up account A', async () => {
+    if (confirmationRequired) return { skip: 'sign-up cannot issue a session while Confirm email is on' };
+    await signUp(users.a);
+    assert(users.a.token, 'no session was issued');
+    return 'user created, session issued';
   });
 
   if (confirmationRequired) {
-    console.log('\n  Email confirmation is enabled on this project, so a script cannot');
-    console.log('  complete a sign-in. Turn it off (Authentication → Sign In / Providers →');
-    console.log('  Email → Confirm email) and re-run, or accept these as untested.\n');
+    console.log('\n  ⚠  "Confirm email" is enabled on this project, so signing up sends a');
+    console.log('     confirmation mail and issues no session — a script cannot proceed, and');
+    console.log('     repeated attempts hit the built-in SMTP limit (429). Turn it off under');
+    console.log('     Authentication → Sign In / Providers → Email → "Confirm email", then');
+    console.log('     re-run. Everything that needs no session is still tested below.\n');
   }
 
   await check('Sign in as A with the password', async () => {
@@ -172,6 +194,23 @@ async function main() {
     });
     assert(res.status === 400 || res.status === 401, `expected 400/401, got ${res.status}`);
     return `refused with ${res.status}`;
+  });
+
+  await check('All five edge functions are deployed', async () => {
+    /*
+      A function that was never deployed answers 404. One that is deployed but wants a
+      caller answers 401 — so this proves deployment without needing a session.
+      store-notifications is deliberately --no-verify-jwt and guards itself with its
+      own secret, so it is allowed to answer 401 or 501 on its own terms.
+    */
+    const names = ['ai-chat', 'transcribe', 'daily-brief', 'subscription-verify', 'store-notifications'];
+    const statuses = {};
+    for (const n of names) {
+      const res = await fn(n, { body: {} });
+      statuses[n] = res.status;
+      assert(res.status !== 404, `${n} is not deployed (404)`);
+    }
+    return Object.entries(statuses).map(([n, c]) => `${n}:${c}`).join(' ');
   });
 
   await check('A request with no JWT is rejected by an edge function', async () => {
