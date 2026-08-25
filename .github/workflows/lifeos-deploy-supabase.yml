@@ -43,6 +43,17 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+      # This file also lives on the default branch so the Run workflow button
+      # exists, but the app it deploys does not. Say so plainly instead of
+      # failing later with a missing-directory error.
+      - name: Check this branch contains LifeOS
+        working-directory: .
+        run: |
+          if [ ! -d lifeos/supabase/functions ]; then
+            echo "::error::This branch has no lifeos/ directory. Re-run this workflow and choose the LifeOS branch in the 'Use workflow from' menu."
+            exit 1
+          fi
+
       - name: Check the secrets are present
         run: |
           missing=0
