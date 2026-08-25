@@ -27,7 +27,7 @@ BEGIN AT GROUND LEVEL.
 | **03** | **CHAPTER 001 — ASCENSION** | **✅ Approved** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
 | **04** | **POD provider + product validation** | **✅ Approved as evidence report** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
 | **04.5** | **POD verification** | **✅ Investigation closed — verdict delivered** | [`06-dashboard-verification.md`](./production/06-dashboard-verification.md) · [`07-printify-investigation.md`](./production/07-printify-investigation.md) |
-| **05** | **Sample planning** | **✅ Plan complete — awaiting purchase approval** | [`production/08-sample-plan.md`](./production/08-sample-plan.md) |
+| **05** | **Sample planning** | **⏸ Purchase gate — 5 units approved, tee decision open** | [`08-sample-plan.md`](./production/08-sample-plan.md) · [`09-hero-tee-resolution.md`](./production/09-hero-tee-resolution.md) |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
 | 08 | Content | ⏸ | — |
@@ -53,7 +53,9 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/05-pod-validation.md`](./production/05-pod-validation.md) | Provider comparison, verified blank specifications, cost model template, sample plan and scorecard |
 | [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) | Catalogue-API verification, the exhaustive EU bottoms check, real cost model and the conditional sample order |
 | [`production/07-printify-investigation.md`](./production/07-printify-investigation.md) | Printify investigation, the EU provider sweep, final verdict and five ranked routes |
-| [`production/08-sample-plan.md`](./production/08-sample-plan.md) | The 8-unit sample order with exact variants, artwork test plate, datum placements and the scorecard |
+| [`production/08-sample-plan.md`](./production/08-sample-plan.md) | The sample order with exact variants, artwork test plate, datum placements and the scorecard |
+| [`production/09-hero-tee-resolution.md`](./production/09-hero-tee-resolution.md) | Hero tee investigation, the XS finding, five compared alternatives, and the final order with checkout scenarios |
+| `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
 
@@ -71,6 +73,14 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## OPEN: THE XS QUESTION IS PROVIDER-LEVEL, NOT TEE-LEVEL
+>
+> No heavyweight tee on Printful offers XS — but **neither does the approved Slammer 2.0
+> hoodie (S–2XL)**, so XS already fails for Chapter 001 whichever tee is chosen. The blanks
+> are made in XS: Stanley/Stella's own sheets show **XXS→3XL** across all four garments, and
+> all four share **one black reference, C002**. Printful simply stocks a reduced range. Two
+> paths are on the table and the decision is the founder's.
 
 > ## FOUNDER DECISION: CHAPTER 001 LAUNCHES WITH THREE PRODUCTS
 >
