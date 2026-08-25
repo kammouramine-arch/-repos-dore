@@ -1,6 +1,6 @@
 # CHAPTER 001 — ASCENSION
 
-**Phase 03 of 12. Status: awaiting founder approval.**
+**Phase 03 of 12. Revision 2 — APPROVED. Three products.**
 Issued 2026-08-23 · Collection concept and product architecture
 
 ```
@@ -9,6 +9,17 @@ EARN YOUR REIGN.
 CHAPTER 001 — ASCENSION
 BEGIN AT GROUND LEVEL.
 ```
+
+> **REVISION 2 — FOUNDER DECISION.** Chapter 001 launches with **three products**: the tee,
+> the hoodie, the cap. **The sweatpants are not part of the initial launch.** This is not a
+> lowering of the standard — the matched-set specification was validated as a garment system
+> and blocked only by EU print-on-demand fulfilment geography, and it is preserved in full at
+> [`archive/matched-set-target-specification.md`](../../archive/matched-set-target-specification.md).
+> **Three exceptional products beat four compromised products.**
+>
+> Customer-facing, the chapter is simply a focused opening chapter. **It is never framed as
+> an assortment that fell short**, and the print-on-demand constraint is never explained to
+> customers.
 
 > **This phase defines what the products must BE. It does not select blanks or providers.**
 > No supplier is named, no blank is assumed, and no current POD specification is stated as
@@ -335,13 +346,20 @@ cap is in the collection.
 > **Products are named for what they are. The chapter is carried by the code and the
 > label, never by an invented product name.**
 
+**Revision 2 — interim naming, not locked.** The founder has set a restrained house form
+for now, to be revisited after product validation:
+
 | Displayed as | Code |
 |---|---|
-| Heavyweight T-Shirt — Chapter 001 | `GR–001–TS` |
-| Heavyweight Hoodie — Chapter 001 | `GR–001–HD` |
-| Heavyweight Sweatpants — Chapter 001 | `GR–001–SP` |
-| Embroidered Cap | `GR–000–CP` |
-| **The 001 Set** — hoodie and sweatpants | `GR–001–SET` |
+| **THE TEE** · Chapter 001 | `GR–001–TS` |
+| **THE HOODIE** · Chapter 001 | `GR–001–HD` |
+| **THE CAP** · Chapter 001 | `GR–000–CP` |
+
+*Withdrawn from Chapter 001:* `GR–001–SP` sweatpants and `GR–001–SET`. Specification
+archived, not deleted.
+
+**This naming architecture is explicitly not permanent.** The reasoning below for plain,
+descriptive naming still stands and is the alternative to decide between after samples.
 
 ## 6.2 Why plain names are the correct choice here
 

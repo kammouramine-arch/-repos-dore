@@ -27,7 +27,7 @@ BEGIN AT GROUND LEVEL.
 | **03** | **CHAPTER 001 — ASCENSION** | **✅ Approved** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
 | **04** | **POD provider + product validation** | **✅ Approved as evidence report** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
 | **04.5** | **POD verification** | **✅ Investigation closed — verdict delivered** | [`06-dashboard-verification.md`](./production/06-dashboard-verification.md) · [`07-printify-investigation.md`](./production/07-printify-investigation.md) |
-| 05 | Samples | ⏸ **Nothing purchased** — blocked on Phase 04 approval | — |
+| **05** | **Sample planning** | **✅ Plan complete — awaiting purchase approval** | [`production/08-sample-plan.md`](./production/08-sample-plan.md) |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
 | 08 | Content | ⏸ | — |
@@ -53,6 +53,8 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/05-pod-validation.md`](./production/05-pod-validation.md) | Provider comparison, verified blank specifications, cost model template, sample plan and scorecard |
 | [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) | Catalogue-API verification, the exhaustive EU bottoms check, real cost model and the conditional sample order |
 | [`production/07-printify-investigation.md`](./production/07-printify-investigation.md) | Printify investigation, the EU provider sweep, final verdict and five ranked routes |
+| [`production/08-sample-plan.md`](./production/08-sample-plan.md) | The 8-unit sample order with exact variants, artwork test plate, datum placements and the scorecard |
+| [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
 
 **Exploratory identity concepts exist. No production assets, no cleared marks, no products
@@ -69,6 +71,17 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## FOUNDER DECISION: CHAPTER 001 LAUNCHES WITH THREE PRODUCTS
+>
+> **THE TEE · THE HOODIE · THE CAP.** The sweatpants are not part of the initial launch.
+> **This is not a lowering of the standard — it is the opposite.** The matched set was
+> validated as a garment system and blocked only by EU fulfilment geography, so its
+> specification is [archived as an active target](./archive/matched-set-target-specification.md),
+> not deleted. **Three exceptional products beat four compromised products.**
+>
+> Customer-facing, Chapter 001 is simply a focused opening chapter — never framed as an
+> assortment that fell short, and the POD constraint is never explained to customers.
 
 > ## POD CANNOT CURRENTLY SATISFY THIS SPECIFICATION — for EU fulfilment.
 >
