@@ -19,7 +19,7 @@ import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LocaleSwitcher } from './locale-switcher';
-import { getLocale } from '@/lib/i18n';
+import { getLocale, getDictionary } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Paramètres' };
 
@@ -68,11 +68,12 @@ export default async function SettingsPage() {
     prisma.subscription.findUnique({ where: { organizationId: auth.organization.organizationId } }),
     getLocale(),
   ]);
+  const t = getDictionary(locale);
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Paramètres"
+        title={t.settings.title}
         description={`${auth.organization.organizationName} · vous êtes ${ROLE_LABELS[auth.organization.role].toLowerCase()}.`}
         actions={
           subscription ? (
@@ -111,8 +112,8 @@ export default async function SettingsPage() {
           <div className="flex items-center gap-3">
             <Globe className="h-[18px] w-[18px] text-subtle" aria-hidden />
             <div>
-              <p className="text-[14px] font-medium text-ink">Langue de l’interface</p>
-              <p className="text-[12.5px] text-muted">Le français est la langue par défaut.</p>
+              <p className="text-[14px] font-medium text-ink">{t.settings.language}</p>
+              <p className="text-[12.5px] text-muted">{t.settings.languageHint}</p>
             </div>
           </div>
           <LocaleSwitcher current={locale} />

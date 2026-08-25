@@ -51,4 +51,14 @@ export function formatRelative(date: Date | string | null | undefined, locale: L
   return formatter.format(0, 'minute');
 }
 
+/**
+ * Interpolation minimale : « {count} devis » avec { count: 3 }.
+ * Un placeholder sans valeur est laissé tel quel plutôt que remplacé par du vide.
+ */
+export function format(template: string, values: Record<string, string | number>): string {
+  return template.replace(/\{(\w+)\}/g, (match, key: string) =>
+    key in values ? String(values[key]) : match,
+  );
+}
+
 export * from './config';

@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
 import { PLANS } from '@/lib/billing/plans';
 import { PageHeader } from '@/components/ui/page';
+import { getTranslations } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/app/stat-card';
 import { RevenueChart, FunnelChart } from '@/components/app/charts';
@@ -15,6 +16,7 @@ export const metadata: Metadata = { title: 'Analytique' };
 
 export default async function AnalyticsPage() {
   const auth = await requirePermission('analytics:read');
+  const { t } = await getTranslations();
   const organizationId = auth.organization.organizationId;
 
   const subscription = await prisma.subscription.findUnique({ where: { organizationId } });
@@ -26,23 +28,23 @@ export default async function AnalyticsPage() {
   ]);
 
   const quotas = [
-    { label: 'Générations IA', ...usage.aiGenerations },
-    { label: 'Relances envoyées', ...usage.followUps },
-    { label: 'Devis envoyés', ...usage.quotesSent },
+    { label: t.analytics.aiGenerations, ...usage.aiGenerations },
+    { label: t.analytics.followUpsSent, ...usage.followUps },
+    { label: t.analytics.quotesSent, ...usage.quotesSent },
   ];
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Analytique"
-        description="Performance commerciale sur 90 jours et consommation de votre formule."
+        title={t.analytics.title}
+        description={t.analytics.subtitle}
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="CA gagné" value={formatCents(metrics.revenueWonCents, { compact: true })} />
-        <StatCard label="CA potentiel" value={formatCents(metrics.revenuePotentialCents, { compact: true })} />
-        <StatCard label="Taux d’acceptation" value={`${metrics.acceptanceRate} %`} />
-        <StatCard label="Panier moyen" value={formatCents(metrics.averageQuoteCents, { compact: true })} />
+        <StatCard label={t.dashboard.revenueWon} value={formatCents(metrics.revenueWonCents, { compact: true })} />
+        <StatCard label={t.dashboard.revenuePotential} value={formatCents(metrics.revenuePotentialCents, { compact: true })} />
+        <StatCard label={t.dashboard.acceptanceRate} value={`${metrics.acceptanceRate} %`} />
+        <StatCard label={t.dashboard.averageQuote} value={formatCents(metrics.averageQuoteCents, { compact: true })} />
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
@@ -57,7 +59,7 @@ export default async function AnalyticsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Tunnel de conversion</CardTitle>
+            <CardTitle>{t.dashboard.funnel}</CardTitle>
           </CardHeader>
           <CardContent>
             <FunnelChart data={metrics.funnel} />
@@ -76,7 +78,7 @@ export default async function AnalyticsPage() {
               <div className="flex items-baseline justify-between text-[13.5px]">
                 <span className="text-ink-soft">{quota.label}</span>
                 <span className="text-muted tabular">
-                  {quota.used} {quota.limit == null ? '· illimité' : `/ ${quota.limit}`}
+                  {quota.used} {quota.limit == null ? `· ${t.analytics.unlimited}` : `/ ${quota.limit}`}
                 </span>
               </div>
               {quota.limit == null ? null : (
@@ -89,12 +91,12 @@ export default async function AnalyticsPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Prestations les plus vendues</CardTitle>
+          <CardTitle>{t.dashboard.topServices}</CardTitle>
         </CardHeader>
         <CardContent className="pt-1">
           {metrics.topServices.length === 0 ? (
             <p className="py-6 text-center text-[13.5px] text-subtle">
-              Aucune donnée sur cette période.
+              {t.analytics.noData}
             </p>
           ) : (
             <ul className="divide-y divide-line">

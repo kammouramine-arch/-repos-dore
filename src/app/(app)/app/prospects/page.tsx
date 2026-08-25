@@ -5,7 +5,7 @@ import type { LeadStatus } from '@prisma/client';
 import { requirePermission } from '@/lib/auth/session';
 import { listLeads, LEAD_PIPELINE, LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS } from '@/server/services/leadService';
 import { formatCents } from '@/lib/money';
-import { formatRelative } from '@/lib/i18n';
+import { formatRelative, format, getTranslations } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/feedback';
 import { PageHeader } from '@/components/ui/page';
@@ -15,6 +15,7 @@ export const metadata: Metadata = { title: 'Prospects' };
 
 export default async function LeadsPage() {
   const auth = await requirePermission('lead:read');
+  const { locale, t } = await getTranslations();
   const leads = await listLeads(auth.organization.organizationId);
 
   const byStatus = new Map<LeadStatus, typeof leads>();
@@ -28,11 +29,11 @@ export default async function LeadsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Prospects"
+        title={t.leads.title}
         description={
           leads.length > 0
-            ? `${leads.length} demandes · ${formatCents(pipelineValue)} en cours de traitement.`
-            : 'Chaque demande entrante devient un prospect suivi.'
+            ? format(t.leads.pipeline, { count: leads.length, amount: formatCents(pipelineValue) })
+            : t.leads.subtitle
         }
         actions={<LeadDialog />}
       />
@@ -40,8 +41,8 @@ export default async function LeadsPage() {
       {leads.length === 0 ? (
         <EmptyState
           icon={MessageSquareText}
-          title="Aucun prospect pour le moment."
-          description="Ajoutez une demande reçue par téléphone, ou activez le formulaire public pour les recevoir automatiquement."
+          title={t.empty.leads}
+          description={t.leads.emptyBody}
           action={<LeadDialog />}
         />
       ) : (
@@ -96,7 +97,7 @@ export default async function LeadsPage() {
                             ) : null}
                           </div>
                           <p className="mt-1 text-[11px] text-subtle">
-                            {formatRelative(lead.lastActivityAt)}
+                            {formatRelative(lead.lastActivityAt, locale)}
                           </p>
                         </Link>
                       ))
@@ -110,16 +111,15 @@ export default async function LeadsPage() {
       )}
 
       <Card className="p-5">
-        <h2 className="text-[14px] font-semibold text-ink">Recevoir vos demandes automatiquement</h2>
+        <h2 className="text-[14px] font-semibold text-ink">{t.leads.publicFormTitle}</h2>
         <p className="mt-1.5 text-[13.5px] leading-relaxed text-muted">
-          Activez le formulaire public depuis les paramètres et intégrez-le à votre site : chaque
-          demande crée un prospect dans DEVISIA et vous notifie immédiatement.
+          {t.leads.publicFormBody}
         </p>
         <Link
           href="/app/parametres/prospects"
           className="mt-3 inline-block text-[13.5px] font-medium text-accent hover:underline"
         >
-          Configurer le formulaire
+          {t.leads.publicFormCta}
         </Link>
       </Card>
     </div>

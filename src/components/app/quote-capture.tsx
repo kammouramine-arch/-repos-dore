@@ -7,6 +7,7 @@ import { Textarea } from '@/components/ui/field';
 import { Alert } from '@/components/ui/feedback';
 import { useToast } from '@/components/ui/toast';
 import { cn } from '@/lib/utils';
+import { useT } from '@/lib/i18n/context';
 
 /**
  * Écran de capture : voix, photos ou texte.
@@ -27,13 +28,23 @@ interface SpeechRecognitionLike {
   onend: (() => void) | null;
 }
 
-const STEPS = [
-  'Analyse du chantier',
-  'Lecture des photos',
-  'Recherche dans votre catalogue',
-  'Préparation du devis',
-  'Calcul des montants',
-];
+/**
+ * La reconnaissance vocale ne change jamais au cours de la vie de la page :
+ * l'abonnement n'a donc rien à notifier.
+ */
+function subscribeToSpeechSupport(): () => void {
+  return () => {};
+}
+
+function getSpeechSupport(): boolean {
+  return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
+}
+
+function getSpeechSupportOnServer(): boolean {
+  return true;
+}
+
+const STEP_KEYS = ['stepAnalyze', 'stepPhotos', 'stepCatalog', 'stepDraft', 'stepTotals'] as const;
 
 export interface UploadedPhoto {
   id: string;
@@ -51,6 +62,7 @@ export function QuoteCapture({
   visionAvailable: boolean;
 }) {
   const { toast } = useToast();
+  const t = useT();
   const [description, setDescription] = React.useState('');
   const [photos, setPhotos] = React.useState<UploadedPhoto[]>([]);
   const [listening, setListening] = React.useState(false);
@@ -66,15 +78,26 @@ export function QuoteCapture({
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   const baseTextRef = React.useRef('');
 
-  const speechSupported = React.useMemo(() => {
-    if (typeof window === 'undefined') return false;
-    return 'SpeechRecognition' in window || 'webkitSpeechRecognition' in window;
-  }, []);
+  /**
+   * Disponibilité de la dictée du navigateur.
+   *
+   * La capacité n'est connue que côté client. `useSyncExternalStore` fournit un
+   * instantané serveur distinct : le premier rendu client reprend exactement le
+   * HTML rendu par le serveur — aucun désaccord d'hydratation — puis React
+   * bascule sur la valeur réelle. L'instantané serveur est optimiste (dictée
+   * supposée disponible), ce qui évite tout clignotement sur les navigateurs
+   * qui la supportent, c'est-à-dire l'immense majorité des appareils visés.
+   */
+  const speechSupported = React.useSyncExternalStore(
+    subscribeToSpeechSupport,
+    getSpeechSupport,
+    getSpeechSupportOnServer,
+  );
 
   React.useEffect(() => {
     if (!generating) return;
     const timer = setInterval(() => {
-      setStep((current) => Math.min(current + 1, STEPS.length - 1));
+      setStep((current) => Math.min(current + 1, STEP_KEYS.length - 1));
     }, 1100);
     return () => clearInterval(timer);
   }, [generating]);
@@ -214,12 +237,12 @@ export function QuoteCapture({
         <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-accent-soft">
           <Sparkles className="h-6 w-6 text-accent animate-pulse-soft" aria-hidden />
         </div>
-        <p className="mt-5 text-[16px] font-semibold text-ink">DEVISIA prépare votre devis</p>
+        <p className="mt-5 text-[16px] font-semibold text-ink">{t.ai.preparing}</p>
 
         <ul className="mx-auto mt-6 max-w-xs space-y-2.5 text-left" aria-live="polite">
-          {STEPS.map((label, index) => (
+          {STEP_KEYS.map((key, index) => (
             <li
-              key={label}
+              key={key}
               className={cn(
                 'flex items-center gap-2.5 text-[13.5px] transition-colors',
                 index < step ? 'text-ink' : index === step ? 'text-ink' : 'text-subtle',
@@ -236,7 +259,7 @@ export function QuoteCapture({
               ) : (
                 <span className="h-4 w-4 rounded-full border border-line" aria-hidden />
               )}
-              {label}
+              {t.ai[key]}
             </li>
           ))}
         </ul>
@@ -250,7 +273,7 @@ export function QuoteCapture({
 
       <div className="rounded-[18px] border border-line bg-canvas p-5 shadow-sm sm:p-7">
         <label htmlFor="description" className="text-[17px] font-semibold tracking-[-0.02em] text-ink">
-          Décrivez votre chantier
+          {t.ai.describeJob}
         </label>
         <p className="mt-1 text-[13.5px] text-muted">
           Parlez comme vous le feriez à votre apprenti. DEVISIA s’occupe de la mise en forme.
@@ -271,7 +294,7 @@ export function QuoteCapture({
           {listening || recording ? (
             <span className="flex items-center gap-1.5 text-[12.5px] font-medium text-accent">
               <span className="h-2 w-2 animate-pulse-soft rounded-full bg-accent" aria-hidden />
-              Je vous écoute…
+              {t.ai.listening}
             </span>
           ) : null}
         </div>
@@ -309,7 +332,7 @@ export function QuoteCapture({
                 )}
               </button>
               <p className="text-[13px] font-medium text-ink-soft">
-                {listening || recording ? 'Appuyez pour arrêter' : 'Appuyez et décrivez le chantier'}
+                {listening || recording ? t.ai.tapToStop : t.ai.tapToDescribe}
               </p>
             </>
           ) : (
@@ -329,7 +352,7 @@ export function QuoteCapture({
             className="mt-1"
           >
             <Camera className="h-4 w-4" aria-hidden />
-            Ajouter des photos
+            {t.ai.photos}
           </Button>
 
           <input
@@ -379,11 +402,11 @@ export function QuoteCapture({
 
       <Button size="lg" className="w-full" onClick={() => void generate()}>
         <Sparkles className="h-4 w-4" aria-hidden />
-        Préparer le devis
+        {t.ai.generate}
       </Button>
 
       <p className="text-center text-[12.5px] text-subtle">
-        Vous vérifierez et modifierez le devis avant tout envoi.
+        {t.ai.checkBeforeSend}
       </p>
     </div>
   );

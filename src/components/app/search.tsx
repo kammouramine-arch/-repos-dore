@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { FileText, Hammer, Search, User, MessageSquareText } from 'lucide-react';
 import { Dialog, DialogContent, DialogTitle } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/field';
+import { useT } from '@/lib/i18n/context';
 
 interface SearchResult {
   type: 'customer' | 'lead' | 'quote' | 'job';
@@ -21,11 +22,11 @@ const ICONS = {
   job: Hammer,
 } as const;
 
-const LABELS = {
-  quote: 'Devis',
-  customer: 'Client',
-  lead: 'Prospect',
-  job: 'Chantier',
+const LABEL_KEYS = {
+  quote: 'quotes',
+  customer: 'customers',
+  lead: 'leads',
+  job: 'priceBook',
 } as const;
 
 export function GlobalSearch({
@@ -36,6 +37,7 @@ export function GlobalSearch({
   onOpenChange: (open: boolean) => void;
 }) {
   const router = useRouter();
+  const t = useT();
   const [query, setQuery] = React.useState('');
   const [results, setResults] = React.useState<SearchResult[]>([]);
   const [loading, setLoading] = React.useState(false);
@@ -89,34 +91,32 @@ export function GlobalSearch({
   return (
     <Dialog open={open} onOpenChange={handleOpenChange}>
       <DialogContent className="top-[12%] translate-y-0 p-0" size="md">
-        <DialogTitle className="sr-only">Recherche</DialogTitle>
+        <DialogTitle className="sr-only">{t.common.search}</DialogTitle>
         <div className="flex items-center gap-2.5 border-b border-line px-4">
           <Search className="h-4 w-4 shrink-0 text-subtle" aria-hidden />
           <Input
             autoFocus
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Rechercher un client, un devis, un prospect…"
+            placeholder={t.common.searchPlaceholder}
             className="h-12 border-0 px-0 shadow-none focus:ring-0"
-            aria-label="Recherche globale"
+            aria-label={t.nav.searchAria}
           />
         </div>
 
         <div className="max-h-[54vh] overflow-y-auto p-2">
           {loading && visible.length === 0 ? (
-            <p className="px-3 py-6 text-center text-[13.5px] text-subtle">Recherche…</p>
+            <p className="px-3 py-6 text-center text-[13.5px] text-subtle">{t.nav.searching}</p>
           ) : null}
 
           {!loading && query.trim().length >= 2 && visible.length === 0 ? (
             <p className="px-3 py-6 text-center text-[13.5px] text-subtle">
-              Aucun résultat pour « {query} ».
+              {t.common.noResults} — « {query} »
             </p>
           ) : null}
 
           {query.trim().length < 2 ? (
-            <p className="px-3 py-6 text-center text-[13.5px] text-subtle">
-              Tapez au moins deux caractères.
-            </p>
+            <p className="px-3 py-6 text-center text-[13.5px] text-subtle">{t.nav.searchHint}</p>
           ) : null}
 
           <ul>
@@ -141,7 +141,7 @@ export function GlobalSearch({
                       ) : null}
                     </span>
                     <span className="shrink-0 text-[11px] uppercase tracking-wide text-subtle">
-                      {LABELS[result.type]}
+                      {t.nav[LABEL_KEYS[result.type]]}
                     </span>
                   </button>
                 </li>

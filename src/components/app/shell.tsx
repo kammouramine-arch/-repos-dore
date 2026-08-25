@@ -32,6 +32,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
 import { cn, initials } from '@/lib/utils';
+import { useT } from '@/lib/i18n/context';
+import type { Dictionary } from '@/lib/i18n/dictionaries/fr';
 import { GlobalSearch } from './search';
 import { NotificationBell } from './notifications';
 
@@ -43,27 +45,28 @@ export interface ShellUser {
   organizations: { id: string; name: string; current: boolean }[];
 }
 
-const PRIMARY_NAV = [
-  { href: '/app', label: 'Accueil', icon: Home, exact: true },
-  { href: '/app/prospects', label: 'Prospects', icon: MessageSquareText },
-  { href: '/app/clients', label: 'Clients', icon: Users },
-  { href: '/app/devis', label: 'Devis', icon: FileText },
-  { href: '/app/relances', label: 'Relances', icon: Send },
+/** Les libellés proviennent du dictionnaire actif, la structure n'en dépend pas. */
+const primaryNav = (t: Dictionary) => [
+  { href: '/app', label: t.nav.home, icon: Home, exact: true },
+  { href: '/app/prospects', label: t.nav.leads, icon: MessageSquareText },
+  { href: '/app/clients', label: t.nav.customers, icon: Users },
+  { href: '/app/devis', label: t.nav.quotes, icon: FileText },
+  { href: '/app/relances', label: t.nav.followUps, icon: Send },
 ];
 
-const SECONDARY_NAV = [
-  { href: '/app/catalogue', label: 'Catalogue', icon: BookOpen },
-  { href: '/app/analytique', label: 'Analytique', icon: BarChart3 },
-  { href: '/app/assistant', label: 'Assistant', icon: Sparkles },
-  { href: '/app/parametres', label: 'Paramètres', icon: Settings },
+const secondaryNav = (t: Dictionary) => [
+  { href: '/app/catalogue', label: t.nav.priceBook, icon: BookOpen },
+  { href: '/app/analytique', label: t.nav.analytics, icon: BarChart3 },
+  { href: '/app/assistant', label: t.nav.assistant, icon: Sparkles },
+  { href: '/app/parametres', label: t.nav.settings, icon: Settings },
 ];
 
-const MOBILE_NAV = [
-  { href: '/app', label: 'Accueil', icon: Home, exact: true },
-  { href: '/app/prospects', label: 'Prospects', icon: MessageSquareText },
-  { href: '/app/devis/nouveau', label: 'Devis', icon: Plus, primary: true },
-  { href: '/app/clients', label: 'Clients', icon: Users },
-  { href: '/app/plus', label: 'Plus', icon: MoreHorizontal },
+const mobileNav = (t: Dictionary) => [
+  { href: '/app', label: t.nav.home, icon: Home, exact: true },
+  { href: '/app/prospects', label: t.nav.leads, icon: MessageSquareText },
+  { href: '/app/devis/nouveau', label: t.nav.quotes, icon: Plus, primary: true },
+  { href: '/app/clients', label: t.nav.customers, icon: Users },
+  { href: '/app/plus', label: t.nav.more, icon: MoreHorizontal },
 ];
 
 function isActive(pathname: string, href: string, exact?: boolean) {
@@ -84,6 +87,7 @@ export function AppShell({
   onSwitchOrganization: (organizationId: string) => Promise<void>;
 }) {
   const pathname = usePathname();
+  const t = useT();
   const [searchOpen, setSearchOpen] = React.useState(false);
 
   React.useEffect(() => {
@@ -111,20 +115,20 @@ export function AppShell({
           <Button asChild className="w-full justify-start" size="md">
             <Link href="/app/devis/nouveau">
               <Plus className="h-4 w-4" aria-hidden />
-              Nouveau devis
+              {t.nav.newQuote}
             </Link>
           </Button>
         </div>
 
-        <nav className="mt-5 flex-1 space-y-0.5 px-3" aria-label="Navigation principale">
-          {PRIMARY_NAV.map((item) => (
+        <nav className="mt-5 flex-1 space-y-0.5 px-3" aria-label={t.nav.dashboard}>
+          {primaryNav(t).map((item) => (
             <NavLink key={item.href} {...item} active={isActive(pathname, item.href, item.exact)} />
           ))}
 
           <p className="px-2.5 pb-1.5 pt-6 text-[11px] font-semibold uppercase tracking-[0.12em] text-subtle">
-            Gestion
+            {t.nav.management}
           </p>
-          {SECONDARY_NAV.map((item) => (
+          {secondaryNav(t).map((item) => (
             <NavLink key={item.href} {...item} active={isActive(pathname, item.href)} />
           ))}
         </nav>
@@ -152,7 +156,7 @@ export function AppShell({
               className="flex h-9 flex-1 items-center gap-2.5 rounded-[10px] border border-line bg-surface px-3 text-left text-[13.5px] text-subtle transition-colors hover:border-line-strong hover:bg-surface-2 lg:max-w-sm"
             >
               <Search className="h-4 w-4 shrink-0" aria-hidden />
-              <span className="truncate">Rechercher…</span>
+              <span className="truncate">{t.common.search}…</span>
               <kbd className="ml-auto hidden rounded-[5px] border border-line bg-canvas px-1.5 py-0.5 text-[10.5px] text-subtle lg:block">
                 ⌘K
               </kbd>
@@ -180,10 +184,10 @@ export function AppShell({
       {/* Navigation — mobile */}
       <nav
         className="safe-bottom fixed inset-x-0 bottom-0 z-40 border-t border-line bg-canvas/95 backdrop-blur-md lg:hidden"
-        aria-label="Navigation mobile"
+        aria-label={t.nav.more}
       >
         <ul className="flex items-stretch">
-          {MOBILE_NAV.map((item) => {
+          {mobileNav(t).map((item) => {
             const active = isActive(pathname, item.href, item.exact);
             if (item.primary) {
               return (
@@ -191,7 +195,7 @@ export function AppShell({
                   <Link
                     href={item.href}
                     className="-mt-5 flex h-14 w-14 flex-col items-center justify-center rounded-full bg-accent text-white shadow-md transition-transform active:scale-95"
-                    aria-label="Créer un devis"
+                    aria-label={t.nav.newQuote}
                   >
                     <item.icon className="h-6 w-6" aria-hidden />
                   </Link>
@@ -259,6 +263,8 @@ function UserMenu({
   onSignOut: () => Promise<void>;
   onSwitchOrganization: (organizationId: string) => Promise<void>;
 }) {
+  const t = useT();
+
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
@@ -268,7 +274,7 @@ function UserMenu({
             'flex w-full items-center gap-2.5 rounded-[10px] p-1.5 text-left transition-colors hover:bg-surface-2',
             compact && 'w-auto',
           )}
-          aria-label="Menu du compte"
+          aria-label={t.nav.account}
         >
           <span className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-accent-soft text-[12px] font-semibold text-accent">
             {initials(user.name || user.email)}
@@ -293,14 +299,16 @@ function UserMenu({
 
         {user.organizations.length > 1 ? (
           <>
-            <DropdownMenuLabel>Entreprises</DropdownMenuLabel>
+            <DropdownMenuLabel>{t.nav.organizations}</DropdownMenuLabel>
             {user.organizations.map((organization) => (
               <DropdownMenuItem
                 key={organization.id}
                 onSelect={() => void onSwitchOrganization(organization.id)}
               >
                 <span className="flex-1 truncate">{organization.name}</span>
-                {organization.current ? <span className="text-[11px] text-accent">Actuelle</span> : null}
+                {organization.current ? (
+                  <span className="text-[11px] text-accent">{t.nav.currentOrganization}</span>
+                ) : null}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />
@@ -310,19 +318,19 @@ function UserMenu({
         <DropdownMenuItem asChild>
           <Link href="/app/parametres">
             <Settings className="h-4 w-4" aria-hidden />
-            Paramètres
+            {t.nav.settings}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuItem asChild>
           <Link href="/app/parametres/abonnement">
             <Wallet className="h-4 w-4" aria-hidden />
-            Abonnement
+            {t.nav.subscription}
           </Link>
         </DropdownMenuItem>
         <DropdownMenuSeparator />
         <DropdownMenuItem destructive onSelect={() => void onSignOut()}>
           <LogOut className="h-4 w-4" aria-hidden />
-          Se déconnecter
+          {t.nav.logout}
         </DropdownMenuItem>
       </DropdownMenuContent>
     </DropdownMenu>

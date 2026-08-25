@@ -4,6 +4,7 @@ import { requirePermission } from '@/lib/auth/session';
 import { listPriceBook } from '@/server/services/priceBookService';
 import { can } from '@/lib/auth/permissions';
 import { PageHeader } from '@/components/ui/page';
+import { getTranslations } from '@/lib/i18n';
 import { EmptyState } from '@/components/ui/feedback';
 import { PriceBookTable } from './table';
 import { PriceBookActions } from './actions';
@@ -16,6 +17,7 @@ export default async function PriceBookPage({
   searchParams: Promise<{ q?: string; categorie?: string }>;
 }) {
   const auth = await requirePermission('pricebook:read');
+  const { t } = await getTranslations();
   const params = await searchParams;
   const category = ['MATERIAU', 'SERVICE', 'MAIN_OEUVRE', 'PACK'].includes(params.categorie ?? '')
     ? (params.categorie as 'MATERIAU' | 'SERVICE' | 'MAIN_OEUVRE' | 'PACK')
@@ -31,16 +33,16 @@ export default async function PriceBookPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Catalogue de prix"
-        description="Vos articles, vos prix, vos marges. DEVISIA les applique en priorité dans chaque devis."
+        title={t.priceBook.title}
+        description={t.priceBook.subtitle}
         actions={writable ? <PriceBookActions /> : null}
       />
 
       {items.length === 0 && !params.q ? (
         <EmptyState
           icon={BookOpen}
-          title="Votre catalogue est vide."
-          description="Ajoutez vos prestations et matériaux courants : les devis générés seront immédiatement justes."
+          title={t.priceBook.emptyTitle}
+          description={t.priceBook.emptyBody}
           action={writable ? <PriceBookActions mode="empty" /> : null}
         />
       ) : (

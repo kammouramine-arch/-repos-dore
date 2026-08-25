@@ -5,7 +5,7 @@ import type { QuoteStatus } from '@prisma/client';
 import { requirePermission } from '@/lib/auth/session';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
-import { formatDate } from '@/lib/i18n';
+import { formatDate, getTranslations } from '@/lib/i18n';
 import { fullName } from '@/lib/utils';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -15,13 +15,13 @@ import { QuoteStatusBadge, quoteStatusLabel } from '@/components/status';
 
 export const metadata: Metadata = { title: 'Devis' };
 
-const FILTERS: { value: QuoteStatus | 'TOUS'; label: string }[] = [
-  { value: 'TOUS', label: 'Tous' },
-  { value: 'BROUILLON', label: 'Brouillons' },
-  { value: 'ENVOYE', label: 'Envoyés' },
-  { value: 'CONSULTE', label: 'Consultés' },
-  { value: 'ACCEPTE', label: 'Acceptés' },
-  { value: 'REFUSE', label: 'Refusés' },
+const FILTERS: { value: QuoteStatus | 'TOUS'; key: 'all' | 'drafts' | 'sent' | 'viewed' | 'accepted' | 'refused' }[] = [
+  { value: 'TOUS', key: 'all' },
+  { value: 'BROUILLON', key: 'drafts' },
+  { value: 'ENVOYE', key: 'sent' },
+  { value: 'CONSULTE', key: 'viewed' },
+  { value: 'ACCEPTE', key: 'accepted' },
+  { value: 'REFUSE', key: 'refused' },
 ];
 
 export default async function QuotesPage({
@@ -30,6 +30,7 @@ export default async function QuotesPage({
   searchParams: Promise<{ statut?: string }>;
 }) {
   const auth = await requirePermission('quote:read');
+  const { locale, t } = await getTranslations();
   const params = await searchParams;
   const filter = FILTERS.find((item) => item.value === params.statut)?.value ?? 'TOUS';
 
@@ -59,19 +60,19 @@ export default async function QuotesPage({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Devis"
-        description="Tous vos devis, de la préparation à l’acceptation."
+        title={t.quotes.title}
+        description={t.quotes.subtitle}
         actions={
           <Button asChild>
             <Link href="/app/devis/nouveau">
               <Plus className="h-4 w-4" aria-hidden />
-              Nouveau devis
+              {t.quotes.new}
             </Link>
           </Button>
         }
       />
 
-      <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1" aria-label="Filtrer par statut">
+      <nav className="-mx-1 flex gap-1 overflow-x-auto pb-1" aria-label={t.quotes.status}>
         {FILTERS.map((item) => {
           const count = item.value === 'TOUS' ? undefined : totalByStatus.get(item.value);
           return (
@@ -85,7 +86,7 @@ export default async function QuotesPage({
               }`}
               aria-current={item.value === filter ? 'true' : undefined}
             >
-              {item.label}
+              {t.quotes[item.key]}
               {count ? <span className="ml-1.5 opacity-60 tabular">{count}</span> : null}
             </Link>
           );
@@ -95,16 +96,12 @@ export default async function QuotesPage({
       {quotes.length === 0 ? (
         <EmptyState
           icon={FileText}
-          title={filter === 'TOUS' ? 'Vous n’avez encore aucun devis.' : 'Aucun devis dans ce statut.'}
-          description={
-            filter === 'TOUS'
-              ? 'Votre premier devis est à moins d’une minute.'
-              : 'Changez de filtre pour voir les autres devis.'
-          }
+          title={filter === 'TOUS' ? t.quotes.emptyTitle : t.quotes.emptyFiltered}
+          description={filter === 'TOUS' ? t.quotes.emptyBody : t.quotes.emptyFilteredBody}
           action={
             filter === 'TOUS' ? (
               <Button asChild size="lg">
-                <Link href="/app/devis/nouveau">Créer mon premier devis</Link>
+                <Link href="/app/devis/nouveau">{t.quotes.emptyCta}</Link>
               </Button>
             ) : null
           }
@@ -115,7 +112,7 @@ export default async function QuotesPage({
           <table className="hidden w-full text-left sm:table">
             <thead>
               <tr className="border-b border-line bg-surface/60">
-                {['Numéro', 'Client', 'Objet', 'Statut', 'Montant TTC', 'Date'].map((header) => (
+                {[t.quotes.number, t.quotes.customer, t.quotes.title, t.quotes.status, t.quotes.total, t.quotes.createdAt].map((header) => (
                   <th
                     key={header}
                     scope="col"
@@ -144,13 +141,13 @@ export default async function QuotesPage({
                     {quote.title}
                   </td>
                   <td className="px-4 py-3">
-                    <QuoteStatusBadge status={quote.status} />
+                    <QuoteStatusBadge status={quote.status} t={t} />
                   </td>
                   <td className="px-4 py-3 text-[13.5px] font-medium text-ink tabular">
                     {formatCents(quote.totalCents)}
                   </td>
                   <td className="px-4 py-3 text-[13px] text-subtle">
-                    {formatDate(quote.sentAt ?? quote.createdAt)}
+                    {formatDate(quote.sentAt ?? quote.createdAt, locale)}
                   </td>
                 </tr>
               ))}
@@ -168,7 +165,7 @@ export default async function QuotesPage({
                       </p>
                       <p className="mt-0.5 truncate text-[13px] text-muted">{quote.title}</p>
                       <p className="mt-1 text-[12px] text-subtle tabular">
-                        {quote.number} · {quoteStatusLabel(quote.status)}
+                        {quote.number} · {quoteStatusLabel(quote.status, t)}
                       </p>
                     </div>
                     <span className="shrink-0 text-[14px] font-semibold text-ink tabular">

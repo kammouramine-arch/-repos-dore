@@ -1,6 +1,7 @@
 import * as React from 'react';
 import type { LeadStatus, QuoteStatus } from '@prisma/client';
 import { Badge } from './ui/badge';
+import { fr, type Dictionary } from '@/lib/i18n/dictionaries/fr';
 
 /**
  * Les statuts ne sont jamais signalés par la couleur seule : chaque badge
@@ -20,18 +21,22 @@ const QUOTE_STATUS: Record<
   ANNULE: { label: 'Annulé', tone: 'neutral', dot: 'bg-subtle' },
 };
 
-export function QuoteStatusBadge({ status }: { status: QuoteStatus }) {
+/**
+ * Le dictionnaire est optionnel : sans lui, les libellés français par défaut
+ * s'appliquent, ce qui garde le composant utilisable partout.
+ */
+export function QuoteStatusBadge({ status, t }: { status: QuoteStatus; t?: Dictionary }) {
   const config = QUOTE_STATUS[status];
   return (
     <Badge tone={config.tone}>
       <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} aria-hidden />
-      {config.label}
+      {quoteStatusLabel(status, t)}
     </Badge>
   );
 }
 
-export function quoteStatusLabel(status: QuoteStatus): string {
-  return QUOTE_STATUS[status].label;
+export function quoteStatusLabel(status: QuoteStatus, t: Dictionary = fr): string {
+  return t.status[status] ?? QUOTE_STATUS[status].label;
 }
 
 const LEAD_STATUS: Record<

@@ -13,6 +13,7 @@ import {
 import { requireAuth } from '@/lib/auth/session';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { PageHeader } from '@/components/ui/page';
+import { getTranslations } from '@/lib/i18n';
 import { Card } from '@/components/ui/card';
 import { SignOutButton } from './sign-out';
 
@@ -30,11 +31,12 @@ const LINKS = [
 
 export default async function MorePage() {
   const auth = await requireAuth();
+  const { t } = await getTranslations();
 
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Plus"
+        title={t.nav.more}
         description={`${auth.organization.organizationName} · ${ROLE_LABELS[auth.organization.role]}`}
       />
 

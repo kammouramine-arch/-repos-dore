@@ -9,6 +9,7 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown';
 import { formatRelative } from '@/lib/i18n/format';
+import { useI18n } from '@/lib/i18n/context';
 
 interface NotificationItem {
   id: string;
@@ -20,6 +21,7 @@ interface NotificationItem {
 }
 
 export function NotificationBell({ initialUnread }: { initialUnread: number }) {
+  const { locale, t } = useI18n();
   const [unread, setUnread] = React.useState(initialUnread);
   const [items, setItems] = React.useState<NotificationItem[]>([]);
   const [loaded, setLoaded] = React.useState(false);
@@ -51,7 +53,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
         <button
           type="button"
           className="relative flex h-9 w-9 items-center justify-center rounded-[10px] text-ink-soft transition-colors hover:bg-surface-2"
-          aria-label={unread > 0 ? `Notifications, ${unread} non lues` : 'Notifications'}
+          aria-label={unread > 0 ? `${t.nav.notifications} (${unread})` : t.nav.notifications}
         >
           <Bell className="h-[18px] w-[18px]" aria-hidden />
           {unread > 0 ? (
@@ -64,7 +66,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
 
       <DropdownMenuContent className="w-[320px] p-0">
         <div className="flex items-center justify-between border-b border-line px-4 py-2.5">
-          <p className="text-[13px] font-semibold text-ink">Notifications</p>
+          <p className="text-[13px] font-semibold text-ink">{t.nav.notifications}</p>
           {unread > 0 ? (
             <button
               type="button"
@@ -72,7 +74,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
               className="flex items-center gap-1 text-[12px] text-muted transition-colors hover:text-accent"
             >
               <Check className="h-3 w-3" aria-hidden />
-              Tout marquer comme lu
+              {t.nav.markAllRead}
             </button>
           ) : null}
         </div>
@@ -80,7 +82,7 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
         <div className="max-h-[380px] overflow-y-auto">
           {items.length === 0 ? (
             <p className="px-4 py-8 text-center text-[13px] text-subtle">
-              {loaded ? 'Aucune notification.' : 'Chargement…'}
+              {loaded ? t.empty.notifications : t.common.loading}
             </p>
           ) : (
             <ul className="divide-y divide-line">
@@ -93,7 +95,9 @@ export function NotificationBell({ initialUnread }: { initialUnread: number }) {
                         {item.body}
                       </p>
                     ) : null}
-                    <p className="mt-1 text-[11.5px] text-subtle">{formatRelative(item.createdAt)}</p>
+                    <p className="mt-1 text-[11.5px] text-subtle">
+                      {formatRelative(item.createdAt, locale)}
+                    </p>
                   </>
                 );
                 return (

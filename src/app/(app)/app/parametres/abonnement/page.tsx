@@ -7,7 +7,7 @@ import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/billing/plans';
 import { isBillingConfigured } from '@/lib/billing/stripe';
 import { usageSummary } from '@/server/services/usageService';
 import { formatCents } from '@/lib/money';
-import { formatDate } from '@/lib/i18n';
+import { formatDate, getTranslations } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/misc';
@@ -30,6 +30,7 @@ export default async function SubscriptionPage({
   searchParams: Promise<{ statut?: string }>;
 }) {
   const auth = await requirePermission('billing:view');
+  const { locale, t } = await getTranslations();
   const params = await searchParams;
   const organizationId = auth.organization.organizationId;
 
@@ -39,9 +40,9 @@ export default async function SubscriptionPage({
   const billingReady = isBillingConfigured();
 
   const quotas = [
-    { label: 'Générations IA', ...usage.aiGenerations },
-    { label: 'Relances envoyées', ...usage.followUps },
-    { label: 'Devis envoyés', ...usage.quotesSent },
+    { label: t.analytics.aiGenerations, ...usage.aiGenerations },
+    { label: t.analytics.followUpsSent, ...usage.followUps },
+    { label: t.analytics.quotesSent, ...usage.quotesSent },
   ];
 
   return (
@@ -56,7 +57,7 @@ export default async function SubscriptionPage({
 
       <header>
         <h1 className="text-[22px] font-semibold tracking-[-0.025em] text-ink sm:text-[26px]">
-          Abonnement
+          {t.settings.subscription}
         </h1>
         <p className="mt-1.5 text-[14px] text-muted">
           Votre formule, votre consommation et votre facturation.
@@ -95,7 +96,7 @@ export default async function SubscriptionPage({
 
           {subscription?.currentPeriodEnd ? (
             <p className="text-[13.5px] text-muted">
-              Prochaine échéance : {formatDate(subscription.currentPeriodEnd)}
+              {t.settings.nextBilling} : {formatDate(subscription.currentPeriodEnd, locale)}
               {subscription.cancelAtPeriodEnd ? ' — résiliation programmée.' : ''}
             </p>
           ) : null}
@@ -106,7 +107,7 @@ export default async function SubscriptionPage({
                 <div className="flex items-baseline justify-between text-[13.5px]">
                   <span className="text-ink-soft">{quota.label}</span>
                   <span className="text-muted tabular">
-                    {quota.used} {quota.limit == null ? '· illimité' : `/ ${quota.limit}`}
+                    {quota.used} {quota.limit == null ? `· ${t.analytics.unlimited}` : `/ ${quota.limit}`}
                   </span>
                 </div>
                 {quota.limit == null ? null : (

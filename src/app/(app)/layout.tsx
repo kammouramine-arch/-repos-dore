@@ -6,7 +6,8 @@ import { prisma } from '@/lib/prisma';
 import { SubscriptionBanner } from '@/components/app/subscription-banner';
 import { AppShell, type ShellUser } from '@/components/app/shell';
 import { LocaleHtml } from '@/components/app/locale-html';
-import { getLocale } from '@/lib/i18n';
+import { getDictionary, getLocale } from '@/lib/i18n';
+import { I18nProvider } from '@/lib/i18n/context';
 import { signOutAction } from '../(auth)/actions';
 
 export const dynamic = 'force-dynamic';
@@ -30,6 +31,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
     }),
   ]);
 
+  const dictionary = getDictionary(locale);
+
   const user: ShellUser = {
     name: [auth.user.firstName, auth.user.lastName].filter(Boolean).join(' ') || auth.user.email,
     email: auth.user.email,
@@ -49,7 +52,8 @@ export default async function AppLayout({ children }: { children: React.ReactNod
   }
 
   return (
-    <AppShell
+    <I18nProvider locale={locale} dictionary={dictionary}>
+      <AppShell
       user={user}
       unreadCount={unread}
       onSignOut={signOutAction}
@@ -70,6 +74,7 @@ export default async function AppLayout({ children }: { children: React.ReactNod
         }
       />
       {children}
-    </AppShell>
+      </AppShell>
+    </I18nProvider>
   );
 }

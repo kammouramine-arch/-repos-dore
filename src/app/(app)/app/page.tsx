@@ -12,7 +12,7 @@ import { requireAuth } from '@/lib/auth/session';
 import { getDashboardMetrics, getRecentActivity, type DashboardPeriod } from '@/server/services/dashboardService';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
-import { formatRelative } from '@/lib/i18n';
+import { format, formatRelative, getTranslations } from '@/lib/i18n';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/app/stat-card';
@@ -21,11 +21,11 @@ import { EmptyState } from '@/components/ui/feedback';
 
 export const metadata: Metadata = { title: 'Tableau de bord' };
 
-const PERIODS: { value: DashboardPeriod; label: string }[] = [
-  { value: 7, label: '7 jours' },
-  { value: 30, label: '30 jours' },
-  { value: 90, label: '90 jours' },
-  { value: 365, label: '12 mois' },
+const PERIODS: { value: DashboardPeriod; key: 'period7' | 'period30' | 'period90' | 'period365' }[] = [
+  { value: 7, key: 'period7' },
+  { value: 30, key: 'period30' },
+  { value: 90, key: 'period90' },
+  { value: 365, key: 'period365' },
 ];
 
 const ACTIVITY_LABELS: Record<string, string> = {
@@ -52,6 +52,7 @@ export default async function DashboardPage({
   searchParams: Promise<{ periode?: string }>;
 }) {
   const auth = await requireAuth();
+  const { locale, t } = await getTranslations();
   const params = await searchParams;
   const period = (PERIODS.find((item) => String(item.value) === params.periode)?.value ??
     30) as DashboardPeriod;
@@ -70,22 +71,20 @@ export default async function DashboardPage({
       <div className="space-y-8">
         <header>
           <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-ink sm:text-[28px]">
-            Bonjour, {firstName}.
+            {t.dashboard.greeting}, {firstName}.
           </h1>
-          <p className="mt-1.5 text-[14.5px] text-muted">
-            Bienvenue sur DEVISIA. Commençons par votre premier devis.
-          </p>
+          <p className="mt-1.5 text-[14.5px] text-muted">{t.dashboard.welcomeTitle}</p>
         </header>
 
         <EmptyState
           icon={FileText}
-          title="Vous n’avez encore aucun devis."
-          description="Votre premier devis est à moins d’une minute : décrivez le chantier, DEVISIA s’occupe du reste."
+          title={t.quotes.emptyTitle}
+          description={t.quotes.emptyBody}
           action={
             <Button asChild size="lg">
               <Link href="/app/devis/nouveau">
                 <Sparkles className="h-4 w-4" aria-hidden />
-                Créer mon premier devis
+                {t.quotes.emptyCta}
               </Link>
             </Button>
           }
@@ -136,15 +135,15 @@ export default async function DashboardPage({
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="text-[24px] font-semibold tracking-[-0.025em] text-ink sm:text-[28px]">
-            Bonjour, {firstName}.
+            {t.dashboard.greeting}, {firstName}.
           </h1>
-          <p className="mt-1.5 text-[14.5px] text-muted">Voici où en est votre activité.</p>
+          <p className="mt-1.5 text-[14.5px] text-muted">{t.dashboard.subtitle}</p>
         </div>
 
         <div className="flex items-center gap-2">
           <nav
             className="hidden items-center gap-1 rounded-[10px] border border-line bg-canvas p-1 sm:flex"
-            aria-label="Période"
+            aria-label={t.dashboard.period}
           >
             {PERIODS.map((item) => (
               <Link
@@ -155,40 +154,40 @@ export default async function DashboardPage({
                 }`}
                 aria-current={item.value === period ? 'true' : undefined}
               >
-                {item.label}
+                {t.dashboard[item.key]}
               </Link>
             ))}
           </nav>
           <Button asChild>
             <Link href="/app/devis/nouveau">
               <Plus className="h-4 w-4" aria-hidden />
-              Nouveau devis
+              {t.quotes.new}
             </Link>
           </Button>
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Indicateurs clés">
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t.dashboard.revenueWon}>
         <StatCard
-          label="Chiffre d’affaires gagné"
+          label={t.dashboard.revenueWon}
           value={formatCents(metrics.revenueWonCents, { compact: true })}
           trend={variation(metrics.revenueWonCents, metrics.previous.revenueWonCents)}
-          hint="vs période précédente"
+          hint={t.dashboard.vsPrevious}
         />
         <StatCard
-          label="Devis envoyés"
+          label={t.dashboard.quotesSent}
           value={String(metrics.quotesSent)}
           trend={variation(metrics.quotesSent, metrics.previous.quotesSent)}
         />
         <StatCard
-          label="Taux d’acceptation"
+          label={t.dashboard.acceptanceRate}
           value={`${metrics.acceptanceRate} %`}
-          hint={`${metrics.quotesAccepted} acceptés`}
+          hint={format(t.dashboard.accepted, { count: metrics.quotesAccepted })}
         />
         <StatCard
-          label="Panier moyen"
+          label={t.dashboard.averageQuote}
           value={formatCents(metrics.averageQuoteCents, { compact: true })}
-          hint={`${metrics.newLeads} nouveaux prospects`}
+          hint={format(t.dashboard.newLeadsHint, { count: metrics.newLeads })}
         />
       </section>
 
@@ -203,17 +202,18 @@ export default async function DashboardPage({
               id="a-recuperer"
               className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-accent-hover"
             >
-              Chiffre d’affaires à récupérer
+              {t.dashboard.toRecoverTitle}
             </h2>
             <p className="mt-2 text-[36px] font-semibold leading-none tracking-[-0.03em] text-accent-hover tabular sm:text-[42px]">
               {formatCents(metrics.toRecover.totalCents, { compact: true })}
             </p>
             <p className="mt-2.5 text-[14px] text-ink-soft">
               {metrics.toRecover.quoteCount === 0
-                ? 'Aucun devis en attente de réponse. Tout est suivi.'
-                : `${metrics.toRecover.quoteCount} devis en attente · ${metrics.toRecover.customerCount} client${
-                    metrics.toRecover.customerCount > 1 ? 's' : ''
-                  } n’${metrics.toRecover.customerCount > 1 ? 'ont' : 'a'} pas encore répondu.`}
+                ? t.dashboard.toRecoverEmpty
+                : format(t.dashboard.toRecoverDetail, {
+                    quotes: metrics.toRecover.quoteCount,
+                    customers: metrics.toRecover.customerCount,
+                  })}
             </p>
           </div>
 
@@ -221,7 +221,7 @@ export default async function DashboardPage({
             <Button asChild size="lg">
               <Link href="/app/relances">
                 <Send className="h-4 w-4" aria-hidden />
-                Relancer maintenant
+                {t.dashboard.followUpNow}
               </Link>
             </Button>
           ) : null}
@@ -238,9 +238,9 @@ export default async function DashboardPage({
                   <div className="min-w-0">
                     <p className="truncate text-[13.5px] font-medium text-ink">{quote.customerName}</p>
                     <p className="text-[12px] text-subtle tabular">
-                      {quote.number} · en attente depuis {quote.daysWaiting} jour
-                      {quote.daysWaiting > 1 ? 's' : ''}
-                      {quote.viewCount > 0 ? ' · consulté' : ' · non consulté'}
+                      {quote.number} ·{' '}
+                      {format(t.dashboard.waitingSince, { days: quote.daysWaiting })} ·{' '}
+                      {quote.viewCount > 0 ? t.dashboard.viewed : t.dashboard.notViewed}
                     </p>
                   </div>
                   <span className="shrink-0 text-[14px] font-semibold text-ink tabular">
@@ -257,8 +257,7 @@ export default async function DashboardPage({
         <Card>
           <CardHeader>
             <div>
-              <CardTitle>Chiffre d’affaires</CardTitle>
-              <p className="mt-1 text-[12.5px] text-muted">Gagné et envoyé sur la période.</p>
+              <CardTitle>{t.dashboard.revenueOverTime}</CardTitle>
             </div>
           </CardHeader>
           <CardContent className="pt-2">
@@ -268,7 +267,7 @@ export default async function DashboardPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Tunnel de conversion</CardTitle>
+            <CardTitle>{t.dashboard.funnel}</CardTitle>
           </CardHeader>
           <CardContent>
             <FunnelChart data={metrics.funnel} />
@@ -279,7 +278,7 @@ export default async function DashboardPage({
       <div className="grid gap-4 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Devis envoyés</CardTitle>
+            <CardTitle>{t.dashboard.quotesSent}</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <QuotesBarChart data={metrics.series} />
@@ -288,12 +287,12 @@ export default async function DashboardPage({
 
         <Card>
           <CardHeader>
-            <CardTitle>Prestations les plus vendues</CardTitle>
+            <CardTitle>{t.dashboard.topServices}</CardTitle>
           </CardHeader>
           <CardContent>
             {metrics.topServices.length === 0 ? (
               <p className="py-6 text-center text-[13.5px] text-subtle">
-                Les prestations apparaîtront après vos premiers devis acceptés.
+                {t.dashboard.noServices}
               </p>
             ) : (
               <ul className="space-y-3">
@@ -316,18 +315,18 @@ export default async function DashboardPage({
 
       <Card>
         <CardHeader>
-          <CardTitle>Activité récente</CardTitle>
+          <CardTitle>{t.dashboard.recentActivity}</CardTitle>
           <Link
             href="/app/devis"
             className="flex items-center gap-1 text-[13px] font-medium text-accent hover:underline"
           >
-            Tout voir
+            {t.common.seeAll}
             <ArrowUpRight className="h-3.5 w-3.5" aria-hidden />
           </Link>
         </CardHeader>
         <CardContent className="pt-3">
           {activity.length === 0 ? (
-            <p className="py-4 text-center text-[13.5px] text-subtle">Aucune activité récente.</p>
+            <p className="py-4 text-center text-[13.5px] text-subtle">{t.dashboard.noActivity}</p>
           ) : (
             <ul className="divide-y divide-line">
               {activity.map((event) => (
@@ -342,7 +341,7 @@ export default async function DashboardPage({
                         <span className="text-muted">{event.quoteTitle}</span>
                       </p>
                       <p className="text-[12px] text-subtle tabular">
-                        {event.quoteNumber} · {formatRelative(event.createdAt)}
+                        {event.quoteNumber} · {formatRelative(event.createdAt, locale)}
                       </p>
                     </div>
                     <span className="shrink-0 text-[13px] font-medium text-ink tabular">

@@ -4,7 +4,7 @@ import { CheckCircle2, Clock3 } from 'lucide-react';
 import { requirePermission } from '@/lib/auth/session';
 import { listFollowUps, revenueToRecover } from '@/server/services/followUpService';
 import { formatCents } from '@/lib/money';
-import { formatDate } from '@/lib/i18n';
+import { formatDate, getTranslations } from '@/lib/i18n';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { EmptyState } from '@/components/ui/feedback';
 import { PageHeader } from '@/components/ui/page';
@@ -15,6 +15,7 @@ export const metadata: Metadata = { title: 'Relances' };
 
 export default async function FollowUpsPage() {
   const auth = await requirePermission('followup:send');
+  const { locale, t } = await getTranslations();
   const organizationId = auth.organization.organizationId;
 
   const [toRecover, followUps] = await Promise.all([
@@ -27,13 +28,13 @@ export default async function FollowUpsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Relances"
-        description="Le chiffre d’affaires qui attend une réponse, et les messages prêts à partir."
+        title={t.followUps.title}
+        description={t.followUps.subtitle}
       />
 
       <section className="rounded-[16px] border border-accent-border bg-accent-soft/50 p-5 sm:p-6">
         <h2 className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-accent-hover">
-          Chiffre d’affaires à récupérer
+          {t.dashboard.toRecoverTitle}
         </h2>
         <p className="mt-2 text-[36px] font-semibold leading-none tracking-[-0.03em] text-accent-hover tabular sm:text-[42px]">
           {formatCents(toRecover.totalCents, { compact: true })}
@@ -50,14 +51,14 @@ export default async function FollowUpsPage() {
       {toRecover.quotes.length === 0 ? (
         <EmptyState
           icon={CheckCircle2}
-          title="Aucune relance en attente."
-          description="Tous vos devis envoyés ont reçu une réponse. C’est le bon moment pour en préparer un nouveau."
+          title={t.followUps.emptyTitle}
+          description={t.followUps.emptyBody}
         />
       ) : (
         <Card>
           <CardHeader>
-            <CardTitle>Devis sans réponse</CardTitle>
-            <span className="text-[12.5px] text-subtle">Les plus urgents d’abord</span>
+            <CardTitle>{t.followUps.unanswered}</CardTitle>
+            <span className="text-[12.5px] text-subtle">{t.followUps.urgentFirst}</span>
           </CardHeader>
           <CardContent className="space-y-2.5 pt-1">
             {toRecover.quotes.map((quote) => (
@@ -84,7 +85,7 @@ export default async function FollowUpsPage() {
       {scheduled.length > 0 ? (
         <Card>
           <CardHeader>
-            <CardTitle>Relances planifiées</CardTitle>
+            <CardTitle>{t.followUps.scheduled}</CardTitle>
           </CardHeader>
           <CardContent className="pt-1">
             <ul className="divide-y divide-line">
@@ -100,7 +101,7 @@ export default async function FollowUpsPage() {
                         : 'Client'}
                     </p>
                     <p className="text-[12.5px] text-subtle tabular">
-                      {item.quote?.number} · prévue le {formatDate(item.scheduledFor)}
+                      {item.quote?.number} · {formatDate(item.scheduledFor, locale)}
                     </p>
                   </div>
                   <div className="flex shrink-0 items-center gap-3">
@@ -112,7 +113,7 @@ export default async function FollowUpsPage() {
                       href={`/app/devis/${item.quoteId}`}
                       className="text-[13px] font-medium text-accent hover:underline"
                     >
-                      Voir
+                      {t.common.seeMore}
                     </Link>
                   </div>
                 </li>
@@ -123,7 +124,7 @@ export default async function FollowUpsPage() {
       ) : null}
 
       <p className="text-center text-[12.5px] text-subtle">
-        Les délais et l’activation des relances automatiques se règlent dans{' '}
+        {t.followUps.settingsHint}{' '}
         <Link href="/app/parametres/automatisations" className="underline hover:text-muted">
           Paramètres → Automatisations
         </Link>
