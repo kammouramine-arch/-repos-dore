@@ -15,6 +15,16 @@ import type {
 } from './types';
 
 const MAX_IMAGES = 6;
+/**
+ * Les modèles Claude 4.6 et suivants (Opus 5, Sonnet 5, Opus 4.6/4.7/4.8…)
+ * rejettent `temperature` avec une erreur 400. Le paramètre n'est donc envoyé
+ * qu'aux modèles antérieurs, que `ANTHROPIC_MODEL` permet toujours de choisir.
+ */
+function samplingParams(model: string, temperature: number): { temperature?: number } {
+  const legacy = /^claude-(3|opus-4-5|sonnet-4-5|haiku-4-5|sonnet-4-0|opus-4-0|opus-4-1)/.test(model);
+  return legacy ? { temperature } : {};
+}
+
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
 /** Fournisseur IA principal : Claude (sortie structurée via appel d'outil). */
@@ -42,7 +52,7 @@ export class AnthropicProvider implements AIProvider {
       this.client.messages.create({
         model: this.model,
         max_tokens: request.maxTokens ?? 4096,
-        temperature: request.temperature ?? 0.2,
+        ...samplingParams(this.model, request.temperature ?? 0.2),
         system: request.system,
         tools: [
           {
@@ -92,7 +102,7 @@ export class AnthropicProvider implements AIProvider {
       this.client.messages.create({
         model: this.model,
         max_tokens: request.maxTokens ?? 1024,
-        temperature: request.temperature ?? 0.4,
+        ...samplingParams(this.model, request.temperature ?? 0.4),
         system: request.system,
         messages: [
           { role: 'user', content: buildContent(request.context, request.untrusted, undefined) },

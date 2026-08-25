@@ -11,10 +11,17 @@ const serverSchema = z.object({
   APP_URL: z.string().url().default('http://localhost:3000'),
   AUTH_SECRET: z.string().min(16).default('devisia-development-secret-change-me'),
 
-  // IA
-  AI_PROVIDER: z.enum(['anthropic', 'local']).default('local'),
-  ANTHROPIC_API_KEY: z.string().optional(),
-  ANTHROPIC_MODEL: z.string().default('claude-sonnet-4-5'),
+  // IA — laissé vide, le fournisseur est déduit de la présence de la clé.
+  AI_PROVIDER: z.preprocess(
+    (value) => (value === '' || value == null ? undefined : value),
+    z.enum(['anthropic', 'local']).optional(),
+  ),
+  // Une valeur vide (« ANTHROPIC_API_KEY= » dans .env) équivaut à l'absence de clé.
+  ANTHROPIC_API_KEY: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().optional(),
+  ),
+  ANTHROPIC_MODEL: z.string().default('claude-opus-5'),
 
   // Transcription audio (API compatible OpenAI : OpenAI, Groq, Whisper auto-hébergé)
   TRANSCRIPTION_PROVIDER: z.enum(['openai', 'none']).default('none'),
@@ -76,6 +83,19 @@ export function env(): ServerEnv {
   }
   cached = parsed.data;
   return cached;
+}
+
+/**
+ * Fournisseur d'IA effectif.
+ *
+ * `ANTHROPIC_API_KEY` suffit à activer Claude : aucune seconde variable n'est
+ * nécessaire au déploiement. `AI_PROVIDER` reste un forçage explicite, utile
+ * pour désactiver l'IA externe (`local`) alors qu'une clé est présente.
+ */
+export function aiProviderKind(): 'anthropic' | 'local' {
+  const config = env();
+  if (config.AI_PROVIDER) return config.AI_PROVIDER;
+  return config.ANTHROPIC_API_KEY ? 'anthropic' : 'local';
 }
 
 export const isProduction = () => env().NODE_ENV === 'production';

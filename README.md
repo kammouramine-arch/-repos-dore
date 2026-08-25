@@ -230,7 +230,7 @@ Toutes les variables sont documentées dans [`.env.example`](./.env.example). Le
 | `DATABASE_URL` | Connexion PostgreSQL | ✅ |
 | `AUTH_SECRET` | Secret de session (`openssl rand -base64 48`) | ✅ |
 | `APP_URL` | URL publique (emails, liens de devis, cookies sécurisés) | ✅ |
-| `AI_PROVIDER` / `ANTHROPIC_API_KEY` | Génération enrichie et analyse des photos | — |
+| `ANTHROPIC_API_KEY` | Génération enrichie et analyse des photos (Claude). Sa seule présence active le fournisseur ; `ANTHROPIC_MODEL` et `AI_PROVIDER` sont facultatifs | — |
 | `TRANSCRIPTION_PROVIDER` / `TRANSCRIPTION_API_KEY` | Transcription audio serveur | — |
 | `EMAIL_PROVIDER` / `RESEND_API_KEY` | Envoi réel des emails | Production |
 | `STORAGE_PROVIDER` + `S3_*` | Stockage des fichiers | Production |
@@ -282,8 +282,12 @@ interface TranscriptionProvider {
 - **`AI_PROVIDER=local`** (défaut) — moteur interne : rapprochement du catalogue, extraction des
   quantités (`2 radiateurs`, `12 m²`) et des durées (`une heure`, `2h30`, `une demi-journée`),
   détection des informations manquantes. Aucun appel réseau.
-- **`AI_PROVIDER=anthropic`** — génération structurée via appel d'outil, analyse des photos de
-  chantier. Renseigner `ANTHROPIC_API_KEY`.
+- **Claude (Anthropic)** — génération structurée via appel d'outil, analyse des photos de
+  chantier. Il suffit de définir `ANTHROPIC_API_KEY` dans l'environnement du serveur : le
+  fournisseur s'active seul, et le moteur local reste le repli automatique en cas de panne, de
+  quota atteint ou de clé invalide. `ANTHROPIC_MODEL` (défaut `claude-opus-5`) permet de choisir
+  le modèle, `AI_PROVIDER=local` de désactiver Claude sans retirer la clé. La clé est lue
+  uniquement côté serveur et n'est jamais transmise au navigateur ni à l'application mobile.
 - **Transcription** — la dictée du navigateur est utilisée quand elle est disponible ; sinon
   l'audio est envoyé à `/api/ai/transcribe`, qui parle à une API compatible OpenAI
   (`TRANSCRIPTION_BASE_URL` est configurable : OpenAI, Groq, Whisper auto-hébergé…).
@@ -473,7 +477,7 @@ pour un lancement commercial.
 
 | Domaine | À renseigner | Où |
 | --- | --- | --- |
-| IA | `ANTHROPIC_API_KEY` (+ `AI_PROVIDER=anthropic`) | `.env` |
+| IA | `ANTHROPIC_API_KEY` (seule variable requise) | `.env` en local, variables d'environnement de l'hébergeur en production |
 | Transcription | `TRANSCRIPTION_API_KEY` (+ `TRANSCRIPTION_PROVIDER=openai`) | `.env` |
 | Emails | `RESEND_API_KEY`, `EMAIL_FROM` sur domaine vérifié | `.env` |
 | Stockage | `S3_BUCKET`, `S3_ACCESS_KEY_ID`, `S3_SECRET_ACCESS_KEY`, `S3_REGION` | `.env` |

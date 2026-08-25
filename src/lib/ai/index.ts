@@ -1,4 +1,4 @@
-import { env } from '../env';
+import { aiProviderKind } from '../env';
 import { createAnthropicProvider } from './anthropic';
 import { createTranscriptionProvider } from './transcription';
 import type { AIProvider, TranscriptionProvider } from './types';
@@ -12,7 +12,7 @@ let transcriptionCache: { value: TranscriptionProvider | null } | null = null;
  */
 export function getAIProvider(): AIProvider | null {
   if (!providerCache) {
-    providerCache = { value: env().AI_PROVIDER === 'anthropic' ? createAnthropicProvider() : null };
+    providerCache = { value: aiProviderKind() === 'anthropic' ? createAnthropicProvider() : null };
   }
   return providerCache.value;
 }
