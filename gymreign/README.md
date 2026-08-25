@@ -23,8 +23,8 @@ BEGIN AT GROUND LEVEL.
 |---|---|---|---|
 | **01** | **Master brand strategy** | **✅ Approved — Revision 2** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
 | **01a** | **Founder decision brief** | **✅ Resolved — all six locked** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
-| 02 | Visual identity | ⏸ **Awaiting explicit founder approval to begin** | — |
-| 03 | Chapter 001 design | ⏸ | — |
+| **02** | **Visual identity** | **✅ Complete — awaiting approval** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
+| 03 | ASCENSION 001 product & collection | ⏸ **Gate held** — blocked on Phase 02 approval | — |
 | 04 | POD provider + product validation | ⏸ | — |
 | 05 | Samples | ⏸ | — |
 | 06 | Product finalisation | ⏸ | — |
@@ -46,9 +46,21 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) | The Phase 01 deliverable. 18 sections, from positioning through to the execution roadmap |
 | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) | The six gating decisions, each with why it matters, recommendation, what was modelled, what changes under the alternative, confidence and reversibility — plus the trademark position split into five distinct questions |
 | [`strategy/assumptions-register.md`](./strategy/assumptions-register.md) | Every factual claim in the strategy, marked verified / search-level / assumption, with the method for closing each one |
+| [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) | The Phase 02 identity manual — three territories, one recommendation, and the full system |
+| [`identity/assets/`](./identity/assets/) | Vector assets: GR monogram, datum device, datum principle diagram |
 
-**No artwork, no logo, no products and no website code exist yet.** That is correct for
-this phase.
+**Exploratory identity concepts exist. No production assets, no cleared marks, no products
+and no website code.** That is correct for this phase.
+
+The identity direction is **THE DATUM** — everything sits on one horizontal line, derived
+from the locked chapter line *BEGIN AT GROUND LEVEL*. Three elements: the `GYMREIGN`
+wordmark (primary, works alone), the GR monogram (only where the wordmark cannot go), and
+the notched datum device (everywhere, quietly). **No pictorial symbol** — an invented
+glyph was drawn, rasterised, found to read as the letter "C", and discarded.
+
+**Nothing here is cleared for legal use.** The wordmark still needs a type designer; the
+word mark still needs professional clearance. That clearance is independent of the design
+work and should run in parallel.
 
 ---
 

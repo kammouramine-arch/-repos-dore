@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 120" width="320" height="120" role="img" aria-label="The datum principle">
+  <title>The datum — one horizontal governs every composition</title>
+  <g stroke="currentColor" fill="none">
+    <line x1="0" y1="82" x2="320" y2="82" stroke-width="3"/>
+    <g opacity="0.4" stroke-width="1" stroke-dasharray="2 4">
+      <line x1="0" y1="30" x2="320" y2="30"/>
+      <line x1="0" y1="56" x2="320" y2="56"/>
+    </g>
+  </g>
+  <g fill="currentColor">
+    <rect x="24" y="62" width="26" height="20"/>
+    <rect x="70" y="44" width="26" height="38"/>
+    <rect x="116" y="70" width="26" height="12"/>
+    <rect x="162" y="52" width="26" height="30"/>
+    <rect x="208" y="66" width="26" height="16"/>
+    <rect x="254" y="36" width="26" height="46"/>
+  </g>
+</svg>
