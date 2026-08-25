@@ -23,9 +23,9 @@ BEGIN AT GROUND LEVEL.
 |---|---|---|---|
 | **01** | **Master brand strategy** | **✅ Approved — Revision 2** | [`strategy/01-master-brand-strategy.md`](./strategy/01-master-brand-strategy.md) |
 | **01a** | **Founder decision brief** | **✅ Resolved — all six locked** | [`strategy/02-founder-decision-brief.md`](./strategy/02-founder-decision-brief.md) |
-| **02** | **Visual identity** | **✅ Complete — awaiting approval** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
-| 03 | ASCENSION 001 product & collection | ⏸ **Gate held** — blocked on Phase 02 approval | — |
-| 04 | POD provider + product validation | ⏸ | — |
+| **02** | **Visual identity** | **✅ Approved — Revision 2** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
+| **03** | **CHAPTER 001 — ASCENSION** | **✅ Complete — awaiting approval** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
+| 04 | POD provider + product validation | ⏸ **Gate held** — blocked on Phase 03 approval | — |
 | 05 | Samples | ⏸ | — |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
@@ -48,19 +48,29 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`strategy/assumptions-register.md`](./strategy/assumptions-register.md) | Every factual claim in the strategy, marked verified / search-level / assumption, with the method for closing each one |
 | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) | The Phase 02 identity manual — three territories, one recommendation, and the full system |
 | [`identity/assets/`](./identity/assets/) | Vector assets: GR monogram, datum device, datum principle diagram |
+| [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) | Chapter 001 concept, product architecture, four-product requirements and the Phase 04 test sheet |
 
 **Exploratory identity concepts exist. No production assets, no cleared marks, no products
 and no website code.** That is correct for this phase.
 
-The identity direction is **THE DATUM** — everything sits on one horizontal line, derived
-from the locked chapter line *BEGIN AT GROUND LEVEL*. Three elements: the `GYMREIGN`
+The identity direction is **THE DATUM** — everything is measured from one horizontal line.
+Its basis is the house belief that position is earned, **not** the Chapter 001 line, so it
+survives every future chapter unchanged. Three elements: the `GYMREIGN`
 wordmark (primary, works alone), the GR monogram (only where the wordmark cannot go), and
 the notched datum device (everywhere, quietly). **No pictorial symbol** — an invented
 glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 
-**Nothing here is cleared for legal use.** The wordmark still needs a type designer; the
-word mark still needs professional clearance. That clearance is independent of the design
-work and should run in parallel.
+**The wordmark is approved as creative reference only, not as final production art.** It
+must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
+over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
+of the design work and should run in parallel.
+
+**Chapter 001 — ASCENSION** is *establishing zero*: the measurement taken before the climb.
+Four articles — heavyweight tee, hoodie, sweatpants, embroidered cap — held together by
+material coherence, **the elevation system** (every mark measured from the garment hem, per
+size), and one statement carried in four registers. Five colour variants; the set is
+black-only to concentrate tonal risk in a single pass/fail test. **No blank selected, no
+provider named.**
 
 ---
 

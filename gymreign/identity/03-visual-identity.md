@@ -1,6 +1,6 @@
 # GYMREIGN — VISUAL IDENTITY SYSTEM
 
-**Phase 02 of 12. Status: awaiting founder approval.**
+**Phase 02 of 12. Revision 2 — APPROVED.**
 Issued 2026-08-23 · Brand market: global · Legal jurisdiction: France
 
 > **Nothing in this document is a production asset and nothing here is cleared for legal
@@ -53,16 +53,27 @@ lives here.
 **Verdict: rejected.** Correct instincts, wrong physics.
 
 ### TERRITORY 02 — THE DATUM
-*Everything sits on a line. The line is where you start.*
+*Everything is measured from one line.*
 
-Derived from the brand's own locked chapter line — **BEGIN AT GROUND LEVEL** — rather
-than from a borrowed aesthetic. A single horizontal governs the wordmark, the layouts,
-the labels and the packaging. The wordmark's own horizontal events are aligned to one
+**Correction applied at approval.** Revision 1 founded the datum on the Chapter 001 line
+*BEGIN AT GROUND LEVEL*. That was a mistake: the chapter line is allowed to retire, and a
+permanent house system cannot rest on something temporary.
+
+**The datum's permanent basis is the house belief, not the chapter theme.** GYMREIGN holds
+that position is earned — and a position can only be claimed if there is a line to measure
+it from. The datum is that line. It is the house's baseline: every chapter, every garment,
+every claim is measured from a common zero.
+
+*BEGIN AT GROUND LEVEL* is therefore **Chapter 001's reading of the datum, not its
+foundation.** Chapter 002 will read the same line differently, with a different theme and
+a different chapter-level line, and the system will not move. A single horizontal governs
+the wordmark, the layouts, the labels and the packaging — permanently, and independently
+of any chapter. The wordmark's own horizontal events are aligned to one
 shared height, giving the word a visible internal register.
 
-**For:** it comes from language we already own, so it cannot be lifted wholesale by a
-competitor without also lifting the words. It carries real weight, so it survives thread
-and ink. It is orthogonal and abstract, so it is culturally neutral everywhere. And it
+**For:** it comes from the house's own belief rather than a borrowed aesthetic, and it is
+theme-independent, so it survives every chapter. It carries real weight, so it survives
+thread and ink. It is orthogonal and abstract, so it is culturally neutral everywhere. And it
 gives the chapter architecture a visual mechanism rather than a decoration.
 
 **Against:** it can drift technical — an architecture practice rather than a clothing
@@ -111,9 +122,24 @@ announces it. It is the reason the word looks engineered rather than typed.
 | Horizontal register | All four horizontal events aligned to one height |
 | Terminals | Cut flat and horizontal |
 
-**Status: exploratory.** The specimen is *set* in the base face; the four horizontals are
-close but not aligned, because a font cannot do that. **Aligning them is the production
-work**, and it requires a type designer redrawing outlines. See §21.
+**Status: approved as creative reference only — NOT as the final production wordmark.**
+
+Founder decision at approval. The specimen is *set* in Archivo; the four horizontals are
+close but not aligned, because a font cannot do that. **The final wordmark must be
+custom-drawn from the Datum concept rather than using Archivo unchanged.**
+
+**Drawing brief — what the redraw must preserve, and what it must not do:**
+
+| Preserve | Do not |
+|---|---|
+| Restraint — it should still read as a plain word | Add flourishes, ligatures or a signature letterform quirk |
+| Weight — enough stem to survive thread and ink | Lighten it toward "fashion" |
+| The engineered horizontal relationship — all four horizontals at one height | Make the alignment decorative or call attention to it |
+| Flat, horizontal terminals | Angle, taper or round the terminals |
+| Tight, even optical spacing | Track it wide |
+
+> **Do not over-design it.** The wordmark's job is to look inevitable, not clever. If a
+> viewer notices the drawing before they read the word, the redraw has failed.
 
 ## 2. Secondary wordmark / lockups
 
@@ -383,7 +409,14 @@ print-on-demand, and it costs nothing but time.
 
 Placement rules only. **Product development is Phase 03 and has not begun.**
 
-> **Never more than two brand appearances on a single garment.** One is usually better.
+> **Maximum two prominent external brand expressions per garment.** Internal labels and
+> legally required garment information are excluded. One expression is usually better than
+> two.
+
+*Amended at Phase 02 approval.* The earlier wording counted internal labels against the
+limit, which would have forced a choice between a nape label and a chest mark — and made
+legally required composition and care information compete with design. Both are now
+explicitly outside the count.
 
 | Article | Primary | Secondary | Never |
 |---|---|---|---|
@@ -501,7 +534,7 @@ to be judged as one.
 
 | Element | Status | What remains |
 |---|---|---|
-| **Wordmark** | **EXPLORATORY.** Set in Archivo Semibold, not drawn | A type designer must redraw outlines: align the four horizontals to one height, flatten terminals, optically correct spacing. **This is not optional** — the construction idea does not exist until someone draws it |
+| **Wordmark** | **CREATIVE REFERENCE ONLY — approved as direction, not as final art** | A type designer must custom-draw it from the Datum concept: align the four horizontals to one height, flatten terminals, optically correct spacing, per the drawing brief in §1. **This is not optional** — the construction idea does not exist until someone draws it |
 | **GR monogram** | **EXPLORATORY.** True vector, tested to 24px and reversed | Refine the G counter for embroidery below 20mm. Optical correction of stroke junctions |
 | **Datum device** | **SPECIFICATION.** Geometrically complete | Nothing, beyond confirming the notch behaviour in thread |
 | **Type system** | **SPECIFICATION — usable now** | Confirm Archivo's licence terms with counsel before filing any mark derived from it |
