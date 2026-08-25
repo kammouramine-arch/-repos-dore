@@ -26,7 +26,7 @@ BEGIN AT GROUND LEVEL.
 | **02** | **Visual identity** | **✅ Approved — Revision 2** | [`identity/03-visual-identity.md`](./identity/03-visual-identity.md) |
 | **03** | **CHAPTER 001 — ASCENSION** | **✅ Approved** | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) |
 | **04** | **POD provider + product validation** | **✅ Approved as evidence report** | [`production/05-pod-validation.md`](./production/05-pod-validation.md) |
-| **04.5** | **POD verification** | **✅ Printful exhausted · Printify blocked on 1 question** | [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) |
+| **04.5** | **POD verification** | **✅ Investigation closed — verdict delivered** | [`06-dashboard-verification.md`](./production/06-dashboard-verification.md) · [`07-printify-investigation.md`](./production/07-printify-investigation.md) |
 | 05 | Samples | ⏸ **Nothing purchased** — blocked on Phase 04 approval | — |
 | 06 | Product finalisation | ⏸ | — |
 | 07 | Website | ⏸ | — |
@@ -52,6 +52,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`chapters/001/04-ascension-001.md`](./chapters/001/04-ascension-001.md) | Chapter 001 concept, product architecture, four-product requirements and the Phase 04 test sheet |
 | [`production/05-pod-validation.md`](./production/05-pod-validation.md) | Provider comparison, verified blank specifications, cost model template, sample plan and scorecard |
 | [`production/06-dashboard-verification.md`](./production/06-dashboard-verification.md) | Catalogue-API verification, the exhaustive EU bottoms check, real cost model and the conditional sample order |
+| [`production/07-printify-investigation.md`](./production/07-printify-investigation.md) | Printify investigation, the EU provider sweep, final verdict and five ranked routes |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
 
 **Exploratory identity concepts exist. No production assets, no cleared marks, no products
@@ -68,6 +69,15 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## POD CANNOT CURRENTLY SATISFY THIS SPECIFICATION — for EU fulfilment.
+>
+> **Printful: proven** — all 12 bottoms checked at API level, every branded cotton
+> sweatpant is US-only. **Printify: strongly indicated** — the Slammer hoodie and Flyer
+> jogger exist and are a genuine 350 GSM / 80-20 / 3-end-fleece match, but none of the six
+> EU/UK providers checked lists bottoms of any kind. One authenticated API call would turn
+> this from strong evidence into proof. **The founder decision between A–E is open and not
+> mine to make.**
 
 **Phase 04.5 answered the blocking question for Printful, exhaustively.** Every one of the
 12 bottoms in Printful's catalogue was checked against its own API: only 4 have EU stock
