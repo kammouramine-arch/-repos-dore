@@ -104,6 +104,8 @@ async function signUp(u) {
 let goalId = null;
 let taskId = null;
 let confirmationRequired = false;
+/** Set when a model call fails, so the metering check can tell a refund from a bug. */
+let aiCallsFailed = false;
 
 async function main() {
   console.log(`LifeOS smoke test\n  project: ${BASE}\n  anon key: set (${ANON.length} chars, not shown)\n`);
@@ -415,8 +417,15 @@ async function main() {
       token: users.a.token,
       body: { message: 'In one short sentence, what is LifeOS for?', mode: 'chat' },
     });
-    if (res.status === 503 && res.json?.error?.code === 'ai_not_configured') {
-      throw new Error('ANTHROPIC_API_KEY is not visible to the function');
+    const code = res.json?.error?.code;
+    if (code) aiCallsFailed = true;
+    if (code === 'ai_not_configured') throw new Error('ANTHROPIC_API_KEY is not set as a Supabase secret');
+    if (code === 'ai_auth') throw new Error('Anthropic rejected the key (401) — it is wrong, revoked, or from another org');
+    if (code === 'rate_limited') throw new Error('Anthropic rate-limited the request (429)');
+    if (code === 'ai_timeout') throw new Error('the model call exceeded the function timeout');
+    if (code === 'ai_unavailable') {
+      throw new Error('the key IS set and authenticated, but the Anthropic call failed — '
+        + 'most often no credit on the account. Check the function logs for the logged status and message.');
     }
     assert(res.ok, `returned ${res.status}: ${res.text?.slice(0, 240)}`);
     const reply = res.json?.message ?? res.json?.reply ?? res.json?.text ?? '';
@@ -444,7 +453,9 @@ async function main() {
   await check('daily-brief — generates and stores a briefing', async () => {
     if (ready()) return ready();
     const res = await fn('daily-brief', { token: users.a.token, body: { timezone_offset_minutes: 0 } });
-    if (res.status === 503) throw new Error('ANTHROPIC_API_KEY is not visible to the function');
+    const code = res.json?.error?.code;
+    if (code === 'ai_not_configured') throw new Error('ANTHROPIC_API_KEY is not set as a Supabase secret');
+    if (code === 'ai_unavailable') throw new Error('the Anthropic call failed — see the function logs for the logged status');
     assert(res.ok, `returned ${res.status}: ${res.text?.slice(0, 240)}`);
     const plan = await rest('/daily_plans?select=id,headline,summary&order=created_at.desc&limit=1', { token: users.a.token });
     assert(plan.json?.length === 1, 'no daily_plans row was written');
@@ -505,6 +516,9 @@ async function main() {
     assert(res.ok, `rpc returned ${res.status}`);
     const rows = Array.isArray(res.json) ? res.json : [res.json];
     const used = rows.reduce((n, r) => n + Number(r?.used ?? 0), 0);
+    if (used === 0 && aiCallsFailed) {
+      return { skip: 'the AI calls failed, and a call that produces nothing is refunded by design' };
+    }
     assert(used > 0, `no usage recorded after real AI calls: ${JSON.stringify(rows).slice(0, 200)}`);
     return `${used} unit(s) recorded across ${rows.length} meter(s)`;
   });

@@ -420,6 +420,20 @@ Deno.serve(async (req) => {
   } catch (e: any) {
     const status = e?.status ?? 500;
     const timedOut = e?.name === 'APIConnectionTimeoutError' || /timeout/i.test(String(e?.message ?? ''));
+    /*
+      The caller gets a deliberately vague message, because the reason a model call
+      failed is not a user's problem. An operator still needs it: without this line a
+      production outage looks identical whether the key is out of credit, the model is
+      unavailable or the request was malformed. Nothing user-authored and no secret is
+      included — only what the API itself reported.
+    */
+    console.error('[ai-chat] model call failed', JSON.stringify({
+      status,
+      model: spend.model,
+      type: e?.error?.error?.type ?? e?.name ?? null,
+      message: String(e?.message ?? '').slice(0, 500),
+      request_id: e?.request_id ?? null,
+    }));
     const code =
       status === 429
         ? 'rate_limited'

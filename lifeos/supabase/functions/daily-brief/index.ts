@@ -69,7 +69,15 @@ Deno.serve(async (req) => {
       .map((b: any) => b.text)
       .join('\n')
       .trim();
-  } catch {
+  } catch (e: any) {
+    // Same reasoning as ai-chat: vague to the caller, specific in the logs.
+    console.error('[daily-brief] model call failed', JSON.stringify({
+      status: e?.status ?? null,
+      model: spend.model,
+      type: e?.error?.error?.type ?? e?.name ?? null,
+      message: String(e?.message ?? '').slice(0, 500),
+      request_id: e?.request_id ?? null,
+    }));
     await refundAll(admin, user.id, billing.period.start, spend.spent as Partial<Record<Meter, number>>);
     return fail('ai_unavailable', 'Could not generate a briefing right now.', 503);
   }
