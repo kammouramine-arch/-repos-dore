@@ -87,6 +87,7 @@ Migrations, in order:
 | `20260101000300_subscriptions.sql` | Tiers, metering, `app_config`, usage functions |
 | `20260101000400_agents_insights.sql` | Agent/analysis reports, insights |
 | `20260101000500_store_events.sql` | Store event ledger, rate limits, idempotent entitlement |
+| `20260101000600_ai_router.sql` | AI request accounting, monetary budgets, provider health |
 
 Verify afterwards — the scripted way is `supabase/tests/verify.sql`, which asserts
 provisioning, metering, billing idempotency and that one user cannot read or write

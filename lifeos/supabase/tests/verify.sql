@@ -271,5 +271,73 @@ begin
   delete from public.store_events where event_id like 'verify:%';
 
   raise notice 'Checks 6-8 passed (user isolation, derived data, privacy, deletion).';
+end $$;
+
+-- ─────────────────────────────────────────────────────────────────────────────
+-- 9. AI router: monetary budgets are atomic, settle once, and cannot double-charge.
+-- ─────────────────────────────────────────────────────────────────────────────
+do $$
+declare
+  a uuid := '00000000-0000-4000-8000-00000000000a';
+  p date := date_trunc('month', now())::date;
+  v_allowed boolean;
+  v_remaining numeric;
+  v_reason text;
+  v_settled boolean;
+  v_spent numeric;
+begin
+  delete from auth.users where id = a;
+  insert into auth.users (id, email) values (a, 'verify.router@lifeos.test');
+
+  -- 9a: a reservation inside the ceiling is allowed.
+  select allowed, remaining into v_allowed, v_remaining
+    from public.reserve_ai_budget(a, p, 'verify:r1', 0.08, 0.10);
+  if not v_allowed then
+    raise exception 'FAIL 9a: a $0.08 reservation against a $0.10 ceiling was refused';
+  end if;
+
+  -- 9b: a second reservation that would breach the ceiling is refused.
+  select allowed, reason into v_allowed, v_reason
+    from public.reserve_ai_budget(a, p, 'verify:r2', 0.08, 0.10);
+  if v_allowed then
+    raise exception 'FAIL 9b: two $0.08 reservations both fit inside a $0.10 ceiling';
+  end if;
+  if v_reason is distinct from 'budget_exceeded' then
+    raise exception 'FAIL 9b: refusal reason was %, expected budget_exceeded', v_reason;
+  end if;
+
+  -- 9c: settling for less than reserved returns the difference to the budget.
+  select settled, total_spent into v_settled, v_spent
+    from public.settle_ai_budget(a, p, 'verify:r1', 0.05);
+  if not v_settled then raise exception 'FAIL 9c: settlement did not apply'; end if;
+  if v_spent <> 0.05 then raise exception 'FAIL 9c: spent is %, expected 0.05', v_spent; end if;
+  if (select reserved from public.ai_budgets where user_id = a and period_start = p) <> 0 then
+    raise exception 'FAIL 9c: the unused reservation was not released';
+  end if;
+
+  -- 9d: replaying a settlement must not charge twice.
+  select settled, total_spent into v_settled, v_spent
+    from public.settle_ai_budget(a, p, 'verify:r1', 0.05);
+  if v_settled then raise exception 'FAIL 9d: a replayed settlement applied again'; end if;
+  if v_spent <> 0.05 then
+    raise exception 'FAIL 9d: a replay changed spend to % - settlement is not idempotent', v_spent;
+  end if;
+
+  -- 9e: the freed budget is usable again.
+  select allowed into v_allowed from public.reserve_ai_budget(a, p, 'verify:r3', 0.04, 0.10);
+  if not v_allowed then
+    raise exception 'FAIL 9e: $0.04 was refused with only $0.05 of a $0.10 ceiling spent';
+  end if;
+
+  -- 9f: a failed call settles at zero and releases its hold without charging.
+  select settled into v_settled from public.settle_ai_budget(a, p, 'verify:r3', 0);
+  if not v_settled then raise exception 'FAIL 9f: a zero settlement did not release the hold'; end if;
+  if (select spent from public.ai_budgets where user_id = a and period_start = p) <> 0.05 then
+    raise exception 'FAIL 9f: a failed call changed the settled spend';
+  end if;
+
+  delete from auth.users where id = a;
+
+  raise notice 'Check 9 passed: AI budget reservation, settlement and idempotency.';
   raise notice 'LifeOS database verification: ALL CHECKS PASSED.';
 end $$;

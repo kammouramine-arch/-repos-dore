@@ -1,0 +1,18 @@
+{
+  // The edge functions are Deno code and are excluded from the app's tsconfig, so
+  // nothing typechecked them outside CI's `deno check`. This configuration checks the
+  // provider-neutral AI layer with plain tsc — it is pure TypeScript with no Deno
+  // globals, so a type error is caught here in seconds rather than at deploy time.
+  "compilerOptions": {
+    "target": "ES2022",
+    "lib": ["ES2022", "DOM"],
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "types": []
+  },
+  "include": ["_shared/ai/**/*.ts"]
+}

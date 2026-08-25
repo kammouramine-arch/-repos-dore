@@ -65,7 +65,7 @@
     "test": "jest",
     "test:watch": "jest --watch",
     "test:ci": "jest --ci --coverage",
-    "typecheck": "tsc --noEmit",
+    "typecheck": "tsc --noEmit && npm run typecheck:ai",
     "lint": "eslint . --ext .ts,.tsx",
     "format": "prettier --write \"**/*.{ts,tsx,js,json,md,sql}\"",
     "db:reset": "supabase db reset",
@@ -84,7 +84,8 @@
     "release:check": "node scripts/release-check.mjs",
     "icons": "node scripts/generate-icons.mjs",
     "db:verify": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/verify.sql",
-    "db:bundle": "node scripts/build-sql.mjs"
+    "db:bundle": "node scripts/build-sql.mjs",
+    "typecheck:ai": "tsc -p supabase/functions/tsconfig.check.json"
   },
   "private": true,
   "jest": {
@@ -110,5 +111,5 @@
       "<rootDir>/__tests__/helpers/"
     ]
   },
-  "description": "LifeOS — your AI operating system for life."
+  "description": "LifeOS \u2014 your AI operating system for life."
 }

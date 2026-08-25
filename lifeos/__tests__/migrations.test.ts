@@ -29,6 +29,7 @@ describe('migrations', () => {
       '20260101000300_subscriptions.sql',
       '20260101000400_agents_insights.sql',
       '20260101000500_store_events.sql',
+      '20260101000600_ai_router.sql',
     ]);
 
     const guide = fs.readFileSync(path.resolve(__dirname, '../docs/DEPLOYMENT.md'), 'utf8');
