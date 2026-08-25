@@ -79,7 +79,11 @@ which fail on material and decoration method and are not considered.
 
 # 3. THE TRADE-OFF — YOUR DECISION
 
-## PATH 1 — Proceed on Printful. Range is S–4XL. No XS in Chapter 001.
+## PATH 1 — Proceed on Printful. No XS in Chapter 001.
+
+*Correction applied: size ranges are stated per SKU, never collection-wide. The hoodie is
+stocked S–2XL and MC1087 S–4XL — those are different ranges and must not be merged into a
+single claim.*
 
 Order MC1087 as the hero tee. Everything is verified, available now, and cheap.
 

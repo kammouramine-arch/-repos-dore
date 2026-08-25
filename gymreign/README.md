@@ -55,6 +55,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/07-printify-investigation.md`](./production/07-printify-investigation.md) | Printify investigation, the EU provider sweep, final verdict and five ranked routes |
 | [`production/08-sample-plan.md`](./production/08-sample-plan.md) | The sample order with exact variants, artwork test plate, datum placements and the scorecard |
 | [`production/09-hero-tee-resolution.md`](./production/09-hero-tee-resolution.md) | Hero tee investigation, the XS finding, five compared alternatives, and the final order with checkout scenarios |
+| [`production/10-path2-viability.md`](./production/10-path2-viability.md) | Path 2 viability — 19-point investigation, the YELLOW verdict, and the credential-free route to close the gap |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -73,6 +74,18 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## PATH 2 — STANLEY/STELLA VIA PRINTIFY · 🟡 YELLOW
+>
+> The Freestyler tee and Slammer hoodie are **both in Printify's catalogue at the right
+> specifications**, and Stanley/Stella's own sheets confirm **XXS→3XL** and a shared
+> **Black C002** across the family — one manufacturer, one black reference, one platform
+> that also holds the archived jogger. **But no public source exposes which print provider
+> serves which blueprint: UNVERIFIED — AUTHENTICATED PROVIDER ACCESS REQUIRED.** That gap
+> is closable by the founder in a free account without sharing any credential —
+> see [`10-path2-viability.md`](./production/10-path2-viability.md) §6.
+>
+> **Size ranges are stated per SKU, never collection-wide**, until final products are locked.
 
 > ## OPEN: THE XS QUESTION IS PROVIDER-LEVEL, NOT TEE-LEVEL
 >
