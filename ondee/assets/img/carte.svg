@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Carte de la dureté de l'eau en France">
+<rect width="800" height="800" fill="#0E3A45"/>
+<path d="M400 120l150 60 60 130-30 170-90 130-90 60-100-60-90-130-30-170 60-130z" fill="#12495A" stroke="#9FC7D2" stroke-width="2" opacity=".9"/>
+<g opacity=".9">
+<circle cx="400" cy="250" r="52" fill="#D89B22" opacity=".55"/>
+<circle cx="330" cy="200" r="42" fill="#D89B22" opacity=".6"/>
+<circle cx="480" cy="300" r="46" fill="#D89B22" opacity=".45"/>
+<circle cx="300" cy="420" r="40" fill="#9FC7D2" opacity=".35"/>
+<circle cx="480" cy="520" r="44" fill="#D89B22" opacity=".4"/>
+<circle cx="360" cy="560" r="38" fill="#9FC7D2" opacity=".3"/>
+</g>
+<g fill="#F6F4EF" font-family="IBM Plex Mono,monospace" font-size="15">
+<circle cx="400" cy="250" r="4"/><text x="414" y="255">PARIS · 25 °f</text>
+<circle cx="330" cy="200" r="4"/><text x="344" y="205">LILLE · 35 °f</text>
+<circle cx="360" cy="560" r="4"/><text x="374" y="565">TOULOUSE · 9 °f</text>
+</g>
+<text x="400" y="726" font-family="IBM Plex Mono,monospace" font-size="16" letter-spacing="3" text-anchor="middle" fill="#9FC7D2">DONNÉES SISE-EAUX · MINISTÈRE DE LA SANTÉ</text>
+</svg>

@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Installation sans outil">
+<rect width="800" height="800" fill="#FFFFFF"/>
+<circle cx="400" cy="400" r="230" fill="#E7F0F2"/>
+<g stroke="#0E3A45" stroke-width="10" stroke-linecap="round" fill="none">
+<path d="M300 470c0-40 26-64 60-84 26-16 40-34 40-58a40 40 0 1 0-80 0"/>
+<circle cx="360" cy="520" r="7" fill="#0E3A45" stroke="none"/>
+</g>
+<g stroke="#0E3A45" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" fill="none" transform="translate(60,0)">
+<path d="M420 330l70 70"/><path d="M470 300l60 60-40 40-60-60z"/>
+</g>
+<text x="400" y="700" font-family="IBM Plex Mono,monospace" font-size="21" letter-spacing="4" text-anchor="middle" fill="#0E3A45">SANS OUTIL · 60 SECONDES</text>
+</svg>

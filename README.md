@@ -211,3 +211,16 @@ Chrome, Edge, Firefox et Safari récents, desktop et mobile.
 proprement sur les navigateurs anciens : le contenu reste visible, seules les
 animations disparaissent.
 Points de rupture : 1180 / 1024 / 900 / 620 px.
+
+---
+
+## Autre projet dans ce dépôt
+
+**`ondee/`** — ONDÉE, marque de pommeaux de douche filtrants (réduction du
+chlore, cartouche 90 jours). Projet distinct de RÉVA : recherche produit,
+scoring, fournisseurs, économie unitaire, marque, offre, site complet et plan
+publicitaire.
+
+- `ondee/DOSSIER.md` — recherche, scoring des 12 candidats, preuves, fournisseurs, économie unitaire, marque, offre, verdict
+- `ondee/PUBLICITE.md` — 12 concepts publicitaires, 30 idées de contenu organique
+- `ondee/README.md` — le site, son intégration Shopify, la liste de prise de vue

@@ -1,0 +1,11 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Coupe technique du pommeau ONDÉE">
+<rect width="800" height="800" fill="#FFFFFF"/>
+<rect x="180" y="120" width="440" height="560" rx="28" fill="#F6F4EF" stroke="#CFC8BA" stroke-width="2"/>
+<g stroke="#9FC7D2" stroke-width="3" stroke-linecap="round" opacity=".7"><path d="M400 150v42"/><path d="M366 162v24"/><path d="M434 162v24"/></g>
+<rect x="240" y="206" width="320" height="80" rx="10" fill="#DCE7EA"/><text x="400" y="254" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#0E3A45">1 · TAMIS 5 µm</text>
+<rect x="240" y="298" width="320" height="80" rx="10" fill="#F2EBD8"/><text x="400" y="346" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#8a5f0d">2 · KDF-55</text>
+<rect x="240" y="390" width="320" height="80" rx="10" fill="#E6E9E3"/><text x="400" y="438" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#3D6B4A">3 · SULFITE DE CALCIUM</text>
+<rect x="240" y="482" width="320" height="80" rx="10" fill="#E4E1DA"/><text x="400" y="530" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#3B4A4E">4 · CHARBON ACTIF</text>
+<rect x="240" y="574" width="320" height="56" rx="10" fill="#DCE7EA"/><text x="400" y="610" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#0E3A45">5 · TAMIS FINAL</text>
+<g stroke="#9FC7D2" stroke-width="3" stroke-linecap="round" opacity=".7"><path d="M330 654v40"/><path d="M400 654v56"/><path d="M470 654v40"/></g>
+</svg>
