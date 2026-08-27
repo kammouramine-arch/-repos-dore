@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>OG card renderer — The Unknown File</title>
+<link rel="stylesheet" href="../assets/fonts/fonts.css">
+<link rel="stylesheet" href="../assets/css/uf.css">
+<style>
+  /* Rendered at exactly 1200x630 and screenshotted. See tools/make-og.sh. */
+  html,body{margin:0;background:#050607}
+  .og-card{width:1200px;height:630px;position:relative;overflow:hidden;display:flex;flex-direction:column;justify-content:space-between;padding:64px 72px;isolation:isolate}
+  .og-bg{position:absolute;inset:0;z-index:-2}
+  .og-bg img{width:100%;height:100%;object-fit:cover}
+  .og-veil{position:absolute;inset:0;z-index:-1;
+    background:linear-gradient(100deg,rgba(5,6,7,.95) 0%,rgba(5,6,7,.8) 40%,rgba(5,6,7,.35) 72%,rgba(5,6,7,.72) 100%),
+               linear-gradient(180deg,rgba(5,6,7,.6),rgba(5,6,7,.2) 40%,rgba(5,6,7,.85))}
+  .og-scan{position:absolute;inset:0;z-index:1;pointer-events:none;
+    background:repeating-linear-gradient(180deg,rgba(236,234,229,.03) 0 1px,transparent 1px 3px)}
+  .og-top{display:flex;justify-content:space-between;align-items:flex-start;position:relative;z-index:2}
+  .og-mk{font-family:'Inter',sans-serif;font-weight:600;font-size:17px;letter-spacing:.32em;color:#ECEAE5}
+  .og-mk i{color:#D9202B;font-style:normal}
+  .og-sub{font-family:'IBM Plex Mono',monospace;font-size:10px;letter-spacing:.34em;color:#6B6B67;margin-top:7px}
+  .og-mid{position:relative;z-index:2;max-width:840px}
+  .og-kick{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:.26em;text-transform:uppercase;color:#D9202B;margin-bottom:24px}
+  h1{font-family:'Inter',sans-serif;font-weight:200;letter-spacing:-.045em;line-height:.94;color:#ECEAE5;text-transform:uppercase;margin:0}
+  h1.og-serif{font-family:'Instrument Serif',serif;font-weight:400;text-transform:none;letter-spacing:-.015em;line-height:1}
+  .og-tag{font-family:'Instrument Serif',serif;font-style:italic;font-size:34px;color:#C9C7C2;margin-top:28px;line-height:1.3}
+  .og-rule{height:1px;background:rgba(236,234,229,.14);margin:34px 0;position:relative}
+  .og-rule::after{content:'';position:absolute;left:0;top:0;height:1px;width:180px;background:#B4121C}
+  .og-bot{display:flex;padding-top:8px;border-top:1px solid rgba(236,234,229,.1);justify-content:space-between;align-items:flex-end;position:relative;z-index:2}
+  .og-meta{font-family:'IBM Plex Mono',monospace;font-size:14px;letter-spacing:.2em;text-transform:uppercase;color:#C9C7C2}
+  .og-stamp{font-family:'IBM Plex Mono',monospace;font-size:15px;font-weight:500;letter-spacing:.26em;color:#D9202B;
+    border:2px solid #B4121C;padding:11px 18px;transform:rotate(-2.5deg);opacity:.9}
+</style></head>
+<body>
+<div class="og-card" id="og-card"></div>
+<script>
+const V = {
+  default: { bg:'../assets/img/hero.svg', kick:'The case archive',
+    h:'<h1 style="font-size:104px">The<br>Unknown File</h1>',
+    tag:'Some cases were never meant to be solved.',
+    meta:'Interactive investigations', stamp:'Open' },
+  archive: { bg:'../assets/img/case-001.svg', kick:'Index of files',
+    h:'<h1 style="font-size:96px">The Archive</h1>',
+    tag:'Twelve files. Two of them are open.',
+    meta:'theunknownfile.com/archive', stamp:'12 files' },
+  'case-001': { bg:'../assets/img/case-001.svg', kick:'Case #001 · Unresolved',
+    h:'<h1 class="og-serif" style="font-size:96px">The Hollow Hour</h1>',
+    tag:'At 02:41 the door opened. At 03:38 it opened again.',
+    meta:'24 exhibits · Advanced · 2–3 hours', stamp:'Fiction' },
+  free: { bg:'../assets/img/case-000.svg', kick:'Case #000 · Free sample file',
+    h:'<h1 class="og-serif" style="font-size:96px">The Last Guest</h1>',
+    tag:'Three impossible things in one small room.',
+    meta:'6 exhibits · 15 minutes · free', stamp:'Free' },
+};
+const v = V[new URLSearchParams(location.search).get('v') || 'default'];
+document.getElementById('og-card').innerHTML = `
+  <div class="og-bg"><img src="${v.bg}" alt=""></div>
+  <div class="og-veil"></div>
+  <div class="og-top">
+    <div><div class="og-mk">THE UNKNOWN F<i>I</i>LE</div><div class="og-sub">CASE ARCHIVE</div></div>
+    <span class="og-stamp">${v.stamp.toUpperCase()}</span>
+  </div>
+  <div class="og-mid">
+    <p class="og-kick">${v.kick}</p>
+    ${v.h}
+    <div class="og-rule"></div>
+    <p class="og-tag">${v.tag}</p>
+  </div>
+  <div class="og-bot"><span class="og-meta">${v.meta}</span><span class="og-meta">theunknownfile.com</span></div>`;
+</script>
+</body></html>

@@ -1,0 +1,63 @@
+<!--meta {
+  "title": "Contact | The Unknown File",
+  "description": "Get in touch about a case, a fault, a refund, press or collaboration.",
+  "ogTitle": "CONTACT — The Unknown File",
+  "ogDescription": "One address, read by a person.",
+  "priority": "0.5"
+} -->
+
+<section class="section page-top" aria-labelledby="h">
+  <div class="wrap">
+    <p class="eyebrow rv"><b>Contact</b></p>
+    <div class="grid grid-2" style="gap:clamp(2rem,6vw,4rem);align-items:start">
+      <div class="rv">
+        <h1 class="display" id="h">Say what you need.</h1>
+        <p class="lead mt-3">One address, read by a person, usually within two working days.</p>
+
+        <div class="meta mt-4">
+          <div class="meta__row"><span class="meta__k">General</span><span class="meta__v"><a href="mailto:contact@theunknownfile.com" style="border-bottom:1px solid var(--line-strong)">contact@theunknownfile.com</a></span></div>
+          <div class="meta__row"><span class="meta__k">A fault in a case</span><span class="meta__v"><a href="mailto:contact@theunknownfile.com?subject=Fault%20report" style="border-bottom:1px solid var(--line-strong)">Report it</a> — include the case number.</span></div>
+          <div class="meta__row"><span class="meta__k">Refunds</span><span class="meta__v">Quote your order reference. <a href="refunds.html" style="border-bottom:1px solid var(--line-strong)">Policy</a>.</span></div>
+          <div class="meta__row"><span class="meta__k">Press &amp; collaboration</span><span class="meta__v"><a href="mailto:contact@theunknownfile.com?subject=Press" style="border-bottom:1px solid var(--line-strong)">contact@theunknownfile.com</a></span></div>
+          <div class="meta__row"><span class="meta__k">Short-form</span><span class="meta__v"><a href="https://www.tiktok.com/@theunknownfile" rel="noopener" target="_blank" style="border-bottom:1px solid var(--line-strong)">TikTok</a> · <a href="https://www.instagram.com/theunknownfile" rel="noopener" target="_blank" style="border-bottom:1px solid var(--line-strong)">Instagram</a></span></div>
+        </div>
+
+        <div class="disclaimer mt-4">
+          <p><b>A note on real cases.</b> If you are connected to a documented case we have covered and something we published is wrong, write to us and we will correct or remove it. That request goes to the front of the queue.</p>
+        </div>
+      </div>
+
+      <form class="dossier rv" data-contact data-rv-delay="100" novalidate>
+        <div class="dossier__hd"><span class="mono" style="color:var(--bone-100)">Message</span></div>
+        <div class="dossier__body stack">
+          <div class="field">
+            <label class="label" for="cname">Name</label>
+            <input class="input" id="cname" name="name" autocomplete="name" placeholder="Optional">
+          </div>
+          <div class="field">
+            <label class="label" for="cemail">Email</label>
+            <input class="input" id="cemail" name="email" type="email" inputmode="email" autocomplete="email" placeholder="you@example.com" required>
+          </div>
+          <div class="field">
+            <label class="label" for="ctopic">Subject</label>
+            <select class="select" id="ctopic" name="topic">
+              <option>A question about a case</option>
+              <option>A fault or bug</option>
+              <option>A refund</option>
+              <option>Press or collaboration</option>
+              <option>A correction to something we published</option>
+              <option>Something else</option>
+            </select>
+          </div>
+          <div class="field">
+            <label class="label" for="cmsg">Message</label>
+            <textarea class="textarea" id="cmsg" name="message" placeholder="As much or as little as you like." required></textarea>
+          </div>
+          <p class="hint" data-contact-note hidden></p>
+          <button class="btn btn--primary btn--block" type="submit">Send</button>
+          <p class="hint">We keep your address only to answer you. Nothing is added to a list unless you ask.</p>
+        </div>
+      </form>
+    </div>
+  </div>
+</section>

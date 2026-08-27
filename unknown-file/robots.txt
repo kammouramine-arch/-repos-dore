@@ -1,0 +1,6 @@
+User-agent: *
+Allow: /
+Disallow: /checkout.html
+Disallow: /order-complete.html
+
+Sitemap: https://theunknownfile.com/sitemap.xml

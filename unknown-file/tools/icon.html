@@ -1,0 +1,19 @@
+<!doctype html><html><head><meta charset="utf-8"><title>App icon</title>
+<style>
+  /* Rendered square by tools/make-og.sh. Size comes from ?s= */
+  html,body{margin:0;background:#050607}
+  .ic{position:relative;background:#050607;display:grid;place-items:center;overflow:hidden}
+  .ic svg{width:62%;height:62%}
+</style></head><body>
+<div class="ic" id="ic"></div>
+<script>
+const s = +(new URLSearchParams(location.search).get('s') || 180);
+const ic = document.getElementById('ic');
+ic.style.width = ic.style.height = s + 'px';
+ic.innerHTML = `<svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
+  <rect x="0"  y="8"  width="100" height="9" fill="#ECEAE5"/>
+  <rect x="0"  y="33" width="66"  height="9" fill="#ECEAE5"/>
+  <rect x="0"  y="58" width="100" height="9" fill="#B4121C"/>
+  <rect x="0"  y="83" width="42"  height="9" fill="#ECEAE5"/>
+</svg>`;
+</script></body></html>

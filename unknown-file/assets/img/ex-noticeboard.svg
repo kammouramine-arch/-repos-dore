@@ -1,0 +1,77 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img"
+ aria-label="Evidence photograph: a cork noticeboard with a rota and a tide card pinned to it, beside a wall clock whose hands read one forty-seven.">
+<defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="4" seed="41" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".55"/></feComponentTransfer></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="wall" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1A1C1E"/><stop offset="1" stop-color="#0E1012"/></linearGradient>
+ <linearGradient id="cork" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#42382A"/><stop offset="1" stop-color="#2C251B"/></linearGradient>
+ <radialGradient id="room" cx="42%" cy="24%" r="70%"><stop offset="0" stop-color="#D9C9A8" stop-opacity=".16"/><stop offset="100%" stop-color="#D9C9A8" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1400" height="1050" fill="url(#wall)"/>
+  <rect width="1400" height="1050" fill="url(#room)"/>
+  <!-- noticeboard -->
+  <g transform="translate(120 180)">
+    <rect x="-14" y="-14" width="748" height="628" fill="#12100C"/>
+    <rect width="720" height="600" fill="url(#cork)"/>
+    <rect width="720" height="600" fill="#000" opacity=".22"/>
+    <!-- rota sheet -->
+    <g transform="translate(48 46) rotate(-1.2)">
+      <rect width="300" height="380" fill="#D6D2C8" opacity=".9"/>
+      <text x="20" y="40" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="21" letter-spacing="3" fill="#2A2A28">ROTA 2-8 FEB</text>
+      <g fill="#3A3A36" opacity=".62">
+        <rect x="20" y="64" width="260" height="2"/>
+        <rect x="20" y="96" width="196" height="9"/><rect x="20" y="128" width="230" height="9"/>
+        <rect x="20" y="160" width="168" height="9"/><rect x="20" y="192" width="214" height="9"/>
+        <rect x="20" y="224" width="188" height="9"/><rect x="20" y="256" width="240" height="9"/>
+        <rect x="20" y="288" width="150" height="9"/><rect x="20" y="320" width="206" height="9"/></g>
+      <circle cx="150" cy="16" r="7" fill="#8E1A20"/>
+    </g>
+    <!-- tide card -->
+    <g transform="translate(392 84) rotate(1.6)">
+      <rect width="252" height="200" fill="#C9C4B6" opacity=".88"/>
+      <text x="18" y="34" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="17" letter-spacing="3" fill="#2A2A28">TIDES FEB 2009</text>
+      <g fill="#3A3A36" opacity=".6"><rect x="18" y="52" width="216" height="2"/>
+        <rect x="18" y="76" width="150" height="8"/><rect x="18" y="102" width="180" height="8"/>
+        <rect x="18" y="128" width="132" height="8"/><rect x="18" y="154" width="166" height="8"/></g>
+      <circle cx="126" cy="14" r="7" fill="#8E1A20"/>
+    </g>
+    <!-- pinned polaroid-ish square, deliberately unreadable -->
+    <g transform="translate(410 322) rotate(-2.4)">
+      <rect width="212" height="212" fill="#0D1014"/><rect x="10" y="10" width="192" height="152" fill="#1B222C"/>
+      <circle cx="106" cy="6" r="7" fill="#8E1A20"/></g>
+  </g>
+  <!-- the wall clock: 01:47 -->
+  <g transform="translate(1050 300)">
+    <circle r="176" fill="#0A0C0F"/><circle r="164" fill="#E4E1D9"/><circle r="164" fill="#0A0C0F" opacity=".07"/>
+    <g stroke="#23231F" stroke-width="5">
+      <path d="M0 -146 V-124"/><path d="M0 146 V124"/><path d="M-146 0 H-124"/><path d="M146 0 H124"/>
+      <path d="M73 -126 L62 -107" stroke-width="3"/><path d="M126 -73 L107 -62" stroke-width="3"/>
+      <path d="M126 73 L107 62" stroke-width="3"/><path d="M73 126 L62 107" stroke-width="3"/>
+      <path d="M-73 126 L-62 107" stroke-width="3"/><path d="M-126 73 L-107 62" stroke-width="3"/>
+      <path d="M-126 -73 L-107 -62" stroke-width="3"/><path d="M-73 -126 L-62 -107" stroke-width="3"/></g>
+    <!-- hour hand at 1h47m => 53.5 deg ; minute hand at 47min => 282 deg -->
+    <g stroke="#1B1B18" stroke-linecap="round">
+      <path d="M0 0 L72 -53" stroke-width="11"/>
+      <path d="M0 0 L-135 28" stroke-width="7"/></g>
+    <circle r="9" fill="#8E1A20"/>
+    <text y="82" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="15" letter-spacing="3" fill="#5A584F">KESTREL PT</text>
+  </g>
+  <!-- generator indicator, unlit -->
+  <g transform="translate(1050 640)">
+    <rect x="-72" y="-30" width="144" height="60" fill="#0B0E12" stroke="#22262C" stroke-width="2"/>
+    <circle cx="-38" cy="0" r="11" fill="#191C21"/><circle cx="0" cy="0" r="11" fill="#191C21"/>
+    <circle cx="38" cy="0" r="11" fill="#191C21"/>
+    <text y="52" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="3" fill="#4C5158">GEN / GRID / FAULT</text>
+  </g>
+  <radialGradient id="vg" cx="40%" cy="34%" r="76%"><stop offset="40%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".8"/></radialGradient><rect width="1400" height="1050" fill="url(#vg)"/>
+  <rect width="1400" height="1050" filter="url(#grain)" opacity=".095" style="mix-blend-mode:overlay"/>
+  
+  <g fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".26">
+    <path d="M28 66 V28 H66"/><path d="M1334 28 H1372 V66"/>
+    <path d="M1372 984 V1022 H1334"/><path d="M66 1022 H28 V984"/>
+  </g>
+  <text x="40" y="1010" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="4" fill="#ECEAE5" opacity=".5">FRAME 0418</text>
+  <text x="1360" y="1010" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="3" fill="#ECEAE5" opacity=".34">04 FEB 2009  03:58:41</text>
+</svg>

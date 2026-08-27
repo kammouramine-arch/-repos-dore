@@ -1,0 +1,100 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img"
+ aria-label="Scale site plan of Kestrel Point Field Station: the station block with one exterior door, a roofed walkway to the generator shed, a gravel pier path leading to a timber pier, a weather mast on the rise, and a shore path west.">
+<defs>
+ <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="3" seed="71" stitchTiles="stitch"/>
+  <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".45"/></feComponentTransfer></filter>
+ <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <rect width="10" height="10" fill="none"/><rect width="1.1" height="10" fill="#ECEAE5" opacity=".26"/></pattern>
+ <pattern id="hatch2" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+  <rect width="16" height="16" fill="none"/><rect width="1" height="16" fill="#ECEAE5" opacity=".13"/></pattern>
+ <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+  <path d="M50 0 H0 V50" fill="none" stroke="#ECEAE5" stroke-width=".6" opacity=".055"/></pattern>
+ <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+  <path d="M0 0 L10 5 L0 10 z" fill="#ECEAE5" opacity=".55"/></marker></defs>
+ <rect width="1400" height="1050" fill="#080A0D"/>
+ <rect width="1400" height="1050" fill="url(#grid)"/>
+ <!-- shoreline -->
+ <path d="M120 812 C300 796 420 838 560 828 C760 814 900 856 1060 842 C1180 832 1260 852 1340 846"
+       fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".45"/>
+ <path d="M120 812 C300 796 420 838 560 828 C760 814 900 856 1060 842 C1180 832 1260 852 1340 846 L1340 1010 L120 1010 Z"
+       fill="url(#hatch2)" opacity=".9"/>
+ <text x="1150" y="930" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="17" letter-spacing="2.4" fill="#ECEAE5" opacity=".38">ARDMAIR SOUND</text>
+
+ <!-- station block -->
+ <g>
+  <rect x="430" y="380" width="330" height="200" fill="url(#hatch)" stroke="#ECEAE5" stroke-width="2" opacity=".92"/>
+  <g stroke="#ECEAE5" stroke-width="1.2" opacity=".55">
+    <path d="M430 470 H760"/><path d="M540 380 V470"/><path d="M650 380 V470"/>
+    <path d="M540 470 V580"/></g>
+  <text x="452" y="412" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".62">ROOMS 1-4</text>
+  <text x="452" y="502" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".62">COMMON ROOM</text>
+  <text x="566" y="502" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".62">VESTIBULE</text>
+  <!-- the single exterior door -->
+  <g stroke="#D9202B" stroke-width="4"><path d="M760 520 V566"/></g>
+  <path d="M760 520 A46 46 0 0 1 806 566" fill="none" stroke="#D9202B" stroke-width="1.2" opacity=".6" stroke-dasharray="4 4"/>
+  <text x="818" y="548" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2.4" fill="#ECEAE5" opacity=".85">D1 — SOLE EXTERIOR DOOR</text>
+ </g>
+
+ <!-- covered walkway + generator shed -->
+ <g>
+  <path d="M596 380 L596 250 L820 250" fill="none" stroke="#ECEAE5" stroke-width="16" opacity=".12"/>
+  <path d="M596 380 L596 250 L820 250" fill="none" stroke="#ECEAE5" stroke-width="1.4" opacity=".55" stroke-dasharray="9 7"/>
+  <rect x="820" y="196" width="170" height="112" fill="url(#hatch)" stroke="#ECEAE5" stroke-width="2" opacity=".85"/>
+  <text x="905" y="258" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">GEN. SHED</text>
+  <text x="600" y="222" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2.4" fill="#ECEAE5" opacity=".8">COVERED WALKWAY — ROOFED, NO SNOW</text>
+ </g>
+
+ <!-- pier path + pier -->
+ <g>
+  <path d="M806 566 C900 606 980 664 1046 716" fill="none" stroke="#ECEAE5" stroke-width="22" opacity=".08"/>
+  <path d="M806 566 C900 606 980 664 1046 716" fill="none" stroke="#ECEAE5" stroke-width="1.4" opacity=".6"/>
+  <text x="880" y="652" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">PIER PATH — GRAVEL, EXPOSED</text>
+  <path d="M1046 716 L1214 872" stroke="#ECEAE5" stroke-width="12" opacity=".3"/>
+  <path d="M1046 716 L1214 872" stroke="#ECEAE5" stroke-width="1.4" opacity=".7"/>
+  <g stroke="#ECEAE5" stroke-width="1" opacity=".4">
+   <path d="M1074 730 L1060 758"/><path d="M1114 768 L1100 796"/><path d="M1154 806 L1140 834"/></g>
+  <text x="1222" y="880" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="15" letter-spacing="2.4" fill="#ECEAE5" opacity=".78">PIER</text>
+  <circle cx="1136" cy="828" r="8" fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+  <text x="1096" y="812" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".55">MOORING</text>
+ </g>
+
+ <!-- weather mast -->
+ <g transform="translate(300 690)">
+  <path d="M0 -40 V30" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+  <path d="M-18 -40 H18" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+  <path d="M-26 30 L0 -40 L26 30" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".4"/>
+  <circle cy="-46" r="4" fill="#D9202B"/>
+  <text x="0" y="60" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">WEATHER MAST</text>
+  <text x="0" y="80" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="11" letter-spacing="2.4" fill="#ECEAE5" opacity=".4">CABLING UNDERGROUND</text>
+ </g>
+ <path d="M430 520 C400 560 350 620 316 660" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".3" stroke-dasharray="3 6"/>
+
+ <!-- shore path -->
+ <path d="M430 560 C330 600 230 640 120 668" fill="none" stroke="#ECEAE5" stroke-width="1.4" opacity=".45" stroke-dasharray="12 8"/>
+ <text x="130" y="646" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="13" letter-spacing="2.4" fill="#ECEAE5" opacity=".55">SHORE PATH — EXPOSED, W</text>
+
+ <!-- dimensions -->
+ <g opacity=".5"><path d="M806 596 L1046 742" stroke="#ECEAE5" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/></g><text x="960.0" y="679.0" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2" fill="#ECEAE5" opacity=".62">62 m</text>
+ <g opacity=".5"><path d="M608 342 L830 342" stroke="#ECEAE5" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/></g><text x="719.0" y="328.0" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2" fill="#ECEAE5" opacity=".62">18 m</text>
+ <g opacity=".5"><path d="M1052 742 L1210 888" stroke="#ECEAE5" stroke-width="1" marker-start="url(#ar)" marker-end="url(#ar)"/></g><text x="1171.0" y="823.0" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="14" letter-spacing="2" fill="#ECEAE5" opacity=".62">24 m</text>
+
+ <g transform="translate(1250 190) rotate(0)" opacity=".6">
+  <path d="M0 -46 L13 24 L0 12 L-13 24 Z" fill="#ECEAE5"/>
+  <circle r="52" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".45"/>
+  <text y="-58" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="17" letter-spacing="3" fill="#ECEAE5">N</text></g>
+ <g transform="translate(52 910)" opacity=".55">
+  <path d="M0 0 H180" stroke="#ECEAE5" stroke-width="2"/>
+  <path d="M0 -7 V7 M60 -5 V5 M120 -5 V5 M180 -7 V7" stroke="#ECEAE5" stroke-width="2"/>
+  <text x="0" y="26" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">0</text><text x="180" y="26" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">30 m</text>
+ </g>
+
+ <rect x="24" y="24" width="1352" height="1002" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".22"/>
+ <rect x="36" y="36" width="1328" height="978" fill="none" stroke="#ECEAE5" stroke-width=".6" opacity=".12"/>
+ <g font-family="ui-monospace,Menlo,Consolas,monospace" fill="#ECEAE5">
+  <text x="52" y="80" font-size="24" letter-spacing="7" opacity=".82">KESTREL POINT FIELD STATION</text>
+  <text x="52" y="108" font-size="15" letter-spacing="4" opacity=".4">SITE PLAN · CALDON ATMOSPHERIC TRUST 2004 · SHEET 1 OF 1</text>
+  <text x="1348" y="998" text-anchor="end" font-size="15" letter-spacing="4" opacity=".4">SCALE AS DRAWN</text>
+  <text x="52" y="998" font-size="15" letter-spacing="4" opacity=".4">THE UNKNOWN FILE — FICTIONAL GEOGRAPHY</text>
+ </g>
+ <rect width="1400" height="1050" filter="url(#grain)" opacity=".05" style="mix-blend-mode:overlay"/>
+</svg>

@@ -1,0 +1,34 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img"
+     aria-label="A sealed case cover: redacted lines over a dark ground.">
+<defs>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency="1.1" numOctaves="4" seed="23" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope=".5"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2.2"/></filter>
+  
+</defs>
+  <rect width="1200" height="900" fill="#0A0C11"/>
+  <g fill="#ECEAE5" opacity=".055">
+    <rect x="120" y="180" width="620" height="26"/><rect x="120" y="236" width="820" height="26"/>
+    <rect x="120" y="292" width="440" height="26"/><rect x="120" y="380" width="740" height="26"/>
+    <rect x="120" y="436" width="560" height="26"/><rect x="120" y="492" width="880" height="26"/>
+    <rect x="120" y="580" width="380" height="26"/><rect x="120" y="636" width="700" height="26"/>
+  </g>
+  <g fill="#ECEAE5" opacity=".14">
+    <rect x="120" y="180" width="300" height="26"/><rect x="470" y="236" width="360" height="26"/>
+    <rect x="120" y="436" width="240" height="26"/><rect x="560" y="492" width="320" height="26"/>
+    <rect x="300" y="636" width="410" height="26"/>
+  </g>
+  <g transform="translate(600 450) rotate(-8)">
+    <rect x="-230" y="-56" width="460" height="112" fill="none" stroke="#B4121C" stroke-width="4" opacity=".8"/>
+    <text x="0" y="16" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace"
+          font-size="52" letter-spacing="14" fill="#D9202B" opacity=".85">SEALED</text>
+  </g>
+  <pattern id="scan" width="4" height="4" patternUnits="userSpaceOnUse"><rect width="4" height="1" fill="#ECEAE5" opacity=".5"/></pattern><rect width="1200" height="900" fill="url(#scan)" opacity=".05"/>
+  <radialGradient id="vg" cx="50%" cy="50%" r="78%"><stop offset="40%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".72"/></radialGradient><rect width="1200" height="900" fill="url(#vg)"/>
+  <rect width="1200" height="900" filter="url(#grain)" opacity=".11" style="mix-blend-mode:overlay"/>
+</svg>

@@ -1,0 +1,504 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Unknown File — Interactive Mystery Cases & Investigations</title>
+<meta name="description" content="Interactive mystery investigations. You are handed a complete case file — evidence, statements, timelines, contradictions — and you work out what happened. Start with a free case.">
+<link rel="canonical" href="https://theunknownfile.com/">
+<meta name="theme-color" content="#050607">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="index,follow">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050607'/%3E%3Crect x='6' y='7' width='20' height='2' fill='%23ECEAE5'/%3E%3Crect x='6' y='13' width='14' height='2' fill='%23ECEAE5'/%3E%3Crect x='6' y='19' width='20' height='2' fill='%23B4121C'/%3E%3Crect x='6' y='25' width='9' height='2' fill='%23ECEAE5'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<meta property="og:site_name" content="The Unknown File">
+<meta property="og:title" content="THE UNKNOWN FILE">
+<meta property="og:description" content="Some cases were never meant to be solved. Interactive investigations you actually have to solve.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theunknownfile.com/">
+<meta property="og:image" content="https://theunknownfile.com/assets/img/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="THE UNKNOWN FILE">
+<meta name="twitter:description" content="Some cases were never meant to be solved. Interactive investigations you actually have to solve.">
+<meta name="twitter:image" content="https://theunknownfile.com/assets/img/og-default.png">
+
+<link rel="preload" href="assets/fonts/inter-200-600-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/uf.css">
+
+<script>document.documentElement.className+=' js';</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"Organization","name":"The Unknown File","url":"https://theunknownfile.com/","description":"Interactive fictional mystery investigations. Open the file, examine the evidence, file a theory.","sameAs":["https://www.tiktok.com/@theunknownfile","https://www.instagram.com/theunknownfile","https://www.youtube.com/@theunknownfile"]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"WebSite","name":"The Unknown File","url":"https://theunknownfile.com/","description":"Interactive fictional mystery investigations."}</script>
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ══════ HEADER ══════ -->
+<header class="header" data-header>
+  <div class="wrap header__inner">
+    <a class="logo" href="index.html" aria-label="The Unknown File — home">
+      <span class="logo__mark">THE UNKNOWN F<span>I</span>LE</span>
+      <span class="logo__sub">Case Archive</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="archive.html">Archive</a>
+      <a class="nav__link" href="case-001.html">Case #001</a>
+      <a class="nav__link" href="free-case.html">Free Case</a>
+      <a class="nav__link" href="transmissions.html">Transmissions</a>
+      <a class="nav__link" href="about.html">About</a>
+    </nav>
+
+    <div class="header__act">
+      <a class="btn btn--ghost btn--sm hide-sm" href="dashboard.html">My Case Files</a>
+      <button class="burger" data-nav-toggle aria-expanded="false" aria-controls="drawer" aria-label="Open menu"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════ MOBILE DRAWER ══════ -->
+<div class="drawer" id="drawer" data-drawer aria-hidden="true" aria-label="Menu">
+  <nav class="drawer__nav" aria-label="Mobile">
+    <a class="drawer__link" href="archive.html"><i>01</i>The Archive</a>
+    <a class="drawer__link" href="case-001.html"><i>02</i>Case #001</a>
+    <a class="drawer__link" href="free-case.html"><i>03</i>Free Case</a>
+    <a class="drawer__link" href="transmissions.html"><i>04</i>Transmissions</a>
+    <a class="drawer__link" href="about.html"><i>05</i>About</a>
+    <a class="drawer__link" href="faq.html"><i>06</i>FAQ</a>
+    <a class="drawer__link" href="dashboard.html"><i>07</i>My Case Files</a>
+  </nav>
+  <div class="drawer__foot">
+    <a class="btn btn--primary btn--block" href="archive.html">Enter the Archive</a>
+    <p class="mono dim" data-clock>—</p>
+  </div>
+</div>
+
+<main id="main">
+<!-- ══════════════════ HERO ══════════════════ -->
+<section class="hero scan" aria-labelledby="hero-h">
+  <div class="hero__bg">
+    <picture>
+      <source media="(min-width:860px)" srcset="assets/img/hero.svg" width="1600" height="900">
+      <img src="assets/img/hero-portrait.svg" alt="" width="900" height="1400" fetchpriority="high" decoding="async">
+    </picture>
+  </div>
+  <div class="hero__veil"></div>
+
+  <div class="wrap hero__inner">
+    <p class="mono" style="color:var(--bone-400);margin-bottom:clamp(1.5rem,4vw,2.25rem)">
+      Archive status · <span style="color:var(--red-bright)">2 files open</span> · <span class="caret">accepting investigators</span>
+    </p>
+
+    <h1 class="hero__title" id="hero-h">
+      <b>The</b><b>Unknown</b><b>File</b>
+    </h1>
+
+    <div class="hero__rule"></div>
+
+    <p class="hero__tag">Some cases were never<br>meant to be solved.</p>
+
+    <div class="hero__cta">
+      <a class="btn btn--primary btn--lg" href="archive.html">
+        Enter the Archive
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12h14M13 6l6 6-6 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </a>
+      <a class="btn btn--ghost btn--lg" href="#featured">View case files</a>
+    </div>
+  </div>
+
+  <div class="hero__foot">
+    <div class="wrap row row--between" style="align-items:flex-end">
+      <span class="scroll-cue mono"><i></i> Scroll</span>
+      <span class="mono dim only-sm-hide" data-clock>—</span>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ STRIP ══════════════════ -->
+<section class="section--tight" style="border-block:1px solid var(--line);background:var(--ink-050)">
+  <div class="wrap">
+    <div class="stats" style="border:0;background:transparent">
+      <div class="stat" style="background:transparent;border:0"><span class="stat__n"><span data-count="12">12</span></span><span class="stat__l">Files in the archive</span></div>
+      <div class="stat" style="background:transparent;border:0"><span class="stat__n"><span data-count="24">24</span></span><span class="stat__l">Exhibits in Case #001</span></div>
+      <div class="stat" style="background:transparent;border:0"><span class="stat__n"><span data-count="1">1</span></span><span class="stat__l">Free investigation</span></div>
+      <div class="stat" style="background:transparent;border:0"><span class="stat__n">100%</span><span class="stat__l">Solvable from the file</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FEATURED CASE ══════════════════ -->
+<section class="section" id="featured" aria-labelledby="feat-h">
+  <div class="wrap">
+    <p class="eyebrow rv"><b>01</b> / The featured file</p>
+
+    <div class="grid" style="grid-template-columns:1fr;gap:clamp(2rem,5vw,3.5rem)">
+      <div class="rv" style="display:grid;gap:clamp(2rem,5vw,3.5rem);grid-template-columns:1fr" data-feat>
+        <div class="row row--between" style="align-items:flex-end;gap:2rem">
+          <div>
+            <p class="mono" style="color:var(--red-bright);margin-bottom:1rem">Case #001</p>
+            <h2 class="serif" id="feat-h" style="font-size:var(--t-d1)">The Hollow Hour</h2>
+          </div>
+          <span class="stamp stamp--lg hide-sm">Unresolved</span>
+        </div>
+
+        <div class="grid" style="grid-template-columns:1fr;gap:clamp(1.5rem,4vw,2.5rem)">
+          <figure class="rel scan" style="border:1px solid var(--line);border-radius:var(--r-md);overflow:hidden;margin:0">
+            <img src="assets/img/case-001.svg" alt="A timber pier running out into black water at night, lit by a single lamp." width="1200" height="900" loading="lazy" decoding="async" style="width:100%;aspect-ratio:16/10;object-fit:cover">
+            <figcaption class="mono" style="position:absolute;left:1rem;bottom:1rem;color:var(--bone-300);background:rgba(5,6,7,.7);padding:.4rem .6rem;border:1px solid var(--line-strong);backdrop-filter:blur(6px)">
+              Kestrel Point · 04.02.2009 · 02:41
+            </figcaption>
+          </figure>
+
+          <div class="stack">
+            <p class="lead" style="max-width:60ch">At 02:41 the station door opened for eight seconds. At 03:38 it opened again. In between, the recorder in the common room captured a chair moving, two pages turning, and a woman&rsquo;s voice saying six words.</p>
+            <p class="muted" style="max-width:60ch">Her coat was on the rack. The boat was on its mooring. Forty millimetres of snow across the approach and not one outbound footprint. The inquiry could not reconcile the recording with the search, and left the file open.</p>
+            <p style="color:var(--bone-100);font-family:var(--serif);font-size:1.3rem;line-height:1.4">Everything required to close it is in the dossier.</p>
+          </div>
+        </div>
+
+        <div class="grid grid-4">
+          <div class="meta" style="grid-column:1/-1;grid-template-columns:1fr">
+            <div class="meta__row"><span class="meta__k">Case number</span><span class="meta__v mono" style="letter-spacing:.12em">UF-001 / AD-09-0217</span></div>
+            <div class="meta__row"><span class="meta__k">Status</span><span class="meta__v"><span class="status status--open">Open — never formally closed</span></span></div>
+            <div class="meta__row"><span class="meta__k">Location</span><span class="meta__v">Kestrel Point Field Station, Isle of Morn <span class="dim">(fictional)</span></span></div>
+            <div class="meta__row"><span class="meta__k">Date</span><span class="meta__v">3–4 February 2009</span></div>
+            <div class="meta__row"><span class="meta__k">Difficulty</span><span class="meta__v">Advanced <span class="dim mono" style="letter-spacing:.3em">&#9632;&#9632;&#9632;&#9632;&#9633;</span></span></div>
+            <div class="meta__row"><span class="meta__k">Investigation</span><span class="meta__v">2–3 hours · 24 exhibits · designed for two sittings</span></div>
+          </div>
+        </div>
+
+        <div class="row">
+          <a class="btn btn--primary btn--lg" href="case-001.html">Investigate Case #001</a>
+          <a class="btn btn--ghost btn--lg" href="free-case.html">Try the free case first</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ HOW IT WORKS ══════════════════ -->
+<section class="section section--line" id="how" aria-labelledby="how-h">
+  <div class="wrap">
+    <p class="eyebrow rv"><b>02</b> / How an investigation works</p>
+    <h2 class="display rv mb-3" id="how-h">You are not reading a story.<br><span class="muted">You are working a file.</span></h2>
+    <p class="lead rv mb-4">Each case opens as a working dossier. Nothing is narrated to you. You are given what was recorded — and some of what was recorded is wrong.</p>
+
+    <div class="steps rv">
+      <div class="step">
+        <span class="step__n">01</span>
+        <h3 class="step__t">Open the file</h3>
+        <p class="step__d">The brief, the persons involved, the site, and a master timeline sourced to the exhibit that establishes each entry.</p>
+      </div>
+      <div class="step">
+        <span class="step__n">02</span>
+        <h3 class="step__t">Examine the evidence</h3>
+        <p class="step__d">Statements, sensor logs, transcripts, photographs, charts. Open them in any order. Flag what matters. Write on them.</p>
+      </div>
+      <div class="step">
+        <span class="step__n">03</span>
+        <h3 class="step__t">Connect the clues</h3>
+        <p class="step__d">Put two exhibits side by side and submit the pair. When they genuinely contradict each other, the file tells you what you have found.</p>
+      </div>
+      <div class="step">
+        <span class="step__n">04</span>
+        <h3 class="step__t">Form your theory</h3>
+        <p class="step__d">Reconstruct the mechanism, not just the culprit. What happened, how it was covered, and who helped.</p>
+      </div>
+      <div class="step">
+        <span class="step__n">05</span>
+        <h3 class="step__t">Reveal the truth</h3>
+        <p class="step__d">The conclusion is graded against your reconstruction, step by step — and one sealed exhibit is released with it.</p>
+      </div>
+    </div>
+
+    <p class="hint mt-3 rv">Progress is kept between sittings on your own device. You can close the file and come back to it.</p>
+  </div>
+</section>
+
+<!-- ══════════════════ WHY ══════════════════ -->
+<section class="section section--line" aria-labelledby="why-h">
+  <div class="wrap">
+    <p class="eyebrow rv"><b>03</b> / Why The Unknown File</p>
+    <div class="grid grid-2" style="gap:clamp(2rem,6vw,4rem);align-items:start">
+      <div class="rv">
+        <h2 class="display" id="why-h">Most mystery content tells you what to think.</h2>
+        <p class="lead mt-3">We hand you the same material an investigator would have had, including the parts that lead nowhere, and we do not tell you which is which until you have decided.</p>
+        <p class="muted mt-3" style="max-width:52ch">That is a harder product to make and a harder product to sell. It is also the only version worth buying twice.</p>
+      </div>
+
+      <div class="stack rv" data-rv-delay="120">
+        <div class="card card--tick">
+          <p class="mono" style="color:var(--red-bright);margin-bottom:.6rem">Solvable</p>
+          <p class="muted">Every conclusion is reachable from the exhibits alone. No case depends on information we withheld from you, and none of them ends in &ldquo;we may never know&rdquo;.</p>
+        </div>
+        <div class="card card--tick">
+          <p class="mono" style="color:var(--red-bright);margin-bottom:.6rem">Adversarial</p>
+          <p class="muted">Files contain contradictions that matter and contradictions that do not. Telling them apart is the game. A red herring here is a genuine inconsistency with an innocent explanation.</p>
+        </div>
+        <div class="card card--tick">
+          <p class="mono" style="color:var(--red-bright);margin-bottom:.6rem">Honest</p>
+          <p class="muted">Our cases are fiction and we say so on every one. When our short-form content covers a documented real-world case, it is labelled as documented and we do not invent details to make it land better.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FREE CASE ══════════════════ -->
+<section class="section section--line" aria-labelledby="free-h">
+  <div class="wrap">
+    <div class="dossier dossier--perf rv">
+      <div class="dossier__perf"></div>
+      <div class="dossier__hd">
+        <span class="mono" style="color:var(--bone-100)">Case #000 · Sample file</span>
+        <span class="status status--free">Free — no account required</span>
+      </div>
+      <div class="dossier__body">
+        <div class="grid grid-2" style="gap:clamp(1.5rem,5vw,3rem);align-items:center">
+          <div>
+            <h2 class="serif" id="free-h" style="font-size:var(--t-d2)">The Last Guest</h2>
+            <p class="lead mt-2" style="max-width:46ch">A watch stopped at 02:14. A jacket soaked through on a night with no rain. And a photograph the guest took after he had already gone.</p>
+            <p class="muted mt-2" style="max-width:48ch">Six exhibits. Ten to fifteen minutes. It teaches you the one habit every case in this archive is built to punish you for not having — and it gives nothing about Case #001 away.</p>
+            <div class="row mt-3">
+              <a class="btn btn--primary" href="investigate.html?case=UF-000">Start free investigation</a>
+              <a class="btn btn--quiet" href="free-case.html">What&rsquo;s in it &rarr;</a>
+            </div>
+          </div>
+          <figure style="margin:0" class="rel scan">
+            <img src="assets/img/case-000.svg" alt="A single lit sash window in the dark facade of a guest house." width="1200" height="900" loading="lazy" decoding="async" style="width:100%;aspect-ratio:4/3;object-fit:cover;border:1px solid var(--line);border-radius:var(--r-sm)">
+          </figure>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ ARCHIVE PREVIEW ══════════════════ -->
+<section class="section section--line" aria-labelledby="arch-h">
+  <div class="wrap">
+    <div class="row row--between mb-4">
+      <div>
+        <p class="eyebrow rv"><b>04</b> / The archive</p>
+        <h2 class="display rv" id="arch-h">Twelve files.<br><span class="muted">Two of them are open.</span></h2>
+      </div>
+      <a class="tlink rv hide-sm" href="archive.html">Full archive <span class="arrow">&rarr;</span></a>
+    </div>
+
+    <div class="grid grid-3">
+      <article class="case-card rv">
+  <div class="case-card__vis">
+    <img src="assets/img/case-000.svg" alt="" loading="lazy" decoding="async" width="1200" height="900">
+    <span class="case-card__no">CASE #000</span>
+    <span class="case-card__badge"><span class="stamp stamp--flat" style="color:#3E7A55;border-color:rgba(62,122,85,.5)">FREE</span></span>
+  </div>
+  <div class="case-card__body">
+    <h3 class="case-card__title"><a class="case-card__link" href="free-case.html">The Last Guest</a></h3>
+    <p class="case-card__hook">A watch stopped at 02:14. A soaked jacket on a dry night. And a photograph taken after the guest had gone.</p>
+    <div class="case-card__facts"><span>INTRODUCTORY</span><span>10–15 min</span><span>6 exhibits</span><span>Ardmair</span></div>
+  </div>
+  <div class="case-card__foot">
+    <span class="status status--free">FREE SAMPLE</span>
+    <span class="case-card__price">Free <span aria-hidden="true">&rarr;</span></span>
+  </div>
+</article>
+<article class="case-card rv">
+  <div class="case-card__vis">
+    <img src="assets/img/case-001.svg" alt="" loading="lazy" decoding="async" width="1200" height="900">
+    <span class="case-card__no">CASE #001</span>
+    <span class="case-card__badge"><span class="stamp">OPEN</span></span>
+  </div>
+  <div class="case-card__body">
+    <h3 class="case-card__title"><a class="case-card__link" href="case-001.html">The Hollow Hour</a></h3>
+    <p class="case-card__hook">At 02:41 the door opened. At 03:38 it opened again. In between, a recorder captured a woman who was already gone.</p>
+    <div class="case-card__facts"><span>ADVANCED</span><span>2–3 hrs</span><span>24 exhibits</span><span>Isle of Morn</span></div>
+  </div>
+  <div class="case-card__foot">
+    <span class="status status--open">OPEN / UNRESOLVED</span>
+    <span class="case-card__price">€14.99 <span aria-hidden="true">&rarr;</span></span>
+  </div>
+</article>
+<article class="case-card rv case-card--soon">
+  <div class="case-card__vis">
+    <img src="assets/img/case-locked.svg" alt="" loading="lazy" decoding="async" width="1200" height="900">
+    <span class="case-card__no">CASE #002</span>
+    <span class="case-card__badge"><span class="stamp stamp--bone stamp--flat">SOON</span></span>
+  </div>
+  <div class="case-card__body">
+    <h3 class="case-card__title">Nine Minutes of Tape</h3>
+    <p class="case-card__hook">A answering machine in an empty flat recorded nine minutes of a conversation that three people deny having.</p>
+    <div class="case-card__facts"><span>INTERMEDIATE</span><span>90 min</span><span>18 exhibits</span><span>Withheld</span></div>
+  </div>
+  <div class="case-card__foot">
+    <span class="status status--soon">IN PREPARATION</span>
+    
+  </div>
+</article>
+<article class="case-card rv case-card--soon">
+  <div class="case-card__vis">
+    <img src="assets/img/case-locked.svg" alt="" loading="lazy" decoding="async" width="1200" height="900">
+    <span class="case-card__no">CASE #003</span>
+    <span class="case-card__badge"><span class="stamp stamp--bone stamp--flat">SOON</span></span>
+  </div>
+  <div class="case-card__body">
+    <h3 class="case-card__title">The Woman on Platform 4</h3>
+    <p class="case-card__hook">She appears on four cameras in eleven minutes. Two of them are pointed at the same place.</p>
+    <div class="case-card__facts"><span>ADVANCED</span><span>2 hrs</span><span>21 exhibits</span><span>Withheld</span></div>
+  </div>
+  <div class="case-card__foot">
+    <span class="status status--soon">IN PREPARATION</span>
+    
+  </div>
+</article>
+    </div>
+
+    <div class="mt-4 center">
+      <a class="btn btn--ghost" href="archive.html">View all twelve files</a>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TRANSMISSIONS ══════════════════ -->
+<section class="section section--line" aria-labelledby="tx-h">
+  <div class="wrap">
+    <p class="eyebrow rv"><b>05</b> / Transmissions</p>
+    <div class="grid grid-2" style="gap:clamp(2rem,6vw,4rem);align-items:center">
+      <div class="rv">
+        <h2 class="display" id="tx-h">Forty seconds is the question.<br><span class="muted">The file is the answer.</span></h2>
+        <p class="lead mt-3">Every clip we publish is one page of a real file, ending on the detail that does not fit. Nothing is exaggerated to make it land, and nothing is resolved to make it shareable.</p>
+        <p class="muted mt-3" style="max-width:50ch">Documented cases are labelled documented. Our own cases are labelled fiction. We do not blur the two, in either direction.</p>
+        <a class="btn btn--ghost mt-3" href="transmissions.html">How a clip becomes a case</a>
+      </div>
+
+      <div class="card rv" data-rv-delay="120" style="background:var(--ink-100)">
+        <p class="mono dim mb-2">Transmission 014 · fictional case</p>
+        <div class="stack-sm" style="font-family:var(--mono);font-size:.92rem;line-height:1.9;color:var(--bone-100);letter-spacing:.01em">
+          <p>At 02:17 the recording stops.</p>
+          <p>Three seconds later, the same voice appears again.</p>
+          <p>The problem?</p>
+          <p style="color:var(--red-bright)">The person who made the recording had already been reported missing.</p>
+        </div>
+        <div class="mt-3" style="padding-top:1rem;border-top:1px solid var(--line)">
+          <p class="mono dim">Would you have noticed the clue?</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ TESTIMONIALS (PLACEHOLDER) ══════════════════ -->
+<section class="section section--line" aria-labelledby="rev-h">
+  <div class="wrap">
+    <div class="row row--between mb-3">
+      <p class="eyebrow rv"><b>06</b> / Investigator feedback</p>
+      <span class="tag rv">Placeholder — awaiting real reviews</span>
+    </div>
+    <h2 class="display rv mb-4" id="rev-h">We haven&rsquo;t sold a case yet.</h2>
+    <p class="lead rv mb-4">So there is nothing honest to put here. These three cards show the format reviews will take once real investigators have finished a case. They are examples, not customers, and they will be replaced with verified purchases only.</p>
+
+    <div class="grid grid-3">
+      <div class="quote rv">
+        <p class="quote__t">Example review — the kind of feedback this space is reserved for.</p>
+        <div class="quote__by"><span class="quote__av">—</span><span class="quote__n">Placeholder · not a real customer</span></div>
+      </div>
+      <div class="quote rv" data-rv-delay="90">
+        <p class="quote__t">Example review — the kind of feedback this space is reserved for.</p>
+        <div class="quote__by"><span class="quote__av">—</span><span class="quote__n">Placeholder · not a real customer</span></div>
+      </div>
+      <div class="quote rv" data-rv-delay="180">
+        <p class="quote__t">Example review — the kind of feedback this space is reserved for.</p>
+        <div class="quote__by"><span class="quote__av">—</span><span class="quote__n">Placeholder · not a real customer</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══════════════════ FINAL CTA ══════════════════ -->
+<section class="section section--line scan" aria-labelledby="cta-h" style="position:relative;overflow:hidden">
+  <div class="wrap center rel" style="z-index:2">
+    <p class="mono rv" style="color:var(--red-bright);margin-bottom:1.5rem">The file is open.</p>
+    <h2 class="rv" id="cta-h" style="font-size:var(--t-hero);font-weight:200;letter-spacing:-.045em;line-height:.95;text-transform:uppercase">Are you ready<br>to investigate?</h2>
+    <p class="lead rv mt-4" style="margin-inline:auto">Start with the free case. If it holds you for fifteen minutes, Case #001 will hold you for three hours.</p>
+    <div class="row rv mt-4" style="justify-content:center">
+      <a class="btn btn--primary btn--lg" href="investigate.html?case=UF-000">Start free investigation</a>
+      <a class="btn btn--ghost btn--lg" href="case-001.html">Access Case #001 — €14.99</a>
+    </div>
+  </div>
+  <div aria-hidden="true" style="position:absolute;inset:0;background:radial-gradient(70% 55% at 50% 100%,rgba(180,18,28,.13),transparent 70%)"></div>
+</section>
+</main>
+
+<!-- ══════ FOOTER ══════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="logo mb-3" href="index.html" style="display:inline-flex">
+          <span class="logo__mark">THE UNKNOWN F<span>I</span>LE</span>
+          <span class="logo__sub">Case Archive</span>
+        </a>
+        <p class="muted" style="font-size:.875rem;line-height:1.7">Interactive investigations. You are given the file, the evidence and the contradictions. What you do with them is the product.</p>
+        <div class="disclaimer mt-3">
+          <p><b>All cases published under THE UNKNOWN FILE are works of fiction.</b> Names, persons, places, vessels, agencies and documents are invented. Any resemblance to real events or real people is unintended. Where our short-form content discusses documented real-world cases, it is labelled as such and we do not invent facts or accuse anyone.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="footer__h">Archive</h2>
+        <ul class="footer__list">
+          <li><a href="archive.html">All case files</a></li>
+          <li><a href="case-001.html">Case #001 — The Hollow Hour</a></li>
+          <li><a href="free-case.html">Free case</a></li>
+          <li><a href="dashboard.html">My case files</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="footer__h">The Brand</h2>
+        <ul class="footer__list">
+          <li><a href="about.html">About</a></li>
+          <li><a href="transmissions.html">Transmissions</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="footer__h">Legal</h2>
+        <ul class="footer__list">
+          <li><a href="terms.html">Terms</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="refunds.html">Refund policy</a></li>
+          <li><a href="disclaimer.html">Fiction &amp; sources</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bar">
+      <p>© <span data-year>2026</span> The Unknown File · Some cases were never meant to be solved.</p>
+      <div class="social">
+        <a href="https://www.tiktok.com/@theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on TikTok">
+          <svg viewBox="0 0 24 24"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.66a5.68 5.68 0 0 0-.77-.05A5.69 5.69 0 1 0 15.54 15.3V8.9a7.35 7.35 0 0 0 4.3 1.38V7.2a4.29 4.29 0 0 1-3.24-1.38Z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16Zm0 3.68a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+        </a>
+        <a href="https://www.youtube.com/@theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on YouTube">
+          <svg viewBox="0 0 24 24"><path d="M23 12s0-3.6-.46-5.33a2.77 2.77 0 0 0-1.95-1.96C18.86 4.25 12 4.25 12 4.25s-6.86 0-8.59.46a2.77 2.77 0 0 0-1.95 1.96C1 8.4 1 12 1 12s0 3.6.46 5.33a2.77 2.77 0 0 0 1.95 1.96c1.73.46 8.59.46 8.59.46s6.86 0 8.59-.46a2.77 2.77 0 0 0 1.95-1.96C23 15.6 23 12 23 12ZM9.8 15.3V8.7l5.7 3.3-5.7 3.3Z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/app.js"></script>
+
+</body>
+</html>

@@ -1,0 +1,80 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img"
+ aria-label="Chart of Ardmair Sound showing the mainland slip at Ardmair to the north, Sannick jetty along the same coast, and the Isle of Morn to the south with Kestrel Point on its north shore, with the crossing route marked.">
+<defs>
+ <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency="1" numOctaves="3" seed="83" stitchTiles="stitch"/>
+  <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".45"/></feComponentTransfer></filter>
+ <pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
+  <rect width="10" height="10" fill="none"/><rect width="1.1" height="10" fill="#ECEAE5" opacity=".26"/></pattern>
+ <pattern id="hatch2" width="16" height="16" patternUnits="userSpaceOnUse" patternTransform="rotate(-45)">
+  <rect width="16" height="16" fill="none"/><rect width="1" height="16" fill="#ECEAE5" opacity=".13"/></pattern>
+ <pattern id="grid" width="50" height="50" patternUnits="userSpaceOnUse">
+  <path d="M50 0 H0 V50" fill="none" stroke="#ECEAE5" stroke-width=".6" opacity=".055"/></pattern>
+ <marker id="ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+  <path d="M0 0 L10 5 L0 10 z" fill="#ECEAE5" opacity=".55"/></marker></defs>
+ <rect width="1400" height="1050" fill="#070A0D"/>
+ <rect width="1400" height="1050" fill="url(#grid)"/>
+
+ <!-- mainland, north -->
+ <path d="M60 60 H1340 V300 C1180 316 1060 268 900 288 C740 308 640 262 470 284 C330 302 200 268 60 286 Z"
+       fill="url(#hatch2)" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+ <text x="120" y="150" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="22" letter-spacing="2.4" fill="#ECEAE5" opacity=".5">MAINLAND</text>
+
+ <!-- island, south -->
+ <path d="M180 1000 C300 862 470 828 660 838 C880 850 1040 806 1240 846 C1310 860 1340 900 1340 1000 Z"
+       fill="url(#hatch2)" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+ <text x="700" y="960" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="22" letter-spacing="2.4" fill="#ECEAE5" opacity=".5">ISLE OF MORN</text>
+
+ <!-- sound -->
+ <text x="220" y="560" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="19" letter-spacing="2.4" fill="#ECEAE5" opacity=".28">ARDMAIR SOUND</text>
+ <g opacity=".16" stroke="#ECEAE5" stroke-width="1">
+  <path d="M120 420 H300"/><path d="M960 470 H1140"/><path d="M420 640 H620"/><path d="M1000 700 H1180"/></g>
+
+ <!-- Ardmair slip -->
+ <g transform="translate(430 286)">
+  <path d="M0 0 V54" stroke="#ECEAE5" stroke-width="7" opacity=".85"/>
+  <circle cy="60" r="9" fill="#D9202B"/>
+  <text x="22" y="26" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" letter-spacing="2.4" fill="#ECEAE5" opacity=".9">ARDMAIR SLIP</text>
+ </g>
+ <!-- Sannick jetty -->
+ <g transform="translate(1010 292)">
+  <path d="M0 0 V40" stroke="#ECEAE5" stroke-width="5" opacity=".7"/>
+  <circle cy="46" r="7" fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".7"/>
+  <text x="20" y="22" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="15" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">SANNICK JETTY</text>
+  <text x="20" y="44" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".42">UNLIT · UNMANNED</text>
+ </g>
+ <!-- Kestrel Point -->
+ <g transform="translate(660 838)">
+  <path d="M0 0 V-44" stroke="#ECEAE5" stroke-width="7" opacity=".85"/>
+  <circle cy="-50" r="9" fill="#D9202B"/>
+  <text x="24" y="-16" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" letter-spacing="2.4" fill="#ECEAE5" opacity=".9">KESTREL POINT</text>
+  <text x="24" y="8" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".42">NO OTHER LANDING ON THIS SHORE</text>
+ </g>
+
+ <!-- routes -->
+ <g>
+  <path d="M430 350 C500 480 580 640 660 788" fill="none" stroke="#D9202B" stroke-width="2.2" opacity=".8" stroke-dasharray="14 9"/>
+  <text x="470" y="600" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="16" letter-spacing="3" fill="#D9202B" opacity=".9">6.4 NM · 35 MIN</text>
+  <path d="M446 344 C640 372 830 348 1006 340" fill="none" stroke="#ECEAE5" stroke-width="1.6" opacity=".45" stroke-dasharray="8 8"/>
+  <text x="700" y="392" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="15" letter-spacing="3" fill="#ECEAE5" opacity=".55">3.1 NM · 17 MIN</text>
+ </g>
+
+ <g transform="translate(1230 180) rotate(0)" opacity=".6">
+  <path d="M0 -46 L13 24 L0 12 L-13 24 Z" fill="#ECEAE5"/>
+  <circle r="52" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".45"/>
+  <text y="-58" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="17" letter-spacing="3" fill="#ECEAE5">N</text></g>
+ <g transform="translate(80 920)" opacity=".55">
+  <path d="M0 0 H200" stroke="#ECEAE5" stroke-width="2"/>
+  <path d="M0 -7 V7 M100 -5 V5 M200 -7 V7" stroke="#ECEAE5" stroke-width="2"/>
+  <text x="0" y="26" text-anchor="start" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">0</text><text x="200" y="26" text-anchor="middle" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="12" letter-spacing="2.4" fill="#ECEAE5" opacity=".7">4 NAUTICAL MILES</text>
+ </g>
+
+ <rect x="24" y="24" width="1352" height="1002" fill="none" stroke="#ECEAE5" stroke-width="1" opacity=".22"/>
+ <rect x="36" y="36" width="1328" height="978" fill="none" stroke="#ECEAE5" stroke-width=".6" opacity=".12"/>
+ <g font-family="ui-monospace,Menlo,Consolas,monospace" fill="#ECEAE5">
+  <text x="52" y="80" font-size="24" letter-spacing="7" opacity=".82">ARDMAIR SOUND</text>
+  <text x="52" y="108" font-size="15" letter-spacing="4" opacity=".4">WORKING CHART · ANNOTATED BY THE INQUIRY · NOT FOR NAVIGATION</text>
+  <text x="1348" y="998" text-anchor="end" font-size="15" letter-spacing="4" opacity=".4">DEPTHS OMITTED</text>
+  <text x="52" y="998" font-size="15" letter-spacing="4" opacity=".4">THE UNKNOWN FILE — FICTIONAL GEOGRAPHY</text>
+ </g>
+ <rect width="1400" height="1050" filter="url(#grain)" opacity=".05" style="mix-blend-mode:overlay"/>
+</svg>

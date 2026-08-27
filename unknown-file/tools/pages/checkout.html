@@ -1,0 +1,74 @@
+<!--meta {
+  "title": "Checkout | The Unknown File",
+  "description": "Complete your access to The Unknown File case archive.",
+  "robots": "noindex,nofollow",
+  "sitemap": false
+} -->
+
+<section class="section page-top" aria-labelledby="h">
+  <div class="wrap wrap--narrow">
+
+    <div class="disclaimer rv mb-4" style="border-left-color:var(--amber)">
+      <p><b>Preview mode — no payment is taken and no card details are collected.</b> This checkout is the finished interface waiting on a payment provider. Submitting it grants access on this device so the full experience can be tested end to end. Connecting Stripe is the only step outstanding; the developer notes are in <span class="mono" style="letter-spacing:.06em;font-size:.75rem">docs/INTEGRATION.md</span>.</p>
+    </div>
+
+    <p class="eyebrow rv"><b>Checkout</b> / Secure access</p>
+    <h1 class="display-sm rv mb-4" id="h">Open the file.</h1>
+
+    <div class="grid" style="grid-template-columns:1fr;gap:clamp(1.5rem,4vw,2.5rem)">
+
+      <div class="dossier rv">
+        <div class="dossier__hd">
+          <span class="mono" style="color:var(--bone-100)">Your order</span>
+          <span class="mono dim">One payment</span>
+        </div>
+        <div class="dossier__body">
+          <div class="meta" style="border:0">
+            <div class="meta__row"><span class="meta__k">Item</span><span class="meta__v" data-sku-name>Case #001 — The Hollow Hour</span></div>
+            <div class="meta__row"><span class="meta__k">Grants access to</span><span class="meta__v" data-sku-grants>Case #001</span></div>
+            <div class="meta__row"><span class="meta__k">Includes</span><span class="meta__v" data-sku-blurb>One complete investigation. Yours permanently.</span></div>
+            <div class="meta__row"><span class="meta__k">Total</span><span class="meta__v" style="font-family:var(--serif);font-size:1.6rem" data-sku-price>€14.99</span></div>
+          </div>
+        </div>
+      </div>
+
+      <form class="dossier rv" data-checkout novalidate>
+        <div class="dossier__hd">
+          <span class="mono" style="color:var(--bone-100)">Delivery</span>
+          <span class="status status--free">Instant access</span>
+        </div>
+        <div class="dossier__body stack">
+          <input type="hidden" name="sku" value="UF-001">
+
+          <div class="field">
+            <label class="label" for="email">Email address</label>
+            <input class="input" type="email" id="email" name="email" autocomplete="email" inputmode="email" placeholder="you@example.com" required>
+            <p class="hint">We send your access link here. We do not send anything else unless you ask us to.</p>
+          </div>
+
+          <div class="field">
+            <label class="label" for="name">Name <span class="dim">(optional)</span></label>
+            <input class="input" type="text" id="name" name="name" autocomplete="name" placeholder="How the file should address you">
+          </div>
+
+          <label class="choice">
+            <input type="checkbox" name="updates">
+            <span><span class="choice__t">Tell me when a new case opens</span><span class="choice__d">A short message on release day. Nothing else, and one click to stop.</span></span>
+          </label>
+
+          <p class="error" data-checkout-error hidden></p>
+
+          <button class="btn btn--primary btn--lg btn--block" type="submit">Access the case</button>
+
+          <p class="hint center">By continuing you accept the <a href="terms.html" style="border-bottom:1px solid var(--line-strong)">terms</a> and the <a href="refunds.html" style="border-bottom:1px solid var(--line-strong)">refund policy</a>. Fourteen days, no reasoning required, provided the conclusion is unopened.</p>
+        </div>
+      </form>
+
+      <div class="grid grid-3 rv">
+        <div class="card"><p class="mono mb-2" style="color:var(--bone-100)">Immediate</p><p class="muted" style="font-size:.85rem">The file opens the moment the payment clears. Nothing to download or install.</p></div>
+        <div class="card"><p class="mono mb-2" style="color:var(--bone-100)">Permanent</p><p class="muted" style="font-size:.85rem">A case you buy stays bought. There is no subscription attached to a single case.</p></div>
+        <div class="card"><p class="mono mb-2" style="color:var(--bone-100)">Private</p><p class="muted" style="font-size:.85rem">Your notes and theories are stored on your own device, not on our servers.</p></div>
+      </div>
+    </div>
+  </div>
+</section>

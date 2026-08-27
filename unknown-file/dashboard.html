@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>My Case Files | The Unknown File</title>
+<meta name="description" content="Your investigations: purchased cases, progress, unlocked evidence and saved theories.">
+<link rel="canonical" href="https://theunknownfile.com/dashboard.html">
+<meta name="theme-color" content="#050607">
+<meta name="color-scheme" content="dark">
+<meta name="robots" content="noindex,follow">
+
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' fill='%23050607'/%3E%3Crect x='6' y='7' width='20' height='2' fill='%23ECEAE5'/%3E%3Crect x='6' y='13' width='14' height='2' fill='%23ECEAE5'/%3E%3Crect x='6' y='19' width='20' height='2' fill='%23B4121C'/%3E%3Crect x='6' y='25' width='9' height='2' fill='%23ECEAE5'/%3E%3C/svg%3E">
+<link rel="apple-touch-icon" href="assets/img/apple-touch-icon.png">
+<link rel="manifest" href="site.webmanifest">
+
+<meta property="og:site_name" content="The Unknown File">
+<meta property="og:title" content="My Case Files | The Unknown File">
+<meta property="og:description" content="Your investigations: purchased cases, progress, unlocked evidence and saved theories.">
+<meta property="og:type" content="website">
+<meta property="og:url" content="https://theunknownfile.com/dashboard.html">
+<meta property="og:image" content="https://theunknownfile.com/assets/img/og-default.png">
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:locale" content="en_GB">
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="My Case Files | The Unknown File">
+<meta name="twitter:description" content="Your investigations: purchased cases, progress, unlocked evidence and saved theories.">
+<meta name="twitter:image" content="https://theunknownfile.com/assets/img/og-default.png">
+
+<link rel="preload" href="assets/fonts/inter-200-600-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/ibm-plex-mono-400-normal-latin.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="assets/fonts/fonts.css">
+<link rel="stylesheet" href="assets/css/uf.css">
+
+<script>document.documentElement.className+=' js';</script>
+
+</head>
+<body>
+
+<a class="skip-link" href="#main">Skip to content</a>
+
+<!-- ══════ HEADER ══════ -->
+<header class="header" data-header>
+  <div class="wrap header__inner">
+    <a class="logo" href="index.html" aria-label="The Unknown File — home">
+      <span class="logo__mark">THE UNKNOWN F<span>I</span>LE</span>
+      <span class="logo__sub">Case Archive</span>
+    </a>
+
+    <nav class="nav" aria-label="Primary">
+      <a class="nav__link" href="archive.html">Archive</a>
+      <a class="nav__link" href="case-001.html">Case #001</a>
+      <a class="nav__link" href="free-case.html">Free Case</a>
+      <a class="nav__link" href="transmissions.html">Transmissions</a>
+      <a class="nav__link" href="about.html">About</a>
+    </nav>
+
+    <div class="header__act">
+      <a class="btn btn--ghost btn--sm hide-sm" href="dashboard.html">My Case Files</a>
+      <button class="burger" data-nav-toggle aria-expanded="false" aria-controls="drawer" aria-label="Open menu"><span></span></button>
+    </div>
+  </div>
+</header>
+
+<!-- ══════ MOBILE DRAWER ══════ -->
+<div class="drawer" id="drawer" data-drawer aria-hidden="true" aria-label="Menu">
+  <nav class="drawer__nav" aria-label="Mobile">
+    <a class="drawer__link" href="archive.html"><i>01</i>The Archive</a>
+    <a class="drawer__link" href="case-001.html"><i>02</i>Case #001</a>
+    <a class="drawer__link" href="free-case.html"><i>03</i>Free Case</a>
+    <a class="drawer__link" href="transmissions.html"><i>04</i>Transmissions</a>
+    <a class="drawer__link" href="about.html"><i>05</i>About</a>
+    <a class="drawer__link" href="faq.html"><i>06</i>FAQ</a>
+    <a class="drawer__link" href="dashboard.html"><i>07</i>My Case Files</a>
+  </nav>
+  <div class="drawer__foot">
+    <a class="btn btn--primary btn--block" href="archive.html">Enter the Archive</a>
+    <p class="mono dim" data-clock>—</p>
+  </div>
+</div>
+
+<main id="main">
+<section class="section page-top" aria-labelledby="h" data-dashboard>
+  <div class="wrap">
+    <p class="eyebrow rv"><b>Investigator</b> / Case files</p>
+    <div class="grid grid-2" style="gap:clamp(1.5rem,5vw,4rem);align-items:end">
+      <div class="rv">
+        <h1 class="display" id="h">My Case Files</h1>
+        <p class="lead mt-3">Everything you have access to, and how far into it you are.</p>
+      </div>
+      <div class="stats rv" data-rv-delay="100">
+        <div class="stat"><span class="stat__n" data-dash-count>0</span><span class="stat__l">Files</span></div>
+        <div class="stat"><span class="stat__n" data-dash-solved>0</span><span class="stat__l">Closed</span></div>
+        <div class="stat"><span class="stat__n" data-dash-notes>0</span><span class="stat__l">Notes</span></div>
+      </div>
+    </div>
+
+    <p class="hint mt-3" data-storage-warn hidden style="color:var(--amber)">This browser is blocking local storage, so nothing can be saved between visits.</p>
+
+    <div class="grid grid-3 mt-6" data-dash-list></div>
+
+    <div class="card center mt-4" data-dash-empty hidden>
+      <p class="mono dim mb-2">No files</p>
+      <p class="muted mb-3">You have not opened a case yet. The free case needs nothing from you.</p>
+      <a class="btn btn--primary" href="investigate.html?case=UF-000">Start the free case</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid grid-2" style="align-items:start">
+      <div>
+        <h2 class="display-xs mb-2">Where your work is kept</h2>
+        <p class="muted" style="font-size:.9rem;max-width:52ch">Your progress, notes and theories are stored in this browser, on this device. They are not uploaded to us and we cannot read them. Clearing your browser data will delete them.</p>
+        <p class="muted mt-2" style="font-size:.9rem;max-width:52ch">Accounts that sync your case files between devices are on the roadmap. Until then, the export below is the way to move them.</p>
+      </div>
+      <div class="stack-sm">
+        <button class="btn btn--ghost btn--block" data-export-state>Export my case files</button>
+        <label class="btn btn--ghost btn--block" style="cursor:pointer">
+          Import a case file backup
+          <input type="file" accept="application/json" data-import-state hidden>
+        </label>
+      </div>
+    </div>
+  </div>
+</section>
+</main>
+
+<!-- ══════ FOOTER ══════ -->
+<footer class="footer">
+  <div class="wrap">
+    <div class="footer__top">
+      <div class="footer__brand">
+        <a class="logo mb-3" href="index.html" style="display:inline-flex">
+          <span class="logo__mark">THE UNKNOWN F<span>I</span>LE</span>
+          <span class="logo__sub">Case Archive</span>
+        </a>
+        <p class="muted" style="font-size:.875rem;line-height:1.7">Interactive investigations. You are given the file, the evidence and the contradictions. What you do with them is the product.</p>
+        <div class="disclaimer mt-3">
+          <p><b>All cases published under THE UNKNOWN FILE are works of fiction.</b> Names, persons, places, vessels, agencies and documents are invented. Any resemblance to real events or real people is unintended. Where our short-form content discusses documented real-world cases, it is labelled as such and we do not invent facts or accuse anyone.</p>
+        </div>
+      </div>
+
+      <div>
+        <h2 class="footer__h">Archive</h2>
+        <ul class="footer__list">
+          <li><a href="archive.html">All case files</a></li>
+          <li><a href="case-001.html">Case #001 — The Hollow Hour</a></li>
+          <li><a href="free-case.html">Free case</a></li>
+          <li><a href="dashboard.html">My case files</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="footer__h">The Brand</h2>
+        <ul class="footer__list">
+          <li><a href="about.html">About</a></li>
+          <li><a href="transmissions.html">Transmissions</a></li>
+          <li><a href="faq.html">FAQ</a></li>
+          <li><a href="contact.html">Contact</a></li>
+        </ul>
+      </div>
+
+      <div>
+        <h2 class="footer__h">Legal</h2>
+        <ul class="footer__list">
+          <li><a href="terms.html">Terms</a></li>
+          <li><a href="privacy.html">Privacy</a></li>
+          <li><a href="refunds.html">Refund policy</a></li>
+          <li><a href="disclaimer.html">Fiction &amp; sources</a></li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="footer__bar">
+      <p>© <span data-year>2026</span> The Unknown File · Some cases were never meant to be solved.</p>
+      <div class="social">
+        <a href="https://www.tiktok.com/@theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on TikTok">
+          <svg viewBox="0 0 24 24"><path d="M16.6 5.82A4.28 4.28 0 0 1 15.54 3h-3.09v12.4a2.59 2.59 0 0 1-2.59 2.5 2.59 2.59 0 1 1 .77-5.06V9.66a5.68 5.68 0 0 0-.77-.05A5.69 5.69 0 1 0 15.54 15.3V8.9a7.35 7.35 0 0 0 4.3 1.38V7.2a4.29 4.29 0 0 1-3.24-1.38Z"/></svg>
+        </a>
+        <a href="https://www.instagram.com/theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on Instagram">
+          <svg viewBox="0 0 24 24"><path d="M12 2.16c3.2 0 3.58.01 4.85.07 3.25.15 4.77 1.69 4.92 4.92.06 1.27.07 1.65.07 4.85s-.01 3.58-.07 4.85c-.15 3.23-1.66 4.77-4.92 4.92-1.27.06-1.65.07-4.85.07s-3.58-.01-4.85-.07c-3.26-.15-4.77-1.7-4.92-4.92C2.17 15.58 2.16 15.2 2.16 12s.01-3.58.07-4.85C2.38 3.92 3.9 2.38 7.15 2.23 8.42 2.17 8.8 2.16 12 2.16Zm0 3.68a6.16 6.16 0 1 0 0 12.32 6.16 6.16 0 0 0 0-12.32Zm0 10.16a4 4 0 1 1 0-8 4 4 0 0 1 0 8Zm6.4-11.85a1.44 1.44 0 1 0 0 2.88 1.44 1.44 0 0 0 0-2.88Z"/></svg>
+        </a>
+        <a href="https://www.youtube.com/@theunknownfile" rel="me noopener" target="_blank" aria-label="The Unknown File on YouTube">
+          <svg viewBox="0 0 24 24"><path d="M23 12s0-3.6-.46-5.33a2.77 2.77 0 0 0-1.95-1.96C18.86 4.25 12 4.25 12 4.25s-6.86 0-8.59.46a2.77 2.77 0 0 0-1.95 1.96C1 8.4 1 12 1 12s0 3.6.46 5.33a2.77 2.77 0 0 0 1.95 1.96c1.73.46 8.59.46 8.59.46s6.86 0 8.59-.46a2.77 2.77 0 0 0 1.95-1.96C23 15.6 23 12 23 12ZM9.8 15.3V8.7l5.7 3.3-5.7 3.3Z"/></svg>
+        </a>
+      </div>
+    </div>
+  </div>
+</footer>
+
+<script type="module" src="assets/js/app.js"></script>
+
+</body>
+</html>

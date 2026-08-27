@@ -1,0 +1,50 @@
+<!--meta {
+  "title": "My Case Files | The Unknown File",
+  "description": "Your investigations: purchased cases, progress, unlocked evidence and saved theories.",
+  "robots": "noindex,follow",
+  "sitemap": false
+} -->
+
+<section class="section page-top" aria-labelledby="h" data-dashboard>
+  <div class="wrap">
+    <p class="eyebrow rv"><b>Investigator</b> / Case files</p>
+    <div class="grid grid-2" style="gap:clamp(1.5rem,5vw,4rem);align-items:end">
+      <div class="rv">
+        <h1 class="display" id="h">My Case Files</h1>
+        <p class="lead mt-3">Everything you have access to, and how far into it you are.</p>
+      </div>
+      <div class="stats rv" data-rv-delay="100">
+        <div class="stat"><span class="stat__n" data-dash-count>0</span><span class="stat__l">Files</span></div>
+        <div class="stat"><span class="stat__n" data-dash-solved>0</span><span class="stat__l">Closed</span></div>
+        <div class="stat"><span class="stat__n" data-dash-notes>0</span><span class="stat__l">Notes</span></div>
+      </div>
+    </div>
+
+    <p class="hint mt-3" data-storage-warn hidden style="color:var(--amber)">This browser is blocking local storage, so nothing can be saved between visits.</p>
+
+    <div class="grid grid-3 mt-6" data-dash-list></div>
+
+    <div class="card center mt-4" data-dash-empty hidden>
+      <p class="mono dim mb-2">No files</p>
+      <p class="muted mb-3">You have not opened a case yet. The free case needs nothing from you.</p>
+      <a class="btn btn--primary" href="investigate.html?case=UF-000">Start the free case</a>
+    </div>
+
+    <div class="divider"></div>
+
+    <div class="grid grid-2" style="align-items:start">
+      <div>
+        <h2 class="display-xs mb-2">Where your work is kept</h2>
+        <p class="muted" style="font-size:.9rem;max-width:52ch">Your progress, notes and theories are stored in this browser, on this device. They are not uploaded to us and we cannot read them. Clearing your browser data will delete them.</p>
+        <p class="muted mt-2" style="font-size:.9rem;max-width:52ch">Accounts that sync your case files between devices are on the roadmap. Until then, the export below is the way to move them.</p>
+      </div>
+      <div class="stack-sm">
+        <button class="btn btn--ghost btn--block" data-export-state>Export my case files</button>
+        <label class="btn btn--ghost btn--block" style="cursor:pointer">
+          Import a case file backup
+          <input type="file" accept="application/json" data-import-state hidden>
+        </label>
+      </div>
+    </div>
+  </div>
+</section>

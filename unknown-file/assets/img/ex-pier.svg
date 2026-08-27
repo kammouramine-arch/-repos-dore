@@ -1,0 +1,56 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img"
+ aria-label="Evidence photograph: a timber pier at night, the pier lamp lit, with a second vessel alongside carrying an illuminated lamp on an aft gantry.">
+<defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="4" seed="31" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".55"/></feComponentTransfer></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#080B11"/>
+  <stop offset=".6" stop-color="#111722"/><stop offset="1" stop-color="#070910"/></linearGradient>
+  <radialGradient id="lamp" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#F2D7A0" stop-opacity=".85"/>
+  <stop offset="34%" stop-color="#C9A96E" stop-opacity=".22"/><stop offset="100%" stop-color="#C9A96E" stop-opacity="0"/></radialGradient>
+  <radialGradient id="gantry" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#DCE6F2" stop-opacity=".75"/>
+  <stop offset="40%" stop-color="#9FB3CC" stop-opacity=".16"/><stop offset="100%" stop-color="#9FB3CC" stop-opacity="0"/></radialGradient></defs>
+  <rect width="1400" height="1050" fill="url(#sky)"/>
+  <g filter="url(#soft)" opacity=".45"><ellipse cx="420" cy="300" rx="500" ry="54" fill="#1A212D"/>
+    <ellipse cx="1080" cy="266" rx="400" ry="42" fill="#161D28"/></g>
+  <path d="M0 430 L300 420 L640 428 L980 416 L1400 424 L1400 470 L0 470Z" fill="#0A0D13"/>
+  <rect y="470" width="1400" height="580" fill="#05070B"/>
+  <g opacity=".14" fill="#8FA0B8"><rect x="80" y="540" width="240" height="1"/><rect x="700" y="592" width="320" height="1"/>
+    <rect x="220" y="700" width="280" height="1"/><rect x="900" y="770" width="300" height="1"/></g>
+  <!-- pier decking, running out to the right -->
+  <path d="M60 1000 L1180 486 L1240 506 L150 1050 Z" fill="#0C1017"/>
+  <path d="M60 1000 L1180 486 L1186 498 L70 1014 Z" fill="#171E28"/>
+  <g stroke="#04060A" stroke-width="2.5" opacity=".75">
+    <path d="M200 936 L236 950"/><path d="M340 872 L374 886"/><path d="M486 806 L518 820"/>
+    <path d="M632 740 L662 754"/><path d="M778 674 L806 688"/><path d="M924 608 L950 622"/><path d="M1058 548 L1082 561"/></g>
+  <!-- STATION BOAT (inboard) -->
+  <g><path d="M560 690 L788 646 L800 690 L578 736 Z" fill="#05070B"/>
+     <rect x="668" y="616" width="4" height="34" fill="#05070B"/></g>
+  <!-- SECOND VESSEL (outboard) with the aft gantry lamp -->
+  <g><path d="M820 616 L1096 566 L1110 616 L842 668 Z" fill="#04060A"/>
+     <path d="M900 566 L1010 550 L1014 574 L904 590 Z" fill="#05080C"/>
+     <rect x="852" y="504" width="5" height="64" fill="#05080C"/>
+     <path d="M840 508 H872" stroke="#05080C" stroke-width="5"/>
+     <ellipse cx="856" cy="502" rx="200" ry="150" fill="url(#gantry)"/>
+     <circle cx="856" cy="500" r="9" fill="#E8F0FA"/>
+     <circle cx="856" cy="500" r="22" fill="#CFE0F2" opacity=".45" filter="url(#soft3)"/></g>
+  <!-- PIER LAMP — lit -->
+  <g transform="translate(1146 296)">
+    <ellipse cx="0" cy="190" rx="330" ry="250" fill="url(#lamp)"/>
+    <rect x="-3" y="0" width="6" height="192" fill="#0A0D14"/>
+    <path d="M-24 0 L24 0 L14 -26 L-14 -26Z" fill="#0A0D14"/>
+    <circle cx="0" cy="-8" r="10" fill="#F6E2B4"/>
+    <circle cx="0" cy="-8" r="26" fill="#F2D7A0" opacity=".5" filter="url(#soft3)"/></g>
+  <g opacity=".26"><rect x="1130" y="520" width="14" height="300" fill="#C9A96E" filter="url(#soft2)"/></g>
+  <radialGradient id="vg" cx="74%" cy="40%" r="76%"><stop offset="36%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".86"/></radialGradient><rect width="1400" height="1050" fill="url(#vg)"/>
+  <rect width="1400" height="1050" filter="url(#grain)" opacity=".1" style="mix-blend-mode:overlay"/>
+  
+  <g fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".26">
+    <path d="M28 66 V28 H66"/><path d="M1334 28 H1372 V66"/>
+    <path d="M1372 984 V1022 H1334"/><path d="M66 1022 H28 V984"/>
+  </g>
+  <text x="40" y="1010" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="4" fill="#ECEAE5" opacity=".5">FRAME 0417</text>
+  <text x="1360" y="1010" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="3" fill="#ECEAE5" opacity=".34">04 FEB 2009  03:52:16</text>
+</svg>

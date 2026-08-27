@@ -1,0 +1,59 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1400 1050" width="1400" height="1050" role="img"
+ aria-label="Photograph of a small stone harbour with the steps fully exposed to the lowest tread and the mooring rings standing about a metre clear of the water.">
+<defs>
+  <filter id="grain"><feTurbulence type="fractalNoise" baseFrequency=".9" numOctaves="4" seed="61" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/><feComponentTransfer><feFuncA type="linear" slope=".55"/></feComponentTransfer></filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="22"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="6"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2"/></filter>
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#1B222C"/>
+  <stop offset=".55" stop-color="#2A3038"/><stop offset="1" stop-color="#3A3C39"/></linearGradient>
+ <linearGradient id="stone" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3A3B38"/><stop offset="1" stop-color="#22231F"/></linearGradient>
+ <linearGradient id="water" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#22282C"/><stop offset="1" stop-color="#14181B"/></linearGradient>
+ <linearGradient id="weed" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#3B3A26"/><stop offset="1" stop-color="#20200F"/></linearGradient></defs>
+  <rect width="1400" height="1050" fill="url(#sky)"/>
+  <g filter="url(#soft)" opacity=".5"><ellipse cx="1120" cy="230" rx="520" ry="60" fill="#4A4B44"/>
+    <ellipse cx="380" cy="270" rx="440" ry="46" fill="#33383E"/></g>
+  <!-- low eastern light -->
+  <ellipse cx="1220" cy="330" rx="360" ry="150" fill="#8E8564" opacity=".16" filter="url(#soft)"/>
+  <path d="M0 396 L340 388 L700 394 L1040 384 L1400 392 L1400 430 L0 430Z" fill="#1E2227"/>
+  <!-- harbour wall, running left to right -->
+  <rect x="0" y="430" width="1400" height="230" fill="url(#stone)"/>
+  <g stroke="#171814" stroke-width="2" opacity=".55">
+    <path d="M0 486 H1400"/><path d="M0 540 H1400"/><path d="M0 596 H1400"/>
+    <path d="M120 430 V660"/><path d="M340 430 V660"/><path d="M560 430 V660"/>
+    <path d="M780 430 V660"/><path d="M1000 430 V660"/><path d="M1220 430 V660"/></g>
+  <!-- MOORING RINGS — clear of the water -->
+  <g fill="none" stroke="#15161A" stroke-width="9">
+    <circle cx="250" cy="628" r="26"/><circle cx="690" cy="628" r="26"/><circle cx="1130" cy="628" r="26"/></g>
+  <g fill="#101116"><rect x="244" y="592" width="12" height="20"/><rect x="684" y="592" width="12" height="20"/>
+    <rect x="1124" y="592" width="12" height="20"/></g>
+  <!-- exposed weed band below the rings -->
+  <rect x="0" y="676" width="1400" height="120" fill="url(#weed)"/>
+  <g fill="#2C2C18" opacity=".8">
+    <ellipse cx="180" cy="700" rx="140" ry="22"/><ellipse cx="560" cy="712" rx="180" ry="24"/>
+    <ellipse cx="980" cy="698" rx="160" ry="20"/><ellipse cx="1300" cy="714" rx="130" ry="22"/></g>
+  <!-- STEPS, exposed to the lowest tread -->
+  <g>
+    <path d="M330 660 h230 v34 h-40 v34 h-40 v34 h-40 v34 h-40 v34 h-30 Z" fill="#43443F"/>
+    <path d="M330 660 h230 v10 h-230 Z" fill="#55564F"/>
+    <g fill="#2A2B26"><rect x="490" y="694" width="70" height="8"/><rect x="450" y="728" width="70" height="8"/>
+      <rect x="410" y="762" width="70" height="8"/><rect x="370" y="796" width="70" height="8"/>
+      <rect x="330" y="830" width="70" height="8"/></g>
+    <!-- lowest tread: dry -->
+    <rect x="330" y="830" width="70" height="10" fill="#6A6A60" opacity=".55"/>
+  </g>
+  <!-- water, well below -->
+  <rect y="846" width="1400" height="204" fill="url(#water)"/>
+  <g opacity=".2" fill="#9FB0C0"><rect x="60" y="880" width="200" height="2"/><rect x="700" y="912" width="260" height="2"/>
+    <rect x="300" y="960" width="220" height="2"/><rect x="1000" y="1000" width="280" height="2"/></g>
+  <radialGradient id="vg" cx="52%" cy="44%" r="76%"><stop offset="48%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".62"/></radialGradient><rect width="1400" height="1050" fill="url(#vg)"/>
+  <rect width="1400" height="1050" filter="url(#grain)" opacity=".1" style="mix-blend-mode:overlay"/>
+  
+  <g fill="none" stroke="#ECEAE5" stroke-width="2" opacity=".26">
+    <path d="M28 66 V28 H66"/><path d="M1334 28 H1372 V66"/>
+    <path d="M1372 984 V1022 H1334"/><path d="M66 1022 H28 V984"/>
+  </g>
+  <text x="40" y="1010" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="4" fill="#ECEAE5" opacity=".5">FRAME 09/12</text>
+  <text x="1360" y="1010" text-anchor="end" font-family="ui-monospace,Menlo,Consolas,monospace" font-size="20" letter-spacing="3" fill="#ECEAE5" opacity=".34">13 OCT 2016  03:20:44</text>
+</svg>

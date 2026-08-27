@@ -1,0 +1,74 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900" width="1600" height="900" role="img"
+     aria-label="A low headland at night above dark water, with a single lit window in a small building.">
+<defs>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".82" numOctaves="4" seed="7" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope=".5"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2.2"/></filter>
+  
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#080A0F"/><stop offset=".42" stop-color="#0D1119"/>
+    <stop offset=".68" stop-color="#141A24"/><stop offset="1" stop-color="#090B10"/>
+  </linearGradient>
+  <linearGradient id="sea" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#0B0E14"/><stop offset="1" stop-color="#050607"/>
+  </linearGradient>
+  <radialGradient id="glow" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#D8B77A" stop-opacity=".55"/>
+    <stop offset="55%" stop-color="#8A6E44" stop-opacity=".14"/>
+    <stop offset="100%" stop-color="#8A6E44" stop-opacity="0"/>
+  </radialGradient>
+  <radialGradient id="moon" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#AEBACB" stop-opacity=".30"/>
+    <stop offset="100%" stop-color="#AEBACB" stop-opacity="0"/>
+  </radialGradient>
+</defs>
+  <rect width="1600" height="900" fill="url(#sky)"/>
+  <ellipse cx="1140" cy="250" rx="440" ry="300" fill="url(#moon)"/>
+  <!-- distant cloud banks -->
+  <g filter="url(#soft)" opacity=".5">
+    <ellipse cx="380" cy="330" rx="520" ry="70" fill="#171D28"/>
+    <ellipse cx="1240" cy="290" rx="460" ry="54" fill="#1B2230"/>
+    <ellipse cx="820" cy="392" rx="700" ry="46" fill="#10151E"/>
+  </g>
+  <!-- far shore -->
+  <path d="M0 470 L210 452 L430 462 L640 446 L900 458 L1180 444 L1420 456 L1600 448 L1600 500 L0 500Z"
+        fill="#0A0D13" opacity=".9"/>
+  <!-- sea -->
+  <rect y="500" width="1600" height="400" fill="url(#sea)"/>
+  <g opacity=".22" fill="#8FA0B8">
+    <rect x="120" y="556" width="180" height="1"/><rect x="430" y="600" width="300" height="1"/>
+    <rect x="880" y="576" width="220" height="1"/><rect x="1180" y="640" width="280" height="1"/>
+    <rect x="240" y="700" width="420" height="1"/><rect x="960" y="742" width="360" height="1"/>
+    <rect x="520" y="820" width="240" height="1"/>
+  </g>
+  <!-- headland -->
+  <path d="M0 500 L120 486 L300 492 L470 470 L560 476 L700 462 L760 470 L880 464 L1010 476
+           L1180 468 L1330 480 L1460 472 L1600 482 L1600 560 L0 560Z" fill="#070910"/>
+  <path d="M0 560 L1600 560 L1600 900 L0 900Z" fill="#050607" opacity=".55"/>
+  <!-- the station -->
+  <g transform="translate(1078 396)">
+    <ellipse cx="66" cy="46" rx="230" ry="120" fill="url(#glow)"/>
+    <rect x="0" y="14" width="132" height="56" fill="#04050A"/>
+    <path d="M-6 14 L66 -8 L138 14Z" fill="#04050A"/>
+    <rect x="18" y="30" width="17" height="15" fill="#E4C58C" opacity=".92"/>
+    <rect x="18" y="30" width="17" height="15" fill="#E4C58C" opacity=".55" filter="url(#soft3)"/>
+    <rect x="52" y="30" width="17" height="15" fill="#8E7C58" opacity=".30"/>
+    <rect x="0" y="66" width="132" height="5" fill="#020306"/>
+    <!-- mast -->
+    <rect x="176" y="-52" width="2" height="122" fill="#0A0D14"/>
+    <rect x="168" y="-52" width="18" height="2" fill="#0A0D14"/>
+    <circle cx="177" cy="-58" r="3" fill="#B4121C" opacity=".85"/>
+  </g>
+  <!-- lamp reflection on the water -->
+  <g opacity=".3">
+    <rect x="1130" y="494" width="10" height="230" fill="#C9A96E" filter="url(#soft2)"/>
+    <rect x="1134" y="494" width="2" height="310" fill="#E4C58C" filter="url(#soft3)"/>
+  </g>
+  <radialGradient id="vg" cx="52%" cy="40%" r="78%"><stop offset="48%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".9"/></radialGradient><rect width="1600" height="900" fill="url(#vg)"/>
+  <rect width="1600" height="900" filter="url(#grain)" opacity=".075" style="mix-blend-mode:overlay"/>
+</svg>

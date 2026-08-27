@@ -1,0 +1,63 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 900" width="1200" height="900" role="img"
+     aria-label="A timber pier running out into black water at night, lit by a single lamp.">
+<defs>
+  <filter id="grain" x="0" y="0" width="100%" height="100%">
+    <feTurbulence type="fractalNoise" baseFrequency=".82" numOctaves="4" seed="11" stitchTiles="stitch"/>
+    <feColorMatrix type="saturate" values="0"/>
+    <feComponentTransfer><feFuncA type="linear" slope=".5"/></feComponentTransfer>
+  </filter>
+  <filter id="soft"><feGaussianBlur stdDeviation="26"/></filter>
+  <filter id="soft2"><feGaussianBlur stdDeviation="7"/></filter>
+  <filter id="soft3"><feGaussianBlur stdDeviation="2.2"/></filter>
+  
+  <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+    <stop offset="0" stop-color="#090C12"/><stop offset=".55" stop-color="#121824"/>
+    <stop offset="1" stop-color="#080A0F"/></linearGradient>
+  <radialGradient id="lamp" cx="50%" cy="50%" r="50%">
+    <stop offset="0" stop-color="#F0D49C" stop-opacity=".8"/>
+    <stop offset="30%" stop-color="#C9A96E" stop-opacity=".26"/>
+    <stop offset="100%" stop-color="#C9A96E" stop-opacity="0"/></radialGradient>
+</defs>
+  <rect width="1200" height="900" fill="url(#sky)"/>
+  <g filter="url(#soft)" opacity=".55">
+    <ellipse cx="300" cy="300" rx="420" ry="60" fill="#1A212E"/>
+    <ellipse cx="950" cy="264" rx="380" ry="46" fill="#151B27"/>
+  </g>
+  <path d="M0 402 L260 392 L520 400 L800 388 L1030 398 L1200 390 L1200 430 L0 430Z" fill="#0A0D13"/>
+  <rect y="430" width="1200" height="470" fill="#06080C"/>
+  <g opacity=".16" fill="#8FA0B8">
+    <rect x="60" y="486" width="220" height="1"/><rect x="640" y="520" width="300" height="1"/>
+    <rect x="180" y="600" width="260" height="1"/><rect x="820" y="662" width="240" height="1"/>
+    <rect x="300" y="760" width="340" height="1"/>
+  </g>
+  <!-- pier, running away to the right -->
+  <g>
+    <path d="M120 858 L1064 470 L1116 486 L206 900 Z" fill="#0C1017"/>
+    <path d="M120 858 L1064 470 L1068 480 L128 872 Z" fill="#161C26"/>
+    <g stroke="#05070A" stroke-width="2" opacity=".8">
+      <path d="M232 806 L262 818"/><path d="M348 758 L376 770"/><path d="M470 708 L496 720"/>
+      <path d="M596 656 L620 668"/><path d="M722 604 L744 616"/><path d="M848 552 L868 564"/>
+      <path d="M962 506 L980 517"/>
+    </g>
+    <g fill="#080B10">
+      <rect x="238" y="820" width="15" height="80"/><rect x="480" y="720" width="13" height="180"/>
+      <rect x="722" y="618" width="11" height="120"/><rect x="900" y="546" width="9" height="90"/>
+    </g>
+  </g>
+  <!-- the lamp -->
+  <g transform="translate(1032 300)">
+    <ellipse cx="0" cy="176" rx="300" ry="230" fill="url(#lamp)"/>
+    <rect x="-2" y="0" width="4" height="176" fill="#0A0D14"/>
+    <path d="M-20 0 L20 0 L12 -22 L-12 -22Z" fill="#0A0D14"/>
+    <circle cx="0" cy="-6" r="8" fill="#F4DDAB"/>
+    <circle cx="0" cy="-6" r="20" fill="#F0D49C" opacity=".5" filter="url(#soft3)"/>
+  </g>
+  <!-- moored hull, barely there -->
+  <g opacity=".9">
+    <path d="M700 556 L900 522 L910 552 L716 588 Z" fill="#05070B"/>
+    <rect x="790" y="504" width="3" height="30" fill="#05070B"/>
+    <circle cx="791" cy="500" r="4" fill="#C9A96E" opacity=".55"/>
+  </g>
+  <radialGradient id="vg" cx="70%" cy="40%" r="78%"><stop offset="40%" stop-color="#050607" stop-opacity="0"/><stop offset="100%" stop-color="#050607" stop-opacity=".88"/></radialGradient><rect width="1200" height="900" fill="url(#vg)"/>
+  <rect width="1200" height="900" filter="url(#grain)" opacity=".09" style="mix-blend-mode:overlay"/>
+</svg>
