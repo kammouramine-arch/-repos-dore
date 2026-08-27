@@ -975,3 +975,12 @@ html:not(.js) .rv{opacity:1;transform:none}
 .vs__col--us .vs__list li{color:var(--bone-200)}
 .vs__list li::before{content:'—';color:var(--bone-500);flex:none}
 .vs__col--us .vs__list li::before{content:'+';color:var(--red-bright)}
+
+/* Inline file paths and code. Distinct from .mono, which uppercases —
+   a file path must keep its case. */
+.code{
+  font-family:var(--mono);font-size:.8em;letter-spacing:.01em;
+  color:var(--bone-200);background:var(--ink-200);
+  border:1px solid var(--line);border-radius:2px;
+  padding:.12em .4em;white-space:nowrap;
+}
