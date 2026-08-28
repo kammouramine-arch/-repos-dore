@@ -50,9 +50,9 @@ documentation is refused for production routing.
 | `APPLE_ISSUER_ID` | iOS purchases | App Store Connect → Users and Access → Integrations → In-App Purchase |
 | `APPLE_KEY_ID` | iOS purchases | The key's ID |
 | `APPLE_PRIVATE_KEY` | iOS purchases | The `.p8` contents, newlines intact |
-| `APPLE_BUNDLE_ID` | iOS purchases | `app.lifeos` |
+| `APPLE_BUNDLE_ID` | iOS purchases | `com.aminekammour.lifeos` |
 | `GOOGLE_SERVICE_ACCOUNT_JSON` | Android purchases | Service-account JSON on one line |
-| `ANDROID_PACKAGE_NAME` | Android purchases | `app.lifeos` |
+| `ANDROID_PACKAGE_NAME` | Android purchases | `com.aminekammour.lifeos` |
 | `STORE_WEBHOOK_SECRET` | renewals | Random secret in the notification URL. `openssl rand -hex 32` |
 
 Missing store credentials produce a `501 store_not_configured` with the exact missing

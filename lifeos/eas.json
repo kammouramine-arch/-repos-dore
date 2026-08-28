@@ -4,8 +4,11 @@
     "development": {
       "developmentClient": true,
       "distribution": "internal",
-      "channel": "development",
-      "env": { "APP_ENV": "development" },
+      "env": {
+        "APP_ENV": "development",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://vllfsraxqnjgxufroaks.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_q3yqX4ZghpTmLRYEh6CB3w_C1ZVynFu"
+      },
       "ios": { "simulator": false },
       "android": { "buildType": "apk" }
     },
@@ -15,23 +18,29 @@
     },
     "preview": {
       "distribution": "internal",
-      "channel": "preview",
-      "env": { "APP_ENV": "staging" },
+      "env": {
+        "APP_ENV": "staging",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://vllfsraxqnjgxufroaks.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_q3yqX4ZghpTmLRYEh6CB3w_C1ZVynFu"
+      },
       "android": { "buildType": "apk" }
     },
     "production": {
-      "channel": "production",
-      "env": { "APP_ENV": "production" },
       "autoIncrement": true,
+      "env": {
+        "APP_ENV": "production",
+        "EXPO_PUBLIC_SUPABASE_URL": "https://nxyahzdwyzdfhkmxxyzz.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54eWFoemR3eXpkZmhrbXh4eXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0ODY2MzksImV4cCI6MjEwMzA2MjYzOX0.sObMMUH7UXzxOaCn81DAulR4k4XeADCNw0es6Vous3k"
+      },
       "android": { "buildType": "app-bundle" }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "REPLACE_WITH_APPLE_ID",
-        "ascAppId": "REPLACE_WITH_APP_STORE_CONNECT_APP_ID",
-        "appleTeamId": "REPLACE_WITH_TEAM_ID"
+        "appleId": "REPLACE_WITH_APPLE_ID_EMAIL",
+        "ascAppId": "REPLACE_WITH_ASC_APP_ID",
+        "appleTeamId": "REPLACE_WITH_APPLE_TEAM_ID"
       },
       "android": {
         "serviceAccountKeyPath": "./play-service-account.json",

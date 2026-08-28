@@ -210,11 +210,11 @@ To turn this on for a specific store:
 2. Set the server secrets (see [ENVIRONMENT.md](ENVIRONMENT.md)):
    ```bash
    supabase secrets set \
-     APPLE_ISSUER_ID=... APPLE_KEY_ID=... APPLE_BUNDLE_ID=app.lifeos \
+     APPLE_ISSUER_ID=... APPLE_KEY_ID=... APPLE_BUNDLE_ID=com.aminekammour.lifeos \
      APPLE_PRIVATE_KEY="$(cat SubscriptionKey_XXXXXXX.p8)"
    supabase secrets set \
      GOOGLE_SERVICE_ACCOUNT_JSON="$(cat service-account.json | tr -d '\n')" \
-     ANDROID_PACKAGE_NAME=app.lifeos
+     ANDROID_PACKAGE_NAME=com.aminekammour.lifeos
    supabase secrets set STORE_WEBHOOK_SECRET=$(openssl rand -hex 32)
    supabase functions deploy subscription-verify store-notifications --no-verify-jwt
    ```

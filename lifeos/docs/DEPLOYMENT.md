@@ -118,12 +118,12 @@ supabase secrets set \
 supabase secrets set \
   APPLE_ISSUER_ID=... \
   APPLE_KEY_ID=... \
-  APPLE_BUNDLE_ID=app.lifeos \
+  APPLE_BUNDLE_ID=com.aminekammour.lifeos \
   APPLE_PRIVATE_KEY="$(cat SubscriptionKey_XXXXXXX.p8)"
 
 # Google Play
 supabase secrets set \
-  ANDROID_PACKAGE_NAME=app.lifeos \
+  ANDROID_PACKAGE_NAME=com.aminekammour.lifeos \
   GOOGLE_SERVICE_ACCOUNT_JSON="$(cat play-service-account.json | tr -d '\n')"
 
 # Optional: voice
@@ -144,7 +144,7 @@ supabase functions deploy store-notifications --no-verify-jwt
 
 ### App Store Connect
 
-1. Create the app with bundle id `app.lifeos`.
+1. Create the app with bundle id `com.aminekammour.lifeos`.
 2. **Subscriptions** → create one group ("LifeOS") with six products:
 
    | Product ID | Duration |
@@ -179,7 +179,7 @@ supabase functions deploy store-notifications --no-verify-jwt
 
 ## 5. Google Play
 
-1. Create the app with package `app.lifeos`.
+1. Create the app with package `com.aminekammour.lifeos`.
 2. **Monetise → Subscriptions** → create the same six product ids, each with a base
    plan and (where wanted) a 7-day free trial offer tagged `trial`.
 3. **Setup → API access** → link a Google Cloud project → create a service account
