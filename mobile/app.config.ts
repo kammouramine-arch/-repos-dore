@@ -31,10 +31,25 @@ function resolveApiUrl(): string {
     return 'http://localhost:3000';
   }
 
-  if (distributable && /localhost|127\.0\.0\.1|^http:\/\//.test(provided)) {
-    throw new Error(
-      `EXPO_PUBLIC_API_URL vaut « ${provided} ». Un build distribuable exige une URL HTTPS publique.`,
-    );
+  if (distributable) {
+    if (/localhost|127\.0\.0\.1|^http:\/\//.test(provided)) {
+      throw new Error(
+        `EXPO_PUBLIC_API_URL vaut « ${provided} ». Un build distribuable exige une URL HTTPS publique.`,
+      );
+    }
+
+    // Vercel attribue à chaque déploiement une URL contenant son empreinte
+    // (`projet-a1b2c3d4e-portee.vercel.app`). Elle cesse de désigner la
+    // production au déploiement suivant. Un binaire publié sur les stores est
+    // figé : il faut l'alias stable du projet, sinon l'application cesse de
+    // fonctionner sans qu'aucune mise à jour puisse la rattraper.
+    if (/^https:\/\/[a-z0-9-]+-[a-z0-9]{8,}-[a-z0-9-]+\.vercel\.app/i.test(provided)) {
+      throw new Error(
+        `EXPO_PUBLIC_API_URL vaut « ${provided} », qui est l'URL d'un déploiement ` +
+          "précis et changera au prochain déploiement. Utilisez l'alias stable du " +
+          'projet (Vercel → Project → Domains), par exemple https://<projet>-<portée>.vercel.app.',
+      );
+    }
   }
 
   return provided;

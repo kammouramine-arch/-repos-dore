@@ -383,7 +383,7 @@ npx eas init                    # crée le projet EAS (une seule fois)
 
 # URL de l'API, définie une fois côté EAS plutôt que figée dans le dépôt
 npx eas env:create --name EXPO_PUBLIC_API_URL \
-  --value https://<votre-projet>.vercel.app \
+  --value https://devisia-amyn1.vercel.app \
   --environment production --environment preview --visibility plaintext
 
 npm run build:preview           # APK Android + build interne iOS
@@ -399,8 +399,25 @@ Android, et retrait explicite des permissions Android superflues ajoutées par l
 dépendances (`SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE`), qui
 alourdiraient inutilement la revue Google Play.
 
+**Deux conditions côté Vercel avant tout build.** L'application mobile
+s'authentifie par jeton porteur sur l'API : elle a besoin d'une URL qui réponde
+en JSON, publiquement et durablement.
+
+1. **Désactiver la protection de déploiement** — tant que *Vercel Authentication*
+   est active, chaque appel d'API renvoie `401 Protected deployment` et une
+   redirection vers `vercel.com/sso-api`. Aucune connexion n'est possible depuis
+   l'application. Vercel → Project → Settings → Deployment Protection →
+   *Vercel Authentication* → **Disabled** (les routes restent protégées par
+   l'authentification de DEVISIA elle-même).
+2. **Utiliser l'alias stable**, pas l'URL d'un déploiement. Vercel attribue à
+   chaque déploiement une URL portant son empreinte
+   (`devisia-<empreinte>-amyn1.vercel.app`) qui cesse de désigner la production
+   au déploiement suivant ; un binaire publié sur les stores, lui, est figé.
+   L'alias du projet se lit dans Vercel → Project → Domains.
+
 **`EXPO_PUBLIC_API_URL` n'est pas versionnée.** Un build EAS échoue
-volontairement si elle est absente, vaut `localhost` ou n'est pas en HTTPS :
+volontairement si elle est absente, vaut `localhost`, n'est pas en HTTPS ou
+désigne un déploiement précis plutôt que l'alias :
 une application distribuée qui ne joint pas son backend s'installe sans erreur
 et ne se voit qu'à l'usage. La contrepartie est qu'il faut la définir une fois,
 avec la commande ci-dessus.
