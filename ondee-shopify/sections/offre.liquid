@@ -1,11 +1,16 @@
-{%- assign p = section.settings.produit -%}
+{%- liquid
+  assign p = section.settings.produit
+  if p == blank
+    assign p = all_products['ondee-filtre-de-douche']
+  endif
+-%}
 <section class="sect papier" id="offre">
   <div class="wrap">
     <p class="oeil">{{ section.settings.oeil }}</p>
     <h2 class="titre-sect">{{ section.settings.titre }}</h2>
     {%- if section.settings.chapeau != blank -%}<div class="chapeau">{{ section.settings.chapeau }}</div>{%- endif -%}
 
-    {%- if p != blank -%}
+    {%- if p != blank and p.variants.size > 0 -%}
       <div class="packs" style="margin-top:clamp(2rem,5vw,3rem);max-width:44rem" data-packs-accueil>
         {%- for v in p.variants -%}
           <button class="pack" type="button" aria-pressed="{% if forloop.index == 2 %}true{% else %}false{% endif %}"
@@ -31,7 +36,7 @@
 {
   "name": "L'offre",
   "settings": [
-    { "type": "product", "id": "produit", "label": "Produit à afficher" },
+    { "type": "product", "id": "produit", "label": "Produit à afficher", "info": "Si vide, le filtre de douche est utilisé automatiquement." },
     { "type": "text", "id": "oeil", "label": "Surtitre", "default": "L'offre" },
     { "type": "text", "id": "titre", "label": "Titre", "default": "Un filtre. Trois façons de commencer." },
     { "type": "richtext", "id": "chapeau", "label": "Chapeau" }

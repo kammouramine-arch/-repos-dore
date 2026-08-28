@@ -29,6 +29,23 @@ compte, un paiement, une signature ou une décision d'entreprise.
 
 ---
 
+## ✅ Store ONDÉE — état réel au 28/08/2026
+
+Store : **Ondee** · `krjwiu-zv.myshopify.com` · EUR · France · protégé par mot de passe.
+
+| | Fait directement dans Shopify |
+|---|---|
+| ✅ | 3 produits actifs, 9 variantes, SKU, poids, SEO, prix barrés vérifiés |
+| ✅ | Stock initial posé (100 / 175 / 100 unités) |
+| ✅ | 3 collections, produits rattachés, publiées |
+| ✅ | 8 pages — 5 publiées, 3 légales laissées en brouillon (marqueurs à compléter) |
+| ✅ | Menu principal (5 entrées) et pied de page (10 entrées) reliés aux vraies ressources |
+| ✅ | Thème **ONDÉE** installé (76 fichiers), non publié — à prévisualiser puis publier |
+| ✅ | Livraison France : point relais 4,90 € · Colissimo 5,90 € · **offerte dès 49 €** |
+| ✅ | Livraison UE 9,90 € · hors UE désactivé |
+| ✅ | TVA « les prix incluent la taxe » déjà active |
+| ✅ | Calcul de commande vérifié : 79 € TTC, livraison offerte au-dessus de 49 € |
+
 ## ⏳ Ce qui reste à faire — dans l'ordre
 
 ### Semaine 1 — le produit et la boutique
