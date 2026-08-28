@@ -117,6 +117,25 @@ describe('bundle stays in step with the migrations', () => {
     expect(bundle).toContain('\ncommit;\n');
   });
 
+  it('never mentions an object a later migration removes', () => {
+    /*
+      ai_usage is created by 000000 and dropped by 000300. Replaying that is right for
+      an existing project but pointless for a new one, and it was the one part of the
+      bundle whose correctness depended on statements running in exactly the emitted
+      order — which a browser SQL editor does not guarantee. The bundle now emits the
+      destination schema, not the journey.
+    */
+    expect(bundle).not.toMatch(/ai_usage/);
+    expect(bundle).not.toMatch(/increment_ai_usage/);
+  });
+
+  it('still creates every table the final schema needs', () => {
+    for (const table of ['profiles', 'usage_counters', 'usage_events', 'store_events',
+      'ai_requests', 'ai_budgets', 'ai_conversations', 'ai_memory']) {
+      expect(bundle).toContain(`create table public.${table}`);
+    }
+  });
+
   it('ends with a marker that proves the paste arrived whole', () => {
     expect(bundle).toContain('LifeOS schema created:');
     expect(bundle.trimEnd().endsWith('====')).toBe(true);

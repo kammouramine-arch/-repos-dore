@@ -16,6 +16,49 @@ const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const from = resolve(root, 'supabase/migrations');
 const to = resolve(root, 'supabase/dist');
 
+/**
+ * Objects that one migration creates and a later one removes.
+ *
+ * `ai_usage` and `increment_ai_usage` are created by 20260101000000_init and dropped by
+ * 20260101000300_subscriptions, which replaced the daily counter with period metering.
+ * Replaying that is right for an existing project — that is what `supabase db push`
+ * does — but this bundle exists to build a *new* database, where creating a table,
+ * enabling RLS on it, giving it a policy and a function, and then dropping the lot is
+ * pure churn that contributes nothing to the final schema.
+ *
+ * It is also churn with a cost: it is the one part of the bundle whose correctness
+ * depends on statements executing in exactly the emitted order, which is precisely
+ * what a browser SQL editor does not guarantee. Emitting the destination schema
+ * instead of the journey removes the ordering dependency altogether.
+ *
+ * Every cut is asserted, and the invariant at the end is what actually guarantees
+ * correctness: no reference to the superseded objects may survive.
+ */
+function dropSupersededObjects(sql) {
+  const cuts = [
+    [/-- Daily counter used to enforce[^\n]*\ncreate table public\.ai_usage \([\s\S]*?\n\);\n\n/, ''],
+    [/'ai_memory','ai_usage',/, "'ai_memory',"],
+    [/-- ai_usage is a server-side counter[^\n]*\ncreate policy "own usage read"[^\n]*\n/, ''],
+    [/-- Server-owned usage counter[^\n]*\ncreate or replace function public\.increment_ai_usage[\s\S]*?end \$\$;\n\nrevoke all on function public\.increment_ai_usage[^\n]*\n\n/, ''],
+    [/-- The old daily counter is replaced[^\n]*\ndrop function if exists public\.increment_ai_usage[^\n]*\ndrop table if exists public\.ai_usage;\n/, ''],
+  ];
+
+  for (const [pattern, replacement] of cuts) {
+    if (!pattern.test(sql)) {
+      throw new Error(
+        `build-sql: the migrations changed and this cut no longer matches: ${pattern}. ` +
+        'Update dropSupersededObjects rather than letting the bundle drift.',
+      );
+    }
+    sql = sql.replace(pattern, replacement);
+  }
+
+  if (/ai_usage/.test(sql)) {
+    throw new Error('build-sql: a reference to ai_usage survived the fresh-install cuts.');
+  }
+  return sql;
+}
+
 export function buildSql() {
   const files = readdirSync(from).filter((f) => f.endsWith('.sql')).sort();
 
@@ -72,7 +115,7 @@ commit;
     })
     .join('\n');
 
-  return { files, sql: header + body + footer };
+  return { files, sql: header + dropSupersededObjects(body) + footer };
 }
 
 // `file://${process.argv[1]}` is not a valid file URL on Windows (backslashes, no

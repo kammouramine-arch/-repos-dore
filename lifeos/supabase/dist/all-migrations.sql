@@ -374,16 +374,6 @@ create table public.ai_memory (
   unique (user_id, key)
 );
 
--- Daily counter used to enforce the free-tier conversation limit server side.
-create table public.ai_usage (
-  user_id uuid not null references auth.users(id) on delete cascade,
-  date date not null default current_date,
-  message_count int not null default 0,
-  input_tokens int not null default 0,
-  output_tokens int not null default 0,
-  primary key (user_id, date)
-);
-
 -- ------------------------------------------------- notifications & data ----
 create table public.notifications (
   id uuid primary key default gen_random_uuid(),
@@ -467,7 +457,7 @@ begin
     'profiles','user_preferences','subscriptions','life_areas','goals','goal_milestones',
     'projects','project_milestones','habits','habit_logs','tasks','calendar_events',
     'daily_plans','weekly_plans','life_plans','life_plan_items','reflections',
-    'ai_conversations','ai_messages','ai_memory','ai_usage','notifications','analytics_events'
+    'ai_conversations','ai_messages','ai_memory','notifications','analytics_events'
   ]
   loop
     execute format('alter table public.%I enable row level security', t);
@@ -488,8 +478,6 @@ create policy "own prefs" on public.user_preferences for all
 -- which bypasses RLS; the client may only read it.
 create policy "own subscription read" on public.subscriptions for select using (auth.uid() = user_id);
 
--- ai_usage is a server-side counter: readable by its owner, written by the edge function.
-create policy "own usage read" on public.ai_usage for select using (auth.uid() = user_id);
 
 do $$
 declare t text;
@@ -827,21 +815,6 @@ grant execute on function public.forget_everything() to authenticated;
 grant execute on function public.get_life_progress() to authenticated;
 grant execute on function public.get_habit_streak(uuid) to authenticated;
 
--- Server-owned usage counter used to enforce the free-tier conversation limit.
-create or replace function public.increment_ai_usage(
-  p_user uuid, p_date date, p_input int default 0, p_output int default 0
-) returns void language plpgsql security definer set search_path = public as $$
-begin
-  insert into public.ai_usage (user_id, date, message_count, input_tokens, output_tokens)
-  values (p_user, p_date, 1, coalesce(p_input, 0), coalesce(p_output, 0))
-  on conflict (user_id, date) do update
-    set message_count = public.ai_usage.message_count + 1,
-        input_tokens  = public.ai_usage.input_tokens + coalesce(p_input, 0),
-        output_tokens = public.ai_usage.output_tokens + coalesce(p_output, 0);
-end $$;
-
-revoke all on function public.increment_ai_usage(uuid, date, int, int) from public;
-
 -- ──────────────────────────────────────────────────────────────────────────
 -- 20260101000300_subscriptions.sql
 -- ──────────────────────────────────────────────────────────────────────────
@@ -916,9 +889,6 @@ create unique index if not exists subscriptions_original_transaction_idx
   on public.subscriptions (store_original_transaction_id)
   where store_original_transaction_id is not null;
 
--- The old daily counter is replaced by period-based metering below.
-drop function if exists public.increment_ai_usage(uuid, date, int, int);
-drop table if exists public.ai_usage;
 
 -- ---------------------------------------------------------------- metering --
 -- One row per user, period and meter. Written only by the edge functions through
