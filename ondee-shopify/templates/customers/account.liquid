@@ -1,0 +1,22 @@
+<div class="wrap sect--serre">
+  <p class="oeil">{{ customer.email }}</p>
+  <h1 class="titre-sect">{{ 'customer.account.title' | t }}</h1>
+  <p style="margin-bottom:2rem;display:flex;gap:1.5rem;flex-wrap:wrap">
+    <a class="lien-souligne" href="{{ routes.account_addresses_url }}">{{ 'customer.account.view_addresses' | t }}</a>
+    <a class="lien-souligne" href="{{ routes.account_logout_url }}">Se déconnecter</a>
+  </p>
+  <h2 class="titre-sect" style="font-size:var(--t-xl)">{{ 'customer.orders.title' | t }}</h2>
+  {%- if customer.orders.size == 0 -%}
+    <p class="chapeau">{{ 'customer.orders.none' | t }}</p>
+  {%- else -%}
+    <div class="couches" style="margin-top:1.5rem">
+      {%- for o in customer.orders -%}
+        <div class="couche">
+          <span class="couche__n">{{ o.created_at | date: '%d/%m/%Y' }}</span>
+          <span class="couche__t"><a href="{{ o.customer_url }}">{{ o.name }}</a><small>{{ o.financial_status_label }} · {{ o.fulfillment_status_label }}</small></span>
+          <span class="couche__r">{{ o.total_price | money }}</span>
+        </div>
+      {%- endfor -%}
+    </div>
+  {%- endif -%}
+</div>

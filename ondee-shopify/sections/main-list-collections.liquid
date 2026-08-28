@@ -1,0 +1,16 @@
+<div class="wrap sect--serre">
+  <p class="oeil">Boutique</p>
+  <h1 class="titre-sect">Toutes nos collections</h1>
+  <div class="avis-g" style="margin-top:2rem">
+    {%- for c in collections -%}
+      {%- if c.handle != 'frontpage' -%}
+        <a class="avis" href="{{ c.url }}" style="text-decoration:none">
+          <div class="ligne__t" style="font-size:var(--t-lg)">{{ c.title }}</div>
+          <p>{{ c.description | strip_html | truncate: 120 }}</p>
+          <div class="avis__meta"><b>{{ c.products_count }} produit{% if c.products_count > 1 %}s{% endif %}</b><span>Voir</span></div>
+        </a>
+      {%- endif -%}
+    {%- endfor -%}
+  </div>
+</div>
+{% schema %}{ "name": "Liste des collections" }{% endschema %}

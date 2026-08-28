@@ -1,0 +1,57 @@
+<section class="sect papier" id="probleme">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    <div class="chapeau">{{ section.settings.chapeau }}</div>
+
+    <div class="duo">
+      <div class="duo__c">
+        <p class="oeil">{{ section.settings.g_oeil }}</p>
+        <h3>{{ section.settings.g_titre }}</h3>
+        <ul>
+          {%- for b in section.blocks -%}
+            {%- if b.type == 'sans' -%}
+              <li {{ b.shopify_attributes }}><svg viewBox="0 0 24 24"><path d="M12 8v5" stroke-linecap="round"/><circle cx="12" cy="16.5" r=".8" fill="currentColor" stroke="none"/><circle cx="12" cy="12" r="9"/></svg>{{ b.settings.txt }}</li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+      <div class="duo__c duo__c--sombre">
+        <p class="oeil">{{ section.settings.d_oeil }}</p>
+        <h3>{{ section.settings.d_titre }}</h3>
+        <ul>
+          {%- for b in section.blocks -%}
+            {%- if b.type == 'avec' -%}
+              <li {{ b.shopify_attributes }}><svg viewBox="0 0 24 24"><path d="m4 12 6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>{{ b.settings.txt }}</li>
+            {%- endif -%}
+          {%- endfor -%}
+        </ul>
+      </div>
+    </div>
+
+    {%- if section.settings.avertissement != blank -%}
+      <div class="notes" style="margin-top:2rem">{{ section.settings.avertissement }}</div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Problème → solution",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Le problème" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Vous soignez ce que vous mettez sur votre peau. Pas ce qui coule dessus." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau", "default": "<p>Un Français prend environ 250 douches par an. À chaque fois, entre 40 et 80 litres d'eau du réseau passent sur la peau et les cheveux. Cette eau est désinfectée au chlore — c'est ce qui la rend potable, et c'est indispensable. Mais le chlore ne fait pas la différence entre une bactérie et le film hydrolipidique de votre peau.</p>" },
+    { "type": "text", "id": "g_oeil", "label": "Colonne gauche — surtitre", "default": "Sans filtre" },
+    { "type": "text", "id": "g_titre", "label": "Colonne gauche — titre", "default": "L'eau arrive telle qu'elle sort du réseau" },
+    { "type": "text", "id": "d_oeil", "label": "Colonne droite — surtitre", "default": "Avec ONDÉE" },
+    { "type": "text", "id": "d_titre", "label": "Colonne droite — titre", "default": "L'eau passe par cinq étages avant de vous toucher" },
+    { "type": "richtext", "id": "avertissement", "label": "Avertissement honnêteté", "default": "<p><strong>Ce qu'ONDÉE ne fait pas.</strong> ONDÉE n'adoucit pas votre eau. Aucun filtre de douche ne le fait : le calcium et le magnésium sont des ions dissous, trop petits pour être retenus par un média filtrant, et il faut un adoucisseur à résine échangeuse d'ions pour les enlever. Les marques qui vous vendent un pommeau « anti-calcaire » vous racontent une histoire. Nous préférons vous vendre ce que le produit fait réellement.</p>" }
+  ],
+  "blocks": [
+    { "type": "sans", "name": "Point — sans filtre", "settings": [ { "type": "text", "id": "txt", "label": "Texte" } ] },
+    { "type": "avec", "name": "Point — avec ONDÉE", "settings": [ { "type": "text", "id": "txt", "label": "Texte" } ] }
+  ],
+  "presets": [ { "name": "Problème → solution" } ]
+}
+{% endschema %}

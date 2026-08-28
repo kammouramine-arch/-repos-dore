@@ -36,13 +36,13 @@ d'ouverture, aucune musique. Le bruit de l'eau, c'est tout.
 
 **Concept :** un seul plan fixe, téléphone posé sur un trépied, salle de bain
 ordinaire. La bandelette entre dans l'eau et **vire à l'ambre en trois
-secondes**. La main dévisse le pommeau, visse ONDÉE, rouvre l'eau. Deuxième
+secondes**. La main dévisse le filtre, visse ONDÉE, rouvre l'eau. Deuxième
 bandelette. **Elle reste blanche.** Fin.
 
 **Script (voix off, ton neutre, débit lent) :**
 > « Ça, c'est l'eau de ma douche. Bandelette de test au chlore. (*pause de 3 s,
 > la couleur monte*) 0,3 milligramme par litre. Maintenant je visse ce
-> pommeau — il a un filtre au KDF et au sulfite de calcium à l'intérieur.
+> filtre — il a un filtre au KDF et au sulfite de calcium à l'intérieur.
 > (*pause*) Même douche. Même bandelette. (*pause de 3 s, rien ne se passe*)
 > Rien. Voilà. C'est tout ce que je voulais vous montrer. »
 
@@ -93,7 +93,7 @@ dernière seconde, ou pas du tout.
 **Audience :** large
 **Durée :** 20 s · face caméra, tenu à la main
 
-**Accroche :** *« On vend des pommeaux de douche. Voilà tout ce qu'ils ne font
+**Accroche :** *« On vend des filtrex de douche. Voilà tout ce qu'ils ne font
 pas. »*
 
 **3 premières secondes :** une personne face caméra tient le produit et
@@ -102,7 +102,7 @@ commence à énumérer sur ses doigts. Aucune musique.
 **Script :**
 > « Ça n'enlève pas le calcaire. Vos traces blanches sur la paroi vont rester.
 > Ça ne soigne pas l'eczéma, ça n'arrête pas la chute de cheveux, et ça ne
-> rendra pas votre eau potable meilleure au goût. Les pommeaux vendus
+> rendra pas votre eau potable meilleure au goût. Les filtrex vendus
 > "anti-calcaire" ? Le calcium est un ion dissous, il traverse tous les filtres.
 > Il faut un adoucisseur, et ça se pose sur l'arrivée d'eau. Ce que ça fait :
 > ça enlève le chlore. Et on met deux bandelettes de test dans la boîte pour
@@ -139,7 +139,7 @@ Coupe franche sur une cartouche usagée, brune. Rien d'autre.
 **Démonstration :** on scie la cartouche en deux à l'écran et on verse le média
 usagé sur une feuille blanche.
 
-**Appel à l'action :** « Cartouche à 15 € tous les 90 jours. »
+**Appel à l'action :** « Deux cartouches à 29 € tous les six mois. »
 
 > La parenthèse honnête est ce qui distingue ce créatif des dizaines de vidéos
 > de filtres sales — et ce qui le protège d'une plainte pour allégation
@@ -189,9 +189,9 @@ un couloir d'immeuble.
 **Script :**
 > « Vous ne pouvez pas toucher à la plomberie. Vous ne pouvez pas installer
 > d'adoucisseur. Vous ne pouvez pas non plus enlever le calcaire — soyons
-> clairs, ce pommeau ne le fait pas. Ce que vous pouvez faire, c'est enlever le
+> clairs, ce filtre ne le fait pas. Ce que vous pouvez faire, c'est enlever le
 > chlore. Ça se dévisse à la main, ça part avec vous quand vous déménagez, et
-> ça coûte 59 €. »
+> ça coûte 79 €. »
 
 **Appel à l'action :** « Ça se dévisse. Ça vous suit. »
 
@@ -211,11 +211,11 @@ la baignoire, un par un, en annonçant chaque prix.
 
 **Script :**
 > « Shampooing déjaunissant, 26. Masque, 32. Sérum, 24. Huile, 19. Patine chez
-> le coiffeur, 90, toutes les sept semaines. (*plan sur le pommeau*) Et je
+> le coiffeur, 90, toutes les sept semaines. (*plan sur le filtre*) Et je
 > passe quinze minutes par jour à tout rincer avec de l'eau chlorée. J'ai mis
 > trois ans à me poser la question. »
 
-**Appel à l'action :** « 59 €. Le moins cher de tous ces produits. »
+**Appel à l'action :** « 79 €. Le moins cher de tous ces produits. »
 
 > Angle du recadrage de prix : il fait paraître 59 € modeste par comparaison au
 > lieu de le défendre dans l'absolu.
@@ -261,7 +261,7 @@ dropshipping »
 quelqu'un qui se filme en train de hausser les épaules.
 
 **Script :**
-> « Question légitime. Alors : on ne fabrique pas le pommeau, il est produit en
+> « Question légitime. Alors : on ne fabrique pas le filtre, il est produit en
 > Chine, comme celui de tout le monde, y compris ceux à 159 €. Ce qui est à
 > nous, c'est ce qu'on met dedans et ce qu'on ose dire. On ne prétend pas
 > enlever le calcaire — c'est chimiquement impossible. On met deux bandelettes
@@ -294,7 +294,7 @@ pétrole. Aucun visage, aucun produit.
 - **Carte 3** — `SOURCE : SISE-EAUX, MINISTÈRE DE LA SANTÉ · DISTRIBUTEUR ILEO`
 - **Carte 4** — `CE QU'UN FILTRE DE DOUCHE RETIRE : LE CHLORE`
   `CE QU'IL NE RETIRE PAS : LE CALCAIRE. AUCUN NE LE FAIT.`
-- **Carte 5** — `ONDÉE · 59 € · BANDELETTES DE TEST INCLUSES`
+- **Carte 5** — `ONDÉE · DÈS 59 € · BANDELETTES DE TEST INCLUSES`
 
 **Appel à l'action :** « Voir les relevés de votre commune. »
 
@@ -314,7 +314,7 @@ pétrole. Aucun visage, aucun produit.
 **Accroche :** *« Installation. En temps réel. Je ne coupe pas. »*
 
 **3 premières secondes :** un chronomètre démarre en surimpression pendant que
-la main attrape le pommeau existant.
+la main attrape le filtre existant.
 
 **Script (texte à l'écran uniquement) :**
 > `PAS DE CLÉ` · `PAS DE TÉFLON` · `PAS DE PLOMBIER` · `LE JOINT EST DÉJÀ
@@ -338,8 +338,8 @@ la main attrape le pommeau existant.
 **3 premières secondes :** un seul chiffre sur fond craie, en monospace.
 
 **Script (texte) :**
-> « Cartouche : 15 €. Durée : 90 jours. Foyer de deux personnes : environ 250
-> douches. Soit 6 centimes par douche. Votre après-shampooing coûte plus cher au
+> « Deux cartouches : 29 €. Durée : six mois. Foyer de deux personnes : environ 250
+> douches. Soit environ 6 centimes par douche. Votre après-shampooing coûte plus cher au
 > lavage. »
 
 **Appel à l'action :** « Reprendre ma commande. »
@@ -379,7 +379,7 @@ virage de couleur (4) comparaison au nuancier.
 
 **2. Le même test, après le filtre**
 *Accroche :* « Même douche. Trente secondes plus tard. »
-*Plans :* vissage du pommeau · eau qui coule · bandelette · rien ne se passe.
+*Plans :* vissage du filtre · eau qui coule · bandelette · rien ne se passe.
 *Texte :* `LA COULEUR NE MONTE PAS` *CTA :* « C'est tout le produit. »
 
 **3. Le test dans dix villes**

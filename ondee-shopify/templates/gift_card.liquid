@@ -1,0 +1,6 @@
+<div class="wrap wrap--etroit sect centre">
+  <p class="oeil oeil--centre">Carte cadeau</p>
+  <h1 class="titre-sect">{{ gift_card.balance | money }}</h1>
+  <p class="chapeau">Utilisez ce code au moment du paiement.</p>
+  <p class="mono" style="font-size:var(--t-xl);letter-spacing:.1em;margin-top:1.5rem">{{ gift_card.code | format_code }}</p>
+</div>

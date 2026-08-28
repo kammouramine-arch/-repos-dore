@@ -1,0 +1,29 @@
+<div class="wrap wrap--etroit sect">
+  <p class="oeil">Contact</p>
+  <h1 class="titre-sect">{{ page.title }}</h1>
+  <div class="page-rte">{{ page.content }}</div>
+
+  {%- form 'contact' -%}
+    {%- if form.posted_successfully? -%}
+      <p class="puce puce--ok" style="display:block;padding:1rem;margin-bottom:1.5rem">Merci, votre message est bien arrivé. Nous répondons sous un jour ouvré.</p>
+    {%- endif -%}
+    {%- if form.errors -%}
+      <p class="puce puce--alerte" style="display:block;padding:1rem;margin-bottom:1.5rem">{{ form.errors | default_errors }}</p>
+    {%- endif -%}
+
+    <div class="champ">
+      <label class="champ__l" for="c-nom"><span>Votre nom</span></label>
+      <input class="saisie" id="c-nom" type="text" name="contact[name]" value="{{ form.name }}" required>
+    </div>
+    <div class="champ">
+      <label class="champ__l" for="c-mail"><span>Votre e-mail</span></label>
+      <input class="saisie" id="c-mail" type="email" name="contact[email]" value="{{ form.email }}" required autocomplete="email">
+    </div>
+    <div class="champ">
+      <label class="champ__l" for="c-msg"><span>Votre message</span></label>
+      <textarea class="saisie" id="c-msg" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
+    </div>
+    <button class="btn btn--primaire" type="submit">Envoyer</button>
+  {%- endform -%}
+</div>
+{% schema %}{ "name": "Contact" }{% endschema %}

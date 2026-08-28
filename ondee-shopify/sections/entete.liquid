@@ -1,0 +1,53 @@
+<header class="header" data-header>
+  <div class="wrap header__in">
+    <button class="burger" data-nav-toggle aria-label="{{ 'general.accessibility.menu' | t }}" aria-expanded="false" aria-controls="nav-mob"><span></span></button>
+
+    <nav class="nav" aria-label="Navigation principale">
+      {%- for link in section.settings.menu.links -%}
+        <a href="{{ link.url }}">{{ link.title }}</a>
+      {%- endfor -%}
+    </nav>
+
+    <a class="logo" href="{{ routes.root_url }}" aria-label="{{ shop.name }}, accueil">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.2 4 5.4 6.6 5.4 9a5.4 5.4 0 0 1-10.8 0C6.6 9.6 8.8 7 12 3z" fill="currentColor"/></svg>
+      {{ shop.name }}
+    </a>
+
+    <div class="header__act">
+      <a class="ico" href="{{ routes.search_url }}" aria-label="{{ 'general.search.title' | t }}">
+        <svg viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.7-3.7" stroke-linecap="round"/></svg>
+      </a>
+      {%- if shop.customer_accounts_enabled -%}
+      <a class="ico" href="{{ routes.account_url }}" aria-label="{{ 'customer.account.title' | t }}">
+        <svg viewBox="0 0 24 24"><circle cx="12" cy="9" r="3.4"/><path d="M5.5 20a6.5 6.5 0 0 1 13 0" stroke-linecap="round"/></svg>
+      </a>
+      {%- endif -%}
+      <button class="ico" data-panier-ouvrir aria-label="{{ 'cart.general.title' | t }}">
+        <svg viewBox="0 0 24 24"><path d="M6 8h12l1.1 12H4.9z" stroke-linejoin="round"/><path d="M9 10.5V7a3 3 0 0 1 6 0v3.5" stroke-linecap="round"/></svg>
+        <span class="ico__n" data-panier-n {% if cart.item_count == 0 %}hidden{% endif %}>{{ cart.item_count }}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<div class="nav-mob" id="nav-mob" data-nav>
+  <ul class="nav-mob__l">
+    {%- for link in section.settings.menu.links -%}
+      <li><a href="{{ link.url }}"><small>{{ forloop.index | prepend: '0' | slice: -2, 2 }}</small>{{ link.title }}</a></li>
+    {%- endfor -%}
+  </ul>
+  <div class="nav-mob__pied">
+    <span>{{ settings.email_contact }}</span>
+    <span>Expédié de France · {{ settings.delai_expedition }}</span>
+  </div>
+</div>
+
+{% schema %}
+{
+  "name": "En-tête",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" }
+  ],
+  "enabled_on": { "groups": ["header"] }
+}
+{% endschema %}

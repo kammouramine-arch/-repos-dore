@@ -1,0 +1,41 @@
+{
+  "current": {
+    "c_craie": "#F6F4EF",
+    "c_papier": "#FFFFFF",
+    "c_encre": "#0D1416",
+    "c_petrole": "#0E3A45",
+    "c_eau": "#9FC7D2",
+    "c_reactif": "#D89B22",
+    "seuil_port_offert": "49 €",
+    "delai_expedition": "48 h ouvrées",
+    "duree_essai": "90 jours",
+    "email_contact": "bonjour@ondee.fr",
+    "sections": {
+      "annonce": {
+        "type": "annonce",
+        "settings": {
+          "m1": "Livraison offerte dès 49 €",
+          "m2": "Expédié de France sous 48 h",
+          "m3": "90 jours pour changer d'avis",
+          "m4": "Bandelettes de test au chlore incluses",
+          "m5": "Données eau : ministère de la Santé"
+        }
+      },
+      "entete": { "type": "entete", "settings": { "menu": "main-menu" } },
+      "pied": {
+        "type": "pied",
+        "blocks": {
+          "c1": { "type": "menu", "settings": { "titre": "Boutique", "menu": "footer" } },
+          "c2": { "type": "menu", "settings": { "titre": "Comprendre", "menu": "footer" } },
+          "c3": { "type": "menu", "settings": { "titre": "Maison", "menu": "footer" } }
+        },
+        "block_order": ["c1", "c2", "c3"],
+        "settings": {
+          "pitch": "Nous fabriquons un filtre de douche et nous publions ce qu'il retire, ce qu'il ne retire pas et d'où viennent nos chiffres. C'est tout le programme.",
+          "signature": "On ne promet pas. On prouve.",
+          "notes": "<p>Sources : dureté et chlore par commune — base SISE-Eaux du ministère chargé de la Santé, via l'API publique Hub'Eau. Les ordres de grandeur nationaux sont issus de synthèses sectorielles et ne constituent pas un chiffre officiel unique.</p>"
+        }
+      }
+    }
+  }
+}

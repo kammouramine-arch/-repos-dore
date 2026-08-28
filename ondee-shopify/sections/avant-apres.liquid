@@ -1,0 +1,56 @@
+<section class="sect">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    <div class="chapeau">{{ section.settings.chapeau }}</div>
+
+    <div class="ba">
+      <div class="ba__c ba__c--avant">
+        <div class="ba__vig">
+          {%- if section.settings.img_avant != blank -%}
+            <img src="{{ section.settings.img_avant | image_url: width: 700 }}" alt="{{ section.settings.img_avant.alt | escape }}" width="600" height="600" loading="lazy">
+          {%- else -%}
+            <img src="{{ 'bandelette-avant.svg' | asset_url }}" alt="Bandelette de test au chlore avant filtration" width="600" height="600" loading="lazy">
+          {%- endif -%}
+        </div>
+        <span class="ba__val">{{ section.settings.val_avant }}</span>
+        <h3>{{ section.settings.tit_avant }}</h3>
+        <p>{{ section.settings.txt_avant }}</p>
+      </div>
+      <div class="ba__c ba__c--apres">
+        <div class="ba__vig">
+          {%- if section.settings.img_apres != blank -%}
+            <img src="{{ section.settings.img_apres | image_url: width: 700 }}" alt="{{ section.settings.img_apres.alt | escape }}" width="600" height="600" loading="lazy">
+          {%- else -%}
+            <img src="{{ 'bandelette-apres.svg' | asset_url }}" alt="Bandelette de test au chlore après filtration" width="600" height="600" loading="lazy">
+          {%- endif -%}
+        </div>
+        <span class="ba__val">{{ section.settings.val_apres }}</span>
+        <h3>{{ section.settings.tit_apres }}</h3>
+        <p>{{ section.settings.txt_apres }}</p>
+      </div>
+    </div>
+    {%- if section.settings.note != blank -%}<div class="notes" style="margin-top:1.5rem">{{ section.settings.note }}</div>{%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Avant / après",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "La seule transformation que nous montrons" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Pas de photo de cheveux. Une bandelette de test." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" },
+    { "type": "image_picker", "id": "img_avant", "label": "Image avant" },
+    { "type": "text", "id": "val_avant", "label": "Valeur avant", "default": "0,32 mg/L" },
+    { "type": "text", "id": "tit_avant", "label": "Titre avant", "default": "Eau du robinet, non filtrée" },
+    { "type": "text", "id": "txt_avant", "label": "Texte avant", "default": "Bandelette DPD au chlore libre. La zone réactive vire à l'ambre." },
+    { "type": "image_picker", "id": "img_apres", "label": "Image après" },
+    { "type": "text", "id": "val_apres", "label": "Valeur après", "default": "< 0,02 mg/L" },
+    { "type": "text", "id": "tit_apres", "label": "Titre après", "default": "La même eau, après ONDÉE" },
+    { "type": "text", "id": "txt_apres", "label": "Texte après", "default": "Sous le seuil de détection de la bandelette. La zone reste blanche." },
+    { "type": "richtext", "id": "note", "label": "Note de mesure" }
+  ],
+  "presets": [ { "name": "Avant / après" } ]
+}
+{% endschema %}

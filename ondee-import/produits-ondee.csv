@@ -1,0 +1,43 @@
+Handle,Title,Body (HTML),Vendor,Type,Tags,Published,Option1 Name,Option1 Value,Variant SKU,Variant Grams,Variant Inventory Tracker,Variant Inventory Qty,Variant Inventory Policy,Variant Fulfillment Service,Variant Price,Variant Compare At Price,Variant Requires Shipping,Variant Taxable,Gift Card,SEO Title,SEO Description,Status
+ondee-filtre-de-douche,ONDÉE — Filtre de douche,"<p><strong>Le filtre qui retire le chlore de votre eau de douche — et qui vous donne de quoi le vérifier vous-même.</strong> Cinq étages de filtration, une cartouche remplaçable, deux bandelettes de test au chlore dans la boîte.</p>
+<h3>Ce que le filtre retire</h3><ul>
+<li>Le chlore libre, neutralisé par réaction redox sur le KDF-55 puis réduit par le sulfite de calcium</li>
+<li>Une partie du chlore combiné et des trihalométhanes, retenus par le charbon actif</li>
+<li>Les particules, le sable et la rouille de canalisation</li>
+<li>Une partie des métaux lourds solubles retenus par le KDF</li></ul>
+<h3>Ce que le filtre ne retire pas</h3>
+<p><strong>Le calcaire.</strong> Les ions calcium et magnesium dissous traversent tous les medias filtrants — c'est de la chimie, pas un defaut de fabrication. Aucun filtre de douche au monde n'adoucit l'eau : il faut un adoucisseur a resine echangeuse d'ions sur l'arrivee d'eau du logement. Vos traces blanches resteront. Nous preferons vous le dire avant l'achat.</p>
+<p>Non retires non plus : les nitrates, les pesticides et les PFAS.</p>
+<h3>Caracteristiques</h3><ul>
+<li>Raccord : filetage 15/21 — G1/2&quot; male, standard francais et europeen</li>
+<li>Medias : tamis, KDF-55, sulfite de calcium, charbon actif, billes minerales</li>
+<li>Duree de la cartouche : 90 jours (foyer de 2 personnes)</li>
+<li>Temperature admissible : 4 a 80 &deg;C · pression 1 a 6 bar</li>
+<li>Contenu : filtre, 1 cartouche, 2 bandelettes de test au chlore, joint, notice</li></ul>
+<h3>La garantie bandelette</h3>
+<p>90 jours d'essai, produit installe et utilise. Faites le test avant/apres avec les bandelettes fournies : si la couleur ne change pas, nous remboursons integralement et nous payons le retour. S'y ajoutent de plein droit la garantie legale de conformite de 2 ans et la garantie contre les vices caches.</p>
+<p><em>Les performances de filtration doivent etre confirmees par le rapport d'essai du fabricant avant toute publication commerciale.</em></p>",ONDÉE,Filtre de douche,"ondee,filtration,chlore,kdf-55,sulfite-de-calcium,filtre-douche",TRUE,Formule,Filtre + 1 cartouche,ONDEE-F1,450,shopify,0,deny,manual,59.00,,TRUE,TRUE,FALSE,"Filtre de douche ONDÉE — retire le chlore, prouvé par bandelette","Le filtre de douche qui retire le chlore de votre eau. KDF-55 et sulfite de calcium, cartouche 90 jours, 2 bandelettes de test incluses. Dès 59 €, expédié de France.",draft
+ondee-filtre-de-douche,,,,,,,,Set complet — filtre + pomme de douche,ONDEE-SET,750,shopify,0,deny,manual,79.00,,TRUE,TRUE,FALSE,,,
+ondee-filtre-de-douche,,,,,,,,L'année complète — set + 4 cartouches,ONDEE-SET-AN,2150,shopify,0,deny,manual,109.00,155.00,TRUE,TRUE,FALSE,,,
+ondee-filtre-de-douche,,,,,,,,Duo — 2 sets + 2 cartouches,ONDEE-DUO,2300,shopify,0,deny,manual,149.00,196.00,TRUE,TRUE,FALSE,,,
+ondee-cartouche-c90,ONDÉE — Cartouche filtrante C90,"<p><strong>Le filtre est un contenant. La cartouche est le produit.</strong> Autant vous le dire avant l'achat plutot que de vous le laisser decouvrir au bout de trois mois.</p>
+<h3>Cinq etages</h3><ol>
+<li><strong>Tamis d'entree</strong> — sable, rouille, particules de canalisation</li>
+<li><strong>KDF-55</strong> — alliage cuivre-zinc, reaction redox sur le chlore libre</li>
+<li><strong>Sulfite de calcium</strong> — transforme le chlore en chlorure, efficace en eau chaude</li>
+<li><strong>Charbon actif</strong> — coque de noix de coco : gout, odeurs, trihalomethanes</li>
+<li><strong>Tamis de sortie</strong> — retient le media dans la cartouche</li></ol>
+<p>Le KDF-55 et le sulfite de calcium agissent par reaction chimique, pas par adsorption. C'est pour cela qu'ils fonctionnent encore a 40 &deg;C, la ou le charbon actif seul decroche — le cas exact d'une douche.</p>
+<h3>Duree et remplacement</h3>
+<p>90 jours pour un foyer de deux personnes, soit environ 15 000 litres. Deux signes vous alertent : la pression qui baisse et l'odeur de chlore qui revient. Chaque cartouche porte une case a dater au feutre indelebile.</p>
+<h3>Abonnement</h3>
+<p>Deux cartouches dans votre boite aux lettres tous les 6 mois, a 29 &euro; au lieu de 38 &euro;, livraison comprise. Sans duree minimale, resiliable en deux clics. Un e-mail de preavis est envoye 4 jours avant chaque prelevement.</p>",ONDÉE,Cartouche filtrante,"ondee,cartouche,consommable,abonnement,recharge",TRUE,Formule,À l'unité — 3 mois,C90-1,400,shopify,0,deny,manual,19.00,,TRUE,TRUE,FALSE,"Cartouche filtrante ONDÉE C90 — 90 jours, KDF-55 + sulfite de calcium","Cartouche de rechange ONDÉE C90 : 5 étages, KDF-55 et sulfite de calcium, 90 jours. Dès 14,50 € la cartouche en abonnement sans engagement.",draft
+ondee-cartouche-c90,,,,,,,,Lot de 2 — 6 mois,C90-2,800,shopify,0,deny,manual,34.00,38.00,TRUE,TRUE,FALSE,,,
+ondee-cartouche-c90,,,,,,,,Lot de 4 — 12 mois,C90-4,1600,shopify,0,deny,manual,59.00,76.00,TRUE,TRUE,FALSE,,,
+ondee-cartouche-c90,,,,,,,,Abonnement — 2 cartouches tous les 6 mois,C90-ABO,800,shopify,0,deny,manual,29.00,38.00,TRUE,TRUE,FALSE,,,
+ondee-bandelettes-test-chlore,ONDÉE — Bandelettes de test au chlore (lot de 10),"<p><strong>Ne nous croyez pas. Mesurez.</strong></p>
+<p>Dix bandelettes de test au chlore libre. Trempez-en une dans l'eau de votre douche, attendez quelques secondes, comparez au nuancier. La zone reactive vire a l'ambre en presence de chlore libre et reste blanche s'il n'y en a plus.</p>
+<p>Deux bandelettes sont deja incluses dans chaque filtre ONDEE. Ce lot est fait pour tester votre eau au fil des mois, verifier quand la cartouche arrive en fin de vie, ou tester l'eau d'une residence secondaire ou d'un bureau.</p>
+<h3>Ce qu'une bandelette mesure — et ce qu'elle ne mesure pas</h3>
+<p><strong>Mesure :</strong> le chlore libre, en milligrammes par litre.</p>
+<p><strong>Non mesure :</strong> la durete de l'eau, les nitrates, les pesticides, les metaux lourds. Une bandelette n'est pas un laboratoire — c'est un indicateur, et c'est deja infiniment plus qu'une photo avant/apres.</p>",ONDÉE,Accessoire de test,"ondee,test,bandelette,vente-croisee",TRUE,Title,Lot de 10,TEST-10,40,shopify,0,deny,manual,9.00,,TRUE,TRUE,FALSE,Bandelettes de test au chlore — lot de 10 | ONDÉE,Dix bandelettes de test au chlore libre pour vérifier vous-même l'eau de votre douche. 9 €.,draft

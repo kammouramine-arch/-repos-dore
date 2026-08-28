@@ -1,0 +1,15 @@
+<div class="wrap sect--serre">
+  <p class="oeil">Journal</p>
+  <h1 class="titre-sect">{{ blog.title }}</h1>
+  <div class="avis-g" style="margin-top:2rem">
+    {%- for a in blog.articles -%}
+      <a class="avis" href="{{ a.url }}" style="text-decoration:none">
+        <span class="mono" style="font-size:var(--t-xs);color:var(--encre-3)">{{ a.published_at | date: '%d %B %Y' }}</span>
+        <div class="ligne__t" style="font-size:var(--t-lg)">{{ a.title }}</div>
+        <p>{{ a.excerpt_or_content | strip_html | truncate: 160 }}</p>
+        <div class="avis__meta"><b>{{ 'blogs.article.read_more' | t }}</b></div>
+      </a>
+    {%- endfor -%}
+  </div>
+</div>
+{% schema %}{ "name": "Journal" }{% endschema %}

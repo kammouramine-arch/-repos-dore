@@ -1,0 +1,30 @@
+<div class="wrap sect--serre">
+  <p class="oeil">Recherche</p>
+  <h1 class="titre-sect">{{ 'general.search.title' | t }}</h1>
+  <form action="{{ routes.search_url }}" method="get" role="search" style="max-width:34rem;margin-bottom:2rem">
+    <div class="chercheur__champ">
+      <input class="saisie" type="search" name="q" value="{{ search.terms | escape }}" placeholder="{{ 'general.search.placeholder' | t }}" aria-label="{{ 'general.search.title' | t }}">
+      <button class="btn btn--primaire" type="submit">{{ 'general.search.submit' | t }}</button>
+    </div>
+  </form>
+
+  {%- if search.performed -%}
+    {%- if search.results_count == 0 -%}
+      <p class="chapeau">{{ 'general.search.no_results' | t: terms: search.terms }}</p>
+    {%- else -%}
+      <p class="notes">{{ search.results_count }} résultat{% if search.results_count > 1 %}s{% endif %}</p>
+      <div class="avis-g" style="margin-top:1.5rem">
+        {%- for item in search.results -%}
+          {%- if item.object_type == 'product' -%}{%- render 'carte-produit', p: item -%}
+          {%- else -%}
+            <a class="avis" href="{{ item.url }}" style="text-decoration:none">
+              <div class="ligne__t" style="font-size:var(--t-lg)">{{ item.title }}</div>
+              <p>{{ item.content | strip_html | truncate: 140 }}</p>
+            </a>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+    {%- endif -%}
+  {%- endif -%}
+</div>
+{% schema %}{ "name": "Recherche" }{% endschema %}

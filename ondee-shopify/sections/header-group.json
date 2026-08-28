@@ -1,0 +1,18 @@
+{
+  "type": "header",
+  "name": "En-tête",
+  "sections": {
+    "annonce": {
+      "type": "annonce",
+      "settings": {
+        "m1": "Livraison offerte dès 49 €",
+        "m2": "Expédié de France sous 48 h",
+        "m3": "90 jours pour changer d'avis",
+        "m4": "Bandelettes de test au chlore incluses",
+        "m5": "Données eau : ministère de la Santé"
+      }
+    },
+    "entete": { "type": "entete", "settings": {} }
+  },
+  "order": ["annonce", "entete"]
+}

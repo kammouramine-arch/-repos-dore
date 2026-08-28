@@ -1,0 +1,33 @@
+{%- liquid
+  assign msgs = ''
+  for i in (1..5)
+    assign k = 'm' | append: i
+    assign v = section.settings[k]
+    if v != blank
+      assign msgs = msgs | append: v | append: '||'
+    endif
+  endfor
+  assign liste = msgs | split: '||'
+-%}
+{%- if liste.size > 0 -%}
+<div class="annonce">
+  <div class="annonce__piste">
+    <span>{% for m in liste %}{{ m }}<i></i>{% endfor %}</span>
+    <span aria-hidden="true">{% for m in liste %}{{ m }}<i></i>{% endfor %}</span>
+  </div>
+</div>
+{%- endif -%}
+
+{% schema %}
+{
+  "name": "Barre d'annonce",
+  "settings": [
+    { "type": "text", "id": "m1", "label": "Message 1", "default": "Livraison offerte dès 49 €" },
+    { "type": "text", "id": "m2", "label": "Message 2", "default": "Expédié de France sous 48 h" },
+    { "type": "text", "id": "m3", "label": "Message 3", "default": "90 jours pour changer d'avis" },
+    { "type": "text", "id": "m4", "label": "Message 4", "default": "Bandelettes de test au chlore incluses" },
+    { "type": "text", "id": "m5", "label": "Message 5", "default": "Données eau : ministère de la Santé" }
+  ],
+  "enabled_on": { "groups": ["header"] }
+}
+{% endschema %}

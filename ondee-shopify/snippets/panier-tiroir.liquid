@@ -1,0 +1,17 @@
+<div class="voile" data-voile></div>
+<aside class="tiroir" data-panier aria-label="{{ 'cart.general.title' | t }}" aria-hidden="true">
+  <div class="tiroir__h">
+    <b>{{ 'cart.general.title' | t }}</b>
+    <button class="ico" data-panier-fermer aria-label="{{ 'general.accessibility.close' | t }}">
+      <svg viewBox="0 0 24 24"><path d="m6 6 12 12M18 6 6 18" stroke-linecap="round"/></svg>
+    </button>
+  </div>
+  <div class="tiroir__b" data-panier-corps>
+    {%- render 'panier-lignes' -%}
+  </div>
+  <div class="tiroir__f">
+    <div class="tiroir__tot"><span>{{ 'cart.general.subtotal' | t }}</span><span data-panier-total>{{ cart.total_price | money }}</span></div>
+    <p class="tiroir__tva">{{ 'cart.general.taxes_and_shipping' | t }} · Livraison offerte dès {{ settings.seuil_port_offert }}</p>
+    <a class="btn btn--primaire btn--bloc" href="{{ routes.cart_url }}" data-checkout>{{ 'cart.general.checkout' | t }}</a>
+  </div>
+</aside>

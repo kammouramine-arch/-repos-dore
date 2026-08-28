@@ -1,0 +1,22 @@
+{%- if cart.item_count == 0 -%}
+  <p class="tiroir__vide">{{ 'cart.general.empty' | t }}</p>
+{%- else -%}
+  {%- for item in cart.items -%}
+    <div class="ligne" data-ligne="{{ forloop.index }}">
+      <div class="ligne__v">
+        {%- if item.image -%}
+          <img src="{{ item.image | image_url: width: 120 }}" alt="{{ item.image.alt | escape }}" width="56" height="56" loading="lazy">
+        {%- endif -%}
+      </div>
+      <div>
+        <div class="ligne__t">{{ item.product.title }}</div>
+        {%- unless item.variant.title contains 'Default' -%}
+          <div class="ligne__o">{{ item.variant.title }}</div>
+        {%- endunless -%}
+        <div class="ligne__o">{{ 'products.product.quantity' | t }} : {{ item.quantity }}</div>
+        <button class="ligne__sup" type="button" data-sup="{{ forloop.index }}">{{ 'cart.general.remove' | t }}</button>
+      </div>
+      <div class="ligne__p">{{ item.final_line_price | money }}</div>
+    </div>
+  {%- endfor -%}
+{%- endif -%}

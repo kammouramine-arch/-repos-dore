@@ -1,0 +1,59 @@
+{
+  "sections": {
+    "main": {
+      "type": "main-product",
+      "blocks": {
+        "d1": { "type": "detail", "settings": {
+          "titre": "Ce que le filtre retire — et ce qu'il ne retire pas",
+          "txt": "<p><strong>Retiré :</strong> le chlore libre (réaction redox sur le KDF-55 puis réduction par le sulfite de calcium), une partie du chlore combiné et des trihalométhanes (charbon actif), les particules, le sable et la rouille de canalisation, ainsi qu'une partie des métaux lourds solubles retenus par le KDF.</p><p><strong>Non retiré : le calcaire.</strong> Les ions calcium et magnésium dissous traversent tous les médias filtrants — c'est de la chimie, pas un défaut de fabrication. Aucun filtre de douche au monde n'adoucit l'eau. Il faut un adoucisseur à résine échangeuse d'ions sur l'arrivée d'eau du logement. Vos traces blanches resteront.</p><p><strong>Non retirés non plus :</strong> les nitrates, les pesticides et les PFAS.</p>"
+        } },
+        "d2": { "type": "detail", "settings": {
+          "titre": "Caractéristiques techniques",
+          "txt": "<p>Raccord : filetage 15/21 — G½\" mâle, standard français et européen.<br>Corps : ABS, finition chrome, nickel brossé ou bronze.<br>Médias : tamis · KDF-55 · sulfite de calcium · charbon actif · billes minérales.<br>Durée de la cartouche : 90 jours (usage foyer de 2 personnes).<br>Température admissible : 4 à 80 °C.<br>Contenu : filtre, 1 cartouche, 2 bandelettes de test au chlore, joint, notice.</p><p><em>Les valeurs de performance de filtration doivent être confirmées par le rapport d'essai du fabricant avant toute publication commerciale.</em></p>"
+        } },
+        "d3": { "type": "detail", "settings": {
+          "titre": "Installation",
+          "txt": "<p>Dévissez votre pommeau du flexible, à la main. Vissez ONDÉE entre le flexible et le pommeau. Revissez le pommeau. Ouvrez l'eau trente secondes pour purger la cartouche — une légère coloration au premier rinçage est normale.</p><p>Ni clé, ni téflon, ni plombier. Si votre douche a une tête fixe encastrée, écrivez-nous avant de commander.</p>"
+        } },
+        "d4": { "type": "detail", "settings": {
+          "titre": "Livraison",
+          "txt": "<p>Expédition depuis la France sous 48 h ouvrées. Point relais Mondial Relay : 2 à 4 jours ouvrés. Colissimo à domicile : 2 à 3 jours ouvrés. Offerte dès 49 € d'achat, 4,90 € en dessous. Belgique, Luxembourg, Suisse : 3 à 6 jours ouvrés, 7,90 €.</p>"
+        } },
+        "d5": { "type": "detail", "settings": {
+          "titre": "Retours et garanties",
+          "txt": "<p><strong>90 jours d'essai.</strong> Vous disposez de 14 jours de rétractation légale ; nous les étendons volontairement à 90 jours, produit installé et utilisé. Nous prenons en charge les frais de retour.</p><p><strong>Garanties légales.</strong> La garantie légale de conformité (art. L.217-3 et suivants du code de la consommation) s'applique 2 ans à compter de la livraison, ainsi que la garantie contre les vices cachés (art. 1641 du code civil). Ces garanties sont dues de plein droit et sans frais.</p><p><strong>Garantie commerciale.</strong> 2 ans sur le corps du filtre contre les fuites et défauts de fabrication, en plus des garanties légales.</p>"
+        } }
+      },
+      "block_order": ["d1", "d2", "d3", "d4", "d5"],
+      "settings": {
+        "oeil": "Filtre de douche · cartouche 90 jours",
+        "resume": "<p>Le filtre qui retire le chlore de votre eau de douche — et qui vous donne de quoi le vérifier vous-même. Cinq étages de filtration, une cartouche remplaçable, deux bandelettes de test dans la boîte.</p>",
+        "label_variantes": "Votre formule",
+        "label_droite": "90 j / cartouche",
+        "stock_txt": "En stock — expédié sous 48 h ouvrées",
+        "encart_titre": "Abonnement cartouches — sans engagement",
+        "encart_txt": "<p>Deux cartouches dans votre boîte aux lettres tous les 6 mois, à 29 € au lieu de 38 €, livraison comprise. Vous décalez, suspendez ou arrêtez en deux clics. Un e-mail de préavis est envoyé 4 jours avant chaque prélèvement.</p>"
+      }
+    },
+    "garantie": { "type": "garantie", "settings": {
+      "chiffre": "90", "unite": "jours d'essai",
+      "oeil": "La garantie bandelette",
+      "titre": "Si la bandelette ne change pas de couleur, vous ne payez pas.",
+      "txt": "<p>Installez ONDÉE, faites le test avant/après avec les bandelettes de la boîte. Si la couleur ne bouge pas, écrivez-nous : nous remboursons intégralement et nous payons l'étiquette de retour. Vous avez 90 jours, produit installé et utilisé, sans justification à fournir.</p>",
+      "cta_txt": "", "cta_url": ""
+    } },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": { "type": "qr", "settings": { "q": "Ça enlève le calcaire ?", "r": "<p>Non, et aucun filtre de douche ne le fait. Les ions calcium et magnésium sont dissous et traversent tous les médias filtrants. Seul un adoucisseur à résine échangeuse d'ions, posé sur l'arrivée d'eau du logement, agit dessus. Vos traces blanches resteront. Si c'était votre motivation principale, n'achetez pas ONDÉE.</p>" } },
+        "q2": { "type": "qr", "settings": { "q": "Et si ma pression est déjà faible ?", "r": "<p>ONDÉE fonctionne à partir de 1 bar. En dessous, ou sur un chauffe-eau basse pression, la sensation de débit peut se dégrader — testez, et renvoyez-nous le produit si cela ne convient pas, le retour est à notre charge.</p>" } },
+        "q3": { "type": "qr", "settings": { "q": "Combien ça coûte réellement par an ?", "r": "<p>Le prix du kit la première année, puis 58 € par an en abonnement (2 envois de 2 cartouches à 29 €). Pour un foyer de deux personnes qui prend 500 douches par an, cela fait environ 12 centimes par douche la première année, puis 6.</p>" } },
+        "q4": { "type": "qr", "settings": { "q": "Est-ce que je peux annuler l'abonnement ?", "r": "<p>À tout moment, en deux clics depuis votre espace client, sans nous écrire et sans justification. Nous vous prévenons par e-mail 4 jours avant chaque prélèvement — vous avez donc toujours le temps de dire non.</p>" } },
+        "q5": { "type": "qr", "settings": { "q": "Pourquoi vous faire confiance plutôt qu'à un autre ?", "r": "<p>Parce que nous sommes les seuls à vous dire ce que le produit ne fait pas avant que vous ne payiez, à mettre les moyens de nous contredire dans la boîte, et à publier les relevés officiels de votre commune même quand ils nous font perdre une vente.</p><p>Ce n'est pas une position morale, c'est le calcul d'une marque qui vit d'un abonnement de cartouches : nous n'avons rien à gagner à vous vendre un filtre que vous dévisserez au bout de trois mois.</p>" } }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5"],
+      "settings": { "fond": "papier", "oeil": "Avant de commander", "titre": "Les cinq questions qui reviennent le plus." }
+    }
+  },
+  "order": ["main", "garantie", "faq"]
+}

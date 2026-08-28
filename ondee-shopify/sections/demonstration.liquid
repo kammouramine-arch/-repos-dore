@@ -1,0 +1,46 @@
+<section class="sect papier">
+  <div class="wrap demo">
+    <div>
+      <p class="oeil">{{ section.settings.oeil }}</p>
+      <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+      <div class="chapeau" style="margin-bottom:1.75rem">{{ section.settings.chapeau }}</div>
+
+      <div class="couches">
+        {%- for b in section.blocks -%}
+          <div class="couche"{{ b.shopify_attributes }}>
+            <span class="couche__n">{{ forloop.index | prepend: '0' | slice: -2, 2 }}</span>
+            <span class="couche__t">{{ b.settings.titre }}<small>{{ b.settings.sous }}</small></span>
+            <span class="couche__r">{{ b.settings.role }}</span>
+          </div>
+        {%- endfor -%}
+      </div>
+      {%- if section.settings.note != blank -%}<div class="notes" style="margin-top:1.25rem">{{ section.settings.note }}</div>{%- endif -%}
+    </div>
+    <div class="visu rev" style="aspect-ratio:1">
+      {%- if section.settings.image != blank -%}
+        <img src="{{ section.settings.image | image_url: width: 900 }}" alt="{{ section.settings.image.alt | escape }}" width="800" height="800" loading="lazy">
+      {%- else -%}
+        <img src="{{ 'coupe.svg' | asset_url }}" alt="Coupe technique de la cartouche ONDÉE" width="800" height="800" loading="lazy">
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Démonstration technique",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "La cartouche, en coupe" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Cinq étages, et aucun d'eux n'est décoratif." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" },
+    { "type": "image_picker", "id": "image", "label": "Image" },
+    { "type": "richtext", "id": "note", "label": "Note technique" }
+  ],
+  "blocks": [ { "type": "couche", "name": "Étage de filtration", "limit": 8, "settings": [
+    { "type": "text", "id": "titre", "label": "Nom" },
+    { "type": "text", "id": "sous", "label": "Précision" },
+    { "type": "text", "id": "role", "label": "Rôle" }
+  ] } ],
+  "presets": [ { "name": "Démonstration technique" } ]
+}
+{% endschema %}

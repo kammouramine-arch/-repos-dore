@@ -1,0 +1,185 @@
+[
+  {
+    "title": "ONDÉE — Filtre de douche",
+    "status": "DRAFT",
+    "vendor": "ONDÉE",
+    "productType": "Filtre de douche",
+    "tags": [
+      "ondee",
+      "filtration",
+      "chlore",
+      "kdf-55",
+      "sulfite-de-calcium",
+      "filtre-douche"
+    ],
+    "options": [
+      "Formule"
+    ],
+    "descriptionHtml": "<p><strong>Le filtre qui retire le chlore de votre eau de douche — et qui vous donne de quoi le vérifier vous-même.</strong> Cinq étages de filtration, une cartouche remplaçable, deux bandelettes de test au chlore dans la boîte.</p>\n<h3>Ce que le filtre retire</h3><ul>\n<li>Le chlore libre, neutralisé par réaction redox sur le KDF-55 puis réduit par le sulfite de calcium</li>\n<li>Une partie du chlore combiné et des trihalométhanes, retenus par le charbon actif</li>\n<li>Les particules, le sable et la rouille de canalisation</li>\n<li>Une partie des métaux lourds solubles retenus par le KDF</li></ul>\n<h3>Ce que le filtre ne retire pas</h3>\n<p><strong>Le calcaire.</strong> Les ions calcium et magnesium dissous traversent tous les medias filtrants — c'est de la chimie, pas un defaut de fabrication. Aucun filtre de douche au monde n'adoucit l'eau : il faut un adoucisseur a resine echangeuse d'ions sur l'arrivee d'eau du logement. Vos traces blanches resteront. Nous preferons vous le dire avant l'achat.</p>\n<p>Non retires non plus : les nitrates, les pesticides et les PFAS.</p>\n<h3>Caracteristiques</h3><ul>\n<li>Raccord : filetage 15/21 — G1/2&quot; male, standard francais et europeen</li>\n<li>Medias : tamis, KDF-55, sulfite de calcium, charbon actif, billes minerales</li>\n<li>Duree de la cartouche : 90 jours (foyer de 2 personnes)</li>\n<li>Temperature admissible : 4 a 80 &deg;C · pression 1 a 6 bar</li>\n<li>Contenu : filtre, 1 cartouche, 2 bandelettes de test au chlore, joint, notice</li></ul>\n<h3>La garantie bandelette</h3>\n<p>90 jours d'essai, produit installe et utilise. Faites le test avant/apres avec les bandelettes fournies : si la couleur ne change pas, nous remboursons integralement et nous payons le retour. S'y ajoutent de plein droit la garantie legale de conformite de 2 ans et la garantie contre les vices caches.</p>\n<p><em>Les performances de filtration doivent etre confirmees par le rapport d'essai du fabricant avant toute publication commerciale.</em></p>",
+    "variants": [
+      {
+        "title": "Filtre + 1 cartouche",
+        "price": "59.00",
+        "sku": "ONDEE-F1",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Filtre + 1 cartouche"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "Set complet — filtre + pomme de douche",
+        "price": "79.00",
+        "sku": "ONDEE-SET",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Set complet — filtre + pomme de douche"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "L'année complète — set + 4 cartouches",
+        "price": "109.00",
+        "sku": "ONDEE-SET-AN",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "L'année complète — set + 4 cartouches"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "Duo — 2 sets + 2 cartouches",
+        "price": "149.00",
+        "sku": "ONDEE-DUO",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Duo — 2 sets + 2 cartouches"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      }
+    ]
+  },
+  {
+    "title": "ONDÉE — Cartouche filtrante C90",
+    "status": "DRAFT",
+    "vendor": "ONDÉE",
+    "productType": "Cartouche filtrante",
+    "tags": [
+      "ondee",
+      "cartouche",
+      "consommable",
+      "abonnement",
+      "recharge"
+    ],
+    "options": [
+      "Formule"
+    ],
+    "descriptionHtml": "<p><strong>Le filtre est un contenant. La cartouche est le produit.</strong> Autant vous le dire avant l'achat plutot que de vous le laisser decouvrir au bout de trois mois.</p>\n<h3>Cinq etages</h3><ol>\n<li><strong>Tamis d'entree</strong> — sable, rouille, particules de canalisation</li>\n<li><strong>KDF-55</strong> — alliage cuivre-zinc, reaction redox sur le chlore libre</li>\n<li><strong>Sulfite de calcium</strong> — transforme le chlore en chlorure, efficace en eau chaude</li>\n<li><strong>Charbon actif</strong> — coque de noix de coco : gout, odeurs, trihalomethanes</li>\n<li><strong>Tamis de sortie</strong> — retient le media dans la cartouche</li></ol>\n<p>Le KDF-55 et le sulfite de calcium agissent par reaction chimique, pas par adsorption. C'est pour cela qu'ils fonctionnent encore a 40 &deg;C, la ou le charbon actif seul decroche — le cas exact d'une douche.</p>\n<h3>Duree et remplacement</h3>\n<p>90 jours pour un foyer de deux personnes, soit environ 15 000 litres. Deux signes vous alertent : la pression qui baisse et l'odeur de chlore qui revient. Chaque cartouche porte une case a dater au feutre indelebile.</p>\n<h3>Abonnement</h3>\n<p>Deux cartouches dans votre boite aux lettres tous les 6 mois, a 29 &euro; au lieu de 38 &euro;, livraison comprise. Sans duree minimale, resiliable en deux clics. Un e-mail de preavis est envoye 4 jours avant chaque prelevement.</p>",
+    "variants": [
+      {
+        "title": "À l'unité — 3 mois",
+        "price": "19.00",
+        "sku": "C90-1",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "À l'unité — 3 mois"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "Lot de 2 — 6 mois",
+        "price": "34.00",
+        "sku": "C90-2",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Lot de 2 — 6 mois"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "Lot de 4 — 12 mois",
+        "price": "59.00",
+        "sku": "C90-4",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Lot de 4 — 12 mois"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      },
+      {
+        "title": "Abonnement — 2 cartouches tous les 6 mois",
+        "price": "29.00",
+        "sku": "C90-ABO",
+        "optionValues": [
+          {
+            "optionName": "Formule",
+            "name": "Abonnement — 2 cartouches tous les 6 mois"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      }
+    ]
+  },
+  {
+    "title": "ONDÉE — Bandelettes de test au chlore (lot de 10)",
+    "status": "DRAFT",
+    "vendor": "ONDÉE",
+    "productType": "Accessoire de test",
+    "tags": [
+      "ondee",
+      "test",
+      "bandelette",
+      "vente-croisee"
+    ],
+    "options": [
+      "Title"
+    ],
+    "descriptionHtml": "<p><strong>Ne nous croyez pas. Mesurez.</strong></p>\n<p>Dix bandelettes de test au chlore libre. Trempez-en une dans l'eau de votre douche, attendez quelques secondes, comparez au nuancier. La zone reactive vire a l'ambre en presence de chlore libre et reste blanche s'il n'y en a plus.</p>\n<p>Deux bandelettes sont deja incluses dans chaque filtre ONDEE. Ce lot est fait pour tester votre eau au fil des mois, verifier quand la cartouche arrive en fin de vie, ou tester l'eau d'une residence secondaire ou d'un bureau.</p>\n<h3>Ce qu'une bandelette mesure — et ce qu'elle ne mesure pas</h3>\n<p><strong>Mesure :</strong> le chlore libre, en milligrammes par litre.</p>\n<p><strong>Non mesure :</strong> la durete de l'eau, les nitrates, les pesticides, les metaux lourds. Une bandelette n'est pas un laboratoire — c'est un indicateur, et c'est deja infiniment plus qu'une photo avant/apres.</p>",
+    "variants": [
+      {
+        "title": "Lot de 10",
+        "price": "9.00",
+        "sku": "TEST-10",
+        "optionValues": [
+          {
+            "optionName": "Title",
+            "name": "Lot de 10"
+          }
+        ],
+        "inventoryItem": {
+          "tracked": true
+        }
+      }
+    ]
+  }
+]

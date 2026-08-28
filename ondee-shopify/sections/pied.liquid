@@ -1,0 +1,62 @@
+<footer class="pied">
+  <div class="wrap">
+    <div class="pied__g">
+      <div class="pied__bl">
+        <a class="logo" href="{{ routes.root_url }}"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.2 4 5.4 6.6 5.4 9a5.4 5.4 0 0 1-10.8 0C6.6 9.6 8.8 7 12 3z" fill="currentColor"/></svg>{{ shop.name }}</a>
+        <p>{{ section.settings.pitch }}</p>
+        <p class="mono" style="font-size:var(--t-xs);margin-top:1.25rem;color:var(--eau)">{{ section.settings.signature }}</p>
+        {%- if settings.social_instagram != blank or settings.social_tiktok != blank -%}
+        <p style="margin-top:1.25rem;display:flex;gap:1rem">
+          {%- if settings.social_instagram != blank -%}<a class="lien-souligne" href="{{ settings.social_instagram }}" rel="noopener">Instagram</a>{%- endif -%}
+          {%- if settings.social_tiktok != blank -%}<a class="lien-souligne" href="{{ settings.social_tiktok }}" rel="noopener">TikTok</a>{%- endif -%}
+        </p>
+        {%- endif -%}
+      </div>
+
+      {%- for b in section.blocks -%}
+        <div {{ b.shopify_attributes }}>
+          <h4>{{ b.settings.titre }}</h4>
+          <ul>
+            {%- for link in b.settings.menu.links -%}
+              <li><a href="{{ link.url }}">{{ link.title }}</a></li>
+            {%- endfor -%}
+          </ul>
+        </div>
+      {%- endfor -%}
+    </div>
+
+    <div class="pied__bas">
+      <span>© {{ 'now' | date: '%Y' }} {{ shop.name }}{% if section.settings.siren != blank %} — SIREN {{ section.settings.siren }}{% endif %}</span>
+      <span>Paiement sécurisé · CB · Visa · Mastercard · PayPal · Apple Pay</span>
+      <span>Prix TTC, TVA française 20 % incluse</span>
+    </div>
+
+    {%- if section.settings.notes != blank -%}
+      <div class="notes" style="margin-top:2rem;color:rgba(246,244,239,.42);max-width:100%">{{ section.settings.notes }}</div>
+    {%- endif -%}
+  </div>
+</footer>
+
+{% schema %}
+{
+  "name": "Pied de page",
+  "settings": [
+    { "type": "textarea", "id": "pitch", "label": "Présentation", "default": "Nous fabriquons un filtre de douche et nous publions ce qu'il retire, ce qu'il ne retire pas et d'où viennent nos chiffres. C'est tout le programme." },
+    { "type": "text", "id": "signature", "label": "Signature", "default": "On ne promet pas. On prouve." },
+    { "type": "text", "id": "siren", "label": "SIREN" },
+    { "type": "richtext", "id": "notes", "label": "Notes de bas de page" }
+  ],
+  "blocks": [
+    {
+      "type": "menu",
+      "name": "Colonne de liens",
+      "limit": 3,
+      "settings": [
+        { "type": "text", "id": "titre", "label": "Titre", "default": "Boutique" },
+        { "type": "link_list", "id": "menu", "label": "Menu" }
+      ]
+    }
+  ],
+  "enabled_on": { "groups": ["footer"] }
+}
+{% endschema %}

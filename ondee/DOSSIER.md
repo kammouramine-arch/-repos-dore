@@ -17,12 +17,17 @@ sont dans `README.md`.
 
 ## PARTIE 1 — LE PRODUIT RETENU
 
-### Pommeau de douche filtrant à cartouche remplaçable
+### Filtre de douche à cartouche remplaçable
 
-Un pommeau de douche standard, vissé sur le flexible existant, dont le manche
-contient une cartouche filtrante multi-étages (tamis, KDF-55, sulfite de
-calcium, charbon actif) qui **réduit le chlore** de l'eau de douche. La
-cartouche se remplace tous les 90 jours.
+Un filtre qui se visse **entre le flexible et la pomme de douche existante**,
+contenant une cartouche multi-étages (tamis, KDF-55, sulfite de calcium,
+charbon actif) qui **réduit le chlore** de l'eau de douche. La cartouche se
+remplace tous les 90 jours. Vendu seul (59 €) ou en set avec une pomme de
+douche assortie (79 €, offre poussée).
+
+> **Révision du 28/08/2026 :** la forme initialement retenue était un pommeau
+> monobloc. Après vérification des fiches fournisseurs, le filtre en ligne a
+> été préféré — justification détaillée en fin de Partie 7.
 
 **Pourquoi celui-ci et pas un produit simplement viral.**
 
@@ -100,7 +105,7 @@ rachat. La « viralité » pèse moins que la « rachetabilité ».
 
 | Rang | Produit | Score /100 |
 |---|---|---|
-| **1** | **Pommeau de douche filtrant** | **84,6** |
+| **1** | **Filtre de douche à cartouche** | **84,6** |
 | 2 | Bouchons d'oreille filtrants réutilisables | 70,8 |
 | 3 | Ceinture chauffante menstruelle | 70,4 |
 | 4 | Bandeau audio de sommeil | 69,1 |
@@ -389,211 +394,214 @@ tout metteur sur le marché en France, importateurs compris.
 
 ## PARTIE 4 — LE FOURNISSEUR
 
-### 4.1 Verdict : AliExpress n'est pas le bon fournisseur ici. Voici pourquoi.
+> **Révision du 28 août 2026.** J'ai rouvert toutes les fiches fournisseurs et
+> j'ai trouvé **deux erreurs** dans ma première recommandation. Elles sont
+> corrigées ci-dessous, et les anciennes recommandations sont retirées.
 
-J'ai relevé les listings AliExpress les mieux vendus de la catégorie
-`[vérifié — extraction directe des résultats de recherche, 26 août 2026]` :
+### 4.0 Les deux erreurs corrigées
 
-| ID produit | Titre (abrégé) | Prix | Ventes | Note |
-|---|---|---|---|---|
-| 3256809552060314 | High Flow Shower Filter Cartridge 15/20 Stage | 23,86 $ | **5 000+** | 4,9 |
-| 3256807670897274 | Household Shower Water Purifier Chlorine Removal | 13,92 $ | **5 000+** | 4,9 |
-| 3256811401060274 | Filter Shower Head High Pressure Beauty Rain | 85,63 $ | 2 000+ | 4,9 |
-| 3256812188195577 | 15/20/25/30 Stages Hard Water Filter Cartridge | 15,43 $ | 900+ | 4,9 |
-| 3256809842836530 | 20 Stage Shower Filter Replacement Cartridge | 14,27 $ | 163 | 4,7 |
-| 3256806824625046 | 25 Stage Hard Water Filter Shower Head + 2 Cartridges | 56,44 $ | 42 | 5,0 |
-| 3256808109280010 | ALTHY High Pressure SPA Handheld Shower Head Filter | 36,15 $ | 1 000+ | 4,8 |
+**Erreur n° 1 — le Ningbo Huanyu FHS50010 n'est pas le bon produit.**
+Sa fiche technique complète indique `Type: Overhead Shower · Feature: Rainfall
+Shower Heads · Specification: 310MM`. C'est une **douche de tête de 310 mm**,
+pas un produit à main. Et les modèles à main du même fournisseur utilisent un
+filtre **PP coton seul**, qui retient les particules et **ne retire aucun
+chlore**. Retiré de la recommandation.
 
-URL directe : `https://www.aliexpress.com/item/<ID>.html`
+**Erreur n° 2 — Huanyu se décrit lui-même comme société de négoce.**
+Sa propre FAQ dit « We are a trading company and also… », et son fondateur
+écrit « In 2020, I founded NINGBO HUANYU » alors que la plateforme affiche
+« Diamond Member depuis 2016 ». Incohérence non détectée au premier passage.
 
-**Pourquoi je ne recommande pas AliExpress comme fournisseur principal :**
+**Autre candidat écarté après vérification :** rosashower (modèle A19011-1,
+« handheld 15-stage »). Vérification du contenu de la fiche : **aucune mention
+de KDF ni de sulfite de calcium** — c'est un filtre à la vitamine C. Ne
+correspond pas au cahier des charges.
 
-1. **Les prix affichés sont trompeurs** — la majorité correspond à des variantes
-   multi-pack, pas à l'unité. Impossible de bâtir un prix de revient fiable.
-2. **Aucun certificat exploitable** — ni ACS, ni NSF 177, ni fiche matière.
-   Au regard du risque n° 1, c'est rédhibitoire à l'échelle.
-3. **Aucun emballage personnalisé, aucune marque possible.**
-4. **Aucun stock UE** — 12 à 25 jours de délai vers la France. Sur un produit à
-   59 € vendu en publicité payante, ce délai détruit le taux de conversion et
-   fait exploser les litiges.
-5. **Aucune continuité** — le listing peut disparaître au milieu d'une campagne.
+### 4.1 ⭐ LE FOURNISSEUR RETENU — Shenzhen Calux, modèle CL-7K
 
-**Usage légitime d'AliExpress :** commander **3 à 5 échantillons différents**
-pour environ 60 € au total, afin de tester le débit, l'étanchéité et le
-résultat à la bandelette avant de choisir un fabricant. Rien de plus.
+```
+https://calux08.en.made-in-china.com/product/FZOJdwzyPLhT/China-15-Stage-Universal-Shower-Filter-with-Retro-Casing-High-Output-Handheld-or-Shower-Head-Filter-with-Replaceable-Cartridge.html
+```
 
-### 4.2 Le bon fournisseur — recommandation principale
+| Champ | Valeur | Statut |
+|---|---|---|
+| Modèle | **CL-7K** | ✅ vérifié |
+| **Prix unitaire** | **10,50 $ (100-499)** · 10,00 $ (500-999) · 9,80 $ (1 000-4 999) · 9,50 $ (5 000+) | ✅ vérifié |
+| **MOQ** | **100 pièces** — *« Low MOQ, 1pc for sample checking is available. official order require 100 pcs »* | ✅ vérifié |
+| **Médias filtrants** | *« Contains KDF 55, calcium sulfite, activated carbon »* + PP + billes céramique / alcalines / minérales + vitamine C + tourmaline | ✅ vérifié |
+| **Raccord** | **`Connection size 1/2"`** — compatible filetage 15/21 français | ✅ vérifié |
+| Cartouche remplaçable | Oui, durée annoncée 6-8 mois | ✅ vérifié |
+| Température | 4 à 80 °C | ✅ vérifié |
+| Finitions | Chrome · nickel brossé · bronze huilé | ✅ vérifié |
+| **Délais** | Échantillon 2-3 j · production 10-20 j · transport DHL/UPS/FedEx/TNT **3-5 j** | ✅ vérifié |
+| Emballage OEM | *« OEM color box or neutral color box »* | ✅ vérifié |
+| Marque blanche | *« OEM and ODM service »* · marque affichée « neutral » | ✅ vérifié |
+| Paiement | L/C, T/T, Western Union, **PayPal**, Payoneer | ✅ vérifié |
+| Capacité | 50 000 pièces/mois · port de Shenzhen · HS **8421211000** | ✅ vérifié |
+| Certifications annoncées | CE, CB, ISO9000 — **aucun certificat joint à la fiche** | ⚠️ à faire produire |
+| Statut | ⚠️ **Trading Company**, en activité depuis 2008 | ✅ vérifié |
+| Avis clients · note · photos clients · nombre de commandes | **NON VÉRIFIÉ** — Made-in-China n'en publie aucun sur cette fiche | ❌ |
+| Dropshipping · entrepôt UE | **Non** | ✅ vérifié |
 
-> ### Ningbo Huanyu Sanitary Ware Co., Ltd. — modèle FHS50010
->
-> **Lien direct :**
-> `https://nbhuanyu.en.made-in-china.com/product/TguRPiHyImcf/China-Replaceable-Filter-Cartridgeabs-Shower-Head-Filter-High-Pressure-Water-Saving-Kdf-Calcium-Sulfite-High-Efficiency-Filtration.html`
+> ⚠️ **Ne recopiez jamais leur texte marketing.** La fiche Calux affirme que le
+> produit *« reduces dry itchy skin, dandruff, eczema »* et parle d'un
+> *« water softening system »*. Ces deux allégations sont interdites en France
+> (allégation de santé sur un produit non médical + allégation d'adoucissement
+> fausse). C'est exactement ce contre quoi ONDÉE se positionne.
 
-| Élément | Valeur `[vérifié]` |
-|---|---|
-| Produit exact | Pommeau à cartouche remplaçable, KDF + sulfite de calcium, haute pression, économiseur d'eau |
-| Référence | FHS50010 |
-| **Prix unitaire** | **5,50 $ pour 500-999 pièces · 5,20 $ pour 1 000+** |
-| MOQ | 500 pièces (négociable — demandez un premier lot de 300) |
-| Matériau | ABS |
-| Spécification | 310 mm |
-| Statut fournisseur | **Audited Supplier** · Diamond Member depuis **2016** · note 5,0 |
-| Personnalisation | **Disponible** (OEM, couleurs, emballage) |
-| Capacité | 10 000 pièces/mois |
-| Emballage | Cartons |
-| Dropshipping direct | Non — c'est un fabricant, pas un dropshipper |
-| Entrepôt UE | Non |
+### 4.2 Les autres options, et quand les préférer
 
-**Pourquoi celui-ci :** c'est le meilleur rapport prix / crédibilité de tout ce
-que j'ai relevé. Fournisseur audité par un tiers indépendant, dix ans
-d'ancienneté sur la plateforme, personnalisation ouverte, et un COGS qui laisse
-respirer votre budget publicitaire.
+**Ningbo Eastpure — SF-N1 (l'option certifiée) `[vérifié]`**
+`https://eastpure.en.made-in-china.com/product/yQnrDdlxFJaA/China-Kdf-Media-Shower-Water-Filter-Shower-Filter-Water-Purifier-Head-for-Bathroom.html`
+- **29,00 $ (200-499) · 28,00 $ (500-999) · 27,00 $ (1 000+)** · MOQ **200**
+- KDF + sulfite de calcium + charbon actif · **NSF mentionné** · cartouche **90 jours**
+- **Manufacturer/Factory & Trading Company · Audited Supplier** · Diamond depuis 2018
+- **CE et RoHS confirmés par la plateforme** · 2 brevets · 3 ingénieurs R&D
+- **Trop cher pour un prix de vente à 79 €.** À garder pour une gamme haut de
+  gamme à 129-149 €, ou le jour où la conformité devient un sujet de contrôle.
 
-### 4.3 Les alternatives, et quand les préférer
+**h2oitaly (Italie) — l'option européenne `[vérifié]`**
+`https://h2oitaly.com/products/shower-filter`
+- Système complet **19,38 €** (SKU 18018001-01, 450 g) · cartouche **11,52 €** (SKU 18018001-04)
+- *« Filter load: KDF and calcium sulfite »* · 57 000 L · max 80 °C
+- Livraison **BRT 3-5 j « throughout Italy »** — livraison France **NON VÉRIFIÉE**
+- **Aucun programme B2B, aucun MOQ, aucune marque blanche.**
+- **Ce n'est pas un fournisseur, c'est un détaillant.** Écarté comme source
+  d'approvisionnement, mais très utile comme point de comparaison de prix
+  européen : il montre qu'un filtre KDF + sulfite de calcium se vend 19 € TTC
+  au détail en Italie. Votre prix de 59-79 € doit être justifié par la marque,
+  le service et la preuve — pas par le matériel.
 
-**Cartouches de rechange — Ningbo Master Building Material (SANIPRO) `[vérifié]`**
-`https://cnsanipro.en.made-in-china.com/product/QriYvUIMgRVF/China-Sanipro-Hot-Sale-15-20-25-Stage-Universal-Replaceable-Filter-Cartridges-for-Shower-Head-Shower-Filters.html`
-- **1,99 à 4,59 $/pièce** · MOQ 500 · 15/20/25 étages · ABS chrome ou noir
-- Audited Supplier · Diamond Member depuis **2013** · note 5,0 · 20 000 pcs/mois
-- **C'est la ligne la plus importante de votre P&L à long terme** : c'est elle
-  qui alimente l'abonnement.
+**AliExpress — écarté comme fournisseur principal `[partiellement vérifié]`**
 
-**Montée en gamme — Ningbo Eastpure (marque Eastcooler) `[vérifié]`**
-`https://eastpure.en.made-in-china.com/product/lFqAtyGKCZaT/China-Premium-Multi-Stage-Shower-Head-Filter-for-Dry-Skin-and-Frizzy-Hair-Portable-Water-Purifier-with-Kdf-55-Calcium-Sulfite-Media.html`
-- **41 à 44 $/pièce** (MOQ 500) · échantillon 100 $
-- **Certifié NSF177** · 200 g KDF + 60 g sulfite de calcium · cartouche 90 jours
-- Manufacturer/Factory · **Audited** · Diamond depuis 2018 · CE, RoHS · 2 brevets
-- **Trop cher pour un prix de vente à 59 €.** À garder en réserve pour un futur
-  produit haut de gamme à 129-149 €. Signal notable : la fiche produit contient
-  des résidus de texte mentionnant **Afina**, marque américaine du secteur —
-  ce fournisseur fabrique donc probablement déjà pour une marque DTC établie.
+Références réelles relevées sur les pages de résultats :
 
-**Alternative inox — Ningbo Blue Pluser, modèle SF-16H `[vérifié]`**
-`https://bluepluser.en.made-in-china.com/product/gFSxnQvPspVU/China-Luxury-Filtered-Shower-Head-Set-15-Stage-Shower-Filter-for-Hard-Water-Removes-Chlorine-and-Harmful-Substances-Showerhead-Filter-High-Output.html`
-- **≈ 10,50 $/pièce** · acier inoxydable · 15 étages · raccord 1/2"
-- Audited · Diamond depuis 2017 · 500 000 pièces/an
-- Le corps inox justifie un prix de vente supérieur. À arbitrer selon la
-  finition obtenue sur échantillon.
+| ID produit | Prix affiché | Ventes | Note |
+|---|---|---|---|
+| `3256807191006512` | 28,28 $ | **5 000+** | 4,5 |
+| `3256807796318698` | 27,20 $ | 2 000+ | 4,5 |
+| `3256809928430382` (ALTHY) | 74,57 $ | 1 000+ | 4,9 |
+| `3256807522833989` | 37,79 $ | 1 000+ | 4,6 |
+| `3256809552060314` (cartouches) | 12,78 $ | **5 000+** | 4,9 |
 
-**Certifié CE avec ACS possible — Shenzhen Calux, modèle CL-F01 `[vérifié]`**
-`https://calux08.en.made-in-china.com/product/DdSmZNOveuhB/China-15-Stage-CE-Rose-Certified-Kdf55-Inline-Shower-Filter-for-Hard-Water-Filter-Shower-Remove-Chlorine-Shower-Head-Filters.html`
-- **10,50 à 14,70 $/pièce** · **MOQ 100 seulement** · en activité depuis 2008
-- **CE, CB, ISO9000** · ABS, charbon, KDF, billes minérales, sulfite de calcium
-- Raccord 1/2" · durée annoncée 6-8 mois · garantie 1 an
-- « OEM is welcome » · boîte couleur OEM ou neutre · échantillons disponibles
-- Délai : 25 jours après acompte · capacité 500 pièces/jour
-- **Le meilleur choix pour un tout premier lot** grâce au MOQ de 100 pièces et
-  au dossier de certification le plus fourni. COGS plus élevé, risque de
-  trésorerie bien plus faible.
+URL : `https://www.aliexpress.com/item/<ID>.html`
 
-**Option stock européen — BigBuy (Espagne) `[rapporté]`**
-`https://www.bigbuy.eu/en/shower-heads-handheld-showers.html`
-- Entrepôt de 30 000 m², **prix de gros dès une unité**, expédition dans toute
-  l'Europe, catalogue de pommeaux de douche.
-- Pas de marque possible, pas de cartouche propriétaire. **À utiliser
-  uniquement pour tester des créatifs publicitaires en semaine 1**, jamais
-  comme socle d'une marque.
+**Les fiches produit détaillées sont inaccessibles** depuis cet environnement
+(anti-bot + redirection forcée vers une page de connexion). Donc :
+média filtrant réel, raccord, avis clients, photos clients, note boutique,
+frais de port vers la France et délai = **NON VÉRIFIÉS**.
+Et c'est le problème de fond : **impossible de confirmer qu'il y a réellement
+du KDF-55 et du sulfite de calcium dedans.** Aucun certificat, aucun emballage
+personnalisé, aucun stock UE, listing susceptible de disparaître en pleine
+campagne. **Usage légitime : 3 échantillons à ~60 €, testés à la bandelette.**
 
-**Option CJdropshipping `[rapporté]`**
-Entrepôts UE (Londres, Berlin, Rotterdam, Varsovie), 3-5 jours en Europe,
-emballage personnalisé **dès une unité**. Site inaccessible depuis cet
-environnement — **catalogue à vérifier vous-même** pour la disponibilité en
-pommeau filtrant.
+**CJdropshipping — NON VÉRIFIÉ intégralement.** Site en redirection 302, API en
+401 sans token. **Je ne fabriquerai pas un lien produit.** À vérifier vous-même
+une fois connecté : présence effective de KDF-55/sulfite de calcium, stock en
+entrepôt UE (Berlin/Rotterdam), prix cartouche.
 
 **1688 :** non exploré. Sans compte chinois, agent d'achat et adresse de
-réexpédition, ce n'est pas réalistement accessible à ce stade. À rouvrir
-au-delà de 2 000 pièces par commande.
+réexpédition, ce n'est pas réalistement accessible. À rouvrir au-delà de
+2 000 pièces par commande.
 
-### 4.4 La stratégie d'approvisionnement que je recommande vraiment
+### 4.3 La stratégie d'approvisionnement retenue
 
-**Phase 0 — Semaines 1 à 2 · budget ≈ 120 €**
-Commander 4 à 5 échantillons : 2-3 sur AliExpress (IDs ci-dessus), l'échantillon
-Calux, et un modèle Huanyu. Tester chez vous : débit au seau chronométré,
-étanchéité à 6 bar, et surtout **bandelette de test avant/après**. Celui qui ne
-fait pas virer la bandelette est éliminé, quel que soit son prix.
+**Phase 0 — semaine 1 · ≈ 70 €.** Commander **1 échantillon Calux CL-7K** (10 $,
+3-5 jours) + 2-3 échantillons AliExpress. Tester : débit au seau chronométré,
+étanchéité, et surtout **bandelette avant/après**. Celui qui ne fait pas virer
+la bandelette est éliminé quel que soit son prix.
 
-**Phase 1 — Semaines 3 à 6 · budget ≈ 1 500 €**
-Commander **100 pièces chez Calux** (MOQ 100) avec boîte neutre. Expédier
-vous-même depuis la France en Mondial Relay. **Ne dropshippez pas.** Un délai de
-48 h posté depuis la France est un avantage concurrentiel décisif face à des
-concurrents qui livrent en 12 jours.
+**Phase 1 — semaines 2-5 · ≈ 1 200 €.** Commander **100 pièces chez Calux**
+(MOQ 100) en boîte OEM, plus des cartouches. **Expédier vous-même depuis la
+France.** Ne dropshippez pas : 48 h depuis la France est un avantage décisif
+face à des concurrents qui livrent en 12 jours.
 
-**Phase 2 — À partir de la semaine 8, si le CPA valide le modèle**
-Basculer sur **Huanyu (500 pièces à 5,50 $)** + **Sanipro (1 000 cartouches à
-2-3 $)** en marque propre, avec boîte imprimée. Le COGS chute de moitié. En
-parallèle, ouvrir le dossier ACS.
+**Phase 2 — dès que le CPA valide le modèle.** Passer à 500-1 000 pièces
+(9,80-10,00 $), ouvrir le dossier de conformité matériaux, et arbitrer entre
+Calux et Eastpure selon le niveau de certification exigé.
 
 ---
 
 ## PARTIE 5 — ÉCONOMIE UNITAIRE (FRANCE)
 
-> **La TVA française de 20 % est déduite du chiffre d'affaires dans tous les
-> calculs.** C'est le point que la plupart des « formations dropshipping »
-> escamotent, et c'est ce qui transforme une marge de 60 % en marge de 45 %.
+> **Chiffres recalculés le 28 août 2026** sur le prix Calux réellement vérifié
+> (10,50 $ à 100 pièces) et le taux de change du jour.
 
-### Hypothèses communes
+### 5.1 Coût rendu France — premier lot de 100 filtres
 
-| Poste | Base retenue |
-|---|---|
-| TVA | 20 % (France) |
-| Frais de paiement | 2,2 % + 0,25 € sur le TTC encaissé (mix CB/PayPal/Apple Pay) |
-| Expédition | Mondial Relay / Colissimo, tarif pro, HT |
-| Shopify | Basic 27 €/mois + applications (avis, abonnement, upsell) ≈ 60 €/mois |
-| Retours & SAV | 4 à 6 % du CA HT selon scénario |
-| LTV cartouche | 15 € TTC/envoi · cartouche 2,50 € · port 2,80 € · paiement 0,58 € → **6,92 € de marge par envoi** |
+Taux vérifié le 28/08/2026 : **1 USD = 0,858266 EUR**.
 
-### Les trois scénarios
+| Poste | Montant | Statut |
+|---|---:|---|
+| Marchandise — 100 × 10,50 $ | **901,18 €** | ✅ calculé sur prix vérifié |
+| Fret express (DHL/FedEx, ≈ 45-50 kg taxables) | 250,00 € | ⚠️ **estimation**, pas un devis |
+| Droits de douane 2 % (HS 8421211000) | 23,02 € | ⚠️ **NON VÉRIFIÉ** — taux à confirmer sur TARIC |
+| Frais de dédouanement transporteur | 20,00 € | ⚠️ estimation |
+| **Total du lot** | **1 194,20 €** | |
+| **▸ Coût rendu par filtre** | **11,94 €** | |
 
-| Ligne | PRUDENT | CENTRAL | FAVORABLE |
+*TVA à l'import : 234,84 € — **récupérable** si vous êtes assujetti. C'est un
+sujet de trésorerie, pas un coût.*
+
+**Hypothèses complémentaires à confirmer auprès de Calux :**
+cartouche rendue **3,50 €** · pomme de douche 3 jets rendue **4,20 €**.
+
+### 5.2 Marge par offre (hors publicité)
+
+| Offre | Prix TTC | CA HT | COGS | Coût total | **Marge** | % du HT | ROAS éq. |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| **ONDÉE F1** — filtre + 1 cartouche | 59 € | 49,17 € | 11,94 € | 23,55 € | **25,62 €** | 52,1 % | 2,30 |
+| **ONDÉE SET** ⭐ — filtre + pomme | 79 € | 65,83 € | 16,14 € | 30,32 € | **35,51 €** | 53,9 % | 2,22 |
+| **ONDÉE SET AN** — set + 4 cartouches | 109 € | 90,83 € | 30,14 € | 47,03 € | **43,80 €** | 48,2 % | 2,49 |
+| **ONDÉE DUO** — 2 sets + 2 cartouches | 149 € | 124,17 € | 39,28 € | 60,32 € | **63,85 €** | 51,4 % | 2,33 |
+| Cartouche à l'unité | 19 € | 15,83 € | 3,50 € | 9,18 € | 6,65 € | 42,0 % | 2,86 |
+| Cartouches × 2 | 34 € | 28,33 € | 7,00 € | 13,76 € | 14,57 € | 51,4 % | 2,33 |
+| Cartouches × 4 | 59 € | 49,17 € | 14,00 € | 22,63 € | 26,54 € | 54,0 % | 2,22 |
+| **Abonnement** — 2 cartouches / 6 mois | 29 € | 24,17 € | 7,00 € | 13,57 € | **10,60 €** | 43,8 % | 2,74 |
+| Bandelettes × 10 | 9 € | 7,50 € | 0,90 € | 4,52 € | 2,98 € | 39,7 % | 3,02 |
+
+*Coût total = COGS + emballage + expédition + frais de paiement (2,2 % + 0,25 €)
++ plateforme + provision retours (5 %). TVA 20 % déduite du chiffre d'affaires.*
+
+**Vérification de la progression des paliers** — chaque montée doit ajouter de
+la marge en valeur absolue, sinon le pack détruit de la valeur :
+
+| | Marge | Gain |
+|---|---:|---:|
+| F1 → SET | 25,62 € → 35,51 € | **+9,89 €** ✅ |
+| SET → SET AN | 35,51 € → 43,80 € | **+8,29 €** ✅ |
+| SET AN → DUO | 43,80 € → 63,85 € | **+20,05 €** ✅ |
+
+> **Note de méthode.** Ma première grille tarifaire était mal construite : le
+> pack « année complète » avait une marge *inférieure* au produit seul, parce
+> que je bradais les cartouches. Corrigé. Et l'abonnement est passé de « 1
+> cartouche tous les 90 jours à 15 € » à « **2 cartouches tous les 6 mois à
+> 29 €** » : moitié moins de frais de port, marge par envoi qui passe de 3,47 €
+> à **10,60 €**, et LTV annuelle par abonné de 13,88 € à **21,19 €**.
+
+### 5.3 Les trois scénarios
+
+| | PRUDENT | **CENTRAL** | FAVORABLE |
 |---|---:|---:|---:|
-| **Prix de vente TTC (panier moyen)** | **69,00 €** | **78,00 €** | **86,00 €** |
-| Chiffre d'affaires HT | 57,50 € | 65,00 € | 71,67 € |
-| *(dont TVA reversée)* | *11,50 €* | *13,00 €* | *14,33 €* |
-| Coût produit rendu (COGS) | 14,00 € | 15,50 € | 15,00 € |
-| Emballage & insert | 2,60 € | 2,50 € | 2,30 € |
-| Expédition client | 5,90 € | 5,60 € | 5,30 € |
-| Frais de paiement | 1,77 € | 1,97 € | 2,14 € |
-| Shopify + applications | 0,70 € | 0,50 € | 0,35 € |
-| Provision retours / SAV | 3,45 € (6 %) | 3,25 € (5 %) | 2,87 € (4 %) |
-| **Coût total hors publicité** | **28,42 €** | **29,32 €** | **27,96 €** |
-| **Marge brute avant publicité** | **29,08 €** | **35,68 €** | **43,71 €** |
-| *En % du CA HT* | *50,6 %* | *54,9 %* | *61,0 %* |
-| **CPA d'équilibre** | **29,08 €** | **35,68 €** | **43,71 €** |
-| **ROAS d'équilibre** | **2,37** | **2,19** | **1,97** |
-| CPA réellement atteint | 38,00 € | 26,00 € | 18,00 € |
-| ROAS réel | 1,82 | 3,00 | 4,78 |
-| **Profit J0 par commande** | **−8,92 €** | **+9,68 €** | **+25,71 €** |
-| LTV cartouches à 12 mois | +2,98 € (15 % × 3) | +6,62 € (25 % × 4) | +11,59 € (35 % × 5) |
-| **Profit par client à 12 mois** | **−5,94 €** | **+16,30 €** | **+37,29 €** |
+| Panier moyen TTC | 74 € | **84 €** | 96 € |
+| Marge brute avant pub | 30,57 € | **39,66 €** | 43,80 € |
+| CPA atteint | 34 € | **25 €** | 17 € |
+| **Profit J0 / commande** | **−3,43 €** | **+14,66 €** | **+26,80 €** |
+| LTV abonnement 12 mois | +3,18 € (15 %) | +5,30 € (25 %) | +11,13 € (35 %) |
+| **Profit / client à 12 mois** | **−0,25 €** | **+19,96 €** | **+37,93 €** |
+| **1 000 € de pub →** | 29 cmd · CA 2 176 € · **−101 € J0** | 40 cmd · CA 3 440 € · **+586 € J0** | 59 cmd · CA 5 647 € · **+1 577 € J0** |
+| **… à 12 mois** | **−7 €** | **+798 €** | **+2 231 €** |
 
-### Ce que produisent 1 000 € de publicité
+**Lecture honnête.** Le scénario prudent est à l'équilibre à douze mois, pas en
+perte : c'est une amélioration réelle par rapport à ma première modélisation,
+due au COGS plus bas (11,94 € au lieu de 14-15,50 €) et à l'abonnement
+restructuré. Mais il ne dégage rien. **Le seuil de décision reste le même : si
+après 1 500 € de test le CPA dépasse 30 € avec un panier moyen sous 75 €, le
+modèle ne tient pas et il faut arrêter.**
 
-| Scénario | Commandes | CA TTC | Résultat J0 | Résultat à 12 mois |
-|---|---:|---:|---:|---:|
-| Prudent | 26 | 1 816 € | **−235 €** | **−156 €** |
-| Central | 38 | 3 000 € | **+372 €** | **+627 €** |
-| Favorable | 56 | 4 778 € | **+1 428 €** | **+2 072 €** |
-
-### Lecture honnête de ces chiffres
-
-**Le scénario prudent perd de l'argent, même à douze mois.** C'est délibéré :
-c'est ce qui arrive si votre panier moyen reste à 69 € et votre CPA à 38 €. Ce
-n'est pas un scénario catastrophe, c'est un scénario *plausible* — et il vous
-dit précisément où est la ligne de flottaison.
-
-**Les deux variables qui décident de tout :**
-
-1. **Le panier moyen.** Passer de 69 € à 78 € ajoute 6,60 € de marge par
-   commande. C'est le rôle du pack « année complète » à 89 €. Si plus de la
-   moitié de vos clients prennent le pack de base à 59 €, vous êtes dans le
-   scénario prudent et vous perdez de l'argent.
-2. **Le taux d'abonnement.** À 15 %, l'abonnement ne sauve rien. À 35 %, il
-   ajoute 11,59 € par client. Hello Klean réalise 75 % de son CA en abonnement
-   `[rapporté]` — la cible réaliste en année 1 se situe entre 20 et 30 %.
-
-**Le seuil de décision, en une phrase :** si après 1 500 € de test votre CPA
-reste au-dessus de **30 €** avec un panier moyen sous **75 €**, le modèle ne
-tient pas et il faut arrêter, pas insister.
+Les deux variables qui décident de tout restent le **panier moyen** (le pack
+SET à 79 € doit être majoritaire) et le **taux d'abonnement** (20-30 % est la
+cible réaliste en année 1 ; Hello Klean est à 75 % après des années).
 
 ---
 
@@ -766,176 +774,208 @@ convaincre de sa sincérité.
 
 ## PARTIE 7 — L'OFFRE
 
+> **Décision produit du 28 août 2026.** Le produit vendu est un **filtre en
+> ligne** qui se visse **entre le flexible et la pomme de douche**, et non un
+> pommeau monobloc. Justification en fin de partie.
+
 ### Structure complète
 
 | Réf. | Offre | Prix | Barré | Contenu |
 |---|---|---:|---:|---|
-| `ONDEE-SOLO` | **Le pommeau** | **59 €** | — | Pommeau + 1 cartouche C90 + 2 bandelettes |
-| `ONDEE-ESSENTIEL` | **Six mois** | **74 €** | 97 € | Pommeau + 2 cartouches |
-| `ONDEE-AN` | **L'année complète** ⭐ | **89 €** | 135 € | Pommeau + 4 cartouches |
-| `ONDEE-DUO` | **Le duo** | **149 €** | 194 € | 2 pommeaux + 4 cartouches |
+| `ONDEE-F1` | **Le filtre seul** | **59 €** | — | Filtre + 1 cartouche C90 + 2 bandelettes — le client garde sa pomme de douche |
+| `ONDEE-SET` | **Le set complet** ⭐ | **79 €** | — | Filtre + pomme de douche 3 jets assortie + 1 cartouche + 2 bandelettes |
+| `ONDEE-SET-AN` | **L'année complète** | **109 €** | 155 € | Le set + 4 cartouches |
+| `ONDEE-DUO` | **Le duo** | **149 €** | 196 € | 2 sets complets + 2 cartouches |
 | `C90-1` | Cartouche à l'unité | 19 € | — | 3 mois |
-| `C90-2` | Lot de 2 | 34 € | 38 € | 6 mois |
-| `C90-4` | Lot de 4 | 59 € | 76 € | 12 mois |
-| `C90-ABO` | **Abonnement trimestriel** | **15 €** / envoi | 19 € | Sans engagement, port compris |
+| `C90-2` | Cartouches × 2 | 34 € | 38 € | 6 mois |
+| `C90-4` | Cartouches × 4 | 59 € | 76 € | 12 mois |
+| `C90-ABO` | **Abonnement** | **29 €** / 6 mois | 38 € | 2 cartouches, port compris, sans engagement |
+| `TEST-10` | Bandelettes de test × 10 | 9 € | — | Vente croisée + moteur de contenu |
 
-**Produit d'appel :** `ONDEE-SOLO` à 59 €.
-**Offre poussée :** `ONDEE-AN` à 89 € — sélectionnée par défaut sur la fiche
-produit, marquée « le plus choisi ». C'est elle qui porte le panier moyen à 78 €
-et fait tenir le scénario central.
+**Produit d'appel :** `ONDEE-F1` à 59 €.
+**Offre poussée :** `ONDEE-SET` à 79 € — sélectionnée par défaut, marquée
+« le plus choisi ». C'est elle qui porte le panier moyen à 84 € et fait tenir
+le scénario central.
 
-**Sur les prix barrés.** Ils ne s'appliquent **qu'aux packs**, où le prix barré
-est la somme réelle des articles vendus séparément (89 € contre 59 + 4×19 = 135 €).
-C'est arithmétiquement vrai et donc juridiquement défendable. **Le pommeau seul
-n'a aucun prix barré** — il n'a jamais été vendu plus cher, et afficher un faux
-prix de référence tomberait sous l'article L.121-2 du code de la consommation.
+**Sur les prix barrés — tous arithmétiquement vrais.**
+`SET AN` : 79 € (le set) + 4 × 19 € (cartouches au tarif unitaire réel) = 155 €.
+`DUO` : 2 × 79 € + 2 × 19 € = 196 €. `C90-2` : 2 × 19 = 38 €. `C90-4` : 4 × 19 = 76 €.
+**Aucun prix barré sur `F1` ni sur `SET`** — ils n'ont jamais été vendus plus
+cher, et afficher un faux prix de référence tomberait sous l'article L.121-2 du
+code de la consommation.
 
 ### Upsell après achat
 
-Proposé **après** le paiement, sur la page de confirmation, sans re-saisie de
-carte :
-
+Sur la page de confirmation, sans re-saisie de carte :
 1. **Une cartouche supplémentaire à 12 €** au lieu de 19 € (« pour ne jamais
-   tomber à court »). Taux d'acceptation attendu 15-25 %, marge quasi intégrale.
-2. **Support mural adhésif à 9 €** (pour ceux qui n'ont pas de barre).
+   tomber à court »). Marge quasi intégrale.
+2. **Support mural adhésif à 9 €.**
 
 ### Ventes croisées
 
-- **Bandelettes de test au chlore, lot de 10 — 9 €.** Coût réel : moins de 1 €.
-  L'objet est un moteur de contenu autant qu'un produit.
-- **Flexible inox 1,75 m — 19 €.** Achat naturel au moment de changer de pommeau.
+- **Bandelettes de test × 10 — 9 €.** Coût réel < 1 €. C'est autant un moteur
+  de contenu qu'un produit.
+- **Flexible inox 1,75 m — 19 €.** Achat naturel au moment de démonter la douche.
 
-### Abonnement
+### Abonnement — restructuré
 
-**Oui, et c'est le cœur du modèle.** Une cartouche tous les 90 jours à 15 €
-au lieu de 19 €, port compris, sans durée minimale, résiliable en deux clics.
-**E-mail de préavis 4 jours avant chaque prélèvement** — c'est ce qui
-transforme un abonnement en service au lieu d'un piège, et ce qui divise les
-litiges bancaires.
+**2 cartouches tous les 6 mois à 29 €** (14,50 € la cartouche au lieu de 19 €),
+port compris, sans durée minimale, résiliable en deux clics.
+**E-mail de préavis 4 jours avant chaque prélèvement.**
+
+*Pourquoi 6 mois et pas 3 :* un envoi trimestriel de 1 cartouche coûte 3,60 €
+de port pour 12,50 € de CA HT — la marge tombe à 3,47 €. En groupant deux
+cartouches semestriellement, la marge par envoi passe à **10,60 €** et la LTV
+annuelle par abonné de 13,88 € à **21,19 €**. Le client paie moins cher la
+cartouche et reçoit moins de colis. Tout le monde y gagne.
 
 ### Garantie — « la garantie bandelette »
 
 > **90 jours d'essai. Si la bandelette ne change pas de couleur, vous ne payez
 > pas.** Installez ONDÉE, faites le test avant/après. Si la couleur ne bouge
-> pas, nous remboursons intégralement et nous payons le retour. Pommeau installé
-> et utilisé, sans justification.
+> pas, nous remboursons intégralement et nous payons le retour. Produit
+> installé et utilisé, sans justification.
 
-C'est une garantie **falsifiable** : elle porte sur un fait vérifiable, pas sur
-une satisfaction subjective. C'est ce qui la rend crédible — et son coût réel
-est faible, puisque tout réseau français chloré fera virer la bandelette.
+Garantie **falsifiable** : elle porte sur un fait vérifiable, pas sur une
+satisfaction subjective. C'est ce qui la rend crédible — et son coût réel est
+faible, puisque tout réseau français chloré fera virer la bandelette.
 
-S'y ajoutent, de plein droit : la garantie légale de conformité de 2 ans
-(art. L.217-3 et suivants du code de la consommation), la garantie des vices
-cachés (art. 1641 du code civil), et le droit de rétractation de 14 jours.
-**Ces garanties doivent être présentées comme des droits, jamais comme une
-faveur commerciale** — les présenter comme un avantage est en soi une pratique
-trompeuse.
+S'y ajoutent de plein droit : garantie légale de conformité 2 ans
+(art. L.217-3 et suivants du code de la consommation), garantie des vices
+cachés (art. 1641 du code civil), rétractation 14 jours. **Ces garanties sont
+présentées comme des droits, jamais comme une faveur commerciale** — l'inverse
+serait en soi une pratique trompeuse.
 
 ### Livraison
 
-- **Offerte dès 49 €** — donc sur toutes les offres principales. 4,90 € en deçà
-  (cartouches à l'unité uniquement).
-- Expédition de France sous 48 h ouvrées · Mondial Relay 2-4 j · Colissimo 2-3 j.
-- Belgique, Luxembourg, Suisse : 3-6 j, 7,90 €.
+Offerte dès **49 €** — donc sur toutes les offres principales. 4,90 € en deçà.
+Expédition de France sous 48 h ouvrées · Mondial Relay 2-4 j · Colissimo 2-3 j.
+Belgique, Luxembourg 7,90 € · Suisse 9,90 €.
 
 ### Urgence et rareté — sans mensonge
 
 **Interdits absolus :** compte à rebours qui se réinitialise, « plus que 3 en
 stock » inventé, « 47 personnes regardent cette page », fausse promotion
-permanente. Ces mécaniques sont explicitement visées par la directive Omnibus
-(UE) 2019/2161 et **détruiraient le seul actif de cette marque.**
+permanente. Explicitement visés par la directive Omnibus (UE) 2019/2161, et ils
+**détruiraient le seul actif de cette marque**.
 
-**Ce qui est autorisé, parce que vrai :**
+**Autorisé, parce que vrai :** stock réellement affiché depuis l'inventaire
+Shopify ; prix de premier lot avec une date de fin réellement respectée ; le
+rythme du produit (« la cartouche dure 90 jours ») ; le report du bénéfice
+(« chaque douche prise sans filtre ne se rattrape pas »).
 
-1. **Stock réellement affiché.** Si vous avez 100 unités, affichez le nombre
-   restant, branché sur l'inventaire Shopify. Quand il descend à 12, c'est
-   vrai — et bien plus persuasif qu'un faux compteur.
-2. **Prix de premier lot avec une date ferme.** « Tarif du premier lot, 89 €
-   jusqu'au 31 octobre » — **et vous l'appliquez réellement.** Une promotion
-   qui se termine vraiment vaut dix promotions permanentes.
-3. **Le rythme du produit.** « Votre cartouche dure 90 jours. Commandez avant le
-   15 pour l'avoir avant votre prochain changement. » L'urgence vient du produit,
-   pas d'un script.
-4. **Le report du bénéfice.** « Chaque douche prise sans filtre est une douche
-   qui ne se rattrape pas. » Vrai, et suffisant.
+### Pourquoi un filtre en ligne plutôt qu'un pommeau monobloc
+
+C'est la décision produit la plus structurante, et elle mérite d'être exposée.
+
+| | Filtre en ligne | Pommeau monobloc |
+|---|---|---|
+| Compatible avec la douche du client | ✅ il garde sa pomme | ❌ il doit en changer |
+| Objection « ça ira sur mon installation ? » | Fortement réduite | Principale cause de retour |
+| Met la cartouche au centre (= abonnement) | ✅ | ⚠️ |
+| Beau en photo produit / en publicité | ⚠️ moyen | ✅ |
+| Ce que font Suimy, Zesqio, Jolie, eskiin | ❌ | ✅ |
+
+**Arbitrage retenu :** le filtre en ligne est le **produit d'appel à 59 €**, et
+le **set complet à 79 € est l'offre poussée**. On obtient ainsi la compatibilité
+universelle *et* la désirabilité visuelle, avec un seul fournisseur — Calux
+produit les deux. Le gain décisif est ailleurs : le filtre en ligne supprime la
+première cause de retour de cette catégorie, et il rend le discours cohérent —
+**« nous vendons de la filtration, pas de la robinetterie »**, ce qui est
+exactement le positionnement de la marque.
 
 ---
 
 ## PARTIE 13 — VERDICT
 
-**PRODUIT :** Pommeau de douche filtrant à cartouche remplaçable (KDF-55 +
-sulfite de calcium), réduction du chlore, cartouche 90 jours, deux bandelettes
-de test au chlore incluses.
+**PRODUIT :** Filtre de douche en ligne à cartouche remplaçable — KDF-55 +
+sulfite de calcium + charbon actif, raccord 1/2" (15/21), cartouche 90 jours,
+**deux bandelettes de test au chlore incluses**. Se visse entre le flexible et
+la pomme de douche : le client garde la sienne, ou prend la nôtre.
 
 **MARQUE :** ONDÉE — « On ne promet pas. On prouve. »
 
-**FOURNISSEUR :**
-- *Premier lot (MOQ 100)* — **Shenzhen Calux Purification Technology**, modèle
-  CL-F01, 10,50-14,70 $, CE/CB/ISO9000, OEM accepté.
-- *Passage à l'échelle (MOQ 500)* — **Ningbo Huanyu Sanitary Ware**, modèle
-  FHS50010, 5,20-5,50 $, fournisseur audité, Diamond depuis 2016.
-- *Cartouches* — **Ningbo Master Building Material (SANIPRO)**, 1,99-4,59 $,
-  audité, Diamond depuis 2013.
+**FOURNISSEUR :** **Shenzhen Calux Purification Technology**, modèle **CL-7K**.
+Société de négoce en activité depuis 2008, 50 000 pièces/mois, OEM et boîte
+personnalisée acceptés, PayPal accepté, **MOQ 100 pièces avec échantillon à
+l'unité**.
 
-**LIENS FOURNISSEURS :**
+**LIEN DIRECT FOURNISSEUR :**
 ```
-https://calux08.en.made-in-china.com/product/DdSmZNOveuhB/China-15-Stage-CE-Rose-Certified-Kdf55-Inline-Shower-Filter-for-Hard-Water-Filter-Shower-Remove-Chlorine-Shower-Head-Filters.html
-https://nbhuanyu.en.made-in-china.com/product/TguRPiHyImcf/China-Replaceable-Filter-Cartridgeabs-Shower-Head-Filter-High-Pressure-Water-Saving-Kdf-Calcium-Sulfite-High-Efficiency-Filtration.html
-https://cnsanipro.en.made-in-china.com/product/QriYvUIMgRVF/China-Sanipro-Hot-Sale-15-20-25-Stage-Universal-Replaceable-Filter-Cartridges-for-Shower-Head-Shower-Filters.html
+https://calux08.en.made-in-china.com/product/FZOJdwzyPLhT/China-15-Stage-Universal-Shower-Filter-with-Retro-Casing-High-Output-Handheld-or-Shower-Head-Filter-with-Replaceable-Cartridge.html
 ```
 
-**COÛT PRODUIT :** 5,20-5,50 $ à 500 pièces · 10,50-14,70 $ à 100 pièces ·
-cartouches 1,99-4,59 $. **COGS rendu retenu : 14 à 15,50 €** (produit + fret +
-droits + emballage).
+**COÛTS :** 10,50 $ départ usine à 100 pièces → **11,94 € rendu France**
+(marchandise 901,18 € + fret 250 € + droits 23 € + dédouanement 20 € pour
+100 pièces). Cartouche rendue estimée 3,50 € · pomme de douche 4,20 €.
+*Taux vérifié : 1 USD = 0,858266 EUR au 28/08/2026. Fret et droits = estimations.*
 
-**PRIX DE VENTE :** 59 € l'unité · **89 € le pack de référence** · panier moyen
-visé **78 €**.
+**PRIX DE VENTE :** 59 € (filtre seul) · **79 € (set complet — offre poussée)** ·
+109 € (année complète) · 149 € (duo). Panier moyen visé **84 €**.
 
-**PROFIT ESTIMÉ :** **+9,68 € par commande au jour 0** et **+16,30 € par client
-à 12 mois** dans le scénario central. −5,94 € dans le scénario prudent,
-+37,29 € dans le scénario favorable.
+**MARGE :** **35,51 € sur le set à 79 €** (53,9 % du CA HT, TVA déduite).
+25,62 € sur le F1, 43,80 € sur le pack an, 63,85 € sur le duo.
+ROAS d'équilibre **2,22 à 2,49** selon l'offre.
+**+14,66 € de profit par commande au jour 0** en scénario central, **+19,96 €
+par client à 12 mois** avec l'abonnement.
+
+**OFFRE :** produit d'appel à 59 €, set à 79 € poussé par défaut, packs à 109 €
+et 149 € avec prix barrés arithmétiquement vrais, abonnement **2 cartouches
+tous les 6 mois à 29 €** (marge 10,60 € par envoi, LTV 21,19 €/an),
+**garantie bandelette 90 jours** + garanties légales françaises.
 
 **CLIENT CIBLE :** femmes de 25 à 45 ans en zone d'eau dure ou chlorée, qui
 investissent déjà dans leurs cheveux et se méfient des promesses
 « anti-calcaire ».
 
-**CONCURRENTS PRINCIPAUX :** Suimy (49 €), Zesqio (74,90 €), Douce Beauty
-(159 €), POMŌ, Biotege. En arrière-plan : Amazon.fr, Cdiscount, Hansgrohe.
+**CONCURRENTS :** Suimy (49 €), Zesqio (74,90 €), Douce Beauty (159 €), POMŌ,
+Biotege. En arrière-plan : Amazon.fr, Cdiscount, Hansgrohe. Repère européen :
+h2oitaly vend un filtre KDF + sulfite de calcium 19,38 € TTC au détail en Italie.
 
 **AVANTAGE PRINCIPAL :** le rapport d'eau par commune alimenté par l'API
-publique Hub'Eau du ministère de la Santé — **déjà construit et fonctionnel dans
-ce dépôt** — combiné aux bandelettes de test incluses et à des allégations
-volontairement restreintes. Aucun concurrent ne peut copier ce positionnement
-sans reconnaître qu'il exagérait.
+publique Hub'Eau du ministère de la Santé — **construit, testé et fonctionnel**
+—, les bandelettes de test dans la boîte, et des allégations volontairement
+restreintes. Aucun concurrent français ne peut copier ce positionnement sans
+reconnaître publiquement qu'il exagérait.
 
-**RISQUE PRINCIPAL :** la conformité ACS (obligatoire en France depuis 2006 pour
-les accessoires en contact avec l'eau destinée à la consommation humaine).
-À traiter par les certificats fournisseurs dès la première commande, et à
-budgéter (4 000-8 000 €, 3-6 mois) avant le passage à l'échelle.
+**RISQUE PRINCIPAL :** la conformité **ACS**, obligatoire en France depuis 2006
+pour les accessoires en contact avec l'eau destinée à la consommation humaine.
+Calux annonce CE, CB et ISO9000 mais ne joint aucun certificat. **À exiger par
+écrit avant la première commande.** Budgéter 4 000-8 000 € et 3-6 mois pour une
+démarche ACS propre avant le passage à l'échelle.
+
+**RISQUE SECONDAIRE :** Calux est une **société de négoce**, sans aucun avis
+client publié. Vous achetez sur dossier, pas sur réputation. C'est précisément
+pourquoi l'échantillon à 10 $ n'est pas optionnel.
 
 **MEILLEUR ANGLE PUBLICITAIRE :** le test à la bandelette filmé en une seule
 prise, sans montage, sans voix off — la couleur change ou elle ne change pas.
 
-**MEILLEUR ANGLE ORGANIQUE :** « L'eau de votre ville » — une vidéo par
-commune, sans visage, à partir des données publiques. Format infiniment
-déclinable, hyper-local, jamais publicitaire.
+**MEILLEUR ANGLE ORGANIQUE :** « L'eau de votre ville » — une vidéo par commune,
+sans visage, à partir des données publiques. Infiniment déclinable, hyper-local,
+jamais publicitaire.
 
-**BUDGET DE DÉMARRAGE ESTIMÉ :** **5 000 à 6 000 €**
+**BUDGET DE DÉMARRAGE :** **≈ 4 900 €**
 
 | Poste | Montant |
 |---|---:|
-| 100 pommeaux + 300 cartouches (Calux, rendus) | 2 100 € |
+| Échantillons (Calux + AliExpress) | 70 € |
+| 100 filtres rendus France | 1 194 € |
+| 300 cartouches + 100 pommes de douche | 1 470 € |
 | Emballages, inserts, bandelettes | 380 € |
-| Shopify Basic + applications (3 mois) | 260 € |
-| Domaine, e-mail professionnel, visuels | 440 € |
+| Shopify + applications (3 mois) | 260 € |
+| Domaine, e-mail, visuels | 300 € |
 | Statut juridique, CGV, Citeo + IDU ADEME | 400 € |
 | **Budget publicitaire de test** | **1 500 €** |
-| Réserve de trésorerie | 500 € |
-| **Total** | **5 580 €** |
+| Réserve | 300 € |
+| **Total** | **≈ 5 874 €** |
 
-**BUDGET DE TEST RECOMMANDÉ :** **1 500 € sur 3 à 4 semaines.** 3 campagnes
-× 3 créatifs × 30 €/jour, 7 jours, puis coupe des créatifs au-dessus de 40 € de
-CPA et réinvestissement sur les survivants.
+*Version minimale sans stock de pommes de douche ni cartouches d'avance :
+**≈ 4 000 €**, dont 1 500 € de publicité.*
+
+**BUDGET DE TEST RECOMMANDÉ :** **1 500 € sur 3 à 4 semaines.** 3 campagnes ×
+3 créatifs × 30 €/jour pendant 7 jours, puis coupe des créatifs au-dessus de
+40 € de CPA et réinvestissement sur les survivants.
 
 **SCORE DU PRODUIT GAGNANT : 84,6 / 100**
 
@@ -945,45 +985,51 @@ CPA et réinvestissement sur les survivants.
 
 ## **« Je construirais cette entreprise. »**
 
-**Avec une condition, et elle n'est pas négociable :** exigez les certificats de
-conformité matériaux de votre fournisseur avant de passer la première commande.
-Si aucun des fournisseurs consultés ne peut produire d'ACS, d'attestation
-européenne équivalente ou, au minimum, un rapport d'essai NSF/ANSI 177 et des
-fiches matières, **changez de fournisseur — pas de produit.**
+**Avec une condition non négociable :** exigez les certificats de conformité
+matériaux de Calux avant de passer la première commande de 100 pièces. S'ils ne
+peuvent produire ni ACS, ni attestation européenne équivalente, ni a minima un
+rapport d'essai NSF/ANSI 177 avec les fiches matières, **changez de fournisseur
+— pas de produit.** Eastpure, dont les certifications CE et RoHS sont
+confirmées par la plateforme, est l'alternative directe.
 
 **Pourquoi je la construirais.**
 
-Trois marques étrangères ont déjà démontré que la catégorie porte une vraie
-entreprise, pas un coup : Jolie à plus de 40 M$, Hello Klean à 75 % d'abonnement
-et adossée à Brita, eskiin à 160 000 clients. Le produit a un consommable
-trimestriel, ce qui est la seule chose qui rende un CAC publicitaire soutenable
-dans la durée. Il est léger, robuste, sans taille, sans saison. Et le marché
-français est à un stade rare : assez mûr pour que la demande soit prouvée par
-quatre concurrents qui vendent déjà, assez immature pour qu'aucun n'ait construit
-de marque de référence.
+Trois marques étrangères ont démontré que la catégorie porte une vraie
+entreprise : Jolie à plus de 40 M$, Hello Klean à 75 % d'abonnement et adossée
+à Brita, eskiin à 160 000 clients. Le produit a un consommable trimestriel —
+la seule chose qui rende un CAC publicitaire soutenable dans la durée. Il est
+léger, robuste, sans taille, sans saison. Et le marché français est à un stade
+rare : assez mûr pour que quatre concurrents prouvent la demande, assez immature
+pour qu'aucun n'ait construit de marque de référence.
 
-Surtout, il existe ici un angle que je vois rarement d'aussi net. **Toute la
-catégorie française vend une allégation fausse.** Cela ouvre une position qui
-est simultanément la plus sûre juridiquement, la plus solide éthiquement et la
-plus difficile à copier commercialement. Un concurrent qui voudrait imiter
-ONDÉE devrait commencer par admettre publiquement qu'il exagérait.
+Après vérification des vrais prix fournisseurs, **l'économie est meilleure que
+ce que j'avais estimé** : le coût rendu tombe à 11,94 € au lieu de 14-15,50 €,
+et la marge sur l'offre poussée atteint 53,9 % du CA HT. Le ROAS d'équilibre de
+2,22 est atteignable sur Meta en France pour un produit à démonstration visuelle
+forte.
+
+Et il existe ici un angle que je vois rarement d'aussi net. **Toute la catégorie
+française vend une allégation fausse.** Cela ouvre une position qui est
+simultanément la plus sûre juridiquement, la plus solide éthiquement et la plus
+difficile à copier commercialement. Un concurrent qui voudrait imiter ONDÉE
+devrait commencer par admettre publiquement qu'il exagérait.
 
 **Ce qui me ferait changer d'avis.**
 
 Si, après 1 500 € de test, le CPA reste au-dessus de 30 € avec un panier moyen
-sous 75 €, le modèle ne tient pas. Le scénario prudent chiffré plus haut n'est
-pas un épouvantail : il perd de l'argent même à douze mois. Ce n'est pas un
-produit dont on peut « forcer » la rentabilité à coups de budget — le panier
-moyen et le taux d'abonnement décident de tout, et ils se voient dès les
-premières centaines d'euros dépensées.
+sous 75 €, le modèle ne tient pas. Le scénario prudent chiffré plus haut est à
+l'équilibre à douze mois — il ne perd plus d'argent, mais il n'en gagne pas non
+plus. Ce n'est pas un produit dont on peut forcer la rentabilité à coups de
+budget : le panier moyen et le taux d'abonnement décident de tout, et ils se
+lisent dès les premières centaines d'euros dépensées.
 
 **Et ce que je ne vous dirai pas.**
 
-Que ça va marcher. Personne ne peut le savoir. Ce que je peux dire, c'est que la
-demande est prouvée par des concurrents qui vendent déjà, que l'économie tient
-sous des hypothèses que j'ai volontairement chargées, que le fournisseur existe
-et est audité, et que la différenciation ne repose pas sur du goût mais sur un
-fait vérifiable que personne d'autre n'exploite.
+Que ça va marcher. Personne ne peut le savoir. Ce que je peux dire : la demande
+est prouvée par des concurrents qui vendent déjà, l'économie tient sous des
+hypothèses volontairement chargées, le fournisseur existe et son prix est
+vérifié, et la différenciation ne repose pas sur du goût mais sur un fait
+vérifiable que personne d'autre n'exploite.
 
 C'est le maximum d'informations qu'on peut réunir avant d'engager de l'argent.
 La suite se joue sur l'exécution des créatifs, et cela ne se décide pas dans un

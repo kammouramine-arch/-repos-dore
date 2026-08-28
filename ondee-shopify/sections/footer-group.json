@@ -1,0 +1,6 @@
+{
+  "type": "footer",
+  "name": "Pied de page",
+  "sections": { "pied": { "type": "pied", "settings": {} } },
+  "order": ["pied"]
+}

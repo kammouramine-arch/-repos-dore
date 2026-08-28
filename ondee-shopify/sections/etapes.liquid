@@ -1,0 +1,31 @@
+<section class="sect" id="fonctionnement">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+  </div>
+  <div class="wrap">
+    <div class="etapes">
+      {%- for b in section.blocks -%}
+        <div class="etape rev"{{ b.shopify_attributes }}>
+          <h3>{{ b.settings.titre }}</h3>
+          <p>{{ b.settings.txt }}</p>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Étapes",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Comment ça marche" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Trois gestes. Puis plus rien pendant trois mois." }
+  ],
+  "blocks": [ { "type": "etape", "name": "Étape", "limit": 4, "settings": [
+    { "type": "text", "id": "titre", "label": "Titre" },
+    { "type": "textarea", "id": "txt", "label": "Texte" }
+  ] } ],
+  "presets": [ { "name": "Étapes" } ]
+}
+{% endschema %}

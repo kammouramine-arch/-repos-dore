@@ -1,0 +1,10 @@
+<div class="wrap wrap--etroit sect">
+  <h1 class="titre-sect">{{ 'customer.activate_account.title' | t }}</h1>
+  {%- form 'activate_customer_password' -%}
+    {{ form.errors | default_errors }}
+    <div class="champ"><label class="champ__l"><span>{{ 'customer.activate_account.password' | t }}</span></label><input class="saisie" type="password" name="customer[password]" required></div>
+    <div class="champ"><label class="champ__l"><span>{{ 'customer.activate_account.password_confirm' | t }}</span></label><input class="saisie" type="password" name="customer[password_confirmation]" required></div>
+    <button class="btn btn--primaire btn--bloc" type="submit">{{ 'customer.activate_account.submit' | t }}</button>
+    <button class="btn btn--fantome btn--bloc" type="submit" name="decline" style="margin-top:.6rem">{{ 'customer.activate_account.cancel' | t }}</button>
+  {%- endform -%}
+</div>

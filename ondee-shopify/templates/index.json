@@ -1,0 +1,144 @@
+{
+  "sections": {
+    "hero": {
+      "type": "hero",
+      "blocks": {
+        "b1": { "type": "point", "settings": { "txt": "Bandelettes de test incluses" } },
+        "b2": { "type": "point", "settings": { "txt": "Installation en 60 s, sans outil" } },
+        "b3": { "type": "point", "settings": { "txt": "90 jours pour changer d'avis" } }
+      },
+      "block_order": ["b1", "b2", "b3"],
+      "settings": {
+        "oeil": "Filtre de douche · cartouche 90 jours",
+        "titre": "Votre eau de douche est chlorée.<br><em>Voici de combien.</em>",
+        "sous": "<p>ONDÉE retire le chlore de l'eau de votre douche — celui qui assèche la peau et ternit les cheveux. Tapez le nom de votre commune : nous affichons les relevés officiels du ministère de la Santé pour <em>votre</em> réseau. Avant même que vous achetiez quoi que ce soit.</p>",
+        "tag": "Cartouche visible · on voit le filtre travailler",
+        "cta1_txt": "Découvrir ONDÉE — 79 €",
+        "cta1_url": "/collections/all",
+        "cta2_txt": "Analyser mon eau",
+        "cta2_url": "#rapport"
+      }
+    },
+    "chiffres": {
+      "type": "chiffres",
+      "blocks": {
+        "c1": { "type": "chiffre", "settings": { "valeur": "+60 %", "legende": "des foyers français reçoivent une eau dure ou très dure" } },
+        "c2": { "type": "chiffre", "settings": { "valeur": "34,4 °f", "legende": "dureté moyenne en Hauts-de-France, la région la plus calcaire" } },
+        "c3": { "type": "chiffre", "settings": { "valeur": "0,06–0,58", "legende": "mg/L de chlore total relevés dans 10 grandes villes françaises" } },
+        "c4": { "type": "chiffre", "settings": { "valeur": "34 000+", "legende": "communes couvertes par notre rapport d'eau gratuit" } }
+      },
+      "block_order": ["c1", "c2", "c3", "c4"],
+      "settings": {}
+    },
+    "rapport": { "type": "rapport-eau", "settings": {} },
+    "probleme": {
+      "type": "probleme-solution",
+      "blocks": {
+        "s1": { "type": "sans", "settings": { "txt": "Du chlore libre et du chlore combiné, présents dans quasiment tous les réseaux français" } },
+        "s2": { "type": "sans", "settings": { "txt": "Une odeur de « piscine » qui persiste dans la salle de bain et sur les cheveux mouillés" } },
+        "s3": { "type": "sans", "settings": { "txt": "Des sous-produits de chloration (trihalométhanes) mesurés dans les relevés officiels" } },
+        "s4": { "type": "sans", "settings": { "txt": "Des particules et de la rouille venues de canalisations parfois centenaires" } },
+        "a1": { "type": "avec", "settings": { "txt": "Le chlore libre est neutralisé par réaction chimique — pas simplement « absorbé »" } },
+        "a2": { "type": "avec", "settings": { "txt": "L'odeur de chlore disparaît dès la première douche. C'est le signe le plus immédiat" } },
+        "a3": { "type": "avec", "settings": { "txt": "Les particules et la rouille sont retenues par deux tamis, en entrée et en sortie" } },
+        "a4": { "type": "avec", "settings": { "txt": "Vous le vérifiez vous-même avec les bandelettes de test livrées dans la boîte" } }
+      },
+      "block_order": ["s1", "s2", "s3", "s4", "a1", "a2", "a3", "a4"],
+      "settings": {}
+    },
+    "etapes": {
+      "type": "etapes",
+      "blocks": {
+        "e1": { "type": "etape", "settings": { "titre": "Vous le vissez", "txt": "ONDÉE se visse sur le flexible standard français et européen (filetage 15/21, soit G½\"). À la main, sans clé, sans plombier, sans téflon. Le joint est déjà en place. Comptez soixante secondes." } },
+        "e2": { "type": "etape", "settings": { "titre": "Vous testez avant / après", "txt": "La boîte contient deux bandelettes de test au chlore. Une pour votre eau actuelle, une pour l'eau filtrée. Vous n'avez pas à nous croire sur parole : la couleur change ou elle ne change pas." } },
+        "e3": { "type": "etape", "settings": { "titre": "Vous changez la cartouche tous les 90 jours", "txt": "La cartouche est datée. Quand elle arrive au bout, vous la sortez et vous en clipsez une neuve — dix secondes. Avec l'abonnement, elle arrive dans votre boîte aux lettres avant que vous y pensiez." } }
+      },
+      "block_order": ["e1", "e2", "e3"],
+      "settings": {}
+    },
+    "demo": {
+      "type": "demonstration",
+      "blocks": {
+        "l1": { "type": "couche", "settings": { "titre": "Tamis d'entrée", "sous": "Sable, rouille, particules de canalisation", "role": "Rétention mécanique" } },
+        "l2": { "type": "couche", "settings": { "titre": "KDF-55", "sous": "Alliage cuivre-zinc de haute pureté", "role": "Redox du chlore libre" } },
+        "l3": { "type": "couche", "settings": { "titre": "Sulfite de calcium", "sous": "Efficace en eau chaude, là où le charbon décroche", "role": "Chlore → chlorure" } },
+        "l4": { "type": "couche", "settings": { "titre": "Charbon actif", "sous": "Charbon de coque de noix de coco", "role": "Goût, odeurs, THM" } },
+        "l5": { "type": "couche", "settings": { "titre": "Tamis de sortie", "sous": "Retient le média dans la cartouche", "role": "Sécurité" } }
+      },
+      "block_order": ["l1", "l2", "l3", "l4", "l5"],
+      "settings": {
+        "oeil": "La cartouche, en coupe",
+        "titre": "Cinq étages, et aucun d'eux n'est décoratif.",
+        "chapeau": "<p>Beaucoup de filtres « anti-calcaire » vendus en France contiennent des billes minérales colorées qui ne retirent rien de mesurable. La nôtre contient les deux médias dont la réduction du chlore est décrite par la norme NSF/ANSI 177 : le KDF-55 et le sulfite de calcium.</p>",
+        "note": "<p>Le KDF-55 et le sulfite de calcium agissent par réaction chimique, pas par adsorption. C'est pour cette raison qu'ils continuent de fonctionner à 40 °C, alors que le charbon actif seul perd beaucoup de son efficacité en eau chaude — le cas de figure exact d'une douche.</p>"
+      }
+    },
+    "benefices": {
+      "type": "benefices",
+      "blocks": {
+        "b1": { "type": "benef", "settings": { "titre": "Dès la première douche", "txt": "L'odeur de chlore disparaît. C'est le changement le plus net et le plus rapide : la salle de bain ne sent plus la piscine, et les cheveux mouillés non plus." } },
+        "b2": { "type": "benef", "settings": { "titre": "Après quelques jours", "txt": "La sensation de tiraillement après la douche s'atténue chez beaucoup de gens. Si vous vous hydratez systématiquement en sortant, c'est souvent là que vous le remarquez." } },
+        "b3": { "type": "benef", "settings": { "titre": "Après trois à quatre semaines", "txt": "Sur cheveux colorés ou décolorés, les utilisateurs rapportent moins de ternissement entre deux passages chez le coiffeur. C'est progressif, et cela dépend beaucoup de votre eau." } },
+        "b4": { "type": "benef", "settings": { "titre": "Une pression conservée", "txt": "Le diamètre interne est calculé pour que la cartouche ne bride pas le débit. C'est la première plainte sur les filtres bon marché ; nous avons conçu le produit autour du problème." } },
+        "b5": { "type": "benef", "settings": { "titre": "Une preuve dans la boîte", "txt": "Deux bandelettes de test au chlore. Testez votre eau avant, testez-la après. Si la couleur ne bouge pas, renvoyez-nous le produit : nous remboursons et nous payons le retour." } },
+        "b6": { "type": "benef", "settings": { "titre": "Plus rien à gérer", "txt": "L'abonnement envoie les cartouches suivantes tous les 6 mois, dans la boîte aux lettres, sans engagement. Vous décalez, vous suspendez ou vous arrêtez en deux clics." } }
+      },
+      "block_order": ["b1", "b2", "b3", "b4", "b5", "b6"],
+      "settings": { "fond": "", "oeil": "Ce que vous remarquerez", "titre": "Dans cet ordre-là, et pas dans un autre.", "chapeau": "<p>Nous préférons vous dire à quoi vous attendre plutôt que de vous promettre une transformation. Voici ce que rapportent les utilisateurs de filtres à chlore, du plus immédiat au plus lent.</p>" }
+    },
+    "offre": { "type": "offre", "settings": { "oeil": "L'offre", "titre": "Un filtre. Quatre façons de commencer.", "chapeau": "<p>La cartouche dure 90 jours. Le seul vrai choix, c'est de savoir combien de trimestres vous prenez d'avance — et le prix à la cartouche baisse à mesure.</p>" } },
+    "avantapres": {
+      "type": "avant-apres",
+      "settings": {
+        "chapeau": "<p>Les photos « avant / après » de cheveux sont invérifiables : éclairage, brushing, angle. Nous ne vous en montrerons pas. Ce que nous pouvons montrer, c'est une mesure — la même bandelette de test au chlore, trempée dans la même douche, à trente secondes d'intervalle.</p>",
+        "note": "<p>Mesure réalisée sur un réseau à 0,32 mg/L de chlore libre, à 38 °C, sur cartouche neuve. Vos valeurs dépendront de la teneur en chlore de votre commune, de la température de votre eau et de l'âge de la cartouche : c'est précisément pour cela que nous mettons les bandelettes dans la boîte plutôt que de vous demander de nous croire.</p>"
+      }
+    },
+    "preuve": {
+      "type": "preuve-sociale",
+      "settings": {
+        "oeil": "Ce qui se passe ailleurs",
+        "titre": "La France est en retard d'un filtre.",
+        "chapeau": "<p>Aux États-Unis et au Royaume-Uni, le filtre de douche est devenu un produit de soin à part entière. Jolie a annoncé dépasser 40 M$ de chiffre d'affaires annuel. Hello Klean, dont Brita est devenu actionnaire, revendique plus de 500 000 clients et réalise environ 75 % de ses ventes par abonnement de cartouches. En France, 60 % des foyers reçoivent une eau dure — et presque personne ne filtre sa douche.</p>",
+        "cta_txt": "Voir les relevés de ma commune",
+        "cta_url": "#rapport"
+      }
+    },
+    "faq": {
+      "type": "faq",
+      "blocks": {
+        "q1": { "type": "qr", "settings": { "q": "Est-ce que ça enlève le calcaire ?", "r": "<p>Non. Et méfiez-vous de tous ceux qui vous disent l'inverse. Le calcaire, ce sont des ions calcium et magnésium dissous : ils sont bien plus petits que les pores de n'importe quel média filtrant et traversent sans être retenus. Seul un adoucisseur à résine échangeuse d'ions les retire réellement, et cela se pose sur l'arrivée d'eau du logement.</p><p>ONDÉE agit sur le chlore, les sous-produits de chloration, les particules et la rouille. Votre paroi de douche gardera ses traces blanches. Nous préférons vous le dire avant l'achat plutôt qu'après.</p>" } },
+        "q2": { "type": "qr", "settings": { "q": "Est-ce que ça va faire chuter la pression ?", "r": "<p>C'est la première crainte, et elle est fondée : la plupart des filtres bon marché brident le débit parce que la cartouche est trop dense et la section de passage trop étroite. ONDÉE a été dimensionné pour le débit avec cartouche en place.</p><p>Une baisse de pression progressive après plusieurs semaines est en revanche normale : elle signifie que le tamis a fait son travail et qu'il est temps de changer la cartouche. C'est votre indicateur de remplacement le plus fiable.</p>" } },
+        "q3": { "type": "qr", "settings": { "q": "Est-ce que ça va sur mon installation ?", "r": "<p>ONDÉE se visse sur un flexible de douche au filetage 15/21 (G½\"), standard français et européen depuis des décennies. Si votre pommeau se dévisse à la main du flexible, ONDÉE se monte entre les deux. Le joint est déjà fourni.</p><p>Deux exceptions : les colonnes de douche à tête fixe encastrée, et certains modèles à raccord propriétaire. En cas de doute, envoyez-nous une photo de votre raccord avant de commander — nous répondons dans la journée.</p>" } },
+        "q4": { "type": "qr", "settings": { "q": "Tous les combien faut-il changer la cartouche ?", "r": "<p>90 jours pour un foyer de deux personnes, soit environ 15 000 litres. Deux facteurs raccourcissent cette durée : un foyer nombreux, et une eau chargée en particules. Deux signes vous alertent — la pression qui baisse et l'odeur de chlore qui revient.</p><p>Chaque cartouche porte une case à dater au feutre indélébile. C'est basique, et c'est le seul système que personne n'oublie de mettre en route.</p>" } },
+        "q5": { "type": "qr", "settings": { "q": "Comment puis-je vérifier que ça marche ?", "r": "<p>Avec les deux bandelettes de test au chlore livrées dans la boîte. Vous en trempez une dans l'eau de votre douche actuelle, vous installez ONDÉE, vous trempez la seconde. La zone réactive vire à l'ambre en présence de chlore libre et reste blanche s'il n'y en a plus.</p><p>C'est une mesure imparfaite — une bandelette n'est pas un laboratoire — mais c'est une mesure, et c'est infiniment plus honnête qu'une photo de cheveux avant/après.</p>" } },
+        "q6": { "type": "qr", "settings": { "q": "Est-ce que ça soigne l'eczéma ou la chute de cheveux ?", "r": "<p>Non, et nous ne le prétendrons jamais. ONDÉE n'est pas un dispositif médical et n'a aucune vocation thérapeutique.</p><p>Pour être complets : une méta-analyse publiée en 2021 dans <em>Clinical &amp; Experimental Allergy</em> (Jabbar-Lopez et coll.) a trouvé une association entre eau dure et eczéma atopique chez l'enfant (odds ratio 1,28), avec un niveau de preuve jugé très faible — et les deux essais randomisés inclus n'ont montré <em>aucune</em> amélioration significative de la sévérité de l'eczéma avec un adoucisseur. Nous citons cette étude parce qu'elle nuance notre propre discours, pas parce qu'elle le sert.</p><p>Si vous avez une pathologie cutanée, parlez-en à un dermatologue. N'achetez pas un filtre de douche à la place.</p>" } },
+        "q7": { "type": "qr", "settings": { "q": "D'où viennent les données de mon rapport d'eau ?", "r": "<p>De la base SISE-Eaux du ministère chargé de la Santé, qui centralise les analyses du contrôle sanitaire réglementaire réalisées par les Agences régionales de santé sur chaque unité de distribution. Nous les interrogeons en direct via l'API publique Hub'Eau, éditée par l'Office français de la biodiversité.</p><p>Nous n'ajoutons rien, nous ne retirons rien et nous affichons la date du prélèvement. Si votre eau est excellente, le rapport vous le dira, et nous vous déconseillerons l'achat.</p>" } }
+      },
+      "block_order": ["q1", "q2", "q3", "q4", "q5", "q6", "q7"],
+      "settings": { "fond": "papier", "oeil": "Questions", "titre": "Les questions qu'on nous pose vraiment." }
+    },
+    "garantie": {
+      "type": "garantie",
+      "settings": {
+        "chiffre": "90", "unite": "jours d'essai",
+        "oeil": "La garantie bandelette",
+        "titre": "Si la bandelette ne change pas de couleur, vous ne payez pas.",
+        "txt": "<p>C'est la garantie la plus simple que nous ayons trouvée, et la seule qui nous engage vraiment. Installez ONDÉE, faites le test avant/après avec les bandelettes de la boîte. Si la couleur ne bouge pas, écrivez-nous : nous vous remboursons intégralement et nous payons l'étiquette de retour. Vous avez 90 jours, produit installé et utilisé, sans justification à fournir.</p>",
+        "cta_txt": "Commander ONDÉE", "cta_url": "/collections/all"
+      }
+    },
+    "cta": {
+      "type": "cta-final",
+      "settings": {
+        "fond": "",
+        "oeil": "Pour finir",
+        "titre": "Commencez par regarder<br>ce qu'il y a dans votre eau.",
+        "chapeau": "<p>Le rapport est gratuit, il prend dix secondes et il ne demande pas votre adresse e-mail. Si votre commune affiche une eau douce et peu chlorée, nous vous le dirons — et nous vous dirons de garder votre argent.</p>",
+        "cta_txt": "Analyser l'eau de ma commune", "cta_url": "#rapport",
+        "note": "<p>Aucune inscription. Aucune donnée conservée. Les relevés viennent directement de l'API publique du ministère de la Santé.</p>"
+      }
+    }
+  },
+  "order": ["hero", "chiffres", "rapport", "probleme", "etapes", "demo", "benefices", "offre", "avantapres", "preuve", "faq", "garantie", "cta"]
+}

@@ -1,0 +1,40 @@
+<div class="wrap sect--serre">
+  <p class="oeil">Panier</p>
+  <h1 class="titre-sect">{{ 'cart.general.title' | t }}</h1>
+
+  {%- if cart.item_count == 0 -%}
+    <p class="chapeau">{{ 'cart.general.empty' | t }}</p>
+    <p style="margin-top:1.5rem"><a class="btn btn--primaire" href="{{ routes.all_products_collection_url }}">{{ 'cart.general.continue_shopping' | t }}</a></p>
+  {%- else -%}
+    <form action="{{ routes.cart_url }}" method="post" novalidate class="panier-page">
+      <div class="couches" style="margin-top:2rem">
+        {%- for item in cart.items -%}
+          <div class="couche" style="grid-template-columns:64px 1fr auto auto;gap:1.1rem">
+            <div class="ligne__v" style="width:64px">
+              {%- if item.image -%}<img src="{{ item.image | image_url: width: 140 }}" alt="{{ item.image.alt | escape }}" width="64" height="64" loading="lazy">{%- endif -%}
+            </div>
+            <div>
+              <a class="couche__t" href="{{ item.url }}" style="display:block">{{ item.product.title }}</a>
+              {%- unless item.variant.title contains 'Default' -%}<small class="mono" style="color:var(--encre-3);font-size:var(--t-xs)">{{ item.variant.title }}</small>{%- endunless -%}
+            </div>
+            <div class="qte" data-qte-panier>
+              <button type="button" data-ligne="{{ forloop.index }}" data-qte-pas="-" aria-label="Diminuer">−</button>
+              <input type="number" name="updates[]" value="{{ item.quantity }}" min="0" data-ligne="{{ forloop.index }}" aria-label="{{ 'products.product.quantity' | t }}">
+              <button type="button" data-ligne="{{ forloop.index }}" data-qte-pas="+" aria-label="Augmenter">+</button>
+            </div>
+            <div class="couche__r">{{ item.final_line_price | money }}</div>
+          </div>
+        {%- endfor -%}
+      </div>
+
+      <div style="display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-end;margin-top:2rem">
+        <p class="notes" style="max-width:26rem">{{ 'cart.general.taxes_and_shipping' | t }} Livraison offerte dès {{ settings.seuil_port_offert }}. {{ settings.duree_essai }} pour changer d'avis.</p>
+        <div style="min-width:16rem">
+          <div class="tiroir__tot"><span>{{ 'cart.general.subtotal' | t }}</span><span>{{ cart.total_price | money }}</span></div>
+          <button type="submit" name="checkout" class="btn btn--primaire btn--bloc" style="margin-top:1rem">{{ 'cart.general.checkout' | t }}</button>
+        </div>
+      </div>
+    </form>
+  {%- endif -%}
+</div>
+{% schema %}{ "name": "Panier" }{% endschema %}

@@ -1,0 +1,46 @@
+<section class="sect {{ section.settings.fond }}" id="faq">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    <div class="faq" data-faq>
+      {%- for b in section.blocks -%}
+        <div class="faq__i"{{ b.shopify_attributes }}>
+          <button class="faq__q" type="button" aria-expanded="false">{{ b.settings.q }}<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></button>
+          <div class="faq__r"><div>{{ b.settings.r }}</div></div>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {%- for b in section.blocks -%}
+      {
+        "@type": "Question",
+        "name": {{ b.settings.q | json }},
+        "acceptedAnswer": { "@type": "Answer", "text": {{ b.settings.r | strip_html | json }} }
+      }{% unless forloop.last %},{% endunless %}
+    {%- endfor -%}
+  ]
+}
+</script>
+
+{% schema %}
+{
+  "name": "FAQ",
+  "settings": [
+    { "type": "select", "id": "fond", "label": "Fond", "options": [ { "value": "", "label": "Craie" }, { "value": "papier", "label": "Papier" } ], "default": "papier" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Questions" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Les questions qu'on nous pose vraiment." }
+  ],
+  "blocks": [ { "type": "qr", "name": "Question", "settings": [
+    { "type": "text", "id": "q", "label": "Question" },
+    { "type": "richtext", "id": "r", "label": "Réponse" }
+  ] } ],
+  "presets": [ { "name": "FAQ" } ]
+}
+{% endschema %}

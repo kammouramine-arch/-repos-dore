@@ -1,0 +1,27 @@
+<section class="sect {{ section.settings.fond }}">
+  <div class="wrap centre cta-final">
+    <p class="oeil oeil--centre">{{ section.settings.oeil }}</p>
+    <h2>{{ section.settings.titre }}</h2>
+    <div class="chapeau">{{ section.settings.chapeau }}</div>
+    {%- if section.settings.cta_txt != blank -%}
+      <a class="btn {% if section.settings.fond == 'petrole' or section.settings.fond == 'encre' %}btn--clair{% else %}btn--primaire{% endif %}" href="{{ section.settings.cta_url }}">{{ section.settings.cta_txt }}</a>
+    {%- endif -%}
+    {%- if section.settings.note != blank -%}<div class="notes centre" style="margin-top:1.5rem">{{ section.settings.note }}</div>{%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "CTA final",
+  "settings": [
+    { "type": "select", "id": "fond", "label": "Fond", "options": [ { "value": "", "label": "Craie" }, { "value": "papier", "label": "Papier" }, { "value": "petrole", "label": "Pétrole" }, { "value": "encre", "label": "Encre" } ], "default": "" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Pour finir" },
+    { "type": "html", "id": "titre", "label": "Titre", "default": "Commencez par regarder<br>ce qu'il y a dans votre eau." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" },
+    { "type": "text", "id": "cta_txt", "label": "Bouton", "default": "Analyser l'eau de ma commune" },
+    { "type": "url", "id": "cta_url", "label": "Lien" },
+    { "type": "richtext", "id": "note", "label": "Note" }
+  ],
+  "presets": [ { "name": "CTA final" } ]
+}
+{% endschema %}

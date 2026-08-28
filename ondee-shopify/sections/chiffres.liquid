@@ -1,0 +1,23 @@
+<section class="chiffres">
+  <div class="wrap">
+    <div class="chiffres__g">
+      {%- for b in section.blocks -%}
+        <div class="chiffre rev"{{ b.shopify_attributes }}>
+          <b>{{ b.settings.valeur }}</b>
+          <span>{{ b.settings.legende }}</span>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bandeau chiffres",
+  "blocks": [ { "type": "chiffre", "name": "Chiffre", "limit": 4, "settings": [
+    { "type": "text", "id": "valeur", "label": "Valeur", "default": "+60 %" },
+    { "type": "text", "id": "legende", "label": "Légende", "default": "des foyers français reçoivent une eau dure ou très dure" }
+  ] } ],
+  "presets": [ { "name": "Bandeau chiffres" } ]
+}
+{% endschema %}

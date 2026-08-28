@@ -1,0 +1,48 @@
+{
+  "general": {
+    "accessibility": { "skip_to_content": "Aller au contenu", "close": "Fermer", "menu": "Menu" },
+    "search": { "title": "Rechercher", "placeholder": "Rechercher un produit…", "submit": "Rechercher", "no_results": "Aucun résultat pour « {{ terms }} »." },
+    "404": { "title": "Page introuvable", "subtext": "Cette page n'existe pas ou a été déplacée." },
+    "pagination": { "previous": "Précédent", "next": "Suivant" },
+    "newsletter": { "label": "E-mail", "submit": "S'inscrire", "success": "Merci, c'est noté." }
+  },
+  "products": {
+    "product": {
+      "add_to_cart": "Ajouter au panier",
+      "buy_now": "Acheter maintenant",
+      "sold_out": "Épuisé",
+      "unavailable": "Indisponible",
+      "quantity": "Quantité",
+      "price": "Prix",
+      "regular_price": "Prix habituel",
+      "sale_price": "Prix soldé",
+      "on_sale": "En promotion",
+      "include_taxes": "Prix TTC, TVA 20 % incluse.",
+      "view_details": "Voir le produit"
+    }
+  },
+  "cart": {
+    "general": {
+      "title": "Votre panier",
+      "empty": "Votre panier est vide.",
+      "continue_shopping": "Continuer mes achats",
+      "subtotal": "Sous-total",
+      "checkout": "Passer commande",
+      "remove": "Retirer",
+      "note": "Instructions de commande",
+      "taxes_and_shipping": "TVA incluse. Frais de port calculés à l'étape suivante."
+    }
+  },
+  "customer": {
+    "account": { "title": "Mon compte", "details": "Mes informations", "view_addresses": "Mes adresses", "return": "Retour au compte", "orders": "Mes commandes" },
+    "login": { "title": "Connexion", "email": "E-mail", "password": "Mot de passe", "forgot_password": "Mot de passe oublié ?", "sign_in": "Se connecter", "create_account": "Créer un compte", "guest_title": "Continuer en tant qu'invité", "guest_continue": "Continuer" },
+    "register": { "title": "Créer un compte", "first_name": "Prénom", "last_name": "Nom", "email": "E-mail", "password": "Mot de passe", "submit": "Créer mon compte" },
+    "recover_password": { "title": "Réinitialiser mon mot de passe", "email": "E-mail", "submit": "Envoyer", "success": "Nous vous avons envoyé un e-mail." },
+    "reset_password": { "title": "Nouveau mot de passe", "password": "Mot de passe", "password_confirm": "Confirmer", "submit": "Valider" },
+    "activate_account": { "title": "Activer mon compte", "password": "Mot de passe", "password_confirm": "Confirmer", "submit": "Activer", "cancel": "Refuser l'invitation" },
+    "addresses": { "title": "Mes adresses", "add_new": "Ajouter une adresse", "edit": "Modifier", "delete": "Supprimer", "first_name": "Prénom", "last_name": "Nom", "company": "Société", "address1": "Adresse", "address2": "Complément", "city": "Ville", "country": "Pays", "province": "Région", "zip": "Code postal", "phone": "Téléphone", "set_default": "Adresse par défaut", "save": "Enregistrer", "cancel": "Annuler" },
+    "order": { "title": "Commande {{ name }}", "date": "Passée le {{ date }}", "product": "Produit", "quantity": "Qté", "total": "Total", "subtotal": "Sous-total", "shipping": "Livraison", "tax": "TVA", "billing_address": "Adresse de facturation", "shipping_address": "Adresse de livraison", "payment_status": "Paiement", "fulfillment_status": "Expédition" },
+    "orders": { "title": "Mes commandes", "order_number": "Commande", "date": "Date", "payment_status": "Paiement", "fulfillment_status": "Expédition", "total": "Total", "none": "Vous n'avez pas encore passé commande." }
+  },
+  "blogs": { "article": { "read_more": "Lire la suite", "back_to_blog": "Retour au journal" } }
+}

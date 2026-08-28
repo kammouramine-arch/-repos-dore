@@ -1,5 +1,18 @@
 # ONDÉE — Boutique
 
+> **⚠️ Ce dossier est la prévisualisation statique (HTML/CSS/JS).**
+> Le livrable Shopify réel est le thème **`../ondee-shopify/`**, empaqueté dans
+> **`../ondee-theme.zip`**. Voir `../ondee-shopify/README.md` pour l'installation.
+>
+> | Vous cherchez… | Allez dans |
+> |---|---|
+> | Le thème Shopify à installer | `../ondee-theme.zip` |
+> | La recherche, les coûts, le fournisseur, le verdict | `DOSSIER.md` |
+> | Les publicités et le contenu organique | `PUBLICITE.md` |
+> | Le plan de lancement pas à pas | `LANCEMENT.md` |
+> | Le contenu des pages (CGV, légal…) | `../ondee-pages/` |
+> | L'import produits Shopify | `../ondee-import/` |
+
 Site e-commerce complet en HTML / CSS / JavaScript natif, **sans aucune
 dépendance**, conçu pour être intégré tel quel dans un thème Shopify.
 

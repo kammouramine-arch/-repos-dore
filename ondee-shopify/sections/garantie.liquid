@@ -1,0 +1,29 @@
+<section class="sect petrole">
+  <div class="wrap garantie">
+    <div class="sceau" aria-hidden="true"><div><b>{{ section.settings.chiffre }}</b><span>{{ section.settings.unite }}</span></div></div>
+    <div>
+      <p class="oeil">{{ section.settings.oeil }}</p>
+      <h2 class="titre-sect" style="margin-top:1rem">{{ section.settings.titre }}</h2>
+      <div class="chapeau">{{ section.settings.txt }}</div>
+      {%- if section.settings.cta_txt != blank -%}
+        <p style="margin-top:1.75rem"><a class="btn btn--clair" href="{{ section.settings.cta_url }}">{{ section.settings.cta_txt }}</a></p>
+      {%- endif -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Garantie",
+  "settings": [
+    { "type": "text", "id": "chiffre", "label": "Chiffre du sceau", "default": "90" },
+    { "type": "text", "id": "unite", "label": "Unité du sceau", "default": "jours d'essai" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "La garantie bandelette" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Si la bandelette ne change pas de couleur, vous ne payez pas." },
+    { "type": "richtext", "id": "txt", "label": "Texte" },
+    { "type": "text", "id": "cta_txt", "label": "Bouton", "default": "Commander ONDÉE" },
+    { "type": "url", "id": "cta_url", "label": "Lien" }
+  ],
+  "presets": [ { "name": "Garantie" } ]
+}
+{% endschema %}

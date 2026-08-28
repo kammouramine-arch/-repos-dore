@@ -1,0 +1,27 @@
+<div class="wrap wrap--etroit sect">
+  <p class="oeil">Espace client</p>
+  <h1 class="titre-sect">{{ 'customer.login.title' | t }}</h1>
+  {%- form 'customer_login' -%}
+    {{ form.errors | default_errors }}
+    <div class="champ"><label class="champ__l" for="l-mail"><span>{{ 'customer.login.email' | t }}</span></label>
+      <input class="saisie" id="l-mail" type="email" name="customer[email]" autocomplete="email" required></div>
+    <div class="champ"><label class="champ__l" for="l-pass"><span>{{ 'customer.login.password' | t }}</span></label>
+      <input class="saisie" id="l-pass" type="password" name="customer[password]" autocomplete="current-password"></div>
+    <button class="btn btn--primaire btn--bloc" type="submit">{{ 'customer.login.sign_in' | t }}</button>
+    <p style="margin-top:1rem;display:flex;gap:1.5rem">
+      <a class="lien-souligne" href="#recover" onclick="document.getElementById('recover').hidden=false;return false">{{ 'customer.login.forgot_password' | t }}</a>
+      <a class="lien-souligne" href="{{ routes.account_register_url }}">{{ 'customer.login.create_account' | t }}</a>
+    </p>
+  {%- endform -%}
+
+  <div id="recover" hidden style="margin-top:2.5rem;border-top:1px solid var(--trait);padding-top:2rem">
+    <h2 class="titre-sect" style="font-size:var(--t-xl)">{{ 'customer.recover_password.title' | t }}</h2>
+    {%- form 'recover_customer_password' -%}
+      {{ form.errors | default_errors }}
+      {%- if form.posted_successfully? -%}<p class="notes">{{ 'customer.recover_password.success' | t }}</p>{%- endif -%}
+      <div class="champ"><label class="champ__l" for="r-mail"><span>{{ 'customer.recover_password.email' | t }}</span></label>
+        <input class="saisie" id="r-mail" type="email" name="email" required></div>
+      <button class="btn btn--fantome" type="submit">{{ 'customer.recover_password.submit' | t }}</button>
+    {%- endform -%}
+  </div>
+</div>

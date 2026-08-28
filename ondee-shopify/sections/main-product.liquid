@@ -1,0 +1,206 @@
+{%- assign v0 = product.selected_or_first_available_variant -%}
+<div class="wrap">
+  <div class="pp">
+
+    {%- comment -%} ══ GALERIE ══ {%- endcomment -%}
+    <div class="pp__galerie">
+      <div class="gal__p" data-galerie>
+        {%- if product.media.size > 0 -%}
+          {%- for m in product.media -%}
+            <figure {% if forloop.first %}data-actif{% endif %}>
+              <img src="{{ m | image_url: width: 1200 }}" alt="{{ m.alt | escape }}"
+                   width="1000" height="1000" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+            </figure>
+          {%- endfor -%}
+        {%- else -%}
+          <figure data-actif><img src="{{ 'pommeau.svg' | asset_url }}" alt="{{ product.title | escape }}" width="800" height="1000"></figure>
+          <figure><img src="{{ 'coupe.svg' | asset_url }}" alt="Coupe technique" width="800" height="800" loading="lazy"></figure>
+          <figure><img src="{{ 'cartouche.svg' | asset_url }}" alt="Cartouche C90" width="800" height="800" loading="lazy"></figure>
+          <figure><img src="{{ 'bandelette-avant.svg' | asset_url }}" alt="Test avant" width="600" height="600" loading="lazy"></figure>
+          <figure><img src="{{ 'bandelette-apres.svg' | asset_url }}" alt="Test après" width="600" height="600" loading="lazy"></figure>
+          <figure><img src="{{ 'install.svg' | asset_url }}" alt="Installation" width="800" height="800" loading="lazy"></figure>
+        {%- endif -%}
+      </div>
+
+      <div class="gal__v" role="tablist" aria-label="Vues du produit">
+        {%- if product.media.size > 0 -%}
+          {%- for m in product.media -%}
+            <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="Vue {{ forloop.index }}">
+              <img src="{{ m | image_url: width: 140 }}" alt="" width="66" height="66" loading="lazy">
+            </button>
+          {%- endfor -%}
+        {%- else -%}
+          {%- assign fb = 'pommeau.svg,coupe.svg,cartouche.svg,bandelette-avant.svg,bandelette-apres.svg,install.svg' | split: ',' -%}
+          {%- for f in fb -%}
+            <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="Vue {{ forloop.index }}">
+              <img src="{{ f | asset_url }}" alt="" width="66" height="66" loading="lazy">
+            </button>
+          {%- endfor -%}
+        {%- endif -%}
+      </div>
+    </div>
+
+    {%- comment -%} ══ COLONNE D'ACHAT ══ {%- endcomment -%}
+    <div class="pp__achat" data-barre-repere>
+      {%- if section.settings.oeil != blank -%}<p class="oeil">{{ section.settings.oeil }}</p>{%- endif -%}
+      <h1>{{ product.title }}</h1>
+
+      {%- if section.settings.resume != blank -%}
+        <div class="pp__resume">{{ section.settings.resume }}</div>
+      {%- endif -%}
+
+      <div class="pp__prix">
+        <b data-prix-actuel>{{ v0.price | money }}</b>
+        <del data-prix-barre {% unless v0.compare_at_price > v0.price %}hidden{% endunless %}>{{ v0.compare_at_price | money }}</del>
+        <span class="eco mono" data-eco {% unless v0.compare_at_price > v0.price %}hidden{% endunless %}>
+          {%- if v0.compare_at_price > v0.price -%}
+            − {{ v0.compare_at_price | minus: v0.price | times: 100 | divided_by: v0.compare_at_price }} %
+          {%- endif -%}
+        </span>
+      </div>
+      <p class="pp__tva">{{ 'products.product.include_taxes' | t }} Livraison offerte dès {{ settings.seuil_port_offert }}.</p>
+
+      <form method="post" action="{{ routes.cart_add_url }}" id="form-produit" data-form-produit>
+        <input type="hidden" name="form_type" value="product">
+        <input type="hidden" name="utf8" value="✓">
+        <input type="hidden" name="id" value="{{ v0.id }}" data-champ-variante>
+
+        {%- if product.variants.size > 1 -%}
+          <div class="champ" id="packs">
+            <div class="champ__l"><span>{{ section.settings.label_variantes }}</span><span>{{ section.settings.label_droite }}</span></div>
+            <div class="packs" data-packs>
+              {%- for v in product.variants -%}
+                <button class="pack" type="button"
+                        aria-pressed="{% if v.id == v0.id %}true{% else %}false{% endif %}"
+                        data-variant-id="{{ v.id }}"
+                        data-ref="{{ v.sku }}"
+                        data-titre="{{ product.title | escape }}"
+                        data-prix="{{ v.price | divided_by: 100.0 }}"
+                        data-barre="{{ v.compare_at_price | default: 0 | divided_by: 100.0 }}"
+                        data-prix-fmt="{{ v.price | money }}"
+                        data-barre-fmt="{{ v.compare_at_price | money }}"
+                        data-opt="{{ v.title | escape }}"
+                        data-dispo="{{ v.available }}"
+                        {% unless v.available %}disabled{% endunless %}>
+                  {%- if v.metafields.ondee.ruban != blank -%}<span class="pack__ruban">{{ v.metafields.ondee.ruban }}</span>{%- endif -%}
+                  <span class="pack__radio" aria-hidden="true"></span>
+                  <span>
+                    <span class="pack__t">{{ v.title }}</span>
+                    <span class="pack__d">{% if v.available %}{{ v.sku }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}</span>
+                  </span>
+                  <span class="pack__p">{{ v.price | money }}{% if v.compare_at_price > v.price %}<del>{{ v.compare_at_price | money }}</del>{% endif %}</span>
+                </button>
+              {%- endfor -%}
+            </div>
+          </div>
+        {%- endif -%}
+
+        <div class="champ">
+          <div class="champ__l"><span>{{ 'products.product.quantity' | t }}</span></div>
+          <div class="qte" data-qte>
+            <button type="button" data-pas="-" aria-label="Diminuer">−</button>
+            <input type="number" name="quantity" value="1" min="1" max="20" inputmode="numeric" aria-label="{{ 'products.product.quantity' | t }}">
+            <button type="button" data-pas="+" aria-label="Augmenter">+</button>
+          </div>
+        </div>
+
+        <div class="pp__actions">
+          <button class="btn btn--primaire btn--bloc" type="submit" name="add" data-pp-ajout {% unless product.available %}disabled{% endunless %}>
+            {% if product.available %}{{ 'products.product.add_to_cart' | t }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}
+          </button>
+          {%- if product.available -%}
+            <button class="btn btn--fantome btn--bloc" type="button" data-pp-acheter>{{ 'products.product.buy_now' | t }}</button>
+          {%- endif -%}
+        </div>
+      </form>
+
+      {%- if section.settings.stock_txt != blank -%}
+        <p class="pp__stock mono"><i aria-hidden="true"></i>{{ section.settings.stock_txt }}</p>
+      {%- endif -%}
+
+      <div class="confiance">
+        <div><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{ settings.duree_essai }}<br>d'essai</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Expédié<br>de France</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M5 16h14" stroke-linecap="round"/></svg><span>Test au chlore<br>inclus</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7" stroke-linecap="round"/><path d="M20 4v4h-4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Garantie<br>2 ans</span></div>
+      </div>
+
+      {%- if section.settings.encart_titre != blank -%}
+        <div style="margin-top:1.75rem;border:1px solid var(--trait-fort);border-radius:var(--r-lg);padding:1.25rem;background:var(--eau-pale)">
+          <p class="oeil" style="margin-bottom:.7rem">{{ section.settings.encart_titre }}</p>
+          <div style="font-size:var(--t-sm);line-height:1.6;color:var(--encre-2)">{{ section.settings.encart_txt }}</div>
+        </div>
+      {%- endif -%}
+
+      <div class="accord" data-accord>
+        {%- for b in section.blocks -%}
+          {%- if b.type == 'detail' -%}
+            <div class="accord__i"{{ b.shopify_attributes }}>
+              <button class="accord__q" type="button" aria-expanded="false">{{ b.settings.titre }}<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></button>
+              <div class="accord__r"><div>{{ b.settings.txt }}</div></div>
+            </div>
+          {%- endif -%}
+        {%- endfor -%}
+        {%- if product.description != blank -%}
+          <div class="accord__i">
+            <button class="accord__q" type="button" aria-expanded="false">Description complète<svg viewBox="0 0 24 24"><path d="M12 5v14M5 12h14" stroke-linecap="round"/></svg></button>
+            <div class="accord__r"><div>{{ product.description }}</div></div>
+          </div>
+        {%- endif -%}
+      </div>
+    </div>
+  </div>
+</div>
+
+{%- comment -%} ══ BARRE D'ACHAT COLLANTE ══ {%- endcomment -%}
+<div class="barre" data-barre>
+  <div class="barre__i">
+    <div class="barre__t">{{ product.title }}</div>
+    <div class="barre__p mono" data-prix-actuel>{{ v0.price | money }}</div>
+  </div>
+  <button class="btn btn--primaire" type="submit" form="form-produit" name="add" {% unless product.available %}disabled{% endunless %}>
+    {% if product.available %}Ajouter{% else %}Épuisé{% endif %}
+  </button>
+</div>
+
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": {{ product.title | json }},
+  "description": {{ product.description | strip_html | truncate: 400 | json }},
+  "sku": {{ v0.sku | json }},
+  "brand": { "@type": "Brand", "name": {{ product.vendor | json }} },
+  "image": [{% for m in product.media %}{{ m | image_url: width: 1200 | prepend: 'https:' | json }}{% unless forloop.last %},{% endunless %}{% endfor %}],
+  "offers": {
+    "@type": "AggregateOffer",
+    "priceCurrency": {{ cart.currency.iso_code | json }},
+    "lowPrice": {{ product.price_min | divided_by: 100.0 | json }},
+    "highPrice": {{ product.price_max | divided_by: 100.0 | json }},
+    "offerCount": {{ product.variants.size }},
+    "availability": "{% if product.available %}https://schema.org/InStock{% else %}https://schema.org/OutOfStock{% endif %}"
+  }
+}
+</script>
+
+{% schema %}
+{
+  "name": "Fiche produit",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Filtre de douche · cartouche 90 jours" },
+    { "type": "richtext", "id": "resume", "label": "Résumé court" },
+    { "type": "text", "id": "label_variantes", "label": "Label des variantes", "default": "Votre formule" },
+    { "type": "text", "id": "label_droite", "label": "Label à droite", "default": "90 j / cartouche" },
+    { "type": "text", "id": "stock_txt", "label": "Ligne de stock", "default": "En stock — expédié sous 48 h ouvrées" },
+    { "type": "header", "content": "Encart abonnement" },
+    { "type": "text", "id": "encart_titre", "label": "Titre de l'encart" },
+    { "type": "richtext", "id": "encart_txt", "label": "Texte de l'encart" }
+  ],
+  "blocks": [
+    { "type": "detail", "name": "Bloc dépliant", "settings": [
+      { "type": "text", "id": "titre", "label": "Titre" },
+      { "type": "richtext", "id": "txt", "label": "Contenu" }
+    ] }
+  ]
+}
+{% endschema %}

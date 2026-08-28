@@ -1,0 +1,51 @@
+<section class="rapport sect" id="rapport">
+  <div class="wrap rapport__in">
+    <div>
+      <p class="oeil">{{ section.settings.oeil }}</p>
+      <h2>{{ section.settings.titre }}</h2>
+      <div class="chapeau">{{ section.settings.chapeau }}</div>
+      <div class="rapport__note">{{ section.settings.source }}</div>
+    </div>
+
+    <div>
+      <div class="chercheur">
+        <label class="oeil" for="commune" style="margin-bottom:.85rem">Votre commune ou code postal</label>
+        <div class="chercheur__champ">
+          <input type="text" id="commune" name="commune" placeholder="Ex. Lille, Bordeaux, 75011…" autocomplete="off" role="combobox" aria-expanded="false" aria-controls="sugg" aria-autocomplete="list">
+          <button class="btn btn--clair" data-rapport-lancer type="button">Analyser</button>
+          <ul class="chercheur__sugg" id="sugg" role="listbox" aria-label="Communes proposées"></ul>
+        </div>
+        <p class="chercheur__etat mono" data-rapport-etat role="status" aria-live="polite"></p>
+
+        <dl class="fiche" data-rapport-fiche hidden></dl>
+        <div class="verdict" data-rapport-verdict hidden></div>
+
+        <div class="repos" data-rapport-repos>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3c3.6 4.5 6 7.4 6 10a6 6 0 1 1-12 0c0-2.6 2.4-5.5 6-10z"/><path d="M9.5 13.5a2.5 2.5 0 0 0 2.5 2.5" stroke-linecap="round"/></svg>
+          <p>Nous irons chercher, pour votre commune, les derniers prélèvements publiés par votre Agence régionale de santé.</p>
+          <ul>
+            <li>Dureté de l'eau (TH), en degrés français</li>
+            <li>Chlore libre et chlore total, en mg/L</li>
+            <li>Trihalométhanes, sous-produits de la chloration</li>
+            <li>Conclusion de conformité du dernier prélèvement</li>
+            <li>Date exacte du prélèvement et nom du distributeur</li>
+          </ul>
+          <p style="color:rgba(246,244,239,.5);font-size:var(--t-xs)">Aucune inscription, aucune donnée conservée. Si vos relevés sont bons, nous vous le dirons.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Rapport d'eau (Hub'Eau)",
+  "settings": [
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Le rapport d'eau ONDÉE" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Nous ne vous demandons pas de nous croire." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau", "default": "<p>Chaque prélèvement d'eau potable en France est analysé par les Agences régionales de santé et publié en open data. Nous allons chercher les derniers relevés de votre commune et nous vous les montrons tels quels — y compris quand ils sont bons.</p>" },
+    { "type": "richtext", "id": "source", "label": "Mention de source", "default": "<p>Source : base SISE-Eaux du ministère chargé de la Santé, diffusée via l'API Hub'Eau — Qualité de l'eau potable. Données publiques, mises à jour mensuellement. ONDÉE n'intervient pas sur ces chiffres.</p>" }
+  ],
+  "presets": [ { "name": "Rapport d'eau" } ]
+}
+{% endschema %}

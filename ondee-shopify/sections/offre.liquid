@@ -1,0 +1,41 @@
+{%- assign p = section.settings.produit -%}
+<section class="sect papier" id="offre">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    {%- if section.settings.chapeau != blank -%}<div class="chapeau">{{ section.settings.chapeau }}</div>{%- endif -%}
+
+    {%- if p != blank -%}
+      <div class="packs" style="margin-top:clamp(2rem,5vw,3rem);max-width:44rem" data-packs-accueil>
+        {%- for v in p.variants -%}
+          <button class="pack" type="button" aria-pressed="{% if forloop.index == 2 %}true{% else %}false{% endif %}"
+                  data-ajout data-variant-id="{{ v.id }}"
+                  data-ref="{{ v.sku }}" data-titre="{{ p.title | escape }} — {{ v.title | escape }}"
+                  data-prix="{{ v.price | divided_by: 100.0 }}" data-opt="{{ v.title | escape }}"
+                  {% unless v.available %}disabled{% endunless %}>
+            {%- if forloop.index == 2 -%}<span class="pack__ruban">Le plus choisi</span>{%- endif -%}
+            <span class="pack__radio" aria-hidden="true"></span>
+            <span><span class="pack__t">{{ v.title }}</span><span class="pack__d">{{ v.sku }}</span></span>
+            <span class="pack__p">{{ v.price | money }}{% if v.compare_at_price > v.price %}<del>{{ v.compare_at_price | money }}</del>{% endif %}</span>
+          </button>
+        {%- endfor -%}
+      </div>
+      <p style="margin-top:1.5rem"><a class="lien-souligne" href="{{ p.url }}">Voir la fiche produit complète →</a></p>
+    {%- else -%}
+      <p class="notes" style="margin-top:2rem">Sélectionnez un produit dans les réglages de cette section.</p>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "L'offre",
+  "settings": [
+    { "type": "product", "id": "produit", "label": "Produit à afficher" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "L'offre" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Un filtre. Trois façons de commencer." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" }
+  ],
+  "presets": [ { "name": "L'offre" } ]
+}
+{% endschema %}

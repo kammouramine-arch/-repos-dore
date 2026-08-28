@@ -1,0 +1,33 @@
+<section class="sect {{ section.settings.fond }}">
+  <div class="wrap">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    {%- if section.settings.chapeau != blank -%}<div class="chapeau">{{ section.settings.chapeau }}</div>{%- endif -%}
+    <div class="benefs">
+      {%- for b in section.blocks -%}
+        <div class="benef rev"{{ b.shopify_attributes }}>
+          <svg viewBox="0 0 24 24"><path d="M12 3c3.6 4.5 6 7.4 6 10a6 6 0 1 1-12 0c0-2.6 2.4-5.5 6-10z"/></svg>
+          <h3>{{ b.settings.titre }}</h3>
+          <p>{{ b.settings.txt }}</p>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Bénéfices",
+  "settings": [
+    { "type": "select", "id": "fond", "label": "Fond", "options": [ { "value": "", "label": "Craie" }, { "value": "papier", "label": "Papier" } ], "default": "" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Ce que vous remarquerez" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Dans cet ordre-là, et pas dans un autre." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" }
+  ],
+  "blocks": [ { "type": "benef", "name": "Bénéfice", "limit": 6, "settings": [
+    { "type": "text", "id": "titre", "label": "Titre" },
+    { "type": "textarea", "id": "txt", "label": "Texte" }
+  ] } ],
+  "presets": [ { "name": "Bénéfices" } ]
+}
+{% endschema %}

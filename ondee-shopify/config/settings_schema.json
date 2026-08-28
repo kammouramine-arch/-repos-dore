@@ -1,0 +1,39 @@
+[
+  {
+    "name": "theme_info",
+    "theme_name": "ONDÉE",
+    "theme_version": "1.0.0",
+    "theme_author": "ONDÉE",
+    "theme_documentation_url": "https://ondee.fr",
+    "theme_support_url": "https://ondee.fr"
+  },
+  {
+    "name": "Couleurs",
+    "settings": [
+      { "type": "header", "content": "Palette ONDÉE" },
+      { "type": "color", "id": "c_craie", "label": "Fond (craie)", "default": "#F6F4EF" },
+      { "type": "color", "id": "c_papier", "label": "Papier", "default": "#FFFFFF" },
+      { "type": "color", "id": "c_encre", "label": "Encre", "default": "#0D1416" },
+      { "type": "color", "id": "c_petrole", "label": "Pétrole (boutons)", "default": "#0E3A45" },
+      { "type": "color", "id": "c_eau", "label": "Eau (accent froid)", "default": "#9FC7D2" },
+      { "type": "color", "id": "c_reactif", "label": "Réactif (données uniquement)", "default": "#D89B22" },
+      { "type": "paragraph", "content": "Le réactif ambré est la couleur de la bandelette de test. Il ne sert JAMAIS de décoration — uniquement à afficher une mesure." }
+    ]
+  },
+  {
+    "name": "Réassurance",
+    "settings": [
+      { "type": "text", "id": "seuil_port_offert", "label": "Seuil de livraison offerte", "default": "49 €" },
+      { "type": "text", "id": "delai_expedition", "label": "Délai d'expédition", "default": "48 h ouvrées" },
+      { "type": "text", "id": "duree_essai", "label": "Durée de l'essai", "default": "90 jours" },
+      { "type": "text", "id": "email_contact", "label": "E-mail de contact", "default": "bonjour@ondee.fr" }
+    ]
+  },
+  {
+    "name": "Réseaux sociaux",
+    "settings": [
+      { "type": "url", "id": "social_instagram", "label": "Instagram" },
+      { "type": "url", "id": "social_tiktok", "label": "TikTok" }
+    ]
+  }
+]

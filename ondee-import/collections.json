@@ -1,0 +1,17 @@
+[
+  {
+    "title": "Filtres de douche",
+    "handle": "filtres",
+    "descriptionHtml": "<p>Le filtre ONDÉE et ses formules. Cinq étages de filtration, cartouche remplaçable, deux bandelettes de test dans la boîte.</p>"
+  },
+  {
+    "title": "Cartouches & recharges",
+    "handle": "cartouches",
+    "descriptionHtml": "<p>Les cartouches C90 et l'abonnement. La cartouche dure 90 jours ; c'est elle, et pas le corps du filtre, qui fait le travail.</p>"
+  },
+  {
+    "title": "Tout ONDÉE",
+    "handle": "tout",
+    "descriptionHtml": "<p>L'intégralité de la gamme.</p>"
+  }
+]

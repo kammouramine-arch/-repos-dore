@@ -1,0 +1,24 @@
+<div class="wrap sect--serre">
+  <p class="oeil">Collection</p>
+  <h1 class="titre-sect">{{ collection.title }}</h1>
+  {%- if collection.description != blank -%}<div class="chapeau">{{ collection.description }}</div>{%- endif -%}
+
+  {%- paginate collection.products by 24 -%}
+  {%- if collection.products.size > 0 -%}
+    <div class="avis-g" style="margin-top:clamp(2rem,5vw,3rem)">
+      {%- for p in collection.products -%}
+        {%- render 'carte-produit', p: p -%}
+      {%- endfor -%}
+    </div>
+    {%- if paginate.pages > 1 -%}
+      <nav class="pagination" style="margin-top:2.5rem;display:flex;gap:1rem;justify-content:center">
+        {%- if paginate.previous -%}<a class="lien-souligne" href="{{ paginate.previous.url }}">{{ 'general.pagination.previous' | t }}</a>{%- endif -%}
+        {%- if paginate.next -%}<a class="lien-souligne" href="{{ paginate.next.url }}">{{ 'general.pagination.next' | t }}</a>{%- endif -%}
+      </nav>
+    {%- endif -%}
+  {%- else -%}
+    <p class="chapeau">Aucun produit dans cette collection pour le moment.</p>
+  {%- endif -%}
+  {%- endpaginate -%}
+</div>
+{% schema %}{ "name": "Collection" }{% endschema %}

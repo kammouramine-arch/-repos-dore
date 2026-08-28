@@ -1,0 +1,37 @@
+<p>Cette page affiche les <strong>relevés officiels de qualité de l'eau potable</strong> de votre commune, tels que publiés par le ministère chargé de la Santé. Nous n'ajoutons rien, nous ne retirons rien, et nous affichons la date exacte du prélèvement.</p>
+
+<h2>D'où viennent ces chiffres</h2>
+<p>Chaque unité de distribution d'eau potable en France fait l'objet d'un contrôle sanitaire réglementaire assuré par les <strong>Agences régionales de santé</strong>. Les résultats alimentent la base <strong>SISE-Eaux</strong> du ministère chargé de la Santé, diffusée en open data via l'<strong>API Hub'Eau</strong>, éditée par l'Office français de la biodiversité.</p>
+<p>Notre outil interroge cette API <strong>en direct, depuis votre navigateur</strong>. Votre commune ne transite pas par nos serveurs et n'est enregistrée nulle part.</p>
+
+<h2>Ce que vous allez voir</h2>
+<ul>
+  <li><strong>Dureté (TH)</strong>, en degrés français (°f) — la teneur en calcium et magnésium. <em>ONDÉE n'agit pas dessus.</em></li>
+  <li><strong>Chlore libre</strong> et <strong>chlore total</strong>, en mg/L — c'est ce sur quoi ONDÉE agit.</li>
+  <li><strong>Trihalométhanes</strong>, en µg/L — sous-produits de la chloration, limite réglementaire à 100 µg/L.</li>
+  <li><strong>Conclusion de conformité</strong> du dernier prélèvement, et nom de votre distributeur.</li>
+</ul>
+
+<h2>Comment lire la dureté</h2>
+<table>
+  <thead><tr><th>Titre hydrotimétrique</th><th>Qualification</th></tr></thead>
+  <tbody>
+    <tr><td>moins de 8 °f</td><td>Très douce</td></tr>
+    <tr><td>8 à 15 °f</td><td>Douce</td></tr>
+    <tr><td>15 à 25 °f</td><td>Moyennement dure</td></tr>
+    <tr><td>25 à 35 °f</td><td>Dure</td></tr>
+    <tr><td>plus de 35 °f</td><td>Très dure</td></tr>
+  </tbody>
+</table>
+<p><strong>Rappel qui nous coûte des ventes :</strong> quel que soit ce chiffre, ONDÉE ne le fera pas baisser. Aucun filtre de douche ne le peut. Nous l'affichons pour vous informer, pas pour vous vendre quelque chose.</p>
+
+<h2>Et si vos relevés sont bons ?</h2>
+<p>L'outil vous le dira, et il vous déconseillera l'achat. Une eau peu chlorée ne justifie pas de dépenser 79 €. C'est le genre d'affirmation qu'on ne peut pas simuler : essayez avec Toulouse, dont l'eau est douce, et regardez ce que le rapport répond.</p>
+
+<h2>Comprendre les mentions de conformité</h2>
+<p>Les conclusions des ARS distinguent deux niveaux, que nous affichons séparément :</p>
+<ul>
+  <li>Les <strong>limites de qualité</strong> sont des seuils sanitaires opposables. Un dépassement est un vrai sujet de santé publique.</li>
+  <li>Les <strong>références de qualité</strong> sont des indicateurs de confort — turbidité, équilibre calco-carbonique — sans portée sanitaire directe. Un écart n'a pas la même signification.</li>
+</ul>
+<p>Beaucoup d'outils réduisent tout à « conforme / non conforme ». Nous ne le faisons pas, parce que ce raccourci inquiète à tort.</p>

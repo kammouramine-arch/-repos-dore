@@ -1,0 +1,17 @@
+<div class="wrap sect--serre">
+  <p class="oeil">{{ 'customer.order.date' | t: date: order.created_at | date: '%d/%m/%Y' }}</p>
+  <h1 class="titre-sect">{{ 'customer.order.title' | t: name: order.name }}</h1>
+  <div class="couches" style="margin-top:1.5rem">
+    {%- for line in order.line_items -%}
+      <div class="couche">
+        <span class="couche__n">×{{ line.quantity }}</span>
+        <span class="couche__t">{{ line.title }}</span>
+        <span class="couche__r">{{ line.final_line_price | money }}</span>
+      </div>
+    {%- endfor -%}
+    <div class="couche"><span class="couche__n"></span><span class="couche__t">{{ 'customer.order.subtotal' | t }}</span><span class="couche__r">{{ order.subtotal_price | money }}</span></div>
+    <div class="couche"><span class="couche__n"></span><span class="couche__t">{{ 'customer.order.shipping' | t }}</span><span class="couche__r">{{ order.shipping_price | money }}</span></div>
+    <div class="couche"><span class="couche__n"></span><span class="couche__t"><strong>{{ 'customer.order.total' | t }}</strong></span><span class="couche__r"><strong>{{ order.total_price | money }}</strong></span></div>
+  </div>
+  <p style="margin-top:2rem"><a class="lien-souligne" href="{{ routes.account_url }}">← {{ 'customer.account.return' | t }}</a></p>
+</div>

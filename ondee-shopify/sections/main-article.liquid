@@ -1,0 +1,12 @@
+<article class="wrap wrap--etroit sect">
+  <p class="oeil">{{ article.published_at | date: '%d %B %Y' }}</p>
+  <h1 class="titre-sect">{{ article.title }}</h1>
+  {%- if article.image -%}
+    <div class="visu" style="aspect-ratio:16/9;margin-bottom:2rem">
+      <img src="{{ article.image | image_url: width: 1400 }}" alt="{{ article.image.alt | escape }}" width="1200" height="675">
+    </div>
+  {%- endif -%}
+  <div class="page-rte">{{ article.content }}</div>
+  <p style="margin-top:2.5rem"><a class="lien-souligne" href="{{ blog.url }}">← {{ 'blogs.article.back_to_blog' | t }}</a></p>
+</article>
+{% schema %}{ "name": "Article" }{% endschema %}
