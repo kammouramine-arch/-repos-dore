@@ -3,57 +3,178 @@
     "main": {
       "type": "main-product",
       "blocks": {
-        "d1": { "type": "detail", "settings": {
-          "titre": "Ce que le filtre retire — et ce qu'il ne retire pas",
-          "txt": "<p><strong>Retiré :</strong> le chlore libre (réaction redox sur le KDF-55 puis réduction par le sulfite de calcium), une partie du chlore combiné et des trihalométhanes (charbon actif), les particules, le sable et la rouille de canalisation, ainsi qu'une partie des métaux lourds solubles retenus par le KDF.</p><p><strong>Non retiré : le calcaire.</strong> Les ions calcium et magnésium dissous traversent tous les médias filtrants — c'est de la chimie, pas un défaut de fabrication. Aucun filtre de douche au monde n'adoucit l'eau. Il faut un adoucisseur à résine échangeuse d'ions sur l'arrivée d'eau du logement. Vos traces blanches resteront.</p><p><strong>Non retirés non plus :</strong> les nitrates, les pesticides et les PFAS.</p>"
-        } },
-        "d2": { "type": "detail", "settings": {
-          "titre": "Caractéristiques techniques",
-          "txt": "<p>Raccord : filetage 15/21 — G½\" mâle, standard français et européen.<br>Corps : ABS, finition chrome, nickel brossé ou bronze.<br>Médias : tamis · KDF-55 · sulfite de calcium · charbon actif · billes minérales.<br>Durée de la cartouche : 90 jours (usage foyer de 2 personnes).<br>Température admissible : 4 à 80 °C.<br>Contenu : filtre, 1 cartouche, 2 bandelettes de test au chlore, joint, notice.</p><p><em>Les valeurs de performance de filtration doivent être confirmées par le rapport d'essai du fabricant avant toute publication commerciale.</em></p>"
-        } },
-        "d3": { "type": "detail", "settings": {
-          "titre": "Installation",
-          "txt": "<p>Dévissez votre pommeau du flexible, à la main. Vissez ONDÉE entre le flexible et le pommeau. Revissez le pommeau. Ouvrez l'eau trente secondes pour purger la cartouche — une légère coloration au premier rinçage est normale.</p><p>Ni clé, ni téflon, ni plombier. Si votre douche a une tête fixe encastrée, écrivez-nous avant de commander.</p>"
-        } },
-        "d4": { "type": "detail", "settings": {
-          "titre": "Livraison",
-          "txt": "<p>Expédition depuis la France sous 48 h ouvrées. Point relais Mondial Relay : 2 à 4 jours ouvrés. Colissimo à domicile : 2 à 3 jours ouvrés. Offerte dès 49 € d'achat, 4,90 € en dessous. Belgique, Luxembourg, Suisse : 3 à 6 jours ouvrés, 7,90 €.</p>"
-        } },
-        "d5": { "type": "detail", "settings": {
-          "titre": "Retours et garanties",
-          "txt": "<p><strong>90 jours d'essai.</strong> Vous disposez de 14 jours de rétractation légale ; nous les étendons volontairement à 90 jours, produit installé et utilisé. Nous prenons en charge les frais de retour.</p><p><strong>Garanties légales.</strong> La garantie légale de conformité (art. L.217-3 et suivants du code de la consommation) s'applique 2 ans à compter de la livraison, ainsi que la garantie contre les vices cachés (art. 1641 du code civil). Ces garanties sont dues de plein droit et sans frais.</p><p><strong>Garantie commerciale.</strong> 2 ans sur le corps du filtre contre les fuites et défauts de fabrication, en plus des garanties légales.</p>"
-        } }
+        "d1": {
+          "type": "detail",
+          "settings": {
+            "titre": "Ce que le filtre réduit — et ce qu'il ne fait pas",
+            "txt": "<p><strong>Réduit :</strong> le chlore libre (réaction redox sur le KDF-55 puis réduction par le sulfite de calcium), une partie du chlore combiné et des trihalométhanes (charbon actif), les particules, le sable et la rouille de canalisation.</p><p><strong>Non retiré : le calcaire.</strong> Les ions calcium et magnésium dissous traversent tous les médias filtrants — c'est de la chimie, pas un défaut de fabrication. Aucun filtre de douche au monde n'adoucit l'eau. Si les traces blanches sur la paroi sont votre problème, il vous faut un adoucisseur, pas ONDÉE.</p><p><strong>Non traité : aucune maladie.</strong> ONDÉE n'est pas un dispositif médical et ne soigne rien.</p>"
+          }
+        },
+        "d2": {
+          "type": "detail",
+          "settings": {
+            "titre": "Caractéristiques techniques",
+            "txt": "<p>Raccord : filetage 15/21 — G½\" mâle, standard français et européen.<br>Corps : ABS, finition chrome.<br>Médias annoncés : tamis · KDF-55 · sulfite de calcium · charbon actif · tamis de sortie.<br>Remplacement de la cartouche : tous les 90 jours (notre recommandation pour un foyer de 2 personnes).<br>Plage de température et de pression : selon les indications du fabricant, à confirmer sur l'échantillon.<br>Contenu : filtre, 1 cartouche C90, 2 bandelettes de test au chlore, joint, notice.</p><p><em>Ces caractéristiques sont celles annoncées par le fabricant. Nous n'avons pas encore reçu de rapport d'essai indépendant ; le jour où nous l'aurons, nous le publierons ici, quel qu'en soit le résultat.</em></p>"
+          }
+        },
+        "d3": {
+          "type": "detail",
+          "settings": {
+            "titre": "Installation",
+            "txt": "<p>Dévissez votre pommeau du flexible, à la main. Vissez ONDÉE entre le flexible et le pommeau. Revissez le pommeau. Ouvrez l'eau trente secondes pour purger la cartouche — une légère coloration au premier rinçage est normale.</p><p>Ni clé, ni téflon, ni plombier. <strong>Compatible</strong> avec toute douchette reliée par un flexible qui se dévisse à la main (filetage 15/21, G½\") — le cas de la quasi-totalité des salles de bains françaises. <strong>Non compatible</strong> avec les têtes de pluie encastrées au plafond et les colonnes de douche à sortie fixe intégrée : il n'y a pas de flexible sur lequel visser le filtre.</p>"
+          }
+        },
+        "d4": {
+          "type": "detail",
+          "settings": {
+            "titre": "Livraison",
+            "txt": "<p>Expédition depuis la France sous 48 h ouvrées.<br>France métropolitaine et Corse — Colissimo à domicile : 2 à 3 jours ouvrés, 5,90 €. <strong>Offerte dès 49 € d'achat.</strong><br>Union européenne (Belgique, Luxembourg, Allemagne, Espagne, Italie…) — Colissimo International : 3 à 6 jours ouvrés, 9,90 €.<br>Nous ne livrons pas encore la Suisse ni le Royaume-Uni.</p>"
+          }
+        },
+        "d5": {
+          "type": "detail",
+          "settings": {
+            "titre": "Retours et garanties",
+            "txt": "<p><strong>90 jours d'essai.</strong> Vous disposez de 14 jours de rétractation légale à compter de la réception (art. L.221-18 du code de la consommation) ; nous les étendons volontairement à 90 jours, produit installé et utilisé. Vous disposez ensuite de 14 jours pour nous renvoyer le produit. Nous prenons en charge les frais de retour. Le <a href=\"/pages/cgv\">formulaire type de rétractation</a> figure dans nos CGV, mais un simple e-mail suffit.</p><p><em>Exception :</em> les cartouches de rechange descellées ne peuvent pas être reprises pour des raisons d'hygiène (art. L.221-28 3°). Le filtre, lui, est repris installé et utilisé.</p><p><strong>Garantie légale de conformité (art. L.217-3 et suivants du code de la consommation).</strong> Vous disposez de 2 ans à compter de la délivrance pour la faire jouer, sans avoir à prouver la date d'apparition du défaut. Elle vous donne droit à la réparation ou au remplacement sous 30 jours, sans frais. Si le bien est réparé, la garantie initiale est prolongée de 6 mois ; s'il est remplacé alors que vous demandiez une réparation, elle repart pour 2 ans. Vous pouvez obtenir une réduction du prix ou la résolution du contrat avec remboursement intégral si nous refusons de réparer ou de remplacer, si le délai de 30 jours est dépassé, si l'opération vous cause un inconvénient majeur, ou si le défaut persiste. Si le défaut est suffisamment grave, vous pouvez demander la résolution immédiatement.</p><p><strong>Garantie légale des vices cachés (art. 1641 à 1649 du code civil).</strong> 2 ans à compter de la découverte du défaut, au choix : réduction du prix en gardant le bien, ou remboursement intégral contre restitution.</p><p>Ces garanties sont dues de plein droit, elles sont gratuites et elles s'ajoutent à notre garantie commerciale de 90 jours. <a href=\"/pages/cgv\">Texte intégral dans les CGV.</a></p>"
+          }
+        }
       },
-      "block_order": ["d1", "d2", "d3", "d4", "d5"],
+      "block_order": [
+        "d1",
+        "d2",
+        "d3",
+        "d4",
+        "d5"
+      ],
       "settings": {
         "oeil": "Filtre de douche · cartouche 90 jours",
-        "resume": "<p>Le filtre qui retire le chlore de votre eau de douche — et qui vous donne de quoi le vérifier vous-même. Cinq étages de filtration, une cartouche remplaçable, deux bandelettes de test dans la boîte.</p>",
+        "resume": "<p>Le filtre qui <em>réduit</em> le chlore de votre eau de douche — et qui vous donne de quoi le vérifier vous-même. Cinq médias filtrants, une cartouche remplaçable, deux bandelettes de test dans la boîte.</p>",
         "label_variantes": "Votre formule",
         "label_droite": "90 j / cartouche",
         "stock_txt": "En stock — expédié sous 48 h ouvrées",
-        "encart_titre": "Abonnement cartouches — sans engagement",
-        "encart_txt": "<p>Deux cartouches dans votre boîte aux lettres tous les 6 mois, à 29 € au lieu de 38 €, livraison comprise. Vous décalez, suspendez ou arrêtez en deux clics. Un e-mail de préavis est envoyé 4 jours avant chaque prélèvement.</p>"
+        "encart_titre": "Prenez de l'avance sur les cartouches",
+        "encart_txt": "<p>Le pack « L'année complète » ajoute les 4 cartouches de l'année pour 30 € de plus — soit 7,50 € la cartouche au lieu de 19 €. Le pack « Duo » équipe deux salles de bains pour 38 € de moins que les mêmes articles achetés séparément.</p><p><em>Ce sont des achats uniques. Il n'y a ni abonnement ni prélèvement récurrent, et donc rien à résilier.</em></p>"
       }
     },
-    "garantie": { "type": "garantie", "settings": {
-      "chiffre": "90", "unite": "jours d'essai",
-      "oeil": "La garantie bandelette",
-      "titre": "Si la bandelette ne change pas de couleur, vous ne payez pas.",
-      "txt": "<p>Installez ONDÉE, faites le test avant/après avec les bandelettes de la boîte. Si la couleur ne bouge pas, écrivez-nous : nous remboursons intégralement et nous payons l'étiquette de retour. Vous avez 90 jours, produit installé et utilisé, sans justification à fournir.</p>",
-      "cta_txt": "", "cta_url": ""
-    } },
+    "garantie": {
+      "type": "garantie",
+      "settings": {
+        "chiffre": "90",
+        "unite": "jours d'essai",
+        "oeil": "La garantie bandelette",
+        "titre": "Si la bandelette ne change pas de couleur, vous ne payez pas.",
+        "txt": "<p>Installez ONDÉE, faites le test avant/après avec les bandelettes de la boîte. Si la couleur ne bouge pas, écrivez-nous : nous remboursons intégralement et nous payons l'étiquette de retour. Vous avez 90 jours, produit installé et utilisé, sans justification à fournir.</p>",
+        "cta_txt": "",
+        "cta_url": ""
+      }
+    },
     "faq": {
       "type": "faq",
       "blocks": {
-        "q1": { "type": "qr", "settings": { "q": "Ça enlève le calcaire ?", "r": "<p>Non, et aucun filtre de douche ne le fait. Les ions calcium et magnésium sont dissous et traversent tous les médias filtrants. Seul un adoucisseur à résine échangeuse d'ions, posé sur l'arrivée d'eau du logement, agit dessus. Vos traces blanches resteront. Si c'était votre motivation principale, n'achetez pas ONDÉE.</p>" } },
-        "q2": { "type": "qr", "settings": { "q": "Et si ma pression est déjà faible ?", "r": "<p>ONDÉE fonctionne à partir de 1 bar. En dessous, ou sur un chauffe-eau basse pression, la sensation de débit peut se dégrader — testez, et renvoyez-nous le produit si cela ne convient pas, le retour est à notre charge.</p>" } },
-        "q3": { "type": "qr", "settings": { "q": "Combien ça coûte réellement par an ?", "r": "<p>Le prix du kit la première année, puis 58 € par an en abonnement (2 envois de 2 cartouches à 29 €). Pour un foyer de deux personnes qui prend 500 douches par an, cela fait environ 12 centimes par douche la première année, puis 6.</p>" } },
-        "q4": { "type": "qr", "settings": { "q": "Est-ce que je peux annuler l'abonnement ?", "r": "<p>À tout moment, en deux clics depuis votre espace client, sans nous écrire et sans justification. Nous vous prévenons par e-mail 4 jours avant chaque prélèvement — vous avez donc toujours le temps de dire non.</p>" } },
-        "q5": { "type": "qr", "settings": { "q": "Pourquoi vous faire confiance plutôt qu'à un autre ?", "r": "<p>Parce que nous sommes les seuls à vous dire ce que le produit ne fait pas avant que vous ne payiez, à mettre les moyens de nous contredire dans la boîte, et à publier les relevés officiels de votre commune même quand ils nous font perdre une vente.</p><p>Ce n'est pas une position morale, c'est le calcul d'une marque qui vit d'un abonnement de cartouches : nous n'avons rien à gagner à vous vendre un filtre que vous dévisserez au bout de trois mois.</p>" } }
+        "q1": {
+          "type": "qr",
+          "settings": {
+            "q": "Ça enlève le calcaire ?",
+            "r": "<p>Non, et aucun filtre de douche ne le fait. Les ions calcium et magnésium sont dissous et traversent tous les médias filtrants. Seul un adoucisseur à résine échangeuse d'ions, posé sur l'arrivée d'eau du logement, agit dessus. Vos traces blanches resteront. Si c'était votre motivation principale, n'achetez pas ONDÉE.</p>"
+          }
+        },
+        "q2": {
+          "type": "qr",
+          "settings": {
+            "q": "Et si ma pression est déjà faible ?",
+            "r": "<p>ONDÉE fonctionne dans la plage de pression indiquée par le fabricant, qui couvre les installations domestiques courantes. Sur un chauffe-eau basse pression ou une pression déjà très faible, la sensation de débit peut se dégrader — testez, et renvoyez-nous le produit si cela ne convient pas, le retour est à notre charge.</p>"
+          }
+        },
+        "q3": {
+          "type": "qr",
+          "settings": {
+            "q": "Combien ça coûte réellement par an ?",
+            "r": "<p>Le set complet est à 79 € et contient déjà la première cartouche. Il en faut environ 3 de plus pour finir l'année, puis 4 par an. Au tarif des lots : 48 € la première année (un lot de 2 à 29 € et une cartouche à 19 €), puis 55 € par an (le lot de 4).</p><p>Pour un foyer de deux personnes qui prend 500 douches par an, cela fait <strong>environ 25 centimes par douche la première année, puis environ 11</strong>.</p>"
+          }
+        },
+        "q4": {
+          "type": "qr",
+          "settings": {
+            "q": "Est-ce que je peux acheter les cartouches séparément ?",
+            "r": "<p>Oui, et sans engagement d'aucune sorte : la cartouche C90 se commande à l'unité (19 €) ou par deux (29 €), quand vous en avez besoin. Il n'y a pas d'abonnement, pas de prélèvement automatique et donc rien à résilier.</p><p>Les packs « Six mois » et « Un an » de la fiche filtre reviennent au même : ce sont des cartouches achetées d'avance, à un meilleur prix à l'unité.</p>"
+          }
+        },
+        "q5": {
+          "type": "qr",
+          "settings": {
+            "q": "Pourquoi vous faire confiance plutôt qu'à un autre ?",
+            "r": "<p>Parce que nous sommes les seuls à vous dire ce que le produit ne fait pas avant que vous ne payiez, à mettre les moyens de nous contredire dans la boîte, et à publier les relevés officiels de votre commune même quand ils nous font perdre une vente.</p><p>Ce n'est pas une position morale, c'est le calcul d'une marque qui vit du rachat de cartouches&nbsp;: nous n'avons rien à gagner à vous vendre un filtre que vous dévisserez au bout de trois mois.</p>"
+          }
+        }
       },
-      "block_order": ["q1", "q2", "q3", "q4", "q5"],
-      "settings": { "fond": "papier", "oeil": "Avant de commander", "titre": "Les cinq questions qui reviennent le plus." }
+      "block_order": [
+        "q1",
+        "q2",
+        "q3",
+        "q4",
+        "q5"
+      ],
+      "settings": {
+        "fond": "papier",
+        "oeil": "Avant de commander",
+        "titre": "Les cinq questions qui reviennent le plus."
+      }
+    },
+    "preuve": {
+      "type": "pas-encore-avis",
+      "settings": {
+        "fond": "papier",
+        "oeil": "Notre honnêteté sur les avis",
+        "titre": "Nous n'avons pas encore d'avis clients.",
+        "chapeau": "<p>ONDÉE vient de se lancer. Nous n'avons donc aucun avis à vous montrer — et nous n'en inventerons pas. Un faux avis est une pratique commerciale trompeuse&nbsp;; c'est aussi la manière la plus simple de perdre la seule chose que nous ayons à vendre ici, c'est-à-dire notre crédibilité. Voici ce que nous mettons à la place, en attendant que de vrais clients parlent.</p>",
+        "cta_txt": "Lire ce qu'ONDÉE ne fait pas →",
+        "cta_url": "/pages/ce-que-ondee-ne-fait-pas"
+      },
+      "blocks": {
+        "p1": {
+          "type": "point",
+          "settings": {
+            "txt": "Deux bandelettes de test au chlore dans la boîte : la preuve est chez vous, pas dans un témoignage."
+          }
+        },
+        "p2": {
+          "type": "point",
+          "settings": {
+            "txt": "Les relevés officiels du ministère de la Santé pour votre commune, affichés avant l'achat, même quand ils nous font perdre la vente."
+          }
+        },
+        "p3": {
+          "type": "point",
+          "settings": {
+            "txt": "Une page entière consacrée à ce que le produit ne fait pas — le calcaire, l'eczéma, la chute de cheveux."
+          }
+        },
+        "p4": {
+          "type": "point",
+          "settings": {
+            "txt": "90 jours pour changer d'avis, produit installé et utilisé, retour à notre charge."
+          }
+        },
+        "p5": {
+          "type": "point",
+          "settings": {
+            "txt": "Aucune certification revendiquée tant que nous n'aurons pas de rapport d'essai indépendant à publier."
+          }
+        }
+      },
+      "block_order": [
+        "p1",
+        "p2",
+        "p3",
+        "p4",
+        "p5"
+      ]
     }
   },
-  "order": ["main", "garantie", "faq"]
+  "order": [
+    "main",
+    "preuve",
+    "garantie",
+    "faq"
+  ]
 }

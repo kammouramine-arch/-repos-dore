@@ -27,14 +27,68 @@
         {%- endfor -%}
       </div>
 
+      <div class="port-offert" data-port-offert hidden style="margin-top:2rem">
+        <p class="port-offert__t" data-port-offert-txt></p>
+        <div class="port-offert__rail"><span data-port-offert-jauge></span></div>
+      </div>
+
       <div style="display:flex;flex-wrap:wrap;gap:1.5rem;justify-content:space-between;align-items:flex-end;margin-top:2rem">
-        <p class="notes" style="max-width:26rem">{{ 'cart.general.taxes_and_shipping' | t }} Livraison offerte dès {{ settings.seuil_port_offert }}. {{ settings.duree_essai }} pour changer d'avis.</p>
+        <p class="notes" style="max-width:26rem">{{ 'cart.general.taxes_and_shipping' | t }} Livraison offerte dès {{ settings.seuil_port_offert }}. {{ settings.duree_essai }} pour changer d'avis, retour à notre charge.</p>
         <div style="min-width:16rem">
           <div class="tiroir__tot"><span>{{ 'cart.general.subtotal' | t }}</span><span>{{ cart.total_price | money }}</span></div>
           <button type="submit" name="checkout" class="btn btn--primaire btn--bloc" style="margin-top:1rem">{{ 'cart.general.checkout' | t }}</button>
+          <p class="notes" style="margin-top:.6rem;text-align:center">Frais de port calculés à l'étape suivante</p>
         </div>
       </div>
+
+      <div class="confiance" style="margin-top:2.5rem">
+        <div><svg viewBox="0 0 24 24"><path d="M12 3l7 3v6c0 4.4-3 7.6-7 9-4-1.4-7-4.6-7-9V6z"/><path d="m9 12 2 2 4-4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>{{ settings.duree_essai }}<br>d'essai</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M3 7h11v9H3z"/><path d="M14 10h4l3 3v3h-7z"/><circle cx="7" cy="18" r="2"/><circle cx="17" cy="18" r="2"/></svg><span>Expédié<br>de France</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M12 3v18M5 8h14M5 16h14" stroke-linecap="round"/></svg><span>Test au chlore<br>inclus</span></div>
+        <div><svg viewBox="0 0 24 24"><path d="M20 12a8 8 0 1 1-2.4-5.7" stroke-linecap="round"/><path d="M20 4v4h-4" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Garantie<br>2 ans</span></div>
+      </div>
     </form>
+
+    {%- assign croix = 'ondee-cartouche-c90,ondee-bandelettes-test-chlore' | split: ',' -%}
+    {%- assign a_proposer = false -%}
+    {%- for h in croix -%}
+      {%- assign pr = all_products[h] -%}
+      {%- if pr != blank and pr.available -%}
+        {%- assign deja_la = false -%}
+        {%- for it in cart.items -%}{%- if it.product.handle == h -%}{%- assign deja_la = true -%}{%- endif -%}{%- endfor -%}
+        {%- unless deja_la -%}{%- assign a_proposer = true -%}{%- endunless -%}
+      {%- endif -%}
+    {%- endfor -%}
+
+    {%- if a_proposer -%}
+      <div style="margin-top:3rem;border-top:1px solid var(--trait);padding-top:2rem">
+        <p class="oeil">Complétez votre commande</p>
+        <div class="couches" style="margin-top:1.25rem">
+          {%- for h in croix -%}
+            {%- assign pr = all_products[h] -%}
+            {%- if pr != blank and pr.available -%}
+              {%- assign deja_la = false -%}
+              {%- for it in cart.items -%}{%- if it.product.handle == h -%}{%- assign deja_la = true -%}{%- endif -%}{%- endfor -%}
+              {%- unless deja_la -%}
+                {%- assign vc = pr.selected_or_first_available_variant -%}
+                <div class="couche" style="grid-template-columns:64px 1fr auto;gap:1.1rem">
+                  <div class="couche__v">
+                    {%- if pr.featured_media -%}
+                      <img src="{{ pr.featured_media | image_url: width: 128 }}" alt="{{ pr.featured_media.alt | escape }}" width="64" height="64" loading="lazy">
+                    {%- endif -%}
+                  </div>
+                  <div><b>{{ pr.title }}</b><span class="notes" style="display:block">{{ vc.title }} — {{ vc.price | money }}</span></div>
+                  <button class="btn btn--ligne" type="button" data-ajout
+                          data-variant-id="{{ vc.id }}" data-ref="{{ vc.sku }}"
+                          data-titre="{{ pr.title | escape }}" data-opt="{{ vc.title | escape }}"
+                          data-prix="{{ vc.price | divided_by: 100.0 }}">Ajouter</button>
+                </div>
+              {%- endunless -%}
+            {%- endif -%}
+          {%- endfor -%}
+        </div>
+      </div>
+    {%- endif -%}
   {%- endif -%}
 </div>
 {% schema %}{ "name": "Panier" }{% endschema %}

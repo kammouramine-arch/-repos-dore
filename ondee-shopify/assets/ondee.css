@@ -680,3 +680,18 @@ select.saisie{appearance:none;background-image:linear-gradient(45deg,transparent
 .port-offert--atteint .port-offert__rail span{background:var(--vert)}
 .port-offert--atteint .port-offert__t b{color:var(--vert)}
 @media (prefers-reduced-motion:reduce){.port-offert__rail span{transition:none}}
+
+/* Rapport d'eau — appel à l'achat après un verdict favorable */
+.verdict__achat{margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid var(--trait)}
+.verdict__achat .btn{width:100%;justify-content:center}
+.verdict__achat .notes{margin-top:.65rem;text-align:center}
+@media (min-width:40rem){.verdict__achat .btn{width:auto}.verdict__achat .notes{text-align:left}}
+
+/* Packs — ligne d'économie sous le contenu de la boîte */
+.pack__eco{display:block;margin-top:.3rem;font-family:var(--mono);font-size:.72rem;letter-spacing:.02em;color:var(--reactif);line-height:1.45}
+
+/* Ruban : il doit rester dans la carte, y compris sur un écran de 320 px */
+.pack__ruban{max-width:calc(100% - 24px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+@media (max-width:26rem){
+  .pack__ruban{font-size:9px;letter-spacing:.06em;padding:.15rem .4rem;right:10px}
+}

@@ -3,6 +3,15 @@
   if p == blank
     assign p = all_products['ondee-filtre-de-douche']
   endif
+  assign defaut = 0
+  for v in p.variants
+    if v.sku == 'ONDEE-SET'
+      assign defaut = forloop.index
+    endif
+  endfor
+  if defaut == 0
+    assign defaut = 1
+  endif
 -%}
 <section class="sect papier" id="offre">
   <div class="wrap">
@@ -11,21 +20,47 @@
     {%- if section.settings.chapeau != blank -%}<div class="chapeau">{{ section.settings.chapeau }}</div>{%- endif -%}
 
     {%- if p != blank and p.variants.size > 0 -%}
-      <div class="packs" style="margin-top:clamp(2rem,5vw,3rem);max-width:44rem" data-packs-accueil>
+      <div class="packs" style="margin-top:clamp(2rem,5vw,3rem);max-width:44rem" data-packs-accueil role="radiogroup" aria-label="Choisissez votre formule">
         {%- for v in p.variants -%}
-          <button class="pack" type="button" aria-pressed="{% if forloop.index == 2 %}true{% else %}false{% endif %}"
-                  data-ajout data-variant-id="{{ v.id }}"
+          {%- liquid
+            case v.sku
+              when 'ONDEE-F1'
+                assign contenu = 'Le filtre + 1 cartouche C90 + 2 bandelettes'
+                assign eco = ''
+              when 'ONDEE-SET'
+                assign contenu = 'Le filtre + une pomme de douche 3 jets + 1 cartouche + 2 bandelettes'
+                assign eco = ''
+              when 'ONDEE-SET-AN'
+                assign contenu = 'Le set complet + 4 cartouches — un an couvert'
+                assign eco = "les 4 cartouches de l'année pour 30 € de plus"
+              when 'ONDEE-DUO'
+                assign contenu = '2 sets complets + 2 cartouches — pour deux salles de bains'
+                assign eco = '38 € de moins que les mêmes articles achetés séparément'
+              else
+                assign contenu = v.title
+                assign eco = ''
+            endcase
+          -%}
+          <button class="pack" type="button" role="radio" aria-checked="{% if forloop.index == defaut %}true{% else %}false{% endif %}"
+                  aria-pressed="{% if forloop.index == defaut %}true{% else %}false{% endif %}"
+                  data-variant-id="{{ v.id }}"
                   data-ref="{{ v.sku }}" data-titre="{{ p.title | escape }} — {{ v.title | escape }}"
                   data-prix="{{ v.price | divided_by: 100.0 }}" data-opt="{{ v.title | escape }}"
+                  data-prix-affiche="{{ v.price | money }}"
                   {% unless v.available %}disabled{% endunless %}>
-            {%- if forloop.index == 2 -%}<span class="pack__ruban">Le plus choisi</span>{%- endif -%}
+            {%- if forloop.index == defaut -%}<span class="pack__ruban">Notre recommandation</span>{%- endif -%}
             <span class="pack__radio" aria-hidden="true"></span>
-            <span><span class="pack__t">{{ v.title }}</span><span class="pack__d">{{ v.sku }}</span></span>
-            <span class="pack__p">{{ v.price | money }}{% if v.compare_at_price > v.price %}<del>{{ v.compare_at_price | money }}</del>{% endif %}</span>
+            <span><span class="pack__t">{{ v.title }}</span><span class="pack__d">{{ contenu }}</span>{%- if eco != blank -%}<span class="pack__eco">{{ eco }}</span>{%- endif -%}</span>
+            <span class="pack__p">{{ v.price | money }}</span>
           </button>
         {%- endfor -%}
       </div>
-      <p style="margin-top:1.5rem"><a class="lien-souligne" href="{{ p.url }}">Voir la fiche produit complète →</a></p>
+
+      <button class="btn btn--primaire btn--bloc" type="button" data-ajout-packs style="margin-top:1.25rem;max-width:44rem">
+        Ajouter au panier — <span data-prix-packs>{{ p.variants[1].price | money }}</span>
+      </button>
+      <p class="notes" style="margin-top:.75rem;max-width:44rem">90 jours pour changer d'avis · retour à notre charge · livraison offerte dès 49 €</p>
+      <p style="margin-top:1.25rem"><a class="lien-souligne" href="{{ p.url }}">Voir la fiche produit complète →</a></p>
     {%- else -%}
       <p class="notes" style="margin-top:2rem">Sélectionnez un produit dans les réglages de cette section.</p>
     {%- endif -%}
@@ -38,7 +73,7 @@
   "settings": [
     { "type": "product", "id": "produit", "label": "Produit à afficher", "info": "Si vide, le filtre de douche est utilisé automatiquement." },
     { "type": "text", "id": "oeil", "label": "Surtitre", "default": "L'offre" },
-    { "type": "text", "id": "titre", "label": "Titre", "default": "Un filtre. Trois façons de commencer." },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Un filtre. Quatre façons de commencer." },
     { "type": "richtext", "id": "chapeau", "label": "Chapeau" }
   ],
   "presets": [ { "name": "L'offre" } ]

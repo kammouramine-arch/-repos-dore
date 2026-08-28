@@ -24,6 +24,17 @@
       <textarea class="saisie" id="c-msg" name="contact[body]" rows="6" required>{{ form.body }}</textarea>
     </div>
     <button class="btn btn--primaire" type="submit">Envoyer</button>
+
+    <p class="notes" style="margin-top:1.25rem;max-width:34rem">
+      Les informations que vous saisissez ici (nom, adresse e-mail, contenu du message) sont utilisées
+      uniquement pour vous répondre. Base légale&nbsp;: notre intérêt légitime à traiter les demandes qui
+      nous sont adressées (art. 6.1.f du RGPD). Elles sont conservées 3 ans à compter de notre dernier
+      échange, ne sont ni vendues ni cédées, et ne servent à aucune prospection sans votre accord.
+      Vous disposez d'un droit d'accès, de rectification, d'effacement, de limitation, d'opposition et
+      de portabilité, que vous pouvez exercer à l'adresse indiquée dans nos
+      <a href="/pages/confidentialite">mentions de confidentialité</a>, ainsi que du droit d'introduire
+      une réclamation auprès de la CNIL.
+    </p>
   {%- endform -%}
 </div>
 {% schema %}{ "name": "Contact" }{% endschema %}

@@ -17,6 +17,7 @@
   <div class="tiroir__f">
     <div class="tiroir__tot"><span>{{ 'cart.general.subtotal' | t }}</span><span data-panier-total>{{ cart.total_price | money }}</span></div>
     <p class="tiroir__tva">{{ 'cart.general.taxes_and_shipping' | t }} · Livraison offerte dès {{ settings.seuil_port_offert }}</p>
-    <a class="btn btn--primaire btn--bloc" href="{{ routes.cart_url }}" data-checkout>{{ 'cart.general.checkout' | t }}</a>
+    <a class="btn btn--primaire btn--bloc" href="/checkout" data-checkout>{{ 'cart.general.checkout' | t }}</a>
+    <p style="margin-top:.75rem;text-align:center"><a class="lien-souligne" href="{{ routes.cart_url }}">Voir le panier</a></p>
   </div>
 </aside>

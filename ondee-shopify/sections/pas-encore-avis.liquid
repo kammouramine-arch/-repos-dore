@@ -1,0 +1,36 @@
+<section class="sect {{ section.settings.fond }}" id="preuve-honnete">
+  <div class="wrap wrap--etroit">
+    <p class="oeil">{{ section.settings.oeil }}</p>
+    <h2 class="titre-sect">{{ section.settings.titre }}</h2>
+    {%- if section.settings.chapeau != blank -%}<div class="chapeau">{{ section.settings.chapeau }}</div>{%- endif -%}
+    {%- if section.blocks.size > 0 -%}
+      <ul class="liste-puces" style="margin-top:2rem">
+        {%- for b in section.blocks -%}
+          <li {{ b.shopify_attributes }}>
+            <svg viewBox="0 0 24 24"><path d="m4 12 6 6L20 6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            <span>{{ b.settings.txt }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+    {%- endif -%}
+    {%- if section.settings.cta_txt != blank and section.settings.cta_url != blank -%}
+      <p style="margin-top:2rem"><a class="lien-souligne" href="{{ section.settings.cta_url }}">{{ section.settings.cta_txt }}</a></p>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{
+  "name": "Preuve honnête",
+  "settings": [
+    { "type": "paragraph", "content": "À utiliser tant qu'il n'y a pas d'avis clients réels. Remplacer par la section « Avis clients » le jour où de vrais avis existent." },
+    { "type": "select", "id": "fond", "label": "Fond", "options": [ { "value": "", "label": "Craie" }, { "value": "papier", "label": "Papier" } ], "default": "papier" },
+    { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Notre honnêteté sur les avis" },
+    { "type": "text", "id": "titre", "label": "Titre", "default": "Nous n'avons pas encore d'avis clients." },
+    { "type": "richtext", "id": "chapeau", "label": "Chapeau" },
+    { "type": "text", "id": "cta_txt", "label": "Texte du lien" },
+    { "type": "url", "id": "cta_url", "label": "Lien" }
+  ],
+  "blocks": [ { "type": "point", "name": "Point", "settings": [ { "type": "text", "id": "txt", "label": "Texte" } ] } ],
+  "presets": [ { "name": "Preuve honnête" } ]
+}
+{% endschema %}

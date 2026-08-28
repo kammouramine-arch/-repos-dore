@@ -27,7 +27,7 @@
 
     <div class="pied__bas">
       <span>© {{ 'now' | date: '%Y' }} {{ shop.name }}{% if section.settings.siren != blank %} — SIREN {{ section.settings.siren }}{% endif %}</span>
-      <span>Paiement sécurisé · CB · Visa · Mastercard · PayPal · Apple Pay</span>
+      {%- if section.settings.paiements != blank -%}<span>{{ section.settings.paiements }}</span>{%- endif -%}
       <span>Prix TTC, TVA française 20 % incluse</span>
     </div>
 
@@ -43,6 +43,7 @@
   "settings": [
     { "type": "textarea", "id": "pitch", "label": "Présentation", "default": "Nous fabriquons un filtre de douche et nous publions ce qu'il retire, ce qu'il ne retire pas et d'où viennent nos chiffres. C'est tout le programme." },
     { "type": "text", "id": "signature", "label": "Signature", "default": "On ne promet pas. On prouve." },
+    { "type": "text", "id": "paiements", "label": "Moyens de paiement affichés", "info": "Laisser vide tant qu'aucun moyen de paiement n'est activé. N'y lister que ceux réellement proposés au paiement." },
     { "type": "text", "id": "siren", "label": "SIREN" },
     { "type": "richtext", "id": "notes", "label": "Notes de bas de page" }
   ],

@@ -256,10 +256,9 @@
     toast('Démo statique : branchez le panier Shopify pour finaliser.');
   });
 
-  /* Boutons « ajouter » génériques (packs de la page d'accueil) */
+  /* Boutons « ajouter » génériques (hors packs de l'accueil) */
   $$('[data-ajout]').forEach(function (b) {
     b.addEventListener('click', function () {
-      $$('[data-ajout]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
       Panier.ajouter({
         variantId: b.getAttribute('data-variant-id'),
         ref:   b.getAttribute('data-ref'),
@@ -271,6 +270,53 @@
       });
     });
   });
+
+  /* Packs de la page d'accueil : la sélection ne met RIEN au panier.
+     Un seul bouton d'ajout, sous la grille, lit la formule sélectionnée. */
+  (function () {
+    var grille = $('[data-packs-accueil]');
+    var bouton = $('[data-ajout-packs]');
+    if (!grille || !bouton) return;
+    var packs = $$('.pack', grille);
+    var prixLabel = $('[data-prix-packs]', bouton);
+
+    function selection() {
+      return packs.filter(function (p) { return p.getAttribute('aria-checked') === 'true'; })[0] || packs[0];
+    }
+    function peindre(actif) {
+      packs.forEach(function (p) {
+        var on = p === actif;
+        p.setAttribute('aria-checked', String(on));
+        p.setAttribute('aria-pressed', String(on));
+      });
+      if (prixLabel) prixLabel.textContent = actif.getAttribute('data-prix-affiche') || '';
+    }
+    packs.forEach(function (p) {
+      p.addEventListener('click', function () { peindre(p); });
+      p.addEventListener('keydown', function (e) {
+        var i = packs.indexOf(p), n = packs.length, j = null;
+        if (e.key === 'ArrowRight' || e.key === 'ArrowDown') j = (i + 1) % n;
+        if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')   j = (i - 1 + n) % n;
+        if (j === null) return;
+        e.preventDefault(); packs[j].focus(); peindre(packs[j]);
+      });
+    });
+    peindre(selection());
+
+    bouton.addEventListener('click', function () {
+      var b = selection();
+      if (!b || b.hasAttribute('disabled')) return;
+      Panier.ajouter({
+        variantId: b.getAttribute('data-variant-id'),
+        ref:   b.getAttribute('data-ref'),
+        titre: b.getAttribute('data-titre'),
+        opt:   b.getAttribute('data-opt') || '',
+        prix:  parseFloat(b.getAttribute('data-prix')),
+        qte:   1,
+        img:   b.getAttribute('data-img') || 'assets/img/pommeau.svg'
+      });
+    });
+  }());
 
   /* Quantité sur la page panier Shopify */
   $$('[data-qte-panier]').forEach(function (g) {
@@ -515,14 +561,21 @@
       var v = '';
       var chlore = cl ? cl.moy : (clt ? clt.moy : null);
 
-      if (chlore !== null && chlore >= 0.05) {
+      var achatUtile = false;
+      if (chlore !== null && chlore >= 0.10) {
+        achatUtile = true;
         v += '<div class="verdict__b verdict__oui">' + ico.oui +
-             '<span><b>Ce qu\'ONDÉE retire chez vous</b>Votre réseau est chloré à ' + nb2.format(chlore) +
-             ' mg/L en moyenne. C\'est exactement la cible du KDF-55 et du sulfite de calcium. Vous devriez voir la bandelette de test passer de l\'ambre au blanc — et sentir la différence dès la première douche.</span></div>';
+             '<span><b>Ce qu\'ONDÉE vise chez vous</b>Votre réseau est chloré à ' + nb2.format(chlore) +
+             ' mg/L en moyenne sur les derniers relevés. C\'est la cible du KDF-55 et du sulfite de calcium. Les deux bandelettes livrées dans la boîte vous diront, chez vous et sur votre eau, ce que le filtre change réellement.</span></div>';
+      } else if (chlore !== null && chlore >= 0.05) {
+        achatUtile = true;
+        v += '<div class="verdict__b verdict__oui">' + ico.oui +
+             '<span><b>Chlore présent, mais modéré</b>Les relevés donnent ' + nb2.format(chlore) +
+             ' mg/L. Il y a du chlore à réduire, mais nous sommes assez près du seuil où la bandelette de test devient difficile à lire. Commandez si l\'odeur de chlore vous gêne&nbsp;; sinon, rien ne presse.</span></div>';
       } else if (chlore !== null) {
         v += '<div class="verdict__b verdict__non">' + ico.non +
              '<span><b>Votre eau est très peu chlorée</b>Les derniers relevés donnent ' + nb2.format(chlore) +
-             ' mg/L, une valeur basse. Le gain d\'un filtre à chlore sera faible chez vous. Nous préférons vous le dire&nbsp;: gardez vos 59 €, ou testez d\'abord avec des bandelettes vendues quelques euros en pharmacie.</span></div>';
+             ' mg/L, une valeur basse. Le gain d\'un filtre à chlore sera faible chez vous. Nous préférons vous le dire&nbsp;: gardez votre argent, ou testez d\'abord avec des bandelettes vendues quelques euros en pharmacie.</span></div>';
       }
 
       if (th && th.moy >= 15) {
@@ -534,6 +587,15 @@
         v += '<div class="verdict__b verdict__non">' + ico.non +
              '<span><b>Le calcaire n\'est pas votre sujet</b>Votre eau titre ' + nb1.format(th.moy) +
              ' °f : elle est déjà douce. Inutile d\'investir dans un adoucisseur — et inutile d\'acheter ONDÉE en espérant un effet anti-calcaire, il n\'en a aucun. Chez vous, le seul intérêt du filtre est le chlore.</span></div>';
+      }
+
+      /* Un verdict favorable est le pic d'intention : on propose l'achat.
+         Un verdict défavorable ne vend rien — c'est tout l'intérêt de l'outil. */
+      if (achatUtile) {
+        v += '<div class="verdict__achat">' +
+             '<a class="btn btn--primaire" href="/products/ondee-filtre-de-douche">Filtrer ce chlore — set complet 79 €</a>' +
+             '<p class="notes">90 jours pour changer d\'avis · bandelettes de test dans la boîte · retour à notre charge</p>' +
+             '</div>';
       }
 
       if (verdict) { verdict.innerHTML = v; verdict.hidden = !v; }

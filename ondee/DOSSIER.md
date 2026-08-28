@@ -713,7 +713,7 @@ design. Plus proche d'Aesop et de Typology que d'une boutique de dropshipping.
 | Accent froid | Eau | `#9FC7D2` | Filets, icônes sur fond sombre |
 | Accent chaud | **Réactif** | `#D89B22` | **Uniquement les données de test** |
 | Alerte | Alerte | `#A93E2B` | Non-conformité |
-| Validation | Vert | `#3D6B4A` | Achat vérifié |
+| Validation | Vert | `#3D6B4A` | Achat vérifié [EXEMPLES FICTIFS — NE JAMAIS PUBLIER] |
 
 **La règle qui fait la marque :** l'ambre `#D89B22` est la couleur de la
 bandelette de test au chlore. Elle ne sert **jamais** de décoration — uniquement

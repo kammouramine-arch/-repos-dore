@@ -14,7 +14,7 @@
         {%- endfor -%}
       </ul>
     </div>
-    <div class="visu rev">
+    <div class="visu">
       {%- if section.settings.image != blank -%}
         <img src="{{ section.settings.image | image_url: width: 1000 }}" alt="{{ section.settings.image.alt | escape }}" width="800" height="1000" fetchpriority="high">
       {%- else -%}
@@ -31,7 +31,7 @@
   "settings": [
     { "type": "text", "id": "oeil", "label": "Surtitre", "default": "Filtre de douche · cartouche 90 jours" },
     { "type": "html", "id": "titre", "label": "Titre", "default": "Votre eau de douche est chlorée.<br><em>Voici de combien.</em>" },
-    { "type": "richtext", "id": "sous", "label": "Sous-titre", "default": "<p>ONDÉE retire le chlore de l'eau de votre douche — celui qui assèche la peau et ternit les cheveux. Tapez le nom de votre commune : nous affichons les relevés officiels du ministère de la Santé pour votre réseau. Avant même que vous achetiez quoi que ce soit.</p>" },
+    { "type": "richtext", "id": "sous", "label": "Sous-titre", "default": "<p>ONDÉE réduit le chlore de l'eau de votre douche — celui qui assèche la peau et ternit les cheveux. Tapez le nom de votre commune : nous affichons les relevés officiels du ministère de la Santé pour votre réseau. Avant même que vous achetiez quoi que ce soit.</p>" },
     { "type": "image_picker", "id": "image", "label": "Image" },
     { "type": "text", "id": "tag", "label": "Étiquette sur l'image", "default": "Cartouche visible · on voit le filtre travailler" },
     { "type": "text", "id": "cta1_txt", "label": "Bouton 1", "default": "Découvrir ONDÉE — 79 €" },

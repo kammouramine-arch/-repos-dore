@@ -1,0 +1,16 @@
+{
+  "sections": {
+    "rapport": {
+      "type": "rapport-eau",
+      "settings": {}
+    },
+    "main": {
+      "type": "main-page",
+      "settings": {}
+    }
+  },
+  "order": [
+    "rapport",
+    "main"
+  ]
+}

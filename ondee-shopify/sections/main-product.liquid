@@ -1,4 +1,14 @@
-{%- assign v0 = product.selected_or_first_available_variant -%}
+{%- liquid
+  assign v0 = product.selected_or_first_available_variant
+  unless product.selected_variant
+    for v in product.variants
+      if v.sku == 'ONDEE-SET' and v.available
+        assign v0 = v
+        break
+      endif
+    endfor
+  endunless
+-%}
 <div class="wrap">
   <div class="pp">
 
@@ -84,11 +94,31 @@
                         {% unless v.available %}disabled{% endunless %}>
                   {%- if v.metafields.ondee.ruban != blank -%}<span class="pack__ruban">{{ v.metafields.ondee.ruban }}</span>{%- endif -%}
                   <span class="pack__radio" aria-hidden="true"></span>
+                  {%- liquid
+                    case v.sku
+                      when 'ONDEE-F1'
+                        assign contenu = 'Le filtre + 1 cartouche C90 + 2 bandelettes'
+                        assign eco = ''
+                      when 'ONDEE-SET'
+                        assign contenu = 'Le filtre + pomme de douche 3 jets + 1 cartouche + 2 bandelettes'
+                        assign eco = ''
+                      when 'ONDEE-SET-AN'
+                        assign contenu = 'Le set complet + 4 cartouches — un an couvert'
+                        assign eco = "les 4 cartouches de l'année pour 30 € de plus"
+                      when 'ONDEE-DUO'
+                        assign contenu = '2 sets complets + 2 cartouches — deux salles de bains'
+                        assign eco = '38 € de moins que les mêmes articles achetés séparément'
+                      else
+                        assign contenu = v.title
+                        assign eco = ''
+                    endcase
+                  -%}
                   <span>
                     <span class="pack__t">{{ v.title }}</span>
-                    <span class="pack__d">{% if v.available %}{{ v.sku }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}</span>
+                    <span class="pack__d">{% if v.available %}{{ contenu }}{% else %}{{ 'products.product.sold_out' | t }}{% endif %}</span>
+                    {%- if eco != blank and v.available -%}<span class="pack__eco">{{ eco }}</span>{%- endif -%}
                   </span>
-                  <span class="pack__p">{{ v.price | money }}{% if v.compare_at_price > v.price %}<del>{{ v.compare_at_price | money }}</del>{% endif %}</span>
+                  <span class="pack__p">{{ v.price | money }}</span>
                 </button>
               {%- endfor -%}
             </div>
