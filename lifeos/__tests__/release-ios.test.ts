@@ -10,6 +10,7 @@ import fs from 'fs';
 import path from 'path';
 import brand from '../src/config/brand.json';
 import { missingBrandConfiguration } from '@/config/brand';
+import { DEFAULT_CATALOGUE } from '@shared/plans';
 
 const root = path.resolve(__dirname, '..');
 const eas = JSON.parse(fs.readFileSync(path.join(root, 'eas.json'), 'utf8'));
@@ -73,23 +74,23 @@ describe('build-time backend configuration', () => {
 describe('App Store submission configuration', () => {
   const ios = eas.submit.production.ios;
 
-  it('declares the three fields eas submit needs', () => {
-    for (const key of ['appleId', 'ascAppId', 'appleTeamId']) {
-      expect(Object.keys(ios)).toContain(key);
-    }
+  it('targets the real App Store Connect record', () => {
+    expect(ios.ascAppId).toBe('6806351278');
+    expect(ios.appleTeamId).toBe('9Q6YL8R33R');
   });
 
-  /*
-    Pinned rather than asserted-absent: these three values can only come from the Apple
-    account holder. Listing them keeps them visible, and the test fails the moment one
-    is filled in — which is the prompt to fill in the rest and delete this test.
-  */
-  it('still needs these values from the Apple account holder', () => {
-    const outstanding = Object.entries(ios)
-      .filter(([, v]) => typeof v === 'string' && v.startsWith('REPLACE_WITH_'))
-      .map(([k]) => k)
-      .sort();
-    expect(outstanding).toEqual(['appleId', 'appleTeamId', 'ascAppId']);
+  it('stores no Apple credential in the repository', () => {
+    /*
+      Submission authenticates with an App Store Connect API key supplied at run time,
+      not an Apple ID and app-specific password. So there is no appleId field to leak,
+      and nothing here is a secret.
+    */
+    expect(ios.appleId).toBeUndefined();
+    expect(JSON.stringify(ios)).not.toMatch(/@|password|p8|-----BEGIN/i);
+  });
+
+  it('has no placeholder left anywhere in the submit config', () => {
+    expect(JSON.stringify(eas.submit)).not.toContain('REPLACE_WITH_');
   });
 });
 
@@ -119,5 +120,55 @@ describe('App Store review requirements', () => {
       expect(`${profile}: ${Boolean(eas.build[profile].channel) && !hasUpdates}`)
         .toBe(`${profile}: false`);
     }
+  });
+});
+
+
+describe('App Store Connect product configuration', () => {
+  const doc = fs.readFileSync(path.join(root, 'docs/APP_STORE.md'), 'utf8');
+
+  const products = Object.values(DEFAULT_CATALOGUE.plans)
+    .flatMap((plan) => [plan.pricing.monthly, plan.pricing.yearly])
+    .filter((p): p is NonNullable<typeof p> => Boolean(p));
+
+  it('documents every purchasable product', () => {
+    expect(products.length).toBe(6);
+    for (const p of products) {
+      expect(`${p.productId} documented: ${doc.includes(p.productId)}`)
+        .toBe(`${p.productId} documented: true`);
+    }
+  });
+
+  it('documents the price the catalogue actually charges', () => {
+    /*
+      A price typed into App Store Connect that disagrees with the catalogue produces a
+      purchase that completes at one price and unlocks a plan priced at another. The doc
+      is what gets typed in, so it is checked against the source of truth.
+    */
+    for (const p of products) {
+      const major = (p.amount / 100).toFixed(2);
+      expect(`${p.productId} at ${major}: ${doc.includes(major)}`)
+        .toBe(`${p.productId} at ${major}: true`);
+    }
+  });
+
+  it('records the confirmed Apple identifiers', () => {
+    expect(doc).toContain('com.aminekammour.lifeos');
+    expect(doc).toContain('6806351278');
+    expect(doc).toContain('9Q6YL8R33R');
+  });
+
+  it('never promises an unlimited plan in the copy that reaches the store', () => {
+    /*
+      Only the suggested product descriptions are checked, not the whole document — the
+      guidance text legitimately uses the word while forbidding it, and a naive scan for
+      it flags that sentence instead of a real promise.
+    */
+    const copy = doc
+      .split('\n')
+      .filter((line) => /^\| (Plus|Pro|Ultra)\b/.test(line))
+      .join('\n');
+    expect(copy.length).toBeGreaterThan(0);
+    expect(copy.toLowerCase()).not.toContain('unlimited');
   });
 });

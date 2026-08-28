@@ -1,5 +1,8 @@
 {
-  "cli": { "version": ">= 12.0.0", "appVersionSource": "remote" },
+  "cli": {
+    "version": ">= 12.0.0",
+    "appVersionSource": "remote"
+  },
   "build": {
     "development": {
       "developmentClient": true,
@@ -9,12 +12,18 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://vllfsraxqnjgxufroaks.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_q3yqX4ZghpTmLRYEh6CB3w_C1ZVynFu"
       },
-      "ios": { "simulator": false },
-      "android": { "buildType": "apk" }
+      "ios": {
+        "simulator": false
+      },
+      "android": {
+        "buildType": "apk"
+      }
     },
     "simulator": {
       "extends": "development",
-      "ios": { "simulator": true }
+      "ios": {
+        "simulator": true
+      }
     },
     "preview": {
       "distribution": "internal",
@@ -23,7 +32,9 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://vllfsraxqnjgxufroaks.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "sb_publishable_q3yqX4ZghpTmLRYEh6CB3w_C1ZVynFu"
       },
-      "android": { "buildType": "apk" }
+      "android": {
+        "buildType": "apk"
+      }
     },
     "production": {
       "autoIncrement": true,
@@ -32,15 +43,16 @@
         "EXPO_PUBLIC_SUPABASE_URL": "https://nxyahzdwyzdfhkmxxyzz.supabase.co",
         "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im54eWFoemR3eXpkZmhrbXh4eXp6Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODc0ODY2MzksImV4cCI6MjEwMzA2MjYzOX0.sObMMUH7UXzxOaCn81DAulR4k4XeADCNw0es6Vous3k"
       },
-      "android": { "buildType": "app-bundle" }
+      "android": {
+        "buildType": "app-bundle"
+      }
     }
   },
   "submit": {
     "production": {
       "ios": {
-        "appleId": "REPLACE_WITH_APPLE_ID_EMAIL",
-        "ascAppId": "REPLACE_WITH_ASC_APP_ID",
-        "appleTeamId": "REPLACE_WITH_APPLE_TEAM_ID"
+        "ascAppId": "6806351278",
+        "appleTeamId": "9Q6YL8R33R"
       },
       "android": {
         "serviceAccountKeyPath": "./play-service-account.json",
