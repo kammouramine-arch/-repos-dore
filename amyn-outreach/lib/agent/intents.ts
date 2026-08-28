@@ -9,6 +9,8 @@
 // devine pas.
 // ---------------------------------------------------------------------------
 
+import { listSectors, resolveSectorOpen, NAF_DIVISIONS } from "@/lib/research/sectors";
+
 export const INTENTS = [
   "SEARCH",
   "AUDIT",
@@ -45,8 +47,26 @@ export type ParsedInstruction = {
 const OFFER_PATTERN = /\b(essential|premium|ultimate|care)\b/i;
 const COUNT_PATTERN = /\b(\d{1,3})\s*(entreprises?|prospects?|restaurants?|commerces?|salons?|societes?|sociétés?)?\b/i;
 
+/**
+ * Extraction de la ville.
+ *
+ * ATTENTION AU PIEGE : « \b » ne produit PAS de frontiere de mot devant « à »,
+ * car « à » n'appartient pas a \w en JavaScript. Un motif commencant par
+ * « \b(?:[àa]|...) » ne reconnait donc jamais « à Bordeaux » — seulement
+ * « a Bordeaux » sans accent. On ancre sur un debut de chaine ou une espace.
+ */
 const CITY_PATTERN =
-  /\b(?:[àa]|dans|sur|autour de|pres de|près de)\s+([A-ZÀ-Ý][\wÀ-ÿ' -]{2,30}?)(?=\s*(?:,|\.|$|\bdans\b|\bpour\b|\bet\b|\bavec\b))/;
+  /(?:^|[\s,])(?:à|a|dans|sur|autour de|pres de|près de|en)\s+(?:la |le |l'|les )?([A-ZÀ-Ý][\wÀ-ÿ'-]*(?:[ -][A-ZÀ-Ýa-zà-ÿ][\wÀ-ÿ'-]*){0,3})/;
+
+/**
+ * Mots qui suivent parfois « à » ou « dans » sans designer une ville.
+ * On les ecarte plutot que de retenir une fausse localite.
+ */
+const NON_VILLES = new Set([
+  "partir", "nouveau", "jour", "cette", "ce", "chaque", "tous", "toute", "toutes",
+  "condition", "distance", "domicile", "propos", "compter", "priori", "peu",
+  "france", "paris-region",
+]);
 
 const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
   {
@@ -221,27 +241,76 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
 
 function extractCity(text: string): string | undefined {
   const match = CITY_PATTERN.exec(text);
-  if (match) return match[1].trim().replace(/\s+/g, " ");
-  // Villes frequentes de la metropole lilloise, citees sans preposition.
-  const known = /\b(Lille|Roubaix|Tourcoing|Villeneuve-d'Ascq|Marcq-en-Baroeul|Lambersart|Wasquehal|Croix|Hem|Wattrelos|Armentières|Seclin)\b/i;
-  const direct = known.exec(text);
-  return direct ? direct[1] : undefined;
+  if (!match) return undefined;
+
+  const ville = match[1].trim().replace(/\s+/g, " ");
+  // Un mot courant derriere « à » n'est pas une ville : on prefere ne rien
+  // retenir plutot que d'inventer une localite.
+  if (NON_VILLES.has(ville.toLowerCase())) return undefined;
+  if (ville.length < 2) return undefined;
+
+  return ville;
+}
+
+/**
+ * Vocabulaire des secteurs, DERIVE du module secteurs.
+ *
+ * Il n'y a volontairement aucune liste en dur ici : ajouter un metier dans
+ * SECTORS ou une division dans NAF_DIVISIONS le rend immediatement
+ * reconnaissable dans une instruction, sans toucher a l'analyseur.
+ *
+ * Les termes les plus longs passent en premier : « salle de sport » doit
+ * l'emporter sur « sport ».
+ */
+let VOCABULAIRE_SECTEURS: string[] | null = null;
+
+function vocabulaireSecteurs(): string[] {
+  if (VOCABULAIRE_SECTEURS) return VOCABULAIRE_SECTEURS;
+
+  const termes = new Set<string>();
+  for (const secteur of listSectors()) {
+    termes.add(secteur.key.replace(/_/g, " "));
+    for (const alias of secteur.aliases) termes.add(alias);
+  }
+  for (const division of NAF_DIVISIONS) {
+    for (const mot of division.keywords) termes.add(mot);
+  }
+
+  VOCABULAIRE_SECTEURS = [...termes]
+    .filter((t) => t.length >= 4)
+    .sort((a, b) => b.length - a.length);
+  return VOCABULAIRE_SECTEURS;
+}
+
+/** Enleve les accents pour comparer « électricien » et « electricien ». */
+function sansAccents(value: string): string {
+  return value.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
 }
 
 function extractSectors(text: string): string[] {
-  const sectors: string[] = [];
-  const KEYWORDS = [
-    "coiffeur", "coiffure", "barbier", "institut", "beaute", "beauté", "esthetique",
-    "restaurant", "brasserie", "traiteur", "boulangerie", "patisserie", "pâtisserie",
-    "fleuriste", "garage", "toiletteur", "menuisier", "menuiserie", "artisan",
-    "plombier", "electricien", "électricien", "coach", "salle de sport", "fitness",
-    "photographe", "opticien",
-  ];
-  const lower = text.toLowerCase();
-  for (const kw of KEYWORDS) {
-    if (lower.includes(kw)) sectors.push(kw);
+  const cible = sansAccents(text);
+  const trouves: string[] = [];
+
+  const clesVues = new Set<string>();
+
+  for (const terme of vocabulaireSecteurs()) {
+    const t = sansAccents(terme);
+    if (!cible.includes(t)) continue;
+    // Un terme deja couvert par un plus long n'apporte rien :
+    // « salle de sport » rend « sport » redondant.
+    if (trouves.some((deja) => sansAccents(deja).includes(t))) continue;
+
+    // Deux alias du meme secteur ne doivent pas produire deux recherches :
+    // « agence » et « immobiliere » designent la meme cible.
+    const resolu = resolveSectorOpen(terme);
+    if (resolu.kind !== "UNKNOWN") {
+      if (clesVues.has(resolu.key)) continue;
+      clesVues.add(resolu.key);
+    }
+    trouves.push(terme);
   }
-  return [...new Set(sectors)];
+
+  return trouves;
 }
 
 export function parseInstruction(instruction: string): ParsedInstruction {
