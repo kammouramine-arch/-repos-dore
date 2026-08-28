@@ -100,9 +100,32 @@ describe('AI router migration', () => {
 });
 
 describe('bundle stays in step with the migrations', () => {
+  const bundle = fs.readFileSync(path.join(root, 'supabase/dist/all-migrations.sql'), 'utf8');
+
   it('includes the AI router migration', () => {
-    const bundle = fs.readFileSync(path.join(root, 'supabase/dist/all-migrations.sql'), 'utf8');
     expect(bundle).toContain('create table public.ai_budget_reservations');
     expect(bundle).toContain('reserve_ai_budget');
+  });
+
+  it('is a single transaction, so a cut-short paste applies nothing', () => {
+    /*
+      A browser paste can be truncated, and a half-applied schema is far worse than an
+      empty one: the errors it produces afterwards point at whatever ran first rather
+      than at the truncation that caused them. Without COMMIT the database is untouched.
+    */
+    expect(bundle.trimStart().split('\n').find((l) => l.trim() && !l.startsWith('--'))).toBe('begin;');
+    expect(bundle).toContain('\ncommit;\n');
+  });
+
+  it('ends with a marker that proves the paste arrived whole', () => {
+    expect(bundle).toContain('LifeOS schema created:');
+    expect(bundle.trimEnd().endsWith('====')).toBe(true);
+  });
+
+  it('opens the transaction before the first statement that changes anything', () => {
+    const begin = bundle.indexOf('\nbegin;');
+    const firstDdl = bundle.search(/\n(create|alter|drop) /);
+    expect(begin).toBeGreaterThan(-1);
+    expect(begin).toBeLessThan(firstDdl);
   });
 });

@@ -31,6 +31,13 @@ export function buildSql() {
 --   3. Run
 --   4. Then do the same with supabase/tests/verify.sql to check it worked
 --
+-- This file is one transaction. Either the whole schema is created or nothing is —
+-- there is no state in between. That matters because a paste into a browser editor
+-- can be cut short, and a half-applied schema is far harder to diagnose than an
+-- empty one: the errors it produces afterwards point at whatever statement happened
+-- to run first, not at the truncation that actually caused them. If the run does not
+-- reach COMMIT, the database is left exactly as it was and you can simply paste again.
+--
 -- Running it twice is not supported: it creates types and tables, so start from a
 -- project where these do not exist yet.
 --
@@ -38,6 +45,24 @@ export function buildSql() {
 ${files.map((f) => `--   ${f}`).join('\n')}
 -- ============================================================================
 
+begin;
+
+`;
+
+  // A truncated paste stops before this, so the transaction never commits.
+  const footer = `
+
+do $lifeos_done$
+begin
+  raise notice 'LifeOS schema created: ${files.length} migrations applied in one transaction.';
+end $lifeos_done$;
+
+commit;
+
+-- ============================================================================
+-- END OF FILE. If you did not see the notice above, the paste was incomplete and
+-- nothing was applied — paste the whole file again.
+-- ============================================================================
 `;
 
   const body = files
@@ -47,7 +72,7 @@ ${files.map((f) => `--   ${f}`).join('\n')}
     })
     .join('\n');
 
-  return { files, sql: header + body };
+  return { files, sql: header + body + footer };
 }
 
 // `file://${process.argv[1]}` is not a valid file URL on Windows (backslashes, no

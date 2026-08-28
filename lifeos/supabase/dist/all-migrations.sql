@@ -10,6 +10,13 @@
 --   3. Run
 --   4. Then do the same with supabase/tests/verify.sql to check it worked
 --
+-- This file is one transaction. Either the whole schema is created or nothing is —
+-- there is no state in between. That matters because a paste into a browser editor
+-- can be cut short, and a half-applied schema is far harder to diagnose than an
+-- empty one: the errors it produces afterwards point at whatever statement happened
+-- to run first, not at the truncation that actually caused them. If the run does not
+-- reach COMMIT, the database is left exactly as it was and you can simply paste again.
+--
 -- Running it twice is not supported: it creates types and tables, so start from a
 -- project where these do not exist yet.
 --
@@ -22,6 +29,8 @@
 --   20260101000500_store_events.sql
 --   20260101000600_ai_router.sql
 -- ============================================================================
+
+begin;
 
 -- ──────────────────────────────────────────────────────────────────────────
 -- 20260101000000_init.sql
@@ -1552,3 +1561,16 @@ $$;
 revoke all on function public.reserve_ai_budget(uuid, date, text, numeric, numeric) from public;
 revoke all on function public.settle_ai_budget(uuid, date, text, numeric) from public;
 grant execute on function public.get_ai_budget(date) to authenticated;
+
+
+do $lifeos_done$
+begin
+  raise notice 'LifeOS schema created: 7 migrations applied in one transaction.';
+end $lifeos_done$;
+
+commit;
+
+-- ============================================================================
+-- END OF FILE. If you did not see the notice above, the paste was incomplete and
+-- nothing was applied — paste the whole file again.
+-- ============================================================================
