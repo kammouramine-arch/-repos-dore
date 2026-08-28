@@ -75,6 +75,13 @@ must be custom-drawn from the Datum concept rather than used as Archivo unchange
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
 
+> **Access note.** This agent has **no Printify integration and no access to the founder's
+> Printify session** — a login on the founder's machine does not transfer to this isolated
+> container. Headless Chromium additionally cannot reach any host here (proxy CA not in the
+> browser trust store), and Printify's public pages carry no embedded provider data. The
+> connected Shopify store is **RÉVA**, not GYMREIGN. Full audit in
+> [`10-path2-viability.md`](./production/10-path2-viability.md) §5B.
+
 > ## PATH 2 — STANLEY/STELLA VIA PRINTIFY · 🟡 YELLOW
 >
 > The Freestyler tee and Slammer hoodie are **both in Printify's catalogue at the right

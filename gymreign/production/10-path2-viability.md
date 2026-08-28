@@ -119,16 +119,61 @@ The website will show the actual range of each individual SKU.
 
 ---
 
+# 5B. ACCESS ATTEMPT — WHAT I TRIED AND WHY IT FAILED
+
+**Founder request: inspect the live Printify account directly. Attempted; not possible.**
+Recorded in full so the limitation is auditable rather than asserted.
+
+## The decisive fact
+
+> **A logged-in session in your browser does not transfer to mine.**
+
+Your Printify session cookies live in your browser, on your machine. This agent runs in an
+isolated cloud container with its own network stack and its own (empty) browser profile.
+**There is no mechanism by which your logged-in session becomes available to a process
+here.** Being logged in on your side does not log this session in. That is true regardless
+of any technical fix below.
+
+## Three checks performed
+
+| # | Check | Result |
+|---|---|---|
+| 1 | **Is there a Printify tool in this session?** | **No.** Tool search returns only Shopify tools and plugin search. There is no Printify integration, no API credential, no connector `[V]` |
+| 2 | **Can headless Chromium reach Printify?** | **No.** Chromium returns `ERR_CONNECTION_RESET` for **every** host tried — printify.com, api.printify.com, and example.com — while `curl` reaches the same hosts successfully from the same container. The agent proxy's CA is not in Chromium's NSS trust store, and `certutil` (libnss3-tools) is not installable here. **This is a container networking limit, not Printify blocking us** `[V]` |
+| 3 | **Is provider data in the public page source?** | **No.** The raw HTML is an 18,261-byte SPA shell with no embedded state — no `__NEXT_DATA__`, no provider names, no JSON blob. `sitemap.xml` returns 404 `[V]` |
+
+**Even if checks 2 and 3 had succeeded, they would only have returned public data**, which
+the catalogue API already provides. They could never have shown your account.
+
+## What the Shopify connection does show
+
+The Shopify MCP server **is** connected and working. It reports the connected store as:
+
+| | |
+|---|---|
+| Store | **RÉVA** · `www.maisonreva.fr` |
+| Plan · currency · country | Basic · **EUR** · **France** |
+
+**Two observations.** The connected store is the RÉVA project, **not a GYMREIGN store** — so
+there is currently no GYMREIGN storefront for Printify to publish into, and nothing here was
+modified. Separately, EUR and France confirm the jurisdiction and currency assumptions used
+in the cost model.
+
+---
+
 # 6. HOW TO CLOSE THE GAP — WITHOUT SHARING ANY CREDENTIAL
 
-**You do not need to give me, or anyone, a token.** The single blocking unknown is visible
-in a free Printify account, and **you can read it off yourself in a few minutes.**
+**You do not need to give me, or anyone, a token.** You are already logged in. **This is two
+page loads, not product-by-product research.** Open these in the browser you are already
+signed into:
 
-1. Create a free Printify account — no payment method required to browse the catalogue
-2. Search the catalogue for **"Freestyler Heavyweight Tee"** (blueprint 3168)
-3. Open it and look at the **print provider list** — Printify shows each provider with its
-   **location** and **price**
-4. Repeat for **"Slammer Hoodie"** (blueprint 2683)
+```
+https://printify.com/app/products/3168   ← Freestyler Heavyweight Tee
+https://printify.com/app/products/2683   ← Slammer Hoodie
+https://printify.com/app/products/4628   ← Flyer Jogger  (archived target)
+```
+
+Each page lists every print provider for that blueprint, **with its location and price**.
 
 **What to record — this answers items 5–10 and 13 at once:**
 
