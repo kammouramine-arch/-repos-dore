@@ -211,6 +211,97 @@ describe("Qualification des prospects", () => {
     assert.ok(Array.isArray(detail.criteres) && detail.criteres.length > 0);
   });
 
+  // === LES DEUX BUGS DU 24 AOÛT ==========================================
+  //
+  // 19 entreprises trouvées → 0 qualifiée, 0 écartée, 0 à trancher.
+  // Cause : la passe initiale exigeait un email que seule une étape ultérieure
+  // pouvait fournir, et les prospects éliminés disparaissaient du rapport.
+
+  test("BUG 1 · un prospect fraîchement importé passe la qualification PRE", async () => {
+    // État exact après un import OSM : source tracée, mais ni audit, ni email,
+    // ni score. C'est ce qui éliminait tout le monde.
+    const p = await prisma.prospect.create({
+      data: {
+        name: "Salon Import", sector: "coiffeur", city: "Lille",
+        website: "https://import.test", status: "FOUND",
+        sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+      },
+    });
+
+    const pre = await qualifyProspect(p.id, { stage: "PRE" });
+    assert.notEqual(pre.verdict, "NOT_QUALIFIED",
+      `un prospect importé est éliminé avant enrichissement : ${pre.summary}`);
+    assert.equal(pre.verdict, "PENDING", pre.summary);
+  });
+
+  test("BUG 1 · la passe PRE ne juge PAS l'email, l'opportunité ni le score", async () => {
+    const p = await prisma.prospect.create({
+      data: {
+        name: "Salon Pre", sector: "coiffeur", city: "Lille", status: "FOUND",
+        sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+      },
+    });
+
+    const pre = await qualifyProspect(p.id, { stage: "PRE" });
+    // Les critères sont calculés et conservés pour la trace...
+    for (const id of ["contact", "opportunity", "score"]) {
+      assert.ok(pre.criteres.some((c) => c.id === id), `${id} absent de la trace`);
+    }
+    // ...mais ils n'ont pas éliminé le prospect.
+    assert.notEqual(pre.verdict, "NOT_QUALIFIED");
+  });
+
+  test("BUG 1 · la passe PRE bloque toujours une opposition", async () => {
+    const p = await seedProspect({ name: "Salon Stop Pre", email: "contact@stop-pre.fr" });
+    await addToSuppressionList({ email: "contact@stop-pre.fr", reason: "UNSUBSCRIBED", source: "test" });
+
+    const pre = await qualifyProspect(p.id, { stage: "PRE" });
+    assert.equal(pre.verdict, "NOT_QUALIFIED", "une opposition passe la passe PRE");
+    assert.ok(pre.blockers.some((b) => /opposition/i.test(b)));
+  });
+
+  test("BUG 1 · la passe PRE bloque toujours un prospect déjà contacté", async () => {
+    const p = await seedProspect({ name: "Salon Deja Pre", email: "contact@deja-pre.fr" });
+    await prisma.sendLog.create({
+      data: {
+        prospectId: p.id, transport: "smtp", status: "SENT", dryRun: false,
+        toEmail: "contact@deja-pre.fr", subject: "Premier email",
+      },
+    });
+    const pre = await qualifyProspect(p.id, { stage: "PRE" });
+    assert.equal(pre.verdict, "NOT_QUALIFIED", "un prospect déjà contacté passe la passe PRE");
+  });
+
+  test("BUG 1 · la passe FINALE garde exactement la même sévérité qu'avant", async () => {
+    // Sans email, le verdict FINAL doit rester NOT_QUALIFIED : la correction
+    // ne doit pas avoir assoupli le critère, seulement décalé son moment.
+    const p = await prisma.prospect.create({
+      data: {
+        name: "Salon Final", sector: "coiffeur", city: "Lille",
+        auditStatus: "COMPLETE", overallScore: 80, status: "AUDITED",
+        sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+      },
+    });
+    await seedProvenIssue(p.id);
+
+    const final = await qualifyProspect(p.id, { stage: "FINAL" });
+    assert.equal(final.verdict, "NOT_QUALIFIED", "le critère email a été assoupli");
+    assert.ok(final.criteres.some((c) => c.id === "contact" && c.passed === false));
+  });
+
+  test("BUG 1 · FINAL reste le comportement par défaut", async () => {
+    const p = await prisma.prospect.create({
+      data: {
+        name: "Salon Defaut", sector: "coiffeur", city: "Lille", status: "FOUND",
+        sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+      },
+    });
+    // Sans préciser le stade, on doit obtenir le jugement complet.
+    const sansStade = await qualifyProspect(p.id);
+    const explicite = await qualifyProspect(p.id, { stage: "FINAL" });
+    assert.equal(sansStade.verdict, explicite.verdict);
+  });
+
   test("un score sous le seuil écarte le prospect", async () => {
     const p = await seedProspect({ email: "contact@faible.fr", status: "AUDITED" });
     await seedProvenIssue(p.id);

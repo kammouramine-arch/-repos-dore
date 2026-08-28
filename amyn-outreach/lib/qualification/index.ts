@@ -19,6 +19,22 @@ import { getPolicy, type Policy } from "@/lib/policy";
 
 export type Verdict = "QUALIFIED" | "NOT_QUALIFIED" | "NEEDS_HUMAN" | "PENDING";
 
+/**
+ * A quel moment du parcours la qualification est-elle demandee ?
+ *
+ * PRE   — juste apres l'import, AVANT audit et recherche d'email. Seuls les
+ *         criteres verifiables a ce stade sont evalues : opposition, delai de
+ *         recontact, existence corroboree. Les trois autres (email, opportunite,
+ *         score) dependent d'etapes qui n'ont pas encore tourne ; les exiger ici
+ *         eliminerait tout le monde avant enrichissement.
+ * FINAL — apres enrichissement. Les 7 criteres sont evalues, avec exactement la
+ *         meme severite. Aucun seuil n'est different entre les deux passes.
+ */
+export type Stage = "PRE" | "FINAL";
+
+/** Criteres evaluables avant tout enrichissement. */
+const CRITERES_PRE = ["no_optout", "cooldown", "identified"] as const;
+
 export type Critere = {
   id: string;
   label: string;
@@ -47,8 +63,9 @@ const STATUTS_BLOQUANTS = ["OPTOUT", "BLOCKED", "WON", "LOST"];
 
 export async function qualifyProspect(
   prospectId: string,
-  options: { policy?: Policy; persist?: boolean } = {},
+  options: { policy?: Policy; persist?: boolean; stage?: Stage } = {},
 ): Promise<Qualification> {
+  const stage: Stage = options.stage ?? "FINAL";
   const policy = options.policy ?? (await getPolicy());
 
   const prospect = await prisma.prospect.findUnique({
@@ -75,10 +92,15 @@ export async function qualifyProspect(
   }
 
   if (STATUTS_BLOQUANTS.includes(prospect.status)) {
+    // Un statut BLOCKED sans sa cause n'apprend rien. La raison réelle est
+    // enregistrée au moment du blocage (site injoignable, aucun email publié…)
+    // : c'est elle qu'il faut remonter, pas l'étiquette.
     blockers.push(
       prospect.status === "OPTOUT"
         ? "Le prospect a demandé à ne plus être contacté."
-        : `Statut ${prospect.status} : ce prospect est hors circuit.`,
+        : prospect.status === "BLOCKED" && prospect.blockedReason
+          ? prospect.blockedReason
+          : `Statut ${prospect.status} : ce prospect est hors circuit.`,
     );
   }
 
@@ -235,8 +257,16 @@ export async function qualifyProspect(
   let verdict: Verdict;
   let summary: string;
 
-  const echecs = criteres.filter((c) => c.passed === false);
-  const inconnus = criteres.filter((c) => c.passed === null);
+  // En passe PRE, on ne juge QUE sur les criteres disponibles a ce stade.
+  // Les autres sont calcules et conserves pour la trace, mais ne peuvent pas
+  // eliminer un prospect qu'on n'a pas encore enrichi.
+  const evaluables =
+    stage === "PRE"
+      ? criteres.filter((c) => (CRITERES_PRE as readonly string[]).includes(c.id))
+      : criteres;
+
+  const echecs = evaluables.filter((c) => c.passed === false);
+  const inconnus = evaluables.filter((c) => c.passed === null);
 
   if (blockers.length > 0) {
     verdict = "NOT_QUALIFIED";
@@ -250,6 +280,13 @@ export async function qualifyProspect(
       `Impossible de conclure : ${inconnus.length} information(s) manquante(s) ` +
       `(${inconnus.map((c) => c.label.toLowerCase()).join(", ")}). ` +
       `Plutôt que de supposer, l'agent vous laisse trancher.`;
+  } else if (stage === "PRE") {
+    // « Rien ne s'oppose a l'enrichissement » — ce n'est pas encore un feu vert
+    // commercial, et le libelle doit le dire.
+    verdict = "PENDING";
+    summary =
+      "Aucun blocage : le prospect peut être audité et enrichi. " +
+      "La décision de le contacter sera prise après.";
   } else {
     verdict = "QUALIFIED";
     summary = `Retenu : ${reasons.join(" ")}`;
@@ -262,7 +299,7 @@ export async function qualifyProspect(
       where: { id: prospectId },
       data: {
         qualification: verdict,
-        qualificationReason: JSON.stringify({ summary, reasons, blockers, unknowns, criteres }),
+        qualificationReason: JSON.stringify({ stage, summary, reasons, blockers, unknowns, criteres }),
         qualifiedAt: new Date(),
       },
     });
@@ -273,8 +310,8 @@ export async function qualifyProspect(
       action: "qualification.evaluate",
       entityType: "Prospect",
       entityId: prospectId,
-      summary: `${prospect.name} — ${verdict} : ${summary}`,
-      details: { verdict, reasons, blockers, unknowns },
+      summary: `${prospect.name} — ${verdict} (passe ${stage}) : ${summary}`,
+      details: { stage, verdict, reasons, blockers, unknowns },
       level: verdict === "NEEDS_HUMAN" ? "WARN" : "INFO",
     });
   }
@@ -283,7 +320,11 @@ export async function qualifyProspect(
 }
 
 /** Qualifie un lot de prospects et renvoie le détail par verdict. */
-export async function qualifyMany(prospectIds: string[], policy?: Policy) {
+export async function qualifyMany(
+  prospectIds: string[],
+  policy?: Policy,
+  stage: Stage = "FINAL",
+) {
   const resolved = policy ?? (await getPolicy());
   const parVerdict: Record<Verdict, string[]> = {
     QUALIFIED: [], NOT_QUALIFIED: [], NEEDS_HUMAN: [], PENDING: [],
@@ -291,7 +332,7 @@ export async function qualifyMany(prospectIds: string[], policy?: Policy) {
   const details: Array<{ prospectId: string; verdict: Verdict; summary: string }> = [];
 
   for (const id of prospectIds) {
-    const q = await qualifyProspect(id, { policy: resolved });
+    const q = await qualifyProspect(id, { policy: resolved, stage });
     parVerdict[q.verdict].push(id);
     details.push({ prospectId: id, verdict: q.verdict, summary: q.summary });
   }

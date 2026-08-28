@@ -47,6 +47,8 @@ export type MissionResult = {
   rejected: number;
   needsHuman: number;
   emailsPrepared: number;
+  /** Motifs d'exclusion, regroupés : « aucun email fiable » → 14, etc. */
+  rejectionReasons: Record<string, number>;
   campaignId?: string;
   campaignSlug?: string;
   needsFromYou: string[];
@@ -90,6 +92,7 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
         );
         return await close(mission.id, "FAILED", steps, needsFromYou, {
           found: 0, qualified: 0, rejected: 0, needsHuman: 0, emailsPrepared: 0,
+          rejectionReasons: {},
         });
       }
 
@@ -114,6 +117,7 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
         );
         return await close(mission.id, "PARTIAL", steps, needsFromYou, {
           found: 0, qualified: 0, rejected: recherche.duplicates, needsHuman: 0, emailsPrepared: 0,
+          rejectionReasons: { "Entreprise déjà connue en base": recherche.duplicates },
         });
       }
     } else {
@@ -126,22 +130,32 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
 
     const found = prospectIds.length;
 
-    // === 2. QUALIFICATION — 1re passe ====================================
-    // Écarte immédiatement ce qui est bloqué, pour ne pas auditer pour rien.
-    const bloques: string[] = [];
+    // === 2. QUALIFICATION — 1re passe (stade PRE) ========================
+    //
+    // Ne juge QUE sur ce qui est vérifiable avant enrichissement : opposition,
+    // délai de recontact, existence corroborée. Exiger un email ici éliminerait
+    // tout le monde, puisque la recherche d'email n'a pas encore eu lieu.
+    const bloques: Array<{ id: string; nom: string; raison: string }> = [];
     const retenus: string[] = [];
 
     for (const id of prospectIds) {
-      const q = await qualifyProspect(id, { policy });
-      if (q.verdict === "NOT_QUALIFIED") bloques.push(id);
-      else retenus.push(id);
+      const q = await qualifyProspect(id, { policy, stage: "PRE" });
+      if (q.verdict === "NOT_QUALIFIED") {
+        const bloque = await prisma.prospect.findUnique({ where: { id }, select: { name: true } });
+        bloques.push({ id, nom: bloque?.name ?? id, raison: q.summary });
+      } else {
+        retenus.push(id);
+      }
     }
 
     note({
       stage: "QUALIFY", description: "Écarter les prospects hors circuit",
-      rationale: "Opposition, contact récent, statut bloquant : inutile d'aller plus loin.",
+      rationale:
+        "Opposition, contact récent, existence non corroborée : inutile d'auditer. " +
+        "L'email, l'opportunité et le score ne sont PAS jugés ici — ils n'existent pas encore.",
       status: "DONE",
-      detail: `${retenus.length} retenu(s), ${bloques.length} écarté(s) d'emblée.`,
+      detail: `${retenus.length} retenu(s) pour enrichissement, ${bloques.length} écarté(s) d'emblée.`,
+      result: { bloques: bloques.slice(0, 20) },
     });
 
     // === 3. AUDIT ========================================================
@@ -188,21 +202,38 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
 
     // === 6. QUALIFICATION — passe finale =================================
     const qualifies: string[] = [];
-    const rejetes: string[] = [];
+    const rejetes: Array<{ id: string; nom: string; raison: string }> = [];
     const aVoir: string[] = [];
 
     for (const id of retenus) {
-      const q = await qualifyProspect(id, { policy });
-      if (q.verdict === "QUALIFIED") qualifies.push(id);
-      else if (q.verdict === "NEEDS_HUMAN") aVoir.push(id);
-      else rejetes.push(id);
+      // Stade FINAL : les 7 critères, avec exactement la même sévérité.
+      const q = await qualifyProspect(id, { policy, stage: "FINAL" });
+      if (q.verdict === "QUALIFIED") {
+        qualifies.push(id);
+      } else if (q.verdict === "NEEDS_HUMAN") {
+        aVoir.push(id);
+      } else {
+        const p = await prisma.prospect.findUnique({ where: { id }, select: { name: true } });
+        rejetes.push({ id, nom: p?.name ?? id, raison: q.summary });
+      }
+    }
+
+    // Regroupe les motifs de rejet : « 14 sans email » est plus utile que
+    // quatorze lignes identiques.
+    const motifs = new Map<string, number>();
+    for (const r of [...bloques, ...rejetes]) {
+      const cle = r.raison.replace(/^Écarté\s*:\s*/i, "").split(" — ")[0].trim();
+      motifs.set(cle, (motifs.get(cle) ?? 0) + 1);
     }
 
     note({
       stage: "QUALIFY", description: "Décider qui mérite d'être contacté",
       rationale: "Une opportunité ne se suppose pas : elle s'appuie sur les preuves réunies.",
       status: "DONE",
-      detail: `${qualifies.length} qualifié(s), ${rejetes.length} écarté(s), ${aVoir.length} à trancher par vous.`,
+      detail:
+        `${qualifies.length} qualifié(s), ${rejetes.length} écarté(s) après enrichissement, ` +
+        `${aVoir.length} à trancher par vous.`,
+      result: { rejetes: rejetes.slice(0, 20) },
     });
 
     if (aVoir.length > 0) {
@@ -275,9 +306,30 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
     const status: MissionResult["status"] =
       campaignId ? "WAITING_APPROVAL" : prepares > 0 ? "DONE" : "PARTIAL";
 
+    // Tout prospect trouvé se retrouve dans EXACTEMENT une catégorie.
+    // La somme doit égaler `found` — un test le vérifie.
+    const rejectedTotal = bloques.length + rejetes.length;
+
+    if (rejectedTotal > 0) {
+      const detail = [...motifs.entries()]
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 4)
+        .map(([motif, n]) => `${n} × ${motif.toLowerCase()}`)
+        .join(", ");
+      needsFromYou.push(
+        `${rejectedTotal} entreprise(s) écartée(s) sur ${found} : ${detail}. ` +
+        `Détail complet : npm run amyn -- qualify --all`,
+      );
+    }
+
     return await close(mission.id, status, steps, needsFromYou, {
-      found, qualified: qualifies.length, rejected: rejetes.length,
-      needsHuman: aVoir.length, emailsPrepared: prepares, campaignId, campaignSlug,
+      found,
+      qualified: qualifies.length,
+      rejected: rejectedTotal,
+      needsHuman: aVoir.length,
+      emailsPrepared: prepares,
+      campaignId, campaignSlug,
+      rejectionReasons: Object.fromEntries(motifs),
     });
   } catch (error) {
     const message = error instanceof Error ? error.message : String(error);
@@ -287,6 +339,7 @@ export async function runMission(input: MissionBrief): Promise<MissionResult> {
     });
     return await close(mission.id, "FAILED", steps, [`La mission s'est arrêtée : ${message}`], {
       found: 0, qualified: 0, rejected: 0, needsHuman: 0, emailsPrepared: 0,
+      rejectionReasons: {},
     });
   }
 }
@@ -299,13 +352,14 @@ async function close(
   counts: {
     found: number; qualified: number; rejected: number; needsHuman: number;
     emailsPrepared: number; campaignId?: string; campaignSlug?: string;
+    rejectionReasons?: Record<string, number>;
   },
 ): Promise<MissionResult> {
   const summary =
     status === "FAILED"
       ? `Mission interrompue. ${steps[steps.length - 1]?.detail ?? ""}`
-      : `${counts.found} entreprise(s) trouvée(s) · ${counts.qualified} qualifiée(s) · ` +
-        `${counts.rejected} écartée(s) · ${counts.needsHuman} à trancher · ` +
+      : `${counts.found} trouvée(s) = ${counts.qualified} qualifiée(s) + ` +
+        `${counts.rejected} écartée(s) + ${counts.needsHuman} à trancher. ` +
         `${counts.emailsPrepared} email(s) prêt(s), en attente d'approbation.`;
 
   await prisma.$transaction([
@@ -346,6 +400,7 @@ async function close(
     missionId, status, summary,
     found: counts.found, qualified: counts.qualified, rejected: counts.rejected,
     needsHuman: counts.needsHuman, emailsPrepared: counts.emailsPrepared,
+    rejectionReasons: counts.rejectionReasons ?? {},
     campaignId: counts.campaignId, campaignSlug: counts.campaignSlug,
     needsFromYou,
     steps: steps.map((s) => ({ stage: s.stage, description: s.description, status: s.status, detail: s.detail })),

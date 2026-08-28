@@ -17,6 +17,7 @@ import { preparePilot } from "@/lib/launch/pilot";
 import { buildReport, missionReport } from "@/lib/reporting";
 import { setPolicy, POLICY_DEFAULTS } from "@/lib/policy";
 import { runCampaign } from "@/lib/campaign";
+import { addToSuppressionList } from "@/lib/campaign/compliance";
 import { resetDatabase, seedProspect, seedProvenIssue } from "./helpers";
 
 const ROOT = resolve(import.meta.dirname, "..");
@@ -145,7 +146,6 @@ describe("Campagne pilote", () => {
   test("le pilote n'inclut jamais un prospect en opposition", async () => {
     await prospectQualifiable("Salon OK", "contact@ok-pilote.fr");
     const bloque = await prospectQualifiable("Salon Stop", "contact@stop-pilote.fr");
-    const { addToSuppressionList } = await import("@/lib/campaign/compliance");
     await addToSuppressionList({ email: "contact@stop-pilote.fr", reason: "UNSUBSCRIBED", source: "test" });
 
     const plan = await preparePilot();
@@ -291,6 +291,126 @@ describe("Délivrabilité", () => {
       }
     }
     assert.ok(r.disclaimer.length > 40);
+  });
+});
+
+// === MISSION : AUCUN PROSPECT NE DISPARAÎT ==================================
+//
+// BUG 2 du 24 août : les prospects éliminés en passe initiale étaient rangés
+// dans une variable jamais reportée. 19 entreprises trouvées s'affichaient
+// « 0 qualifiée, 0 écartée » — elles avaient disparu du compte-rendu.
+
+describe("Comptabilité d'une mission", () => {
+  beforeEach(async () => { await resetDatabase(); });
+
+  test("la somme des catégories égale toujours le nombre trouvé", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+
+    // Trois profils qui prennent chacun un chemin différent :
+    //  • bloqué d'emblée (opposition)
+    //  • écarté après enrichissement (aucun email)
+    //  • qualifié (tout est réuni)
+    const optout = await seedProspect({ name: "Salon Opposition", email: "contact@opp-mission.fr" });
+    await addToSuppressionList({ email: "contact@opp-mission.fr", reason: "UNSUBSCRIBED", source: "test" });
+
+    const sansEmail = await prisma.prospect.create({
+      data: {
+        name: "Salon Sans Email", sector: "coiffeur", city: "Lille", status: "AUDITED",
+        auditStatus: "COMPLETE", overallScore: 75,
+        sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+      },
+    });
+    await seedProvenIssue(sansEmail.id);
+
+    const complet = await prospectQualifiable("Salon Complet", "contact@complet-mission.fr");
+
+    const r = await runMission({
+      brief: "Test comptabilité",
+      prospectIds: [optout.id, sansEmail.id, complet.id],
+      skipCampaign: true,
+    });
+
+    assert.equal(r.found, 3);
+    assert.equal(
+      r.qualified + r.rejected + r.needsHuman, r.found,
+      `comptabilité fausse : ${r.qualified} + ${r.rejected} + ${r.needsHuman} ≠ ${r.found}`,
+    );
+    assert.ok(r.rejected >= 1, "aucun prospect écarté n'est comptabilisé");
+  });
+
+  test("un prospect bloqué d'emblée apparaît dans le compte des écartés", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+
+    const p = await seedProspect({ name: "Salon Bloqué Amont", email: "contact@bloque-amont.fr" });
+    await addToSuppressionList({ email: "contact@bloque-amont.fr", reason: "UNSUBSCRIBED", source: "test" });
+
+    const r = await runMission({ brief: "Test", prospectIds: [p.id], skipCampaign: true });
+
+    assert.equal(r.found, 1);
+    assert.equal(r.rejected, 1, "le prospect en opposition a disparu du rapport");
+    assert.equal(r.qualified, 0);
+  });
+
+  test("le motif de chaque exclusion est conservé et regroupé", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+
+    const ids: string[] = [];
+    for (let i = 0; i < 3; i += 1) {
+      const p = await prisma.prospect.create({
+        data: {
+          name: `Salon Sans Email ${i}`, sector: "coiffeur", city: "Lille",
+          status: "AUDITED", auditStatus: "COMPLETE", overallScore: 75,
+          sources: { create: [{ kind: "OSM", label: "OpenStreetMap" }] },
+        },
+      });
+      await seedProvenIssue(p.id);
+      ids.push(p.id);
+    }
+
+    const r = await runMission({ brief: "Test motifs", prospectIds: ids, skipCampaign: true });
+
+    assert.equal(r.rejected, 3);
+    const motifs = Object.entries(r.rejectionReasons);
+    assert.ok(motifs.length > 0, "aucun motif d'exclusion conservé");
+    assert.ok(
+      motifs.some(([m, n]) => /email/i.test(m) && n === 3),
+      `motifs attendus « email » ×3 : ${JSON.stringify(r.rejectionReasons)}`,
+    );
+  });
+
+  test("le résumé annonce la ventilation complète", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+    const p = await seedProspect({ name: "Salon Résumé", email: "contact@resume.fr" });
+    await addToSuppressionList({ email: "contact@resume.fr", reason: "UNSUBSCRIBED", source: "test" });
+
+    const r = await runMission({ brief: "Test", prospectIds: [p.id], skipCampaign: true });
+    assert.match(r.summary, /trouvée\(s\) =/, `résumé peu clair : ${r.summary}`);
+    assert.match(r.summary, /écartée/);
+  });
+
+  test("les exclusions sont signalées dans « ce qu'il me faut de vous »", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+    const p = await seedProspect({ name: "Salon Signal", email: "contact@signal.fr" });
+    await addToSuppressionList({ email: "contact@signal.fr", reason: "UNSUBSCRIBED", source: "test" });
+
+    const r = await runMission({ brief: "Test", prospectIds: [p.id], skipCampaign: true });
+    assert.ok(
+      r.needsFromYou.some((n) => /écartée/i.test(n) && /qualify --all/.test(n)),
+      `aucun signalement des exclusions : ${JSON.stringify(r.needsFromYou)}`,
+    );
+  });
+
+  test("les compteurs enregistrés en base correspondent au rapport", async () => {
+    const { runMission } = await import("@/lib/operator/mission");
+    const p = await prospectQualifiable("Salon Base", "contact@base-mission.fr");
+
+    const r = await runMission({ brief: "Test base", prospectIds: [p.id], skipCampaign: true });
+    const mission = await prisma.mission.findUniqueOrThrow({ where: { id: r.missionId } });
+
+    assert.equal(mission.prospectsFound, r.found);
+    assert.equal(mission.prospectsQualified, r.qualified);
+    assert.equal(mission.prospectsRejected, r.rejected);
+    assert.equal(mission.prospectsNeedsHuman, r.needsHuman);
   });
 });
 
