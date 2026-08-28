@@ -383,7 +383,7 @@ npx eas init                    # crée le projet EAS (une seule fois)
 
 # URL de l'API, définie une fois côté EAS plutôt que figée dans le dépôt
 npx eas env:create --name EXPO_PUBLIC_API_URL \
-  --value https://devisia-amyn1.vercel.app \
+  --value https://devisia-bice.vercel.app \
   --environment production --environment preview --visibility plaintext
 
 npm run build:preview           # APK Android + build interne iOS
