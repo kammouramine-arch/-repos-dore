@@ -28,7 +28,7 @@
           "type": "detail",
           "settings": {
             "titre": "Livraison",
-            "txt": "<p>Expédition depuis la France sous 48 h ouvrées.<br>France métropolitaine et Corse — Colissimo à domicile : 2 à 3 jours ouvrés, 5,90 €. <strong>Offerte dès 49 € d'achat.</strong><br>Union européenne (Belgique, Luxembourg, Allemagne, Espagne, Italie…) — Colissimo International : 3 à 6 jours ouvrés, 9,90 €.<br>Nous ne livrons pas encore la Suisse ni le Royaume-Uni.</p>"
+            "txt": "<p>Expédition depuis la France sous 48 h ouvrées.<br>France métropolitaine et Corse — Colissimo à domicile : 2 à 3 jours ouvrés, 5,90 €. <strong>Offerte dès 49 € d'achat.</strong></p><p>Nous ne livrons qu'en France pour le moment. L'ouverture à la Belgique et au Luxembourg est prévue, mais nous préférons ne pas l'annoncer avant qu'elle soit réellement en place.</p>"
           }
         },
         "d5": {
