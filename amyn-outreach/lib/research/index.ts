@@ -8,7 +8,7 @@ import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/activity";
 import { OpenStreetMapSource } from "./osm";
 import { GooglePlacesSource } from "./google-places";
-import { SireneSource } from "./sirene";
+import { SireneSource } from "./sirene/index";
 import { resolveSector } from "./sectors";
 import type { ProspectSource, RawBusiness, SearchQuery } from "./types";
 
