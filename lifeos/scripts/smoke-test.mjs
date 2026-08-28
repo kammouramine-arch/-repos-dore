@@ -119,6 +119,12 @@ let confirmationRequired = false;
   pass rather than evidence of anything.
 */
 let routerTablesPresent = false;
+/*
+  Set by the schema check. Without it, everything that probes RLS reports a security
+  failure when the real cause is that the table does not exist yet — a true result for
+  the wrong reason, which sends you looking in the wrong place.
+*/
+let schemaPresent = false;
 /** Set when a model call fails, so the metering check can tell a refund from a bug. */
 let aiCallsFailed = false;
 
@@ -145,6 +151,7 @@ async function main() {
       else if (res.status >= 500) throw new Error(`${t} returned ${res.status}`);
     }
     assert(missing.length === 0, `tables not found: ${missing.join(', ')} — are the migrations applied?`);
+    schemaPresent = true;
     return `all ${core.length} core tables present`;
   });
 
@@ -155,7 +162,10 @@ async function main() {
     return 'email provider enabled';
   });
 
+  const schemaReady = () => (schemaPresent ? null : { skip: 'the schema is not applied to this project' });
+
   await check('Anonymous request cannot read user data', async () => {
+    if (schemaReady()) return schemaReady();
     const res = await rest('/profiles?select=id');
     // RLS must yield an empty set (or refuse) — never rows.
     if (res.status === 200) {
