@@ -225,7 +225,7 @@ séparé, produits séparés.
 | `ondee-theme.zip` | **Le thème Shopify prêt à installer** — 83 fichiers, 0 erreur `theme-check` |
 | `ondee-shopify/` | Sources du thème + guide d'installation |
 | `ondee-pages/` | Contenu des 8 pages : CGV, mentions légales, RGPD, livraison, à propos… |
-| `ondee-import/` | CSV d'import produits, payloads GraphQL, collections |
+| `ondee-import/` | **Script `setup-ondee.mjs`** qui crée produits, collections, pages et menus dans Shopify en une commande — plus le CSV d'import |
 | `ondee/DOSSIER.md` | Recherche, scoring des 12 candidats, preuves, fournisseur, économie unitaire, marque, offre, verdict |
 | `ondee/PUBLICITE.md` | 12 concepts publicitaires avec scripts, 30 idées de contenu organique |
 | `ondee/LANCEMENT.md` | **Le plan de lancement pas à pas** |

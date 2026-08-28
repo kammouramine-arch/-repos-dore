@@ -75,6 +75,8 @@
         checkout:    "/checkout"
       },
       moneyFormat: {{ shop.money_format | json }},
+      portOffertCents: {{ settings.seuil_port_offert_cents | default: 4900 }},
+      cartTotalCents: {{ cart.total_price | default: 0 }},
       strings: {
         added: "ajouté au panier",
         empty: {{ 'cart.general.empty' | t | json }},

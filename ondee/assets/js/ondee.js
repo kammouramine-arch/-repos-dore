@@ -103,25 +103,60 @@
     };
   })();
 
-  /* ── 7. Panier (localStorage) ───────────────────────────── */
+  /* ── 7. Panier ───────────────────────────────────────────
+     Deux modes :
+       · Shopify  → API AJAX /cart/*.js (window.ONDEE présent)
+       · Statique → localStorage (prévisualisation hors Shopify)
+     -------------------------------------------------------- */
+  var SHOPIFY = !!(window.ONDEE && window.ONDEE.routes);
+
+  function prixCts (centimes) {
+    return (centimes / 100).toLocaleString('fr-FR', { style: 'currency', currency: 'EUR' });
+  }
+
   var Panier = (function () {
     var CLE = 'ondee.panier.v1';
     var items = [];
-    try { items = JSON.parse(localStorage.getItem(CLE)) || []; } catch (e) { items = []; }
-
+    if (!SHOPIFY) {
+      try { items = JSON.parse(localStorage.getItem(CLE)) || []; } catch (e) { items = []; }
+    }
     function sauver () { try { localStorage.setItem(CLE, JSON.stringify(items)); } catch (e) {} }
     function total () { return items.reduce(function (s, i) { return s + i.prix * i.qte; }, 0); }
     function nombre () { return items.reduce(function (s, i) { return s + i.qte; }, 0); }
-
-    function rendre () {
-      var n = nombre();
+    function majCompteur (n) {
       $$('[data-panier-n]').forEach(function (e) { e.textContent = n; e.hidden = n === 0; });
-      $$('[data-panier-total]').forEach(function (e) { e.textContent = euro.format(total()); });
+    }
 
+    /* Barre de progression vers le port offert.
+       Le seuil vient des réglages du thème : il doit correspondre
+       exactement au profil d'expédition Shopify, sinon on ment. */
+    function majPortOffert (totalCents) {
+      var zone = $('[data-port-offert]');
+      if (!zone) return;
+      var seuil = (window.ONDEE && window.ONDEE.portOffertCents) || 4900;
+      if (!totalCents) { zone.hidden = true; return; }
+      zone.hidden = false;
+      var reste = seuil - totalCents;
+      var pct = Math.max(0, Math.min(100, (totalCents / seuil) * 100));
+      var txt = $('[data-port-offert-txt]', zone);
+      var jauge = $('[data-port-offert-jauge]', zone);
+      if (reste > 0) {
+        zone.classList.remove('port-offert--atteint');
+        if (txt) txt.innerHTML = 'Plus que <b>' + prixCts(reste) + '</b> pour la livraison offerte';
+      } else {
+        zone.classList.add('port-offert--atteint');
+        if (txt) txt.innerHTML = '<b>Livraison offerte</b> — c\'est acquis';
+      }
+      if (jauge) jauge.style.width = pct + '%';
+    }
+
+    function rendreStatique () {
+      majCompteur(nombre());
+      majPortOffert(Math.round(total() * 100));
+      $$('[data-panier-total]').forEach(function (e) { e.textContent = euro.format(total()); });
       var corps = $('[data-panier-corps]');
       if (!corps) return;
       if (!items.length) { corps.innerHTML = '<p class="tiroir__vide">Votre panier est vide.</p>'; return; }
-
       corps.innerHTML = items.map(function (i, idx) {
         return '<div class="ligne">' +
           '<div class="ligne__v"><img src="' + (i.img || 'assets/img/pommeau.svg') + '" alt="" width="56" height="56"></div>' +
@@ -129,16 +164,50 @@
           (i.opt ? '<div class="ligne__o">' + i.opt + '</div>' : '') +
           '<div class="ligne__o">Quantité : ' + i.qte + '</div>' +
           '<button class="ligne__sup" type="button" data-sup="' + idx + '">Retirer</button></div>' +
-          '<div class="ligne__p">' + euro.format(i.prix * i.qte) + '</div>' +
-          '</div>';
+          '<div class="ligne__p">' + euro.format(i.prix * i.qte) + '</div></div>';
       }).join('');
-
       $$('[data-sup]', corps).forEach(function (b) {
         b.addEventListener('click', function () {
           items.splice(parseInt(b.getAttribute('data-sup'), 10), 1);
-          sauver(); rendre();
+          sauver(); rendreStatique();
         });
       });
+    }
+
+    function rendreShopify (panier) {
+      majCompteur(panier.item_count);
+      majPortOffert(panier.total_price);
+      $$('[data-panier-total]').forEach(function (e) { e.textContent = prixCts(panier.total_price); });
+      var corps = $('[data-panier-corps]');
+      if (!corps) return;
+      if (!panier.item_count) { corps.innerHTML = '<p class="tiroir__vide">Votre panier est vide.</p>'; return; }
+      corps.innerHTML = panier.items.map(function (i, idx) {
+        var opt = (i.variant_title && i.variant_title.indexOf('Default') === -1) ? i.variant_title : '';
+        return '<div class="ligne">' +
+          '<div class="ligne__v">' + (i.image ? '<img src="' + i.image + '" alt="" width="56" height="56" loading="lazy">' : '') + '</div>' +
+          '<div><div class="ligne__t">' + i.product_title + '</div>' +
+          (opt ? '<div class="ligne__o">' + opt + '</div>' : '') +
+          '<div class="ligne__o">Quantité : ' + i.quantity + '</div>' +
+          '<button class="ligne__sup" type="button" data-sup-ligne="' + (idx + 1) + '">Retirer</button></div>' +
+          '<div class="ligne__p">' + prixCts(i.final_line_price) + '</div></div>';
+      }).join('');
+      $$('[data-sup-ligne]', corps).forEach(function (b) {
+        b.addEventListener('click', function () { majLigne(parseInt(b.getAttribute('data-sup-ligne'), 10), 0); });
+      });
+    }
+
+    function rafraichir () {
+      if (!SHOPIFY) { rendreStatique(); return Promise.resolve(); }
+      return fetch(window.ONDEE.routes.cart, { headers: { 'Accept': 'application/json' } })
+        .then(function (r) { return r.json(); }).then(rendreShopify).catch(function () {});
+    }
+
+    function majLigne (ligne, qte) {
+      return fetch(window.ONDEE.routes.cart_change, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify({ line: ligne, quantity: qte })
+      }).then(function (r) { return r.json(); }).then(rendreShopify);
     }
 
     function ouvrir (o) {
@@ -148,16 +217,32 @@
       if (t) t.setAttribute('aria-hidden', String(!v));
     }
 
-    return {
-      ajouter: function (item) {
-        var e = items.filter(function (i) { return i.ref === item.ref && i.opt === item.opt; })[0];
-        if (e) e.qte += item.qte; else items.push(item);
-        sauver(); rendre(); ouvrir(true);
-        toast(item.titre + ' ajouté au panier');
-      },
-      rendre: rendre,
-      ouvrir: ouvrir
-    };
+    function ajouter (item) {
+      if (SHOPIFY) {
+        if (!item.variantId) { toast('Variante indisponible.'); return Promise.resolve(); }
+        return fetch(window.ONDEE.routes.cart_add, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ items: [{ id: item.variantId, quantity: item.qte || 1 }] })
+        })
+          .then(function (r) { return r.json().then(function (d) { return { ok: r.ok, d: d }; }); })
+          .then(function (res) {
+            if (!res.ok) { toast(res.d.description || res.d.message || 'Ajout impossible.'); return; }
+            return rafraichir().then(function () {
+              ouvrir(true);
+              toast(item.titre + ' ajouté au panier');
+            });
+          })
+          .catch(function () { toast('Ajout impossible. Réessayez.'); });
+      }
+      var e = items.filter(function (i) { return i.ref === item.ref && i.opt === item.opt; })[0];
+      if (e) e.qte += item.qte; else items.push(item);
+      sauver(); rendreStatique(); ouvrir(true);
+      toast(item.titre + ' ajouté au panier');
+      return Promise.resolve();
+    }
+
+    return { ajouter: ajouter, rendre: rafraichir, ouvrir: ouvrir, majLigne: majLigne, estShopify: SHOPIFY };
   })();
   Panier.rendre();
 
@@ -166,7 +251,7 @@
   document.addEventListener('keydown', function (e) { if (e.key === 'Escape') Panier.ouvrir(false); });
 
   var chk = $('[data-checkout]');
-  if (chk) chk.addEventListener('click', function (e) {
+  if (chk && !SHOPIFY) chk.addEventListener('click', function (e) {
     e.preventDefault();
     toast('Démo statique : branchez le panier Shopify pour finaliser.');
   });
@@ -176,6 +261,7 @@
     b.addEventListener('click', function () {
       $$('[data-ajout]').forEach(function (o) { o.setAttribute('aria-pressed', String(o === b)); });
       Panier.ajouter({
+        variantId: b.getAttribute('data-variant-id'),
         ref:   b.getAttribute('data-ref'),
         titre: b.getAttribute('data-titre'),
         opt:   b.getAttribute('data-opt') || '',
@@ -186,6 +272,19 @@
     });
   });
 
+  /* Quantité sur la page panier Shopify */
+  $$('[data-qte-panier]').forEach(function (g) {
+    var input = $('input', g);
+    $$('button', g).forEach(function (b) {
+      b.addEventListener('click', function () {
+        var ligne = parseInt(b.getAttribute('data-ligne'), 10);
+        var d = b.getAttribute('data-qte-pas') === '+' ? 1 : -1;
+        var q = Math.max(0, (parseInt(input.value, 10) || 1) + d);
+        input.value = q;
+        if (SHOPIFY) Panier.majLigne(ligne, q).then(function () { window.location.reload(); });
+      });
+    });
+  });
   /* ── 8. LE RAPPORT D'EAU — API Hub'Eau + geo.api.gouv.fr ──
      Deux API publiques françaises, sans clé, avec CORS ouvert.
        · geo.api.gouv.fr        → commune / code postal → code INSEE
@@ -484,6 +583,23 @@
         if (barre > prix) { e.textContent = '− ' + Math.round((1 - prix / barre) * 100) + ' %'; e.hidden = false; }
         else e.hidden = true;
       });
+
+      /* Shopify : on répercute la variante choisie dans le formulaire,
+         et on affiche le prix formaté par Liquid plutôt que le nôtre. */
+      var vid = p.getAttribute('data-variant-id');
+      if (vid) {
+        $$('[data-champ-variante]').forEach(function (c) { c.value = vid; });
+        var pf = p.getAttribute('data-prix-fmt'), bf = p.getAttribute('data-barre-fmt');
+        if (pf) $$('[data-prix-actuel]').forEach(function (e) { e.textContent = pf; });
+        if (bf && barre > prix) $$('[data-prix-barre]').forEach(function (e) { e.textContent = bf; });
+      }
+
+      /* Bouton d'ajout désactivé si la variante est en rupture */
+      var dispo = p.getAttribute('data-dispo');
+      if (dispo !== null) {
+        var ko = dispo === 'false';
+        $$('[data-pp-ajout],[data-pp-acheter]').forEach(function (b) { b.disabled = ko; });
+      }
     }
     packs.forEach(function (p) { p.addEventListener('click', function () { choisir(p); }); });
     choisir(packs.filter(function (p) { return p.getAttribute('aria-pressed') === 'true'; })[0] || packs[0]);
@@ -500,24 +616,58 @@
     });
   });
 
-  /* ── 13. Ajout au panier depuis la fiche produit ────────── */
-  $$('[data-pp-ajout]').forEach(function (b) {
-    b.addEventListener('click', function () {
-      var zone  = $('[data-packs]');
-      var actif = zone ? $$('.pack', zone).filter(function (p) { return p.getAttribute('aria-pressed') === 'true'; })[0] : null;
-      var qte   = parseInt(($('[data-qte] input') || {}).value, 10) || 1;
-      var coul  = ($('[data-opt-valeur="couleur"]') || {}).textContent || '';
-      if (!actif) return;
-      Panier.ajouter({
-        ref:   actif.getAttribute('data-ref'),
-        titre: actif.getAttribute('data-titre'),
-        opt:   [coul.trim(), actif.getAttribute('data-opt') || ''].filter(Boolean).join(' · '),
-        prix:  parseFloat(actif.getAttribute('data-prix')),
-        qte:   qte,
+  /* ── 13. Formulaire produit ─────────────────────────────── */
+  (function () {
+    var form = $('[data-form-produit]');
+
+    function variantePack () {
+      var zone = $('[data-packs]');
+      if (!zone) return null;
+      return $$('.pack', zone).filter(function (p) { return p.getAttribute('aria-pressed') === 'true'; })[0] || null;
+    }
+    function qteChoisie () {
+      var i = $('[data-qte] input');
+      return Math.max(1, parseInt(i && i.value, 10) || 1);
+    }
+
+    function ajouter () {
+      var actif = variantePack();
+      var vid = (form && $('[data-champ-variante]', form) || {}).value ||
+                (actif && actif.getAttribute('data-variant-id'));
+      return Panier.ajouter({
+        variantId: vid,
+        ref:   actif ? actif.getAttribute('data-ref') : '',
+        titre: (actif && actif.getAttribute('data-titre')) || document.title,
+        opt:   actif ? (actif.getAttribute('data-opt') || '') : '',
+        prix:  actif ? parseFloat(actif.getAttribute('data-prix')) : 0,
+        qte:   qteChoisie(),
         img:   'assets/img/pommeau.svg'
       });
+    }
+
+    /* Ajout au panier — on intercepte la soumission pour rester sur la page */
+    if (form) {
+      form.addEventListener('submit', function (e) {
+        e.preventDefault();
+        ajouter();
+      });
+    }
+    $$('[data-pp-ajout]').forEach(function (b) {
+      if (form && form.contains(b)) return;   // déjà géré par le submit
+      b.addEventListener('click', function (e) { e.preventDefault(); ajouter(); });
     });
-  });
+
+    /* Acheter maintenant — ajout puis redirection vers le paiement */
+    $$('[data-pp-acheter]').forEach(function (b) {
+      b.addEventListener('click', function (e) {
+        e.preventDefault();
+        var r = ajouter();
+        if (r && r.then && Panier.estShopify) {
+          r.then(function () { window.location = window.ONDEE.routes.checkout; });
+        }
+      });
+    });
+  })();
 
   /* ── 14. Barre d'achat collante (mobile) ────────────────── */
   (function () {

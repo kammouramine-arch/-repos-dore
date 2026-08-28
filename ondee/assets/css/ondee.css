@@ -617,3 +617,66 @@ html:not(.js) .rev{opacity:1;transform:none}
 .champ__l{flex-wrap:wrap;gap:.25rem 1rem}
 .champ__l > span:last-child{color:var(--encre-3);opacity:.8}
 .pack__ruban{top:-8px}
+
+/* ── 25. Champs de formulaire (Shopify) ─────────────────────
+   Contact, connexion, adresses, recherche, mot de passe. */
+.saisie{
+  width:100%;min-height:52px;padding:.75rem 1rem;border-radius:var(--r);
+  border:1px solid var(--trait-fort);background:var(--papier);color:var(--encre);
+  font-size:var(--t-base);transition:border-color .2s var(--ease)
+}
+.saisie:focus{outline:none;border-color:var(--petrole);box-shadow:0 0 0 3px rgba(14,58,69,.1)}
+textarea.saisie{min-height:9rem;resize:vertical;line-height:1.6}
+select.saisie{appearance:none;background-image:linear-gradient(45deg,transparent 50%,var(--encre-3) 50%),linear-gradient(135deg,var(--encre-3) 50%,transparent 50%);background-position:calc(100% - 20px) 24px,calc(100% - 15px) 24px;background-size:5px 5px;background-repeat:no-repeat}
+.champ__l label,label.champ__l{cursor:pointer}
+.errors,.form-errors{color:var(--alerte);font-size:var(--t-sm);margin-bottom:1rem}
+.errors ul{list-style:disc;padding-left:1.2rem}
+
+/* ── 26. Contenu riche des pages Shopify ────────────────── */
+.page-rte{font-size:var(--t-base);line-height:1.75;color:var(--encre-2)}
+.page-rte > * + *{margin-top:1.1rem}
+.page-rte h2{font-size:var(--t-2xl);color:var(--encre);margin-top:2.75rem;font-weight:400}
+.page-rte h3{font-size:var(--t-lg);color:var(--encre);margin-top:2rem;font-weight:500}
+.page-rte h2:first-child,.page-rte h3:first-child{margin-top:0}
+.page-rte ul,.page-rte ol{padding-left:1.3rem;display:grid;gap:.5rem}
+.page-rte ul{list-style:disc}
+.page-rte ol{list-style:decimal}
+.page-rte a{border-bottom:1px solid var(--trait-fort);transition:border-color .2s var(--ease)}
+.page-rte a:hover{border-color:var(--encre)}
+.page-rte strong{color:var(--encre);font-weight:600}
+.page-rte table{width:100%;border-collapse:collapse;font-size:var(--t-sm);margin-block:1.5rem;display:block;overflow-x:auto}
+.page-rte th,.page-rte td{padding:.7rem .9rem;border:1px solid var(--trait);text-align:left;vertical-align:top}
+.page-rte th{background:var(--papier);font-weight:600;color:var(--encre);white-space:nowrap}
+.page-rte blockquote{border-left:2px solid var(--petrole);padding-left:1.25rem;color:var(--encre-2);font-style:normal}
+.page-rte hr{border:0;border-top:1px solid var(--trait);margin-block:2.5rem}
+
+/* ── 27. Panier — page complète ─────────────────────────── */
+.panier-page .couche{align-items:center}
+.panier-page .qte{border-color:var(--trait)}
+.panier-page .qte input{width:38px}
+.panier-page .qte button{width:36px;height:42px}
+
+/* ── 28. Barre de progression vers le port offert ───────────
+   Élément de conversion honnête : le seuil affiché est le seuil
+   réel du profil d'expédition, et la jauge reflète le panier. */
+.port-offert{
+  padding:.9rem var(--gut);border-bottom:1px solid var(--trait);
+  background:var(--eau-pale)
+}
+.port-offert[hidden]{display:none}
+.port-offert__t{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--encre-2);
+  margin-bottom:.55rem;line-height:1.45
+}
+.port-offert__t b{color:var(--petrole);font-weight:500}
+.port-offert__rail{
+  height:4px;border-radius:2px;background:rgba(14,58,69,.14);overflow:hidden
+}
+.port-offert__rail span{
+  display:block;height:100%;width:0;border-radius:2px;background:var(--petrole);
+  transition:width .45s var(--ease)
+}
+.port-offert--atteint{background:rgba(61,107,74,.1)}
+.port-offert--atteint .port-offert__rail span{background:var(--vert)}
+.port-offert--atteint .port-offert__t b{color:var(--vert)}
+@media (prefers-reduced-motion:reduce){.port-offert__rail span{transition:none}}

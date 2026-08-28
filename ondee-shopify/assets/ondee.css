@@ -655,3 +655,28 @@ select.saisie{appearance:none;background-image:linear-gradient(45deg,transparent
 .panier-page .qte{border-color:var(--trait)}
 .panier-page .qte input{width:38px}
 .panier-page .qte button{width:36px;height:42px}
+
+/* ── 28. Barre de progression vers le port offert ───────────
+   Élément de conversion honnête : le seuil affiché est le seuil
+   réel du profil d'expédition, et la jauge reflète le panier. */
+.port-offert{
+  padding:.9rem var(--gut);border-bottom:1px solid var(--trait);
+  background:var(--eau-pale)
+}
+.port-offert[hidden]{display:none}
+.port-offert__t{
+  font-family:var(--mono);font-size:var(--t-xs);color:var(--encre-2);
+  margin-bottom:.55rem;line-height:1.45
+}
+.port-offert__t b{color:var(--petrole);font-weight:500}
+.port-offert__rail{
+  height:4px;border-radius:2px;background:rgba(14,58,69,.14);overflow:hidden
+}
+.port-offert__rail span{
+  display:block;height:100%;width:0;border-radius:2px;background:var(--petrole);
+  transition:width .45s var(--ease)
+}
+.port-offert--atteint{background:rgba(61,107,74,.1)}
+.port-offert--atteint .port-offert__rail span{background:var(--vert)}
+.port-offert--atteint .port-offert__t b{color:var(--vert)}
+@media (prefers-reduced-motion:reduce){.port-offert__rail span{transition:none}}

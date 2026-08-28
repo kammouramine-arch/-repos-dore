@@ -127,8 +127,32 @@
       $$('[data-panier-n]').forEach(function (e) { e.textContent = n; e.hidden = n === 0; });
     }
 
+    /* Barre de progression vers le port offert.
+       Le seuil vient des réglages du thème : il doit correspondre
+       exactement au profil d'expédition Shopify, sinon on ment. */
+    function majPortOffert (totalCents) {
+      var zone = $('[data-port-offert]');
+      if (!zone) return;
+      var seuil = (window.ONDEE && window.ONDEE.portOffertCents) || 4900;
+      if (!totalCents) { zone.hidden = true; return; }
+      zone.hidden = false;
+      var reste = seuil - totalCents;
+      var pct = Math.max(0, Math.min(100, (totalCents / seuil) * 100));
+      var txt = $('[data-port-offert-txt]', zone);
+      var jauge = $('[data-port-offert-jauge]', zone);
+      if (reste > 0) {
+        zone.classList.remove('port-offert--atteint');
+        if (txt) txt.innerHTML = 'Plus que <b>' + prixCts(reste) + '</b> pour la livraison offerte';
+      } else {
+        zone.classList.add('port-offert--atteint');
+        if (txt) txt.innerHTML = '<b>Livraison offerte</b> — c\'est acquis';
+      }
+      if (jauge) jauge.style.width = pct + '%';
+    }
+
     function rendreStatique () {
       majCompteur(nombre());
+      majPortOffert(Math.round(total() * 100));
       $$('[data-panier-total]').forEach(function (e) { e.textContent = euro.format(total()); });
       var corps = $('[data-panier-corps]');
       if (!corps) return;
@@ -152,6 +176,7 @@
 
     function rendreShopify (panier) {
       majCompteur(panier.item_count);
+      majPortOffert(panier.total_price);
       $$('[data-panier-total]').forEach(function (e) { e.textContent = prixCts(panier.total_price); });
       var corps = $('[data-panier-corps]');
       if (!corps) return;

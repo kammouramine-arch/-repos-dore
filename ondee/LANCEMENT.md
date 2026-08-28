@@ -19,7 +19,9 @@ compte, un paiement, une signature ou une décision d'entreprise.
 | ✅ | **Thème Shopify complet — 83 fichiers, 0 erreur theme-check** | `ondee-shopify/` + `ondee-theme.zip` |
 | ✅ | Toute la copie du site, en français | dans le thème |
 | ✅ | 8 pages de contenu, dont CGV, mentions légales, RGPD | `ondee-pages/` |
-| ✅ | CSV d'import produits + payloads GraphQL + collections | `ondee-import/` |
+| ✅ | **Script de paramétrage Shopify automatique**, testé de bout en bout | `ondee-import/setup-ondee.mjs` |
+| ✅ | CSV d'import produits + définition des collections | `ondee-import/` |
+| ✅ | Barre de progression vers le port offert dans le panier | dans le thème |
 | ✅ | 12 concepts publicitaires avec scripts | `PUBLICITE.md` |
 | ✅ | 30 idées de contenu organique | `PUBLICITE.md` |
 | ✅ | Outil « rapport d'eau » branché sur l'API du ministère | testé sur données réelles |
@@ -31,11 +33,29 @@ compte, un paiement, une signature ou une décision d'entreprise.
 
 ### Semaine 1 — le produit et la boutique
 
-**1. Rétablir l'accès Shopify au store ONDÉE.** ⚠️ *Bloquant pour tout le reste.*
-Le connecteur Shopify demande une ré-autorisation que je ne peux pas faire seul.
-Reconnectez-le depuis vos paramètres de connecteurs claude.ai, en **sélectionnant
-le store ONDÉE** (et non RÉVA). Dites-moi ensuite « c'est bon » : je vérifie avec
-`get-shop-info`, puis je crée produits, collections et pages en une passe.
+**1. Peupler le store ONDÉE — 5 minutes, en autonomie.**
+
+Vous n'avez plus besoin que je sois connecté. Le script
+**`ondee-import/setup-ondee.mjs`** fait tout le travail d'API à ma place :
+produits, variantes, prix barrés, poids, collections, les 8 pages, les 2 menus,
+la publication et le stock.
+
+```bash
+cd ondee-import
+SHOP=votre-boutique.myshopify.com TOKEN=shpat_xxx node setup-ondee.mjs --dry-run
+SHOP=votre-boutique.myshopify.com TOKEN=shpat_xxx node setup-ondee.mjs
+```
+
+Comment obtenir le jeton : `ondee-import/README.md`.
+
+Trois garanties, toutes testées :
+- **Il refuse d'écrire dans RÉVA** — il lit le nom du store et s'arrête (code 2).
+- **Il est idempotent** — relancé, il met à jour au lieu de dupliquer.
+- **Il laisse en brouillon toute page légale contenant encore un marqueur `[[…]]`.**
+
+*Si vous préférez que je le fasse moi-même, il faut que le connecteur Shopify
+soit ré-autorisé côté claude.ai sur le store ONDÉE — de mon côté l'appel
+échoue toujours avec « token expired ».*
 
 **2. Commander l'échantillon Calux.** 10 $, 3-5 jours par DHL.
 Lien dans `DOSSIER.md` partie 4. Demandez **en même temps, par écrit** :
