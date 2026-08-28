@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { ActivityIndicator, View } from 'react-native';
+import { ActivityIndicator, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/lib/auth';
@@ -18,12 +18,50 @@ void SplashScreen.preventAutoHideAsync();
  * requête authentifiée n'est émise.
  */
 function RootNavigator() {
-  const { status } = useAuth();
+  const { status, offline, refresh } = useAuth();
   const connected = status === 'connecte';
 
   React.useEffect(() => {
-    if (status !== 'chargement') void SplashScreen.hideAsync();
-  }, [status]);
+    if (status !== 'chargement' || offline) void SplashScreen.hideAsync();
+  }, [status, offline]);
+
+  // Session existante mais serveur injoignable : on ne déconnecte pas l'artisan,
+  // on lui propose de réessayer. Son jeton reste dans le trousseau.
+  if (offline) {
+    return (
+      <View
+        style={{
+          flex: 1,
+          alignItems: 'center',
+          justifyContent: 'center',
+          backgroundColor: colors.canvas,
+          padding: 32,
+          gap: 12,
+        }}
+      >
+        <Text style={{ fontSize: 17, fontWeight: '600', color: colors.ink, textAlign: 'center' }}>
+          Connexion indisponible
+        </Text>
+        <Text style={{ fontSize: 14, color: colors.subtle, textAlign: 'center' }}>
+          Vos données sont en sécurité. Vérifiez votre réseau, puis réessayez.
+        </Text>
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => void refresh()}
+          style={({ pressed }) => ({
+            marginTop: 8,
+            paddingVertical: 12,
+            paddingHorizontal: 24,
+            borderRadius: 12,
+            backgroundColor: colors.accent,
+            opacity: pressed ? 0.85 : 1,
+          })}
+        >
+          <Text style={{ color: colors.white, fontWeight: '600', fontSize: 15 }}>Réessayer</Text>
+        </Pressable>
+      </View>
+    );
+  }
 
   if (status === 'chargement') {
     return (

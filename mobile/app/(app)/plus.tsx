@@ -24,19 +24,19 @@ export default function PlusScreen() {
     {
       icon: 'book-outline',
       label: 'Catalogue de prix',
-      hint: 'Se gère depuis le web',
+      hint: 'Sur le web · connexion demandée',
       action: () => void Linking.openURL(`${API_URL}/app/catalogue`),
     },
     {
       icon: 'settings-outline',
       label: 'Paramètres de l’entreprise',
-      hint: 'Logo, TVA, conditions',
+      hint: 'Sur le web · logo, TVA, conditions',
       action: () => void Linking.openURL(`${API_URL}/app/parametres/entreprise`),
     },
     {
       icon: 'bar-chart-outline',
       label: 'Analytique',
-      hint: 'Performance sur 90 jours',
+      hint: 'Sur le web · 90 jours',
       action: () => void Linking.openURL(`${API_URL}/app/analytique`),
     },
   ];

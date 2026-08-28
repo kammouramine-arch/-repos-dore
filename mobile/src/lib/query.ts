@@ -29,22 +29,43 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
     fetcherRef.current = fetcher;
   });
 
+  // Un écran monté deux fois — navigation par onglets, remontage de React —
+  // ne doit pas consommer deux fois le forfait de l'artisan : tant qu'une
+  // requête identique est en vol, on s'y raccroche au lieu d'en lancer une autre.
+  const inFlight = React.useRef<Promise<T> | null>(null);
+  // Une réponse qui arrive après le démontage ne doit rien écrire.
+  const mounted = React.useRef(true);
+  React.useEffect(() => {
+    mounted.current = true;
+    return () => {
+      mounted.current = false;
+    };
+  }, []);
+
   const run = React.useCallback(async (mode: 'load' | 'refresh') => {
     if (mode === 'refresh') setRefreshing(true);
     else setLoading(true);
     setError(null);
 
     try {
-      setData(await fetcherRef.current());
+      const pending = inFlight.current ?? fetcherRef.current();
+      inFlight.current = pending;
+      const result = await pending;
+      if (mounted.current) setData(result);
     } catch (cause) {
-      setError(
-        cause instanceof DevisiaApiError
-          ? cause.message
-          : 'Connexion impossible. Vérifiez votre réseau.',
-      );
+      if (mounted.current) {
+        setError(
+          cause instanceof DevisiaApiError
+            ? cause.message
+            : 'Connexion impossible. Vérifiez votre réseau.',
+        );
+      }
     } finally {
-      setLoading(false);
-      setRefreshing(false);
+      inFlight.current = null;
+      if (mounted.current) {
+        setLoading(false);
+        setRefreshing(false);
+      }
     }
   }, []);
 

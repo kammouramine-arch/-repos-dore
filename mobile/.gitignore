@@ -1,4 +1,8 @@
 node_modules/
+
+# Projets natifs régénérés par `expo prebuild` — jamais versionnés (flux managé).
+/ios/
+/android/
 .expo/
 dist/
 web-build/

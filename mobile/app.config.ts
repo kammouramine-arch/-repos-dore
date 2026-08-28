@@ -6,8 +6,41 @@ import type { ExpoConfig } from 'expo/config';
  * L'URL de l'API est injectée à la construction : une même base de code sert
  * le développement local, les builds de préversion et la production.
  */
-const API_URL = process.env.EXPO_PUBLIC_API_URL ?? 'http://localhost:3000';
 const VERSION = '1.0.0';
+
+/**
+ * URL de l'API, injectée à la construction.
+ *
+ * En développement, l'API locale sert de valeur par défaut. Pour un build
+ * distribuable, l'URL doit être fournie explicitement : un binaire pointant vers
+ * `localhost` s'installerait sans erreur et serait inutilisable sur le terrain,
+ * la construction échoue donc plutôt que de livrer une application muette.
+ */
+function resolveApiUrl(): string {
+  const provided = process.env.EXPO_PUBLIC_API_URL?.trim();
+  const distributable = process.env.EAS_BUILD === 'true';
+
+  if (!provided) {
+    if (distributable) {
+      throw new Error(
+        'EXPO_PUBLIC_API_URL est absente. Définissez-la avant de construire :\n' +
+          '  eas env:create --name EXPO_PUBLIC_API_URL --value https://<votre-projet>.vercel.app ' +
+          '--environment production --visibility plaintext',
+      );
+    }
+    return 'http://localhost:3000';
+  }
+
+  if (distributable && /localhost|127\.0\.0\.1|^http:\/\//.test(provided)) {
+    throw new Error(
+      `EXPO_PUBLIC_API_URL vaut « ${provided} ». Un build distribuable exige une URL HTTPS publique.`,
+    );
+  }
+
+  return provided;
+}
+
+const API_URL = resolveApiUrl();
 
 const config: ExpoConfig = {
   name: 'DEVISIA',
@@ -24,7 +57,6 @@ const config: ExpoConfig = {
     supportsTablet: true,
     bundleIdentifier: 'fr.devisia.app',
     buildNumber: VERSION,
-    associatedDomains: ['applinks:devisia.fr'],
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSMicrophoneUsageDescription:
@@ -33,6 +65,8 @@ const config: ExpoConfig = {
         'DEVISIA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
       NSPhotoLibraryUsageDescription:
         'DEVISIA accède à vos photos pour joindre des images de chantier à vos devis.',
+      NSFaceIDUsageDescription:
+        'DEVISIA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
     },
   },
 
@@ -49,13 +83,13 @@ const config: ExpoConfig = {
       'android.permission.READ_MEDIA_IMAGES',
       'android.permission.POST_NOTIFICATIONS',
     ],
-    intentFilters: [
-      {
-        action: 'VIEW',
-        autoVerify: true,
-        data: [{ scheme: 'https', host: 'devisia.fr', pathPrefix: '/devis' }],
-        category: ['BROWSABLE', 'DEFAULT'],
-      },
+    // Ajoutées automatiquement par React Native et certaines dépendances, mais
+    // inutiles à DEVISIA : elles déclencheraient des questions de conformité
+    // lors de la revue Google Play.
+    blockedPermissions: [
+      'android.permission.SYSTEM_ALERT_WINDOW',
+      'android.permission.READ_EXTERNAL_STORAGE',
+      'android.permission.WRITE_EXTERNAL_STORAGE',
     ],
   },
 
@@ -66,6 +100,11 @@ const config: ExpoConfig = {
 
   plugins: [
     'expo-router',
+    // Applique `userInterfaceStyle` sur Android : l'interface DEVISIA est
+    // dessinée en clair, elle ne doit pas suivre le thème sombre du système.
+    'expo-system-ui',
+    'expo-font',
+    'expo-asset',
     [
       'expo-splash-screen',
       {
@@ -75,7 +114,13 @@ const config: ExpoConfig = {
       },
     ],
     'expo-status-bar',
-    'expo-secure-store',
+    [
+      'expo-secure-store',
+      {
+        faceIDPermission:
+          'DEVISIA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
+      },
+    ],
     'expo-sharing',
     'expo-web-browser',
     [
@@ -97,11 +142,17 @@ const config: ExpoConfig = {
     [
       'expo-notifications',
       {
+        icon: './assets/notification-icon.png',
         color: '#2547E0',
         defaultChannel: 'default',
       },
     ],
   ],
+
+  // Les liens universels (associatedDomains iOS / intentFilters Android) sont
+  // volontairement absents : ils exigent un domaine dont le projet est
+  // propriétaire, pour y publier les fichiers de vérification. Le schéma
+  // `devisia://` reste actif et suffit à la navigation interne.
 
   experiments: { typedRoutes: true },
 

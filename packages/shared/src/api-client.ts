@@ -40,8 +40,32 @@ export class DevisiaApiError extends Error {
   }
 }
 
+/** Délai au-delà duquel une requête est abandonnée (réseau de chantier). */
+export const DEFAULT_TIMEOUT_MS = 20_000;
+
+/**
+ * Construit l'erreur rendue lorsque la requête n'a jamais atteint le serveur :
+ * pas de réseau, DNS injoignable, ou délai dépassé. Le code `NETWORK` permet
+ * aux écrans de distinguer une panne de connexion d'un refus du serveur.
+ */
+function networkError(cause: unknown): DevisiaApiError {
+  const aborted = cause instanceof Error && cause.name === 'AbortError';
+  return new DevisiaApiError(
+    {
+      code: 'NETWORK',
+      message: aborted
+        ? 'Le serveur met trop de temps à répondre. Vérifiez votre connexion.'
+        : 'Pas de connexion. Vérifiez votre réseau et réessayez.',
+      retryable: true,
+    },
+    0,
+  );
+}
+
 export interface ApiClientOptions {
   baseUrl: string;
+  /** Délai maximal par requête, en millisecondes. */
+  timeoutMs?: number;
   /** Renvoie le jeton courant (mobile) ; absent, les cookies sont utilisés. */
   getToken?: () => Promise<string | null> | string | null;
   /** Appelé lorsque le serveur répond 401 : permet de déconnecter proprement. */
@@ -58,6 +82,23 @@ export interface UploadFile {
 export function createApiClient(options: ApiClientOptions) {
   const doFetch = options.fetchImpl ?? fetch;
   const base = options.baseUrl.replace(/\/$/, '');
+  const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+
+  /**
+   * Enveloppe chaque appel : délai maximal, et traduction des pannes réseau en
+   * `DevisiaApiError` afin qu'aucun écran ne reçoive un `TypeError` brut.
+   */
+  async function send(url: string, init: RequestInit): Promise<Response> {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      return await doFetch(url, { ...init, signal: controller.signal });
+    } catch (cause) {
+      throw networkError(cause);
+    } finally {
+      clearTimeout(timer);
+    }
+  }
 
   async function authHeaders(): Promise<Record<string, string>> {
     if (!options.getToken) return {};
@@ -97,7 +138,7 @@ export function createApiClient(options: ApiClientOptions) {
     init: RequestInit & { json?: unknown } = {},
   ): Promise<T> {
     const { json, headers, ...rest } = init;
-    const response = await doFetch(`${base}${path}`, {
+    const response = await send(`${base}${path}`, {
       ...rest,
       headers: {
         ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
@@ -114,7 +155,7 @@ export function createApiClient(options: ApiClientOptions) {
     path: string,
     form: FormData,
   ): Promise<T> {
-    const response = await doFetch(`${base}${path}`, {
+    const response = await send(`${base}${path}`, {
       method: 'POST',
       headers: await authHeaders(),
       body: form,

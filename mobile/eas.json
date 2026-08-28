@@ -14,15 +14,11 @@
     "preview": {
       "distribution": "internal",
       "android": { "buildType": "apk" },
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://preprod.devisia.fr"
-      }
+      "channel": "preview"
     },
     "production": {
       "autoIncrement": true,
-      "env": {
-        "EXPO_PUBLIC_API_URL": "https://app.devisia.fr"
-      }
+      "channel": "production"
     }
   },
   "submit": {

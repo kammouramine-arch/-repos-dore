@@ -378,18 +378,41 @@ npm start                       # Expo Go / build de développement
 ### Builds et publication
 
 ```bash
+npx eas login
 npx eas init                    # crée le projet EAS (une seule fois)
+
+# URL de l'API, définie une fois côté EAS plutôt que figée dans le dépôt
+npx eas env:create --name EXPO_PUBLIC_API_URL \
+  --value https://<votre-projet>.vercel.app \
+  --environment production --environment preview --visibility plaintext
+
 npm run build:preview           # APK Android + build interne iOS
 npm run build:production        # builds stores
 npm run submit:ios              # App Store Connect
 npm run submit:android          # Google Play
 ```
 
-La configuration est prête (`app.config.ts`, `eas.json`) : identifiants de
-bundle, permissions rédigées en français, icônes, écran de démarrage, liens
-profonds `devisia://` et `https://devisia.fr/devis/...`, canal de notification
-Android. Seuls les identifiants de comptes développeur restent à renseigner —
-voir « Credentials à fournir ».
+La configuration native est prête (`app.config.ts`, `eas.json`) : identifiants de
+bundle `fr.devisia.app` sur les deux plateformes, permissions rédigées en
+français, icônes, écran de démarrage, schéma `devisia://`, canal de notification
+Android, et retrait explicite des permissions Android superflues ajoutées par les
+dépendances (`SYSTEM_ALERT_WINDOW`, `READ/WRITE_EXTERNAL_STORAGE`), qui
+alourdiraient inutilement la revue Google Play.
+
+**`EXPO_PUBLIC_API_URL` n'est pas versionnée.** Un build EAS échoue
+volontairement si elle est absente, vaut `localhost` ou n'est pas en HTTPS :
+une application distribuée qui ne joint pas son backend s'installe sans erreur
+et ne se voit qu'à l'usage. La contrepartie est qu'il faut la définir une fois,
+avec la commande ci-dessus.
+
+**Liens universels.** Ils sont volontairement absents : ils exigent un domaine
+dont le projet est propriétaire, pour y publier les fichiers de vérification
+d'Apple et de Google. Le schéma `devisia://` couvre la navigation interne. Pour
+les activer plus tard, ajoutez `ios.associatedDomains` et
+`android.intentFilters` dans `app.config.ts` une fois le domaine en place.
+
+Seuls les identifiants de comptes développeur restent à renseigner — voir
+« Credentials à fournir ».
 
 ## Tests
 

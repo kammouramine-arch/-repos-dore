@@ -18,6 +18,8 @@ export interface ApiError {
     | 'RATE_LIMITED'
     | 'PLAN_LIMIT'
     | 'PROVIDER_UNAVAILABLE'
+    // Émis par le client seul : la requête n'a jamais atteint le serveur.
+    | 'NETWORK'
     | 'INTERNAL';
   message: string;
   details?: Record<string, string[]>;
