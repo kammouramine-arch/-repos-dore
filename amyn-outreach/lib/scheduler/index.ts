@@ -24,6 +24,7 @@ export type JobName =
   | "find-emails"        // chercher les adresses publiées
   | "qualify-prospects"  // scorer puis trancher
   | "prepare-emails"     // rédiger, sans jamais approuver
+  | "auto-send"          // envoyer, UNIQUEMENT si l'automatisme est armé
   | "maintenance";       // cohérence et nettoyage
 
 export type JobResult = {

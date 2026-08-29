@@ -38,6 +38,41 @@ const IGNORED_DOMAINS = [
 
 const EMAIL_RE = /[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,24}/g;
 
+/**
+ * Messageries grand public. Une adresse hebergee ici est presque toujours une
+ * BOITE PERSONNELLE, meme quand elle sert accessoirement a une activite.
+ *
+ * La distinction compte : « contact@boulangerie-dupont.fr » est une adresse de
+ * fonction, « sandrine.delecourt@orange.fr » est la messagerie d'une personne.
+ * La seconde merite plus de precaution — au sens du RGPD comme du simple bon
+ * sens commercial.
+ */
+const MESSAGERIES_GRAND_PUBLIC = [
+  "gmail.com", "googlemail.com", "orange.fr", "wanadoo.fr", "free.fr", "sfr.fr",
+  "neuf.fr", "laposte.net", "bbox.fr", "numericable.fr", "aliceadsl.fr",
+  "hotmail.com", "hotmail.fr", "outlook.com", "outlook.fr", "live.fr", "live.com",
+  "msn.com", "yahoo.com", "yahoo.fr", "icloud.com", "me.com", "gmx.com", "gmx.fr",
+  "protonmail.com", "proton.me", "aol.com", "voila.fr", "club-internet.fr",
+];
+
+/** L'adresse est-elle hebergee par une messagerie grand public ? */
+export function isConsumerMailbox(email: string): boolean {
+  const domain = email.split("@")[1]?.toLowerCase() ?? "";
+  return MESSAGERIES_GRAND_PUBLIC.includes(domain);
+}
+
+/**
+ * L'adresse designe-t-elle une PERSONNE plutot qu'une fonction, sur une
+ * messagerie personnelle ?
+ *
+ * C'est le cas qui doit rester une decision humaine : une adresse de fonction
+ * sur le domaine de l'entreprise se prospecte sans etat d'ame ; la boite
+ * personnelle d'un artisan, non.
+ */
+export function isPersonalMailbox(email: string): boolean {
+  return !isGenericAddress(email) && isConsumerMailbox(email);
+}
+
 export function isGenericAddress(email: string): boolean {
   const local = email.split("@")[0]?.toLowerCase() ?? "";
   return GENERIC_PREFIXES.some((p) => local === p || local.startsWith(`${p}.`) || local.startsWith(`${p}-`));
@@ -113,10 +148,24 @@ function extractFromPage(html: string, text: string, url: string): DiscoveredCon
   return [...found.values()];
 }
 
-/** Priorite : mentions legales > contact > mailto ; generique > nominatif. */
+/**
+ * Priorite : generique AVANT tout, puis mentions legales > contact > mailto.
+ *
+ * L'ordre compte, et il a change. Auparavant la provenance primait : une
+ * adresse nominative trouvee dans les mentions legales passait devant un
+ * « contact@ » publie sur la page de contact. Deux raisons de faire l'inverse.
+ *
+ * D'abord le RGPD : « jean.dupont@ » identifie une personne, « contact@ »
+ * identifie une fonction. Ecrire a la fonction quand elle existe evite de
+ * traiter une donnee personnelle sans necessite.
+ *
+ * Ensuite l'usage : une adresse de role est faite pour recevoir des messages
+ * d'inconnus. Une adresse nominative, non — et la sollicitation y est vecue
+ * plus durement.
+ */
 function rank(c: DiscoveredContact): number {
   const methodScore = { LEGAL_NOTICE: 0, WEBSITE_CONTACT: 1, WEBSITE_MAILTO: 2 }[c.discoveryMethod];
-  return methodScore * 10 + (c.isGeneric ? 0 : 5);
+  return (c.isGeneric ? 0 : 100) + methodScore;
 }
 
 export async function discoverContacts(prospectId: string): Promise<{

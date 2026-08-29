@@ -173,13 +173,30 @@ describe("Structure du rapport", () => {
       "territories_done", "territories_left",
       "audited", "websites", "emails_found", "emails_valid",
       "qualified", "not_qualified", "needs_human",
-      "prepared", "approved", "sent",
+      "prepared", "approved", "sent", "ready_to_send", "excluded",
+      "followups_scheduled", "autopilot", "daily_limit", "circuit_breaker",
       "replies", "replies_positive", "replies_negative", "optouts", "bounces",
       "followups_ready", "followups_sent",
     ];
     for (const cle of attendus) {
       assert.ok(cle in plat, `compteur manquant : ${cle}`);
     }
+  });
+
+  test("le tableau dit si l'envoi automatique est armé", async () => {
+    const { setPolicy } = await import("@/lib/policy");
+    const avant = await nationalReport();
+    assert.equal(flatten(avant).autopilot, 0, "l'envoi automatique est armé par défaut");
+    assert.equal(avant.alerts.some((a) => /ARMÉ/.test(a)), false);
+
+    await setPolicy("autoSendEnabled", true);
+    const apres = await nationalReport();
+    assert.equal(flatten(apres).autopilot, 1);
+    assert.ok(
+      apres.alerts.some((a) => /ARMÉ/.test(a)),
+      "un envoi automatique armé doit être signalé en évidence",
+    );
+    await setPolicy("autoSendEnabled", false);
   });
 
   test("aucune clé de métrique n'est dupliquée entre les groupes", async () => {

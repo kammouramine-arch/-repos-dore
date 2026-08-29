@@ -43,6 +43,40 @@ export type Policy = {
    * false = tout passe par vous. C'est la valeur par défaut, volontairement.
    */
   autoReplyEnabled: boolean;
+
+  /**
+   * L'agent peut-il envoyer les emails de prospection SANS relecture ?
+   *
+   * false par défaut, et ce défaut est le bon : passer à true supprime le
+   * dernier moment où un humain lit ce qui part en son nom. Tous les autres
+   * contrôles subsistent — opposition, plafond, délai, fenêtre, conformité —
+   * mais plus personne ne relit le texte avant qu'il ne parte.
+   *
+   * L'activation reste une décision explicite, jamais un effet de bord.
+   */
+  autoSendEnabled: boolean;
+
+  /**
+   * L'envoi automatique exige-t-il une signature DKIM valide ?
+   *
+   * true par défaut. Sans DKIM, une part importante des messages finit en
+   * indésirables — et une campagne automatique amplifie ce défaut à chaque
+   * envoi, en abîmant durablement la réputation du domaine. Le verrou peut
+   * être levé en connaissance de cause ; il ne se lève pas tout seul.
+   */
+  autoSendRequiresDkim: boolean;
+
+  /** Envois automatiques par exécution. Borne le rythme, en plus du plafond. */
+  autoSendMaxPerRun: number;
+
+  /**
+   * Échecs consécutifs après lesquels l'envoi automatique se coupe seul.
+   *
+   * Un pilote automatique sans coupe-circuit transforme une panne en incident :
+   * un serveur SMTP qui refuse tout produirait des centaines de tentatives
+   * avant que quiconque s'en aperçoive.
+   */
+  autoSendMaxConsecutiveFailures: number;
 };
 
 export const POLICY_DEFAULTS: Policy = {
@@ -57,6 +91,10 @@ export const POLICY_DEFAULTS: Policy = {
   recontactCooldownDays: 90,
   minScoreToContact: 40,
   autoReplyEnabled: false,
+  autoSendEnabled: false,
+  autoSendRequiresDkim: true,
+  autoSendMaxPerRun: 5,
+  autoSendMaxConsecutiveFailures: 3,
 };
 
 /** Description lisible de chaque réglage, pour l'interface. */
@@ -72,6 +110,24 @@ export const POLICY_LABELS: Record<keyof Policy, { label: string; hint: string; 
   recontactCooldownDays: { label: "Délai de recontact", hint: "Un prospect déjà contacté est laissé tranquille pendant ce délai.", unit: "jours" },
   minScoreToContact: { label: "Score minimum", hint: "En dessous, le prospect n'est pas retenu par une mission.", unit: "/100" },
   autoReplyEnabled: { label: "Réponse automatique", hint: "Désactivée : toute réponse rédigée attend votre validation." },
+  autoSendEnabled: {
+    label: "Envoi automatique",
+    hint: "Désactivé : chaque email attend votre relecture. Activé, les emails qualifiés partent seuls — tous les autres contrôles restent en place.",
+  },
+  autoSendRequiresDkim: {
+    label: "Exiger DKIM pour l'envoi automatique",
+    hint: "Sans signature DKIM, une campagne automatique abîme la réputation du domaine à chaque envoi.",
+  },
+  autoSendMaxPerRun: {
+    label: "Envois automatiques par exécution",
+    hint: "Borne le rythme d'un tour de worker, en plus du plafond quotidien.",
+    unit: "emails",
+  },
+  autoSendMaxConsecutiveFailures: {
+    label: "Échecs avant coupure automatique",
+    hint: "Au-delà, l'envoi automatique se désactive seul et vous prévient.",
+    unit: "échecs",
+  },
 };
 
 function parse(key: keyof Policy, raw: string): Policy[keyof Policy] {

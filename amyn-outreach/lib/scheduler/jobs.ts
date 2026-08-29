@@ -594,6 +594,48 @@ export async function jobPrepareEmails(options: { limit?: number } = {}): Promis
   });
 }
 
+
+// --- 10. ENVOI AUTOMATIQUE --------------------------------------------------
+
+/**
+ * Envoie les emails qualifies, sans relecture email par email.
+ *
+ * NE FAIT RIEN TANT QUE L'AUTOMATISME N'EST PAS ARME. C'est le seul job de
+ * la chaine capable d'envoyer, et il refuse de demarrer si le sas d'entree
+ * n'est pas franchi : configuration incoherente, DKIM absent, fenetre fermee,
+ * plafond atteint. Un refus est journalise, jamais silencieux.
+ */
+export async function jobAutoSend(options: { max?: number } = {}): Promise<JobResult> {
+  return runJob("auto-send", async () => {
+    const policy = await getPolicy();
+
+    // Sortie immediate quand l'automatisme est desarme : inutile d'interroger
+    // le DNS et de derouler le sas a chaque tour de worker.
+    if (!policy.autoSendEnabled) {
+      return {
+        summary:
+          "Envoi automatique désactivé : les emails qualifiés attendent votre relecture. " +
+          "Activer : npm run amyn -- policy autoSendEnabled true",
+        itemsSeen: 0, itemsChanged: 0,
+      };
+    }
+
+    const { runAutopilot } = await import("@/lib/campaign/autopilot");
+    const r = await runAutopilot({ max: options.max });
+
+    return {
+      summary: r.demarre ? r.summary : `Refuse : ${r.gate.blockers.join(" | ")}`,
+      itemsSeen: r.examines,
+      itemsChanged: r.envoyes,
+      details: {
+        envoyes: r.envoyes, simules: r.simules, bloques: r.bloques,
+        echecs: r.echecs, motifs: r.motifs, coupeCircuit: r.coupeCircuit,
+        blocages: r.gate.blockers,
+      },
+    };
+  });
+}
+
 // --- ENCHAÎNEMENT COMPLET ---------------------------------------------------
 
 /** Un tour complet de l'opérateur. Aucun envoi. */
@@ -604,6 +646,8 @@ export async function runAllJobs(
     maxPages?: number;
     /** Sauter la chaîne d'enrichissement (elle sort sur le réseau). */
     enrich?: boolean;
+    /** Sauter l'envoi automatique. Sans effet s'il n'est pas armé. */
+    send?: boolean;
   } = {},
 ): Promise<JobResult[]> {
   const resultats = [
@@ -638,6 +682,13 @@ export async function runAllJobs(
     resultats.push(await jobFindEmails());
     resultats.push(await jobQualifyProspects());
     resultats.push(await jobPrepareEmails());
+  }
+
+  // L'envoi vient en dernier, et seulement s'il a ete arme. Il sort tout de
+  // suite quand il ne l'est pas : le worker peut donc tourner en continu sans
+  // qu'aucun email ne parte jamais.
+  if (options.send !== false) {
+    resultats.push(await jobAutoSend());
   }
 
   resultats.push(await jobMaintenance());

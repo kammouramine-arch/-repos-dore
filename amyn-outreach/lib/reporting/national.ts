@@ -13,6 +13,7 @@
 
 import { prisma } from "@/lib/db";
 import { imapStatus } from "@/lib/imap/config";
+import { getPolicy } from "@/lib/policy";
 
 export type Metric = {
   key: string;
@@ -140,6 +141,42 @@ export async function nationalReport(): Promise<NationalReport> {
       prisma.campaignMember.count({ where: { status: "READY" } }),
     ]);
 
+  const policy = await getPolicy();
+
+  // « Prêts à partir » : qualifiés, email rédigé et vérifié, aucun blocage
+  // connu. C'est ce que l'envoi — manuel ou automatique — trouverait s'il
+  // tournait maintenant.
+  const [pretsAPartir, exclus, relancesPrevues] = await Promise.all([
+    prisma.prospect.count({
+      where: {
+        ...REELS,
+        qualification: "QUALIFIED",
+        status: { notIn: ["OPTOUT", "BLOCKED", "WON", "LOST", "CONTACTED"] },
+        primaryContactId: { not: null },
+        emailDrafts: { some: { isActive: true, verificationPassed: true } },
+      },
+    }),
+    prisma.prospect.count({
+      where: {
+        isDemo: false,
+        OR: [
+          { qualification: "NOT_QUALIFIED" },
+          { status: { in: ["OPTOUT", "BLOCKED"] } },
+        ],
+      },
+    }),
+    prisma.campaignMember.count({
+      where: { status: { in: ["READY", "APPROVED"] }, sequenceStep: { gte: 1 } },
+    }),
+  ]);
+
+  if (policy.autoSendEnabled) {
+    alerts.push(
+      "L'envoi automatique est ARMÉ : les emails qualifiés partent sans relecture. " +
+        "Le désarmer : npm run amyn -- policy autoSendEnabled false",
+    );
+  }
+
   // --- RÉPONSES -----------------------------------------------------------
   const imap = imapStatus();
   const [reponses, positives, negatives, optOutsReponses, rebonds, oppositions] = await Promise.all([
@@ -164,6 +201,39 @@ export async function nationalReport(): Promise<NationalReport> {
   }
 
   const groups: MetricGroup[] = [
+    {
+      title: "Mode d'envoi",
+      note: policy.autoSendEnabled
+        ? "ARMÉ : les emails qualifiés partent sans relecture. Tous les autres contrôles restent actifs."
+        : "Désarmé : chaque email attend votre relecture.",
+      metrics: [
+        {
+          key: "autopilot",
+          label: "Envoi automatique",
+          value: policy.autoSendEnabled ? 1 : 0,
+          detail: policy.autoSendEnabled
+            ? "Armé. Désarmer : npm run amyn -- policy autoSendEnabled false"
+            : "Désarmé. Armer : npm run amyn -- policy autoSendEnabled true",
+        },
+        {
+          key: "daily_limit",
+          label: "Plafond quotidien",
+          value: policy.dailyLimit,
+          detail: `${policy.minDelaySeconds} s entre deux envois, fenêtre ${policy.sendWindowStartHour}h–${policy.sendWindowEndHour}h.`,
+        },
+        {
+          key: "autopilot_max_run",
+          label: "Envois par exécution",
+          value: policy.autoSendMaxPerRun,
+        },
+        {
+          key: "circuit_breaker",
+          label: "Échecs avant coupure",
+          value: policy.autoSendMaxConsecutiveFailures,
+          detail: "Au-delà, l'envoi automatique se désactive seul.",
+        },
+      ],
+    },
     {
       title: "Découverte",
       note: "Entreprises réellement enregistrées en base, sources tracées.",
@@ -289,6 +359,12 @@ export async function nationalReport(): Promise<NationalReport> {
         { key: "not_qualified", label: "NOT_QUALIFIED", value: qual.NOT_QUALIFIED ?? 0 },
         { key: "needs_human", label: "NEEDS_HUMAN", value: qual.NEEDS_HUMAN ?? 0 },
         {
+          key: "excluded",
+          label: "Prospects exclus",
+          value: exclus,
+          detail: "Non qualifiés, opposés ou bloqués. Ils ne repasseront pas dans le circuit.",
+        },
+        {
           key: "pending_qual",
           label: "En attente de qualification",
           value: qual.PENDING ?? 0,
@@ -308,6 +384,12 @@ export async function nationalReport(): Promise<NationalReport> {
           detail: "Rédigés et vérifiés. Rien ne part sans votre validation explicite.",
         },
         { key: "approved", label: "Emails approuvés", value: approuves },
+        {
+          key: "ready_to_send",
+          label: "Emails prêts à partir",
+          value: pretsAPartir,
+          detail: "Qualifiés, rédigés, vérifiés, aucun blocage connu.",
+        },
         { key: "sent", label: "Emails réellement envoyés", value: envoyes },
         {
           key: "simulated",
@@ -318,6 +400,12 @@ export async function nationalReport(): Promise<NationalReport> {
         { key: "blocked", label: "Envois bloqués par la conformité", value: bloques },
         { key: "failed", label: "Échecs d'envoi", value: echecsEnvoi },
         { key: "followups_ready", label: "Relances préparées", value: relancesPretes },
+        {
+          key: "followups_scheduled",
+          label: "Relances programmées",
+          value: relancesPrevues,
+          detail: `Limite : ${policy.maxFollowUps} relance(s) par prospect.`,
+        },
         { key: "followups_sent", label: "Relances envoyées", value: relancesEnvoyees },
       ],
     },

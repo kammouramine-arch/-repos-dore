@@ -83,6 +83,7 @@ async function main() {
     case "enrich": case "pipeline": return enrichCommand(rest);
     case "queue": case "file": return queueCommand(rest);
     case "funnel": case "entonnoir": return funnelCommand();
+    case "autopilot": case "pilote": return autopilotCommand(rest);
     case "sirene-live": return sireneLiveCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
@@ -1057,6 +1058,65 @@ async function queueCommand(args: string[]) {
   console.log(`    ${C.bold}${r.commandeApprobation}${C.reset}`);
 }
 
+// --- PILOTE AUTOMATIQUE -----------------------------------------------------
+
+async function autopilotCommand(args: string[]) {
+  const { autopilotGate, runAutopilot } = await import("../lib/campaign/autopilot");
+  const { config: cfg } = await import("../lib/config");
+
+  // « gate » : montrer l'etat du sas sans rien envoyer.
+  if (args[0] === "gate" || args[0] === "check" || args[0] === "etat") {
+    title("PILOTE AUTOMATIQUE — SAS D'ENTRÉE");
+    const g = await autopilotGate();
+    for (const c of g.checks) {
+      if (c.ok) ok(`${c.label.padEnd(30)} ${c.detail}`);
+      else bad(`${c.label.padEnd(30)} ${c.detail}`);
+    }
+    console.log();
+    if (g.autorise) {
+      ok("Sas franchi : l'envoi automatique peut démarrer.");
+    } else {
+      warn(`${g.blockers.length} blocage(s).`);
+      for (const r of g.remedes) info(`  → ${r}`);
+    }
+    return;
+  }
+
+  title("PILOTE AUTOMATIQUE");
+  if (cfg.dryRun) {
+    info("MODE SIMULATION : aucun email ne partira réellement.");
+  } else {
+    warn("ENVOI RÉEL ACTIF. Les emails partiront sans relecture.");
+  }
+  console.log();
+
+  const max = args.find((a) => a.startsWith("--max="))?.split("=")[1];
+  const r = await runAutopilot({ max: max ? Number(max) : undefined });
+
+  if (!r.demarre) {
+    bad("Envoi automatique refusé.");
+    for (const b of r.gate.blockers) info(`  ${b}`);
+    console.log();
+    for (const rem of r.gate.remedes) info(`  → ${rem}`);
+    return;
+  }
+
+  for (const d of r.details) {
+    if (d.issue === "envoyé") ok(`${d.nom} — envoyé`);
+    else if (d.issue.startsWith("simulé")) info(`${d.nom} — ${d.issue}`);
+    else if (d.issue.startsWith("bloqué")) warn(`${d.nom} — ${d.issue}`);
+    else bad(`${d.nom} — ${d.issue}`);
+  }
+
+  console.log();
+  console.log(`  ${r.summary}`);
+  if (r.coupeCircuit) {
+    console.log();
+    bad("COUPE-CIRCUIT : l'envoi automatique s'est désactivé seul.");
+    info("Corriger la cause, puis réarmer : npm run amyn -- policy autoSendEnabled true");
+  }
+}
+
 async function funnelCommand() {
   const { prisma: db } = await import("../lib/db");
   title("ENTONNOIR — de la découverte à l'email prêt");
@@ -1222,6 +1282,11 @@ function help() {
     queue [--max=N]            constituer la file d'approbation
     queue status               ce qui attend votre relecture
     funnel                     entonnoir chiffré, étape par étape
+
+  ${C.bold}Envoi automatique${C.reset}
+    autopilot gate             état du sas d'entrée, sans rien envoyer
+    autopilot [--max=N]        envoyer les emails qualifiés sans relecture
+                               (refusé tant que le sas n'est pas franchi)
     sirene-live [--dept=59]    test réel de l'API Sirene (nécessite la clé)
 
   ${C.bold}Opérateur${C.reset}

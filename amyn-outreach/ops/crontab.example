@@ -5,7 +5,13 @@
 #   crontab -e
 #   puis coller les lignes ci-dessous en adaptant le chemin.
 #
-# Le worker N'ENVOIE JAMAIS d'email. A chaque tour il lit la boite, decide des
+# ENVOI AUTOMATIQUE. Par defaut, le worker n'envoie rien : les emails
+# qualifies attendent une relecture. S'il est arme
+# (npm run amyn -- policy autoSendEnabled true), le worker envoie aussi —
+# sans relecture, mais sous tous les autres controles : opposition, plafond,
+# delai, fenetre horaire, conformite, coupe-circuit.
+#
+# Tant qu'il n'est pas arme, le worker N'ENVOIE JAMAIS d'email. A chaque tour il lit la boite, decide des
 # reponses, prepare les relances dues, fait avancer le balayage national et
 # la chaine d'enrichissement — site, audit, email, qualification, redaction —
 # puis verifie la coherence. Il s'arrete a « redige, en attente d'approbation ».
