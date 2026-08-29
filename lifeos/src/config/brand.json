@@ -9,8 +9,8 @@
   "androidPackage": "com.aminekammour.lifeos",
   "storageNamespace": "lifeos",
   "productPrefix": "lifeos",
-  "supportEmail": "",
-  "privacyUrl": "",
-  "termsUrl": "",
+  "supportEmail": "lifeos.ai.contact@gmail.com",
+  "privacyUrl": "https://kammouramine-arch.github.io/-repos-dore/legal/privacy.html",
+  "termsUrl": "https://kammouramine-arch.github.io/-repos-dore/legal/terms.html",
   "aiName": "LifeOS"
 }

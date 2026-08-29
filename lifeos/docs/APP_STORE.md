@@ -11,6 +11,10 @@ the same catalogue the app and the entitlement system read.
 | App Store Connect App ID | `6806351278` |
 | Apple Team ID | `9Q6YL8R33R` |
 | On-device name | LifeOS |
+| Privacy Policy URL | `https://kammouramine-arch.github.io/-repos-dore/legal/privacy.html` |
+| Terms of Use (EULA) URL | `https://kammouramine-arch.github.io/-repos-dore/legal/terms.html` |
+| Support email | `lifeos.ai.contact@gmail.com` |
+| Support URL | `https://kammouramine-arch.github.io/-repos-dore/legal/` |
 
 ---
 
@@ -97,10 +101,55 @@ Not in this repository — these are yours to write in App Store Connect:
 - Promotional text (170 characters)
 - Description (4000 characters)
 - Keywords (100 characters)
-- Support URL and Marketing URL
-- Screenshots: 6.9" and 6.5" iPhone are required; iPad if you keep `supportsTablet`
+- Screenshots: 6.9" and 6.5" iPhone are required; iPad too, since `supportsTablet` is on
 - Age rating questionnaire
-- Sign-in details for the reviewer — a working account, since LifeOS requires one
 
-The reviewer **will** open the assistant. It must answer. See `docs/DEPLOYMENT.md` for
-the provider configuration that makes that true.
+Support URL and Privacy Policy URL are listed at the top of this document.
+
+---
+
+## 5. App Review information
+
+LifeOS requires an account, so review **will** fail without working credentials.
+Create a real account on the production project, complete onboarding once so the
+reviewer lands on a populated app, and enter it under App Review Information →
+Sign-In Required.
+
+Suggested review notes:
+
+> LifeOS is a personal planning assistant with an AI coach.
+>
+> Sign in with the credentials provided. The AI assistant is reachable from the Talk
+> tab and from any suggestion card. Onboarding runs on first launch and can be
+> repeated from Settings.
+>
+> Subscriptions are purchased from the paywall, reachable via Settings → Plan or any
+> upgrade prompt. Deep Life Analysis requires Pro and AI Agents require Ultra; on the
+> free tier both show an upgrade prompt rather than failing.
+>
+> Voice input uses the microphone only while the button is held. No data is used for
+> advertising or tracking, and the app contains no advertising identifier.
+
+---
+
+## 6. Pre-submission checklist
+
+Each of these is verified or must be verified before the build goes out.
+
+| Check | State |
+|---|---|
+| Bundle ID matches the App Store Connect record | verified — `com.aminekammour.lifeos` |
+| Production build resolves a real Supabase URL and key | verified in config, guarded at build time |
+| Assistant answers in production | verified with live calls |
+| Onboarding completes in production | verified with a live call |
+| Account deletion available in-app | verified — Settings → Privacy |
+| Data export available in-app | verified — Settings → Privacy |
+| Restore purchases on the paywall | verified |
+| Store-localised prices, not catalogue defaults | verified — falls back only when the store is unreachable |
+| Terms and Privacy links render in the paywall | verified |
+| Legal URLs return 200 | **requires GitHub Pages to be enabled** |
+| Six subscription products live in App Store Connect | **manual — section 1** |
+| Reviewer sign-in credentials supplied | **manual — section 5** |
+| No advertising identifier or tracking | verified — no IDFA, no ATT prompt needed |
+| Export compliance | verified — `ITSAppUsesNonExemptEncryption: false` |
+| Sign in with Apple | not required — email/password is the only sign-in method |

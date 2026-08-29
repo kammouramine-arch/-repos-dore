@@ -95,15 +95,19 @@ describe('App Store submission configuration', () => {
 });
 
 describe('App Store review requirements', () => {
-  it('still needs the legal URLs a subscription app cannot ship without', () => {
-    // Apple 3.1.2 requires reachable Privacy Policy and Terms of Use links in the
-    // binary. The paywall renders both and hides them while these are empty, so the
-    // app is honest but not yet submittable.
-    expect(missingBrandConfiguration().sort()).toEqual([
-      'privacyUrl',
-      'supportEmail',
-      'termsUrl',
-    ]);
+  it('has the legal URLs Apple 3.1.2 requires for a subscription app', () => {
+    // Reachable Privacy Policy and Terms of Use links must exist in the binary. The
+    // paywall renders both and hides them when empty, so an empty value is a silent
+    // rejection rather than a visible bug.
+    expect(missingBrandConfiguration()).toEqual([]);
+    expect(brand.privacyUrl).toMatch(/^https:\/\/.+\.html$/);
+    expect(brand.termsUrl).toMatch(/^https:\/\/.+\.html$/);
+    expect(brand.supportEmail).toMatch(/^[^@\s]+@[^@\s]+\.[a-z]+$/i);
+  });
+
+  it('points the two legal links at different pages on one host', () => {
+    expect(brand.privacyUrl).not.toBe(brand.termsUrl);
+    expect(new URL(brand.privacyUrl).host).toBe(new URL(brand.termsUrl).host);
   });
 
   it('lets EAS own the build number rather than a hardcoded one', () => {

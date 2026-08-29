@@ -101,18 +101,37 @@ describe('nothing points at a placeholder', () => {
   });
 
   it('offers a link only once it actually leads somewhere', () => {
-    // Unset today, so nothing is rendered rather than rendering a dead link.
-    expect(brandLink('privacyUrl')).toBeNull();
-    expect(brandLink('termsUrl')).toBeNull();
-    expect(supportAddress()).toBeNull();
+    /*
+      The values are set now, so the links render. The guard that mattered — an empty
+      value producing null rather than a dead link — is asserted below against a blank
+      brand, because that is the state the app must never ship a link in.
+    */
+    expect(brandLink('privacyUrl')).toMatch(/^https:\/\//);
+    expect(brandLink('termsUrl')).toMatch(/^https:\/\//);
+    expect(supportAddress()).toContain('@');
   });
 
-  it('lists exactly what is still missing, for the release check to refuse on', () => {
-    expect(missingBrandConfiguration().sort()).toEqual([
-      'privacyUrl',
-      'supportEmail',
-      'termsUrl',
-    ]);
+  it('renders no link at all when a value is blank', () => {
+    jest.isolateModules(() => {
+      jest.doMock('../src/config/brand.json', () => ({
+        ...jest.requireActual('../src/config/brand.json'),
+        privacyUrl: '', termsUrl: '', supportEmail: '',
+      }));
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      const blank = require('@/config/brand');
+      expect(blank.brandLink('privacyUrl')).toBeNull();
+      expect(blank.brandLink('termsUrl')).toBeNull();
+      expect(blank.supportAddress()).toBeNull();
+      expect(blank.missingBrandConfiguration().sort()).toEqual([
+        'privacyUrl', 'supportEmail', 'termsUrl',
+      ]);
+    });
+  });
+
+  it('has nothing left outstanding for a store release', () => {
+    // Was a list of what remained; the release-blocking values are now filled in, so
+    // this asserts the release check has nothing to refuse on.
+    expect(missingBrandConfiguration()).toEqual([]);
   });
 
   it('never opens an unconfigured link in the UI', () => {
