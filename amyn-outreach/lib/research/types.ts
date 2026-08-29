@@ -21,6 +21,23 @@ export type RawBusiness = {
   name: string;
   sector: string;
   city: string;
+
+  /**
+   * Identifiants legaux, quand la source les fournit (registre officiel).
+   * Le SIRET est la cle de deduplication la plus fiable qui existe : deux
+   * SIRET egaux designent le meme etablissement, sans interpretation.
+   */
+  siret?: string;
+  siren?: string;
+  /** Code NAF de l'activite principale. */
+  naf?: string;
+  /** Departement a deux ou trois caracteres. */
+  departement?: string;
+  /**
+   * L'entreprise est-elle une personne physique (entrepreneur individuel) ?
+   * Sa denomination est alors un nom de personne — donnee personnelle.
+   */
+  personnePhysique?: boolean;
   region?: string;
   address?: string;
   postalCode?: string;

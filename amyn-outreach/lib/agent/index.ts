@@ -236,6 +236,36 @@ export function planActions(parsed: ParsedInstruction): PlannedAction[] {
         },
       ];
 
+    case "NATIONAL": {
+      const reprise = p.reprise === true;
+      const actions: PlannedAction[] = [];
+
+      // Une reprise ne replanifie pas : elle poursuit ce qui existe deja.
+      if (!reprise) {
+        actions.push({
+          module: "RESEARCH",
+          type: "territory.plan",
+          description: `Planifier le balayage${p.zone ? ` — ${p.zone}` : " — France entière"}`,
+          rationale:
+            "Aucun registre ne sert plus de 10 000 résultats par requête : la France se " +
+            "découpe en territoires, chacun repris page par page.",
+          input: p,
+        });
+      }
+
+      actions.push({
+        module: "RESEARCH",
+        type: "territory.sweep",
+        description: "Avancer le balayage depuis les points de reprise",
+        rationale:
+          "Découverte seule : les entreprises trouvées entrent au statut FOUND. " +
+          "Qualification, rédaction et envoi restent en aval, avec tous leurs contrôles.",
+        input: p,
+      });
+
+      return actions;
+    }
+
     case "WORKER":
       return [
         {

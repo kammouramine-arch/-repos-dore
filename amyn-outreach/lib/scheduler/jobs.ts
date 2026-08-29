@@ -204,7 +204,60 @@ export async function jobDueFollowUps(options: { now?: Date } = {}): Promise<Job
   );
 }
 
-// --- 4. MAINTENANCE ---------------------------------------------------------
+// --- 4. BALAYAGE NATIONAL ---------------------------------------------------
+
+/**
+ * Avance le balayage territorial depuis les points de reprise.
+ *
+ * VOLONTAIREMENT BORNÉ. Un tour traite quelques territoires, quelques pages
+ * chacun, puis rend la main. Le worker progresse donc par petits pas
+ * réguliers plutôt que par longues campagnes fragiles : chaque pas est
+ * enregistré, et une coupure ne coûte au pire qu'une page.
+ *
+ * CE JOB N'ENVOIE RIEN. Il découvre des entreprises et les enregistre au
+ * statut FOUND. Qualification, rédaction, approbation et envoi restent en
+ * aval, sur leur chemin habituel et avec tous leurs contrôles.
+ */
+export async function jobSweepTerritories(
+  options: { maxTerritories?: number; maxPages?: number } = {},
+): Promise<JobResult> {
+  return runJob("sweep-territories", async () => {
+    const { sweepBatch } = await import("@/lib/territory/sweep");
+    const { territoryProgress } = await import("@/lib/territory");
+
+    const { results, summary } = await sweepBatch({
+      maxTerritories: options.maxTerritories ?? 3,
+      maxPages: options.maxPages ?? 4,
+    });
+
+    const progression = await territoryProgress();
+
+    return {
+      summary:
+        summary +
+        (progression.total > 0
+          ? ` Avancement : ${progression.termines}/${progression.total} territoire(s).`
+          : ""),
+      itemsSeen: results.reduce((n, r) => n + r.discovered, 0),
+      itemsChanged: results.reduce((n, r) => n + r.created, 0),
+      details: {
+        territoires: results.map((r) => ({
+          label: r.label,
+          secteur: r.sectorLabel,
+          statut: r.status,
+          pages: r.pages,
+          nouvelles: r.created,
+          doublons: r.duplicates,
+          reprise: r.nextPage,
+          erreur: r.error,
+        })),
+        progression,
+      },
+    };
+  });
+}
+
+// --- 5. MAINTENANCE ---------------------------------------------------------
 
 export async function jobMaintenance(): Promise<JobResult> {
   return runJob("maintenance", async () => {
@@ -271,11 +324,30 @@ export async function jobMaintenance(): Promise<JobResult> {
 // --- ENCHAÎNEMENT COMPLET ---------------------------------------------------
 
 /** Un tour complet de l'opérateur. Aucun envoi. */
-export async function runAllJobs(): Promise<JobResult[]> {
-  return [
+export async function runAllJobs(
+  options: { sweep?: boolean; maxTerritories?: number; maxPages?: number } = {},
+): Promise<JobResult[]> {
+  const resultats = [
     await jobSyncInbox(),
     await jobDecideReplies(),
     await jobDueFollowUps(),
-    await jobMaintenance(),
   ];
+
+  // Le balayage national n'est lancé que s'il a quelque chose à faire : sans
+  // territoire planifié, il ne sert à rien de poser un verrou à chaque tour.
+  if (options.sweep !== false) {
+    const { prisma: db } = await import("@/lib/db");
+    const enAttente = await db.territory.count({ where: { status: { in: ["PENDING", "FAILED"] } } });
+    if (enAttente > 0) {
+      resultats.push(
+        await jobSweepTerritories({
+          maxTerritories: options.maxTerritories,
+          maxPages: options.maxPages,
+        }),
+      );
+    }
+  }
+
+  resultats.push(await jobMaintenance());
+  return resultats;
 }

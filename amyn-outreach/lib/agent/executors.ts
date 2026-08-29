@@ -66,6 +66,58 @@ export async function executeAction(
       };
     }
 
+    // --- BALAYAGE NATIONAL -------------------------------------------------
+    //
+    // Ces deux executeurs decouvrent des entreprises. Ils ne qualifient pas,
+    // ne redigent pas, n'approuvent pas et n'envoient pas : la prospection
+    // nationale entre par le meme tuyau que le reste, en amont de tous les
+    // controles, jamais a cote.
+    case "territory.plan": {
+      const { planTerritories } = await import("@/lib/territory");
+      const zone = input.zone as unknown as string | undefined;
+      const secteurs = (input.sectors as unknown as string[]) ?? undefined;
+
+      const plan = await planTerritories({
+        zones: zone ? [zone] : undefined,
+        secteurs,
+      });
+
+      return {
+        created: plan.created,
+        existing: plan.existing,
+        notes: plan.notes,
+        needsFromYou:
+          plan.created + plan.existing === 0
+            ? ["Aucun territoire n'a pu être planifié : la zone demandée n'a pas été reconnue."]
+            : [],
+      };
+    }
+
+    case "territory.sweep": {
+      const { sweepBatch } = await import("@/lib/territory/sweep");
+      const { territoryProgress } = await import("@/lib/territory");
+
+      const { results, summary } = await sweepBatch({ maxTerritories: 3, maxPages: 4 });
+      const progression = await territoryProgress();
+
+      const satures = results.filter((r) => r.status === "SATURATED");
+
+      return {
+        summary,
+        territoires: results.length,
+        decouvertes: results.reduce((n, r) => n + r.discovered, 0),
+        nouvelles: results.reduce((n, r) => n + r.created, 0),
+        doublons: results.reduce((n, r) => n + r.duplicates, 0),
+        progression,
+        needsFromYou: satures.map(
+          (r) =>
+            `${r.label} / ${r.sectorLabel} est saturé : la source a cessé de servir des ` +
+            `résultats. Subdiviser pour ne pas laisser d'entreprises de côté — ` +
+            `npm run amyn -- territory subdivide ${r.territoryId}`,
+        ),
+      };
+    }
+
     // --- AUDIT -------------------------------------------------------------
     case "audit.run": {
       const limit = (input.limit as unknown as number) ?? 10;

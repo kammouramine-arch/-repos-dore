@@ -4,8 +4,14 @@
  * WORKER — l'opérateur qui tourne tout seul
  *
  * Un tour = lire la boîte, décider des réponses, préparer les relances dues,
- * vérifier la cohérence. AUCUN ENVOI : la préparation s'arrête à « prêt, en
- * attente d'approbation ».
+ * avancer le balayage national depuis ses points de reprise, vérifier la
+ * cohérence. AUCUN ENVOI : la préparation s'arrête à « prêt, en attente
+ * d'approbation ».
+ *
+ * Le balayage progresse par petits pas : quelques territoires, quelques pages
+ * chacun, puis le worker rend la main. Chaque page importée écrit son point de
+ * reprise, donc une coupure ne coûte au pire qu'une page — et jamais le
+ * travail déjà fait.
  *
  * Deux usages :
  *
@@ -48,12 +54,16 @@ async function unTour(): Promise<{ erreurs: number; aFaire: string[] }> {
 
   // Ce qui attend une décision humaine : c'est la seule chose que le worker
   // ne peut pas faire avancer.
-  const [aApprouver, aLire] = await Promise.all([
+  const [aApprouver, aLire, satures] = await Promise.all([
     prisma.campaignMember.count({ where: { status: "READY" } }),
     prisma.reply.count({ where: { reviewStatus: "ACTION_REQUIRED" } }),
+    prisma.territory.count({ where: { status: "SATURATED" } }),
   ]);
   if (aApprouver > 0) aFaire.push(`${aApprouver} email(s) en attente d'approbation`);
   if (aLire > 0) aFaire.push(`${aLire} réponse(s) nécessitent votre lecture`);
+  // Un territoire saturé n'est pas une panne : c'est une zone dont les
+  // entreprises manquent encore. Le signaler évite qu'elle passe pour couverte.
+  if (satures > 0) aFaire.push(`${satures} territoire(s) saturé(s) à subdiviser`);
 
   return { erreurs, aFaire };
 }

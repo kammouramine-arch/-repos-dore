@@ -24,6 +24,12 @@ AMYN=/home/user/-repos-dore/amyn-outreach
 # arrivée le vendredi soir.
 0 10 * * 6          cd $AMYN && /usr/bin/npm run worker >> $AMYN/logs/worker.log 2>&1
 
+# Balayage national. Le worker l'avance deja a chaque tour ; cette ligne
+# supplementaire fait progresser la couverture la nuit, quand personne
+# n'attend la machine. Decouverte uniquement : aucun email n'est prepare ni
+# envoye par le balayage.
+0 2 * * *           cd $AMYN && /usr/bin/npm run amyn -- territory sweep --territoires=20 --pages=10 >> $AMYN/logs/balayage.log 2>&1
+
 # Rapport hebdomadaire, le lundi matin.
 0 8 * * 1           cd $AMYN && /usr/bin/npm run amyn -- report --jours=7 >> $AMYN/logs/rapport.log 2>&1
 

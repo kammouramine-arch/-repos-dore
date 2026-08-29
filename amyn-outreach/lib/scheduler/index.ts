@@ -14,10 +14,11 @@ import { prisma } from "@/lib/db";
 import { logActivity } from "@/lib/activity";
 
 export type JobName =
-  | "sync-inbox"        // lire la boîte
-  | "decide-replies"    // décider quoi faire des réponses non traitées
-  | "due-followups"     // préparer les relances arrivées à échéance
-  | "maintenance";      // cohérence et nettoyage
+  | "sync-inbox"         // lire la boîte
+  | "decide-replies"     // décider quoi faire des réponses non traitées
+  | "due-followups"      // préparer les relances arrivées à échéance
+  | "sweep-territories"  // avancer le balayage national depuis les checkpoints
+  | "maintenance";       // cohérence et nettoyage
 
 export type JobResult = {
   job: JobName;

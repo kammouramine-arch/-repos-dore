@@ -42,6 +42,7 @@ const env: NodeJS.ProcessEnv = {
   // Aucune cle : les tests ne doivent appeler aucun service externe.
   ANTHROPIC_API_KEY: "",
   GOOGLE_PLACES_API_KEY: "",
+  SIRENE_API_KEY: "",
 };
 
 const push = spawnSync(

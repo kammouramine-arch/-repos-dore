@@ -50,7 +50,17 @@ type IssueForEmail = {
   evidenceNote?: string | null;
 };
 
-/** Choisit 1 a 2 problemes : le plus fort, puis un complementaire s'il apporte quelque chose. */
+/** Un email cite au plus trois constats. Au-dela, il se lit comme un audit. */
+export const MAX_OBSERVATIONS = 3;
+
+/**
+ * Choisit 1 a 3 problemes reellement constates, du plus fort au plus faible.
+ *
+ * DEUX EXIGENCES. Chaque constat retenu doit venir d'une Issue prouvee — il
+ * n'existe aucun chemin permettant d'en fabriquer une. Et deux constats
+ * retenus ne peuvent pas partager le meme angle : repeter « votre site est
+ * lent » sous trois formulations n'apporte rien et sonne faux.
+ */
 export function selectIssues(issues: IssueForEmail[]): IssueForEmail[] {
   const withAngle = issues.filter((i) => getAngle(i.type));
   if (withAngle.length === 0) return [];
@@ -62,17 +72,54 @@ export function selectIssues(issues: IssueForEmail[]): IssueForEmail[] {
     return (getAngle(a.type)?.priority ?? 99) - (getAngle(b.type)?.priority ?? 99);
   });
 
-  const primary = sorted[0];
-  // Le second doit apporter un angle different, pas repeter le premier.
-  const secondary = sorted
-    .slice(1)
-    .find((i) => getAngle(i.type)!.priority !== getAngle(primary.type)!.priority);
+  const retenus: IssueForEmail[] = [];
+  const anglesPris = new Set<number>();
 
-  return secondary ? [primary, secondary] : [primary];
+  for (const issue of sorted) {
+    const angle = getAngle(issue.type)!;
+    if (anglesPris.has(angle.priority)) continue;
+    retenus.push(issue);
+    anglesPris.add(angle.priority);
+    if (retenus.length >= MAX_OBSERVATIONS) break;
+  }
+
+  return retenus;
+}
+
+/**
+ * Presentation d'AMYN, adaptee a la geographie du prospect.
+ *
+ * POURQUOI CE N'EST PAS UN DETAIL. La formule d'origine annoncait « les
+ * commerces de la metropole lilloise » a tout le monde. Tant que la
+ * prospection se limitait a Lille, c'etait vrai. A l'echelle nationale, c'est
+ * faux pour un commercant de Marseille — et une premiere phrase fausse
+ * disqualifie tout le message. AMYN est bien a Lille : on le dit, sans
+ * pretendre etre du quartier de quelqu'un qui ne l'est pas.
+ */
+function presentation(prospect: {
+  city: string;
+  departement?: string | null;
+  postalCode?: string | null;
+}): string {
+  // Le departement peut manquer sur les prospects importes avant son ajout :
+  // le code postal le donne alors sans rien deviner.
+  const departement = prospect.departement ?? prospect.postalCode?.slice(0, 2) ?? null;
+  const metropoleLilloise = departement === "59" || departement === "62";
+
+  return metropoleLilloise
+    ? "Je suis Amyn, je crée des sites pour les commerces et petites entreprises des Hauts-de-France."
+    : "Je suis Amyn, je crée des sites pour les commerces et petites entreprises. " +
+        "Je suis basé à Lille et je travaille à distance partout en France.";
 }
 
 function buildTemplateEmail(
-  prospect: { name: string; city: string; sector: string },
+  prospect: {
+    name: string;
+    city: string;
+    sector: string;
+    departement?: string | null;
+    postalCode?: string | null;
+  },
   selected: IssueForEmail[],
   offerKey: string | null,
   senderEmail: string,
@@ -111,10 +158,15 @@ function buildTemplateEmail(
       );
     }
 
-    lines.push(
-      "",
-      `Je suis Amyn, je crée des sites pour les commerces et petites entreprises de la métropole lilloise.`,
-    );
+    if (selected[2]) {
+      const troisiemeAngle = getAngle(selected[2].type)!;
+      lines.push(
+        "",
+        `Dernier point : ${troisiemeAngle.observation({ ...ctx, evidenceUrl: selected[2].evidenceUrl })}.`,
+      );
+    }
+
+    lines.push("", presentation(prospect));
 
     if (offer) {
       lines.push(

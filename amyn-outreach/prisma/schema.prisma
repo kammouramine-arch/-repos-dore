@@ -43,6 +43,39 @@ model Prospect {
   address    String?
   postalCode String?
 
+  // --- Identifiants de deduplication -----------------------------------
+  //
+  // Trois cles, par ordre de fiabilite decroissante. Chacune est indexee :
+  // reconnaitre un doublon coute une requete ciblee, jamais un parcours de
+  // toute la base. C'est ce qui rend une base nationale tenable.
+  //
+  //   1. SIRET   — identifiant legal d'un etablissement. Sans ambiguite.
+  //   2. domaine — deux entreprises ne partagent pas un site web.
+  //   3. nameKey + code postal — repli quand ni l'un ni l'autre n'existe.
+  //
+  // Le repli est volontairement « nom + CODE POSTAL » et non « nom + ville » :
+  // deux « Le Bistrot » a Paris sont deux entreprises differentes, et la
+  // contrainte nom+ville les confondait. Le code postal descend a l'echelle
+  // de l'arrondissement ou du quartier — a defaut d'etre parfait, il ne
+  // fusionne plus deux commerces distincts d'une meme grande ville.
+  //
+  // NULL est autorise et repete : une entreprise sans SIRET connu n'entre pas
+  // en collision avec toutes les autres entreprises sans SIRET.
+  siret     String? @unique
+  siren     String?
+  domainKey String? @unique
+  /// Nom normalise (casse, accents, formes juridiques retirees).
+  nameKey   String?
+
+  /// Code NAF de l'activite principale, quand la source le fournit.
+  naf         String?
+  /// Departement a deux ou trois caracteres (2A, 2B, 971...).
+  departement String?
+
+  /// Territoire ayant permis de decouvrir ce prospect. Tracabilite du balayage.
+  territoryId String?
+  territory   Territory? @relation(fields: [territoryId], references: [id], onDelete: SetNull)
+
   // Presence en ligne
   website           String?
   googleBusinessUrl String?
@@ -105,10 +138,16 @@ model Prospect {
   campaignMembers CampaignMember[]
   client          Client?
 
-  @@unique([name, city])
+  @@unique([nameKey, postalCode])
   @@index([status])
   @@index([city])
   @@index([overallScore])
+  @@index([siren])
+  @@index([nameKey])
+  @@index([departement])
+  @@index([territoryId])
+  @@index([qualification])
+  @@index([createdAt])
 }
 
 /// Origine de chaque information. Obligation RGPD : pouvoir dire d'ou vient une donnee.
@@ -457,6 +496,90 @@ model Reply {
   @@index([classification])
   @@index([reviewStatus])
   @@index([receivedAt])
+}
+
+// ---------------------------------------------------------------------------
+// TERRITOIRES — le balayage national, decoupe en unites reprenables
+// ---------------------------------------------------------------------------
+
+/// Une unite de travail du balayage national : « les restaurants du Nord ».
+///
+/// POURQUOI DECOUPER. Les API du registre des entreprises refusent de servir
+/// au-dela de 10 000 resultats pour une meme requete. « Toutes les entreprises
+/// de France » est donc materiellement impossible a demander d'un bloc — il
+/// faut poser des milliers de questions etroites. Le territoire est cette
+/// question etroite, rendue persistante.
+///
+/// REPRISE. Le curseur et le numero de page sont ecrits en base APRES chaque
+/// page importee. Une coupure — plantage, arret du worker, redemarrage de la
+/// machine — fait perdre au pire la page en cours ; la suivante repart
+/// exactement ou la precedente s'est arretee, jamais du debut.
+model Territory {
+  id String @id @default(cuid())
+
+  /// NATIONAL | REGION | DEPARTEMENT | COMMUNE
+  scope String
+  /// Code de la zone : « 59 », « 32 » (region), « 59350 » (commune), « FR ».
+  code  String
+  label String
+
+  /// Identite du secteur : cle du catalogue cure, code de division NAF, ou
+  /// "ALL". Sert a l'unicite du territoire, PAS a construire la requete.
+  sectorKey   String @default("ALL")
+  sectorLabel String @default("Tous secteurs")
+
+  /// Codes NAF reellement interroges, en JSON.
+  ///
+  /// Distinct de `sectorKey`, et ce n'est pas une redondance : « restaurant »
+  /// est une cle lisible, pas un code que l'API comprend. Les confondre
+  /// revenait a filtrer sur `activite_principale=restaurant` — une requete
+  /// syntaxiquement valide qui ne renvoie jamais rien. Un tableau vide
+  /// signifie « tous secteurs ».
+  naf String @default("[]")
+
+  /// Source interrogee : SIRENE | ANNUAIRE
+  source String
+
+  /// PENDING | RUNNING | DONE | SATURATED | FAILED | PAUSED
+  ///
+  /// SATURATED signale un territoire dont le volume depasse ce que la source
+  /// accepte de servir. Ce n'est pas une erreur : c'est une invitation a le
+  /// subdiviser. Le compter comme « termine » masquerait des entreprises
+  /// jamais vues.
+  status String @default("PENDING")
+
+  // --- Checkpoint ------------------------------------------------------
+  /// Curseur d'API (Sirene) — opaque, rejoue tel quel.
+  cursor       String?
+  /// Numero de page suivante a demander (sources paginees par rang).
+  nextPage     Int       @default(1)
+  /// Total annonce par la source, quand elle le fournit.
+  totalResults Int?
+  checkpointAt DateTime?
+
+  // --- Compteurs cumules -----------------------------------------------
+  discovered Int @default(0)
+  created    Int @default(0)
+  duplicates Int @default(0)
+  qualified  Int @default(0)
+  rejected   Int @default(0)
+  needsHuman Int @default(0)
+  errors     Int @default(0)
+
+  lastError   String?
+  lastRunAt   DateTime?
+  completedAt DateTime?
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  prospects Prospect[]
+
+  /// Un territoire est defini par sa source, sa zone et son secteur. Le
+  /// replanifier ne le duplique pas : il est retrouve et poursuivi.
+  @@unique([source, scope, code, sectorKey])
+  @@index([status])
+  @@index([source, status])
+  @@index([scope])
 }
 
 /// Execution d'un job planifie.

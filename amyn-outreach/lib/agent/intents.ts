@@ -29,6 +29,7 @@ export const INTENTS = [
   "TEST_EMAIL",
   "PIPELINE",
   "MISSION",
+  "NATIONAL",
   "WORKER",
   "UNKNOWN",
 ] as const;
@@ -95,6 +96,30 @@ const RULES: Array<{ intent: Intent; priority: number; patterns: RegExp[] }> = [
       /(lance|d[ée]marre) (l'|le |les |)(op[ée]rateur|jobs?|worker)/i,
       /au (boulot|travail)/i,
       /\bfais ton travail\b/i,
+    ],
+  },
+  {
+    // « Prospecte toute la France », « Continue depuis le dernier checkpoint ».
+    //
+    // Prioritaire sur MISSION, et c'est voulu : une mission ordinaire traite
+    // une liste bornee de prospects du debut a la fin. Une demande nationale
+    // porte sur des millions d'entreprises — elle ne peut qu'alimenter le
+    // balayage territorial, jamais s'executer d'un trait.
+    intent: "NATIONAL",
+    priority: 1.7,
+    patterns: [
+      /\btoute la france\b/i,
+      /\bfrance enti[èe]re\b/i,
+      /\bpartout en france\b/i,
+      /\ben france\b/i,
+      /\bau niveau national\b/i,
+      /prospection nationale/i,
+      /balayage national/i,
+      /(continue|reprends?|poursuis)[^.]{0,40}(prospection|balayage|checkpoint)/i,
+      /depuis le dernier (checkpoint|point de reprise)/i,
+      /\bd[ée]partement\s+\d{1,3}\b/i,
+      /\bdans le\s+(\d{2,3}|2[AB])\b/i,
+      /\br[ée]gion\s+[A-ZÀ-Ý]/,
     ],
   },
   {
@@ -334,8 +359,26 @@ export function parseInstruction(instruction: string): ParsedInstruction {
   const sectors = extractSectors(text);
   if (sectors.length > 0) parameters.sectors = sectors;
 
+  // Zone nationale : departement, region, ou la France entiere.
+  const departement = /\bd[ée]partement\s+(\d{1,3}|2[AB])\b/i.exec(text)
+    ?? /\bdans le\s+(\d{2,3}|2[AB])\b/i.exec(text);
+  if (departement) parameters.zone = departement[1].padStart(2, "0");
+  else if (/\b(toute la france|france enti[èe]re|partout en france|en france|national)/i.test(text)) {
+    parameters.zone = "France";
+  }
+
+  // Reprise explicite : ne pas replanifier, continuer ce qui existe.
+  if (/(continue|reprends?|poursuis)|depuis le dernier (checkpoint|point de reprise)/i.test(text)) {
+    parameters.reprise = true;
+  }
+
   const count = COUNT_PATTERN.exec(text);
-  if (count) parameters.limit = Math.min(Number(count[1]), 200);
+  // « département 59 » contient un nombre qui n'est pas une quantité. Sans
+  // cette exception, la demande repartait avec un plafond de 59 résultats
+  // tiré du code du département — un chiffre inventé à partir de rien.
+  const nombreEstUnCodeZone =
+    Boolean(count) && !count![2] && departement !== null && count![1] === departement[1];
+  if (count && !nombreEstUnCodeZone) parameters.limit = Math.min(Number(count[1]), 200);
 
   const offer = OFFER_PATTERN.exec(text);
   if (offer) parameters.offer = offer[1].toUpperCase();

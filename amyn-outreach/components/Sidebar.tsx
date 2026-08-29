@@ -18,6 +18,7 @@ const NAV_GROUPS: Array<{
   {
     title: "Prospection",
     items: [
+      { href: "/national", label: "France entière", hint: "Balayage national" },
       { href: "/prospects", label: "Prospects", hint: "Fiches et diagnostics" },
       { href: "/campaigns", label: "Campagnes", hint: "Emails et envois" },
       { href: "/replies", label: "Réponses", hint: "Centre de traitement" },

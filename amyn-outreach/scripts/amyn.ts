@@ -77,6 +77,10 @@ async function main() {
     case "report": case "rapport": return reportCommand(rest);
     case "dns": case "dns-check": return dnsCommand(rest);
     case "mission": return missionCommand(rest);
+    case "territory": case "territoire": return territoryCommand(rest);
+    case "national": return nationalCommand();
+    case "backfill-keys": return backfillCommand();
+    case "sirene-live": return sireneLiveCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
     case "qualify": return qualifyCommand(rest);
@@ -862,6 +866,191 @@ async function rules() {
   console.table(ALL_RULES.map((r) => ({ id: r.id, catégorie: r.category, libellé: r.label })));
 }
 
+
+// --- PROSPECTION NATIONALE --------------------------------------------------
+
+function option(args: string[], nom: string): string | undefined {
+  const trouve = args.find((a) => a.startsWith(`--${nom}=`));
+  return trouve?.split("=").slice(1).join("=") || undefined;
+}
+
+function listeOption(args: string[], nom: string): string[] | undefined {
+  const brut = option(args, nom);
+  if (!brut) return undefined;
+  return brut.split(",").map((v) => v.trim()).filter(Boolean);
+}
+
+async function territoryCommand(args: string[]) {
+  const [sous, ...rest] = args;
+
+  if (sous === "plan") {
+    const { planTerritories } = await import("../lib/territory");
+    title("PLANIFICATION DU BALAYAGE NATIONAL");
+
+    const source = (option(rest, "source") ?? "ANNUAIRE").toUpperCase() as "ANNUAIRE" | "SIRENE";
+    const zones = listeOption(rest, "zone") ?? listeOption(rest, "dept");
+    const secteurs = listeOption(rest, "secteur");
+
+    const plan = await planTerritories({ zones, secteurs, source });
+
+    for (const note of plan.notes) info(note);
+    console.log();
+    ok(`${plan.created} territoire(s) créé(s)`);
+    info(`${plan.existing} déjà connu(s) — leur avancement est conservé.`);
+    console.log();
+    info("Rien n'a été interrogé : la planification n'appelle aucune API.");
+    info("Lancer le balayage : npm run amyn -- territory sweep");
+    return;
+  }
+
+  if (sous === "status" || sous === undefined) {
+    const { territoryProgress } = await import("../lib/territory");
+    const { prisma: db } = await import("../lib/db");
+    title("AVANCEMENT DU BALAYAGE NATIONAL");
+
+    const p = await territoryProgress();
+    if (p.total === 0) {
+      warn("Aucun territoire planifié.");
+      info("npm run amyn -- territory plan");
+      return;
+    }
+
+    console.log(`  ${C.bold}${p.termines}${C.reset} / ${p.total} territoire(s) — ${p.progression}%`);
+    console.log();
+    for (const [statut, n] of Object.entries(p.parStatut).sort()) {
+      const ligne = `${statut.padEnd(10)} ${String(n).padStart(6)}`;
+      if (statut === "SATURATED" || statut === "FAILED") warn(ligne);
+      else info(ligne);
+    }
+    console.log();
+    console.log(`  Découvertes : ${p.decouvertes.discovered} vue(s), ${p.decouvertes.created} nouvelle(s), ${p.decouvertes.duplicates} doublon(s).`);
+
+    const limite = Number(option(rest, "limite") ?? 12);
+    const actifs = await db.territory.findMany({
+      where: { OR: [{ status: "SATURATED" }, { status: "FAILED" }, { discovered: { gt: 0 } }] },
+      orderBy: [{ status: "asc" }, { discovered: "desc" }],
+      take: limite,
+    });
+
+    if (actifs.length > 0) {
+      console.log();
+      console.log(`  ${C.dim}territoire / secteur — statut — reprise — découvertes${C.reset}`);
+      for (const t of actifs) {
+        const ligne =
+          `${t.label} / ${t.sectorLabel} — ${t.status} — page ${t.nextPage} — ` +
+          `${t.discovered} vue(s), ${t.created} nouvelle(s)`;
+        if (t.status === "SATURATED") warn(`${ligne}  [id ${t.id}]`);
+        else if (t.status === "FAILED") bad(`${ligne} — ${t.lastError ?? ""}`);
+        else info(ligne);
+      }
+    }
+    return;
+  }
+
+  if (sous === "sweep") {
+    const { sweepBatch } = await import("../lib/territory/sweep");
+    title("BALAYAGE — reprise depuis les points de sauvegarde");
+
+    const maxTerritories = Number(option(rest, "territoires") ?? 3);
+    const maxPages = Number(option(rest, "pages") ?? 4);
+
+    info(`${maxTerritories} territoire(s), ${maxPages} page(s) chacun au maximum.`);
+    info("Découverte seule : aucune qualification, aucun email, aucun envoi.");
+    console.log();
+
+    const { results, summary } = await sweepBatch({ maxTerritories, maxPages });
+    for (const r of results) {
+      if (r.error) bad(r.summary);
+      else if (r.status === "SATURATED") warn(r.summary);
+      else ok(r.summary);
+    }
+    console.log();
+    console.log(`  ${summary}`);
+    return;
+  }
+
+  if (sous === "subdivide") {
+    const { subdivideTerritory } = await import("../lib/territory/sweep");
+    const id = rest[0];
+    if (!id) { bad("Indiquez l'identifiant du territoire à subdiviser."); return; }
+    title("SUBDIVISION D'UN TERRITOIRE SATURÉ");
+    const r = await subdivideTerritory(id);
+    ok(`${r.created} sous-territoire(s) créé(s).`);
+    info(r.note);
+    return;
+  }
+
+  bad(`Sous-commande inconnue : ${sous}`);
+  info("plan | status | sweep | subdivide");
+}
+
+async function backfillCommand() {
+  const { backfillIdentities } = await import("../lib/dedup");
+  title("RATTRAPAGE DES CLÉS DE DÉDUPLICATION");
+  info("Les prospects créés avant l'introduction des clés en reçoivent une.");
+  info("Traitement par lots : la base n'est jamais chargée en entier.");
+  console.log();
+
+  const r = await backfillIdentities();
+  ok(`${r.updated} prospect(s) mis à jour sur ${r.examined} examiné(s).`);
+  if (r.collisions > 0) {
+    warn(`${r.collisions} collision(s) : deux prospects historiques portent la même clé.`);
+    info("Aucun n'a été supprimé — fusionner ou écarter reste votre décision.");
+  }
+}
+
+async function nationalCommand() {
+  const { nationalReport } = await import("../lib/reporting/national");
+  title("PROSPECTION NATIONALE — TABLEAU DE BORD");
+
+  const rapport = await nationalReport();
+
+  for (const groupe of rapport.groups) {
+    console.log(`\n  ${C.bold}${groupe.title}${C.reset}`);
+    if (groupe.note) info(groupe.note);
+    for (const m of groupe.metrics) {
+      if (m.value === null) {
+        console.log(`    ${C.dim}${m.label.padEnd(38)}${C.reset} ${C.amber}non mesuré${C.reset}`);
+        if (m.indisponible) info(`  ${m.indisponible}`);
+      } else {
+        console.log(`    ${m.label.padEnd(38)} ${C.bold}${String(m.value).padStart(8)}${C.reset}`);
+        if (m.detail) info(`  ${m.detail}`);
+      }
+    }
+  }
+
+  if (rapport.alerts.length > 0) {
+    console.log();
+    title("À VOTRE ATTENTION");
+    for (const a of rapport.alerts) warn(a);
+  }
+
+  console.log();
+  info(`${rapport.demoExclus} prospect(s) de démonstration exclus de tous les comptages.`);
+}
+
+async function sireneLiveCommand(args: string[]) {
+  const { runSireneLive } = await import("../lib/research/sirene/live-check");
+  title("SIRENE — TEST CONTRE L'API RÉELLE");
+
+  const resultat = await runSireneLive({ departement: option(args, "dept") ?? "59" });
+
+  if (!resultat.cleDisponible) {
+    warn("SIRENE_API_KEY absente : aucun appel réel n'a été tenté.");
+    info("Créer la clé sur portail-api.insee.fr, puis la renseigner dans .env.");
+    info("La clé n'est jamais affichée, ni journalisée, ni versionnée.");
+    return;
+  }
+
+  for (const c of resultat.checks) {
+    if (c.ok) ok(`${c.label} — ${c.detail}`);
+    else bad(`${c.label} — ${c.detail}`);
+  }
+  console.log();
+  const reussis = resultat.checks.filter((c) => c.ok).length;
+  console.log(`  ${reussis}/${resultat.checks.length} vérification(s) réussie(s).`);
+}
+
 function help() {
   title("AMYN OUTREACH — commandes");
   console.log(`
@@ -889,6 +1078,18 @@ function help() {
     pilot [--max=N --ville=X]  préparer une campagne pilote (5 prospects max)
     dns [domaine]              vérifier SPF, DKIM, DMARC
     report [--jours=N]         rapport chiffré
+
+  ${C.bold}Prospection nationale${C.reset}
+    territory plan [--zone=X] [--secteur=Y] [--source=ANNUAIRE|SIRENE]
+                               planifier le balayage (France entière par défaut)
+    territory status [--limite=N]
+                               avancement, points de reprise, saturations
+    territory sweep [--territoires=N --pages=N]
+                               avancer le balayage depuis les checkpoints
+    territory subdivide <id>   découper un territoire saturé
+    national                   tableau de bord national
+    backfill-keys              recalculer les clés de déduplication manquantes
+    sirene-live [--dept=59]    test réel de l'API Sirene (nécessite la clé)
 
   ${C.bold}Opérateur${C.reset}
     mission "<instruction>"    mission complète : recherche → qualification →

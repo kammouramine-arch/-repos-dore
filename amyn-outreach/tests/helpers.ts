@@ -250,5 +250,7 @@ export async function resetDatabase() {
   // Les contacts referencent les prospects et inversement : on casse le lien.
   await prisma.prospect.updateMany({ data: { primaryContactId: null } });
   await prisma.contact.deleteMany();
+  // Les prospects referencent les territoires : ils partent en premier.
   await prisma.prospect.deleteMany();
+  await prisma.territory.deleteMany();
 }

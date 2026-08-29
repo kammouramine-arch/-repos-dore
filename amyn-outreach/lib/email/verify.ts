@@ -103,7 +103,16 @@ export function verifyEmail(input: VerificationInput): VerificationResult {
     .map((m) => Number(m[1].replace(/[\s.,]/g, "")))
     .filter((n) => Number.isFinite(n) && n > 0);
 
-  const allowed = new Set(input.allowedNumbers);
+  // Un chiffre contenu dans le NOM de l'entreprise n'est pas une affirmation :
+  // « Pizza 74 », « Coiffure 2000 », « Garage 3000 » s'appellent ainsi. Sans
+  // cette exception, tout commerce dont l'enseigne comporte un nombre voyait
+  // son email refuse et finissait en NEEDS_HUMAN — une invention reprochee la
+  // ou l'on ne faisait que citer le nom du destinataire.
+  const chiffresDuNom = [...input.companyName.matchAll(/\b(\d[\d\s.,]*)\b/g)]
+    .map((m) => Number(m[1].replace(/[\s.,]/g, "")))
+    .filter((n) => Number.isFinite(n) && n > 0);
+
+  const allowed = new Set([...input.allowedNumbers, ...chiffresDuNom]);
   const unjustified = numbers.filter((n) => !allowed.has(n));
   if (unjustified.length > 0) {
     problems.push(
