@@ -489,14 +489,24 @@ async function reportCommand(args: string[]) {
 
 /** Verifie SPF, DKIM et DMARC sur le domaine d'expedition. */
 async function dnsCommand(args: string[]) {
-  const { checkDeliverability } = await import("../lib/deliverability");
-  const domaine = args[0] ?? config.from.email.split("@")[1];
+  const { checkDeliverability, SELECTEURS_COURANTS } = await import("../lib/deliverability");
+  const domaine = args.find((a) => !a.startsWith("--")) ?? config.from.email.split("@")[1];
+
+  // Un sélecteur DKIM ne se découvre pas : il se devine. Quand un en-tête réel
+  // montre DKIM=PASS, son tag `s=` donne la valeur exacte — la passer ici
+  // remplace la devinette par une vérification.
+  const impose = args.find((a) => a.startsWith("--selecteur=") || a.startsWith("--selector="))
+    ?.split("=").slice(1).join("=");
 
   title(`DÉLIVRABILITÉ — ${domaine}`);
-  info("Interrogation DNS en cours…");
+  info(
+    impose
+      ? `Sélecteur DKIM imposé : « ${impose} ».`
+      : `Interrogation DNS en cours… (${SELECTEURS_COURANTS.length} sélecteurs DKIM testés)`,
+  );
   console.log();
 
-  const r = await checkDeliverability(domaine);
+  const r = await checkDeliverability(domaine, impose ? { dkimSelectors: [impose] } : {});
   for (const c of r.checks) {
     const marque = c.status === "OK" ? ok : c.status === "WARN" ? warn : bad;
     marque(`${c.label.padEnd(28)} ${c.detail}`);
@@ -1264,7 +1274,9 @@ function help() {
   ${C.bold}Lancement réel${C.reset}
     preflight                  contrôle complet avant tout envoi réel
     pilot [--max=N --ville=X]  préparer une campagne pilote (5 prospects max)
-    dns [domaine]              vérifier SPF, DKIM, DMARC
+    dns [domaine] [--selecteur=X]
+                               vérifier SPF, DKIM, DMARC (le sélecteur exact se
+                               lit dans le tag s= d'un en-tête réel)
     report [--jours=N]         rapport chiffré
 
   ${C.bold}Prospection nationale${C.reset}

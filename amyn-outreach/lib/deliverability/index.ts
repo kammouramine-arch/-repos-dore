@@ -46,14 +46,40 @@ async function txt(name: string): Promise<string[]> {
   }
 }
 
+/**
+ * Selecteurs DKIM testes par defaut.
+ *
+ * POURQUOI CETTE LISTE EST LONGUE. Une cle DKIM ne se decouvre pas : elle se
+ * devine, selecteur par selecteur. Il n'existe aucun moyen de demander au DNS
+ * « quels selecteurs ce domaine publie-t-il ? ». Une liste trop courte fait
+ * donc dire « DKIM absent » a un domaine parfaitement signe — un faux negatif
+ * qui bloquerait a tort tout envoi automatique.
+ *
+ * La liste couvre les hebergeurs francais et les services d'envoi courants.
+ * Elle ne sera jamais exhaustive : c'est pourquoi `--selecteur=` existe, pour
+ * verifier directement celui que porte un en-tete reel (tag `s=`).
+ */
+export const SELECTEURS_COURANTS = [
+  // OVHcloud
+  "ovhcloud", "ovh", "ovhcloud1", "ovhcloud2", "ovhmail",
+  // Generiques les plus repandus
+  "mail", "default", "dkim", "dkim1", "dkim2", "selector", "selector1", "selector2",
+  "s1", "s2", "k1", "k2", "key1", "key2", "smtp", "mx", "email", "sig1",
+  // Microsoft, Google, autres hebergeurs
+  "google", "gmail", "o365", "outlook", "zimbra", "gandi", "scaleway", "ionos",
+  // Services d'envoi
+  "sendgrid", "mandrill", "amazonses", "mailjet", "sendinblue", "brevo",
+  "mailchimp", "postmark", "sparkpost", "protonmail", "fm1", "fm2", "fm3",
+  // Selecteurs dates, frequents chez les hebergeurs qui font tourner leurs cles
+  "20230601", "20240101", "20250101", "20260101", "202301", "202401", "202501",
+];
+
 export async function checkDeliverability(
   domain: string,
   options: { dkimSelectors?: string[] } = {},
 ): Promise<DeliverabilityReport> {
   const checks: DnsCheck[] = [];
-  // OVHcloud signe avec le sélecteur « ovhcloud » ; on teste aussi les
-  // sélecteurs courants au cas où le domaine serait ailleurs.
-  const selectors = options.dkimSelectors ?? ["ovhcloud", "mail", "default", "selector1"];
+  const selectors = options.dkimSelectors ?? SELECTEURS_COURANTS;
 
   // --- MX ------------------------------------------------------------------
   try {
@@ -127,7 +153,9 @@ export async function checkDeliverability(
       : {
           id: "dkim", label: "DKIM", status: "MISSING", found: [],
           detail:
-            `Aucune clé DKIM trouvée (sélecteurs testés : ${selectors.join(", ")}). ` +
+            `Aucune clé DKIM trouvée (${selectors.length} sélecteurs testés). ` +
+            `Si un en-tête réel montre DKIM=PASS, relancer avec le sélecteur exact : ` +
+            `npm run amyn -- dns ${domain} --selecteur=<valeur du tag s=>. ` +
             "Sans signature, une part importante des envois finira en indésirables.",
           fix: {
             host: `<sélecteur>._domainkey.${domain}`,
