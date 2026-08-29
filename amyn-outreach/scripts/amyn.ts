@@ -80,6 +80,9 @@ async function main() {
     case "territory": case "territoire": return territoryCommand(rest);
     case "national": return nationalCommand();
     case "backfill-keys": return backfillCommand();
+    case "enrich": case "pipeline": return enrichCommand(rest);
+    case "queue": case "file": return queueCommand(rest);
+    case "funnel": case "entonnoir": return funnelCommand();
     case "sirene-live": return sireneLiveCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
@@ -984,6 +987,131 @@ async function territoryCommand(args: string[]) {
   info("plan | status | sweep | subdivide");
 }
 
+// --- CHAINE D'ENRICHISSEMENT ------------------------------------------------
+
+async function enrichCommand(args: string[]) {
+  const {
+    jobEnrichSites, jobAuditSites, jobFindEmails, jobQualifyProspects, jobPrepareEmails,
+  } = await import("../lib/scheduler/jobs");
+
+  title("ENRICHISSEMENT — un cran pour chaque prospect");
+  info("Site → audit → email → qualification → rédaction.");
+  info("Aucun envoi. La rédaction s'arrête à « en attente d'approbation ».");
+  console.log();
+
+  const lot = Number(option(args, "lot") ?? 10);
+  const etapes = [
+    ["Sites", () => jobEnrichSites({ limit: lot })],
+    ["Audits", () => jobAuditSites({ limit: lot })],
+    ["Emails", () => jobFindEmails({ limit: lot })],
+    ["Qualification", () => jobQualifyProspects({ limit: lot * 5 })],
+    ["Rédaction", () => jobPrepareEmails({ limit: lot })],
+  ] as const;
+
+  for (const [nom, executer] of etapes) {
+    const r = await executer();
+    if (r.error) bad(`${nom.padEnd(14)} ${r.summary}`);
+    else if (r.skipped) info(`${nom.padEnd(14)} ${r.summary}`);
+    else ok(`${nom.padEnd(14)} ${r.summary}`);
+  }
+
+  console.log();
+  info("Relancer la commande fait avancer le lot suivant.");
+}
+
+async function queueCommand(args: string[]) {
+  const { buildApprovalQueue, approvalQueueStatus } = await import("../lib/campaign/queue");
+
+  if (args[0] === "status" || args[0] === "etat") {
+    title("FILE D'APPROBATION");
+    const s = await approvalQueueStatus();
+    console.log(`  ${C.bold}${s.enAttente}${C.reset} email(s) en attente de votre relecture.`);
+    console.log(`  ${s.approuves} approuvé(s), pas encore envoyé(s).`);
+    if (s.campagnes.length > 0) {
+      console.log();
+      for (const c of s.campagnes) {
+        info(`${c.slug} — ${c.nom} : ${c.prets} prêt(s), ${c.approuves} approuvé(s), ${c.envoyes} envoyé(s), ${c.bloques} bloqué(s)`);
+      }
+    }
+    return;
+  }
+
+  title("CONSTITUTION DE LA FILE D'APPROBATION");
+  const max = Number(option(args, "max") ?? 50);
+  const r = await buildApprovalQueue({ max, nom: option(args, "nom") });
+
+  ok(`${r.ajoutes} prospect(s) ajouté(s) sur ${r.examines} qualifié(s) examiné(s).`);
+  console.log(`  ${C.bold}${r.prets}${C.reset} email(s) prêt(s) dans « ${r.campaignName} ».`);
+  if (r.bloques > 0) {
+    warn(`${r.bloques} bloqué(s) par la conformité :`);
+    for (const [motif, n] of Object.entries(r.motifsBlocage)) info(`  ${n} × ${motif}`);
+  }
+  if (r.ecartes.length > 0) {
+    console.log();
+    info(`${r.ecartes.length} écarté(s) avant la file :`);
+    for (const e of r.ecartes.slice(0, 8)) info(`  ${e.nom} — ${e.raison}`);
+  }
+
+  console.log();
+  info("Rien n'est approuvé. Relire, puis approuver explicitement :");
+  console.log(`    ${C.bold}${r.commandeApprobation}${C.reset}`);
+}
+
+async function funnelCommand() {
+  const { prisma: db } = await import("../lib/db");
+  title("ENTONNOIR — de la découverte à l'email prêt");
+
+  const reels = { isDemo: false };
+  const [
+    decouvertes, sitesTrouves, sitesProuves, audites, emailsTrouves, emailsValides,
+    qualifies, nonQualifies, aTrancher, prepares, enAttente, envoyes,
+  ] = await Promise.all([
+    db.prospect.count({ where: reels }),
+    db.prospect.count({ where: { ...reels, website: { not: null } } }),
+    db.prospect.count({ where: { ...reels, websiteStatus: "CONFIRMED" } }),
+    db.prospect.count({ where: { ...reels, auditedAt: { not: null } } }),
+    db.prospect.count({ where: { ...reels, contacts: { some: {} } } }),
+    db.prospect.count({ where: { ...reels, contacts: { some: { validationStatus: "SYNTAX_OK" } } } }),
+    db.prospect.count({ where: { ...reels, qualification: "QUALIFIED" } }),
+    db.prospect.count({ where: { ...reels, qualification: "NOT_QUALIFIED" } }),
+    db.prospect.count({ where: { ...reels, qualification: "NEEDS_HUMAN" } }),
+    db.emailDraft.count({ where: { isActive: true } }),
+    db.campaignMember.count({ where: { status: "READY" } }),
+    db.sendLog.count({ where: { status: "SENT" } }),
+  ]);
+
+  const etapes: Array<[string, number]> = [
+    ["Entreprises découvertes", decouvertes],
+    ["Sites trouvés", sitesTrouves],
+    ["Sites dont l'appartenance est prouvée", sitesProuves],
+    ["Entreprises auditées", audites],
+    ["Emails trouvés", emailsTrouves],
+    ["Emails de syntaxe valide", emailsValides],
+    ["QUALIFIED", qualifies],
+    ["Emails préparés", prepares],
+    ["En attente d'approbation", enAttente],
+    ["Emails réellement envoyés", envoyes],
+  ];
+
+  // Part du total découvert, et non taux de passage d'une étape à l'autre.
+  //
+  // POURQUOI. La base mélange des prospects de périodes différentes : une
+  // entreprise importée avant l'existence d'une étape n'y est jamais passée.
+  // Comparer une étape à la précédente produisait alors des taux supérieurs à
+  // 100 % — « 367 % audités » — qui ne décrivent rien. Rapporter chaque étape
+  // au total découvert reste vrai quelle que soit l'ancienneté des fiches.
+  const largeur = 42;
+  for (const [nom, n] of etapes) {
+    const part = decouvertes === 0 ? "" : `  ${Math.round((n / decouvertes) * 100)}%`;
+    console.log(`  ${nom.padEnd(largeur)} ${String(n).padStart(7)}${C.dim}${part}${C.reset}`);
+  }
+
+  console.log();
+  info(`Écartés : ${nonQualifies} NOT_QUALIFIED, ${aTrancher} NEEDS_HUMAN.`);
+  info("Chaque pourcentage est la part du total découvert, pas un taux de passage :");
+  info("la base contient des fiches antérieures à certaines étapes du pipeline.");
+}
+
 async function backfillCommand() {
   const { backfillIdentities } = await import("../lib/dedup");
   title("RATTRAPAGE DES CLÉS DE DÉDUPLICATION");
@@ -1089,6 +1217,11 @@ function help() {
     territory subdivide <id>   découper un territoire saturé
     national                   tableau de bord national
     backfill-keys              recalculer les clés de déduplication manquantes
+    enrich [--lot=N]           faire avancer la chaîne : site → audit → email →
+                               qualification → rédaction (aucun envoi)
+    queue [--max=N]            constituer la file d'approbation
+    queue status               ce qui attend votre relecture
+    funnel                     entonnoir chiffré, étape par étape
     sirene-live [--dept=59]    test réel de l'API Sirene (nécessite la clé)
 
   ${C.bold}Opérateur${C.reset}

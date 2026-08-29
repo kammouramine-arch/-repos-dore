@@ -25,7 +25,9 @@ import { runComplianceChecks, addToSuppressionList } from "@/lib/campaign/compli
 import { getPolicy } from "@/lib/policy";
 import { AnnuaireClient } from "@/lib/research/annuaire/client";
 import { annuaireSimule, registreTest, type UniteSimulee } from "./annuaire-simule";
-import { resetDatabase, seedProspect, seedProvenIssue, seedDraft } from "./helpers";
+import {
+  resetDatabase, seedProspect, seedProvenIssue, seedDraft, codeSansCommentaires,
+} from "./helpers";
 
 const racine = resolve(import.meta.dirname, "..");
 const sansAttente = { attendre: async () => {}, delaiEntrePagesMs: 0 };
@@ -53,7 +55,7 @@ describe("Le balayage national n'atteint jamais l'envoi", () => {
       "lib/research/annuaire/client.ts",
       "lib/research/annuaire/index.ts",
     ]) {
-      const source = readFileSync(resolve(racine, fichier), "utf-8");
+      const source = codeSansCommentaires(readFileSync(resolve(racine, fichier), "utf-8"));
       assert.doesNotMatch(source, /from "@\/lib\/campaign\/send"/, `${fichier} importe l'envoi`);
       assert.doesNotMatch(source, /sendOne|runCampaign|sendTestEmail/, `${fichier} peut envoyer`);
     }
@@ -61,7 +63,7 @@ describe("Le balayage national n'atteint jamais l'envoi", () => {
 
   test("aucun module de balayage ne sait approuver un email", () => {
     for (const fichier of ["lib/territory/index.ts", "lib/territory/sweep.ts"]) {
-      const source = readFileSync(resolve(racine, fichier), "utf-8");
+      const source = codeSansCommentaires(readFileSync(resolve(racine, fichier), "utf-8"));
       assert.doesNotMatch(source, /approvedAt/, `${fichier} touche à l'approbation`);
       assert.doesNotMatch(source, /approveCampaignMembers/, `${fichier} approuve des envois`);
     }
@@ -141,7 +143,7 @@ describe("L'opposition reste absolue, quel que soit le volume", () => {
 
   test("aucun module de balayage ne sait supprimer une opposition", () => {
     for (const fichier of ["lib/territory/index.ts", "lib/territory/sweep.ts"]) {
-      const source = readFileSync(resolve(racine, fichier), "utf-8");
+      const source = codeSansCommentaires(readFileSync(resolve(racine, fichier), "utf-8"));
       assert.doesNotMatch(source, /suppression\.delete/, `${fichier} peut lever une opposition`);
     }
   });
@@ -200,7 +202,7 @@ describe("Le mode simulation reste actif", () => {
       "lib/research/annuaire/client.ts",
       "lib/reporting/national.ts",
     ]) {
-      const source = readFileSync(resolve(racine, fichier), "utf-8");
+      const source = codeSansCommentaires(readFileSync(resolve(racine, fichier), "utf-8"));
       assert.doesNotMatch(source, /DRY_RUN\s*=/, `${fichier} modifie DRY_RUN`);
       assert.doesNotMatch(source, /process\.env\.DRY_RUN\s*=/, `${fichier} force DRY_RUN`);
       assert.doesNotMatch(source, /setPolicy/, `${fichier} modifie la politique d'envoi`);

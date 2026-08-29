@@ -18,6 +18,12 @@ export type JobName =
   | "decide-replies"     // décider quoi faire des réponses non traitées
   | "due-followups"      // préparer les relances arrivées à échéance
   | "sweep-territories"  // avancer le balayage national depuis les checkpoints
+  // --- Chaîne d'enrichissement, dans l'ordre où elle se parcourt ---------
+  | "enrich-sites"       // trouver et PROUVER le site officiel
+  | "audit-sites"        // analyser la présence en ligne
+  | "find-emails"        // chercher les adresses publiées
+  | "qualify-prospects"  // scorer puis trancher
+  | "prepare-emails"     // rédiger, sans jamais approuver
   | "maintenance";       // cohérence et nettoyage
 
 export type JobResult = {

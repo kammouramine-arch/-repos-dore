@@ -50,6 +50,47 @@ type IssueForEmail = {
   evidenceNote?: string | null;
 };
 
+/**
+ * Remet en casse lisible un nom ecrit tout en majuscules.
+ *
+ * Le registre des entreprises stocke les denominations en capitales :
+ * « LES 3 BRASSEURS », « VILLENEUVE-D'ASCQ ». Recopier tel quel dans un email
+ * donne un message qui crie, et signale immediatement un envoi automatise.
+ * Un nom deja en casse mixte est laisse intact : lui appliquer une regle
+ * abimerait « L'Atelier du Pain » ou « iDGarage ».
+ */
+/** Formes juridiques : elles alourdissent une phrase adressee a un humain. */
+const FORMES_EN_FIN = /\s+(SAS|SASU|SARL|EURL|SNC|SCI|SCM|SELARL|EIRL|SA|EI|GIE|EARL)\.?$/i;
+
+export function casseLisible(texte: string): string {
+  if (texte !== texte.toUpperCase()) return texte;
+
+  // « OLD WILD WEST SAS » : la forme juridique appartient au registre, pas a
+  // la conversation. On l'ecarte si ce qui reste identifie encore l'entreprise.
+  const sansForme = texte.replace(FORMES_EN_FIN, "");
+  const base = sansForme.trim().length >= 3 ? sansForme.trim() : texte;
+
+  return base
+    .toLowerCase()
+    .replace(
+      /(^|[\s'’(\-/])([a-zà-ÿ])/g,
+      (_, avant: string, lettre: string) => avant + lettre.toUpperCase(),
+    )
+    // Les particules restent en minuscules, sauf en tete de nom.
+    //
+    // L'espace de fin est regarde SANS etre consomme : sinon deux particules
+    // qui se suivent — « de la Gare » — ne peuvent pas correspondre toutes
+    // les deux, la premiere ayant mange le separateur de la seconde.
+    .replace(
+      /\s(De|Du|Des|Le|La|Les|Et|Au|Aux|En|Sur)(?=\s)/g,
+      (_, mot: string) => ` ${mot.toLowerCase()}`,
+    )
+    // « Villeneuve-D'Ascq » → « Villeneuve-d'Ascq ». En francais, l'elision
+    // en milieu de nom ne prend pas de capitale ; la majuscule revient au mot
+    // qui suit. La regle ne s'applique pas en tete, ou « L'Atelier » est juste.
+    .replace(/(?<=.)\b([DL])'/g, (_, lettre: string) => `${lettre.toLowerCase()}'`);
+}
+
 /** Un email cite au plus trois constats. Au-dela, il se lit comme un audit. */
 export const MAX_OBSERVATIONS = 3;
 
@@ -125,9 +166,12 @@ function buildTemplateEmail(
   senderEmail: string,
   step: number,
 ): { subject: string; body: string } {
+  const nom = casseLisible(prospect.name);
+  const ville = casseLisible(prospect.city);
+
   const ctx = {
-    company: prospect.name,
-    city: prospect.city,
+    company: nom,
+    city: ville,
     sector: prospect.sector,
     offer: offerKey as never,
   };
@@ -145,7 +189,13 @@ function buildTemplateEmail(
 
   if (step === 0) {
     lines.push(
-      `Je suis tombé sur ${prospect.name} en cherchant un ${prospect.sector.toLowerCase()} à ${prospect.city}, et ${primaryAngle.observation({ ...ctx, evidenceUrl: primary.evidenceUrl })}.`,
+      // Plus d'article devant le secteur. « un Restauration », « un Activités
+      // immobilières » : les libellés de la nomenclature NAF sont des
+      // intitulés de catégorie, pas des noms de métier accordables. La
+      // formule tenait tant que les secteurs venaient d'un catalogue écrit à
+      // la main ; à l'échelle nationale elle produit une faute dès la
+      // première ligne — celle que le destinataire lit en premier.
+      `Je suis tombé sur ${nom} à ${ville}, et ${primaryAngle.observation({ ...ctx, evidenceUrl: primary.evidenceUrl })}.`,
       "",
       primaryAngle.consequence({ ...ctx, evidenceUrl: primary.evidenceUrl }),
     );
@@ -181,7 +231,7 @@ function buildTemplateEmail(
     );
   } else {
     lines.push(
-      `Je me permets de revenir vers vous au sujet de ${prospect.name}.`,
+      `Je me permets de revenir vers vous au sujet de ${nom}.`,
       "",
       `Mon message précédent portait sur un point précis : ${primaryAngle.observation({ ...ctx, evidenceUrl: primary.evidenceUrl })}.`,
       "",
@@ -236,7 +286,11 @@ export async function generateEmail(
     try {
       const { generateWithClaude } = await import("./claude");
       const result = await generateWithClaude({
-        prospect: { name: prospect.name, city: prospect.city, sector: prospect.sector },
+        prospect: {
+          name: casseLisible(prospect.name),
+          city: casseLisible(prospect.city),
+          sector: prospect.sector,
+        },
         issues: selected,
         offerKey: prospect.recommendedOffer,
         senderEmail,

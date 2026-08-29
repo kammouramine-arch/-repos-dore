@@ -5,9 +5,11 @@
 #   crontab -e
 #   puis coller les lignes ci-dessous en adaptant le chemin.
 #
-# Le worker N'ENVOIE JAMAIS d'email. Il lit la boîte, décide, prépare les
-# relances et vérifie la cohérence. L'envoi reste une action que vous
-# déclenchez après approbation.
+# Le worker N'ENVOIE JAMAIS d'email. A chaque tour il lit la boite, decide des
+# reponses, prepare les relances dues, fait avancer le balayage national et
+# la chaine d'enrichissement — site, audit, email, qualification, redaction —
+# puis verifie la coherence. Il s'arrete a « redige, en attente d'approbation ».
+# L'envoi reste une action que vous declenchez apres relecture.
 #
 # Les jobs sont idempotents : deux exécutions qui se chevauchent ne font pas
 # le travail deux fois. Le verrou est en base, il survit à un redémarrage.
@@ -29,6 +31,11 @@ AMYN=/home/user/-repos-dore/amyn-outreach
 # n'attend la machine. Decouverte uniquement : aucun email n'est prepare ni
 # envoye par le balayage.
 0 2 * * *           cd $AMYN && /usr/bin/npm run amyn -- territory sweep --territoires=20 --pages=10 >> $AMYN/logs/balayage.log 2>&1
+
+# Enrichissement de nuit : recherche de site, audit, email, qualification,
+# redaction. Sort sur le web, donc cadence moderee et robots.txt respecte.
+# Aucun envoi.
+30 2-5 * * *        cd $AMYN && /usr/bin/npm run amyn -- enrich --lot=25 >> $AMYN/logs/enrichissement.log 2>&1
 
 # Rapport hebdomadaire, le lundi matin.
 0 8 * * 1           cd $AMYN && /usr/bin/npm run amyn -- report --jours=7 >> $AMYN/logs/rapport.log 2>&1

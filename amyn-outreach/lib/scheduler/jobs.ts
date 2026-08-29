@@ -321,11 +321,290 @@ export async function jobMaintenance(): Promise<JobResult> {
   });
 }
 
+// ---------------------------------------------------------------------------
+// LA CHAÎNE D'ENRICHISSEMENT
+//
+// Découvrir une entreprise ne sert à rien tant que rien ne la transforme en
+// prospect contactable. Ces cinq jobs sont ce chaînon manquant : ils font
+// avancer les prospects d'un état au suivant, par petits lots, à chaque tour
+// du worker.
+//
+//   FOUND → site prouvé → audité → email trouvé → qualifié → email rédigé
+//
+// IDEMPOTENCE PAR L'ÉTAT. Chaque job sélectionne les prospects qui n'ont PAS
+// encore franchi son étape. Le relancer ne refait donc rien : il n'y a plus
+// personne à traiter. Le verrou de job protège en plus contre deux workers
+// simultanés.
+//
+// AUCUN N'ENVOIE. Le dernier s'arrête à « rédigé, en attente d'approbation ».
+// ---------------------------------------------------------------------------
+
+/** Taille des lots. Un tour de worker fait un peu, souvent, plutôt que tout, une fois. */
+export const LOTS = {
+  sites: 10,
+  audits: 10,
+  emails: 10,
+  qualifications: 50,
+  redactions: 10,
+} as const;
+
+/**
+ * Prospects réels, jamais les fiches de démonstration.
+ *
+ * Les statuts exclus le sont pour des raisons différentes : OPTOUT et BLOCKED
+ * ne doivent plus rien recevoir, WON et LOST ont quitté le pipeline. Enrichir
+ * l'un d'eux serait au mieux inutile, au pire une sollicitation interdite.
+ */
+const STATUTS_HORS_PIPELINE = ["OPTOUT", "BLOCKED", "WON", "LOST"];
+const REELS = { isDemo: false, status: { notIn: STATUTS_HORS_PIPELINE } };
+
+// --- 5. TROUVER LE SITE OFFICIEL --------------------------------------------
+
+export async function jobEnrichSites(options: { limit?: number } = {}): Promise<JobResult> {
+  return runJob("enrich-sites", async () => {
+    const { discoverWebsite } = await import("@/lib/site/discover");
+
+    const cibles = await prisma.prospect.findMany({
+      where: { ...REELS, websiteStatus: "UNKNOWN" },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+      take: options.limit ?? LOTS.sites,
+    });
+
+    const parStatut: Record<string, number> = {};
+    for (const p of cibles) {
+      try {
+        const r = await discoverWebsite(p.id);
+        parStatut[r.statut] = (parStatut[r.statut] ?? 0) + 1;
+      } catch (e) {
+        // UN PROSPECT EN ECHEC NE DOIT PAS REVENIR A CHAQUE TOUR. Le job
+        // prend les plus anciens d'abord : laisser un prospect qui plante en
+        // tete de file le ferait rejouer indefiniment, et rien derriere lui
+        // n'avancerait jamais. On enregistre donc l'echec, avec sa raison,
+        // pour qu'il sorte de la file — et reste consultable.
+        parStatut.ERREUR = (parStatut.ERREUR ?? 0) + 1;
+        await prisma.prospect.update({
+          where: { id: p.id },
+          data: {
+            websiteStatus: "ERROR",
+            websiteCheckedAt: new Date(),
+            websiteEvidence: JSON.stringify({
+              raison: `Recherche interrompue : ${e instanceof Error ? e.message : String(e)}`,
+              preuves: [], candidats: [],
+            }),
+          },
+        });
+      }
+    }
+
+    const confirmes = parStatut.CONFIRMED ?? 0;
+    return {
+      summary:
+        cibles.length === 0
+          ? "Aucun prospect en attente de recherche de site."
+          : `${cibles.length} prospect(s) examiné(s) : ${confirmes} site(s) prouvé(s), ` +
+            `${(parStatut.NOT_FOUND ?? 0)} sans site, ${(parStatut.UNCONFIRMED ?? 0)} non prouvé(s).`,
+      itemsSeen: cibles.length,
+      itemsChanged: confirmes,
+      details: parStatut,
+    };
+  });
+}
+
+// --- 6. AUDITER LES SITES ---------------------------------------------------
+
+export async function jobAuditSites(options: { limit?: number } = {}): Promise<JobResult> {
+  return runJob("audit-sites", async () => {
+    const { auditProspect } = await import("@/lib/audit/persist");
+
+    const cibles = await prisma.prospect.findMany({
+      where: { ...REELS, website: { not: null }, auditStatus: "PENDING" },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+      take: options.limit ?? LOTS.audits,
+    });
+
+    let reussis = 0;
+    let echoues = 0;
+    for (const p of cibles) {
+      try {
+        await auditProspect(p.id);
+        reussis += 1;
+      } catch {
+        echoues += 1;
+      }
+    }
+
+    return {
+      summary:
+        cibles.length === 0
+          ? "Aucun site en attente d'audit."
+          : `${reussis} audit(s) effectué(s)${echoues > 0 ? `, ${echoues} en échec` : ""}.`,
+      itemsSeen: cibles.length,
+      itemsChanged: reussis,
+      details: { reussis, echoues },
+    };
+  });
+}
+
+// --- 7. CHERCHER LES EMAILS PUBLIÉS -----------------------------------------
+
+export async function jobFindEmails(options: { limit?: number } = {}): Promise<JobResult> {
+  return runJob("find-emails", async () => {
+    const { discoverContacts } = await import("@/lib/contact/discover");
+
+    // Uniquement les prospects dont le site a été audité : sans site
+    // accessible, il n'y a aucune page où lire une adresse. Et aucune adresse
+    // n'est jamais devinée à partir du domaine.
+    const cibles = await prisma.prospect.findMany({
+      where: {
+        ...REELS,
+        website: { not: null },
+        auditStatus: { in: ["COMPLETE", "INCOMPLETE"] },
+        contacts: { none: {} },
+      },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+      take: options.limit ?? LOTS.emails,
+    });
+
+    let trouves = 0;
+    let sansEmail = 0;
+    for (const p of cibles) {
+      try {
+        const r = await discoverContacts(p.id);
+        if (!r.blocked && r.saved > 0) trouves += 1;
+        else sansEmail += 1;
+      } catch {
+        sansEmail += 1;
+      }
+    }
+
+    return {
+      summary:
+        cibles.length === 0
+          ? "Aucun site audité en attente de recherche d'email."
+          : `${trouves} email(s) public(s) trouvé(s) sur ${cibles.length} site(s). ` +
+            `${sansEmail} sans adresse publiée — aucune n'est devinée.`,
+      itemsSeen: cibles.length,
+      itemsChanged: trouves,
+      details: { trouves, sansEmail },
+    };
+  });
+}
+
+// --- 8. SCORER PUIS QUALIFIER -----------------------------------------------
+
+export async function jobQualifyProspects(options: { limit?: number } = {}): Promise<JobResult> {
+  return runJob("qualify-prospects", async () => {
+    const { scoreProspect } = await import("@/lib/scoring");
+    const { qualifyProspect } = await import("@/lib/qualification");
+    const policy = await getPolicy();
+
+    // Un prospect se juge une fois son enrichissement tenté : site cherché ET
+    // audit tranché. Le juger plus tôt reviendrait à lui reprocher de ne pas
+    // avoir d'email alors qu'on ne l'a pas encore cherché — l'impasse
+    // rencontrée sur la première mission.
+    const cibles = await prisma.prospect.findMany({
+      where: {
+        ...REELS,
+        qualification: "PENDING",
+        websiteStatus: { not: "UNKNOWN" },
+        OR: [
+          { auditStatus: { not: "PENDING" } },
+          { websiteStatus: { in: ["NOT_FOUND", "UNCONFIRMED"] } },
+        ],
+      },
+      select: { id: true },
+      orderBy: { createdAt: "asc" },
+      take: options.limit ?? LOTS.qualifications,
+    });
+
+    const verdicts: Record<string, number> = {};
+    for (const p of cibles) {
+      try {
+        await scoreProspect(p.id);
+      } catch {
+        // Score impossible : la qualification tranchera sans lui.
+      }
+      try {
+        const q = await qualifyProspect(p.id, { policy, stage: "FINAL" });
+        verdicts[q.verdict] = (verdicts[q.verdict] ?? 0) + 1;
+      } catch {
+        verdicts.ERREUR = (verdicts.ERREUR ?? 0) + 1;
+      }
+    }
+
+    return {
+      summary:
+        cibles.length === 0
+          ? "Aucun prospect enrichi en attente de qualification."
+          : `${cibles.length} prospect(s) jugé(s) : ` +
+            Object.entries(verdicts).map(([v, n]) => `${n} ${v}`).join(", ") + ".",
+      itemsSeen: cibles.length,
+      itemsChanged: verdicts.QUALIFIED ?? 0,
+      details: verdicts,
+    };
+  });
+}
+
+// --- 9. RÉDIGER LES EMAILS --------------------------------------------------
+
+export async function jobPrepareEmails(options: { limit?: number } = {}): Promise<JobResult> {
+  return runJob("prepare-emails", async () => {
+    const { generateEmail } = await import("@/lib/email/generate");
+
+    const cibles = await prisma.prospect.findMany({
+      where: {
+        ...REELS,
+        qualification: "QUALIFIED",
+        primaryContactId: { not: null },
+        emailDrafts: { none: { isActive: true } },
+      },
+      select: { id: true, name: true },
+      orderBy: { overallScore: "desc" },
+      take: options.limit ?? LOTS.redactions,
+    });
+
+    let rediges = 0;
+    const refuses: string[] = [];
+
+    for (const p of cibles) {
+      try {
+        const email = await generateEmail(p.id);
+        if (email.verification.passed) rediges += 1;
+        else refuses.push(`${p.name} : ${email.verification.problems[0]}`);
+      } catch (e) {
+        // Sans constat prouvé, aucun email ne peut être écrit. Ce n'est pas
+        // une erreur du job : c'est la règle anti-invention qui s'applique.
+        refuses.push(`${p.name} : ${e instanceof Error ? e.message : String(e)}`);
+      }
+    }
+
+    return {
+      summary:
+        cibles.length === 0
+          ? "Aucun prospect qualifié en attente de rédaction."
+          : `${rediges} email(s) rédigé(s) et vérifié(s), en attente d'approbation` +
+            (refuses.length > 0 ? `, ${refuses.length} refusé(s) faute de preuves.` : "."),
+      itemsSeen: cibles.length,
+      itemsChanged: rediges,
+      details: { rediges, refuses: refuses.slice(0, 10) },
+    };
+  });
+}
+
 // --- ENCHAÎNEMENT COMPLET ---------------------------------------------------
 
 /** Un tour complet de l'opérateur. Aucun envoi. */
 export async function runAllJobs(
-  options: { sweep?: boolean; maxTerritories?: number; maxPages?: number } = {},
+  options: {
+    sweep?: boolean;
+    maxTerritories?: number;
+    maxPages?: number;
+    /** Sauter la chaîne d'enrichissement (elle sort sur le réseau). */
+    enrich?: boolean;
+  } = {},
 ): Promise<JobResult[]> {
   const resultats = [
     await jobSyncInbox(),
@@ -336,8 +615,9 @@ export async function runAllJobs(
   // Le balayage national n'est lancé que s'il a quelque chose à faire : sans
   // territoire planifié, il ne sert à rien de poser un verrou à chaque tour.
   if (options.sweep !== false) {
-    const { prisma: db } = await import("@/lib/db");
-    const enAttente = await db.territory.count({ where: { status: { in: ["PENDING", "FAILED"] } } });
+    const enAttente = await prisma.territory.count({
+      where: { status: { in: ["PENDING", "FAILED"] } },
+    });
     if (enAttente > 0) {
       resultats.push(
         await jobSweepTerritories({
@@ -348,6 +628,19 @@ export async function runAllJobs(
     }
   }
 
+  // La chaîne d'enrichissement, dans l'ordre du pipeline. Chaque job ne
+  // traite que ce que le précédent a rendu traitable, si bien qu'un tour de
+  // worker fait avancer les prospects d'un cran — et qu'une centaine de tours
+  // les mène du registre à l'email prêt, sans intervention.
+  if (options.enrich !== false) {
+    resultats.push(await jobEnrichSites());
+    resultats.push(await jobAuditSites());
+    resultats.push(await jobFindEmails());
+    resultats.push(await jobQualifyProspects());
+    resultats.push(await jobPrepareEmails());
+  }
+
   resultats.push(await jobMaintenance());
   return resultats;
 }
+

@@ -55,6 +55,10 @@ export async function nationalReport(): Promise<NationalReport> {
     avecContact,
     avecEmailValide,
     avecSiret,
+    sitesVerifies,
+    sitesNonCherches,
+    sansSite,
+    sitesNonProuves,
   ] = await Promise.all([
     prisma.prospect.count({ where: { isDemo: true } }),
     prisma.prospect.count({ where: REELS }),
@@ -66,6 +70,10 @@ export async function nationalReport(): Promise<NationalReport> {
       where: { ...REELS, contacts: { some: { validationStatus: "SYNTAX_OK" } } },
     }),
     prisma.prospect.count({ where: { ...REELS, siret: { not: null } } }),
+    prisma.prospect.count({ where: { ...REELS, websiteStatus: "CONFIRMED" } }),
+    prisma.prospect.count({ where: { ...REELS, websiteStatus: "UNKNOWN" } }),
+    prisma.prospect.count({ where: { ...REELS, websiteStatus: "NOT_FOUND" } }),
+    prisma.prospect.count({ where: { ...REELS, websiteStatus: "UNCONFIRMED" } }),
   ]);
 
   // --- TERRITOIRES --------------------------------------------------------
@@ -79,6 +87,14 @@ export async function nationalReport(): Promise<NationalReport> {
 
   const agregats = await prisma.territory.aggregate({
     _sum: { discovered: true, created: true, duplicates: true, errors: true },
+  });
+
+  // « En cours » ne se lit pas dans le statut : un territoire entamé puis
+  // rendu par le worker repasse en PENDING, avec son point de reprise. Ce qui
+  // le distingue d'un territoire jamais touche, c'est d'avoir deja vu des
+  // entreprises.
+  const territoiresEnCours = await prisma.territory.count({
+    where: { discovered: { gt: 0 }, status: { notIn: ["DONE", "SATURATED"] } },
   });
 
   const aucunBalayage = territoiresTotal === 0;
@@ -109,8 +125,10 @@ export async function nationalReport(): Promise<NationalReport> {
   for (const l of parQualification) qual[l.qualification] = l._count._all;
 
   // --- PRÉPARATION ET ENVOI ----------------------------------------------
-  const [prepares, approuves, envoyes, simules, bloques, echecsEnvoi, relancesPretes, relancesEnvoyees] =
-    await Promise.all([
+  const [
+    prepares, approuves, envoyes, simules, bloques, echecsEnvoi,
+    relancesPretes, relancesEnvoyees, enAttenteApprobation,
+  ] = await Promise.all([
       prisma.emailDraft.count({ where: { isActive: true } }),
       prisma.emailDraft.count({ where: { isActive: true, approvedAt: { not: null } } }),
       prisma.sendLog.count({ where: { status: "SENT" } }),
@@ -119,6 +137,7 @@ export async function nationalReport(): Promise<NationalReport> {
       prisma.sendLog.count({ where: { status: "FAILED" } }),
       prisma.emailDraft.count({ where: { isActive: true, sequenceStep: { gte: 1 } } }),
       prisma.sendLog.count({ where: { status: "SENT", sequenceStep: { gte: 1 } } }),
+      prisma.campaignMember.count({ where: { status: "READY" } }),
     ]);
 
   // --- RÉPONSES -----------------------------------------------------------
@@ -188,6 +207,13 @@ export async function nationalReport(): Promise<NationalReport> {
           indisponible: aucunBalayage ? motifSansBalayage : undefined,
         },
         {
+          key: "territories_running",
+          label: "Territoires en cours",
+          value: aucunBalayage ? null : territoiresEnCours,
+          indisponible: aucunBalayage ? motifSansBalayage : undefined,
+          detail: "Commencés, pas encore couverts : leur reprise pointe une page suivante.",
+        },
+        {
           key: "territories_saturated",
           label: "Territoires saturés (à subdiviser)",
           value: aucunBalayage ? null : (statut.SATURATED ?? 0),
@@ -212,7 +238,37 @@ export async function nationalReport(): Promise<NationalReport> {
       title: "Enrichissement",
       note: "Aucune adresse n'est devinée : ces chiffres ne comptent que ce qui a été trouvé.",
       metrics: [
-        { key: "websites", label: "Sites web trouvés", value: avecSite },
+        {
+          key: "websites",
+          label: "Sites web trouvés",
+          value: avecSite,
+          detail: "Le registre n'en publie aucun : chacun a été cherché.",
+        },
+        {
+          key: "websites_verified",
+          label: "Sites dont l'appartenance est prouvée",
+          value: sitesVerifies,
+          detail:
+            "SIREN, adresse ou téléphone de l'entreprise retrouvé sur le site. " +
+            "Un domaine plausible mais non prouvé n'est jamais enregistré.",
+        },
+        {
+          key: "websites_none",
+          label: "Entreprises sans site",
+          value: sansSite,
+          detail: "Cherché, aucun domaine ne répond. C'est en soi une opportunité.",
+        },
+        {
+          key: "websites_unproven",
+          label: "Sites non prouvés (écartés)",
+          value: sitesNonProuves,
+          detail: "Un domaine répond mais rien ne prouve qu'il est le leur — probable homonyme.",
+        },
+        {
+          key: "websites_pending",
+          label: "Sites pas encore cherchés",
+          value: sitesNonCherches,
+        },
         { key: "audited", label: "Entreprises auditées", value: auditees },
         { key: "emails_found", label: "Emails trouvés", value: avecContact },
         {
@@ -245,6 +301,12 @@ export async function nationalReport(): Promise<NationalReport> {
       note: "Aucun envoi ne part sans approbation humaine explicite.",
       metrics: [
         { key: "prepared", label: "Emails préparés", value: prepares },
+        {
+          key: "awaiting_approval",
+          label: "Emails en attente d'approbation",
+          value: enAttenteApprobation,
+          detail: "Rédigés et vérifiés. Rien ne part sans votre validation explicite.",
+        },
         { key: "approved", label: "Emails approuvés", value: approuves },
         { key: "sent", label: "Emails réellement envoyés", value: envoyes },
         {

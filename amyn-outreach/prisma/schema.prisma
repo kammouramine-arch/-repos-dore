@@ -77,6 +77,23 @@ model Prospect {
   territory   Territory? @relation(fields: [territoryId], references: [id], onDelete: SetNull)
 
   // Presence en ligne
+  //
+  // `website` n'est renseigne que si l'appartenance du domaine a ete PROUVEE.
+  // Un domaine plausible n'est pas un domaine verifie : ecrire a une
+  // entreprise a propos d'un site qui n'est pas le sien est la pire erreur
+  // possible — elle detruit la credibilite du message en une ligne.
+  ///
+  /// UNKNOWN    : jamais cherche
+  /// CONFIRMED  : preuve d'appartenance trouvee (SIREN, adresse, telephone)
+  /// NOT_FOUND  : cherche, aucun site trouve
+  /// UNCONFIRMED: des candidats repondent, aucun ne prouve son appartenance
+  /// PROVIDED   : fourni par la source (OSM, Google Places) ou saisi a la main
+  /// ERROR      : la recherche a echoue ; consigne pour ne pas boucler dessus
+  websiteStatus    String    @default("UNKNOWN")
+  /// JSON : preuves ayant permis de confirmer le domaine, ou candidats rejetes.
+  websiteEvidence  String?
+  websiteCheckedAt DateTime?
+
   website           String?
   googleBusinessUrl String?
   googlePlaceId     String?
@@ -148,6 +165,8 @@ model Prospect {
   @@index([territoryId])
   @@index([qualification])
   @@index([createdAt])
+  @@index([websiteStatus])
+  @@index([auditStatus])
 }
 
 /// Origine de chaque information. Obligation RGPD : pouvoir dire d'ou vient une donnee.

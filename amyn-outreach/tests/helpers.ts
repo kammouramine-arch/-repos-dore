@@ -22,6 +22,38 @@ if (!/test\.db/.test(DB_URL)) {
   );
 }
 
+/**
+ * Le code d'un fichier, sans ses commentaires.
+ *
+ * POURQUOI C'EST NECESSAIRE. Plusieurs tests verifient qu'un module ne PEUT
+ * pas faire quelque chose — approuver, envoyer, lever une opposition — en
+ * cherchant l'appel correspondant dans sa source. Or les commentaires de ces
+ * memes modules enoncent justement la garantie : « ce module n'appelle jamais
+ * approveCampaignMembers ». Chercher dans le fichier entier fait donc echouer
+ * le controle sur la phrase qui affirme ce qu'il verifie.
+ */
+export function codeSansCommentaires(source: string): string {
+  const lignes = source.split("\n");
+  const gardees: string[] = [];
+  let dansBloc = false;
+
+  for (const ligne of lignes) {
+    const t = ligne.trim();
+    if (dansBloc) {
+      if (t.includes("*/")) dansBloc = false;
+      continue;
+    }
+    if (t.startsWith("/*")) {
+      if (!t.includes("*/")) dansBloc = true;
+      continue;
+    }
+    if (t.startsWith("//") || t.startsWith("*")) continue;
+    gardees.push(ligne);
+  }
+
+  return gardees.join("\n");
+}
+
 let counter = 0;
 export function uid(prefix = "t"): string {
   counter += 1;

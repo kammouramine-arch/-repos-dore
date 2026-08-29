@@ -24,14 +24,46 @@ export const LIMITS = {
   politenessDelayMs: 800,
 } as const;
 
-let lastRequestAt = 0;
+/**
+ * Dernier appel par HOTE, et non un compteur unique pour tout le web.
+ *
+ * La politesse se doit a un serveur, pas a Internet. Un compteur global
+ * imposait 800 ms entre deux requetes meme vers deux entreprises differentes :
+ * a l'echelle nationale, cela plafonnait l'enrichissement a environ 75
+ * pages par minute sans proteger personne davantage. Par hote, chaque serveur
+ * garde son repit et le debit global suit le nombre de sites visites.
+ */
+const dernierAppelParHote = new Map<string, number>();
 
-async function bePolite() {
-  const elapsed = Date.now() - lastRequestAt;
+/** Evite que la table grossisse indefiniment sur un balayage national. */
+const MAX_HOTES_SUIVIS = 5_000;
+
+function hoteDe(url: string): string {
+  try {
+    return new URL(url).hostname;
+  } catch {
+    return url;
+  }
+}
+
+async function bePolite(url: string) {
+  const hote = hoteDe(url);
+  const dernier = dernierAppelParHote.get(hote) ?? 0;
+  const elapsed = Date.now() - dernier;
   if (elapsed < LIMITS.politenessDelayMs) {
     await new Promise((r) => setTimeout(r, LIMITS.politenessDelayMs - elapsed));
   }
-  lastRequestAt = Date.now();
+
+  if (dernierAppelParHote.size >= MAX_HOTES_SUIVIS) {
+    // Les hotes les plus anciens ne seront pas revisites de sitot : leur
+    // delai est de toute facon ecoule.
+    const limite = Date.now() - LIMITS.politenessDelayMs;
+    for (const [h, t] of dernierAppelParHote) {
+      if (t < limite) dernierAppelParHote.delete(h);
+    }
+  }
+
+  dernierAppelParHote.set(hote, Date.now());
 }
 
 /** Normalise une URL saisie a la main (ajoute https:// si absent). */
@@ -53,7 +85,7 @@ export type FetchStats = { requests: number; bytes: number };
  * est un RESULTAT (avec son code), pas une exception a masquer.
  */
 export async function fetchPage(url: string, stats: FetchStats): Promise<FetchedPage> {
-  await bePolite();
+  await bePolite(url);
   const startedAt = Date.now();
   stats.requests += 1;
 
@@ -122,7 +154,12 @@ export async function fetchPage(url: string, stats: FetchStats): Promise<Fetched
       ...base,
       durationMs: Date.now() - startedAt,
       error: aborted ? `Delai depasse apres ${LIMITS.timeoutMs} ms` : error.message,
-      errorCode: aborted ? "TIMEOUT" : (error.cause?.code ?? "NETWORK_ERROR"),
+      // `cause.code` est declare comme une chaine mais n'en est pas toujours
+      // une : selon la couche reseau, Node y met parfois un code numerique.
+      // Le type mentait, et tout appelant qui faisait confiance a la
+      // declaration — un `.startsWith()`, par exemple — plantait sur une
+      // simple erreur DNS.
+      errorCode: aborted ? "TIMEOUT" : String(error.cause?.code ?? "NETWORK_ERROR"),
     };
   }
 }
@@ -132,7 +169,7 @@ export async function probeUrl(
   url: string,
   stats: FetchStats,
 ): Promise<{ status: number; ok: boolean; error?: string }> {
-  await bePolite();
+  await bePolite(url);
   stats.requests += 1;
   const controller = new AbortController();
   const timer = setTimeout(() => controller.abort(), LIMITS.timeoutMs);
