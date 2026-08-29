@@ -236,45 +236,31 @@ l'importation (200 à 250 €) n'est **pas récupérable**.
 
 ---
 
-## 5. Réglementation — un point qui n'avait pas été vu, et qui peut coûter cher
+## 5. Réglementation — je ne conclus pas, et voici pourquoi
 
-### L'ACS (Attestation de Conformité Sanitaire)
+Le détail complet, les articles et la demande à envoyer sont dans
+**`ACS-DEMANDE-ARS.md`**. En résumé de ce qui est **vérifié sur Légifrance** :
 
-- Obligatoire **en France depuis le 24 décembre 2006** pour les matériaux et
-  équipements au contact d'une eau destinée à la consommation humaine. ✅
-- Le champ décrit couvre explicitement **« adoucisseurs, filtres, accessoires de
-  traitement de l'eau »**. ✅
-- Validité 5 ans, **reconnue en France uniquement**, aucun équivalent européen. ✅
-- **À partir du 1ᵉʳ janvier 2027, l'ACS est remplacée**, pour les produits
-  nouvellement mis sur le marché, par le certificat européen **MHR** (*Minimum
-  Hygiene Requirement*) de la directive (UE) 2020/2184. ✅
+- Deux régimes distincts peuvent s'appliquer, et le produit peut relever de l'un,
+  de l'autre, ou d'aucun : l'article **R.1321-48** (matériaux au contact de
+  l'eau, définis comme *transportant* l'eau **sans en modifier** la composition)
+  et l'article **R.1321-50** (produits et **procédés de traitement** de l'eau).
+- Le **décret n° 2026-80 du 11 février 2026** refond le régime au
+  **1ᵉʳ janvier 2027**, en application de la directive (UE) 2020/2184. Les
+  attestations valables au 31 décembre 2026 restent valables jusqu'au
+  **31 décembre 2032**.
+- **Ce décret ne délimite pas explicitement** le périmètre entre réseau, point de
+  puisage et dispositifs situés en aval. Il ne comporte aucune exclusion expresse
+  des dispositifs de traitement domestiques.
 
-### Ce qui reste ouvert, et qu'il faut faire trancher
+**Je ne conclus donc ni à l'obligation ni à l'absence d'obligation d'ACS pour ce
+produit.** Les textes officiels ne tranchent pas le cas d'un filtre vissé en aval
+du mitigeur. Seule une réponse écrite de l'administration fait foi, et elle est
+gratuite.
 
-Le périmètre officiel de l'ACS est décrit comme allant *« de la ressource au
-point de puisage »*. Un filtre de douche se visse **en aval du mitigeur**, donc
-au-delà du point de puisage au sens strict. **Je n'ai pas trouvé de source
-faisant autorité qui tranche explicitement le cas du filtre de douche** — ni
-dans un sens ni dans l'autre. ❌ **NON VÉRIFIÉ.**
-
-Deux constats honnêtes, et opposés :
-
-- **Le risque existe.** Un « dispositif de traitement de l'eau » raccordé au
-  réseau intérieur d'un logement est, dans la lettre du dispositif, exactement ce
-  que l'ACS vise.
-- **Aucun acteur du marché français ne semble s'y conformer.** Les filtres de
-  douche vendus en France par les concurrents identifiés n'affichent pas d'ACS.
-  Ce n'est pas une justification, c'est un élément de contexte sur le risque réel
-  d'exécution.
-
-**Ce que je recommande, et c'est peu coûteux :** poser la question par écrit à
-l'ARS de votre région ou à la Direction générale de la santé, en décrivant
-précisément le produit et sa position d'installation. Une réponse écrite, même
-négative, vaut mieux qu'un pari — et elle est gratuite. **Ne payez pas d'ACS
-maintenant** : à quelques mois du basculement vers le MHR, ce serait 5 ans de
-validité achetés sur une norme en fin de vie.
-
----
+**Conséquence de calendrier, elle, certaine :** n'engagez aucune dépense de
+certification avant cette réponse. Une ACS obtenue maintenant le serait sous un
+régime remplacé quelques mois plus tard.
 
 ## 6. Photos et vidéos du fournisseur — la règle
 

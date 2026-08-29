@@ -263,8 +263,8 @@
         "b4": {
           "type": "benef",
           "settings": {
-            "titre": "Une pression préservée",
-            "txt": "Le débit bridé est la première plainte sur les filtres bon marché. Nous avons retenu un format à section de passage large plutôt qu'une cartouche compacte, précisément pour cette raison. Si la pression chez vous baisse de façon gênante, la garantie 90 jours s'applique."
+            "titre": "Le débit, nous ne le promettons pas",
+            "txt": "Le débit bridé est la première plainte sur les filtres de douche bon marché. Nous ne vous dirons pas que le nôtre n'y touche pas : nous ne l'avons pas encore mesuré, et le seul chiffre publié par le fabricant est trop ambigu pour être repris. Nous mesurerons le débit avant et après pose, à pression identique, et nous publierons le résultat — même mauvais. En attendant, c'est exactement ce que couvre l'essai de 90 jours."
           }
         },
         "b5": {
@@ -343,7 +343,7 @@
           "type": "qr",
           "settings": {
             "q": "Est-ce que ça va faire chuter la pression ?",
-            "r": "<p>C'est la première crainte, et elle est fondée : la plupart des filtres bon marché brident le débit parce que la cartouche est trop dense et la section de passage trop étroite. ONDÉE a été dimensionné pour le débit avec cartouche en place.</p><p>Une baisse de pression progressive après plusieurs semaines est en revanche normale : elle signifie que le tamis a fait son travail et qu'il est temps de changer la cartouche. C'est votre indicateur de remplacement le plus fiable.</p>"
+            "r": "<p>C'est la première crainte, et elle est fondée : beaucoup de filtres bon marché brident le débit parce que la cartouche est trop dense et la section de passage trop étroite.</p><p><strong>Nous ne pouvons pas encore vous répondre par un chiffre.</strong> Le débit de notre filtre n'a pas été mesuré dans des conditions que nous jugerions publiables, et le seul chiffre communiqué par le fabricant est contredit par sa propre fiche technique. Nous préférons vous le dire plutôt que de vous affirmer que tout va bien.</p><p>Nous mesurerons le débit avant et après installation, à la même pression, et nous publierons le résultat ici — y compris s'il nous dessert.</p><p>En attendant, c'est précisément ce que couvre l'essai de 90 jours : si la pression chez vous baisse de façon gênante, vous nous renvoyez le produit, nous remboursons et nous payons le retour.</p><p>Une baisse <em>progressive</em> après plusieurs semaines est un cas différent : elle signifie que le tamis s'est chargé et qu'il est temps de changer la cartouche.</p>"
           }
         },
         "q3": {
