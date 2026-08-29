@@ -106,6 +106,24 @@ describe('no agent or feature reaches a provider directly', () => {
     }
   });
 
+  it('reads private configuration with the service role, never the caller', () => {
+    /*
+      app_config's RLS exposes only rows with is_public = true to an authenticated user.
+      ai_policy and ai_registry are private, so a user-scoped read returns nothing and
+      falls back to the defaults — leaving the router switched off however the row is
+      set, with no error anywhere. This shipped, and the only symptom was an assistant
+      that stayed unreachable after the config said otherwise.
+    */
+    for (const fn of ['ai-chat', 'daily-brief', 'transcribe']) {
+      const body = fs.readFileSync(
+        path.join(root, `supabase/functions/${fn}/index.ts`), 'utf8',
+      );
+      for (const call of ['loadPolicy', 'loadRegistry', 'loadHealth']) {
+        expect(`${fn}: ${call}(db)`).not.toBe(`${fn}: ${body.includes(`${call}(db)`) ? `${call}(db)` : 'absent'}`);
+      }
+    }
+  });
+
   it('covers all six LifeOS agents with one router', () => {
     expect(AGENT_KEYS.sort()).toEqual(
       ['business', 'career', 'fitness', 'finance', 'learning', 'life'].sort(),

@@ -62,11 +62,12 @@ Deno.serve(async (req) => {
     selects a provider, and the Anthropic branch below selects nothing — it calls the
     single model the plan's routing table already named. Phase 14 removes it.
   */
-  const policy = await loadPolicy(db);
+  // Service role: the ai_policy row is private and invisible to a user client.
+  const policy = await loadPolicy(admin);
   let text: string;
   try {
     if (policy.routerEnabled) {
-      const registry = await loadRegistry(db);
+      const registry = await loadRegistry(admin);
       const health = await loadHealth(admin);
       const tier = billing.entitlement.plan.tier;
       const budget = await readBudget(admin, user.id, tier, policy);

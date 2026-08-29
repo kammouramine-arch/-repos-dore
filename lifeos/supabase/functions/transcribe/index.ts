@@ -73,8 +73,9 @@ Deno.serve(async (req) => {
     audio, and no longer holds a provider URL. The router picks an audio-capable model
     that is enabled, verified and cleared for this data class, or refuses.
   */
-  const policy = await loadPolicy(db);
-  const registry = await loadRegistry(db);
+  // Service role: the config rows are private and a user client cannot see them.
+  const policy = await loadPolicy(admin);
+  const registry = await loadRegistry(admin);
   const health = await loadHealth(admin);
 
   try {

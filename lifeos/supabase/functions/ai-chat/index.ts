@@ -289,8 +289,15 @@ Deno.serve(async (req) => {
     Anthropic path being replaced, kept only so the migration has a rollback that needs
     no deploy. Phase 14 deletes the legacy supplier and this comment with it.
   */
-  const policy = await loadPolicy(db);
-  const registry = policy.routerEnabled ? await loadRegistry(db) : null;
+  /*
+    Read with the service role, not the caller's client. The ai_policy and
+    ai_registry rows are private (is_public = false), and app_config's RLS policy
+    exposes only public rows to an authenticated user — so a user-scoped read
+    returns nothing and silently falls back to the defaults, leaving the router off
+    however the row is set. loadHealth already took admin for the same reason.
+  */
+  const policy = await loadPolicy(admin);
+  const registry = policy.routerEnabled ? await loadRegistry(admin) : null;
   const health = policy.routerEnabled ? await loadHealth(admin) : {};
   const budget = policy.routerEnabled
     ? await readBudget(admin, user.id, entitlement.plan.tier, policy)
