@@ -56,6 +56,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/08-sample-plan.md`](./production/08-sample-plan.md) | The sample order with exact variants, artwork test plate, datum placements and the scorecard |
 | [`production/09-hero-tee-resolution.md`](./production/09-hero-tee-resolution.md) | Hero tee investigation, the XS finding, five compared alternatives, and the final order with checkout scenarios |
 | [`production/10-path2-viability.md`](./production/10-path2-viability.md) | Path 2 viability — 19-point investigation, the YELLOW verdict, and the credential-free route to close the gap |
+| [`production/11-product-architecture.md`](./production/11-product-architecture.md) | Revised Chapter 001 architecture — broad catalogue search, the baggy-jogger finding, and the four-piece recommendation |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -74,6 +75,16 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## ARCHITECTURE REVISED — THE FLYER FAILS THE BAGGY REQUIREMENT
+>
+> With an oversized/baggy jogger set as a hard requirement, the Stanley/Stella Flyer is
+> **rejected**: its own product sheet says **"Medium Fit"**. Across both catalogues, only
+> **two** heavyweight joggers carry genuine baggy language — Bella+Canvas 4737 and Lane
+> Seven LS16006 — and **both are US-only**, so the requirement forces US-first fulfilment.
+> Recommended four-piece Chapter 001: MC1087 Box Tee, Lane Seven LS16001 hoodie + LS16006
+> jogger, YuPoong 6245CM cap. **Shorts deferred — no candidate meets specification.**
+> See [`11-product-architecture.md`](./production/11-product-architecture.md).
 
 > **Access note.** This agent has **no Printify integration and no access to the founder's
 > Printify session** — a login on the founder's machine does not transfer to this isolated

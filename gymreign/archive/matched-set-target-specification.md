@@ -34,6 +34,7 @@ checked.
 
 | Requirement | Target |
 |---|---|
+| **Silhouette** | **OVERSIZED / BAGGY — hard criterion, added 2026-08-23.** Tapered, slim or regular-fit bottoms are rejected outright |
 | **Weight** | ≈350 GSM, hoodie and bottom matched to the same weight class |
 | **Composition** | 80% cotton / 20% recycled polyester, or a demonstrably superior cotton-dominant equivalent |
 | **Fabric construction** | 3-end fleece, brushed back, soft cotton face |
@@ -44,7 +45,15 @@ checked.
 | **Branding** | Suitable for GYMREIGN Datum placement — measured elevation from hem, per size |
 | **Fulfilment** | Suitable for global fulfilment: EU, UK, US at minimum |
 
-### Reference garments — the benchmark to match or beat
+> **AMENDMENT 2026-08-23 — the Flyer is no longer the benchmark.** Stanley/Stella's own
+> product sheet describes the Flyer as **"Medium Fit"**, and its blueprint carries no
+> oversized or baggy descriptor. Under the silhouette criterion added above, **the Flyer is
+> rejected.** The fabric specification below remains correct and is retained as the material
+> benchmark; the *silhouette* benchmark is now **Lane Seven Urban `LS16001` + `LS16006`**
+> (both 340 g/m², both 80/20, same product line, hoodie explicitly oversized), which meets
+> every criterion except EU fulfilment.
+
+### Reference garments — the material benchmark to match or beat
 
 | | Slammer 2.0 `SASU024` | Flyer Jogger `SABU006` / `SXU006` |
 |---|---|---|
