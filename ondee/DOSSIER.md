@@ -529,24 +529,49 @@ Calux et Eastpure selon le niveau de certification exigé.
 
 ### 5.1 Coût rendu France — premier lot de 100 filtres
 
-Taux vérifié le 28/08/2026 : **1 USD = 0,858266 EUR**.
+> ⚠️ **AUCUN CHIFFRE DE CETTE SECTION N'EST UN COÛT VALIDÉ.**
+> Tant qu'un devis fournisseur écrit et un devis transporteur écrit ne sont pas
+> reçus, l'ensemble du bloc ci-dessous est une **fourchette d'estimation**. Le
+> chiffre de 11,94 € qui figurait ici a été retiré comme référence : il donnait
+> une fausse impression de précision sur des postes dont deux sur quatre étaient
+> devinés.
 
-| Poste | Montant | Statut |
-|---|---:|---|
-| Marchandise — 100 × 10,50 $ | **901,18 €** | ✅ calculé sur prix vérifié |
-| Fret express (DHL/FedEx, ≈ 45-50 kg taxables) | 250,00 € | ⚠️ **estimation**, pas un devis |
-| Droits de douane 2 % (HS 8421211000) | 23,02 € | ⚠️ **NON VÉRIFIÉ** — taux à confirmer sur TARIC |
-| Frais de dédouanement transporteur | 20,00 € | ⚠️ estimation |
-| **Total du lot** | **1 194,20 €** | |
-| **▸ Coût rendu par filtre** | **11,94 €** | |
+Taux de change vérifié le 28/08/2026 : **1 USD = 0,858266 EUR**.
 
-*TVA à l'import : 234,84 € — **récupérable** si vous êtes assujetti. C'est un
-sujet de trésorerie, pas un coût.*
+| Poste | Fourchette basse | Fourchette haute | Statut |
+|---|---:|---:|---|
+| Marchandise — 100 × 9,00 à 10,50 $ (prix affiché Calux) | 772,44 € | 901,18 € | ✅ prix affiché vérifié, **non négocié** |
+| Fret Chine → France (≈ 40 kg réels, ≈ 40 kg taxables) | 205,00 € | 345,00 € | ⚠️ estimation — express 6 à 10 $/kg |
+| Droits de douane (SH 8421 21 00) | 0,00 € | 21,00 € | ⚠️ taux tarifaire 0 à 1,7 %, à confirmer sur TARIC |
+| Dédouanement transporteur | 15,00 € | 30,00 € | ⚠️ estimation |
+| Avance de TVA par le transporteur | 10,00 € | 25,00 € | ⚠️ estimation, souvent oublié |
+| Virement international (frais bancaires) | 15,00 € | 40,00 € | ⚠️ estimation, souvent oublié |
+| **Total du lot** | **1 017 €** | **1 362 €** | |
+| **▸ Coût rendu par filtre** | **10,17 €** | **13,62 €** | **estimation, non validée** |
 
-**Hypothèses complémentaires à confirmer auprès de Calux :**
-cartouche rendue **3,50 €** · pomme de douche 3 jets rendue **4,20 €**.
+*TVA à l'import (20 % sur marchandise + fret + droits) : de 200 à 250 € environ.
+Elle est **récupérable** dès lors que la société est assujettie — c'est un sujet
+de trésorerie, pas un coût. Elle ne l'est **pas** tant qu'aucune société n'existe.*
+
+**Ce qui fera bouger la fourchette, par ordre d'impact :**
+1. Le **fret** — c'est le poste le plus lourd et le plus incertain sur 100 pièces.
+   Un envoi de cette taille supporte mal les minima de facturation ; le maritime
+   n'est pas moins cher à ce volume et ajoute 35 à 45 jours.
+2. Le **prix négocié** — 9,00 $ contre 10,50 $ change le lot de 129 €.
+3. Le **fournisseur retenu** — le SF-08 de Ningbo Jewin est affiché à 3,60-4,80 $,
+   soit deux à trois fois moins cher, mais avec un MOQ de 300 pièces.
+
+**Restent totalement à établir, aucune estimation ne les couvre :** le coût rendu
+de la cartouche seule, celui de la pomme de douche, le coût du packaging
+personnalisé et celui du marquage.
 
 ### 5.2 Marge par offre (hors publicité)
+
+> ⚠️ Ce tableau est calculé sur l'**hypothèse médiane** de 11,94 € rendu France,
+> au milieu de la fourchette 10,17 – 13,62 € ci-dessus. Il n'est donc pas un
+> compte d'exploitation, c'est une simulation. Aux bornes de la fourchette, la
+> marge du set à 79 € va de **33,8 € à 37,3 €** — l'ordre de grandeur tient, la
+> précision affichée non. À refaire dès réception des devis.
 
 | Offre | Prix TTC | CA HT | COGS | Coût total | **Marge** | % du HT | ROAS éq. |
 |---|---:|---:|---:|---:|---:|---:|---:|
@@ -557,7 +582,7 @@ cartouche rendue **3,50 €** · pomme de douche 3 jets rendue **4,20 €**.
 | Cartouche à l'unité | 19 € | 15,83 € | 3,50 € | 9,18 € | 6,65 € | 42,0 % | 2,86 |
 | Cartouches × 2 | 34 € | 28,33 € | 7,00 € | 13,76 € | 14,57 € | 51,4 % | 2,33 |
 | Cartouches × 4 | 59 € | 49,17 € | 14,00 € | 22,63 € | 26,54 € | 54,0 % | 2,22 |
-| **Abonnement** — 2 cartouches / 6 mois | 29 € | 24,17 € | 7,00 € | 13,57 € | **10,60 €** | 43,8 % | 2,74 |
+| ~~Abonnement — 2 cartouches / 6 mois~~ | — | — | — | — | — | — | **supprimé** : aucun abonnement n'existe techniquement (ni *selling plan*, ni application). Remplacé par la vente de lots en achat unique. |
 | Bandelettes × 10 | 9 € | 7,50 € | 0,90 € | 4,52 € | 2,98 € | 39,7 % | 3,02 |
 
 *Coût total = COGS + emballage + expédition + frais de paiement (2,2 % + 0,25 €)
@@ -594,7 +619,7 @@ la marge en valeur absolue, sinon le pack détruit de la valeur :
 
 **Lecture honnête.** Le scénario prudent est à l'équilibre à douze mois, pas en
 perte : c'est une amélioration réelle par rapport à ma première modélisation,
-due au COGS plus bas (11,94 € au lieu de 14-15,50 €) et à l'abonnement
+due au COGS estimé plus bas (11,94 € d'hypothèse médiane au lieu de 14-15,50 €) et à l'abonnement
 restructuré. Mais il ne dégage rien. **Le seuil de décision reste le même : si
 après 1 500 € de test le CPA dépasse 30 € avec un panier moyen sous 75 €, le
 modèle ne tient pas et il faut arrêter.**
@@ -905,7 +930,7 @@ l'unité**.
 https://calux08.en.made-in-china.com/product/FZOJdwzyPLhT/China-15-Stage-Universal-Shower-Filter-with-Retro-Casing-High-Output-Handheld-or-Shower-Head-Filter-with-Replaceable-Cartridge.html
 ```
 
-**COÛTS :** 10,50 $ départ usine à 100 pièces → **11,94 € rendu France**
+**COÛTS :** 9,00 à 10,50 $ départ usine à 100 pièces → **10,17 à 13,62 € rendu France (ESTIMATION, non validée par devis)**
 (marchandise 901,18 € + fret 250 € + droits 23 € + dédouanement 20 € pour
 100 pièces). Cartouche rendue estimée 3,50 € · pomme de douche 4,20 €.
 *Taux vérifié : 1 USD = 0,858266 EUR au 28/08/2026. Fret et droits = estimations.*
@@ -1003,7 +1028,7 @@ rare : assez mûr pour que quatre concurrents prouvent la demande, assez immatur
 pour qu'aucun n'ait construit de marque de référence.
 
 Après vérification des vrais prix fournisseurs, **l'économie est meilleure que
-ce que j'avais estimé** : le coût rendu tombe à 11,94 € au lieu de 14-15,50 €,
+ce que j'avais estimé** : le coût rendu estimé tombe dans une fourchette de 10,17 à 13,62 € au lieu de 14-15,50 €,
 et la marge sur l'offre poussée atteint 53,9 % du CA HT. Le ROAS d'équilibre de
 2,22 est atteignable sur Meta en France pour un produit à démonstration visuelle
 forte.

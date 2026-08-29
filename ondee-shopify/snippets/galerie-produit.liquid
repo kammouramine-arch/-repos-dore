@@ -1,0 +1,114 @@
+{%- comment -%}
+  Galerie produit ONDÉE.
+
+  Elle affiche EN PRIORITÉ les vraies photographies rangées dans les sept
+  emplacements « ondee.photo_… » de la fiche produit, dans l'ordre de lecture
+  qui convertit le mieux : le produit, puis le produit installé, puis la preuve
+  (les bandelettes), puis le détail.
+
+  Tant qu'aucun emplacement n'est rempli, elle retombe sur les médias du produit
+  — aujourd'hui les illustrations techniques. Il n'y a donc rien à modifier dans
+  le thème le jour où les photos arrivent : il suffit de les déposer dans les
+  emplacements nommés de l'admin.
+
+  Paramètres :
+    mode  — 'figures' (grande image) ou 'vignettes' (bande de miniatures)
+{%- endcomment -%}
+
+{%- liquid
+  assign cles = 'photo_1_produit_seul,photo_2_installe,photo_5_bandelettes,photo_3_cartouche,photo_4_contenu_boite,photo_7_filtration,photo_6_packaging' | split: ','
+  assign nb_photos = 0
+  for cle in cles
+    assign champ = product.metafields.ondee[cle]
+    if champ != blank and champ.value != blank
+      assign nb_photos = nb_photos | plus: champ.value.size
+    endif
+  endfor
+-%}
+
+{%- if nb_photos > 0 -%}
+  {%- assign i = 0 -%}
+  {%- for cle in cles -%}
+    {%- assign champ = product.metafields.ondee[cle] -%}
+    {%- if champ != blank and champ.value != blank -%}
+      {%- liquid
+        case cle
+          when 'photo_1_produit_seul'
+            assign texte = 'Le filtre de douche ONDÉE vu seul, sur fond clair'
+          when 'photo_2_installe'
+            assign texte = 'Le filtre de douche ONDÉE installé entre le flexible et la douchette, dans une salle de bains'
+          when 'photo_5_bandelettes'
+            assign texte = 'Les deux bandelettes de test au chlore ONDÉE après un test avant et après filtration'
+          when 'photo_3_cartouche'
+            assign texte = 'La cartouche filtrante C90 ONDÉE sortie du corps du filtre'
+          when 'photo_4_contenu_boite'
+            assign texte = 'Le contenu de la boîte ONDÉE : le filtre, une cartouche C90, les joints, deux bandelettes de test et la notice'
+          when 'photo_7_filtration'
+            assign texte = 'Détail des médias filtrants de la cartouche ONDÉE : KDF-55, sulfite de calcium et charbon actif'
+          when 'photo_6_packaging'
+            assign texte = "L'emballage ONDÉE tel qu'il est livré"
+          else
+            assign texte = product.title
+        endcase
+      -%}
+      {%- for f in champ.value -%}
+        {%- if f == blank -%}{%- continue -%}{%- endif -%}
+        {%- if f.alt != blank -%}{%- assign lu = f.alt -%}{%- else -%}{%- assign lu = texte -%}{%- endif -%}
+        {%- if mode == 'vignettes' -%}
+          <button data-vue {% if i == 0 %}aria-current="true"{% endif %} aria-label="{{ lu | escape }}">
+            <img src="{{ f | image_url: width: 140 }}" alt="" width="66" height="66" loading="lazy">
+          </button>
+        {%- else -%}
+          <figure {% if i == 0 %}data-actif{% endif %}>
+            <img src="{{ f | image_url: width: 1200 }}" alt="{{ lu | escape }}"
+                 width="1000" height="1000"
+                 {% if i == 0 %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+          </figure>
+        {%- endif -%}
+        {%- assign i = i | plus: 1 -%}
+      {%- endfor -%}
+    {%- endif -%}
+  {%- endfor -%}
+
+  {%- comment -%} Les illustrations techniques restent en fin de galerie : elles expliquent ce qu'une photo ne montre pas. {%- endcomment -%}
+  {%- for m in product.media -%}
+    {%- if mode == 'vignettes' -%}
+      <button data-vue aria-label="{{ m.alt | default: product.title | escape }}">
+        <img src="{{ m | image_url: width: 140 }}" alt="" width="66" height="66" loading="lazy">
+      </button>
+    {%- else -%}
+      <figure>
+        <img src="{{ m | image_url: width: 1200 }}" alt="{{ m.alt | escape }}" width="1000" height="1000" loading="lazy">
+      </figure>
+    {%- endif -%}
+  {%- endfor -%}
+
+{%- elsif product.media.size > 0 -%}
+  {%- for m in product.media -%}
+    {%- if mode == 'vignettes' -%}
+      <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="{{ m.alt | default: product.title | escape }}">
+        <img src="{{ m | image_url: width: 140 }}" alt="" width="66" height="66" loading="lazy">
+      </button>
+    {%- else -%}
+      <figure {% if forloop.first %}data-actif{% endif %}>
+        <img src="{{ m | image_url: width: 1200 }}" alt="{{ m.alt | escape }}" width="1000" height="1000"
+             {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+      </figure>
+    {%- endif -%}
+  {%- endfor -%}
+
+{%- else -%}
+  {%- assign repli = 'pommeau.svg,coupe.svg,cartouche.svg,bandelette-avant.svg,bandelette-apres.svg,install.svg' | split: ',' -%}
+  {%- for f in repli -%}
+    {%- if mode == 'vignettes' -%}
+      <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="Vue {{ forloop.index }}">
+        <img src="{{ f | asset_url }}" alt="" width="66" height="66" loading="lazy">
+      </button>
+    {%- else -%}
+      <figure {% if forloop.first %}data-actif{% endif %}>
+        <img src="{{ f | asset_url }}" alt="{{ product.title | escape }}" width="800" height="800"
+             {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
+      </figure>
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}

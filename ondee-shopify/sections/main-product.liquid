@@ -15,38 +15,11 @@
     {%- comment -%} ══ GALERIE ══ {%- endcomment -%}
     <div class="pp__galerie">
       <div class="gal__p" data-galerie>
-        {%- if product.media.size > 0 -%}
-          {%- for m in product.media -%}
-            <figure {% if forloop.first %}data-actif{% endif %}>
-              <img src="{{ m | image_url: width: 1200 }}" alt="{{ m.alt | escape }}"
-                   width="1000" height="1000" {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}>
-            </figure>
-          {%- endfor -%}
-        {%- else -%}
-          <figure data-actif><img src="{{ 'pommeau.svg' | asset_url }}" alt="{{ product.title | escape }}" width="800" height="1000"></figure>
-          <figure><img src="{{ 'coupe.svg' | asset_url }}" alt="Coupe technique" width="800" height="800" loading="lazy"></figure>
-          <figure><img src="{{ 'cartouche.svg' | asset_url }}" alt="Cartouche C90" width="800" height="800" loading="lazy"></figure>
-          <figure><img src="{{ 'bandelette-avant.svg' | asset_url }}" alt="Test avant" width="600" height="600" loading="lazy"></figure>
-          <figure><img src="{{ 'bandelette-apres.svg' | asset_url }}" alt="Test après" width="600" height="600" loading="lazy"></figure>
-          <figure><img src="{{ 'install.svg' | asset_url }}" alt="Installation" width="800" height="800" loading="lazy"></figure>
-        {%- endif -%}
+        {%- render 'galerie-produit', product: product, mode: 'figures' -%}
       </div>
 
       <div class="gal__v" role="tablist" aria-label="Vues du produit">
-        {%- if product.media.size > 0 -%}
-          {%- for m in product.media -%}
-            <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="Vue {{ forloop.index }}">
-              <img src="{{ m | image_url: width: 140 }}" alt="" width="66" height="66" loading="lazy">
-            </button>
-          {%- endfor -%}
-        {%- else -%}
-          {%- assign fb = 'pommeau.svg,coupe.svg,cartouche.svg,bandelette-avant.svg,bandelette-apres.svg,install.svg' | split: ',' -%}
-          {%- for f in fb -%}
-            <button data-vue {% if forloop.first %}aria-current="true"{% endif %} aria-label="Vue {{ forloop.index }}">
-              <img src="{{ f | asset_url }}" alt="" width="66" height="66" loading="lazy">
-            </button>
-          {%- endfor -%}
-        {%- endif -%}
+        {%- render 'galerie-produit', product: product, mode: 'vignettes' -%}
       </div>
     </div>
 
@@ -222,7 +195,7 @@
     { "type": "text", "id": "label_variantes", "label": "Label des variantes", "default": "Votre formule" },
     { "type": "text", "id": "label_droite", "label": "Label à droite", "default": "90 j / cartouche" },
     { "type": "text", "id": "stock_txt", "label": "Ligne de stock", "default": "En stock — expédié sous 48 h ouvrées" },
-    { "type": "header", "content": "Encart abonnement" },
+    { "type": "header", "content": "Encart sous le bouton d’achat" },
     { "type": "text", "id": "encart_titre", "label": "Titre de l'encart" },
     { "type": "richtext", "id": "encart_txt", "label": "Texte de l'encart" }
   ],
