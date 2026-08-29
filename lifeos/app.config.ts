@@ -5,6 +5,31 @@ import brand from './src/config/brand.json';
  * Expo config is generated from the brand file, so renaming the product is a one-file change.
  * Public env vars are surfaced through `extra` and read by src/config/env.ts.
  */
+const supabaseUrl = process.env.EXPO_PUBLIC_SUPABASE_URL ?? '';
+const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
+
+/*
+  A production build without a backend is worse than a failed one.
+
+  It compiles, uploads, passes review queueing, installs from TestFlight, and only then
+  tells the person holding the phone that the backend is not configured — by which point
+  a build number has been burned and the loop is hours long. Failing here costs seconds.
+
+  Only the production environment is guarded: `npx expo config`, the test suite and a
+  local dev server all evaluate this file with no APP_ENV set and must keep working.
+*/
+if (process.env.APP_ENV === 'production' && !(supabaseUrl && supabaseAnonKey)) {
+  const missing = [
+    supabaseUrl ? null : 'EXPO_PUBLIC_SUPABASE_URL',
+    supabaseAnonKey ? null : 'EXPO_PUBLIC_SUPABASE_ANON_KEY',
+  ].filter(Boolean);
+  throw new Error(
+    `Refusing to configure a production build without ${missing.join(' and ')}. ` +
+      'These are set in the production profile of eas.json; a build without them ships ' +
+      'an app that cannot reach its backend.',
+  );
+}
+
 const config: ExpoConfig = {
   name: brand.name,
   slug: brand.slug,
@@ -64,8 +89,8 @@ const config: ExpoConfig = {
   ],
   experiments: { typedRoutes: false },
   extra: {
-    supabaseUrl: process.env.EXPO_PUBLIC_SUPABASE_URL ?? '',
-    supabaseAnonKey: process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '',
+    supabaseUrl,
+    supabaseAnonKey,
     analyticsEnabled: process.env.EXPO_PUBLIC_ANALYTICS_ENABLED !== 'false',
     eas: { projectId: process.env.EAS_PROJECT_ID ?? undefined },
   },
