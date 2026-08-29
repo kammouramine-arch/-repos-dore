@@ -76,6 +76,7 @@ async function main() {
     case "pilot": case "pilote": return pilotCommand(rest);
     case "report": case "rapport": return reportCommand(rest);
     case "dns": case "dns-check": return dnsCommand(rest);
+    case "dkim": return dkimCommand(rest);
     case "mission": return missionCommand(rest);
     case "territory": case "territoire": return territoryCommand(rest);
     case "national": return nationalCommand();
@@ -488,6 +489,51 @@ async function reportCommand(args: string[]) {
 }
 
 /** Verifie SPF, DKIM et DMARC sur le domaine d'expedition. */
+async function dkimCommand(args: string[]) {
+  const { recordDkimAttestation, readDkimAttestation, clearDkimAttestation, resumeAttestation } =
+    await import("../lib/deliverability/attestation");
+  const domaine = config.from.email.split("@")[1];
+  const [sous, ...reste] = args;
+
+  if (sous === "attest" || sous === "atteste") {
+    const note = reste.join(" ").trim();
+    if (!note) {
+      bad("Indiquez ce que montre l'en-tête réel.");
+      info('npm run amyn -- dkim attest "Gmail : DKIM PASS, d=amyn.agency"');
+      return;
+    }
+    title("ATTESTATION DKIM");
+    const a = await recordDkimAttestation({ domain: domaine, note });
+    ok(`Constat enregistré pour ${a.domain}.`);
+    info(`« ${a.note} » — ${a.by}, le ${a.at.slice(0, 10)}.`);
+    console.log();
+    info("Le sas d'envoi automatique s'appuiera désormais sur ce constat,");
+    info("et l'affichera à chaque contrôle. Retirer : npm run amyn -- dkim clear");
+    return;
+  }
+
+  if (sous === "clear" || sous === "retirer") {
+    title("ATTESTATION DKIM");
+    const retire = await clearDkimAttestation();
+    if (retire) {
+      ok("Attestation retirée. Le contrôle DNS redevient seul juge.");
+    } else {
+      info("Aucune attestation enregistrée.");
+    }
+    return;
+  }
+
+  title("ATTESTATION DKIM");
+  const a = await readDkimAttestation(domaine);
+  if (!a) {
+    info(`Aucune attestation pour ${domaine}. Le contrôle DKIM repose sur le DNS seul.`);
+    console.log();
+    info('Enregistrer un constat : npm run amyn -- dkim attest "ce que montre l\'en-tête"');
+    return;
+  }
+  ok(resumeAttestation(a));
+}
+
 async function dnsCommand(args: string[]) {
   const { checkDeliverability, SELECTEURS_COURANTS } = await import("../lib/deliverability");
   const domaine = args.find((a) => !a.startsWith("--")) ?? config.from.email.split("@")[1];
@@ -506,10 +552,19 @@ async function dnsCommand(args: string[]) {
   );
   console.log();
 
-  const r = await checkDeliverability(domaine, impose ? { dkimSelectors: [impose] } : {});
+  const rapport = await checkDeliverability(domaine, impose ? { dkimSelectors: [impose] } : {});
+  const r = rapport;
+
+  // Une attestation ne remplace pas le DNS : elle explique pourquoi le DKIM
+  // est considéré comme actif malgré un DNS muet. On l'affiche donc à côté du
+  // constat, jamais à sa place.
+  const { readDkimAttestation, resumeAttestation } = await import("../lib/deliverability/attestation");
+  const attestation = await readDkimAttestation(domaine);
   for (const c of r.checks) {
-    const marque = c.status === "OK" ? ok : c.status === "WARN" ? warn : bad;
+    const atteste = c.id === "dkim" && c.status !== "OK" && attestation;
+    const marque = atteste ? warn : c.status === "OK" ? ok : c.status === "WARN" ? warn : bad;
     marque(`${c.label.padEnd(28)} ${c.detail}`);
+    if (atteste) info(resumeAttestation(attestation));
     c.found.forEach((f) => info(f.slice(0, 110)));
     if (c.fix) {
       info(`À POSER — hôte : ${c.fix.host}`);
@@ -1274,6 +1329,9 @@ function help() {
   ${C.bold}Lancement réel${C.reset}
     preflight                  contrôle complet avant tout envoi réel
     pilot [--max=N --ville=X]  préparer une campagne pilote (5 prospects max)
+    dkim                       voir l'attestation DKIM en vigueur
+    dkim attest "<constat>"    enregistrer un DKIM PASS vu dans un en-tête réel
+    dkim clear                 retirer l'attestation
     dns [domaine] [--selecteur=X]
                                vérifier SPF, DKIM, DMARC (le sélecteur exact se
                                lit dans le tag s= d'un en-tête réel)

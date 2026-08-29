@@ -40,6 +40,7 @@ import {
   getPolicy, setPolicy, checkSendWindow, remainingToday, type Policy,
 } from "@/lib/policy";
 import { checkDeliverability, type DeliverabilityReport } from "@/lib/deliverability";
+import { readDkimAttestation, resumeAttestation } from "@/lib/deliverability/attestation";
 import { mailerStatus } from "@/lib/mailer";
 import { preflight } from "@/lib/launch/preflight";
 import { isPersonalMailbox } from "@/lib/contact/discover";
@@ -133,24 +134,35 @@ export async function autopilotGate(options: GateOptions = {}): Promise<Autopilo
     }
 
     const dkim = parId.get("dkim");
-    const dkimOk = dkim?.status === "OK";
-    // Sans DKIM, l'automatisme est refusé — sauf si le verrou a été levé
+    const dkimDns = dkim?.status === "OK";
+
+    // Le DNS ne suffit pas à conclure à l'absence : notre sondage teste une
+    // liste de sélecteurs, et une liste n'est jamais exhaustive. Un constat
+    // d'en-tête réel — un serveur destinataire qui a VÉRIFIÉ la signature —
+    // vaut davantage que notre devinette, à condition d'être daté et signé.
+    const attestation = dkimDns ? null : await readDkimAttestation(domaine);
+    const dkimOk = dkimDns || attestation !== null;
+
+    // Sans DKIM ni attestation, l'automatisme est refusé — sauf verrou levé
     // volontairement. En simulation, on constate sans bloquer.
     const dkimBloquant = policy.autoSendRequiresDkim && !config.dryRun;
     checks.push({
       id: "dkim",
       label: "DKIM",
       ok: dkimOk || !dkimBloquant,
-      detail: dkimOk
+      detail: dkimDns
         ? (dkim?.detail ?? "Signature active.")
-        : dkimBloquant
-          ? `${dkim?.detail ?? "Absent."} L'envoi automatique est refusé tant que la signature manque.`
-          : `${dkim?.detail ?? "Absent."} Constaté sans bloquer (${config.dryRun ? "mode simulation" : "verrou levé"}).`,
+        : attestation
+          ? resumeAttestation(attestation, now)
+          : dkimBloquant
+            ? `${dkim?.detail ?? "Absent."} L'envoi automatique est refusé tant que la signature manque.`
+            : `${dkim?.detail ?? "Absent."} Constaté sans bloquer (${config.dryRun ? "mode simulation" : "verrou levé"}).`,
     });
     if (!dkimOk && dkimBloquant) {
       remedes.push(
-        "Activer DKIM chez OVHcloud : espace client → Emails → onglet DKIM → activer. " +
-          "Puis vérifier : npm run amyn -- dns",
+        "Soit activer DKIM chez OVHcloud (espace client → Emails → onglet DKIM), " +
+          "soit — si un en-tête réel montre déjà DKIM=PASS — enregistrer le constat : " +
+          'npm run amyn -- dkim attest "ce que montre l\'en-tête"',
       );
     }
   }
