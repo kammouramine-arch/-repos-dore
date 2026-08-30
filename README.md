@@ -503,7 +503,12 @@ Connection string → URI** : la case *Use connection pooling* cochée donne
 passe est celui choisi à la création du projet ; il se régénère dans
 **Database → Reset database password**.
 
-Migration de la base de production :
+#### Migrer la base de production
+
+Deux chemins, au même résultat. Le second n'exige ni le dépôt ni Node, et le mot
+de passe ne quitte jamais l'interface Supabase.
+
+**Depuis le dépôt** — à privilégier lorsqu'on l'a déjà :
 
 ```bash
 DIRECT_URL="postgresql://…:5432/postgres" npm run db:deploy:production
@@ -513,6 +518,17 @@ Le script refuse de partir si l'URL passe par un pooler, affiche les migrations
 en attente avant de les appliquer, puis vérifie en base le nombre de tables, les
 migrations achevées et une lecture applicative réelle. Les URL sont masquées
 dans toutes ses sorties : aucun mot de passe n'apparaît dans un journal.
+
+**Depuis l'éditeur SQL de Supabase** — pour une première initialisation sans
+outillage local : copier `prisma/production-init.sql` dans **SQL Editor → New
+query → Run**. Le fichier réunit toutes les migrations, crée la table
+`_prisma_migrations` et y inscrit chaque migration avec sa somme de contrôle
+réelle, si bien que `prisma migrate status` considère ensuite la base à jour et
+que les migrations suivantes s'appliquent normalement. Il est transactionnel, et
+refuse de s'exécuter si les tables DEVISIA existent déjà.
+
+`prisma/production-init.sql` est régénéré par `npm run db:sql:production` après
+toute nouvelle migration.
 
 ---
 

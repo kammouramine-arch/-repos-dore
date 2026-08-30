@@ -16,6 +16,7 @@
     "db:migrate": "prisma migrate dev",
     "db:deploy": "prisma migrate deploy",
     "db:deploy:production": "node scripts/migrate-production.mjs",
+    "db:sql:production": "node scripts/build-production-sql.mjs > prisma/production-init.sql",
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
     "db:studio": "prisma studio"
