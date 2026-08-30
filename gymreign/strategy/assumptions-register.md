@@ -156,3 +156,18 @@ being absorbed by wishful pricing.
 | P07-7 | The jogger mark is 37.8 mm, not the 40 mm approved. The left-leg print area is 44.5 mm wide | `[V]` blueprint placeholder dimensions |
 | P07-8 | No premium winter vest and no premium socks exist on Printify. Both excluded from Chapter 001 | `[V]` full catalogue sweep |
 | P07-9 | The GYMREIGN wordmark still does not exist as drawn artwork | `[V]` |
+
+## Phase 08 — identity Rev 3 (2026-08-30, proposal)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P08-1 | The GYMREIGN alphabet is drawn, not licensed: 8 glyphs, stroke 20 on cap 100, one diagonal angle of 0.52 run per rise, datum band y=42–62 | `[V]` constructed and rendered |
+| P08-2 | Symbol = G and R interlocked, the R's stem occupying the G's aperture. 1.84:1, stroke 22 | `[V]` |
+| P08-3 | Embroidery minimums, from simulation at 1.2 mm satin: symbol **20 mm**, wordmark **45 mm**. Symbol fails at 14 mm, wordmark at 32 mm | `[V]` rendered and measured |
+| P08-4 | Print minimums: symbol 16 mm, wordmark 40 mm. Set by legibility, not by ink — counters stay open below this | `[V]` |
+| P08-5 | 24 symbol concepts built, 23 rejected. Heavy abstract geometry lands on an existing icon nearly every time | `[V]` rejection record in doc 21 §13 |
+| P08-6 | Placement rule: wordmark on tee/hoodie/cap, symbol on jogger/shorts. The jogger and shorts panels (44.5 mm, 127 mm) are too narrow for a legible wordmark | `[V]` blueprint dimensions |
+| P08-7 | No premium athletic vest on Printify — 18 vest hits across 2,252 blueprints, all corporate merch, workwear or ANSI safety | `[V]` full catalogue sweep |
+| P08-8 | No premium sock on Printify — all 8 blueprints are printed sublimation socks; best cotton content is 25% (bp 496) | `[V]` all compositions read |
+| P08-9 | L3 prices unchanged. Shorts base cost $21.79 gives 3.20x and 51.0%; cap remains the only sub-floor article at 2.73x | `[V]` |
+| P08-10 | The symbol has not been physically stitched; the 20 mm minimum is simulated | `[A]` needs a sew-out before the first cap order |

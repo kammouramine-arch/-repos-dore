@@ -66,6 +66,8 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/18-price-ladder-recommendation.md`](./production/18-price-ladder-recommendation.md) | Vendor fix, the FX correction, and three costed price options against the 2.8× floor |
 | [`production/19-brand-elevation-review.md`](./production/19-brand-elevation-review.md) | Brand elevation review — identity critique, the plate mark, shorts/vest/socks verdicts, revised price ladders (**approved**) |
 | [`production/20-phase-07-applied-verification.md`](./production/20-phase-07-applied-verification.md) | Phase 07 applied — L3 prices, the shorts, the plate mark, the L3 shipping model, and full live verification |
+| [`identity/21-identity-system-rev3.md`](./identity/21-identity-system-rev3.md) | **Identity Rev 3** — the drawn alphabet, the GR interlock symbol, lockups, clear space, minimum sizes, type and colour (**proposal**) |
+| [`production/22-range-and-pricing-review.md`](./production/22-range-and-pricing-review.md) | Range and pricing review — vest and socks re-verified and rejected, pricing left unchanged (**proposal**) |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
