@@ -203,3 +203,12 @@ being absorbed by wishful pricing.
 | P10-9 | The tee product carries 5 variants (181546, 181550, 181551, 181554, 181556) that the live catalogue no longer lists. They remain disabled | `[V]` |
 | P10-10 | shipping_template omitted from the publish call; the L3 shipping model on the General profile is preserved | `[V]` |
 | P10-11 | The approved logo file is still not in the repository. No artwork has been approximated | `[V]` |
+
+### Phase 10 corrections (same day)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P10-6a | **Superseded.** The DARK/LIGHT print-area split was reverted to a single group during diagnosis. It will return only when the two flat cuts actually differ | `[V]` |
+| P10-10a | **Superseded.** Omitting shipping_template did not prevent the stall; a retry including it stalled identically. The doc 20 caution is untested by this episode | `[V]` |
+| P10-12 | **The Printify to Shopify publish pipeline stalled.** Isolated by publishing the CAP alone (4 variants, single print area), structurally identical to a Phase 07 publish that took ~2 minutes. Not volume, not structure, not payload | `[V]` controlled test |
+| P10-13 | Printify holds the correct 115-variant state; Shopify still holds the previous 25. Products left unlocked. No customer impact - password-protected, 0 orders | `[V]` |

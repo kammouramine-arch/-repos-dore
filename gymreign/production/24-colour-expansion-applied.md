@@ -1,7 +1,8 @@
 # 24 — COLOUR EXPANSION · FINAL MATRIX AND APPLICATION
 
-**Applied 2026-08-30.** Prices unchanged. **Artwork untouched.** Storefront still
-password-protected, 0 orders, €0 spent. ONDÉE and RÉVA untouched.
+**Applied on Printify 2026-08-30. NOT YET SYNCED TO SHOPIFY — see §7.**
+Prices unchanged. **Artwork untouched.** Storefront still password-protected, 0 orders,
+€0 spent. ONDÉE and RÉVA untouched.
 
 Founder decisions carried in: **Slammer 2.0 stays** at €135 for Chapter 001; the ITC Legend
 swap is **not** taken; the crowned GYMREIGN logo is the approved mark and the GR
@@ -86,8 +87,10 @@ the variant sets.
 > storefront is password-protected with zero orders, and it resolves the moment the approved
 > artwork is in place.
 
-**`shipping_template` was deliberately omitted from the publish call**, per the standing
-caution in doc 20 §4. The L3 shipping model on the General profile is preserved.
+**On `shipping_template`:** the first publish attempt omitted it, per the standing caution in
+doc 20 §4. That attempt stalled — but so did a retry *with* the flag included, so the flag was
+not the cause and the doc 20 caution is neither confirmed nor refuted by this episode. The L3
+shipping model on the General profile is intact and verified.
 
 ## 5. THE LOGO FILE — EXACTLY WHAT I NEED
 
@@ -131,3 +134,50 @@ trace against the original before anything is applied.
 ## 6. NOT STARTED
 
 The website. As instructed — Chapter 001 product identity finishes first.
+
+
+---
+
+## 7. THE SHOPIFY SYNC IS STALLED — CURRENT TRUE STATE
+
+**The colour expansion is live on Printify and has not reached Shopify.**
+
+| Side | State |
+|---|---|
+| **Printify** | ✅ Correct. 115 enabled variants, correct colours, correct prices, artwork unchanged, all products unlocked |
+| **Shopify** | ⚠️ Unchanged. Still the previous 25 variants (Black only) |
+| **Store health** | ✅ 5 products ACTIVE · vendor GYMREIGN · prices €75/€135/€110/€60/€45 · all on the General profile · password protection ON · 0 orders |
+
+### What was tried, in order
+
+1. **Publish without `shipping_template`** — all five locked, `updated_at` frozen for 15
+   minutes, nothing reached Shopify.
+2. Cleared the locks with `publishing_failed.json`, **republished with the full payload
+   including `shipping_template`** — stalled identically. So the flag was not the cause.
+3. Suspected the two-group print-area split. **Merged back to a single group** — the split had
+   no benefit yet anyway, since both groups carried identical artwork.
+4. **Published the CAP alone** — 4 variants, single print-area group, structurally identical
+   to the Phase 07 publish that completed in about two minutes earlier the same day. **It
+   stalled too.**
+
+### Conclusion
+
+The stall is **not** caused by variant volume, by the print-area structure, or by the publish
+payload. Step 4 is a controlled test against a known-good baseline. **The Printify → Shopify
+sales-channel pipeline is not processing publish jobs.**
+
+Products were left **unlocked** rather than stuck showing "publishing in progress".
+
+### To resolve
+
+- It may clear by itself once Printify's Shopify app catches up. Re-run the publish.
+- Or trigger **Publish** from the Printify dashboard for each product.
+- Nothing needs re-doing on either side first — the Printify data is already correct.
+
+**No customer impact:** the storefront is password-protected with zero orders.
+
+### Note on the print-area split
+
+The DARK/LIGHT split described in §4 was **reverted** during diagnosis. It will be
+reintroduced when the two flat cuts of the approved logo actually differ, which is the only
+point at which it does anything.
