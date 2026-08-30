@@ -62,7 +62,8 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md) | The eight pre-purchase checks, the DAP finding, cap selection, and the exact order landed in France |
 | [`production/15-printify-api-integration.md`](./production/15-printify-api-integration.md) | Printify connectivity audit, the API route, minimum scopes, and the secure credential procedure |
 | [`production/16-chapter-001-catalogue.md`](./production/16-chapter-001-catalogue.md) | The final catalogue, blueprint/provider/variant IDs, real costs, rejections and safety verification |
-| [`production/17-store-identity-verification.md`](./production/17-store-identity-verification.md) | Store identity verification — why publication is blocked and what to check |
+| [`production/17-store-identity-verification.md`](./production/17-store-identity-verification.md) | Store identity verification — the ONDÉE mismatch and the confirmed GYMREIGN store |
+| [`production/18-price-ladder-recommendation.md`](./production/18-price-ladder-recommendation.md) | Vendor fix, the FX correction, and three costed price options against the 2.8× floor |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -89,8 +90,13 @@ of the design work and should run in parallel.
 > channel. **Storefront remains password-protected**, so nothing is customer-visible yet.
 > **0 orders · €0.00 spent.**
 >
-> **Two fixes needed:** prices landed in **EUR not USD** (~8–9% above the designed ladder), and
-> **vendor reads "Printify"** on all four — it should read GYMREIGN.
+> **Vendor fixed** — all four now read `GYMREIGN`. **Prices still open:** they landed in EUR
+> not USD, **~16% above** a straight conversion at the live rate (0.8615, not the ~1.09 I
+> first assumed). But converting back would **break the locked 2.8× floor on every article**,
+> because real Printify costs came in above the pre-cost USD targets. Recommended ladder is
+> **€100 / €165 / €140 / €60** — see
+> [`18-price-ladder-recommendation.md`](./production/18-price-ladder-recommendation.md).
+> **No price changed; awaiting approval.**
 
 > ## ✅ STORE VERIFIED — `kpv3hw-tm.myshopify.com`
 >
