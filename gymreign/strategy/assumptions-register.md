@@ -187,3 +187,19 @@ being absorbed by wishful pricing.
 | P09-9 | ITC Legend bp 6998: 458 GSM, 70/30, antique silver eyelets, 13 colours, XS-3XL, cost $62.01. At EUR 135 it runs 2.53x, below the floor; EUR 150 restores 2.81x | `[V]` live probe |
 | P09-10 | Cotton Heritage Box Hoodie bp 5335: 339 GSM but **60/40 cotton**, cost $35.18. Rejected on composition despite the cost advantage | `[V]` live probe |
 | P09-11 | Recommended lineup is 144 variants against 25 today. Hoodie and cap carry the mark boldly; tee, jogger and shorts carry it subtly | `[A]` proposed |
+
+## Phase 10 — colour expansion applied (2026-08-30)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P10-1 | Hoodie stays on the Stanley/Stella Slammer 2.0 at EUR 135. The ITC Legend swap was declined | `[A]` founder decision |
+| P10-2 | 115 variants enabled across 5 products, up from 25. Tee 6 colours, hoodie 3, jogger 5, shorts 4, cap 4 | `[V]` |
+| P10-3 | No price changed. No artwork changed - same image, position and scale as before the update | `[V]` |
+| P10-4 | **The hoodie has no light colourway.** Its only light option is White #F1F1F1, a cool white that clashes with the warm Natural Raw #FDEFD5 and Bone #E9E6DF used elsewhere | `[V]` sampled |
+| P10-5 | Tee heathers are not made in XS: Dark Heather Grey and Heather Grey run XXS, S-3XL. Provider gap, not a data error | `[V]` |
+| P10-6 | Print areas are split into DARK and LIGHT variant groups, both currently carrying the identical existing artwork, so the two flat cuts drop in without re-deriving variant sets | `[V]` |
+| P10-7 | Light variants currently carry a white mark with near-zero contrast. Accepted: storefront is password-protected with 0 orders | `[A]` |
+| P10-8 | Printify rejects a product update unless every variant on the product appears in print_areas.variant_ids, enabled or not | `[V]` API behaviour |
+| P10-9 | The tee product carries 5 variants (181546, 181550, 181551, 181554, 181556) that the live catalogue no longer lists. They remain disabled | `[V]` |
+| P10-10 | shipping_template omitted from the publish call; the L3 shipping model on the General profile is preserved | `[V]` |
+| P10-11 | The approved logo file is still not in the repository. No artwork has been approximated | `[V]` |
