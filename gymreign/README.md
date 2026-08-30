@@ -82,12 +82,14 @@ must be custom-drawn from the Datum concept rather than used as Archivo unchange
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
 
-> ## ⛔ PUBLICATION BLOCKED — WRONG STORE
+> ## ✅ STORE VERIFIED — `kpv3hw-tm.myshopify.com`
 >
-> `krjwiu-zv.myshopify.com` is **ONDÉE**, a live shower-filter store with 3 active products —
-> **not GYMREIGN**. It has **no Printify app installed** and **no Printify sales channel**, so
-> Printify shop `28572249` is connected to a *different* store, identity unknown.
-> **Nothing was published.** See [`17-store-identity-verification.md`](./production/17-store-identity-verification.md).
+> **GYMREIGN — Official Store** confirmed: domain matches, **Printify app installed**, and
+> **0 products** (no ONDÉE, no RÉVA). The account holds exactly one Printify shop on the
+> Shopify channel, so **`28572249` resolves to this store**. An earlier candidate domain was
+> caught as ONDÉE, a live shower-filter store, and publication was blocked — see
+> [`17-store-identity-verification.md`](./production/17-store-identity-verification.md).
+> **Still nothing published; awaiting founder approval.**
 
 > ## PHASE 06 — 4 PRINTIFY DRAFTS CREATED · NOTHING PUBLISHED · €0 SPENT
 >

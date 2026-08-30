@@ -1,7 +1,39 @@
-# STORE IDENTITY VERIFICATION — BLOCKED
+# STORE IDENTITY VERIFICATION
 
-**Result: `krjwiu-zv.myshopify.com` is NOT the GYMREIGN store. Nothing published.**
-Verified 2026-08-23 · Shopify Admin API + Printify API · read-only
+**RESOLVED 2026-08-23. Correct store confirmed: `kpv3hw-tm.myshopify.com`.**
+Nothing published. Read-only verification throughout.
+
+---
+
+# 0. RESOLUTION — ALL FOUR CHECKS PASS
+
+| # | Check | Result |
+|---|---|---|
+| 1 | `shop.myshopifyDomain` | ✅ **`kpv3hw-tm.myshopify.com`** — `primaryDomain.host` matches |
+| 2 | `shop.name` | ✅ **"GYMREIGN — Official Store"** |
+| 3 | **Printify installed** | ✅ **"Printify: Print on Demand" · developer Printify** |
+| 4 | Products | ✅ **`productsCount = 0`** — no ONDÉE, no RÉVA products |
+
+Currency **EUR**, country **France** — consistent with the tax model.
+
+**Closing the chain on the Printify side:** the Printify app is installed on
+`kpv3hw-tm.myshopify.com`, and the account holds **exactly one** Printify shop with
+`sales_channel: "shopify"` — `28572249`. **Therefore shop `28572249` resolves to
+GYMREIGN — Official Store.**
+
+Printify's API still exposes no domain (`title` empty, `/shops/{id}.json` 404,
+`/shops/{id}/connection.json` 403 on scope), so this inference — app installed + exactly one
+shop — is how the binding is established. It is sound, but it is an inference rather than a
+field read, and that distinction is recorded honestly.
+
+**Publication is no longer blocked by store identity. It remains gated on founder approval.**
+
+---
+
+# ARCHIVE — THE ORIGINAL BLOCK (krjwiu-zv)
+
+The section below records the earlier mismatch that stopped publication. Retained because it
+is the reason the gate worked.
 
 ---
 
