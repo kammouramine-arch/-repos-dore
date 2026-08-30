@@ -33,6 +33,10 @@ if (process.env.APP_ENV === 'production' && !(supabaseUrl && supabaseAnonKey)) {
 const config: ExpoConfig = {
   name: brand.name,
   slug: brand.slug,
+  // The Expo account that owns the EAS project. Required for a team-owned project:
+  // without it the CLI resolves the slug against the personal account and cannot
+  // find it.
+  owner: 'aminekms-team',
   scheme: brand.scheme,
   version: '1.0.0',
   orientation: 'portrait',
@@ -92,7 +96,13 @@ const config: ExpoConfig = {
     supabaseUrl,
     supabaseAnonKey,
     analyticsEnabled: process.env.EXPO_PUBLIC_ANALYTICS_ENABLED !== 'false',
-    eas: { projectId: process.env.EAS_PROJECT_ID ?? undefined },
+    /*
+      The EAS project this app builds under. `eas init` writes this into a static
+      app.json, but cannot edit a dynamic config, so it is set here. The environment
+      override is kept so a fork or a second project can point elsewhere without a
+      code change.
+    */
+    eas: { projectId: process.env.EAS_PROJECT_ID ?? 'c382faf5-b61d-48b1-bdd7-bef97a841af2' },
   },
 };
 
