@@ -212,3 +212,17 @@ being absorbed by wishful pricing.
 | P10-10a | **Superseded.** Omitting shipping_template did not prevent the stall; a retry including it stalled identically. The doc 20 caution is untested by this episode | `[V]` |
 | P10-12 | **The Printify to Shopify publish pipeline stalled.** Isolated by publishing the CAP alone (4 variants, single print area), structurally identical to a Phase 07 publish that took ~2 minutes. Not volume, not structure, not payload | `[V]` controlled test |
 | P10-13 | Printify holds the correct 115-variant state; Shopify still holds the previous 25. Products left unlocked. No customer impact - password-protected, 0 orders | `[V]` |
+
+## Phase 11 — approved logo applied (2026-08-30)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P11-1 | The approved logo is in the repo: `Gymreign Logo.png`, 1254x1254 RGBA, genuine transparency, ink bounds 1189x1197 (aspect 0.993:1) | `[V]` |
+| P11-2 | The master's counters are genuinely open in the alpha channel, which is what allowed a clean flat conversion. Opaque counters would have collapsed to a blob | `[V]` |
+| P11-3 | Flat cuts are the master's own alpha filled with one colour. **Silhouette differs from the chrome master by 0 pixels** - not a redraw | `[V]` measured |
+| P11-4 | DTG cannot print metallic ink; a chrome gradient reproduces as grey. Flat reads sharper at every tested size (170/60/38 mm at 300 dpi) | `[V]` |
+| P11-5 | Embroidery: comfortable minimum 55 mm. Crown points merge at 45 mm, crown lost at 35 mm | `[V]` stitch simulation at 1.2 mm satin |
+| P11-6 | **The cap runs at 39.6 mm, below that threshold**, forced by the EC7000's 44.5 mm-tall front area against a square mark. Needs a physical sew-out before the first order | `[A]` accepted risk, flagged |
+| P11-7 | The rejected GR plate appears in no print area on any product | `[V]` |
+| P11-8 | The tee's `front` mockup camera does not render the `left_chest_dtg` area; the mark is present and correct on the `left-chest` camera | `[V]` |
+| P11-9 | Printify blocks product edits while a product is locked ("Product is disabled for editing"). A stale lock after a successful dashboard publish must be closed with publishing_succeeded.json | `[V]` API behaviour |
