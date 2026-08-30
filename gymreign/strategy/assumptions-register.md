@@ -171,3 +171,19 @@ being absorbed by wishful pricing.
 | P08-8 | No premium sock on Printify — all 8 blueprints are printed sublimation socks; best cotton content is 25% (bp 496) | `[V]` all compositions read |
 | P08-9 | L3 prices unchanged. Shorts base cost $21.79 gives 3.20x and 51.0%; cap remains the only sub-floor article at 2.73x | `[V]` |
 | P08-10 | The symbol has not been physically stitched; the 20 mm minimum is simulated | `[A]` needs a sew-out before the first cap order |
+
+## Phase 09 — approved logo and colour (2026-08-30, proposal)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P09-1 | The founder-approved mark is a crowned GR monogram in brushed chrome with 3D bevels. It supersedes the Rev 3 GR interlock, which is withdrawn | `[A]` founder decision |
+| P09-2 | **The logo file is not in the repository.** It was supplied as a conversation image, which places no file on disk. All derivative work is blocked on it | `[V]` |
+| P09-3 | Chrome gradients cannot be embroidered and lose all bevel detail in DTG below ~60 mm. Garment application requires a flat single-colour cut of the same silhouette | `[V]` production constraint |
+| P09-4 | A silver mark has near-zero contrast on Bone, Stone and Ash garments. Light garments need a Reign Black flat cut | `[V]` |
+| P09-5 | Colour scarcity was never a supply constraint. Tee 12 colours, jogger 5, shorts 5, cap 5 were all available; only Black was enabled | `[V]` live catalogue |
+| P09-6 | All colour hex values were sampled from rendered Printify mockups, not inferred from colour names. "Kaffa Coffee" samples as #896162, a dusty mauve | `[V]` |
+| P09-7 | House palette of six: Reign Black, Bone, Graphite, Ash, Navy, Stone, plus Olive as seasonal | `[A]` proposed |
+| P09-8 | **The hoodie is capped at 4 colours** and blueprint 2683 has exactly one print provider, so it cannot be fixed by switching provider | `[V]` |
+| P09-9 | ITC Legend bp 6998: 458 GSM, 70/30, antique silver eyelets, 13 colours, XS-3XL, cost $62.01. At EUR 135 it runs 2.53x, below the floor; EUR 150 restores 2.81x | `[V]` live probe |
+| P09-10 | Cotton Heritage Box Hoodie bp 5335: 339 GSM but **60/40 cotton**, cost $35.18. Rejected on composition despite the cost advantage | `[V]` live probe |
+| P09-11 | Recommended lineup is 144 variants against 25 today. Hoodie and cap carry the mark boldly; tee, jogger and shorts carry it subtly | `[A]` proposed |
