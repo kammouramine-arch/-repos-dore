@@ -179,3 +179,46 @@ is your accepted decision and it is recorded, not re-argued.
 **4 unpublished drafts. Nothing published. No orders. €0 spent. RÉVA untouched.**
 
 **GYMREIGN — EARN YOUR REIGN.**
+
+---
+
+# 7. PUBLICATION — COMPLETED 2026-08-30
+
+**All four published to GYMREIGN — Official Store (`kpv3hw-tm.myshopify.com`) on founder
+approval.** Confirmed from both Printify and Shopify.
+
+| Product | Shopify product ID | Handle | Variants | Price |
+|---|---|---|---|---|
+| THE TEE | `11112552825175` | `gymreign-the-tee-chapter-001` | 8 | **€92** |
+| THE HOODIE | `11112553185623` | `gymreign-the-hoodie-chapter-001` | 5 | **€168** |
+| THE JOGGER | `11112553283927` | `gymreign-the-jogger-chapter-001` | 6 | **€141** |
+| THE CAP | `11112553480535` | `gymreign-the-cap-chapter-001` | 1 | **€54** |
+
+All four: `status: ACTIVE`, published to the **Online Store** channel.
+**Orders: 0 · Spend: €0.00.** RÉVA and ONDÉE untouched throughout.
+
+## 7.1 Two issues introduced by the publish — both need fixing
+
+**1. Prices are EUR, not USD.** Printify prices were set as `9200 / 16800 / 14100 / 5400`
+cents intending USD. **The store currency is EUR, so they landed as €92 / €168 / €141 / €54.**
+At ~$1.09/€ that is roughly **8–9% above** the intended figures. Margins are *better* than
+modelled, but the ladder is not what was designed and does not match the Phase 01 price
+architecture. **Re-price deliberately rather than leave it as an artefact.**
+
+**2. Vendor reads "Printify" on all four.** Shopify's `vendor` field was populated by the
+app. **For a premium house this is wrong** — it is customer-visible in many themes, in
+search filters and in structured data. **It should read `GYMREIGN`.**
+
+## 7.2 Storefront is password-protected
+
+`onlineStore.passwordProtection.enabled = true`. **The products are live on the Online Store
+channel but the storefront is not publicly reachable**, so nothing is exposed to customers
+yet. That is the correct state for a pre-launch store and it should stay that way until the
+Phase 01 launch-readiness gate is met.
+
+## 7.3 Still open from the catalogue
+
+- **The jogger is cuffed, not open-hem** — B+C 4737 sits below the JH128 benchmark
+- **No shorts** — nothing in Printify's 23 met specification
+- **No physical validation** — zero-sample rule, accepted business decision
+- **Artwork is the GR monogram only** — the wordmark is still creative reference, not drawn

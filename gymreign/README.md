@@ -82,6 +82,16 @@ must be custom-drawn from the Datum concept rather than used as Archivo unchange
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
 
+> ## ✅ PUBLISHED — 4 PRODUCTS LIVE ON THE GYMREIGN STORE
+>
+> Chapter 001 published to **GYMREIGN — Official Store** on approval: THE TEE €92 (8 variants),
+> THE HOODIE €168 (5), THE JOGGER €141 (6), THE CAP €54 (1). All `ACTIVE` on the Online Store
+> channel. **Storefront remains password-protected**, so nothing is customer-visible yet.
+> **0 orders · €0.00 spent.**
+>
+> **Two fixes needed:** prices landed in **EUR not USD** (~8–9% above the designed ladder), and
+> **vendor reads "Printify"** on all four — it should read GYMREIGN.
+
 > ## ✅ STORE VERIFIED — `kpv3hw-tm.myshopify.com`
 >
 > **GYMREIGN — Official Store** confirmed: domain matches, **Printify app installed**, and
