@@ -62,6 +62,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md) | The eight pre-purchase checks, the DAP finding, cap selection, and the exact order landed in France |
 | [`production/15-printify-api-integration.md`](./production/15-printify-api-integration.md) | Printify connectivity audit, the API route, minimum scopes, and the secure credential procedure |
 | [`production/16-chapter-001-catalogue.md`](./production/16-chapter-001-catalogue.md) | The final catalogue, blueprint/provider/variant IDs, real costs, rejections and safety verification |
+| [`production/17-store-identity-verification.md`](./production/17-store-identity-verification.md) | Store identity verification — why publication is blocked and what to check |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -80,6 +81,13 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## ⛔ PUBLICATION BLOCKED — WRONG STORE
+>
+> `krjwiu-zv.myshopify.com` is **ONDÉE**, a live shower-filter store with 3 active products —
+> **not GYMREIGN**. It has **no Printify app installed** and **no Printify sales channel**, so
+> Printify shop `28572249` is connected to a *different* store, identity unknown.
+> **Nothing was published.** See [`17-store-identity-verification.md`](./production/17-store-identity-verification.md).
 
 > ## PHASE 06 — 4 PRINTIFY DRAFTS CREATED · NOTHING PUBLISHED · €0 SPENT
 >
