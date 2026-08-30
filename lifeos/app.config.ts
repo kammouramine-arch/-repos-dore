@@ -52,7 +52,7 @@ const config: ExpoConfig = {
     bundleIdentifier: brand.bundleIdentifier,
     infoPlist: {
       NSMicrophoneUsageDescription:
-        'Used only when you hold the microphone button to speak to your planner.',
+        'Used only when you tap the microphone button to speak to your planner, and stops when you tap again.',
       // No background modes are declared: notifications are scheduled locally, and
       // nothing sends silent pushes. Declaring one we do not use invites a review
       // question we cannot answer honestly.
