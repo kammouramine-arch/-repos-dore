@@ -1,0 +1,816 @@
+region,blueprint_id,print_provider_id,brand,model,product,variant_id,color,size,cost_usd,decoration_methods
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112804,Black,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112805,Black,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112806,Black,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112807,Black,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112808,Black,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112809,Black,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112810,Black,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,112811,Black,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116295,Heather Grey,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116296,Heather Grey,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116297,Heather Grey,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116298,Heather Grey,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116299,Heather Grey,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116300,Heather Grey,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116301,Heather Grey,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116302,Heather Grey,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116303,White,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116304,White,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116305,White,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116306,White,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116307,White,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116308,White,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116309,White,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116310,White,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116311,Navy,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116312,Navy,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116313,Navy,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116314,Navy,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116315,Navy,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116316,Navy,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116317,Navy,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116318,Navy,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116319,Lilac,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116320,Lilac,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116321,Lilac,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116322,Lilac,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116323,Lilac,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116324,Lilac,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116325,Lilac,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116326,Lilac,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116327,Sand,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116328,Sand,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116329,Sand,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116330,Sand,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116331,Sand,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116332,Sand,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116333,Sand,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116334,Sand,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116335,Charcoal Heather,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116336,Charcoal Heather,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116337,Charcoal Heather,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116338,Charcoal Heather,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116339,Charcoal Heather,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116340,Charcoal Heather,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116341,Charcoal Heather,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116342,Charcoal Heather,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116350,Olive,XS,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116351,Olive,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116352,Olive,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116353,Olive,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116354,Olive,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116355,Olive,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116356,Olive,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116357,Olive,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116358,Olive,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116359,Magnet,XS,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116360,Magnet,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116361,Magnet,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116362,Magnet,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116363,Magnet,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116364,Magnet,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116365,Magnet,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116366,Magnet,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116367,Magnet,5XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116368,Blanc White,XS,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116369,Blanc White,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116370,Blanc White,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116371,Blanc White,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116372,Blanc White,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116373,Blanc White,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116377,Viola Blue,XS,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116378,Viola Blue,S,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116379,Viola Blue,M,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116380,Viola Blue,L,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116381,Viola Blue,XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116382,Viola Blue,2XL,19.57,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116383,Viola Blue,3XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116384,Viola Blue,4XL,20.59,dtg
+EU-DE,1627,26,Build Your Brand,BY102,Unisex Heavy Oversize Tee,116385,Viola Blue,5XL,20.59,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112439,Black,XS,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112440,Olive,XS,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112441,Sand,XS,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112442,Union Beige,XS,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112443,White,XS,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112444,Black,S,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112445,Olive,S,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112446,Sand,S,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112447,Union Beige,S,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112448,White,S,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112449,Black,M,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112450,Olive,M,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112451,Sand,M,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112452,Union Beige,M,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112453,White,M,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112454,Black,L,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112455,Olive,L,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112456,Sand,L,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112457,Union Beige,L,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112458,White,L,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112459,Black,XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112460,Olive,XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112461,Sand,XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112462,Union Beige,XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112463,White,XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112464,Black,2XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112465,Olive,2XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112466,Sand,2XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112467,Union Beige,2XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112468,White,2XL,24.66,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112469,Black,3XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112470,Olive,3XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112471,Sand,3XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112472,Union Beige,3XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112473,White,3XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112474,Black,4XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112475,Olive,4XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112476,Sand,4XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112477,Union Beige,4XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112478,White,4XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112479,Black,5XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112480,Olive,5XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112481,Sand,5XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112482,Union Beige,5XL,25.57,dtg
+EU-DE,1612,26,Build Your Brand,BY163,Unisex Ultra Heavy Cotton Box Tee,112483,White,5XL,25.57,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112199,Asphalt,XS,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112200,Asphalt,S,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112201,Asphalt,M,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112202,Asphalt,L,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112203,Asphalt,XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112204,Asphalt,2XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112205,Asphalt,3XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112206,Asphalt,4XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112207,Asphalt,5XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112208,Black,XS,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112209,Dark Khaki,XS,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112210,Black,S,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112211,Dark Khaki,S,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112212,Black,M,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112213,Dark Khaki,M,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112214,Black,L,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112215,Dark Khaki,L,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112216,Black,XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112217,Dark Khaki,XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112218,Black,2XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112219,Dark Khaki,2XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112220,Black,3XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112221,Dark Khaki,3XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112222,Black,4XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112223,Dark Khaki,4XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112224,Black,5XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112225,Dark Khaki,5XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112226,Union Beige,XS,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112227,Union Beige,S,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112228,Union Beige,M,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112229,Union Beige,L,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112230,Union Beige,XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112231,Union Beige,2XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112232,Union Beige,3XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112233,Union Beige,4XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112234,Union Beige,5XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112235,Soft Lilac,XS,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112236,Soft Lilac,S,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112237,Soft Lilac,M,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112238,Soft Lilac,L,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112239,Soft Lilac,XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112240,Soft Lilac,2XL,23.55,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112241,Soft Lilac,3XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112242,Soft Lilac,4XL,25.50,dtg
+EU-DE,1607,26,Build Your Brand,BY189,Men's Acid Washed Heavy Oversize Tee,112243,Soft Lilac,5XL,25.50,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112065,French Navy,XS,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112066,Glazed Green,XS,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112067,Heather Grey,XS,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112068,White,XS,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112069,Black,S,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112070,French Navy,S,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112071,Glazed Green,S,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112072,Heather Grey,S,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112073,White,S,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112074,Black,M,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112075,French Navy,M,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112076,Glazed Green,M,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112077,Heather Grey,M,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112078,White,M,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112079,Black,L,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112080,French Navy,L,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112081,Glazed Green,L,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112082,Heather Grey,L,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112083,White,L,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112084,Black,XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112085,French Navy,XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112086,Glazed Green,XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112087,Heather Grey,XL,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112088,White,XL,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112089,Black,2XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112090,French Navy,2XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112091,Glazed Green,2XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112092,Heather Grey,2XL,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112093,White,2XL,23.94,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112094,Black,3XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112095,French Navy,3XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112096,Glazed Green,3XL,24.91,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112097,Heather Grey,3XL,26.90,dtg
+EU-DE,1603,26,Stanley Stella,STTU788,Unisex Freestyler Dry Handfeel Heavy Tee,112098,White,3XL,23.94,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34057,Arctic White,XS,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34058,Bottle Green,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34060,Charcoal,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34061,Fire Red,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34062,Heather Grey,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34065,Jet Black,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34067,Oxford Navy,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34068,Purple,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34069,Sky Blue,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34070,Sun Yellow,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34071,Arctic White,S,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34072,Bottle Green,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34074,Charcoal,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34075,Fire Red,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34076,Heather Grey,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34079,Jet Black,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34081,Oxford Navy,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34082,Purple,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34083,Sky Blue,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34084,Sun Yellow,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34085,Arctic White,M,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34086,Bottle Green,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34088,Charcoal,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34089,Fire Red,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34090,Heather Grey,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34093,Jet Black,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34095,Oxford Navy,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34096,Purple,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34097,Sky Blue,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34098,Sun Yellow,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34099,Arctic White,L,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34100,Bottle Green,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34102,Charcoal,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34103,Fire Red,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34104,Heather Grey,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34107,Jet Black,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34109,Oxford Navy,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34110,Purple,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34111,Sky Blue,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34112,Sun Yellow,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34113,Arctic White,XL,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34114,Bottle Green,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34116,Charcoal,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34117,Fire Red,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34118,Heather Grey,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34121,Jet Black,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34123,Oxford Navy,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34124,Purple,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34125,Sky Blue,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34126,Sun Yellow,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34127,Arctic White,2XL,25.73,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34128,Bottle Green,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34130,Charcoal,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34131,Fire Red,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34132,Heather Grey,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34135,Jet Black,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34137,Oxford Navy,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34138,Purple,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34139,Sky Blue,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,34140,Sun Yellow,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64029,Baby Pink,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64030,Candyfloss Pink,XS,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64031,Baby Pink,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64032,Candyfloss Pink,S,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64033,Baby Pink,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64034,Candyfloss Pink,M,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64035,Baby Pink,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64036,Candyfloss Pink,L,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64037,Baby Pink,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64038,Candyfloss Pink,XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64039,Baby Pink,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,64040,Candyfloss Pink,2XL,26.39,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102697,Arctic White,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102703,Baby Pink,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102709,Bottle Green,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102724,Candyfloss Pink,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102733,Charcoal,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102775,Fire Red,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102787,Heather Grey,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102788,Heather Grey,4XL,35.68,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102789,Heather Grey,5XL,36.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102802,Jet Black,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102803,Jet Black,4XL,35.68,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102804,Jet Black,5XL,36.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102847,Oxford Navy,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102848,Oxford Navy,4XL,35.68,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102849,Oxford Navy,5XL,36.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102865,Purple,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102886,Sky Blue,3XL,35.19,dtg
+EU-DE,92,26,AWDIS,JH001,Unisex College Hoodie,102898,Sun Yellow,3XL,35.19,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63753,Anthracite,XS,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63754,Black,XS,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63755,Heather Grey,XS,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63756,Navy,XS,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63757,White,XS,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63758,Anthracite,S,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63759,Black,S,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63760,Heather Grey,S,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63761,Navy,S,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63762,White,S,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63763,Anthracite,M,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63764,Black,M,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63765,Heather Grey,M,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63766,Navy,M,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63767,White,M,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63769,Black,L,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63770,Heather Grey,L,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63771,Navy,L,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63772,White,L,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63773,Anthracite,XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63774,Black,XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63775,Heather Grey,XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63776,Navy,XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63777,White,XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63778,Anthracite,2XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63779,Black,2XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63780,Heather Grey,2XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63781,Navy,2XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63782,White,2XL,28.88,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63783,Anthracite,3XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63785,Heather Grey,3XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63786,Navy,3XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63787,White,3XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63788,Anthracite,4XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63789,Black,4XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63790,Heather Grey,4XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63791,Navy,4XL,34.24,dtg
+EU-DE,458,26,B&C,WUI24,Unisex Pullover Hoodie,63792,White,4XL,34.24,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111228,Black,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111229,Burgundy,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111231,Heather Grey,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111232,White,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111233,Black,XS,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111234,Burgundy,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111236,Heather Grey,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111237,White,XS,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111238,Black,S,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111239,Burgundy,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111241,Heather Grey,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111242,White,S,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111243,Black,M,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111244,Burgundy,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111246,Heather Grey,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111247,White,M,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111248,Black,L,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111249,Burgundy,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111251,Heather Grey,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111252,White,L,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111253,Black,XL,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111254,Burgundy,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111256,Heather Grey,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111257,White,XL,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111258,Black,2XL,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111259,Burgundy,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111261,Heather Grey,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111262,White,2XL,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111263,Black,3XL,46.11,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111264,Burgundy,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111266,Heather Grey,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111267,White,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111952,Bright Blue,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111953,Cotton Pink,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111954,Desert Dust,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111955,Glazed Green,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111957,Lavender,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111958,Natural Raw,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111959,Off White,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111960,Red,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111961,Stargazer,XXS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111962,Bright Blue,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111963,Cotton Pink,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111964,Desert Dust,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111965,Glazed Green,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111966,Khaki,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111967,Lavender,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111968,Natural Raw,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111969,Off White,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111970,Red,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111971,Stargazer,XS,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111972,Bright Blue,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111973,Cotton Pink,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111974,Desert Dust,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111975,Glazed Green,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111976,Khaki,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111977,Lavender,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111978,Natural Raw,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111979,Off White,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111980,Red,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111981,Stargazer,S,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111982,Bright Blue,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111983,Cotton Pink,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111984,Desert Dust,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111985,Glazed Green,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111986,Khaki,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111987,Lavender,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111988,Natural Raw,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111989,Off White,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111990,Red,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111991,Stargazer,M,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111992,Bright Blue,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111993,Cotton Pink,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111994,Desert Dust,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111995,Glazed Green,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111996,Khaki,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111997,Lavender,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111998,Natural Raw,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,111999,Off White,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112000,Red,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112001,Stargazer,L,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112002,Bright Blue,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112003,Cotton Pink,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112004,Desert Dust,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112005,Glazed Green,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112006,Khaki,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112007,Lavender,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112008,Natural Raw,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112009,Off White,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112010,Red,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112011,Stargazer,XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112012,Bright Blue,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112013,Cotton Pink,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112014,Desert Dust,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112015,Glazed Green,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112016,Khaki,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112017,Lavender,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112018,Natural Raw,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112019,Off White,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112020,Red,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112021,Stargazer,2XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112022,Bright Blue,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112023,Cotton Pink,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112024,Desert Dust,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112025,Glazed Green,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112026,Khaki,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112027,Lavender,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112028,Natural Raw,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112029,Off White,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112030,Red,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112031,Stargazer,3XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112032,Black,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112034,Burgundy,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112038,Glazed Green,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112039,Heather Grey,4XL,48.95,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112042,Natural Raw,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112044,Red,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112045,Stargazer,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112046,White,4XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112047,Black,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112049,Burgundy,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112053,Glazed Green,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112054,Heather Grey,5XL,48.95,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112057,Natural Raw,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112059,Red,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112060,Stargazer,5XL,47.04,dtg
+EU-CZ,1576,30,Stanley Stella,SASU003,Unisex Cruiser 2.0 Hoodie,112061,White,5XL,47.04,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102264,Black,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102265,Black,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102267,Black,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102268,Ecru,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102269,Ecru,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102270,Ecru,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102271,Ecru,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102272,Ecru,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102273,Ecru,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102274,White,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102275,White,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102276,White,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102277,White,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102278,White,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102279,White,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102280,Orchid,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102281,Orchid,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102282,Orchid,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102283,Orchid,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102284,Orchid,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,102285,Orchid,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103405,Athletic Heather,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103406,Navy,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103407,Navy,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103408,Navy,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103409,Navy,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103410,Navy,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103411,Navy,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103412,Red,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103413,Red,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103414,Red,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103415,Red,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103416,Red,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103417,Red,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103418,Butter,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103419,Butter,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103420,Butter,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103421,Butter,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103422,Butter,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103423,Butter,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103430,Cypress,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103431,Cypress,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103432,Cypress,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103433,Cypress,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103434,Cypress,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103435,Cypress,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103436,Eucalyptus,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103437,Eucalyptus,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103438,Eucalyptus,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103439,Eucalyptus,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103440,Eucalyptus,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103441,Eucalyptus,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103442,Midnight Blue,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103443,Midnight Blue,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103444,Midnight Blue,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103445,Midnight Blue,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103446,Midnight Blue,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103448,Pine Green,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103449,Pine Green,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103450,Pine Green,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103451,Pine Green,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103452,Pine Green,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103453,Pine Green,3XL,33.79,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103454,Pistachio,S,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103455,Pistachio,M,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103456,Pistachio,L,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103457,Pistachio,XL,28.10,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103458,Pistachio,2XL,31.89,dtg
+US,1349,217,AS Colour,5080,Men's Heavy Oversized Tee,103459,Pistachio,3XL,33.79,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402689,Black,S,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402690,Black,M,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402691,Black,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402692,Black,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402693,Black,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402694,Black,3XL,28.20,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402697,Coal,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402698,Coal,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402699,Coal,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402700,Coal,3XL,28.20,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402701,Ecru,S,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402702,Ecru,M,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402703,Ecru,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402704,Ecru,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402705,Ecru,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402706,Ecru,3XL,28.20,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402707,Bone,S,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402708,Bone,M,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402709,Bone,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402710,Bone,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402711,Bone,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402712,Bone,3XL,28.20,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402713,Navy,S,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402714,Navy,M,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402715,Navy,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402716,Navy,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402717,Navy,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402718,Navy,3XL,28.20,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402719,White,S,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402720,White,M,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402721,White,L,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402722,White,XL,22.46,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402723,White,2XL,26.31,dtg
+US,10922,217,AS Colour,5069,Classic Oversized Tee,402724,White,3XL,28.20,dtg
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115723,Athletic Heather,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115724,Athletic Heather,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115725,Athletic Heather,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115726,Athletic Heather,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115727,Athletic Heather,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115728,Athletic Heather,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115729,Athletic Heather,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115730,Black,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115731,Black,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115732,Black,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115733,Black,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115734,Black,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115735,Black,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115736,Black,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115738,Bone,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115739,Bone,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115740,Bone,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115741,Bone,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115743,Bone,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115744,Butter,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115745,Butter,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115746,Butter,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115747,Butter,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115748,Butter,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115749,Butter,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115750,Butter,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115751,Carolina Blue,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115752,Carolina Blue,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115753,Carolina Blue,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115754,Carolina Blue,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115755,Carolina Blue,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115756,Carolina Blue,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115757,Carolina Blue,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115758,Chestnut,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115759,Chestnut,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115760,Chestnut,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115761,Chestnut,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115762,Chestnut,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115763,Chestnut,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115764,Chestnut,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115765,Clay,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115766,Clay,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115767,Clay,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115768,Clay,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115769,Clay,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115770,Clay,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115771,Clay,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115772,Cypress,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115773,Cypress,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115774,Cypress,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115775,Cypress,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115776,Cypress,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115777,Cypress,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115778,Cypress,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115780,Pine Green,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115781,Pine Green,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115782,Pine Green,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115783,Pine Green,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115784,Pine Green,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115785,Pine Green,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115792,Powder,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115793,Seafoam,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115794,Seafoam,S,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115795,Seafoam,M,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115796,Seafoam,L,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115797,Seafoam,XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115798,Seafoam,2XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115799,Seafoam,3XL,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115800,White Heather,XS,51.12,embroidery
+US,1684,217,AS Colour,5161,Relaxed Hoodie,115806,White Heather,3XL,51.12,embroidery
+US,10953,217,AS Colour,5146,Heavy Hood,403185,Black,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403186,Black,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403187,Black,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403188,Black,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403189,Black,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403190,Black,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403191,Black,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403192,Bone,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403193,Bone,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403194,Bone,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403195,Bone,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403196,Bone,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403197,Bone,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403198,Bone,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403199,Coal,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403200,Coal,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403201,Coal,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403202,Coal,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403203,Coal,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403204,Coal,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403206,Ecru,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403207,Ecru,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403208,Ecru,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403209,Ecru,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403210,Ecru,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403211,Ecru,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403212,Ecru,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403213,Eucalyptus,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403214,Eucalyptus,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403215,Eucalyptus,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403216,Eucalyptus,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403217,Eucalyptus,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403218,Eucalyptus,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403220,Athletic Heather,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403221,Athletic Heather,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403222,Athletic Heather,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403223,Athletic Heather,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403224,Athletic Heather,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403225,Athletic Heather,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403226,Athletic Heather,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403227,Midnight Blue,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403228,Midnight Blue,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403229,Midnight Blue,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403230,Midnight Blue,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403231,Midnight Blue,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403232,Midnight Blue,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403233,Midnight Blue,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403235,Pine Green,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403236,Pine Green,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403237,Pine Green,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403238,Pine Green,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403239,Pine Green,2XL,56.23,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403240,Pine Green,3XL,58.11,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403241,Sand,XS,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403242,Sand,S,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403243,Sand,M,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403244,Sand,L,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403245,Sand,XL,52.38,dtf|dtg
+US,10953,217,AS Colour,5146,Heavy Hood,403246,Sand,2XL,56.23,dtf|dtg
+US,10804,217,AS Colour,5932,Relax Track Pants,401195,Black,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401196,Black,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401197,Black,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401198,Black,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401199,Black,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401201,Bone,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401202,Bone,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401203,Bone,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401204,Bone,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401205,Bone,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401206,Bone,3XL,46.31,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401207,Butter,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401208,Butter,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401209,Butter,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401210,Butter,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401211,Butter,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401212,Butter,3XL,46.31,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401213,Cypress,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401214,Cypress,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401215,Cypress,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401216,Cypress,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401217,Cypress,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401218,Cypress,3XL,46.31,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401219,Athletic Heather,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401220,Athletic Heather,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401221,Athletic Heather,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401222,Athletic Heather,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401223,Athletic Heather,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401224,Athletic Heather,3XL,46.31,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401237,Storm,S,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401238,Storm,M,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401239,Storm,L,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401240,Storm,XL,40.57,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401241,Storm,2XL,44.43,dtf
+US,10804,217,AS Colour,5932,Relax Track Pants,401242,Storm,3XL,46.31,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401978,Black,S,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401979,Black,M,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401980,Black,L,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401981,Black,XL,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401982,Black,2XL,44.43,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401983,Black,3XL,46.31,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401984,Bone,S,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401985,Bone,M,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401986,Bone,L,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401987,Bone,XL,40.57,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401988,Bone,2XL,44.43,dtf
+US,10866,217,AS Colour,5942,Relax Cuffless Track Pants,401989,Bone,3XL,46.31,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401339,Black,S,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401340,Black,M,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401341,Black,L,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401342,Black,XL,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401343,Black,2XL,35.90,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401345,Bone,S,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401346,Bone,M,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401347,Bone,L,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401348,Bone,XL,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401349,Bone,2XL,35.90,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401351,Athletic Heather,S,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401352,Athletic Heather,M,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401353,Athletic Heather,L,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401354,Athletic Heather,XL,32.05,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401355,Athletic Heather,2XL,35.90,dtf
+US,10818,217,AS Colour,5933,"Relax Track Shorts 18""",401356,Athletic Heather,3XL,37.79,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401880,Faded Black,S,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401881,Faded Black,M,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401882,Faded Black,L,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401883,Faded Black,XL,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401884,Faded Black,2XL,35.90,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401885,Faded Black,3XL,37.79,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401886,Faded Grey,S,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401887,Faded Grey,M,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401888,Faded Grey,L,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401889,Faded Grey,XL,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401890,Faded Grey,2XL,35.90,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401891,Faded Grey,3XL,37.79,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401892,Faded Bone,S,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401893,Faded Bone,M,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401894,Faded Bone,L,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401895,Faded Bone,XL,32.05,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401896,Faded Bone,2XL,35.90,dtf
+US,10858,217,AS Colour,5939,"Relax Faded Track Shorts 18""",401897,Faded Bone,3XL,37.79,dtf
+US,5384,217,AS Colour,AS1140,Icon Cap,244932,Atlantic,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244933,Black,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244934,Bone,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244935,Clay,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244936,Cypress,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244937,Ecru,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244938,Midnight Blue,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244939,Petrol Blue,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244940,Plum,One size,21.33,dtf|embroidery
+US,5384,217,AS Colour,AS1140,Icon Cap,244942,Walnut,One size,21.33,dtf|embroidery
+US,1698,217,AS Colour,AS1117,Bucket Hat,116653,Army,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116654,Black,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116655,Bone,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116659,Ecru,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116661,Orchid,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116662,Storm,One size,21.08,dtf
+US,1698,217,AS Colour,AS1117,Bucket Hat,116663,Walnut,One size,21.08,dtf
+US,5385,217,AS Colour,1107,Cuff Beanie,244956,Army,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244957,Asphalt Marle,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244960,Black,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244961,Bone,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244962,Camel,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244964,Cobalt,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244966,Ecru,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244967,Gold,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244968,Grey Marle,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244970,Mushroom,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244972,Navy,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244973,Orchid,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244974,Petrol Blue,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244975,Pine Green,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244976,Pink,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244978,Powder,One size,22.98,embroidery
+US,5385,217,AS Colour,1107,Cuff Beanie,244980,White Marle,One size,22.98,embroidery
