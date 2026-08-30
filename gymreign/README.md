@@ -60,6 +60,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/12-final-sourcing-sweep.md`](./production/12-final-sourcing-sweep.md) | Final sourcing sweep — the Inkthreadable UK route, the AWDis 440 GSM jogger, and the customs trade-off |
 | [`production/13-jogger-customs-verification.md`](./production/13-jogger-customs-verification.md) | Deep Black verification, EU customs and IOSS analysis, and the revised Phase 05 sample order |
 | [`production/14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md) | The eight pre-purchase checks, the DAP finding, cap selection, and the exact order landed in France |
+| [`production/15-printify-api-integration.md`](./production/15-printify-api-integration.md) | Printify connectivity audit, the API route, minimum scopes, and the secure credential procedure |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
