@@ -58,6 +58,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/10-path2-viability.md`](./production/10-path2-viability.md) | Path 2 viability — 19-point investigation, the YELLOW verdict, and the credential-free route to close the gap |
 | [`production/11-product-architecture.md`](./production/11-product-architecture.md) | Revised Chapter 001 architecture — broad catalogue search, the baggy-jogger finding, and the four-piece recommendation |
 | [`production/12-final-sourcing-sweep.md`](./production/12-final-sourcing-sweep.md) | Final sourcing sweep — the Inkthreadable UK route, the AWDis 440 GSM jogger, and the customs trade-off |
+| [`production/13-jogger-customs-verification.md`](./production/13-jogger-customs-verification.md) | Deep Black verification, EU customs and IOSS analysis, and the revised Phase 05 sample order |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -76,6 +77,22 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## VERIFIED — JOGGER PASSES, UK ROUTE IS COMMERCIALLY ACCEPTABLE
+>
+> **AWDis JH128 comes in "Deep Black"** — not washed, not faded — at 440 GSM, oversized
+> straight leg, open hem, **XS–3XL**. Black passes at manufacturer level; the H5 daylight
+> gate still applies to the physical sample.
+>
+> **Customs verified against European Commission guidance:** the €3 duty (in force since
+> 1 July 2026) is **per item** and **paid by the seller, not the consumer**, and IOSS
+> continues to cover import VAT — so **the customer pays what they see at checkout and gets
+> no bill on delivery**, provided we ship **DDP, never DAP**. Cost lands at roughly 2–6% of
+> retail. Three setup conditions, none a blocker.
+>
+> Inkthreadable also does embroidered caps, so **all four pieces ship from one provider, in
+> one parcel, across one border**. Revised 8-unit sample order ≈€243–306, inside the €350
+> tranche. See [`13-jogger-customs-verification.md`](./production/13-jogger-customs-verification.md).
 
 > ## FINAL SWEEP — RECOMMENDATION CHANGED TO UK-FIRST
 >
