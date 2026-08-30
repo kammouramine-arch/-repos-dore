@@ -102,3 +102,56 @@ providers, sizes. No orders. €0 spent.
 Verified per product: the only images referenced are `mark_flat_bone.png` and
 `mark_flat_black.png`. The rejected GR plate (`gr_plate_white.png`,
 id `6a946be8697b6b0ddb121fc4`) appears in **no** print area on **any** product.
+
+---
+
+## 7. SHOPIFY VERIFICATION — READ BACK FROM THE STORE
+
+Store: **GYMREIGN — Official Store**, `kpv3hw-tm.myshopify.com`, EUR.
+**Only these five products exist. No ONDÉE or RÉVA content.**
+
+| | Status | Vendor | Price | Variants | Colours live | Delivery profile |
+|---|---|---|---:|---:|---|---|
+| TEE | ACTIVE | GYMREIGN | €75 | 46 | Black · Desert Dust · Dark Heather Grey · French Navy · Heather Grey · Natural Raw | General |
+| HOODIE | ACTIVE | GYMREIGN | €135 | 15 | Black · French Navy · Heather Grey | General |
+| JOGGER | ACTIVE | GYMREIGN | €110 | 30 | Asphalt · Athletic Heather · Black · Dust · Navy | General |
+| SHORTS | ACTIVE | GYMREIGN | €60 | 20 | Black · Bone · Heather Grey · Lieutenant | General |
+| CAP | ACTIVE | GYMREIGN | €45 | 4 | Black · Charcoal · Oyster · Pacific | General |
+
+| Check | Result |
+|---|---|
+| All 5 products exist | ✅ |
+| Prices unchanged | ✅ €75 / €135 / €110 / €60 / €45 |
+| Colours correct | ✅ 22 colourways, exactly as approved |
+| Variants / sizes correct | ✅ 115 total |
+| Vendor | ✅ GYMREIGN on all five |
+| Logo on every product | ✅ verified visually on all 22 colourways |
+| Old GR artwork | ✅ none anywhere |
+| ONDÉE / RÉVA contamination | ✅ none — only 5 products in the store |
+| Password-protected | ✅ enabled |
+| Orders | ✅ 0 |
+| Spend | ✅ €0 |
+
+## 8. THREE REPAIRS MADE AFTER PUBLISHING
+
+Publishing resets things that then have to be put back. All three were repaired and verified:
+
+1. **Vendor reverted to "Printify"** on all five — reset to GYMREIGN.
+2. **Printify reclaimed the delivery profiles.** Publishing with `shipping_template: true`
+   moved every variant back onto Printify's USD weight-banded profiles, exactly as the doc 20
+   caution predicted. All 115 variants reassociated to the **General profile**, restoring the
+   L3 model — free shipping ≥ €120, flat €9.90 below.
+3. **Two featured images showed no mark.** The tee's and hoodie's defaults were a blank front
+   camera and a French Navy shot. Both reordered to the Black colourway with the mark visible.
+
+### On the earlier publish stall
+
+The stall recorded in doc 24 §7 resolved on its own; the founder's manual dashboard publish
+went through, and every API publish since has completed in about four minutes. It was a
+transient fault in Printify's Shopify pipeline, not a payload problem — consistent with the
+controlled test that ruled out volume, print-area structure and payload.
+
+**One API behaviour worth keeping:** Printify refuses product edits while a product is locked
+(`"Product is disabled for editing"`). A stale lock left after a successful dashboard publish
+must be closed with `publishing_succeeded.json` — carrying the existing `external` id and
+handle — before any edit will be accepted.
