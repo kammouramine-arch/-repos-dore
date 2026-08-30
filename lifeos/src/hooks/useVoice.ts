@@ -11,9 +11,16 @@ import { AppError } from '@/lib/errors';
 export type VoiceState = 'idle' | 'recording' | 'transcribing' | 'unavailable';
 
 /**
- * Hold-to-talk capture. Recording happens on device; the audio is sent to our own
- * endpoint for transcription. If the server has no transcription provider configured,
- * the hook reports it plainly and the button is disabled — nothing is faked.
+ * Below this, there is no speech to transcribe — it is a mis-tap or a fumbled press.
+ * Sending it anyway costs the user a metered transcription request and returns noise,
+ * so it is discarded before it leaves the device.
+ */
+const MIN_RECORDING_SECONDS = 0.7;
+
+/**
+ * Voice capture. Recording happens on device; the audio is sent to our own endpoint
+ * for transcription. If the server has no transcription provider configured, the hook
+ * reports it plainly and the button is disabled — nothing is faked.
  */
 export function useVoice() {
   const recorder = useAudioRecorder(RecordingPresets.HIGH_QUALITY);
@@ -56,6 +63,12 @@ export function useVoice() {
         setState('idle');
         return null;
       }
+      if (seconds < MIN_RECORDING_SECONDS) {
+        // Silent: the person let go immediately, and an error banner for that reads
+        // as a fault rather than as nothing having happened.
+        setState('idle');
+        return null;
+      }
       const text = await transcribe(uri, seconds);
       if (text === null) {
         setError('Voice input is not configured on this server yet.');
@@ -81,8 +94,20 @@ export function useVoice() {
         /* already stopped */
       }
     }
+    // Cancelling has to clear the clock too, or the next recording is timed from the
+    // abandoned one and trips the minimum-duration guard the wrong way.
+    setStartedAt(null);
     setState('idle');
   }, [recorder, state]);
 
-  return { state, error, start, stop, cancel, clearError: () => setError(null) };
+  return {
+    state,
+    error,
+    start,
+    stop,
+    cancel,
+    /** When the current recording began, for the elapsed-time readout. */
+    startedAt,
+    clearError: () => setError(null),
+  };
 }

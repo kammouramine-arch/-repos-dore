@@ -13,6 +13,7 @@
     "expo": "~57.0.15",
     "expo-asset": "~57.0.13",
     "expo-audio": "~57.0.4",
+    "expo-clipboard": "~57.0.1",
     "expo-constants": "~57.0.12",
     "expo-crypto": "~57.0.1",
     "expo-device": "~57.0.1",
@@ -114,5 +115,5 @@
       "<rootDir>/__tests__/integration/"
     ]
   },
-  "description": "LifeOS \u2014 your AI operating system for life."
+  "description": "LifeOS — your AI operating system for life."
 }

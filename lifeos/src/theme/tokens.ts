@@ -214,3 +214,27 @@ export const areaPalette: Record<string, { light: string; dark: string }> = {
 };
 
 export const durations = { fast: 140, base: 220, slow: 380 } as const;
+
+/**
+ * Chat-surface metrics. These live here rather than inside the chat components so the
+ * bubble, the composer and the history rows cannot drift apart — the thing that makes
+ * a chat feel homemade is three different paddings that were each "about right".
+ */
+export const chat = {
+  /** A full-width line of prose is hard to read; assistant text stops short of it. */
+  maxBubbleWidth: '84%',
+  bubbleRadius: radius.lg,
+  /** The corner nearest the speaker is tightened, which is what reads as a tail. */
+  bubbleTailRadius: radius.xs,
+  bubblePaddingX: spacing.base,
+  bubblePaddingY: spacing.md,
+  /** Between turns. Tighter within a turn, so a turn reads as one thing. */
+  turnGap: spacing.xl,
+  groupGap: spacing.sm,
+  composerMinHeight: 40,
+  /** Roughly six lines; past that the composer scrolls instead of eating the screen. */
+  composerMaxHeight: 132,
+  actionHitSlop: 8,
+  /** Body text in a bubble runs slightly looser than elsewhere — it is read in bulk. */
+  lineHeight: 23,
+} as const;

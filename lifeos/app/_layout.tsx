@@ -48,6 +48,7 @@ function Navigator() {
         <Stack.Screen name="briefing" options={{ presentation: 'modal' }} />
         <Stack.Screen name="weekly-review" options={{ presentation: 'modal' }} />
         <Stack.Screen name="agent/[key]" options={{ presentation: 'modal' }} />
+        <Stack.Screen name="chat/history" options={{ presentation: 'modal' }} />
       </Stack>
     </>
   );

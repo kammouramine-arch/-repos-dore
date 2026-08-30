@@ -5,6 +5,7 @@ import {
   ColorScheme,
   ThemeColors,
   darkColors,
+  chat,
   durations,
   elevation,
   lightColors,
@@ -24,6 +25,7 @@ export type Theme = {
   typography: typeof typography;
   elevation: ReturnType<typeof elevation>;
   durations: typeof durations;
+  chat: typeof chat;
   /** True when the OS asks for reduced motion — animations become instant. */
   reduceMotion: boolean;
 };
@@ -66,6 +68,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
       typography,
       elevation: elevation(scheme),
       durations,
+      chat,
       reduceMotion,
       preference,
       setPreference,

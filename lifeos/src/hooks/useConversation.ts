@@ -1,10 +1,11 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { useQueryClient } from '@tanstack/react-query';
 import {
-  createConversation,
+  fetchConversation,
   fetchLatestConversation,
   fetchMessages,
 } from '@/services/conversations';
+import { conversationsKey } from '@/hooks/useConversations';
 import { resolveAction, sendMessage, type AiMode } from '@/services/ai';
 import { track } from '@/services/analytics';
 import { AppError } from '@/lib/errors';
@@ -26,6 +27,8 @@ export function useConversation(options: {
   agent?: string;
   /** Starts a new conversation each time instead of resuming the last one. */
   fresh?: boolean;
+  /** Opens this specific conversation instead of resuming the most recent one. */
+  conversationId?: string;
 }) {
   const { userId } = useAuth();
   const queryClient = useQueryClient();
@@ -35,12 +38,39 @@ export function useConversation(options: {
   const [thinking, setThinking] = useState(false);
   const [error, setError] = useState<AppError | null>(null);
   const started = useRef(false);
+  // Date.now() alone collides when two messages land in the same millisecond, which
+  // gives the list duplicate keys.
+  const localSeq = useRef(0);
+  /*
+    Set when the user deliberately starts a new conversation.
+
+    Without it, clearing the ?conversation= param re-runs `load`, which falls back to
+    the most recent conversation and silently puts the user right back in the thread
+    they just left. This is what makes "new chat" mean new.
+  */
+  const explicitlyNew = useRef(false);
 
   const load = useCallback(async () => {
     if (!userId) return;
     setLoading(true);
     try {
       if (options.fresh) {
+        setConversationId(null);
+        setMessages([]);
+        return;
+      }
+      // An explicit id wins over everything: opening a conversation from history must
+      // show that one, not whichever happens to be most recent.
+      if (options.conversationId) {
+        const opened = await fetchConversation(options.conversationId);
+        if (opened) {
+          explicitlyNew.current = false;
+          setConversationId(opened.id);
+          setMessages(await fetchMessages(opened.id));
+          return;
+        }
+      }
+      if (explicitlyNew.current) {
         setConversationId(null);
         setMessages([]);
         return;
@@ -58,7 +88,7 @@ export function useConversation(options: {
     } finally {
       setLoading(false);
     }
-  }, [options.fresh, options.kind, userId]);
+  }, [options.conversationId, options.fresh, options.kind, userId]);
 
   useEffect(() => {
     void load();
@@ -70,11 +100,15 @@ export function useConversation(options: {
       if (!trimmed || thinking) return;
 
       setError(null);
-      const localId = `local-${Date.now()}`;
+      localSeq.current += 1;
+      const localId = `local-${Date.now()}-${localSeq.current}`;
       setMessages((prev) => [
         ...prev,
         {
           id: localId,
+          // Dimmed until the server acknowledges it, so a slow network looks slow
+          // rather than looking like the message was accepted and lost.
+          pending: true,
           user_id: userId ?? '',
           conversation_id: conversationId ?? '',
           role: 'user',
@@ -96,9 +130,13 @@ export function useConversation(options: {
           kind: options.kind,
           agent: options.agent,
         });
+        // The conversation now exists on the server, so resuming it later is correct.
+        explicitlyNew.current = false;
         setConversationId(reply.conversation_id);
         setMessages((prev) => [
-          ...prev,
+          ...prev.map((m) =>
+            m.id === localId ? { ...m, pending: false, conversation_id: reply.conversation_id } : m,
+          ),
           {
             id: reply.message.id,
             user_id: userId ?? '',
@@ -113,6 +151,9 @@ export function useConversation(options: {
           },
         ]);
         track('ai_message_sent', { mode: options.mode });
+        // The history list shows previews and ordering by recency, so it is stale the
+        // moment a message lands.
+        void queryClient.invalidateQueries({ queryKey: conversationsKey });
         // Anything the assistant changed should show up across the app immediately.
         if ((reply.message.actions ?? []).some((a) => a.status === 'succeeded')) {
           void queryClient.invalidateQueries();
@@ -145,12 +186,47 @@ export function useConversation(options: {
     [queryClient],
   );
 
-  /** Opens a fresh conversation of this kind. */
+  /**
+   * Opens a fresh conversation.
+   *
+   * Nothing is written yet: ai-chat creates the row when the first message arrives.
+   * Inserting one here instead would leave an empty conversation in history every time
+   * someone tapped "new chat" and then changed their mind.
+   */
   const startNew = useCallback(async () => {
-    const created = await createConversation(options.kind);
-    setConversationId(created.id);
+    explicitlyNew.current = true;
+    setConversationId(null);
     setMessages([]);
-  }, [options.kind]);
+    setError(null);
+    started.current = false;
+    await queryClient.invalidateQueries({ queryKey: conversationsKey });
+  }, [queryClient]);
+
+  /** Loads an existing conversation into this view. */
+  const open = useCallback(async (id: string) => {
+    explicitlyNew.current = false;
+    setLoading(true);
+    setError(null);
+    try {
+      setConversationId(id);
+      setMessages(await fetchMessages(id));
+    } catch (e) {
+      setError(e instanceof AppError ? e : new AppError('Could not open that conversation.'));
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  /** Re-sends the last user message, dropping the failed exchange after it. */
+  const retry = useCallback(async () => {
+    const lastUser = [...messages].reverse().find((m) => m.role === 'user');
+    if (!lastUser || thinking) return;
+    setMessages((prev) => {
+      const index = prev.findIndex((m) => m.id === lastUser.id);
+      return index >= 0 ? prev.slice(0, index) : prev;
+    });
+    await send(lastUser.content);
+  }, [messages, send, thinking]);
 
   // Some entry points (Daily Reset, Life Reset) open with a first message already sent.
   useEffect(() => {
@@ -176,6 +252,8 @@ export function useConversation(options: {
     send,
     resolve,
     startNew,
+    open,
+    retry,
     reload: load,
     suggestions: lastAssistant?.suggestions ?? [],
     pendingActions,

@@ -46,9 +46,19 @@ jest.mock('react-native-reanimated', () => {
     withSpring: identity,
     withSequence: identity,
     withRepeat: identity,
+    withDelay: (_delay: number, value: unknown) => value,
+    // Entering/exiting animations are declarative objects; the chat surface only needs
+    // them to be chainable so the components render.
+    FadeIn: { duration: () => ({}) },
+    FadeOut: { duration: () => ({}) },
     Easing: { inOut: () => identity, quad: identity, linear: identity },
   };
 });
+
+jest.mock('expo-clipboard', () => ({
+  setStringAsync: jest.fn(async () => true),
+  getStringAsync: jest.fn(async () => ''),
+}));
 
 jest.mock('expo-linear-gradient', () => {
   const { View } = require('react-native');
@@ -57,7 +67,14 @@ jest.mock('expo-linear-gradient', () => {
 
 // expo-router pulls in the whole navigation stack; component tests only need the API.
 jest.mock('expo-router', () => ({
-  useRouter: () => ({ push: jest.fn(), replace: jest.fn(), back: jest.fn() }),
+  useRouter: () => ({
+    push: jest.fn(),
+    replace: jest.fn(),
+    back: jest.fn(),
+    setParams: jest.fn(),
+    dismissTo: jest.fn(),
+    canDismiss: () => true,
+  }),
   useLocalSearchParams: () => ({}),
   usePathname: () => '/',
   Link: ({ children }: { children: React.ReactNode }) => children,

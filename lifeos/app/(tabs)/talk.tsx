@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { useLocalSearchParams } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
 import { AIOrb, Text } from '@/components/ui';
@@ -20,11 +21,20 @@ const MODE_TITLES: Record<string, string> = {
 
 /**
  * The main conversation. Opening it with ?mode=plan_day (or plan_week, ninety_day)
- * starts the same assistant in a specific working mode.
+ * starts the same assistant in a specific working mode; ?conversation=<id> reopens a
+ * conversation chosen from history, and ?new=1 starts a fresh one.
  */
 export default function Talk() {
   const theme = useTheme();
-  const params = useLocalSearchParams<{ mode?: string; prompt?: string; agent?: string }>();
+  const router = useRouter();
+  const insets = useSafeAreaInsets();
+  const params = useLocalSearchParams<{
+    mode?: string;
+    prompt?: string;
+    agent?: string;
+    conversation?: string;
+    new?: string;
+  }>();
   const mode = (params.mode ?? 'chat') as AiMode;
   const entitlements = useEntitlements();
 
@@ -49,6 +59,7 @@ export default function Talk() {
     kind: mode === 'chat' ? 'general' : 'planning',
     mode,
     autoStart,
+    conversationId: params.conversation,
   });
 
   const [dismissed, setDismissed] = useState(false);
@@ -56,12 +67,32 @@ export default function Talk() {
     setDismissed(false);
   }, [allowance.allowed]);
 
+  const startNew = useCallback(() => {
+    // Both are needed: the params must go or the hook reloads the old thread on the
+    // next render, and `startNew` marks the intent so the reload does not fall back
+    // to the most recent conversation instead.
+    router.setParams({ conversation: undefined, new: undefined, prompt: undefined });
+    void conversation.startNew();
+  }, [conversation, router]);
+
+  // Arriving with ?new=1 (from the history screen) starts a conversation rather than
+  // resuming one. The ref makes it a one-shot, so a re-render does not wipe the
+  // conversation the user has since begun typing into.
+  const consumedNewSignal = useRef<string | undefined>(undefined);
+  useEffect(() => {
+    if (!params.new || consumedNewSignal.current === params.new) return;
+    consumedNewSignal.current = params.new;
+    void conversation.startNew();
+  }, [conversation, params.new]);
+
   // A limit reported by the server always wins over the local pre-check.
   const limitError =
-    conversation.error && (conversation.error.code === 'quota_exceeded' || conversation.error.code === 'not_entitled')
+    conversation.error &&
+    (conversation.error.code === 'quota_exceeded' || conversation.error.code === 'not_entitled')
       ? conversation.error
       : null;
   const blocked = !allowance.allowed || Boolean(limitError);
+  const quota = entitlements.quota('ai_requests');
 
   return (
     <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
@@ -71,6 +102,7 @@ export default function Talk() {
         error={limitError ? null : conversation.error}
         onSend={conversation.send}
         onResolve={conversation.resolve}
+        onRetry={blocked ? undefined : conversation.retry}
         suggestions={
           conversation.messages.length === 0
             ? ["I don't know what to do", 'Plan my day', 'I want to change something']
@@ -78,31 +110,56 @@ export default function Talk() {
         }
         disabled={blocked}
         placeholder={blocked ? 'Your AI allowance is used up' : 'Tell me what is going on…'}
-        header={
-          <View style={{ gap: theme.spacing.base, paddingBottom: theme.spacing.lg }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md }}>
-                <AIOrb size={30} state={conversation.thinking ? 'thinking' : 'idle'} />
-                <View>
-                  <Text variant="title3">{MODE_TITLES[mode] ?? brand.aiName}</Text>
-                  <Text variant="caption" color="tertiary">
-                    {entitlements.plan.name}
-                    {entitlements.quota('ai_requests').fairUse
-                      ? ''
-                      : ` · ${entitlements.quota('ai_requests').remaining} left this period`}
-                  </Text>
-                </View>
+        topBar={
+          <View
+            style={{
+              paddingTop: insets.top + theme.spacing.xs,
+              paddingHorizontal: theme.spacing.lg,
+              paddingBottom: theme.spacing.md,
+              flexDirection: 'row',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              gap: theme.spacing.md,
+              borderBottomWidth: 1,
+              borderBottomColor: theme.colors.border,
+              backgroundColor: theme.colors.background,
+            }}
+          >
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.md, flex: 1 }}>
+              <AIOrb size={28} state={conversation.thinking ? 'thinking' : 'idle'} />
+              <View style={{ flex: 1 }}>
+                <Text variant="title3" numberOfLines={1}>
+                  {MODE_TITLES[mode] ?? brand.aiName}
+                </Text>
+                <Text variant="caption" color="tertiary" numberOfLines={1}>
+                  {entitlements.plan.name}
+                  {quota.fairUse ? '' : ` · ${quota.remaining} left this period`}
+                </Text>
               </View>
+            </View>
+
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: theme.spacing.lg }}>
               <Pressable
-                onPress={() => void conversation.startNew()}
+                onPress={() => router.push('/chat/history')}
+                accessibilityRole="button"
+                accessibilityLabel="Your conversations"
+                hitSlop={10}
+              >
+                <Feather name="clock" size={19} color={theme.colors.textSecondary} />
+              </Pressable>
+              <Pressable
+                onPress={startNew}
                 accessibilityRole="button"
                 accessibilityLabel="Start a new conversation"
                 hitSlop={10}
               >
-                <Feather name="edit" size={18} color={theme.colors.textTertiary} />
+                <Feather name="edit" size={19} color={theme.colors.textSecondary} />
               </Pressable>
             </View>
-
+          </View>
+        }
+        header={
+          <View style={{ gap: theme.spacing.base, paddingBottom: theme.spacing.md }}>
             {blocked && !dismissed ? (
               <LimitReached
                 kind={
@@ -115,7 +172,9 @@ export default function Talk() {
                 upgradeName={
                   limitError && 'upgradeName' in limitError
                     ? (limitError as { upgradeName?: string | null }).upgradeName
-                    : (!allowance.allowed ? allowance.upgradeTo?.name : null)
+                    : !allowance.allowed
+                      ? allowance.upgradeTo?.name
+                      : null
                 }
                 resetsAt={entitlements.resetsAt}
                 onDismiss={() => setDismissed(true)}
@@ -123,11 +182,11 @@ export default function Talk() {
             ) : null}
 
             {conversation.messages.length === 0 && !conversation.loading ? (
-              <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.lg }}>
+              <View style={{ gap: theme.spacing.sm, paddingTop: theme.spacing.xl }}>
                 <Text variant="title2">Where are you right now?</Text>
                 <Text variant="body" color="secondary">
-                  Tell me what happened, what changed, or what you are stuck on. I will
-                  work out what it means for your plan.
+                  Tell me what happened, what changed, or what you are stuck on. I will work
+                  out what it means for your plan.
                 </Text>
               </View>
             ) : null}

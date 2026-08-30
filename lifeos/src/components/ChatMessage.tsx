@@ -1,45 +1,75 @@
-import React from 'react';
+import React, { memo } from 'react';
 import { View } from 'react-native';
 import Feather from '@expo/vector-icons/Feather';
 import { useTheme } from '@/theme';
 import { useRouter } from 'expo-router';
-import { AIOrb, Button, Card, Text } from '@/components/ui';
+import { Button, Card, Text } from '@/components/ui';
+import { Markdown } from '@/components/chat/Markdown';
+import { MessageActions } from '@/components/chat/MessageActions';
 import type { AiActionReceipt } from '@/types/database';
 
 /**
- * A message plus its receipts. Receipts are the app's answer to assistants that claim
- * work they never did: every row here corresponds to a stored, executed (or explicitly
- * pending, or failed) database action.
+ * A message plus its receipts.
+ *
+ * The user's turn is a bubble; the assistant's is not. Long, formatted answers read
+ * badly inside a tinted box, which is why every serious assistant renders its own side
+ * flat and reserves the bubble for the short thing the person typed.
+ *
+ * Receipts are the app's answer to assistants that claim work they never did: every
+ * row here corresponds to a stored, executed (or explicitly pending, or failed)
+ * database action.
  */
-export function ChatMessage({
+export const ChatMessage = memo(function ChatMessage({
   role,
   content,
   actions = [],
   onResolve,
   resolving,
+  pending,
+  onRetry,
+  showActions = true,
 }: {
   role: 'user' | 'assistant' | 'system';
   content: string;
   actions?: AiActionReceipt[];
   onResolve?: (index: number, approve: boolean) => void;
   resolving?: boolean;
+  /** The message is on screen but not yet acknowledged by the server. */
+  pending?: boolean;
+  onRetry?: () => void;
+  showActions?: boolean;
 }) {
   const theme = useTheme();
-  const isUser = role === 'user';
 
-  if (isUser) {
+  if (role === 'user') {
     return (
-      <View style={{ alignSelf: 'flex-end', maxWidth: '86%', marginBottom: theme.spacing.base }}>
+      <View
+        accessibilityRole="text"
+        accessibilityLabel={`You said: ${content}`}
+        style={{
+          alignSelf: 'flex-end',
+          maxWidth: theme.chat.maxBubbleWidth as `${number}%`,
+          marginBottom: theme.chat.turnGap,
+          opacity: pending ? 0.62 : 1,
+        }}
+      >
         <View
           style={{
             backgroundColor: theme.colors.accent,
-            borderRadius: theme.radius.lg,
-            borderBottomRightRadius: theme.radius.xs,
-            paddingHorizontal: theme.spacing.base,
-            paddingVertical: theme.spacing.md,
+            borderRadius: theme.chat.bubbleRadius,
+            borderBottomRightRadius: theme.chat.bubbleTailRadius,
+            paddingHorizontal: theme.chat.bubblePaddingX,
+            paddingVertical: theme.chat.bubblePaddingY,
           }}
         >
-          <Text variant="body" color="onAccent">
+          {/* The person's own text is shown as written — no Markdown interpretation,
+              so typing *asterisks* or a file_name shows exactly that. */}
+          <Text
+            variant="body"
+            color="onAccent"
+            selectable
+            style={{ lineHeight: theme.chat.lineHeight }}
+          >
             {content}
           </Text>
         </View>
@@ -47,30 +77,39 @@ export function ChatMessage({
     );
   }
 
-  return (
-    <View style={{ marginBottom: theme.spacing.lg, gap: theme.spacing.sm }}>
-      <View style={{ flexDirection: 'row', gap: theme.spacing.md }}>
-        <AIOrb size={22} state="idle" />
-        <View style={{ flex: 1, gap: theme.spacing.sm }}>
-          <Text variant="body">{content}</Text>
-
-          {actions.length > 0 ? (
-            <View style={{ gap: theme.spacing.xs, marginTop: 2 }}>
-              {actions.map((action, index) => (
-                <ActionReceiptRow
-                  key={`${action.tool}-${index}`}
-                  action={action}
-                  onResolve={onResolve ? (approve) => onResolve(index, approve) : undefined}
-                  resolving={resolving}
-                />
-              ))}
-            </View>
-          ) : null}
-        </View>
+  if (role === 'system') {
+    return (
+      <View style={{ alignItems: 'center', marginBottom: theme.chat.turnGap }}>
+        <Text variant="caption" color="tertiary">
+          {content}
+        </Text>
       </View>
+    );
+  }
+
+  return (
+    <View style={{ marginBottom: theme.chat.turnGap, gap: theme.chat.groupGap }}>
+      <Markdown content={content} />
+
+      {actions.length > 0 ? (
+        <View style={{ gap: theme.spacing.xs, marginTop: theme.spacing.xxs }}>
+          {actions.map((action, index) => (
+            <ActionReceiptRow
+              key={`${action.tool}-${index}`}
+              action={action}
+              onResolve={onResolve ? (approve) => onResolve(index, approve) : undefined}
+              resolving={resolving}
+            />
+          ))}
+        </View>
+      ) : null}
+
+      {showActions && content.trim().length > 0 ? (
+        <MessageActions content={content} onRetry={onRetry} />
+      ) : null}
     </View>
   );
-}
+});
 
 function ActionReceiptRow({
   action,

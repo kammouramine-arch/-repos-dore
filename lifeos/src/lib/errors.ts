@@ -11,10 +11,30 @@ export class AppError extends Error {
   }
 }
 
+/**
+ * Pulls readable text out of whatever was thrown.
+ *
+ * supabase-js rejects with a plain PostgrestError object rather than an Error, so
+ * `String(error)` on it yields "[object Object]" — which then became the message shown
+ * to the user for every database failure in the app.
+ */
+function messageOf(error: unknown): string {
+  if (error instanceof Error) return error.message;
+  if (typeof error === 'string') return error;
+  if (error && typeof error === 'object') {
+    const shape = error as { message?: unknown; error_description?: unknown; details?: unknown; hint?: unknown };
+    for (const candidate of [shape.message, shape.error_description, shape.details, shape.hint]) {
+      if (typeof candidate === 'string' && candidate.trim()) return candidate;
+    }
+    return '';
+  }
+  return error == null ? '' : String(error);
+}
+
 export function toAppError(error: unknown, fallback = 'Something went wrong.'): AppError {
   if (error instanceof AppError) return error;
 
-  const message = error instanceof Error ? error.message : String(error ?? '');
+  const message = messageOf(error);
   const lower = message.toLowerCase();
 
   if (lower.includes('network request failed') || lower.includes('fetch failed')) {

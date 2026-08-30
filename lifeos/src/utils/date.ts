@@ -57,6 +57,28 @@ export function relativeDays(iso: string, now: Date = new Date()): string {
   return `${Math.abs(diff)} day${Math.abs(diff) === 1 ? '' : 's'} ago`;
 }
 
+/**
+ * "2m ago" / "Yesterday" / "12 Mar" for a full timestamp.
+ *
+ * Distinct from `relativeDays`, which takes a date-only column: conversation rows
+ * carry `timestamptz`, and parsing one as a date silently drops the time.
+ */
+export function relativeTimestamp(iso: string, now: Date = new Date()): string {
+  const date = parseISO(iso);
+  if (Number.isNaN(date.getTime())) return '';
+  const minutes = Math.floor((now.getTime() - date.getTime()) / 60000);
+  // Clock skew between device and server can put a fresh row slightly in the future.
+  if (minutes < 1) return 'Just now';
+  if (minutes < 60) return `${minutes}m ago`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24 && isSameDay(date, now)) return `${hours}h ago`;
+  const days = differenceInCalendarDays(now, date);
+  if (days <= 1) return 'Yesterday';
+  if (days < 7) return format(date, 'EEEE');
+  if (date.getFullYear() === now.getFullYear()) return format(date, 'd MMM');
+  return format(date, 'd MMM yyyy');
+}
+
 /** "09:30" from a Postgres time value like "09:30:00". */
 export function formatTime(time: string | null): string | null {
   if (!time) return null;
