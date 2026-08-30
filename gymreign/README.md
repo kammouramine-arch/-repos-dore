@@ -57,6 +57,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/09-hero-tee-resolution.md`](./production/09-hero-tee-resolution.md) | Hero tee investigation, the XS finding, five compared alternatives, and the final order with checkout scenarios |
 | [`production/10-path2-viability.md`](./production/10-path2-viability.md) | Path 2 viability — 19-point investigation, the YELLOW verdict, and the credential-free route to close the gap |
 | [`production/11-product-architecture.md`](./production/11-product-architecture.md) | Revised Chapter 001 architecture — broad catalogue search, the baggy-jogger finding, and the four-piece recommendation |
+| [`production/12-final-sourcing-sweep.md`](./production/12-final-sourcing-sweep.md) | Final sourcing sweep — the Inkthreadable UK route, the AWDis 440 GSM jogger, and the customs trade-off |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -75,6 +76,19 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## FINAL SWEEP — RECOMMENDATION CHANGED TO UK-FIRST
+>
+> A bounded final sweep found **Inkthreadable (UK)**, a POD platform with a deeper premium
+> catalogue than Printful and Printify combined — including **AWDis JH128 joggers at 440 GSM,
+> "oversized straight leg", open hem, XS–3XL, embroidery**. That beats Lane Seven on
+> silhouette, weight, sizing and decoration. It also carries the Stanley/Stella Freestyler
+> tee **and** Slammer hoodie, making `Black C002` matching real.
+>
+> **No EU-domiciled POD route for an oversized jogger exists.** The choice is which border:
+> UK→France is shorter and cheaper than US→France, but still a third-country import.
+> **Duty treatment is the one unknown that could reverse this.**
+> See [`12-final-sourcing-sweep.md`](./production/12-final-sourcing-sweep.md).
 
 > ## ARCHITECTURE REVISED — THE FLYER FAILS THE BAGGY REQUIREMENT
 >
