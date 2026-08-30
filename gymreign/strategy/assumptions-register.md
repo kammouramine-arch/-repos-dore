@@ -142,3 +142,17 @@ Nothing in this section is legal advice. Each item requires a qualified professi
 **Any product whose real landed cost breaks the 2.8× floor does not launch.** That rule
 exists precisely so that bad news discovered in Phase 04 changes the plan instead of
 being absorbed by wishful pricing.
+
+## Phase 07 — pricing and identity (2026-08-30)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P07-1 | Ladder L3 applied live: TEE €75 · HOODIE €135 · JOGGER €110 · SHORTS €60 · CAP €45 | `[V]` verified against the Shopify Admin API |
+| P07-2 | The 2.8× floor is applied to **product cost only**, not landed cost. Shipping is charged separately or absorbed above a €120 threshold | `[A]` founder decision, approved 2026-08-30 |
+| P07-3 | **THE CAP sits below the 2.8× floor at 2.73×.** Deliberate accepted exception — a basket-builder at 44.4% contribution | `[A]` accepted exception |
+| P07-4 | THE SHORTS base cost is **$21.79**, not the $25.66 quoted at approval; $25.66 is the 2XL. Multiple 3.20×, contribution 51.0% | `[V]` live Printify product payload |
+| P07-5 | Shipping: free ≥ €120, flat €9.90 below, all three zones | `[V]` verified back from the delivery profile |
+| P07-6 | Printify recreates and reassigns delivery profiles when a product is published with `shipping_template: true`. Future publishes must omit that flag or L3 shipping stops applying | `[V]` observed — all five products were on Printify USD profiles before correction |
+| P07-7 | The jogger mark is 37.8 mm, not the 40 mm approved. The left-leg print area is 44.5 mm wide | `[V]` blueprint placeholder dimensions |
+| P07-8 | No premium winter vest and no premium socks exist on Printify. Both excluded from Chapter 001 | `[V]` full catalogue sweep |
+| P07-9 | The GYMREIGN wordmark still does not exist as drawn artwork | `[V]` |

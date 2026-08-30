@@ -1,13 +1,6 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 116" width="176" height="116" role="img" aria-label="GYMREIGN GR plate mark">
-  <title>GYMREIGN — GR Plate Mark (proposed). GR bounded by the datum above and below.</title>
-  <g fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="butt">
-    <path d="M6 12 L170 12"/>
-    <path d="M6 104 L170 104"/>
-    <path d="M70 40 A29 29 0 1 0 70 92"/>
-    <path d="M70 92 L70 66"/>
-    <path d="M52 66 L70 66"/>
-    <path d="M103 92 L103 40"/>
-    <path d="M103 40 L122 40 A13 13 0 0 1 122 66 L103 66"/>
-    <path d="M117 66 L133 92"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 187.10 121.90" width="187.10" height="121.90" role="img" aria-label="GYMREIGN GR plate mark">
+  <title>GYMREIGN — GR plate mark</title>
+  <g fill="none" stroke="currentColor" stroke-width="13.0" stroke-linecap="butt">
+    <path d="M0 6.5 L187.10 6.5"/><path d="M0 115.40 L187.10 115.40"/><g transform="translate(4.40 -6.50)"><path d="M80.00 48.15 A29.0 29.0 0 1 0 86.15 66.00"/><path d="M92.65 66.00 L62.95 66.00"/><path d="M114.20 32.00 L114.20 100.00"/><path d="M114.20 38.50 L133.45 38.50 A16.75 16.75 0 0 1 133.45 72.00 L114.20 72.00"/><path d="M124.79 72.00 L150.20 100.00"/></g>
   </g>
 </svg>
