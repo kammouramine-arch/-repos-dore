@@ -23,12 +23,16 @@ h1 em{font-style:normal;color:#0E3A45}
 
 .sc{display:grid;grid-template-columns:760px 1fr;gap:48px;align-items:center}
 .dess{position:relative;width:740px;height:640px}
-.corpsf{position:absolute;left:120px;top:66px;width:210px;height:452px;border:3px solid #0E3A45;border-radius:26px;background:#fff}
-.bague{position:absolute;left:120px;width:210px;height:32px;background:#0E3A45}
-.fen{position:absolute;left:154px;top:182px;width:142px;height:222px;border:2px solid #CFC8BA;border-radius:12px;background:#F6F4EF;overflow:hidden}
-.gr{position:absolute;border-radius:50%}
-.fil{position:absolute;left:190px;width:70px;height:70px;border:3px solid #0E3A45;background:#fff}
-.cote{position:absolute;font-family:'PM';font-size:28px;color:#0E3A45;white-space:nowrap;line-height:1.4}
+.chrome{background:linear-gradient(90deg,#AEBEC3 0%,#E9F0F1 16%,#FFFFFF 32%,#D6E2E5 50%,#93A8AF 70%,#E2EAEB 86%,#A9BABF 100%)}
+.corpsf{position:absolute;left:170px;top:150px;width:262px;height:374px;border:2px solid #7E9299;border-radius:30px}
+.bague{position:absolute;left:170px;top:262px;width:262px;height:11px;background:#7E9299;opacity:.55}
+.collier{position:absolute;left:150px;top:104px;width:302px;height:50px;border:2px solid #7E9299;border-radius:14px}
+.moletage{position:absolute;left:154px;top:110px;width:294px;height:38px;
+  background:repeating-linear-gradient(90deg,#7E9299 0 2px,transparent 2px 9px);opacity:.5}
+.fil{position:absolute;left:260px;width:82px;height:58px;border:2px solid #7E9299;border-radius:6px}
+.filet{position:absolute;left:266px;width:70px;height:46px;
+  background:repeating-linear-gradient(180deg,#7E9299 0 2px,transparent 2px 8px);opacity:.55}
+.cote{position:absolute;font-family:'PM';font-size:26px;color:#0E3A45;line-height:1.42;width:250px}
 .trait{position:absolute;background:#CFC8BA;height:1px}
 .leg{display:grid;gap:28px}
 .leg div{display:grid;grid-template-columns:44px 1fr;gap:18px;align-items:start}
@@ -41,34 +45,29 @@ h1 em{font-style:normal;color:#0E3A45}
 <div class="corps">
 <div class="sc">
   <div class="dess">
-    <div class="fil" style="top:0;border-radius:8px 8px 0 0"></div>
-    <div class="corpsf"></div>
-    <div class="bague" style="top:66px;border-radius:26px 26px 0 0"></div>
-    <div class="bague" style="top:486px;border-radius:0 0 26px 26px"></div>
-    <div class="fen">
-      <div class="gr" style="left:20px;top:24px;width:26px;height:26px;background:#D89B22;opacity:.85"></div>
-      <div class="gr" style="left:58px;top:50px;width:30px;height:30px;background:#D89B22;opacity:.7"></div>
-      <div class="gr" style="left:96px;top:20px;width:22px;height:22px;background:#D89B22;opacity:.8"></div>
-      <div class="gr" style="left:32px;top:88px;width:24px;height:24px;background:#8A9599;opacity:.7"></div>
-      <div class="gr" style="left:78px;top:104px;width:28px;height:28px;background:#8A9599;opacity:.6"></div>
-      <div class="gr" style="left:24px;top:144px;width:30px;height:30px;background:#3D6B4A;opacity:.45"></div>
-      <div class="gr" style="left:74px;top:164px;width:24px;height:24px;background:#3D6B4A;opacity:.5"></div>
-      <div class="gr" style="left:104px;top:134px;width:20px;height:20px;background:#8A9599;opacity:.55"></div>
-    </div>
-    <div class="fil" style="bottom:0;border-radius:0 0 8px 8px"></div>
-    <div class="trait" style="left:338px;top:34px;width:110px"></div>
-    <div class="cote" style="left:458px;top:20px">Entrée G½&quot;<br>filetage 15/21</div>
-    <div class="trait" style="left:338px;top:292px;width:110px"></div>
-    <div class="cote" style="left:458px;top:278px">Cartouche C90<br>remplaçable</div>
-    <div class="trait" style="left:338px;top:576px;width:110px"></div>
-    <div class="cote" style="left:458px;top:565px">Sortie G½&quot;</div>
+    <div class="fil chrome" style="top:44px"></div>
+    <div class="filet" style="top:50px"></div>
+    <div class="collier chrome"></div>
+    <div class="moletage"></div>
+    <div class="corpsf chrome"></div>
+    <div class="bague"></div>
+    <div class="fil chrome" style="top:530px"></div>
+    <div class="filet" style="top:536px"></div>
+    <div class="trait" style="left:452px;top:73px;width:84px"></div>
+    <div class="cote" style="left:546px;top:44px">Entrée G½&quot;<br>filetage 15/21</div>
+    <div class="trait" style="left:452px;top:268px;width:84px"></div>
+    <div class="cote" style="left:546px;top:246px">Bague de dévissage</div>
+    <div class="trait" style="left:452px;top:400px;width:84px"></div>
+    <div class="cote" style="left:546px;top:378px">Cartouche C90,<br>à l'intérieur</div>
+    <div class="trait" style="left:452px;top:559px;width:84px"></div>
+    <div class="cote" style="left:546px;top:548px">Sortie G½&quot;</div>
   </div>
   <div class="leg">
     <div><b>01</b><span>Se visse <b style="font-family:inherit;color:#0D1416;font-weight:600">entre</b> votre flexible et votre pomme de douche. Vous gardez la vôtre.</span></div>
     <div><b>02</b><span>Filetage 15/21 (G½&quot;), le standard français et européen. À la main, sans outil.</span></div>
-    <div><b>03</b><span>Fenêtre sur la cartouche : vous voyez le média filtrant travailler.</span></div>
-    <div><b>04</b><span>Corps ABS · 4 à 80 °C · pression de service 1 à 6 bar.</span></div>
+    <div><b>03</b><span>Corps chromé opaque. La bague se dévisse à la main : la cartouche se remplace en dix secondes.</span></div>
+    <div><b>04</b><span>89 × 127 mm, 270 g. Dimensions annoncées par le fabricant.</span></div>
   </div>
 </div>
 </div>
-<div class="pied"><span>Schéma technique · non contractuel</span><span>Illustration ONDÉE</span></div></body></html>
+<div class="pied"><span>Illustration d'après le produit · non contractuel</span><span>Illustration ONDÉE</span></div></body></html>
