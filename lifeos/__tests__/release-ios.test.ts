@@ -33,33 +33,40 @@ describe('bundle identifier', () => {
 
 describe('build-time backend configuration', () => {
   /*
-    EAS does not read a local .env, so anything not declared here is empty in the
-    binary. A build with no Supabase URL starts, finds nothing configured, and shows
-    "Backend is not configured" — which is a Guideline 2.1 rejection discovered a week
-    after upload rather than in CI.
+    The production values live in the EAS environment named by the profile, not in
+    this file. A committed anon key is source-control exposure for no benefit, and a
+    build that reads eas.json cannot be verified with `eas env:list`.
   */
-  it('gives every build profile a Supabase URL and key', () => {
-    for (const profile of BUILD_PROFILES) {
-      const env = eas.build[profile]?.env ?? {};
-      expect(`${profile}: ${Boolean(env.EXPO_PUBLIC_SUPABASE_URL)}`).toBe(`${profile}: true`);
-      expect(`${profile}: ${Boolean(env.EXPO_PUBLIC_SUPABASE_ANON_KEY)}`).toBe(`${profile}: true`);
-    }
+  it('names the EAS environment the production profile draws from', () => {
+    expect(eas.build.production.environment).toBe('production');
   });
 
-  it('points the production profile at the production project', () => {
-    const env = eas.build.production.env;
-    expect(env.EXPO_PUBLIC_SUPABASE_URL).toBe('https://nxyahzdwyzdfhkmxxyzz.supabase.co');
+  it('holds no Supabase credential in the production profile', () => {
+    const env = eas.build.production.env ?? {};
+    expect(env.EXPO_PUBLIC_SUPABASE_ANON_KEY).toBeUndefined();
+    expect(env.EXPO_PUBLIC_SUPABASE_URL).toBeUndefined();
     expect(env.APP_ENV).toBe('production');
   });
 
-  it('keeps staging traffic off the production project', () => {
-    for (const profile of ['development', 'preview']) {
-      expect(eas.build[profile].env.EXPO_PUBLIC_SUPABASE_URL)
-        .not.toBe(eas.build.production.env.EXPO_PUBLIC_SUPABASE_URL);
-    }
+  it('commits no production anon key anywhere in eas.json', () => {
+    const raw = fs.readFileSync(path.join(root, 'eas.json'), 'utf8');
+    // The production key is a JWT; its header is a fixed, recognisable prefix.
+    expect(raw).not.toContain('eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9');
   });
 
-  it('ships only publishable keys — no server secret reaches a build profile', () => {
+  it('refuses an EAS build with no backend, independently of the env block', () => {
+    /*
+      The guard that failed: it keyed on APP_ENV, which lives in the same env block as
+      the Supabase variables, so an empty block disabled the guard and shipped a broken
+      IPA. EAS_BUILD is set by the worker and cannot be switched off from eas.json.
+    */
+    const src = fs.readFileSync(path.join(root, 'app.config.ts'), 'utf8');
+    expect(src).toContain("process.env.EAS_BUILD === 'true'");
+    expect(src).toContain('Refusing to build without');
+    expect(src).not.toMatch(/APP_ENV === 'production'[\s\S]{0,80}Refusing/);
+  });
+
+  it('ships only publishable keys — no server secret in any build profile', () => {
     const serialized = JSON.stringify(eas.build);
     for (const secret of [
       'GOOGLE_GEMINI_API_KEY', 'GROQ_API_KEY', 'MISTRAL_API_KEY',

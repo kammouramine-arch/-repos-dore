@@ -132,19 +132,31 @@ describe('the source code the bundler has to see', () => {
 describe('the production build guard', () => {
   const source = fs.readFileSync(path.join(root, 'app.config.ts'), 'utf8');
 
-  it('refuses to configure a production build with no backend', () => {
-    expect(source).toContain("process.env.APP_ENV === 'production'");
-    expect(source).toContain('Refusing to configure a production build');
+  it('refuses any EAS build with no backend', () => {
+    expect(source).toContain("process.env.EAS_BUILD === 'true'");
+    expect(source).toContain('Refusing to build without');
   });
 
-  it('guards only production, so tests and dev servers still evaluate the config', () => {
-    // This suite imports app.config.ts indirectly and would fail if the guard were
+  it('does not key the guard on a variable the env block supplies', () => {
+    /*
+      The regression this exists for: the guard used to test APP_ENV === 'production',
+      and APP_ENV lived in the same eas.json env block as the Supabase variables. When
+      that block supplied nothing, APP_ENV was absent too, the guard was skipped, and a
+      broken IPA reached TestFlight. EAS_BUILD is set by the build worker and cannot be
+      switched off from eas.json.
+    */
+    expect(source).not.toMatch(/APP_ENV === 'production'[\s\S]{0,120}Refusing/);
+  });
+
+  it('guards only real builds, so tests and dev servers still evaluate the config', () => {
+    // This suite evaluates app.config.ts indirectly and would fail if the guard were
     // unconditional — which is the point of asserting it.
-    expect(source).not.toMatch(/if \(!\(supabaseUrl && supabaseAnonKey\)\) \{/);
+    expect(source).not.toMatch(/^if \(!\(supabaseUrl && supabaseAnonKey\)\) \{/m);
   });
 
-  it('names both variables it needs', () => {
+  it('names both variables and where they now live', () => {
     expect(source).toContain('EXPO_PUBLIC_SUPABASE_URL');
     expect(source).toContain('EXPO_PUBLIC_SUPABASE_ANON_KEY');
+    expect(source).toContain('eas env:list');
   });
 });

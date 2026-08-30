@@ -11,22 +11,26 @@ const supabaseAnonKey = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY ?? '';
 /*
   A production build without a backend is worse than a failed one.
 
-  It compiles, uploads, passes review queueing, installs from TestFlight, and only then
-  tells the person holding the phone that the backend is not configured — by which point
-  a build number has been burned and the loop is hours long. Failing here costs seconds.
+  It compiles, uploads, installs from TestFlight, and only then tells the person
+  holding the phone that the backend is not configured — burning a build number and
+  hours. Failing here costs seconds.
 
-  Only the production environment is guarded: `npx expo config`, the test suite and a
-  local dev server all evaluate this file with no APP_ENV set and must keep working.
+  The condition is EAS_BUILD, which EAS Build sets on the worker itself. An earlier
+  version keyed on APP_ENV, which lives in the same eas.json env block as the two
+  Supabase variables: when that block supplied nothing, APP_ENV was absent too, the
+  guard never ran, and a broken IPA shipped. A guard must not depend on the wiring it
+  exists to check.
 */
-if (process.env.APP_ENV === 'production' && !(supabaseUrl && supabaseAnonKey)) {
+if (process.env.EAS_BUILD === 'true' && !(supabaseUrl && supabaseAnonKey)) {
   const missing = [
     supabaseUrl ? null : 'EXPO_PUBLIC_SUPABASE_URL',
     supabaseAnonKey ? null : 'EXPO_PUBLIC_SUPABASE_ANON_KEY',
   ].filter(Boolean);
   throw new Error(
-    `Refusing to configure a production build without ${missing.join(' and ')}. ` +
-      'These are set in the production profile of eas.json; a build without them ships ' +
-      'an app that cannot reach its backend.',
+    `Refusing to build without ${missing.join(' and ')}. ` +
+      `Profile "${process.env.EAS_BUILD_PROFILE ?? 'unknown'}" resolved no value for them. ` +
+      'These live in the EAS environment named by that profile — check with ' +
+      '`eas env:list --environment <name>`. A build without them cannot reach its backend.',
   );
 }
 
