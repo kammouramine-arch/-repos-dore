@@ -323,11 +323,17 @@ export const DEFAULT_REGISTRY: Registry = {
         A second, EU-based transcription option. Matters because Groq is held to normal
         data only, so a sensitive recording has somewhere lawful to go.
       */
-      provider: 'mistral', modelId: 'voxtral-mini-transcribe-2', label: 'Voxtral Mini Transcribe 2',
+      /*
+        The id is `voxtral-mini-transcribe-26-02`, not the display name "Voxtral Mini
+        Transcribe 2" that the pricing page shows. That display name was used here
+        first and Mistral rejected every request, so voice failed on device with no
+        clue why. Model ids come from the API reference; pricing pages name products.
+      */
+      provider: 'mistral', modelId: 'voxtral-mini-transcribe-26-02', label: 'Voxtral Mini Transcribe 2',
       enabled: true, qualityClass: 'standard', speedClass: 'normal',
       inputPrice: 0, outputPrice: 0, cachedInputPrice: null,
       audioPricePerMinute: 0.003, currency: 'USD',
-      pricingVerification: 'official', pricingSource: MISTRAL_PRICING,
+      pricingVerification: 'official', pricingSource: 'https://docs.mistral.ai/capabilities/audio/',
       pricingEffective: '2026-08-25',
       maxContext: 0, maxOutput: 0,
       capabilities: ['audio'],

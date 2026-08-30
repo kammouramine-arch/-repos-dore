@@ -78,9 +78,32 @@ describe('provider registry', () => {
   });
 
   it('offers an EU transcription route for data Groq may not receive', () => {
-    const voxtral = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'voxtral-mini-transcribe-2');
+    const voxtral = DEFAULT_REGISTRY.models.find((m) => m.modelId === 'voxtral-mini-transcribe-26-02');
     expect(voxtral?.provider).toBe('mistral');
     expect(DEFAULT_REGISTRY.providers.mistral.maxPrivacyClass).toBe('highly_sensitive');
+  });
+
+  it('uses API model identifiers, not the display names on pricing pages', () => {
+    /*
+      Voice failed on device because this carried "voxtral-mini-transcribe-2" — the
+      product name from the pricing table — while the API expects
+      "voxtral-mini-transcribe-26-02". Mistral rejected every request and the user saw
+      a microphone that did nothing. Model ids come from API references.
+    */
+    const voxtral = DEFAULT_REGISTRY.models.find((m) => m.provider === 'mistral' && m.capabilities.includes('audio'));
+    expect(voxtral?.modelId).toBe('voxtral-mini-transcribe-26-02');
+    expect(voxtral?.pricingSource).toContain('docs.mistral.ai');
+  });
+
+  it('has at least one enabled audio model for every provider clearance voice needs', () => {
+    const audio = DEFAULT_REGISTRY.models.filter((m) => m.capabilities.includes('audio') && m.enabled);
+    expect(audio.length).toBeGreaterThanOrEqual(2);
+    // Transcription is classified sensitive, so a normal-only provider cannot serve it.
+    const cleared = audio.filter((m) => {
+      const c = DEFAULT_REGISTRY.providers[m.provider].maxPrivacyClass;
+      return c === 'sensitive' || c === 'highly_sensitive';
+    });
+    expect(cleared.length).toBeGreaterThanOrEqual(1);
   });
 
   it('restricts the transcription model to transcription', () => {
