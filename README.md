@@ -477,12 +477,42 @@ automatiquement.
 
 Compatible Vercel (ou toute plateforme Node 20+).
 
-1. Base PostgreSQL managée (Supabase, Neon, RDS…). Si un pooler est utilisé, renseigner `DIRECT_URL`
-   pour les migrations.
+1. Base PostgreSQL managée (Supabase, Neon, RDS…) — voir « Base de données de production ».
 2. Variables d'environnement de production, `APP_URL` en `https://` (active les cookies `Secure`).
-3. `npm run db:deploy` au déploiement.
+3. `npm run db:deploy:production` une fois, avant le premier déploiement utile.
 4. Webhook Stripe et tâche planifiée des relances.
 5. Bucket de stockage privé.
+
+### Base de données de production
+
+Le schéma déclare deux connexions, et la distinction n'est pas cosmétique :
+
+| Variable | Rôle | Forme attendue |
+| --- | --- | --- |
+| `DATABASE_URL` | Requêtes de l'application | Connexion **en pool**, port `6543`, avec `?pgbouncer=true` |
+| `DIRECT_URL` | Migrations uniquement | Connexion **directe**, port `5432` |
+
+Les fonctions serverless ouvrent beaucoup de connexions très courtes : sans
+pooler, la base sature. Mais le mode transaction d'un pooler ne sait ni tenir
+les verrous consultatifs de Prisma ni exécuter du DDL : une migration lancée à
+travers lui échoue, ou s'arrête au milieu. D'où les deux URL.
+
+Chez Supabase, les deux se lisent dans **Project Settings → Database →
+Connection string → URI** : la case *Use connection pooling* cochée donne
+`DATABASE_URL` (mode **Transaction**), décochée donne `DIRECT_URL`. Le mot de
+passe est celui choisi à la création du projet ; il se régénère dans
+**Database → Reset database password**.
+
+Migration de la base de production :
+
+```bash
+DIRECT_URL="postgresql://…:5432/postgres" npm run db:deploy:production
+```
+
+Le script refuse de partir si l'URL passe par un pooler, affiche les migrations
+en attente avant de les appliquer, puis vérifie en base le nombre de tables, les
+migrations achevées et une lecture applicative réelle. Les URL sont masquées
+dans toutes ses sorties : aucun mot de passe n'apparaît dans un journal.
 
 ---
 

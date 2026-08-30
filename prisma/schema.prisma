@@ -7,7 +7,16 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+  // Connexion applicative. Derrière un pooler (Supabase Supavisor, PgBouncer),
+  // c'est l'URL en mode transaction : elle encaisse les connexions courtes et
+  // nombreuses des fonctions serverless.
+  url       = env("DATABASE_URL")
+  // Connexion directe, utilisée uniquement par les migrations. Le mode
+  // transaction d'un pooler ne sait ni tenir les verrous consultatifs de Prisma
+  // ni exécuter du DDL : sans cette URL, `prisma migrate deploy` échoue ou
+  // laisse la base à moitié migrée. En développement, les deux pointent vers
+  // la même base.
+  directUrl = env("DIRECT_URL")
 }
 
 // ---------------------------------------------------------------------------
