@@ -61,6 +61,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/13-jogger-customs-verification.md`](./production/13-jogger-customs-verification.md) | Deep Black verification, EU customs and IOSS analysis, and the revised Phase 05 sample order |
 | [`production/14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md) | The eight pre-purchase checks, the DAP finding, cap selection, and the exact order landed in France |
 | [`production/15-printify-api-integration.md`](./production/15-printify-api-integration.md) | Printify connectivity audit, the API route, minimum scopes, and the secure credential procedure |
+| [`production/16-chapter-001-catalogue.md`](./production/16-chapter-001-catalogue.md) | The final catalogue, blueprint/provider/variant IDs, real costs, rejections and safety verification |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -79,6 +80,18 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## PHASE 06 — 4 PRINTIFY DRAFTS CREATED · NOTHING PUBLISHED · €0 SPENT
+>
+> Live API build complete. **THE TEE** (S/S Freestyler, bp 3168, **XXS–3XL**), **THE HOODIE**
+> (S/S Slammer 2.0, bp 2683), **THE JOGGER** (B+C 4737, bp 2771), **THE CAP** (Econscious
+> EC7000, bp 1741, **embroidered**). All US-fulfilled. Real costs $19.14–$53.37.
+> **20 variants, 0 orders, `external_id = None` on all four — nothing reached Shopify.**
+>
+> **Two honest gaps:** Printify has **no genuinely oversized/baggy jogger** — 4737 is boxy but
+> **cuffed**, not open-hem like the JH128, which is not in Printify's catalogue. And **no
+> short in the entire catalogue meets specification**, so none was selected.
+> See [`16-chapter-001-catalogue.md`](./production/16-chapter-001-catalogue.md).
 
 > ## PURCHASE GATE — DDP IS NOT AVAILABLE
 >
