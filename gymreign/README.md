@@ -59,6 +59,7 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/11-product-architecture.md`](./production/11-product-architecture.md) | Revised Chapter 001 architecture — broad catalogue search, the baggy-jogger finding, and the four-piece recommendation |
 | [`production/12-final-sourcing-sweep.md`](./production/12-final-sourcing-sweep.md) | Final sourcing sweep — the Inkthreadable UK route, the AWDis 440 GSM jogger, and the customs trade-off |
 | [`production/13-jogger-customs-verification.md`](./production/13-jogger-customs-verification.md) | Deep Black verification, EU customs and IOSS analysis, and the revised Phase 05 sample order |
+| [`production/14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md) | The eight pre-purchase checks, the DAP finding, cap selection, and the exact order landed in France |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -77,6 +78,18 @@ glyph was drawn, rasterised, found to read as the letter "C", and discarded.
 must be custom-drawn from the Datum concept rather than used as Archivo unchanged — and not
 over-designed. **Nothing here is cleared for legal use.** Word-mark clearance is independent
 of the design work and should run in parallel.
+
+> ## PURCHASE GATE — DDP IS NOT AVAILABLE
+>
+> Inkthreadable's own guidance: they trade **DAP**, so **the end customer bears import VAT
+> and duty**. A merchant IOSS number fixes VAT — **but only for consignments ≤€150**, and the
+> price ladder crosses that line: a hoodie-and-jogger order at €245 gets no cover. Standard
+> shipping is also **6–21 days**; only DPD at £23.89 (2–8 days) is defensible.
+>
+> **The garments are right; the fulfilment terms are the problem.** The 8-unit sample order is
+> **£225.02**, landing at **≈€341** in France under DAP — inside the €350 tranche. Cap
+> selected: **AS Colour 1130 Access Cap**.
+> See [`14-final-pre-purchase-check.md`](./production/14-final-pre-purchase-check.md).
 
 > ## VERIFIED — JOGGER PASSES, UK ROUTE IS COMMERCIALLY ACCEPTABLE
 >
