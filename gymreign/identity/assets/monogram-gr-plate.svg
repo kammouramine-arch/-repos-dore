@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 176 116" width="176" height="116" role="img" aria-label="GYMREIGN GR plate mark">
+  <title>GYMREIGN — GR Plate Mark (proposed). GR bounded by the datum above and below.</title>
+  <g fill="none" stroke="currentColor" stroke-width="13" stroke-linecap="butt">
+    <path d="M6 12 L170 12"/>
+    <path d="M6 104 L170 104"/>
+    <path d="M70 40 A29 29 0 1 0 70 92"/>
+    <path d="M70 92 L70 66"/>
+    <path d="M52 66 L70 66"/>
+    <path d="M103 92 L103 40"/>
+    <path d="M103 40 L122 40 A13 13 0 0 1 122 66 L103 66"/>
+    <path d="M117 66 L133 92"/>
+  </g>
+</svg>
