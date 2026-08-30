@@ -75,6 +75,12 @@ jobs:
           npm run lint
           npm test -- --ci
 
+      # The unit suite proves the config is self-consistent; this proves the outside
+      # world agrees — the legal pages Apple opens resolve, the backend the binary
+      # embeds answers, and production auth is not left open. Each has cost a cycle.
+      - name: Preflight against live services
+        run: npm run preflight
+
       - name: Build
         run: eas build --platform ios --profile "${{ inputs.profile }}" --non-interactive --wait
 

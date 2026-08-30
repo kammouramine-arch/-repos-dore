@@ -86,7 +86,8 @@
     "db:verify": "psql \"$DATABASE_URL\" -v ON_ERROR_STOP=1 -f supabase/tests/verify.sql",
     "db:bundle": "node scripts/build-sql.mjs",
     "typecheck:ai": "tsc -p supabase/functions/tsconfig.check.json",
-    "test:integration": "jest --testPathIgnorePatterns=/node_modules/ --testMatch=\"**/__tests__/integration/**/*.test.ts\""
+    "test:integration": "jest --testPathIgnorePatterns=/node_modules/ --testMatch=\"**/__tests__/integration/**/*.test.ts\"",
+    "preflight": "node scripts/release-preflight.mjs"
   },
   "private": true,
   "jest": {
