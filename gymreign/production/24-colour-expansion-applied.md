@@ -168,6 +168,13 @@ sales-channel pipeline is not processing publish jobs.**
 
 Products were left **unlocked** rather than stuck showing "publishing in progress".
 
+5. **Waited five minutes and retried the CAP alone** — stalled again through four minutes of
+   polling. Shopify's cap product still reads `updatedAt 17:54:50Z`, i.e. untouched since the
+   Phase 07 work.
+
+Four publish attempts over roughly forty minutes, including two minimal controlled ones,
+produced no change on Shopify. All products left unlocked.
+
 ### To resolve
 
 - It may clear by itself once Printify's Shopify app catches up. Re-run the publish.
