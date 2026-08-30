@@ -9,6 +9,15 @@ import type { ExpoConfig } from 'expo/config';
 const VERSION = '1.0.0';
 
 /**
+ * Projet EAS. L'identifiant n'est pas un secret : il est de toute façon
+ * embarqué dans le binaire, et le figer ici rend les builds reproductibles
+ * sans dépendre d'une variable d'environnement. `EAS_PROJECT_ID` reste un
+ * forçage possible, utile pour construire vers un autre projet.
+ */
+const EAS_PROJECT_ID = process.env.EAS_PROJECT_ID ?? '3664953c-f93a-4ae5-8196-b54c49f0490b';
+const EAS_ACCOUNT = 'aminekms-team';
+
+/**
  * URL de l'API, injectée à la construction.
  *
  * En développement, l'API locale sert de valeur par défaut. Pour un build
@@ -60,6 +69,9 @@ const API_URL = resolveApiUrl();
 const config: ExpoConfig = {
   name: 'DEVISIA',
   slug: 'devisia',
+  // Compte propriétaire du projet EAS : sans lui, un build lancé depuis un
+  // autre compte Expo créerait un projet homonyme au lieu d'alimenter celui-ci.
+  owner: EAS_ACCOUNT,
   version: VERSION,
   orientation: 'portrait',
   scheme: 'devisia',
@@ -174,8 +186,7 @@ const config: ExpoConfig = {
   extra: {
     apiUrl: API_URL,
     eas: {
-      // Renseigné automatiquement par `eas init`.
-      projectId: process.env.EAS_PROJECT_ID ?? undefined,
+      projectId: EAS_PROJECT_ID,
     },
   },
 };
