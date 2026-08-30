@@ -16,7 +16,7 @@
 {%- endcomment -%}
 
 {%- liquid
-  assign cles = 'photo_1_produit_seul,photo_2_installe,photo_5_bandelettes,photo_3_cartouche,photo_4_contenu_boite,photo_7_filtration,photo_6_packaging' | split: ','
+  assign cles = 'photo_1_produit_seul,photo_8_echelle_main,photo_2_installe,photo_9_lifestyle,photo_3_cartouche,photo_4_contenu_boite,photo_5_bandelettes,photo_7_filtration,photo_6_packaging' | split: ','
   assign nb_photos = 0
   for cle in cles
     assign champ = product.metafields.ondee[cle]
@@ -45,6 +45,10 @@
             assign texte = 'Le contenu de la boîte ONDÉE : le filtre, une cartouche C90, les joints, deux bandelettes de test et la notice'
           when 'photo_7_filtration'
             assign texte = 'Détail des médias filtrants de la cartouche ONDÉE : KDF-55, sulfite de calcium et charbon actif'
+          when 'photo_8_echelle_main'
+            assign texte = 'Le filtre de douche ONDÉE tenu dans une main, qui montre sa taille réelle'
+          when 'photo_9_lifestyle'
+            assign texte = 'Le filtre de douche ONDÉE installé dans une salle de bains'
           when 'photo_6_packaging'
             assign texte = "L'emballage ONDÉE tel qu'il est livré"
           else

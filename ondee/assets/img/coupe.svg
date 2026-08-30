@@ -1,4 +1,4 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Coupe technique du pommeau ONDÉE">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 800" role="img" aria-label="Vue en coupe de la cartouche ONDÉE C90 : les cinq médias filtrants sont représentés en section. Le corps du filtre est opaque et ces médias ne sont pas visibles à l'usage.">
 <rect width="800" height="800" fill="#FFFFFF"/>
 <rect x="180" y="120" width="440" height="560" rx="28" fill="#F6F4EF" stroke="#CFC8BA" stroke-width="2"/>
 <g stroke="#9FC7D2" stroke-width="3" stroke-linecap="round" opacity=".7"><path d="M400 150v42"/><path d="M366 162v24"/><path d="M434 162v24"/></g>
@@ -8,4 +8,5 @@
 <rect x="240" y="482" width="320" height="80" rx="10" fill="#E4E1DA"/><text x="400" y="530" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#3B4A4E">4 · CHARBON ACTIF</text>
 <rect x="240" y="574" width="320" height="56" rx="10" fill="#DCE7EA"/><text x="400" y="610" font-family="IBM Plex Mono,monospace" font-size="19" text-anchor="middle" fill="#0E3A45">5 · TAMIS FINAL</text>
 <g stroke="#9FC7D2" stroke-width="3" stroke-linecap="round" opacity=".7"><path d="M330 654v40"/><path d="M400 654v56"/><path d="M470 654v40"/></g>
+<text x="400" y="756" text-anchor="middle" font-family="ui-monospace,Menlo,monospace" font-size="19" fill="#A8B2B5">VUE EN COUPE · LES MÉDIAS NE SONT PAS VISIBLES DE L'EXTÉRIEUR</text>
 </svg>

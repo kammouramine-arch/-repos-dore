@@ -1,148 +1,152 @@
-# Les photos ONDÉE — quoi faire, dans quel ordre, où les déposer
+# Les photos ONDÉE — plan de prise de vue
 
-Les sept emplacements existent déjà dans Shopify. Ils sont épinglés en haut de
-chaque fiche produit, sous **Métachamps**, et portent le nom de la photo attendue
-avec ses consignes. La galerie du site les affiche automatiquement dès qu'ils
-sont remplis — **il n'y a aucune modification de thème à faire le jour où vous
-recevez l'échantillon.**
+> **Les photos ne sont pas prêtes.** Il n'existe aujourd'hui aucune photographie
+> du produit. Ce que la boutique affiche, ce sont des illustrations, marquées
+> comme telles. Ce document dit exactement quoi photographier, comment, et où
+> chaque cliché se dépose.
 
-Tant qu'ils sont vides, la galerie affiche les douze illustrations techniques
-actuelles. Dès qu'un emplacement est rempli, les vraies photos passent devant et
-les illustrations restent en fin de galerie — elles expliquent ce qu'une photo ne
-montre pas (ce que le filtre ne fait pas, les étapes d'installation).
+**Séquence : échantillon → photos → vidéo → remplacement des illustrations → lancement.**
+Aucune étape ne se saute.
+
+---
+
+## Ce à quoi le produit ressemble vraiment
+
+À vérifier à la réception, mais voici ce que montrent les visuels du fabricant :
+
+- **cylindre chromé**, environ 89 × 127 mm, 270 g — la taille d'une petite boîte de conserve
+- **corps opaque** : aucune fenêtre, on ne voit pas les médias filtrants
+- **collerette moletée** à l'entrée
+- **bague de dévissage** au tiers du corps : c'est par là que la cartouche se change
+- **raccords filetés G½"** aux deux extrémités
+- **cartouche** : cylindre de plastique **blanc opaque**, à l'intérieur
+- dans la boîte : le corps, la cartouche, **deux joints blancs**, une notice
+
+Si l'échantillon reçu diffère de cette description, **dites-le-moi avant de
+photographier** : c'est la fiche produit qu'il faudra corriger, pas la photo.
 
 ---
 
 ## Le matériel
 
-Un téléphone récent suffit, et donnera un meilleur résultat qu'un reflex mal
-utilisé. Ce qui compte, dans l'ordre :
+Un téléphone récent suffit et fera mieux qu'un reflex mal utilisé. Dans l'ordre
+d'importance :
 
 1. **La lumière.** Près d'une fenêtre, en journée, sans soleil direct. Jamais le
-   flash : il écrase le chrome et crée un point blanc au milieu du produit.
-2. **Le fond.** Une feuille de papier à dessin blanc cassé ou beige clair, format
-   A2, posée en courbe contre un mur — pas de pli net visible. La charte ONDÉE
-   est sur fond craie `#F6F4EF` : un blanc légèrement chaud est parfait.
-3. **La stabilité.** Posez le téléphone sur une pile de livres plutôt que de le
-   tenir. Retardateur 3 secondes.
-4. **Le cadrage.** Carré (1:1), produit centré, avec de l'air autour. Les fiches
-   affichent en 1000 × 1000 px ; visez **2000 × 2000 px minimum** pour garder du
-   détail au zoom.
-5. **Ne retouchez presque rien.** Redressez, recadrez, montez un peu la
-   luminosité. Ne saturez pas, ne changez pas la couleur du produit : un client
-   qui reçoit un objet différent de la photo demande un remboursement.
+   flash : sur du chrome il crée un point blanc au milieu du produit.
+2. **Le fond.** Feuille de papier à dessin blanc cassé A2, posée en courbe contre
+   un mur, sans pli net. La charte ONDÉE est sur fond craie `#F6F4EF` : un blanc
+   légèrement chaud s'y fond parfaitement.
+3. **Le chrome.** C'est la difficulté de ce produit : il reflète tout. Éloignez
+   les objets colorés, portez du gris ou du blanc, et diffusez la lumière avec
+   une feuille de papier calque ou un rideau fin. Un reflet de votre t-shirt
+   rouge sur le corps du filtre ruine la photo.
+4. **La stabilité.** Posez le téléphone sur une pile de livres. Retardateur 3 s.
+5. **Le format.** **2000 × 2000 px minimum.** Les fiches affichent en 1000 × 1000.
+6. **La retouche.** Redresser, recadrer, monter légèrement la luminosité. Ne
+   saturez pas, ne changez pas la teinte du chrome. Un client qui reçoit un objet
+   différent de la photo demande un remboursement.
 
 ---
 
-## Les sept photos, par ordre d'importance
+## Les douze photos
 
-### 5 — Le test bandelette avant / après
-**C'est la photo la plus importante du site.** C'est la preuve de la seule
-promesse qu'ONDÉE fait vraiment. Aucune illustration ne la remplace, et aucun
-concurrent français ne la montre.
+Colonne « emplacement » = le métachamp à remplir dans l'admin Shopify, en bas de
+la fiche produit. Colonne « position » = l'ordre d'apparition dans la galerie,
+que le thème applique automatiquement.
 
-Faites un vrai test : trempez une bandelette dans l'eau de votre douche non
-filtrée, installez le filtre, faites couler trente secondes, trempez la seconde.
-Photographiez **les deux côte à côte**, même lumière, même fond, même distance,
-dans le même cadre. Notez la date et la commune : elles serviront de légende.
+### Fiche « Filtre de douche »
 
-Si la couleur ne bouge pas, ne truquez rien — dites-le-moi, cela change le
-produit, pas la photo.
+| # | Photo | Orientation | Cadrage | Emplacement | Position |
+|---|---|---|---|---|---|
+| 1 | **Produit seul** | **Carrée 1:1** | Filtre debout, centré, ⅔ de la hauteur du cadre, air tout autour. Fond uni. Trois prises : face, trois-quarts, profil | `Photo 1 — Produit seul` | **1** — image principale |
+| 2 | **Gros plan finitions** | Carrée 1:1 | Macro sur la collerette moletée et la bague de dévissage. Mise au point sur le moletage. Montre la qualité perçue | `Photo 1 — Produit seul` *(2ᵉ image)* | 2 |
+| 3 | **En main, pour l'échelle** | **Verticale 4:5** | Filtre tenu à pleine main, doigts visibles, bras au premier plan. C'est la photo qui évite « je le pensais plus gros ». Main propre, manche neutre | `Photo 8 — Échelle : le produit en main` | 3 |
+| 4 | **Installé sur une vraie douche** | **Verticale 4:5** | Le filtre vissé entre le flexible et la douchette. Plan resserré : on voit le flexible entrer en haut, la douchette sortir en bas. Une vraie salle de bains, pas un studio | `Photo 2 — Installé sur une vraie douche` | 4 |
+| 5 | **Les raccords** | Carrée 1:1 | Macro sur un raccord vissé, filetage visible, joint en place. Deuxième prise : le filetage nu, à côté d'un flexible dévissé | `Photo 2 — Installé` *(2ᵉ image)* | 5 |
+| 6 | **Lifestyle salle de bains** | **Horizontale 3:2** | Plan large : la douche entière, lumière du jour, décor sobre et rangé, filtre visible mais pas centré. **Aucun visage.** Seule photo où l'ambiance prime | `Photo 9 — Lifestyle salle de bains` | 6 |
+| 7 | **Cartouche seule** | Carrée 1:1 | Le cylindre blanc posé, case à dater lisible. Deuxième prise : tenue en main | `Photo 3 — Cartouche` | 7 |
+| 8 | **Cartouche dans le filtre** | Carrée 1:1 | Le corps ouvert, bague dévissée, cartouche à moitié sortie. **La photo la plus utile de la série** : elle prouve que la cartouche est vraiment remplaçable, ce qui est tout le modèle économique | `Photo 3 — Cartouche` *(2ᵉ image)* | 8 |
+| 9 | **Contenu de la boîte** | Carrée 1:1 | À plat, vu de dessus, appareil bien perpendiculaire. Filtre, cartouche, 2 joints, 2 bandelettes, notice, espacés régulièrement. Le client doit pouvoir compter | `Photo 4 — Contenu de la boîte` | 9 |
+| 10 | **Test bandelette avant / après** | **Horizontale 3:2** | Les deux bandelettes côte à côte après un vrai test, même lumière, même fond, même distance, dans le **même cadre**. Voir le protocole ci-dessous | `Photo 5 — Test bandelette` | 10 |
+| 11 | **Détail des médias** | Carrée 1:1 | Cartouche coupée à la scie, couches visibles. Encore mieux : une neuve à côté d'une usagée | `Photo 7 — Détail de filtration` | 11 |
+| 12 | **Packaging** | Carrée 1:1 | Boîte fermée telle qu'elle arrive, puis ouverte avant déballage. **Ne remplissez que si le packaging est le vôtre** — montrer une boîte générique du fournisseur crée le décalage qu'on cherche à éviter | `Photo 6 — Packaging` | 12 |
 
-→ Emplacement **Photo 5 — Test bandelette avant / après**
+### Fiche « Cartouche C90 »
+Photos 7, 8 et 11 — cartouche seule, cartouche dans le filtre, coupe des médias.
+Plus le packaging de la cartouche s'il existe.
 
-### 2 — Le produit installé sur une vraie douche
-La question n°1 avant achat est « est-ce que ça va chez moi ? ». Une photo de
-studio n'y répond pas ; une vraie salle de bains, oui. Montrez le filtre vissé
-entre le flexible et la douchette, avec le raccord visible. Le carrelage,
-légèrement banal, aide : le client se projette.
-
-Faites-en deux ou trois : un plan large qui montre la douche entière, un plan
-serré sur le raccord.
-
-→ Emplacement **Photo 2 — Installé sur une vraie douche**
-
-### 1 — Le produit seul
-L'image principale de la fiche et des publicités. Fond uni, produit propre, sans
-main ni décor. Trois angles : face, trois-quarts, profil. C'est la seule photo où
-la perfection compte vraiment.
-
-→ Emplacement **Photo 1 — Produit seul**
-
-### 4 — Le contenu de la boîte
-Tous les éléments étalés à plat, vus de dessus, bien perpendiculaire : le filtre,
-la cartouche, les joints, les deux bandelettes, la notice. Le client doit pouvoir
-compter ce qu'il reçoit. C'est la photo qui fait baisser les questions
-avant-vente et les réclamations « il manquait quelque chose ».
-
-→ Emplacement **Photo 4 — Contenu de la boîte**
-
-### 3 — La cartouche
-La cartouche sortie du corps, tenue en main pour donner l'échelle — puis seule,
-posée. Si le corps s'ouvre proprement, une vue du filtre ouvert avec la cartouche
-dedans vaut de l'or : elle prouve qu'elle est vraiment remplaçable, ce qui est
-tout le modèle économique.
-
-→ Emplacement **Photo 3 — Cartouche**
-
-### 7 — Le détail du système de filtration
-Macro sur les médias : cartouche ouverte ou coupée, granulés visibles. Si vous
-pouvez sacrifier une cartouche à la scie, faites-le — une coupe nette avec les
-couches distinctes est le visuel technique le plus convaincant de toute la
-catégorie. Une cartouche neuve à côté d'une cartouche usagée l'est encore plus.
-
-Tant que cet emplacement est vide, l'illustration technique reste affichée : elle
-est honnête et lisible, elle peut attendre.
-
-→ Emplacement **Photo 7 — Détail du système de filtration**
-
-### 6 — Le packaging
-La boîte fermée telle qu'elle arrive, puis ouverte avant déballage.
-
-**Ne remplissez cet emplacement que si le packaging est le vôtre.** Montrer une
-boîte générique du fournisseur, qui ne sera pas celle livrée, crée exactement le
-décalage qu'on cherche à éviter. Laissez vide plutôt.
-
-→ Emplacement **Photo 6 — Packaging**
+### Fiche « Bandelettes »
+Photo 10, plus : le lot de dix dans son étui, une bandelette seule sur fond
+blanc, et le nuancier de comparaison.
 
 ---
 
-## Comment les déposer
+## Le protocole du test avant / après
 
-1. Admin Shopify → **Produits** → *ONDÉE — Filtre de douche*
-2. Descendez jusqu'à **Métachamps**, en bas de la fiche. Les sept emplacements y
-   sont, dans l'ordre, avec leurs consignes.
-3. Cliquez sur l'emplacement voulu → **Sélectionner un fichier** → téléversez.
-   Chaque emplacement accepte **plusieurs images** : mettez-en trois dans
-   « Produit seul » si vous avez trois angles.
-4. **Renseignez le texte alternatif** de chaque image au moment du téléversement
-   (champ *Texte alternatif* dans la bibliothèque). Si vous le laissez vide, la
-   galerie utilise une description française correcte par défaut — c'est
-   acceptable, mais une description précise vaut mieux pour le référencement et
-   pour les lecteurs d'écran.
-5. Prévisualisez le thème, sur mobile **et** sur ordinateur, avant de publier.
+**C'est la photo la plus importante de toute la boutique.** Elle est la preuve de
+la seule promesse qu'ONDÉE fait vraiment, et aucun concurrent français ne la
+montre.
 
-Les mêmes emplacements existent sur la fiche **Cartouche C90** et sur la fiche
-**Bandelettes**. Remplissez-y au minimum : la cartouche seule pour l'une, les
-bandelettes et le nuancier pour l'autre. Une fiche produit sans photo propre
-convertit mal, même pour un article à 9 €.
+1. Faites couler l'eau chaude **30 secondes** sans le filtre.
+2. Trempez la première bandelette **2 secondes**, secouez, attendez le temps
+   indiqué par le fabricant.
+3. Installez le filtre, purgez **30 secondes** (une légère coloration au premier
+   rinçage est normale).
+4. Trempez la seconde bandelette dans les mêmes conditions.
+5. Posez les deux côte à côte sur le fond clair et photographiez **dans le même
+   cadre**, avec la même lumière.
+6. Notez **la date, la commune et l'heure** : ils serviront de légende, et c'est
+   ce qui rend la preuve vérifiable.
+
+**Si la couleur ne bouge pas, ne truquez rien — dites-le-moi.** Cela ne change
+pas la photo, cela change le produit.
 
 ---
 
-## Ce qu'il ne faut jamais mettre dans ces emplacements
+## Comment déposer les photos
 
-- **Une photo d'un concurrent**, même trouvée sur Google Images. C'est une
-  contrefaçon, et Meta suspend les comptes publicitaires sur signalement.
-- **Une photo du fournisseur portant une marque tierce** — les visuels Calux et
-  Eastcooler en portent. Même avec une cession de droits signée, vous feriez de
-  la publicité pour une autre marque sur votre propre fiche.
-- **Une image générée** qui montrerait un produit différent de celui que vous
-  vendez. C'est la première cause de retour, et c'est une pratique commerciale
-  trompeuse.
-- **Une bandelette « avant/après » reconstituée.** Toute la marque repose sur
-  cette photo. Si elle est truquée et que quelqu'un le démontre, il ne reste
-  rien.
+1. Admin Shopify → **Produits** → la fiche concernée
+2. Descendre jusqu'à **Métachamps** : les neuf emplacements y sont, épinglés,
+   dans l'ordre, avec leurs consignes
+3. Cliquer sur l'emplacement → **Sélectionner un fichier** → téléverser.
+   Chaque emplacement accepte **plusieurs images**
+4. **Renseigner le texte alternatif** au téléversement. À défaut, la galerie
+   utilise une description française correcte, mais la vôtre sera meilleure
+5. Prévisualiser sur mobile **et** sur ordinateur avant de publier
 
-Si une photo nécessaire manque, laissez l'emplacement vide et dites-le-moi :
-l'illustration technique correspondante restera affichée, ce qui est mieux qu'un
-visuel douteux.
+Dès qu'un emplacement est rempli, la galerie place les vraies photos **avant**
+les illustrations, dans l'ordre du tableau ci-dessus. Les illustrations
+techniques restent en fin de galerie : elles expliquent ce qu'une photo ne montre
+pas — ce que le filtre ne fait pas, la coupe des médias, les étapes de pose.
+
+**Aucune modification de thème ne sera nécessaire.**
+
+---
+
+## Ce qu'il ne faut jamais déposer
+
+- **Une photo du fournisseur sans cession écrite.** Le site de Calux porte
+  « All rights reserved » ; ses photos ne sont pas utilisables. La clause de
+  cession à faire signer est dans `COURRIELS-A-ENVOYER.md`.
+- **Une photo de concurrent**, même trouvée sur Google Images.
+- **Une photo d'un produit approchant** qui n'est pas exactement le nôtre.
+- **Une image générée** présentée comme une photographie.
+- **Une bandelette avant/après reconstituée.** Toute la marque repose sur cette
+  photo. Truquée et démontrée, il ne reste rien.
+
+Si une photo manque, laissez l'emplacement vide : l'illustration correspondante
+reste affichée, ce qui vaut mieux qu'un visuel douteux.
+
+---
+
+## Ensuite : la vidéo
+
+Une fois les photos faites, trois séquences de 10 à 15 secondes, filmées au
+téléphone, à la verticale, suffisent pour toute la publicité :
+
+1. **Le vissage** — les mains, le flexible, le filtre, la douchette. Sans parole.
+2. **Le changement de cartouche** — dévisser la bague, sortir la blanche, clipser
+   la neuve. C'est le geste qui vend le rachat.
+3. **Le test bandelette** — les deux trempages, puis les deux bandelettes côte à
+   côte. C'est le film de la promesse.
