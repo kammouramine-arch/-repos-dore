@@ -72,6 +72,8 @@ Phases run in sequence. None is started before the previous one is approved.
 | [`production/24-colour-expansion-applied.md`](./production/24-colour-expansion-applied.md) | **Colour expansion applied** — the final product × colour matrix with exact Printify names, 25 → 115 variants, and exactly what is needed to get the approved logo file into the repo |
 | [`production/25-approved-logo-applied.md`](./production/25-approved-logo-applied.md) | **Approved logo applied** — the founder's crowned GR on all five products, flat production cuts proven identical to the master, and the cap's stitch-size constraint |
 | [`production/chapter-001-contact-sheet.png`](./production/chapter-001-contact-sheet.png) | Contact sheet — all 22 colourways with the approved logo, as published |
+| [`production/26-flagship-build.md`](./production/26-flagship-build.md) | **Chapter 002 — the flagship** — custom theme built, deployed unpublished, journey-tested; preview instructions and founder actions |
+| [`theme/`](./theme/) | The flagship theme source — byte-identical to unpublished theme `204379128151` |
 | `production/ss_*.pdf` | Stanley/Stella official product sheets — size ranges and the Black C002 reference |
 | [`archive/matched-set-target-specification.md`](./archive/matched-set-target-specification.md) | **Archived, active target** — the matched hoodie + jogger specification, preserved for when the supply chain supports it |
 | [`production/printful-catalog-2026-08-23.json`](./production/) | Raw Printful catalogue snapshot, 533 products, for audit |
@@ -289,8 +291,9 @@ as French or European-only apparel.
 crowned GR logo system, the placement rules and the pricing are frozen. See
 [`CHAPTER-001-LOCKED.md`](./CHAPTER-001-LOCKED.md) — that document governs.
 
-Next phase: **GYMREIGN — Global Premium Ecommerce Experience.** Not started. The storefront is
-not to be touched until the founder's website creative-direction brief arrives.
+Chapter 002: **the flagship is built** and deployed as an unpublished theme — see
+[`production/26-flagship-build.md`](./production/26-flagship-build.md). The live storefront
+remains untouched and password-protected, awaiting founder review.
 
 ---
 
