@@ -1,0 +1,8 @@
+{
+  "type": "header",
+  "name": "Header group",
+  "sections": {
+    "header": { "type": "gr-header", "settings": {} }
+  },
+  "order": ["header"]
+}

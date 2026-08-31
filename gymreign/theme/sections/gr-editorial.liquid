@@ -1,0 +1,23 @@
+<section class="on-dark band edit">
+  <div class="shell">
+    <div class="edit__line reveal"><p class="edit__word" aria-hidden="true">Ascension</p></div>
+    <img class="edit__mark reveal" style="--i:1" src="{{ 'gr-mark-chrome-sm.png' | asset_url }}" alt="The crowned GYMREIGN mark" loading="lazy" width="520" height="523">
+    <div class="edit__line reveal" style="--i:2"><p class="edit__word edit__word--fill" aria-hidden="true">Chapter 001</p></div>
+
+    <div class="edit__index reveal" style="--i:3">
+      {%- assign col = collections['chapter-001'] -%}
+      {%- for product in col.products -%}
+        {%- assign short = product.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
+        <a class="edit__row" href="{{ product.url }}">
+          <span class="t-num t-faint">{{ forloop.index | prepend: '00' | slice: -3, 3 }}</span>
+          <span class="t-h3">{{ short }}</span>
+          <span class="t-num">{{ product.price | money }}</span>
+        </a>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{ "name": "Editorial break", "settings": [], "presets": [{ "name": "Editorial break" }] }
+{% endschema %}

@@ -1,0 +1,37 @@
+<section class="on-dark band circle">
+  <div class="shell">
+    <p class="t-label t-muted reveal" style="justify-content:center;display:flex">{{ section.settings.eyebrow }}</p>
+    <h2 class="t-h1 reveal" style="--i:1;margin-top:1rem">{{ section.settings.title }}</h2>
+    <p class="t-lede t-muted measure reveal" style="--i:2;margin:1.4rem auto 0">{{ section.settings.copy }}</p>
+    <div class="reveal" style="--i:3">
+      {%- form 'customer', class: 'circle-form' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-ok">Received. You stand in the first circle.</p>
+        {%- else -%}
+          <input type="hidden" name="contact[tags]" value="newsletter,first-circle">
+          <div style="display:flex;border:1px solid var(--d-line);margin:2.2rem auto 0;max-width:30rem">
+            <label class="visually-hidden" for="circle-email" style="position:absolute;left:-999em">Email</label>
+            <input id="circle-email" type="email" name="contact[email]" required autocomplete="email"
+                   placeholder="Your email" style="flex:1;min-width:0;background:transparent;border:0;color:var(--d-ink);padding:0 1.2rem;min-height:54px">
+            <button type="submit" class="btn btn--solid" style="border:0">Enter</button>
+          </div>
+          {%- if form.errors -%}<p class="form-err">That address didn’t take. Try again.</p>{%- endif -%}
+        {%- endif -%}
+      {%- endform -%}
+    </div>
+    <p class="t-micro t-faint reveal" style="--i:4;margin-top:1.6rem">{{ section.settings.note }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "First circle",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The first circle" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Chapters close. Be early." },
+    { "type": "textarea", "id": "copy", "label": "Copy", "default": "Every chapter is numbered and never reprinted. The first circle hears first — before the drop, before the close." },
+    { "type": "text", "id": "note", "label": "Note", "default": "No noise. Chapter openings and closings only." }
+  ],
+  "presets": [{ "name": "First circle" }]
+}
+{% endschema %}

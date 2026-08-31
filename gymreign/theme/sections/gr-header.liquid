@@ -1,0 +1,50 @@
+{%- if section.settings.show_announcement -%}
+<div class="annc"><p>{{ section.settings.announcement }}</p></div>
+{%- endif -%}
+<header class="hdr">
+  <div class="shell hdr__in">
+    <button type="button" class="hdr__ico hdr__burger" data-menu-toggle aria-expanded="false" aria-label="Menu">
+      <span><span class="hdr__bar"></span><span class="hdr__bar"></span><span class="hdr__bar"></span></span>
+    </button>
+    <a class="hdr__brand" href="{{ routes.root_url }}" aria-label="GYMREIGN home">
+      <img class="hdr__mark" src="{{ 'gr-mark-bone.png' | asset_url }}" alt="" width="30" height="30">
+      <span class="hdr__word">Gymreign</span>
+    </a>
+    <nav class="hdr__nav" aria-label="Primary">
+      {%- for link in section.settings.menu.links -%}
+        <a href="{{ link.url }}">{{ link.title }}</a>
+      {%- endfor -%}
+    </nav>
+    <div class="hdr__util">
+      <a class="hdr__ico" href="{{ routes.search_url }}" aria-label="Search">{% render 'gr-icon', name: 'search' %}</a>
+      <a class="hdr__ico" href="{{ routes.account_url }}" aria-label="Account">{% render 'gr-icon', name: 'account' %}</a>
+      <button type="button" class="hdr__ico" data-cart-open aria-label="Bag">
+        {% render 'gr-icon', name: 'bag' %}
+        <span class="hdr__count" data-cart-count>{{ cart.item_count }}</span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<nav class="mnav" data-mnav aria-hidden="true" aria-label="Menu">
+  {%- for link in section.settings.menu.links -%}
+    <a class="mnav__big" href="{{ link.url }}">{{ link.title }}</a>
+  {%- endfor -%}
+  <div class="mnav__foot">
+    <a href="{{ routes.search_url }}">Search</a>
+    <a href="{{ routes.account_url }}">Account</a>
+    <a href="/pages/size-guide">Size guide</a>
+    <a href="/pages/shipping">Shipping</a>
+  </div>
+</nav>
+
+{% schema %}
+{
+  "name": "Header",
+  "settings": [
+    { "type": "link_list", "id": "menu", "label": "Menu", "default": "main-menu" },
+    { "type": "checkbox", "id": "show_announcement", "label": "Show announcement", "default": true },
+    { "type": "text", "id": "announcement", "label": "Announcement", "default": "Chapter 001 — Ascension · Free shipping over €120" }
+  ]
+}
+{% endschema %}

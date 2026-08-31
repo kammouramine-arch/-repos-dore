@@ -1,0 +1,13 @@
+<section class="on-light band-s">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow">{{ article.published_at | date: '%d.%m.%Y' }}</p>
+    <h1 class="t-h1" style="max-width:14em">{{ article.title }}</h1>
+    {%- if article.image -%}
+      <img src="{{ article.image | image_url: width: 1600 }}" alt="{{ article.image.alt | escape }}" style="margin-top:2.5rem" width="1600" height="900">
+    {%- endif -%}
+    <div class="prose" style="margin-top:2.5rem">{{ article.content }}</div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Article", "settings": [] }
+{% endschema %}

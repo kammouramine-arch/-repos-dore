@@ -1,0 +1,34 @@
+<section class="hero on-dark">
+  <img class="hero__mark" src="{{ 'gr-mark-hero.jpg' | asset_url }}" alt="" width="1200" height="1208" fetchpriority="high">
+  <div class="hero__grade"></div>
+  <div class="shell hero__in">
+    <p class="t-label t-muted eyebrow hero__eyebrow">{{ section.settings.eyebrow }}</p>
+    <h1 class="t-display hero__title">{{ section.settings.title }}</h1>
+    <p class="t-lede t-muted measure hero__sub">{{ section.settings.subtitle }}</p>
+    <div class="hero__cta">
+      <a class="btn btn--solid" href="{{ section.settings.cta_url }}">{{ section.settings.cta_label }}</a>
+      <a class="btn btn--ghost" href="{{ section.settings.cta2_url }}">{{ section.settings.cta2_label }}</a>
+    </div>
+  </div>
+  <div class="shell hero__foot t-micro">
+    <span>Chapter 001 — five pieces</span>
+    <span class="t-num">240 / 350 / 339 GSM</span>
+    <span>Never reprinted</span>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Hero",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "GYMREIGN — Chapter 001 · Ascension" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Reign is not given." },
+    { "type": "text", "id": "subtitle", "label": "Subtitle", "default": "It is built in the hours nobody watches. Five pieces for the work — published with their measurements, numbered, and never reprinted." },
+    { "type": "text", "id": "cta_label", "label": "Primary CTA", "default": "Shop Chapter 001" },
+    { "type": "url", "id": "cta_url", "label": "Primary URL" },
+    { "type": "text", "id": "cta2_label", "label": "Secondary CTA", "default": "The house" },
+    { "type": "url", "id": "cta2_url", "label": "Secondary URL" }
+  ],
+  "presets": [{ "name": "Hero" }]
+}
+{% endschema %}

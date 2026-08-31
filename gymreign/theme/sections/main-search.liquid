@@ -1,0 +1,51 @@
+<section class="on-dark band-s search-hero">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow">Search the house</p>
+    <form action="{{ routes.search_url }}" method="get" role="search">
+      <input type="search" name="q" value="{{ search.terms | escape }}" placeholder="Search"
+             aria-label="Search" autocomplete="off" {% unless search.performed %}autofocus{% endunless %}>
+      <button type="submit" class="hdr__ico" aria-label="Submit search">{% render 'gr-icon', name: 'arrow' %}</button>
+    </form>
+  </div>
+</section>
+<section class="on-light band-s">
+  <div class="shell">
+    {%- if search.performed -%}
+      {%- paginate search.results by 24 -%}
+        {%- if search.results_count > 0 -%}
+          <p class="t-label t-faint" style="margin-bottom:2rem">{{ search.results_count }} result{% if search.results_count != 1 %}s{% endif %} for “{{ search.terms | escape }}”</p>
+          <div class="grid grid--pad grid--3">
+            {%- for item in search.results -%}
+              {%- if item.object_type == 'product' -%}
+                {% render 'gr-card', product: item, index: forloop.index0 %}
+              {%- else -%}
+                <article class="card reveal"><div class="card__body">
+                  <h3 class="card__title"><a class="card__link" href="{{ item.url }}">{{ item.title }}</a></h3>
+                  <p class="t-small t-muted">{{ item.content | strip_html | truncate: 120 }}</p>
+                </div></article>
+              {%- endif -%}
+            {%- endfor -%}
+          </div>
+        {%- else -%}
+          <div class="util-hero">
+            <p class="t-label t-faint">No results for “{{ search.terms | escape }}”</p>
+            <h2 class="t-h2">Nothing holds that name.</h2>
+            <a class="btn btn--ghost" href="/collections/chapter-001">Shop Chapter 001</a>
+          </div>
+        {%- endif -%}
+      {%- endpaginate -%}
+    {%- else -%}
+      <div class="util-hero">
+        <p class="t-label t-faint">Try</p>
+        <div style="display:flex;gap:1rem;flex-wrap:wrap;justify-content:center">
+          <a class="btn btn--ghost" href="{{ routes.search_url }}?q=hoodie">Hoodie</a>
+          <a class="btn btn--ghost" href="{{ routes.search_url }}?q=tee">Tee</a>
+          <a class="btn btn--ghost" href="{{ routes.search_url }}?q=jogger">Jogger</a>
+        </div>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+{% schema %}
+{ "name": "Search", "settings": [] }
+{% endschema %}

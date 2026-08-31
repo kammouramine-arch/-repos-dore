@@ -1,0 +1,90 @@
+<!doctype html>
+<html lang="{{ request.locale.iso_code }}" class="no-js">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#0E0F11">
+  <title>
+    {{- page_title -}}
+    {%- unless page_title contains shop.name %} — {{ shop.name | remove: ' — Official Store' }}{% endunless -%}
+  </title>
+  {%- if page_description -%}
+    <meta name="description" content="{{ page_description | escape }}">
+  {%- endif -%}
+  <link rel="canonical" href="{{ canonical_url }}">
+  <link rel="icon" type="image/png" href="{{ 'gr-favicon.png' | asset_url }}">
+
+  {%- comment -%} Open Graph / social {%- endcomment -%}
+  <meta property="og:site_name" content="GYMREIGN">
+  <meta property="og:type" content="{% if request.page_type == 'product' %}product{% else %}website{% endif %}">
+  <meta property="og:title" content="{{ page_title | escape }}">
+  <meta property="og:url" content="{{ canonical_url }}">
+  {%- if page_description -%}<meta property="og:description" content="{{ page_description | escape }}">{%- endif -%}
+  {%- if request.page_type == 'product' and product.featured_media -%}
+    <meta property="og:image" content="https:{{ product.featured_media | image_url: width: 1200 }}">
+  {%- else -%}
+    <meta property="og:image" content="{{ 'gr-og.jpg' | asset_url }}">
+  {%- endif -%}
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://cdn.shopify.com">
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:ital,wdth,wght@0,62..125,100..900&family=IBM+Plex+Mono:wght@400;500&display=swap">
+  {{ 'gr.css' | asset_url | stylesheet_tag }}
+
+  <script>document.documentElement.classList.remove('no-js');</script>
+
+  {%- comment -%} Organization structured data {%- endcomment -%}
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "GYMREIGN",
+    "url": {{ shop.url | json }},
+    "logo": {{ 'gr-mark-black.png' | asset_url | prepend: 'https:' | json }},
+    "slogan": "Earn your reign."
+  }
+  </script>
+
+  {{ content_for_header }}
+</head>
+<body class="on-dark template-{{ request.page_type }}">
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  {% sections 'header-group' %}
+
+  <main id="main" tabindex="-1">
+    {{ content_for_layout }}
+  </main>
+
+  {% sections 'footer-group' %}
+
+  {%- comment -%} cart drawer {%- endcomment -%}
+  <div class="veil" data-veil hidden></div>
+  <aside class="drawer" data-cart-drawer role="dialog" aria-modal="true" aria-label="Shopping bag" tabindex="-1">
+    <div class="drawer__head">
+      <p class="t-label">Your bag</p>
+      <button type="button" class="hdr__ico" data-cart-close aria-label="Close bag">
+        {% render 'gr-icon', name: 'close' %}
+      </button>
+    </div>
+    <div class="drawer__body" data-cart-body></div>
+    <div class="drawer__foot" data-cart-foot hidden>
+      <div class="meter" aria-hidden="true">
+        <div class="meter__track"><div class="meter__fill" style="width:0%"></div></div>
+        <p class="t-micro t-faint" data-ship-note></p>
+      </div>
+      <div class="drawer__total">
+        <span class="t-label">Subtotal</span>
+        <span class="t-num t-h3" data-cart-total></span>
+      </div>
+      <p class="t-micro drawer__ship">Taxes included. Tracked delivery. Secure checkout.</p>
+      <a href="{{ routes.cart_url }}/checkout" class="btn btn--solid btn--wide">Checkout</a>
+      <a href="{{ routes.cart_url }}" class="t-micro t-faint link-line" style="justify-self:center">Review bag</a>
+    </div>
+  </aside>
+
+  <script src="{{ 'gr.js' | asset_url }}" defer></script>
+</body>
+</html>

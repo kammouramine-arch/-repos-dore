@@ -1,0 +1,32 @@
+<section class="on-light band-s">
+  <div class="shell" style="display:grid;gap:3rem;grid-template-columns:repeat(auto-fit,minmax(280px,1fr))">
+    <div>
+      <p class="t-label t-faint eyebrow">Contact</p>
+      <h1 class="t-h1">Speak to the house.</h1>
+      <div class="prose" style="margin-top:1.6rem">
+        {{ page.content }}
+        <p>We answer within two working days. For order questions, include your order number.</p>
+      </div>
+    </div>
+    <div>
+      {%- form 'contact' -%}
+        {%- if form.posted_successfully? -%}
+          <p class="form-ok" style="color:var(--l-ink)">Received. We’ll reply within two working days.</p>
+        {%- endif -%}
+        {%- if form.errors -%}
+          <p class="form-err">{{ form.errors.translated_fields.email | capitalize }} {{ form.errors.messages.email }}</p>
+        {%- endif -%}
+        <div class="field"><label class="t-label t-faint" for="cname">Name</label>
+          <input id="cname" type="text" name="contact[name]" autocomplete="name"></div>
+        <div class="field"><label class="t-label t-faint" for="cemail">Email</label>
+          <input id="cemail" type="email" name="contact[email]" required autocomplete="email"></div>
+        <div class="field"><label class="t-label t-faint" for="cbody">Message</label>
+          <textarea id="cbody" name="contact[body]" rows="6" required></textarea></div>
+        <button type="submit" class="btn btn--solid">Send</button>
+      {%- endform -%}
+    </div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Contact", "settings": [] }
+{% endschema %}

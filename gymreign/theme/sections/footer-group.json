@@ -1,0 +1,8 @@
+{
+  "type": "footer",
+  "name": "Footer group",
+  "sections": {
+    "footer": { "type": "gr-footer", "settings": {} }
+  },
+  "order": ["footer"]
+}

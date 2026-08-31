@@ -1,0 +1,45 @@
+{%- assign p = all_products[section.settings.product] -%}
+{%- if p == blank or p.empty? -%}{%- assign p = collections['chapter-001'].products.first -%}{%- endif -%}
+{%- assign short_title = p.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
+<section class="on-dark band">
+  <div class="shell feat">
+    <div class="feat__media reveal">
+      <img src="{{ p.featured_media | image_url: width: 1400 }}"
+           srcset="{{ p.featured_media | image_url: width: 800 }} 800w, {{ p.featured_media | image_url: width: 1400 }} 1400w"
+           sizes="(min-width: 990px) 58vw, 100vw"
+           alt="{{ short_title | escape }}" loading="lazy" width="1400" height="1750">
+    </div>
+    <div class="reveal" style="--i:1">
+      <p class="t-label t-muted eyebrow">{{ section.settings.eyebrow }}</p>
+      <h2 class="t-h1">{{ short_title }}</h2>
+      <p class="t-lede t-muted measure" style="margin-top:1.3rem">{{ section.settings.copy }}</p>
+      <div class="feat__specs t-small">
+        {%- assign lines = section.settings.specs | newline_to_br | split: '<br />' -%}
+        {%- for line in lines -%}
+          {%- assign parts = line | split: '|' -%}
+          {%- if parts.size == 2 -%}
+          <div><span class="t-label t-faint">{{ parts[0] | strip }}</span><span class="t-num">{{ parts[1] | strip }}</span></div>
+          {%- endif -%}
+        {%- endfor -%}
+      </div>
+      <div style="margin-top:2.2rem;display:flex;gap:1rem;align-items:baseline">
+        <a class="btn btn--solid" href="{{ p.url }}">{{ section.settings.cta }}</a>
+        <span class="t-num t-muted">{{ p.price | money }}</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Featured piece",
+  "settings": [
+    { "type": "product", "id": "product", "label": "Product" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The centrepiece" },
+    { "type": "textarea", "id": "copy", "label": "Copy", "default": "The piece the chapter is built around. Cut oversized, cut once, and finished with the crowned mark at full presence — 140 millimetres, centre chest." },
+    { "type": "textarea", "id": "specs", "label": "Specs (label | value per line)", "default": "Weight | 350 GSM\nComposition | 80% organic ring-spun cotton\nFit | Oversized, drop shoulder\nMark | 140 mm centre chest" },
+    { "type": "text", "id": "cta", "label": "CTA", "default": "Study the piece" }
+  ],
+  "presets": [{ "name": "Featured piece" }]
+}
+{% endschema %}

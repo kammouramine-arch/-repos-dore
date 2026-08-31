@@ -1,0 +1,43 @@
+<section class="on-light band">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow reveal">The silhouettes</p>
+    <div class="grid grid--pad grid--4">
+      {%- for block in section.blocks -%}
+        {%- assign p = all_products[block.settings.product] -%}
+        <div class="sil reveal" style="--i:{{ forloop.index0 }}" {{ block.shopify_attributes }}>
+          {%- if p and p.featured_media -%}
+            <img src="{{ p.featured_media | image_url: width: 640 }}" alt="" loading="lazy" width="640" height="800">
+          {%- endif -%}
+          <span class="sil__tag"><span class="t-label">{{ block.settings.label }}</span></span>
+          <a class="sil__link" href="{{ block.settings.url | default: p.url }}" aria-label="{{ block.settings.label }}"></a>
+        </div>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Silhouettes",
+  "blocks": [
+    {
+      "type": "tile",
+      "name": "Tile",
+      "settings": [
+        { "type": "text", "id": "label", "label": "Label", "default": "Tee" },
+        { "type": "product", "id": "product", "label": "Product (image + link)" },
+        { "type": "url", "id": "url", "label": "Link override" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Silhouettes",
+    "blocks": [
+      { "type": "tile", "settings": { "label": "The Tee" } },
+      { "type": "tile", "settings": { "label": "The Hoodie" } },
+      { "type": "tile", "settings": { "label": "The Bottoms" } },
+      { "type": "tile", "settings": { "label": "The Cap" } }
+    ]
+  }]
+}
+{% endschema %}

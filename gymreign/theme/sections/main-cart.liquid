@@ -1,0 +1,63 @@
+<section class="on-dark band-s cartpg">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow">Your bag</p>
+    {%- if cart.item_count == 0 -%}
+      <div class="util-hero">
+        <h1 class="t-h1">Nothing claimed yet.</h1>
+        <p class="t-lede t-muted measure" style="margin:0 auto">The chapter is open. Five pieces, numbered, never reprinted.</p>
+        <a class="btn btn--solid" href="/collections/chapter-001">Shop Chapter 001</a>
+      </div>
+    {%- else -%}
+      <h1 class="t-h1">Bag — {{ cart.item_count }} {% if cart.item_count == 1 %}piece{% else %}pieces{% endif %}</h1>
+      <div class="cartpg__grid" style="margin-top:2.5rem">
+        <div>
+          {%- for item in cart.items -%}
+            {%- assign short = item.product.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
+            <div class="cline" data-line data-key="{{ item.key }}">
+              <a class="cline__media" href="{{ item.url }}">
+                {%- if item.image -%}
+                  <img src="{{ item.image | image_url: width: 300 }}" alt="" loading="lazy" width="110" height="137">
+                {%- endif -%}
+              </a>
+              <div>
+                <div class="cline__top">
+                  <a class="card__title" href="{{ item.url }}">{{ short }}</a>
+                  <span class="t-num t-small">{{ item.final_line_price | money }}</span>
+                </div>
+                <p class="t-micro t-faint">{{ item.variant.title }}</p>
+                <div class="cline__ctrl">
+                  <div class="qty" data-qty>
+                    <button type="button" data-minus aria-label="Decrease quantity">−</button>
+                    <span>{{ item.quantity }}</span>
+                    <button type="button" data-plus aria-label="Increase quantity">+</button>
+                  </div>
+                  <button type="button" class="cline__rm t-micro" data-remove>Remove</button>
+                </div>
+              </div>
+            </div>
+          {%- endfor -%}
+        </div>
+        <aside class="cartpg__sum">
+          <div class="drawer__total">
+            <span class="t-label">Subtotal</span>
+            <span class="t-num t-h3">{{ cart.total_price | money }}</span>
+          </div>
+          <p class="t-micro t-faint">
+            {%- if cart.total_price >= 12000 -%}
+              Complimentary worldwide shipping unlocked.
+            {%- else -%}
+              {{ 12000 | minus: cart.total_price | money }} away from complimentary shipping.
+            {%- endif -%}
+          </p>
+          <p class="t-micro t-faint">Taxes included. Made to order — allow up to 10 days of production before dispatch.</p>
+          <a href="/checkout" class="btn btn--solid btn--wide">Checkout</a>
+          <a class="t-micro t-faint link-line" style="justify-self:center" href="/collections/chapter-001">Continue shopping</a>
+        </aside>
+      </div>
+    {%- endif -%}
+  </div>
+</section>
+
+{% schema %}
+{ "name": "Cart", "settings": [] }
+{% endschema %}

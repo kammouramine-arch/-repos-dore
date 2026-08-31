@@ -1,0 +1,53 @@
+<section class="on-light band-s">
+  <div class="shell">
+    <div class="chapter-head reveal">
+      <div>
+        <p class="t-label t-faint eyebrow">The record</p>
+        <h2 class="t-h2">{{ section.settings.title }}</h2>
+      </div>
+      <p class="t-small t-muted" style="max-width:22rem">{{ section.settings.copy }}</p>
+    </div>
+    <div class="comm__grid reveal" style="--i:1">
+      {%- for block in section.blocks -%}
+        <div class="comm__cell" {{ block.shopify_attributes }}>
+          {%- if block.settings.image != blank -%}
+            <img src="{{ block.settings.image | image_url: width: 720 }}" alt="{{ block.settings.alt | escape }}" loading="lazy" width="720" height="720" style="width:100%;height:100%;object-fit:cover">
+          {%- else -%}
+            <span class="t-micro t-faint">{{ block.settings.placeholder }}</span>
+          {%- endif -%}
+        </div>
+      {%- endfor -%}
+    </div>
+    <p class="t-micro t-faint reveal" style="--i:2;margin-top:1.2rem">{{ section.settings.handle }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Community record",
+  "settings": [
+    { "type": "text", "id": "title", "label": "Title", "default": "Worn by the disciplined" },
+    { "type": "textarea", "id": "copy", "label": "Copy", "default": "The record is written by the people doing the work. Campaign imagery and athlete chapters will live here as they are earned — nothing borrowed, nothing staged." },
+    { "type": "text", "id": "handle", "label": "Handle line", "default": "@gymreign — document the climb" }
+  ],
+  "blocks": [
+    {
+      "type": "slot",
+      "name": "Image slot",
+      "settings": [
+        { "type": "image_picker", "id": "image", "label": "Image" },
+        { "type": "text", "id": "alt", "label": "Alt text" },
+        { "type": "text", "id": "placeholder", "label": "Placeholder label", "default": "Reserved" }
+      ]
+    }
+  ],
+  "presets": [{
+    "name": "Community record",
+    "blocks": [
+      { "type": "slot", "settings": { "placeholder": "001 — Reserved" } },
+      { "type": "slot", "settings": { "placeholder": "002 — Reserved" } },
+      { "type": "slot", "settings": { "placeholder": "003 — Reserved" } }
+    ]
+  }]
+}
+{% endschema %}

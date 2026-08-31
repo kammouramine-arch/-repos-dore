@@ -1,0 +1,26 @@
+<section class="on-light band-s">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow">Chapters</p>
+    <h1 class="t-h1">The record so far.</h1>
+    <div class="grid grid--pad grid--3" style="margin-top:3rem">
+      {%- for collection in collections -%}
+        {%- unless collection.handle == 'frontpage' -%}
+        <article class="card reveal" style="--i:{{ forloop.index0 }}">
+          <div class="card__media">
+            {%- if collection.products.first.featured_media -%}
+              <img class="card__main" src="{{ collection.products.first.featured_media | image_url: width: 720 }}" alt="" loading="lazy" width="720" height="900">
+            {%- endif -%}
+          </div>
+          <div class="card__body">
+            <h2 class="card__title"><a class="card__link" href="{{ collection.url }}">{{ collection.title }}</a></h2>
+            <span class="t-micro t-faint">{{ collection.products_count }} pieces</span>
+          </div>
+        </article>
+        {%- endunless -%}
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Collections list", "settings": [] }
+{% endschema %}

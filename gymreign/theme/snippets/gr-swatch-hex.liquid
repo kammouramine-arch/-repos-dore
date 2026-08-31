@@ -1,0 +1,24 @@
+{%- comment -%}
+  Maps Chapter 001 blank colour names to their true sampled hex values.
+  Values were sampled from rendered product mockups — not guessed from names.
+  Usage: {% render 'gr-swatch-hex', color: 'French Navy' %}
+{%- endcomment -%}
+{%- assign c = color | strip -%}
+{%- case c -%}
+  {%- when 'Black' -%}#101113
+  {%- when 'Natural Raw' -%}#FDEFD5
+  {%- when 'Desert Dust' -%}#D6C0A9
+  {%- when 'Dark Heather Grey' -%}#484848
+  {%- when 'Heather Grey' -%}#C9C9C9
+  {%- when 'French Navy' -%}#14344A
+  {%- when 'Bone' -%}#E9E6DF
+  {%- when 'Lieutenant' -%}#646851
+  {%- when 'Asphalt' -%}#545557
+  {%- when 'Athletic Heather' -%}#CFCFCF
+  {%- when 'Navy' -%}#24293D
+  {%- when 'Dust' -%}#D5CBBF
+  {%- when 'Charcoal' -%}#4C4847
+  {%- when 'Oyster' -%}#CEC3B1
+  {%- when 'Pacific' -%}#1C2437
+  {%- else -%}#8B8F94
+{%- endcase -%}

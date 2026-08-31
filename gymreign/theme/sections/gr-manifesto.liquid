@@ -1,0 +1,20 @@
+<section class="on-light band">
+  <div class="shell manif">
+    <p class="t-label t-faint eyebrow reveal">The position</p>
+    <h2 class="t-h2 measure-n reveal" style="--i:1">{{ section.settings.line_1 }}</h2>
+    <p class="t-lede t-muted measure reveal" style="--i:2">{{ section.settings.line_2 }}</p>
+    <p class="t-label reveal" style="--i:3; margin-top:2.2rem">{{ section.settings.sign }}</p>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Manifesto",
+  "settings": [
+    { "type": "text", "id": "line_1", "label": "Statement", "default": "We do not sell motivation. We make the uniform for the work." },
+    { "type": "textarea", "id": "line_2", "label": "Support", "default": "Position is earned — in the gym, and in how a garment is made. So we publish weights and measurements where the category publishes adjectives, and we retire every chapter for good." },
+    { "type": "text", "id": "sign", "label": "Signature", "default": "Earn your reign." }
+  ],
+  "presets": [{ "name": "Manifesto" }]
+}
+{% endschema %}

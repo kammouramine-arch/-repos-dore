@@ -1,0 +1,160 @@
+{
+  "sections": {
+    "hero": {
+      "type": "gr-hero",
+      "settings": {
+        "cta_url": "/collections/chapter-001",
+        "cta2_url": "/pages/our-reign"
+      }
+    },
+    "chapter": {
+      "type": "gr-chapter",
+      "settings": {
+        "collection": "chapter-001"
+      }
+    },
+    "featured": {
+      "type": "gr-featured",
+      "settings": {
+        "product": "gymreign-the-hoodie-chapter-001"
+      }
+    },
+    "manifesto": {
+      "type": "gr-manifesto",
+      "settings": {}
+    },
+    "specs": {
+      "type": "gr-specs",
+      "blocks": {
+        "s1": {
+          "type": "stat",
+          "settings": {
+            "value": "350",
+            "unit": "GSM",
+            "label": "The Hoodie"
+          }
+        },
+        "s2": {
+          "type": "stat",
+          "settings": {
+            "value": "339",
+            "unit": "GSM",
+            "label": "The Jogger"
+          }
+        },
+        "s3": {
+          "type": "stat",
+          "settings": {
+            "value": "240",
+            "unit": "GSM",
+            "label": "The Tee \u2014 organic"
+          }
+        },
+        "s4": {
+          "type": "stat",
+          "settings": {
+            "value": "001",
+            "unit": "CH",
+            "label": "Never reprinted"
+          }
+        }
+      },
+      "block_order": [
+        "s1",
+        "s2",
+        "s3",
+        "s4"
+      ],
+      "settings": {}
+    },
+    "silhouettes": {
+      "type": "gr-silhouettes",
+      "blocks": {
+        "t1": {
+          "type": "tile",
+          "settings": {
+            "label": "The Tee",
+            "product": "gymreign-the-tee-chapter-001"
+          }
+        },
+        "t2": {
+          "type": "tile",
+          "settings": {
+            "label": "The Hoodie",
+            "product": "gymreign-the-hoodie-chapter-001"
+          }
+        },
+        "t3": {
+          "type": "tile",
+          "settings": {
+            "label": "The Bottoms",
+            "product": "gymreign-the-jogger-chapter-001",
+            "url": "/collections/chapter-001"
+          }
+        },
+        "t4": {
+          "type": "tile",
+          "settings": {
+            "label": "The Cap",
+            "product": "gymreign-the-cap-chapter-001"
+          }
+        }
+      },
+      "block_order": [
+        "t1",
+        "t2",
+        "t3",
+        "t4"
+      ],
+      "settings": {}
+    },
+    "editorial": {
+      "type": "gr-editorial",
+      "settings": {}
+    },
+    "community": {
+      "type": "gr-community",
+      "blocks": {
+        "c1": {
+          "type": "slot",
+          "settings": {
+            "placeholder": "001 \u2014 Reserved"
+          }
+        },
+        "c2": {
+          "type": "slot",
+          "settings": {
+            "placeholder": "002 \u2014 Reserved"
+          }
+        },
+        "c3": {
+          "type": "slot",
+          "settings": {
+            "placeholder": "003 \u2014 Reserved"
+          }
+        }
+      },
+      "block_order": [
+        "c1",
+        "c2",
+        "c3"
+      ],
+      "settings": {}
+    },
+    "circle": {
+      "type": "gr-circle",
+      "settings": {}
+    }
+  },
+  "order": [
+    "hero",
+    "chapter",
+    "featured",
+    "manifesto",
+    "specs",
+    "silhouettes",
+    "editorial",
+    "community",
+    "circle"
+  ]
+}

@@ -1,0 +1,24 @@
+<section class="on-light band-s">
+  <div class="shell">
+    <p class="t-label t-faint eyebrow">Journal</p>
+    <h1 class="t-h1">{{ blog.title }}</h1>
+    <div class="grid grid--pad grid--3" style="margin-top:3rem">
+      {%- for article in blog.articles -%}
+        <article class="card reveal" style="--i:{{ forloop.index0 }}">
+          {%- if article.image -%}
+          <div class="card__media"><img class="card__main" src="{{ article.image | image_url: width: 720 }}" alt="" loading="lazy" width="720" height="900" style="object-fit:cover;padding:0"></div>
+          {%- endif -%}
+          <div class="card__body">
+            <h2 class="card__title"><a class="card__link" href="{{ article.url }}">{{ article.title }}</a></h2>
+            <span class="t-micro t-faint">{{ article.published_at | date: '%d.%m.%Y' }}</span>
+          </div>
+        </article>
+      {%- else -%}
+        <p class="t-muted">The journal opens with Chapter 002.</p>
+      {%- endfor -%}
+    </div>
+  </div>
+</section>
+{% schema %}
+{ "name": "Blog", "settings": [] }
+{% endschema %}
