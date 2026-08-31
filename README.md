@@ -388,9 +388,42 @@ npx eas env:create --name EXPO_PUBLIC_API_URL \
 
 npm run build:preview           # APK Android + build interne iOS
 npm run build:production        # builds stores
-npm run submit:ios              # App Store Connect
+npm run submit:ios              # App Store Connect → TestFlight
 npm run submit:android          # Google Play
 ```
+
+### Soumettre vers TestFlight
+
+`eas submit` téléverse l'IPA vers App Store Connect ; le build apparaît ensuite
+dans TestFlight après traitement par Apple. **Cela ne déclenche aucune revue et
+ne publie rien** : la soumission à l'App Store Review est une action distincte,
+à faire depuis App Store Connect.
+
+La soumission exige des identifiants App Store Connect, distincts de ceux du
+build. Deux voies, dont une seule convient à une exécution automatisée :
+
+**Clé d'API App Store Connect** — à privilégier : révocable à tout moment, sans
+double authentification, utilisable en intégration continue.
+
+1. App Store Connect → **Users and Access → Integrations → App Store Connect
+   API → +**, rôle **App Manager**.
+2. Téléchargez le fichier `.p8` — Apple ne le propose qu'une fois — et placez-le
+   dans `mobile/AuthKey_ASC.p8`. Il est ignoré par Git (`*.p8`), et ne doit
+   jamais être versionné ni transmis par messagerie.
+3. Reportez l'**Issuer ID** et le **Key ID** affichés sur cette page dans
+   `mobile/eas.json`, à la place des deux placeholders `..._A_RENSEIGNER`.
+
+```bash
+cd mobile
+npx eas-cli submit --platform ios --latest --auto-testflight-setup \
+  --what-to-test "Première version de test : devis, clients, prospects, relances."
+```
+
+**Mot de passe spécifique à l'application** — repli si la clé d'API n'est pas
+disponible. `appleId` est déjà renseigné dans `eas.json` ; fournissez le mot de
+passe par la variable `EXPO_APPLE_APP_SPECIFIC_PASSWORD`, jamais dans un
+fichier. Cette voie reste liée à un compte personnel, là où la clé d'API
+appartient à l'organisation.
 
 La configuration native est prête (`app.config.ts`, `eas.json`) : identifiants de
 bundle `fr.devisia.app` sur les deux plateformes, permissions rédigées en
