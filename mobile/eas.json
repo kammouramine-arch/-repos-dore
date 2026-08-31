@@ -24,10 +24,7 @@
       "ios": {
         "appleId": "mrfitman99@gmail.com",
         "ascAppId": "6806865251",
-        "appleTeamId": "9Q6YL8R33R",
-        "ascApiKeyPath": "./AuthKey_ASC.p8",
-        "ascApiKeyIssuerId": "ASC_ISSUER_ID_A_RENSEIGNER",
-        "ascApiKeyId": "ASC_KEY_ID_A_RENSEIGNER"
+        "appleTeamId": "9Q6YL8R33R"
       },
       "android": {
         "serviceAccountKeyPath": "./google-play-service-account.json",
