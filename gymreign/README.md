@@ -283,6 +283,17 @@ as French or European-only apparel.
 
 ---
 
+## CHAPTER 001 IS LOCKED
+
+**Founder approval 2026-08-30.** The five products, 22 colourways, 115 variants, the approved
+crowned GR logo system, the placement rules and the pricing are frozen. See
+[`CHAPTER-001-LOCKED.md`](./CHAPTER-001-LOCKED.md) — that document governs.
+
+Next phase: **GYMREIGN — Global Premium Ecommerce Experience.** Not started. The storefront is
+not to be touched until the founder's website creative-direction brief arrives.
+
+---
+
 ## WHAT NEEDS ACTING ON THIS WEEK
 
 Both are cheap now and expensive later.

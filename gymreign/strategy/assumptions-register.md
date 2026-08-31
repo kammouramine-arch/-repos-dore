@@ -226,3 +226,14 @@ being absorbed by wishful pricing.
 | P11-7 | The rejected GR plate appears in no print area on any product | `[V]` |
 | P11-8 | The tee's `front` mockup camera does not render the `left_chest_dtg` area; the mark is present and correct on the `left-chest` camera | `[V]` |
 | P11-9 | Printify blocks product edits while a product is locked ("Product is disabled for editing"). A stale lock after a successful dashboard publish must be closed with publishing_succeeded.json | `[V]` API behaviour |
+
+## Phase 12 — Chapter 001 locked (2026-08-30)
+
+| Ref | Statement | Class |
+|---|---|---|
+| P12-1 | **Chapter 001 is locked by founder approval.** Five products, 22 colourways, 115 variants, the approved crowned GR logo system, placement rules and pricing are frozen | `[A]` founder decision |
+| P12-2 | The logo is never redesigned, reinterpreted, approximated or substituted. All earlier GR concepts are permanently rejected | `[A]` |
+| P12-3 | Prices locked: 75 / 135 / 110 / 60 / 45 EUR. Changed only on explicit founder request | `[A]` |
+| P12-4 | Colourways are not to be reduced. Products are not to be replaced | `[A]` |
+| P12-5 | The cap's 39.6 mm embroidery size is accepted, to be physically sampled before public launch. If the sew-out fails, the remedy is a different cap blank - never a changed logo | `[A]` founder decision |
+| P12-6 | Next phase is the premium ecommerce experience. **Not started.** No storefront work until the founder website brief arrives | `[A]` |
