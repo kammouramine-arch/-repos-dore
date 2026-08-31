@@ -236,9 +236,20 @@ describe("Traçabilité", () => {
 });
 
 describe("Idempotence des jobs", () => {
-  test("le job de balayage lancé deux fois dans la même minute ne travaille qu'une fois", async () => {
-    await planTerritories({ zones: ["59"], secteurs: ["restaurant"] });
+  // AUCUN TERRITOIRE N'EST PLANIFIE ICI, ET C'EST VOLONTAIRE.
+  //
+  // Le job ne prend pas de client injectable : lui donner du travail lui
+  // ferait interroger la vraie API. Ce test tournait donc reellement sur le
+  // reseau — 47 secondes, et surtout un resultat dependant d'un service
+  // exterieur. Sans territoire en attente, le job s'execute a vide : il pose
+  // son verrou, ce qui est exactement ce que ces tests verifient, et rend la
+  // main immediatement.
+  //
+  // La consequence n'est pas anodine : le verrou est cale sur la MINUTE
+  // courante. Un test lent franchit la frontiere de minute, obtient deux cles
+  // differentes, et echoue en accusant a tort le verrou.
 
+  test("deux exécutions du même job ne travaillent qu'une fois", async () => {
     const premier = await jobSweepTerritories({ maxTerritories: 1, maxPages: 1 });
     const second = await jobSweepTerritories({ maxTerritories: 1, maxPages: 1 });
 
@@ -248,10 +259,28 @@ describe("Idempotence des jobs", () => {
   });
 
   test("le verrou survit à un redémarrage : il est en base, pas en mémoire", async () => {
-    await planTerritories({ zones: ["59"], secteurs: ["restaurant"] });
     await jobSweepTerritories({ maxTerritories: 1, maxPages: 1 });
 
     const verrous = await prisma.jobRun.count({ where: { job: "sweep-territories" } });
     assert.equal(verrous, 1);
+  });
+
+  test("le verrou tient quelle que soit la lenteur : il repose sur une clé, pas sur l'horloge", async () => {
+    // La garantie sous-jacente, testée sans dépendre du temps qui passe.
+    const { runJob } = await import("@/lib/scheduler");
+    const cle = `test-verrou-${Date.now()}`;
+    let executions = 0;
+
+    const travail = async () => {
+      executions += 1;
+      return { summary: "fait", itemsSeen: 1, itemsChanged: 1 };
+    };
+
+    const a = await runJob("maintenance", travail, { lockKey: cle });
+    const b = await runJob("maintenance", travail, { lockKey: cle });
+
+    assert.equal(a.skipped, false);
+    assert.equal(b.skipped, true);
+    assert.equal(executions, 1, "le travail a été fait deux fois sous le même verrou");
   });
 });

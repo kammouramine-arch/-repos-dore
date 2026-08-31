@@ -85,6 +85,7 @@ async function main() {
     case "queue": case "file": return queueCommand(rest);
     case "funnel": case "entonnoir": return funnelCommand();
     case "autopilot": case "pilote": return autopilotCommand(rest);
+    case "sends": case "envois": return sendsCommand(rest);
     case "sirene-live": return sireneLiveCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
@@ -1123,6 +1124,75 @@ async function queueCommand(args: string[]) {
   console.log(`    ${C.bold}${r.commandeApprobation}${C.reset}`);
 }
 
+// --- JOURNAL DES ENVOIS -----------------------------------------------------
+
+/**
+ * Ce qui est REELLEMENT parti, avec de quoi le verifier.
+ *
+ * Distingue les envois reels des simulations : confondre les deux ferait
+ * croire a une campagne qui n'a jamais quitte la machine — ou l'inverse.
+ */
+async function sendsCommand(args: string[]) {
+  const { prisma: db } = await import("../lib/db");
+
+  const jours = Number(option(args, "jours") ?? 1);
+  const tout = args.includes("--tout") || args.includes("--all");
+  const depuis = new Date(Date.now() - jours * 24 * 3600_000);
+
+  title(`ENVOIS — ${jours} dernier(s) jour(s)`);
+
+  const envois = await db.sendLog.findMany({
+    where: {
+      createdAt: { gte: depuis },
+      ...(tout ? {} : { status: { in: ["SENT", "FAILED", "BOUNCED"] } }),
+    },
+    orderBy: { createdAt: "asc" },
+    select: {
+      status: true, toEmail: true, subject: true, createdAt: true, dryRun: true,
+      transport: true, error: true, providerMessageId: true, sequenceStep: true,
+      prospect: { select: { name: true, city: true } },
+    },
+  });
+
+  if (envois.length === 0) {
+    warn(tout ? "Aucun envoi enregistré sur la période." : "Aucun envoi RÉEL sur la période.");
+    const simules = await db.sendLog.count({
+      where: { createdAt: { gte: depuis }, status: "SIMULATED" },
+    });
+    if (simules > 0 && !tout) {
+      info(`${simules} envoi(s) simulé(s) sur la période — voir avec --tout.`);
+    }
+    return;
+  }
+
+  for (const e of envois) {
+    const heure = e.createdAt.toLocaleString("fr-FR", { dateStyle: "short", timeStyle: "medium" });
+    const marque = e.status === "SENT" ? ok : e.status === "SIMULATED" ? info : bad;
+    marque(`${heure}  ${e.status.padEnd(9)} ${e.prospect.name}`);
+    info(`  → ${e.toEmail}`);
+    info(`  « ${e.subject} »`);
+    info(
+      `  ${e.prospect.city} · transport ${e.transport}` +
+        (e.dryRun ? " · SIMULATION" : " · ENVOI RÉEL") +
+        (e.sequenceStep > 0 ? ` · relance ${e.sequenceStep}` : "") +
+        (e.providerMessageId ? ` · id ${e.providerMessageId.slice(0, 40)}` : ""),
+    );
+    if (e.error) info(`  motif : ${e.error.slice(0, 160)}`);
+    console.log();
+  }
+
+  const parStatut: Record<string, number> = {};
+  for (const e of envois) parStatut[e.status] = (parStatut[e.status] ?? 0) + 1;
+
+  console.log(
+    `  ${envois.length} ligne(s) : ` +
+      Object.entries(parStatut).map(([s2, n]) => `${n} ${s2}`).join(", ") + ".",
+  );
+
+  const reels = envois.filter((e) => !e.dryRun && e.status === "SENT").length;
+  if (reels === 0) info("Aucun email n'a réellement quitté la machine.");
+}
+
 // --- PILOTE AUTOMATIQUE -----------------------------------------------------
 
 async function autopilotCommand(args: string[]) {
@@ -1357,6 +1427,8 @@ function help() {
     autopilot gate             état du sas d'entrée, sans rien envoyer
     autopilot [--max=N]        envoyer les emails qualifiés sans relecture
                                (refusé tant que le sas n'est pas franchi)
+    sends [--jours=N] [--tout]  journal des envois : entreprise, destinataire,
+                               objet, heure, statut. --tout inclut les simulations
     sirene-live [--dept=59]    test réel de l'API Sirene (nécessite la clé)
 
   ${C.bold}Opérateur${C.reset}

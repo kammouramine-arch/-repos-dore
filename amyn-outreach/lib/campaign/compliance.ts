@@ -15,6 +15,7 @@ import { prisma } from "@/lib/db";
 import { config } from "@/lib/config";
 import { validateEmailSyntax } from "@/lib/contact/discover";
 import { verifyEmail, catalogNumbers, numbersFromEvidence } from "@/lib/email/verify";
+import { getPolicy } from "@/lib/policy";
 
 export type CheckOutcome = { name: string; passed: boolean; detail: string };
 
@@ -144,6 +145,53 @@ export async function runComplianceChecks(candidate: SendCandidate): Promise<Com
       ? `Message déjà envoyé à l'étape ${candidate.step} le ${alreadySent.createdAt.toISOString()}.`
       : `Aucun envoi précédent à l'étape ${candidate.step}.`,
   });
+
+  // --- 7 bis. La même ADRESSE a-t-elle déjà été écrite, pour une AUTRE
+  //           entreprise ?
+  //
+  // Le contrôle précédent dédoublonne par prospect. Cela suffisait tant que
+  // chaque entreprise avait son adresse. À l'échelle nationale, non : une
+  // enseigne à trois cents établissements est trois cents prospects — avec des
+  // SIRET différents, donc légitimement distincts — qui partagent un seul
+  // « contact@ ». Sans ce contrôle, cette adresse recevrait trois cents
+  // messages presque identiques. C'est le genre de campagne qui se termine en
+  // signalement pour spam, et à juste titre.
+  //
+  // Les envois SIMULÉS ne comptent que si l'envoi courant l'est aussi : une
+  // démonstration n'a atteint personne et ne doit pas bloquer un envoi réel
+  // plus tard — même raisonnement que pour le quota quotidien.
+  if (contact?.email) {
+    const policy = await getPolicy();
+    const depuis = new Date(Date.now() - policy.recontactCooldownDays * 24 * 3600_000);
+    const statutsComptes = config.dryRun ? ["SENT", "SIMULATED"] : ["SENT"];
+
+    const memeAdresse = await prisma.sendLog.findFirst({
+      where: {
+        toEmail: contact.email.toLowerCase(),
+        prospectId: { not: prospect.id },
+        status: { in: statutsComptes },
+        createdAt: { gte: depuis },
+      },
+      include: { prospect: { select: { name: true } } },
+      orderBy: { createdAt: "desc" },
+    });
+
+    checks.push({
+      name: "CHECK_ADDRESS_REUSE",
+      passed: !memeAdresse,
+      detail: memeAdresse
+        ? `Adresse déjà contactée le ${memeAdresse.createdAt.toISOString().slice(0, 10)} ` +
+          `pour « ${memeAdresse.prospect.name} ». Même boîte, autre établissement : ` +
+          `un second message serait perçu comme du publipostage.`
+        : "Cette adresse n'a été contactée pour aucune autre entreprise.",
+    });
+  } else {
+    checks.push({
+      name: "CHECK_ADDRESS_REUSE",
+      passed: false,
+      detail: "Pas d'adresse à vérifier.",
+    });
+  }
 
   // --- 8. Pertinence : le message repose-t-il sur des preuves ? -----------
   const cited: string[] = JSON.parse(draft.citedIssueIds || "[]");

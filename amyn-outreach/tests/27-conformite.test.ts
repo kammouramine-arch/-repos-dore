@@ -133,6 +133,113 @@ describe("Effet immédiat de l'opposition", () => {
   });
 });
 
+describe("Une même adresse n'est pas écrite deux fois", () => {
+  /**
+   * Le cas réel qui a révélé le défaut : « Les 3 Brasseurs » à
+   * Villeneuve-d'Ascq et à Lezennes sont deux établissements distincts —
+   * SIRET différents, prospects légitimement séparés — qui publient la même
+   * adresse « contact@ ». Le dédoublonnage par prospect les laissait passer
+   * tous les deux. À l'échelle nationale, une enseigne de trois cents
+   * succursales aurait reçu trois cents messages.
+   */
+  async function prospectAvecAdresse(nom: string, email: string) {
+    const p = await seedProspect({ name: nom, email, status: "AUDITED" });
+    const issue = await seedProvenIssue(p.id);
+    const email2 = await generateEmail(p.id, { generator: "template" });
+    return { prospect: p, draftId: email2.draftId!, issueId: issue.id };
+  }
+
+  test("deux établissements d'une chaîne ne reçoivent pas deux messages", async () => {
+    const a = await prospectAvecAdresse("Les 3 Brasseurs Villeneuve", "contact@les3brasseurs.com");
+    const b = await prospectAvecAdresse("Les 3 Brasseurs Lezennes", "contact@les3brasseurs.com");
+
+    // Le premier passe.
+    const premier = await runComplianceChecks({
+      prospectId: a.prospect.id, draftId: a.draftId, step: 0,
+    });
+    assert.equal(
+      premier.checks.find((c) => c.name === "CHECK_ADDRESS_REUSE")?.passed,
+      true,
+      "le premier message vers une adresse neuve doit passer",
+    );
+
+    // On enregistre son envoi, puis le second établissement se présente.
+    await prisma.sendLog.create({
+      data: {
+        prospectId: a.prospect.id, emailDraftId: a.draftId,
+        transport: "dry-run", status: "SIMULATED", dryRun: true,
+        toEmail: "contact@les3brasseurs.com", subject: "premier", sequenceStep: 0,
+      },
+    });
+
+    const second = await runComplianceChecks({
+      prospectId: b.prospect.id, draftId: b.draftId, step: 0,
+    });
+    const controle = second.checks.find((c) => c.name === "CHECK_ADDRESS_REUSE");
+    assert.equal(controle?.passed, false, "la même adresse a été écrite deux fois");
+    assert.match(controle!.detail, /Villeneuve/, "le contrôle doit nommer l'entreprise déjà contactée");
+    assert.equal(second.allowed, false);
+  });
+
+  test("une relance vers le MÊME prospect n'est pas confondue avec un doublon d'adresse", async () => {
+    const a = await prospectAvecAdresse("Boulangerie Unique", "contact@unique.fr");
+    await prisma.sendLog.create({
+      data: {
+        prospectId: a.prospect.id, emailDraftId: a.draftId,
+        transport: "dry-run", status: "SIMULATED", dryRun: true,
+        toEmail: "contact@unique.fr", subject: "initial", sequenceStep: 0,
+      },
+    });
+
+    const relance = await runComplianceChecks({
+      prospectId: a.prospect.id, draftId: a.draftId, step: 1,
+    });
+    assert.equal(
+      relance.checks.find((c) => c.name === "CHECK_ADDRESS_REUSE")?.passed,
+      true,
+      "une relance légitime a été bloquée comme réutilisation d'adresse",
+    );
+  });
+
+  test("deux adresses différentes ne se gênent pas", async () => {
+    const a = await prospectAvecAdresse("Entreprise A", "contact@a-exemple.fr");
+    const b = await prospectAvecAdresse("Entreprise B", "contact@b-exemple.fr");
+
+    await prisma.sendLog.create({
+      data: {
+        prospectId: a.prospect.id, emailDraftId: a.draftId,
+        transport: "dry-run", status: "SIMULATED", dryRun: true,
+        toEmail: "contact@a-exemple.fr", subject: "premier", sequenceStep: 0,
+      },
+    });
+
+    const second = await runComplianceChecks({
+      prospectId: b.prospect.id, draftId: b.draftId, step: 0,
+    });
+    assert.equal(second.checks.find((c) => c.name === "CHECK_ADDRESS_REUSE")?.passed, true);
+  });
+
+  test("le contrôle est nommé dans les blocages, pas fondu dans un autre", async () => {
+    const a = await prospectAvecAdresse("Chaîne A", "contact@chaine.fr");
+    const b = await prospectAvecAdresse("Chaîne B", "contact@chaine.fr");
+    await prisma.sendLog.create({
+      data: {
+        prospectId: a.prospect.id, emailDraftId: a.draftId,
+        transport: "dry-run", status: "SIMULATED", dryRun: true,
+        toEmail: "contact@chaine.fr", subject: "premier", sequenceStep: 0,
+      },
+    });
+
+    const second = await runComplianceChecks({
+      prospectId: b.prospect.id, draftId: b.draftId, step: 0,
+    });
+    assert.ok(
+      second.blockedBy.includes("CHECK_ADDRESS_REUSE"),
+      `le motif de blocage devrait être nommé : ${second.blockedBy.join(", ")}`,
+    );
+  });
+});
+
 describe("Les nouveaux maillons ne contournent aucun contrôle", () => {
   test("aucun module de la chaîne d'enrichissement ne sait envoyer", () => {
     for (const fichier of [
