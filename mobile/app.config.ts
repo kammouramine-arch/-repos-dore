@@ -6,6 +6,10 @@ import type { ExpoConfig } from 'expo/config';
  * L'URL de l'API est injectée à la construction : une même base de code sert
  * le développement local, les builds de préversion et la production.
  */
+// Version affichée aux utilisateurs. Les numéros de build (`buildNumber` iOS,
+// `versionCode` Android) ne sont volontairement pas déclarés ici : `eas.json`
+// fixe `appVersionSource: "remote"`, EAS les incrémente lui-même, et les
+// valeurs locales seraient ignorées tout en laissant croire le contraire.
 const VERSION = '1.0.0';
 
 /**
@@ -83,7 +87,6 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'fr.devisia.app',
-    buildNumber: VERSION,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSMicrophoneUsageDescription:
@@ -99,7 +102,6 @@ const config: ExpoConfig = {
 
   android: {
     package: 'fr.devisia.app',
-    versionCode: 1,
     adaptiveIcon: {
       foregroundImage: './assets/adaptive-icon.png',
       backgroundColor: '#2547E0',
