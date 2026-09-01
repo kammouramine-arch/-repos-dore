@@ -149,48 +149,34 @@ describe('objet du devis', () => {
 /**
  * Forme de la requête envoyée à Claude.
  *
- * La production annonçait « IA disponible » tout en rendant des devis
- * heuristiques : la requête imposait un appel d'outil (`tool_choice`), ce que
- * les modèles à réflexion active par défaut — Opus 5 et suivants — refusent
- * par un 400. L'erreur était avalée par la bascule sur le moteur local, donc
- * invisible. Ces cas figent la forme attendue pour chaque famille de modèle,
- * sans jamais appeler l'API.
+ * Les modèles récents rejettent `temperature` par un 400. Le garde existe,
+ * mais rien ne le vérifiait : un modèle rangé par erreur parmi les anciens,
+ * ou un garde supprimé, aurait fait échouer chaque appel en production sans
+ * que rien ne le signale — la bascule sur le moteur local rend toujours un
+ * devis. Ces cas figent la forme réellement envoyée, sans appeler l'API.
  */
 describe('forme de la requête Claude', () => {
-  /** Capture l'unique requête envoyée par le SDK, sans réseau. */
   async function requetePour(model: string) {
     vi.resetModules();
     const capturees: Record<string, unknown>[] = [];
-    const reponse = {
-      parsed_output: { texte: 'ok' },
-      content: [{ type: 'tool_use', name: 'essai', input: { texte: 'ok' } }],
-      usage: { input_tokens: 10, output_tokens: 5 },
-    };
     vi.doMock('@anthropic-ai/sdk', () => {
       class FauxAnthropic {
         messages = {
           create: async (body: Record<string, unknown>) => {
             capturees.push(body);
-            return reponse;
-          },
-          parse: async (body: Record<string, unknown>) => {
-            capturees.push(body);
-            return reponse;
+            return {
+              content: [{ type: 'tool_use', name: 'essai', input: { texte: 'ok' } }],
+              usage: { input_tokens: 10, output_tokens: 5 },
+            };
           },
         };
       }
-      return {
-        default: FauxAnthropic,
-        APIError: class extends Error {
-          status = 400;
-        },
-      };
+      return { default: FauxAnthropic, APIError: class extends Error {} };
     });
 
     const { AnthropicProvider } = await import('@/lib/ai/anthropic');
     const { z } = await import('zod');
-    const fournisseur = new AnthropicProvider('cle-de-test', model);
-    await fournisseur.generateStructuredOutput({
+    await new AnthropicProvider('cle-de-test', model).generateStructuredOutput({
       system: 'consigne',
       untrusted: 'description',
       schema: z.object({ texte: z.string() }),
@@ -200,22 +186,21 @@ describe('forme de la requête Claude', () => {
     return capturees[0]!;
   }
 
-  it('n’impose pas d’appel d’outil sur Opus 5', async () => {
-    const requete = await requetePour('claude-opus-5');
-    expect(requete.tool_choice).toBeUndefined();
-    expect(requete.tools).toBeUndefined();
-    expect(requete.output_config).toBeDefined();
+  it('n’envoie pas temperature aux modèles qui la rejettent', async () => {
+    for (const model of ['claude-opus-5', 'claude-sonnet-5', 'claude-opus-4-6']) {
+      expect((await requetePour(model)).temperature, model).toBeUndefined();
+    }
   });
 
-  it('n’envoie pas temperature sur Opus 5', async () => {
-    const requete = await requetePour('claude-opus-5');
-    expect(requete.temperature).toBeUndefined();
+  it('l’envoie encore aux modèles antérieurs qui l’acceptent', async () => {
+    for (const model of ['claude-3-5-sonnet-20241022', 'claude-opus-4-1']) {
+      expect((await requetePour(model)).temperature, model).toBeDefined();
+    }
   });
 
-  it('garde l’appel d’outil pour les modèles antérieurs', async () => {
-    const requete = await requetePour('claude-3-5-sonnet-20241022');
+  it('demande une sortie structurée par appel d’outil', async () => {
+    const requete = await requetePour('claude-opus-5');
     expect(requete.tool_choice).toEqual({ type: 'tool', name: 'essai' });
-    expect(requete.output_config).toBeUndefined();
-    expect(requete.temperature).toBeDefined();
+    expect(Array.isArray(requete.tools)).toBe(true);
   });
 });

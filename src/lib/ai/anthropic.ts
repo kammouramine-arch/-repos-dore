@@ -1,5 +1,4 @@
 import Anthropic from '@anthropic-ai/sdk';
-import { zodOutputFormat } from '@anthropic-ai/sdk/helpers/zod';
 import { z } from 'zod';
 import { env } from '../env';
 import { AppError } from '../errors';
@@ -28,19 +27,6 @@ function samplingParams(model: string, temperature: number): { temperature?: num
 
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif'];
 
-/**
- * Modèles qui n'acceptent plus la sortie structurée par appel d'outil forcé.
- *
- * Sur Opus 5 et suivants, la réflexion est active par défaut, et elle est
- * incompatible avec un `tool_choice` imposé : l'API répond 400, l'appel
- * échouait, et le moteur local prenait silencieusement le relais — la
- * production annonçait « IA disponible » tout en produisant des devis
- * heuristiques. Ces modèles utilisent `output_config.format`, prévu pour ça.
- */
-function usesOutputConfig(model: string): boolean {
-  return !/^claude-(3|opus-4-5|sonnet-4-5|haiku-4-5|sonnet-4-0|opus-4-0|opus-4-1)/.test(model);
-}
-
 /** Fournisseur IA principal : Claude (sortie structurée via appel d'outil). */
 export class AnthropicProvider implements AIProvider {
   readonly name = 'anthropic' as const;
@@ -60,55 +46,37 @@ export class AnthropicProvider implements AIProvider {
     request: StructuredRequest<TSchema>,
   ): Promise<AIResult<z.infer<TSchema>>> {
     const started = Date.now();
-    const content = buildContent(request.context, request.untrusted, request.images);
-    const commun = {
-      model: this.model,
-      max_tokens: request.maxTokens ?? 4096,
-      ...samplingParams(this.model, request.temperature ?? 0.2),
-      system: request.system,
-      messages: [{ role: 'user' as const, content }],
-    };
+    const jsonSchema = toJsonSchema(request.schema);
 
-    let brut: unknown;
-    let usage: Anthropic.Usage;
+    const response = await this.call(() =>
+      this.client.messages.create({
+        model: this.model,
+        max_tokens: request.maxTokens ?? 4096,
+        ...samplingParams(this.model, request.temperature ?? 0.2),
+        system: request.system,
+        tools: [
+          {
+            name: request.schemaName,
+            description: `Renvoie le résultat structuré ${request.schemaName}.`,
+            input_schema: jsonSchema as Anthropic.Tool['input_schema'],
+          },
+        ],
+        tool_choice: { type: 'tool', name: request.schemaName },
+        messages: [
+          {
+            role: 'user',
+            content: buildContent(request.context, request.untrusted, request.images),
+          },
+        ],
+      }),
+    );
 
-    if (usesOutputConfig(this.model)) {
-      const response = await this.call(() =>
-        this.client.messages.parse({
-          ...commun,
-          output_config: { format: zodOutputFormat(request.schema) },
-        }),
-      );
-      brut = response.parsed_output;
-      usage = response.usage;
-    } else {
-      // Modèles antérieurs : l'appel d'outil forcé reste la seule voie.
-      const response = await this.call(() =>
-        this.client.messages.create({
-          ...commun,
-          tools: [
-            {
-              name: request.schemaName,
-              description: `Renvoie le résultat structuré ${request.schemaName}.`,
-              input_schema: toJsonSchema(request.schema) as Anthropic.Tool['input_schema'],
-            },
-          ],
-          tool_choice: { type: 'tool', name: request.schemaName },
-        }),
-      );
-      const toolUse = response.content.find((block) => block.type === 'tool_use');
-      if (!toolUse || toolUse.type !== 'tool_use') {
-        throw new AppError('PROVIDER_UNAVAILABLE', "L'IA n'a pas renvoyé de résultat exploitable.");
-      }
-      brut = toolUse.input;
-      usage = response.usage;
-    }
-
-    if (brut == null) {
+    const toolUse = response.content.find((block) => block.type === 'tool_use');
+    if (!toolUse || toolUse.type !== 'tool_use') {
       throw new AppError('PROVIDER_UNAVAILABLE', "L'IA n'a pas renvoyé de résultat exploitable.");
     }
 
-    const parsed = request.schema.safeParse(brut);
+    const parsed = request.schema.safeParse(toolUse.input);
     if (!parsed.success) {
       throw new AppError('PROVIDER_UNAVAILABLE', "La réponse de l'IA était incomplète.", {
         cause: parsed.error,
@@ -120,8 +88,8 @@ export class AnthropicProvider implements AIProvider {
       degraded: false,
       usage: {
         latencyMs: Date.now() - started,
-        inputTokens: usage.input_tokens,
-        outputTokens: usage.output_tokens,
+        inputTokens: response.usage.input_tokens,
+        outputTokens: response.usage.output_tokens,
         model: this.model,
         provider: this.name,
       },
@@ -177,10 +145,12 @@ export class AnthropicProvider implements AIProvider {
   /**
    * Traduit les erreurs SDK en erreurs applicatives, sans fuite de secret.
    *
-   * Le motif exact est journalisé : une requête refusée pour cause de forme
-   * (400) tombait auparavant dans le même sac qu'une panne réseau, et le
-   * moteur local prenait le relais sans que rien n'indique pourquoi. La clé
-   * n'apparaît jamais — seuls le statut et le message de l'API sont retenus.
+   * Le motif exact est journalisé. Sans lui, une panne d'IA se présentait en
+   * production comme un simple « service momentanément indisponible » : la
+   * bascule sur le moteur local rendait toujours un devis, et rien n'indiquait
+   * si la cause était un refus d'API, un modèle inaccessible, un solde épuisé
+   * ou une coupure réseau. Seuls le statut, le modèle et le message de l'API
+   * sont retenus — jamais la clé.
    */
   private async call<T>(fn: () => Promise<T>): Promise<T> {
     try {
@@ -188,7 +158,7 @@ export class AnthropicProvider implements AIProvider {
     } catch (error) {
       if (error instanceof Anthropic.APIError) {
         console.error(
-          `[ai] appel refusé par l'API — statut ${error.status}, modèle ${this.model} : ${error.message}`,
+          `[ia] appel refusé — statut ${error.status}, modèle ${this.model}, type ${error.name} : ${error.message}`,
         );
         if (error.status === 429) {
           throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.");
@@ -196,17 +166,8 @@ export class AnthropicProvider implements AIProvider {
         if (error.status === 401 || error.status === 403) {
           throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");
         }
-        if (error.status === 400) {
-          // Une requête mal formée ne se répare pas en réessayant : c'est un
-          // défaut de notre côté, et il doit se voir.
-          throw new AppError(
-            'PROVIDER_UNAVAILABLE',
-            `Requête refusée par le service d'IA (${error.message}).`,
-            { cause: error },
-          );
-        }
       } else {
-        console.error("[ai] appel impossible :", error);
+        console.error(`[ia] appel impossible — modèle ${this.model} :`, error);
       }
       throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.", {
         cause: error,
