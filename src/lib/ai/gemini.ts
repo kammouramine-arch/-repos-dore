@@ -13,7 +13,15 @@ import type {
   TextRequest,
 } from './types';
 
-const BASE = 'https://generativelanguage.googleapis.com/v1beta';
+const RACINE = 'https://generativelanguage.googleapis.com';
+/**
+ * Versions d'API essayées, dans l'ordre.
+ *
+ * Un modèle listé par une version n'est pas toujours servi par elle : mieux
+ * vaut essayer l'autre que déclarer le modèle introuvable.
+ */
+const VERSIONS = ['v1beta', 'v1'] as const;
+const BASE = `${RACINE}/${VERSIONS[0]}`;
 const MAX_IMAGES = 6;
 
 /**
@@ -44,6 +52,14 @@ const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/h
  * chemin critique. La clé voyage dans un en-tête, jamais dans l'URL — une URL
  * finit toujours par apparaître dans un journal.
  */
+/**
+ * Signal interne : ce modèle-là n'est pas servi.
+ *
+ * Volontairement distinct d'AppError — il ne remonte jamais à l'utilisateur,
+ * il sert seulement à décider s'il vaut la peine d'essayer un autre modèle.
+ */
+class ModeleAbsent extends Error {}
+
 interface GeminiPart {
   text?: string;
   inlineData?: { mimeType: string; data: string };
@@ -54,7 +70,7 @@ export class GeminiProvider implements AIProvider {
   private apiKey: string;
   private model: string;
   /** Modèle retenu après repli automatique, mémorisé pour le processus. */
-  private resolu: string | null = null;
+  private resolu: { version: string; modele: string } | null = null;
   /**
    * Ce qu'a donné la dernière recherche de modèle.
    *
@@ -70,18 +86,23 @@ export class GeminiProvider implements AIProvider {
     this.model = model;
   }
 
+  get available() {
+    return true;
+  }
+
   private get modeleActif(): string {
-    return this.resolu ?? this.model;
+    return this.resolu?.modele ?? this.model;
   }
 
   /**
-   * Cherche un modèle réellement servi par l'API.
+   * Énumère les modèles réellement servis, du plus souhaitable au moins.
    *
-   * Appelé uniquement après un 404 : tant que le modèle configuré répond, ce
-   * chemin ne coûte rien. La liste des modèles vient de l'API elle-même, donc
-   * aucune valeur écrite en dur ne peut devenir fausse avec le temps.
+   * La liste vient de l'API : aucune valeur écrite en dur ne peut devenir
+   * fausse avec le temps. Le modèle configuré passe en tête, puis les
+   * préférences, puis le reste — ainsi un modèle retiré n'arrête pas le
+   * produit, et un modèle listé mais non servi laisse sa place au suivant.
    */
-  private async resoudreModele(): Promise<string | null> {
+  private async candidats(): Promise<string[]> {
     let reponse: Response;
     try {
       reponse = await fetch(`${BASE}/models`, {
@@ -91,46 +112,35 @@ export class GeminiProvider implements AIProvider {
     } catch (cause) {
       this.diagnostic = 'liste des modèles injoignable';
       console.error('[ia] liste des modèles injoignable :', cause);
-      return null;
+      return [];
     }
     if (!reponse.ok) {
-      // Sans ce message, un repli qui échoue est indiscernable d'un repli qui
-      // n'a rien trouvé — et l'on ne sait pas si la clé, le projet ou le quota
-      // est en cause.
       const detail = extractMessage(await reponse.text().catch(() => ''));
       this.diagnostic = `liste des modèles refusée (${reponse.status} ${detail.slice(0, 120)})`;
       console.error(`[ia] liste des modèles refusée — statut ${reponse.status} : ${detail}`);
-      return null;
+      return [];
     }
 
     const { models = [] } = (await reponse.json().catch(() => ({ models: [] }))) as {
       models?: { name?: string; supportedGenerationMethods?: string[] }[];
     };
-    const disponibles = models
+    const servis = models
       .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
       .map((m) => (m.name ?? '').replace(/^models\//, ''))
       .filter((id) => id && !HORS_SUJET.test(id));
 
-    if (disponibles.length === 0) {
+    if (servis.length === 0) {
       this.diagnostic = `aucun modèle de génération parmi ${models.length} entrées`;
-      console.error(`[ia] l'API ne sert aucun modèle de génération (${models.length} entrées reçues).`);
-      return null;
+      return [];
     }
-    this.diagnostic = `modèles servis : ${disponibles.slice(0, 8).join(', ')}`;
+    this.diagnostic = `modèles servis : ${servis.slice(0, 8).join(', ')}`;
 
-    const choisi = PREFERENCES.find((p) => disponibles.includes(p)) ?? disponibles[0] ?? null;
-    if (choisi) {
-      console.warn(`[ia] modèles servis : ${disponibles.slice(0, 12).join(', ')}`);
-      console.warn(
-        `[ia] modèle « ${this.model} » introuvable — repli automatique sur « ${choisi} ». ` +
-          'Fixez GEMINI_MODEL pour supprimer cette recherche.',
-      );
-    }
-    return choisi;
-  }
-
-  get available() {
-    return true;
+    const ordonnes = [
+      this.model,
+      ...PREFERENCES.filter((p) => servis.includes(p)),
+      ...servis,
+    ];
+    return [...new Set(ordonnes)].filter((m) => servis.includes(m));
   }
 
   async generateStructuredOutput<TSchema extends z.ZodType>(
@@ -215,55 +225,86 @@ export class GeminiProvider implements AIProvider {
    * qu'on sache si la cause est un quota, un modèle inconnu ou une clé morte.
    * Ni la clé ni l'URL complète n'y figurent jamais.
    */
-  private async call(corps: Record<string, unknown>, secondEssai = false): Promise<GeminiResponse> {
+  private async call(corps: Record<string, unknown>): Promise<GeminiResponse> {
+    // Le couple déjà retenu est rejoué directement : la recherche ne coûte
+    // qu'une fois par processus.
+    if (this.resolu) return this.envoyer(this.resolu.version, this.resolu.modele, corps);
+
+    let derniere: Error | null = null;
+    for (const version of VERSIONS) {
+      try {
+        const reponse = await this.envoyer(version, this.model, corps);
+        this.resolu = { version, modele: this.model };
+        return reponse;
+      } catch (erreur) {
+        derniere = erreur as Error;
+        // Seul un modèle introuvable justifie d'en essayer un autre : une clé
+        // refusée ou un quota atteint ne se répare pas en changeant de nom.
+        if (!(erreur instanceof ModeleAbsent)) throw erreur;
+      }
+    }
+
+    for (const modele of await this.candidats()) {
+      if (modele === this.model) continue;
+      for (const version of VERSIONS) {
+        try {
+          const reponse = await this.envoyer(version, modele, corps);
+          this.resolu = { version, modele };
+          console.warn(
+            `[ia] modèle « ${this.model} » indisponible — bascule sur « ${modele} » (${version}). ` +
+              'Fixez GEMINI_MODEL pour supprimer cette recherche.',
+          );
+          return reponse;
+        } catch (erreur) {
+          derniere = erreur as Error;
+          if (!(erreur instanceof ModeleAbsent)) throw erreur;
+        }
+      }
+    }
+
+    throw new AppError(
+      'PROVIDER_UNAVAILABLE',
+      `Aucun modèle d'IA utilisable — essayé « ${this.model} »` +
+        (this.diagnostic ? ` ; ${this.diagnostic}` : '') +
+        '.',
+      { cause: derniere ?? undefined },
+    );
+  }
+
+  /** Un envoi, sur une version d'API et un modèle donnés. */
+  private async envoyer(
+    version: string,
+    modele: string,
+    corps: Record<string, unknown>,
+  ): Promise<GeminiResponse> {
     let reponse: Response;
     try {
-      reponse = await fetch(`${BASE}/models/${this.modeleActif}:generateContent`, {
+      reponse = await fetch(`${RACINE}/${version}/models/${modele}:generateContent`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify(corps),
         signal: AbortSignal.timeout(90_000),
       });
     } catch (cause) {
-      console.error(`[ia] gemini injoignable — modèle ${this.modeleActif} :`, cause);
+      console.error(`[ia] gemini injoignable — ${version}/${modele} :`, cause);
       throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.", {
         cause,
       });
     }
 
     if (!reponse.ok) {
-      const detail = await reponse.text().catch(() => '');
-      const message = extractMessage(detail);
-      console.error(
-        `[ia] gemini a refusé l'appel — statut ${reponse.status}, modèle ${this.modeleActif} : ${message}`,
-      );
-
-      // Un modèle inconnu se répare tout seul : on demande à l'API quels
-      // modèles elle sert, et on rejoue une fois. Sans cela, un nom de modèle
-      // périmé suffit à faire retomber tout le produit sur son moteur local.
-      if (reponse.status === 404 && !secondEssai && !this.resolu) {
-        const alternative = await this.resoudreModele();
-        if (alternative && alternative !== this.modeleActif) {
-          this.resolu = alternative;
-          return this.call(corps, true);
-        }
-      }
+      const message = extractMessage(await reponse.text().catch(() => ''));
+      console.error(`[ia] gemini a refusé — statut ${reponse.status}, ${version}/${modele} : ${message}`);
       if (reponse.status === 429) {
         throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.");
       }
       if (reponse.status === 401 || reponse.status === 403) {
         throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");
       }
-      // Un modèle inconnu et une requête refusée sont des erreurs de
-      // configuration, pas des incidents passagers : les confondre avec une
-      // panne réseau fait attendre un rétablissement qui ne viendra jamais.
+      // Code interne : il ne remonte jamais à l'utilisateur, il sert à savoir
+      // s'il vaut la peine d'essayer un autre modèle.
       if (reponse.status === 404) {
-        throw new AppError(
-          'PROVIDER_UNAVAILABLE',
-          `Aucun modèle d'IA utilisable — essayé « ${this.modeleActif} »` +
-            (this.diagnostic ? ` ; ${this.diagnostic}` : '') +
-            '.',
-        );
+        throw new ModeleAbsent(`Modèle ${modele} non servi par ${version}.`);
       }
       if (reponse.status === 400) {
         throw new AppError('PROVIDER_UNAVAILABLE', `Requête refusée par le service d'IA : ${message}`);

@@ -283,3 +283,81 @@ describe('diagnostic remonté', () => {
     expect(e.message).toMatch(/aucun modèle de génération parmi 1 entrées/i);
   });
 });
+
+/**
+ * Modèle listé mais non servi.
+ *
+ * Cas réellement rencontré en production : l'API annonce « gemini-2.5-flash »
+ * parmi ses modèles, mais répond 404 quand on lui demande de générer avec.
+ * Le repli concluait alors « aucun modèle utilisable » — il retenait le même
+ * nom que celui qui venait d'échouer. Il doit passer au suivant.
+ */
+describe('modèle listé mais non servi', () => {
+  function api(listes: string[], repondent: string[]) {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: listes.map((id) => ({
+              name: `models/${id}`,
+              supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      essayes.push(modele);
+      if (!repondent.includes(modele)) {
+        return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 });
+      }
+      return new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: 'bonjour' }] } }],
+          usageMetadata: { promptTokenCount: 3, candidatesTokenCount: 1 },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    return essayes;
+  }
+
+  it('passe au modèle suivant plutôt que de renoncer', async () => {
+    const essayes = api(
+      ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-pro'],
+      ['gemini-flash-latest'],
+    );
+    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateText({
+      system: 'c',
+      untrusted: 'd',
+    });
+    vi.unstubAllGlobals();
+    expect(r.data).toBe('bonjour');
+    expect(r.usage.model).toBe('gemini-flash-latest');
+    expect(essayes).toContain('gemini-2.5-flash');
+  });
+
+  it('mémorise le couple retenu et ne recherche plus ensuite', async () => {
+    const essayes = api(['a-perime', 'gemini-flash-latest'], ['gemini-flash-latest']);
+    const fournisseur = new GeminiProvider('cle', 'a-perime');
+    await fournisseur.generateText({ system: 'c', untrusted: 'd' });
+    const avant = essayes.length;
+    await fournisseur.generateText({ system: 'c', untrusted: 'd' });
+    vi.unstubAllGlobals();
+    expect(essayes.length - avant).toBe(1);
+  });
+
+  it('n’essaie pas d’autre modèle quand la clé est refusée', async () => {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (!url.endsWith('/models')) essayes.push(url);
+      return new Response(JSON.stringify({ error: { message: 'denied' } }), { status: 403 });
+    });
+    await new GeminiProvider('cle', 'gemini-2.5-flash')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch(() => undefined);
+    vi.unstubAllGlobals();
+    expect(essayes.length).toBe(1);
+  });
+});
