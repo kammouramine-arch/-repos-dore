@@ -17,80 +17,14 @@
 import { readdir, readFile } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
 import path from 'node:path';
+import { argument, client, echec as stop, jetonRequis, projetCible } from './lib/supabase-api.mjs';
 
-const API = 'https://api.supabase.com/v1';
-const jeton = process.env.SUPABASE_ACCESS_TOKEN?.trim();
 const appliquer = process.argv.includes('--appliquer');
-const refDemande = process.argv[process.argv.indexOf('--projet') + 1];
-
-function stop(message, indice) {
-  console.error(`\n✖ ${message}`);
-  if (indice) console.error(`\n  ${indice}\n`);
-  process.exit(1);
-}
-
-if (!jeton) {
-  stop(
-    'SUPABASE_ACCESS_TOKEN est absent.',
-    'Obtenez-le par `supabase login`, ou sur https://supabase.com/dashboard/account/tokens',
-  );
-}
-
-async function appel(chemin, options = {}) {
-  const reponse = await fetch(`${API}${chemin}`, {
-    ...options,
-    headers: {
-      Authorization: `Bearer ${jeton}`,
-      'content-type': 'application/json',
-      ...(options.headers ?? {}),
-    },
-  });
-  const texte = await reponse.text();
-  let corps = null;
-  try {
-    corps = JSON.parse(texte);
-  } catch {
-    /* réponse non JSON : on garde le texte brut pour le message d'erreur */
-  }
-  if (!reponse.ok) {
-    // Le jeton peut apparaître dans une trace : on ne rend que le statut.
-    stop(
-      `L'API Supabase a répondu ${reponse.status} sur ${chemin}.`,
-      corps?.message ?? texte.slice(0, 200),
-    );
-  }
-  return corps;
-}
-
-/** Exécute du SQL sur la base du projet et renvoie les lignes. */
-const sql = (ref, requete) =>
-  appel(`/projects/${ref}/database/query`, {
-    method: 'POST',
-    body: JSON.stringify({ query: requete }),
-  });
 
 /* ------------------------------------------------------------ 1. le projet */
-const projets = await appel('/projects');
-if (!Array.isArray(projets) || projets.length === 0) stop('Aucun projet accessible avec ce jeton.');
-
-console.info('\nProjets accessibles :');
-for (const p of projets) {
-  console.info(`  ${p.id}  ${p.name}  (${p.region}, ${p.status})`);
-}
-
-const projet = refDemande
-  ? projets.find((p) => p.id === refDemande)
-  : projets.length === 1
-    ? projets[0]
-    : null;
-
-if (!projet) {
-  stop(
-    refDemande ? `Projet « ${refDemande} » introuvable.` : 'Plusieurs projets : précisez lequel.',
-    'node scripts/migrer-supabase.mjs --projet <ref>',
-  );
-}
-console.info(`\nProjet ciblé : ${projet.name} (${projet.id})\n`);
+const api = client(jetonRequis());
+const projet = await projetCible(api, argument('--projet'));
+const sql = (ref, requete) => api.sql(ref, requete);
 
 /* --------------------------------------------- 2. l'état réel de la base */
 const [{ present }] = await sql(
@@ -150,12 +84,29 @@ for (const m of locales) {
   }
 }
 
-const tables = await sql(
-  projet.id,
-  `SELECT count(*)::int AS n FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`,
-);
-console.info(`\n  tables applicatives avant : ${tables[0].n - 1}`);
+/**
+ * Relevé du nombre de lignes de chaque table.
+ *
+ * Une migration additive ne doit toucher aucune donnée existante. Le relevé
+ * avant/après le prouve plutôt que de l'affirmer.
+ */
+async function releve(ref) {
+  const noms = await sql(
+    ref,
+    `SELECT table_name FROM information_schema.tables
+      WHERE table_schema = 'public' AND table_type = 'BASE TABLE'
+      ORDER BY table_name`,
+  );
+  const union = noms
+    .map((t) => `SELECT '${t.table_name}' AS t, count(*)::int AS n FROM "${t.table_name}"`)
+    .join(' UNION ALL ');
+  const lignes = await sql(ref, `${union} ORDER BY t`);
+  return new Map(lignes.map((l) => [l.t, l.n]));
+}
+
+const avant = await releve(projet.id);
+console.info(`\n  tables applicatives avant : ${avant.size - 1}`);
+console.info(`  lignes au total : ${[...avant.values()].reduce((a, b) => a + b, 0)}`);
 
 if (enAttente.length === 0) {
   console.info('\n✔ Aucune migration en attente.\n');
@@ -196,10 +147,24 @@ for (const m of enAttente) {
   console.info(`  ${m.nom} : enregistrée, empreinte conforme`);
 }
 
-const tablesApres = await sql(
-  projet.id,
-  `SELECT count(*)::int AS n FROM information_schema.tables
-    WHERE table_schema = 'public' AND table_type = 'BASE TABLE'`,
+const apresReleve = await releve(projet.id);
+console.info(`  tables applicatives après : ${apresReleve.size - 1}`);
+
+const nouvelles = [...apresReleve.keys()].filter((t) => !avant.has(t));
+const disparues = [...avant.keys()].filter((t) => !apresReleve.has(t));
+// `_prisma_migrations` gagne une ligne par migration appliquée : c'est le
+// but de l'opération, pas une donnée métier touchée.
+const modifiees = [...avant.entries()].filter(
+  ([t, n]) => t !== '_prisma_migrations' && apresReleve.get(t) !== n,
 );
-console.info(`  tables applicatives après : ${tablesApres[0].n - 1}`);
+
+if (nouvelles.length) console.info(`  tables créées : ${nouvelles.join(', ')}`);
+if (disparues.length) stop(`Des tables ont disparu : ${disparues.join(', ')}.`);
+if (modifiees.length) {
+  stop(
+    `Le nombre de lignes a changé sur : ${modifiees.map(([t, n]) => `${t} (${n} → ${apresReleve.get(t)})`).join(', ')}.`,
+    'Une migration additive ne devrait toucher aucune donnée existante.',
+  );
+}
+console.info('  données existantes : inchangées (aucune table perdue, aucun décompte modifié)');
 console.info('\n✔ Base de production à jour.\n');
