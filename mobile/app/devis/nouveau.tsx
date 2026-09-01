@@ -328,10 +328,11 @@ export default function NouveauDevisScreen() {
                   onChange={(value) => setAnswers((a) => ({ ...a, [question.id]: value }))}
                 />
               ) : null}
+              {question.choices && !answers[question.id] ? null : (
               <TextInput
                 value={answers[question.id] ?? ''}
                 onChangeText={(value) => setAnswers((a) => ({ ...a, [question.id]: value }))}
-                placeholder={question.placeholder ?? 'Votre réponse'}
+                placeholder={question.placeholder ?? 'Précisez si besoin'}
                 placeholderTextColor={colors.subtle}
                 accessibilityLabel={question.prompt}
                 multiline={question.kind !== 'duree'}
@@ -348,6 +349,7 @@ export default function NouveauDevisScreen() {
                   },
                 ]}
               />
+              )}
             </Card>
           ))}
 

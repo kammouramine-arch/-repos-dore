@@ -2,33 +2,76 @@ import * as React from 'react';
 import { Pressable, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { formatCents, type DashboardDTO } from '@devisia/shared';
+import * as Haptics from 'expo-haptics';
+import { type DashboardDTO } from '@devisia/shared';
 import {
+  Amount,
+  Badge,
   Body,
   Button,
   Caption,
   Card,
   Divider,
-  EmptyState,
+  ErrorState,
   Heading,
+  Ionicons,
   Muted,
   Screen,
+  SectionHeader,
   Skeleton,
   Title,
 } from '@/components/ui';
+import { Logo } from '@/components/logo';
 import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, shadows, spacing, typography } from '@/theme';
 
-/** Accueil : ce que l'artisan doit savoir en trois secondes. */
+/**
+ * Accueil.
+ *
+ * L'écran répondait à un artisan qui vient de s'inscrire par six compteurs à
+ * zéro : rien à faire, rien à comprendre, et l'impression d'un produit vide.
+ * Tant qu'il n'y a pas d'activité, l'accueil ne montre donc pas de tableau de
+ * bord mais un chemin — le premier devis. Les chiffres apparaissent quand ils
+ * veulent dire quelque chose.
+ */
+function Stat({
+  label,
+  children,
+  hint,
+  tone = 'plain',
+}: {
+  label: string;
+  children: React.ReactNode;
+  hint?: string;
+  tone?: 'plain' | 'accent';
+}) {
+  return (
+    <Card
+      style={{
+        flex: 1,
+        gap: 2,
+        backgroundColor: tone === 'accent' ? colors.accentSoft : colors.canvas,
+        borderColor: tone === 'accent' ? colors.accentBorder : colors.line,
+      }}
+    >
+      <Caption upper style={{ color: tone === 'accent' ? colors.accentHover : colors.subtle }}>
+        {label}
+      </Caption>
+      {children}
+      {hint ? <Caption style={{ color: colors.subtle }}>{hint}</Caption> : null}
+    </Card>
+  );
+}
+
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const query = useQuery<DashboardDTO>(() => api.dashboard(30));
 
-  // Les montants changent pendant que l'utilisateur travaille : on recharge au retour.
+  // Les montants changent pendant que l'artisan travaille : on recharge au retour.
   useFocusEffect(
     React.useCallback(() => {
       void query.refresh();
@@ -37,192 +80,237 @@ export default function AccueilScreen() {
   );
 
   const data = query.data;
+  const firstName = session?.user.firstName?.trim() || data?.greetingName || '';
+
+  if (query.loading && !data) {
+    return (
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
+        <Screen>
+          <Skeleton height={34} width="60%" />
+          <Skeleton height={104} />
+          <Skeleton height={104} />
+        </Screen>
+      </SafeAreaView>
+    );
+  }
+
+  if (!data) {
+    return (
+      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
+        <ErrorState
+          description={query.error ?? 'Votre activité n’a pas pu être chargée.'}
+          onRetry={() => void query.reload()}
+        />
+      </SafeAreaView>
+    );
+  }
+
+  const started = data.quotesSent > 0 || data.recentActivity.length > 0 || data.newLeads > 0;
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <Screen
         refreshControl={
-          <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh()} tintColor={colors.accent} />
+          <RefreshControl
+            refreshing={query.refreshing}
+            onRefresh={() => void query.refresh()}
+            tintColor={colors.accent}
+          />
         }
       >
-        <View style={{ gap: 4 }}>
-          <Title>Bonjour {data?.greetingName ?? session?.user.firstName ?? ''}.</Title>
-          <Muted>Voici où en est votre activité.</Muted>
+        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+          <View style={{ gap: 2 }}>
+            <Title>{firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}</Title>
+            <Muted>
+              {started
+                ? 'Voici où en est votre activité.'
+                : 'Prenons deux minutes pour votre premier devis.'}
+            </Muted>
+          </View>
+          <Logo size={26} showName={false} />
         </View>
 
         <TrialBanner subscription={session?.subscription ?? null} />
 
-        {query.loading && !data ? (
-          <View style={{ gap: spacing.md }}>
-            <Skeleton height={120} />
-            <Skeleton height={150} />
-            <Skeleton height={90} />
-          </View>
-        ) : null}
-
-        {data ? (
+        {!started ? (
+          /* Première utilisation : une seule chose à faire, et on explique
+             comment elle se passe plutôt que d'afficher des compteurs vides. */
           <>
-            <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <Metric
-                label="CA gagné"
-                value={formatCents(data.revenueWonCents, { compact: true })}
-                tone="ink"
-              />
-              <Metric
-                label="Taux d’acceptation"
-                value={`${data.acceptanceRate} %`}
-                hint={`${data.quotesAccepted}/${data.quotesSent} devis`}
-                tone="ink"
-              />
-            </View>
-
-            {/* Le cœur commercial de DEVISIA. */}
             <Pressable
               accessibilityRole="button"
-              onPress={() => router.push('/(app)/devis?statut=ENVOYE')}
-              style={({ pressed }) => ({ opacity: pressed ? 0.9 : 1 })}
+              accessibilityLabel="Créer mon premier devis"
+              onPress={() => {
+                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                router.push('/devis/nouveau');
+              }}
+              style={({ pressed }) => [
+                {
+                  backgroundColor: colors.accent,
+                  borderRadius: radius.xl,
+                  padding: spacing.xl,
+                  gap: spacing.md,
+                  transform: [{ scale: pressed ? 0.985 : 1 }],
+                },
+                shadows.floating as object,
+              ]}
             >
               <View
                 style={{
-                  backgroundColor: colors.accentSoft,
-                  borderColor: colors.accentBorder,
-                  borderWidth: 1,
-                  borderRadius: radius.lg,
-                  padding: spacing.lg,
-                  gap: spacing.sm,
+                  width: 48,
+                  height: 48,
+                  borderRadius: radius.full,
+                  backgroundColor: 'rgba(255,255,255,0.18)',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                 }}
               >
-                <Caption style={{ color: colors.accentHover }}>Chiffre d’affaires à récupérer</Caption>
-                <Body style={{ fontSize: 34, lineHeight: 38, fontWeight: '700', color: colors.accentHover, letterSpacing: -1 }}>
-                  {formatCents(data.toRecover.totalCents, { compact: true })}
-                </Body>
-                <Muted style={{ color: colors.inkSoft }}>
-                  {data.toRecover.quoteCount === 0
-                    ? 'Aucun devis en attente de réponse.'
-                    : `${data.toRecover.quoteCount} devis en attente · ${data.toRecover.customerCount} client${
-                        data.toRecover.customerCount > 1 ? 's' : ''
-                      } sans réponse.`}
-                </Muted>
-
-                {data.toRecover.quotes.slice(0, 3).map((quote) => (
-                  <View
-                    key={quote.id}
-                    style={{
-                      backgroundColor: colors.canvas,
-                      borderRadius: radius.md,
-                      padding: spacing.md,
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: spacing.md,
-                    }}
-                  >
-                    <View style={{ flex: 1 }}>
-                      <Body style={{ fontWeight: '600' }} numberOfLines={1}>
-                        {quote.customerName}
-                      </Body>
-                      <Muted style={{ fontSize: 12 }} numberOfLines={1}>
-                        {quote.suggestion.reason}
-                      </Muted>
-                    </View>
-                    <Body style={{ fontWeight: '700' }}>{formatCents(quote.totalCents, { compact: true })}</Body>
-                  </View>
-                ))}
-
-                {data.toRecover.quoteCount > 0 ? (
-                  <Button
-                    title="Relancer maintenant"
-                    icon="send"
-                    onPress={() => router.push('/(app)/devis?statut=ENVOYE')}
-                    style={{ marginTop: spacing.xs }}
-                    haptic
-                  />
-                ) : null}
+                <Ionicons name="mic" size={24} color={colors.white} />
+              </View>
+              <Heading style={{ color: colors.white }}>Créez votre premier devis</Heading>
+              <Body style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 22 }}>
+                Décrivez le chantier à voix haute. DEVISIA prépare les lignes, vous vérifiez, vous
+                envoyez.
+              </Body>
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
+                <Body style={{ color: colors.white, fontWeight: '600' }}>Commencer</Body>
+                <Ionicons name="arrow-forward" size={17} color={colors.white} />
               </View>
             </Pressable>
 
+            <Card style={{ gap: spacing.lg }}>
+              <SectionHeader title="Pour aller plus vite ensuite" />
+              {[
+                {
+                  icon: 'book-outline' as const,
+                  label: 'Renseignez votre catalogue',
+                  hint: 'Vos prix seront appliqués au lieu d’être estimés.',
+                  href: '/catalogue' as const,
+                },
+                {
+                  icon: 'business-outline' as const,
+                  label: 'Complétez votre entreprise',
+                  hint: 'SIRET, TVA et mentions apparaîtront sur vos devis.',
+                  href: '/entreprise' as const,
+                },
+                {
+                  icon: 'people-outline' as const,
+                  label: 'Ajoutez un client',
+                  hint: 'Ou créez-le directement pendant un devis.',
+                  href: '/clients' as const,
+                },
+              ].map((item, index, all) => (
+                <View key={item.label} style={{ gap: spacing.lg }}>
+                  {index > 0 ? <Divider /> : null}
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={item.label}
+                    onPress={() => router.push(item.href)}
+                    style={({ pressed }) => ({
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: spacing.md,
+                      opacity: pressed ? 0.6 : 1,
+                    })}
+                  >
+                    <Ionicons name={item.icon} size={20} color={colors.inkSoft} />
+                    <View style={{ flex: 1 }}>
+                      <Body style={{ fontWeight: '600' }}>{item.label}</Body>
+                      <Muted style={{ fontSize: 13 }}>{item.hint}</Muted>
+                    </View>
+                    <Ionicons name="chevron-forward" size={17} color={colors.subtle} />
+                  </Pressable>
+                  {index === all.length - 1 ? <View /> : null}
+                </View>
+              ))}
+            </Card>
+          </>
+        ) : (
+          <>
+            {data.toRecover.quoteCount > 0 ? (
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Voir les devis à relancer"
+                onPress={() => router.push('/devis')}
+              >
+                <Stat label="Chiffre d’affaires à récupérer" tone="accent">
+                  <Amount cents={data.toRecover.totalCents} size="metric" tone="accent" />
+                  <Body style={{ color: colors.accentHover, marginTop: 2 }}>
+                    {data.toRecover.quoteCount} devis sans réponse · relancez-les
+                  </Body>
+                </Stat>
+              </Pressable>
+            ) : null}
+
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <Metric label="Devis envoyés" value={String(data.quotesSent)} tone="ink" />
-              <Metric label="Nouveaux prospects" value={String(data.newLeads)} tone="ink" />
+              <Stat label="CA gagné">
+                <Amount cents={data.revenueWonCents} size="metric" />
+              </Stat>
+              <Stat label="Taux d’acceptation" hint={`${data.quotesAccepted}/${data.quotesSent} devis`}>
+                <Body style={[typography.metric, { color: colors.ink }]}>
+                  {Math.round(data.acceptanceRate)} %
+                </Body>
+              </Stat>
             </View>
 
             <Card style={{ gap: spacing.md }}>
-              <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Heading>Activité récente</Heading>
-                <Pressable onPress={() => router.push('/(app)/devis')} accessibilityRole="button">
-                  <Body style={{ color: colors.accent, fontWeight: '600', fontSize: 13 }}>Tout voir</Body>
-                </Pressable>
-              </View>
-
+              <SectionHeader
+                title="Activité récente"
+                action={{ label: 'Tout voir', onPress: () => router.push('/devis') }}
+              />
               {data.recentActivity.length === 0 ? (
-                <Muted>Aucune activité pour le moment.</Muted>
+                <Muted>Aucune activité sur les 30 derniers jours.</Muted>
               ) : (
                 data.recentActivity.slice(0, 5).map((event, index) => (
                   <View key={event.id} style={{ gap: spacing.md }}>
                     {index > 0 ? <Divider /> : null}
                     <Pressable
+                      accessibilityRole="button"
+                      accessibilityLabel={`Devis ${event.quoteNumber}`}
                       onPress={() => router.push(`/devis/${event.quoteId}`)}
-                      style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}
+                      style={({ pressed }) => ({
+                        flexDirection: 'row',
+                        alignItems: 'center',
+                        gap: spacing.md,
+                        opacity: pressed ? 0.6 : 1,
+                      })}
                     >
                       <View style={{ flex: 1 }}>
-                        <Body numberOfLines={1}>{ACTIVITY_LABELS[event.type] ?? event.type}</Body>
-                        <Muted style={{ fontSize: 12 }} numberOfLines={1}>
-                          {event.quoteNumber} · {event.quoteTitle}
-                        </Muted>
+                        <Body numberOfLines={1} style={{ fontWeight: '600' }}>
+                          {event.quoteTitle}
+                        </Body>
+                        <Muted style={{ fontSize: 13 }}>{event.quoteNumber}</Muted>
                       </View>
-                      <Body style={{ fontWeight: '600' }}>
-                        {formatCents(event.totalCents, { compact: true })}
-                      </Body>
+                      <Amount cents={event.totalCents} tone="muted" />
                     </Pressable>
                   </View>
                 ))
               )}
             </Card>
-          </>
-        ) : null}
 
-        {!query.loading && !data && query.error ? (
-          <EmptyState
-            icon="cloud-offline-outline"
-            title="Données indisponibles"
-            description={query.error}
-            action={<Button title="Réessayer" variant="secondary" onPress={() => void query.reload()} />}
-          />
-        ) : null}
+            {data.newLeads > 0 ? (
+              <Pressable accessibilityRole="button" onPress={() => router.push('/prospects')}>
+                <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+                  <Badge label={String(data.newLeads)} tone="accent" />
+                  <Body style={{ flex: 1, fontWeight: '600' }}>
+                    {data.newLeads} nouvelle{data.newLeads > 1 ? 's' : ''} demande
+                    {data.newLeads > 1 ? 's' : ''}
+                  </Body>
+                  <Ionicons name="chevron-forward" size={17} color={colors.subtle} />
+                </Card>
+              </Pressable>
+            ) : null}
+
+            <Button
+              title="Nouveau devis"
+              icon="add"
+              haptic
+              onPress={() => router.push('/devis/nouveau')}
+            />
+          </>
+        )}
+
+        <View style={{ height: spacing.xl }} />
       </Screen>
     </SafeAreaView>
-  );
-}
-
-const ACTIVITY_LABELS: Record<string, string> = {
-  CREE: 'Devis créé',
-  MODIFIE: 'Devis modifié',
-  ENVOYE: 'Devis envoyé',
-  CONSULTE: 'Consulté par le client',
-  ACCEPTE: 'Accepté par le client',
-  REFUSE: 'Refusé par le client',
-  MODIFICATION_DEMANDEE: 'Modification demandée',
-  RELANCE: 'Relance envoyée',
-  PDF_TELECHARGE: 'PDF téléchargé',
-};
-
-function Metric({
-  label,
-  value,
-  hint,
-}: {
-  label: string;
-  value: string;
-  hint?: string;
-  tone?: 'ink' | 'accent';
-}) {
-  return (
-    <Card style={{ flex: 1, gap: 6, padding: spacing.md }}>
-      <Caption>{label}</Caption>
-      <Body style={{ fontSize: 24, lineHeight: 28, fontWeight: '700', letterSpacing: -0.7, color: colors.ink }}>
-        {value}
-      </Body>
-      {hint ? <Muted style={{ fontSize: 12 }}>{hint}</Muted> : null}
-    </Card>
   );
 }

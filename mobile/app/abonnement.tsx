@@ -283,10 +283,12 @@ export default function AbonnementScreen() {
       </View>
 
       {!data.billingReady ? (
+        /* Le message parle du compte de l'artisan, pas de la configuration du
+           serveur : « cette instance » ne veut rien dire pour lui. */
         <Banner
           tone="info"
-          title="Paiement bientôt disponible"
-          description="La souscription s’ouvrira dès que la facturation sera activée sur cette instance."
+          title="Rien ne vous sera prélevé pour l’instant"
+          description="Profitez de votre essai. Nous vous préviendrons avant qu’il se termine, et vous choisirez alors votre formule."
         />
       ) : null}
 
