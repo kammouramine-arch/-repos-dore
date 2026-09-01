@@ -173,13 +173,6 @@ const config: ExpoConfig = {
       },
     ],
     [
-      'expo-audio',
-      {
-        microphonePermission:
-          'DEVISIA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
-      },
-    ],
-    [
       'expo-notifications',
       {
         icon: './assets/notification-icon.png',

@@ -42,10 +42,19 @@ export function Muted({ style, ...props }: TextProps) {
   return <Text style={[typography.small, { color: colors.muted }, style]} {...props} />;
 }
 
-export function Caption({ style, ...props }: TextProps) {
+export function Caption({
+  upper = false,
+  style,
+  ...props
+}: TextProps & { /** Majuscules : réservé aux étiquettes courtes, jamais aux phrases. */ upper?: boolean }) {
   return (
     <Text
-      style={[typography.caption, { color: colors.subtle, textTransform: 'uppercase' }, style]}
+      style={[
+        typography.caption,
+        { color: colors.subtle },
+        upper ? { textTransform: 'uppercase' } : { letterSpacing: 0, fontWeight: '400' as const },
+        style,
+      ]}
       {...props}
     />
   );
