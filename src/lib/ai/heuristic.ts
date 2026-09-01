@@ -129,14 +129,32 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
   };
 }
 
+/**
+ * Objet du devis.
+ *
+ * L'objet reprenait la première phrase entière : sur un devis dicté d'un seul
+ * trait, il recopiait toute la description et l'écran affichait deux fois le
+ * même texte. On s'arrête donc à la première proposition, coupée sur un mot.
+ */
 function buildTitle(description: string, trade?: string | null): string {
   const first = description
-    .split(/[.\n!?]/)
+    .split(/[.\n!?;]|,\s*(?:puis|ensuite|et)\s+/i)
     .map((part) => part.trim())
     .find((part) => part.length > 8);
   if (!first) return trade ? `Intervention ${tradeLabel(trade)}` : 'Intervention';
-  const cleaned = first.replace(/^(le client|la cliente|il faut|je dois)\s+/i, '').trim();
-  return capitalize(cleaned.length > 90 ? `${cleaned.slice(0, 87)}…` : cleaned);
+  const cleaned = first
+    .replace(/^(le client|la cliente|il faut|je dois)\s+/i, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+  return capitalize(shorten(cleaned, 62));
+}
+
+/** Coupe sur un mot, jamais au milieu. */
+function shorten(text: string, max: number): string {
+  if (text.length <= max) return text;
+  const cut = text.slice(0, max);
+  const space = cut.lastIndexOf(' ');
+  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trim()}…`;
 }
 
 function buildSummary(description: string): string {

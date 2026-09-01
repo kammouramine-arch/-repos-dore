@@ -714,3 +714,27 @@ export function Amount({
     </Text>
   );
 }
+
+/**
+ * Champ de texte qui grandit avec son contenu.
+ *
+ * Un objet de devis ou un libellé de ligne dépasse souvent la largeur d'un
+ * iPhone. Sur une seule ligne le texte était rogné ; en multiligne à hauteur
+ * fixe, il l'était verticalement. La hauteur suit donc le contenu.
+ */
+export function GrowingInput({
+  style,
+  minHeight = 24,
+  ...props
+}: React.ComponentProps<typeof TextInput> & { minHeight?: number }) {
+  const [height, setHeight] = React.useState(minHeight);
+  return (
+    <TextInput
+      {...props}
+      multiline
+      scrollEnabled={false}
+      onContentSizeChange={(event) => setHeight(event.nativeEvent.contentSize.height)}
+      style={[style, { height: Math.max(minHeight, height) }]}
+    />
+  );
+}

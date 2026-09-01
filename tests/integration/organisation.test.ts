@@ -1,6 +1,8 @@
 import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { cleanupOrganization, createTestOrganization, prisma } from '../helpers';
 import { businessProfileSchema } from '@/server/validation';
+import { customerDisplayName } from '@/server/dto';
+import { createCustomer, listCustomers } from '@/server/services/customerService';
 
 /**
  * Profil d'entreprise exposé au mobile.
@@ -95,5 +97,41 @@ describe('profil d’entreprise', () => {
     });
     expect(after?.legalName).toBe('Plomberie Renommée');
     expect(after?.defaultHourlyCents).toBe(6200);
+  });
+});
+
+/**
+ * Nom affichable d'un client.
+ *
+ * Le contrat partagé annonce `displayName` ; la conversion serveur ne le
+ * produisait pas, et le répertoire mobile affichait des fiches sans nom. Ce
+ * cas fige le comportement attendu, y compris pour une fiche créée à la volée
+ * pendant un devis, qui n'a souvent qu'un nom de famille.
+ */
+describe('nom affichable d’un client', () => {
+  it('donne un nom à une fiche créée avec le seul nom de famille', async () => {
+    const created = await createCustomer(org.organization.id, org.user.id, {
+      lastName: 'Dupont',
+      phone: '0612345678',
+    });
+    expect(created.displayName).toBe('Dupont');
+  });
+
+  it('préfère la raison sociale au nom de la personne', () => {
+    expect(
+      customerDisplayName({ companyName: 'SCI des Lilas', firstName: 'Karim', lastName: 'Martin' }),
+    ).toBe('SCI des Lilas');
+  });
+
+  it('n’affiche jamais une ligne vide', () => {
+    expect(customerDisplayName({ companyName: null, firstName: null, lastName: null })).toBe(
+      'Client sans nom',
+    );
+  });
+
+  it('expose le nom dans la liste renvoyée au mobile', async () => {
+    const list = await listCustomers(org.organization.id, { search: 'Dupont' });
+    expect(list.items.length).toBeGreaterThan(0);
+    for (const item of list.items) expect(item.displayName.length).toBeGreaterThan(0);
   });
 });

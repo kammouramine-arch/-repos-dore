@@ -23,6 +23,7 @@ import {
   Card,
   ChoiceRow,
   Divider,
+  GrowingInput,
   Heading,
   IconButton,
   Ionicons,
@@ -67,6 +68,45 @@ function seconds(ms: number): string {
   return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
 }
 
+/** Les montants et quantités se modifient : le cadre le dit sans l'écrire. */
+const cellInput = {
+  color: colors.ink,
+  paddingVertical: 7,
+  paddingHorizontal: 10,
+  borderWidth: 1,
+  borderColor: colors.line,
+  borderRadius: radius.sm,
+  backgroundColor: colors.canvas,
+} as const;
+
+/** Un seul bandeau d'erreur pour toutes les étapes de la création. */
+function ErrorBanner({
+  error,
+  retry,
+  onDismiss,
+}: {
+  error: string | null;
+  retry: (() => void) | null;
+  onDismiss: () => void;
+}) {
+  if (!error) return null;
+  return (
+    <Banner
+      tone="danger"
+      title={error}
+      description={
+        retry ? 'Votre description et vos photos sont conservées : vous pouvez relancer.' : undefined
+      }
+      onDismiss={onDismiss}
+      action={
+        retry ? (
+          <Button title="Réessayer" variant="secondary" icon="refresh" onPress={retry} />
+        ) : undefined
+      }
+    />
+  );
+}
+
 export default function NouveauDevisScreen() {
   const router = useRouter();
   const { toast } = useToast();
@@ -74,6 +114,10 @@ export default function NouveauDevisScreen() {
   const [phase, setPhase] = React.useState<Phase>('saisie');
   const [description, setDescription] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
+  // Une panne réseau se rejoue ; une description trop courte, non. Le bandeau
+  // ne propose « Réessayer » que quand réessayer a un sens, et il rejoue
+  // exactement l'opération qui a échoué.
+  const [retry, setRetry] = React.useState<(() => void) | null>(null);
   const [step, setStep] = React.useState(0);
 
   const [draft, setDraft] = React.useState<GeneratedQuoteDTO | null>(null);
@@ -122,6 +166,7 @@ export default function NouveauDevisScreen() {
 
   async function generate(text: string) {
     setError(null);
+    setRetry(null);
     setStep(0);
     setPhase('generation');
     try {
@@ -135,26 +180,31 @@ export default function NouveauDevisScreen() {
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      setRetry(() => () => void generate(text));
       setError(
         cause instanceof DevisiaApiError
           ? cause.message
-          : 'La préparation du devis n’a pas abouti. Votre description est conservée.',
+          : 'La préparation du devis n’a pas abouti.',
       );
-      setPhase('saisie');
+      // On revient là d'où l'artisan est parti : ses réponses restent saisies.
+      setPhase(questions.length > 0 ? 'questions' : 'saisie');
     }
   }
 
   /** Première passe : on demande d'abord ce qui manque, avant de faire attendre. */
   async function prepare() {
     if (composed.trim().length < 12) {
+      setRetry(null);
       setError('Décrivez le chantier en quelques mots avant de continuer.');
       return;
     }
     if (photos.uploading) {
+      setRetry(null);
       setError('Une photo est en cours d’envoi. Encore un instant.');
       return;
     }
     setError(null);
+    setRetry(null);
     setStep(0);
     setPhase('generation');
     try {
@@ -176,10 +226,11 @@ export default function NouveauDevisScreen() {
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      setRetry(() => () => void prepare());
       setError(
         cause instanceof DevisiaApiError
           ? cause.message
-          : 'La préparation du devis n’a pas abouti. Votre description est conservée.',
+          : 'La préparation du devis n’a pas abouti.',
       );
       setPhase('saisie');
     }
@@ -353,6 +404,8 @@ export default function NouveauDevisScreen() {
             </Card>
           ))}
 
+          <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />
+
           <View style={{ gap: spacing.sm }}>
             <Button
               title="Préparer le devis"
@@ -392,13 +445,16 @@ export default function NouveauDevisScreen() {
 
           <Card style={{ gap: spacing.md }}>
             <SectionHeader title="Objet" />
-            <TextInput
+            {/* Multiligne : un objet de devis dépasse souvent la largeur d'un
+                iPhone, et un champ à une seule ligne le rognait. */}
+            <GrowingInput
               value={title}
               onChangeText={setTitle}
               accessibilityLabel="Objet du devis"
               placeholder="Remplacement du siphon"
               placeholderTextColor={colors.subtle}
-              style={[typography.heading, { color: colors.ink, paddingVertical: 4 }]}
+              minHeight={30}
+              style={[typography.heading, { color: colors.ink, width: '100%' }]}
             />
             {draft.summary ? <Muted>{draft.summary}</Muted> : null}
           </Card>
@@ -478,11 +534,15 @@ export default function NouveauDevisScreen() {
               <View key={`${line.label}-${index}`} style={{ gap: spacing.sm, padding: spacing.lg }}>
                 {index > 0 ? <Divider /> : null}
                 <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
-                  <TextInput
+                  <GrowingInput
                     value={line.label}
                     onChangeText={(label) => patchLine(index, { label })}
                     accessibilityLabel={`Libellé de la ligne ${index + 1}`}
-                    style={[typography.body, { flex: 1, fontWeight: '600', color: colors.ink }]}
+                    minHeight={22}
+                    style={[
+                      typography.body,
+                      { flex: 1, minWidth: 0, fontWeight: '600', color: colors.ink },
+                    ]}
                   />
                   <IconButton
                     icon="trash-outline"
@@ -492,9 +552,13 @@ export default function NouveauDevisScreen() {
                     onPress={() => setLines((c) => c.filter((_, i) => i !== index))}
                   />
                 </View>
-                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <View style={{ flex: 1 }}>
-                    <Caption style={{ color: colors.subtle }}>QUANTITÉ</Caption>
+                {/* minWidth: 0 sur les colonnes souples : sans lui, la largeur
+                    intrinsèque des champs pousse le total hors de la carte. */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm }}>
+                  <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Quantité
+                    </Caption>
                     <TextInput
                       value={String(line.quantity)}
                       onChangeText={(value) =>
@@ -502,11 +566,13 @@ export default function NouveauDevisScreen() {
                       }
                       keyboardType="decimal-pad"
                       accessibilityLabel={`Quantité de la ligne ${index + 1}`}
-                      style={[typography.body, { color: colors.ink, paddingVertical: 6 }]}
+                      style={[typography.body, cellInput]}
                     />
                   </View>
-                  <View style={{ flex: 1 }}>
-                    <Caption style={{ color: colors.subtle }}>PRIX UNITAIRE</Caption>
+                  <View style={{ flex: 1.2, minWidth: 0, gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Prix unitaire
+                    </Caption>
                     <TextInput
                       value={(line.unitPriceCents / 100).toFixed(2)}
                       onChangeText={(value) =>
@@ -516,12 +582,16 @@ export default function NouveauDevisScreen() {
                       }
                       keyboardType="decimal-pad"
                       accessibilityLabel={`Prix unitaire de la ligne ${index + 1}`}
-                      style={[typography.body, { color: colors.ink, paddingVertical: 6 }]}
+                      style={[typography.body, cellInput]}
                     />
                   </View>
-                  <View style={{ alignItems: 'flex-end' }}>
-                    <Caption style={{ color: colors.subtle }}>TOTAL</Caption>
-                    <Amount cents={Math.round(line.unitPriceCents * line.quantity)} />
+                  <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end', gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Total
+                    </Caption>
+                    <View style={{ paddingVertical: 8 }}>
+                      <Amount cents={Math.round(line.unitPriceCents * line.quantity)} />
+                    </View>
                   </View>
                 </View>
                 {line.fromCatalog ? <Badge label="Votre catalogue" tone="accent" /> : null}
@@ -606,7 +676,7 @@ export default function NouveauDevisScreen() {
           <Muted>Parlez comme vous le feriez à votre apprenti. DEVISIA met en forme.</Muted>
         </View>
 
-        {error ? <Banner tone="danger" title={error} /> : null}
+        <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />
         {dictation.error ? (
           <Banner
             tone="warning"

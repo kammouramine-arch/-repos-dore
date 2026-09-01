@@ -7,7 +7,6 @@ import {
   Banner,
   Button,
   Caption,
-  Field,
   Heading,
   Ionicons,
   ListRow,
@@ -16,6 +15,7 @@ import {
   SearchField,
   Title,
 } from '@/components/ui';
+import { ClientForm } from '@/components/client-sheet';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 
@@ -30,11 +30,6 @@ import { colors, radius, spacing } from '@/theme';
  * Ici, l'absence de résultat n'est pas une impasse : c'est l'endroit exact où
  * l'on propose de créer la fiche, pré-remplie avec ce qui vient d'être tapé.
  */
-function displayName(customer: CustomerDTO): string {
-  const parts = [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim();
-  return customer.companyName?.trim() || parts || 'Client sans nom';
-}
-
 export function ClientPicker({
   visible,
   onClose,
@@ -48,8 +43,6 @@ export function ClientPicker({
   const [items, setItems] = React.useState<CustomerDTO[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [creating, setCreating] = React.useState(false);
-  const [saving, setSaving] = React.useState(false);
-  const [form, setForm] = React.useState({ lastName: '', phone: '', email: '' });
 
   const load = React.useCallback(async (term: string) => {
     setError(null);
@@ -74,35 +67,9 @@ export function ClientPicker({
     setSearch('');
     setItems(null);
     setCreating(false);
-    setForm({ lastName: '', phone: '', email: '' });
     setError(null);
     onClose();
   }, [onClose]);
-
-  async function create() {
-    const name = form.lastName.trim();
-    if (name.length < 2) {
-      setError('Indiquez au moins le nom du client.');
-      return;
-    }
-    setSaving(true);
-    setError(null);
-    try {
-      const customer = await api.customers.create({
-        lastName: name,
-        phone: form.phone.trim() || null,
-        email: form.email.trim() || null,
-      });
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-      onSelect(customer);
-    } catch (cause) {
-      setError(
-        cause instanceof DevisiaApiError ? cause.message : 'Le client n’a pas pu être créé.',
-      );
-    } finally {
-      setSaving(false);
-    }
-  }
 
   const trimmed = search.trim();
   const noMatch = items !== null && items.length === 0;
@@ -126,40 +93,13 @@ export function ClientPicker({
         </View>
 
         {creating ? (
-          <ScrollView
-            contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
-            keyboardShouldPersistTaps="handled"
-          >
-            <Muted>Le minimum suffit : vous compléterez la fiche plus tard.</Muted>
-            {error ? <Banner tone="danger" title={error} /> : null}
-            <Field
-              label="Nom du client"
-              value={form.lastName}
-              onChangeText={(lastName) => setForm((f) => ({ ...f, lastName }))}
-              placeholder="Dupont"
-              autoFocus
-              autoCapitalize="words"
-            />
-            <Field
-              label="Téléphone"
-              hint="facultatif"
-              value={form.phone}
-              onChangeText={(phone) => setForm((f) => ({ ...f, phone }))}
-              placeholder="06 12 34 56 78"
-              keyboardType="phone-pad"
-            />
-            <Field
-              label="Email"
-              hint="pour envoyer le devis"
-              value={form.email}
-              onChangeText={(email) => setForm((f) => ({ ...f, email }))}
-              placeholder="client@exemple.fr"
-              keyboardType="email-address"
-              autoCapitalize="none"
-            />
-            <Button title="Créer et continuer" loading={saving} haptic onPress={() => void create()} />
-            <Button title="Retour à la recherche" variant="ghost" onPress={() => setCreating(false)} />
-          </ScrollView>
+          <ClientForm
+            initialName={trimmed}
+            submitLabel="Créer et continuer"
+            onCreated={onSelect}
+            onCancel={() => setCreating(false)}
+            cancelLabel="Retour à la recherche"
+          />
         ) : (
           <>
             <View style={{ paddingHorizontal: spacing.lg, paddingBottom: spacing.md }}>
@@ -201,10 +141,7 @@ export function ClientPicker({
                     title={trimmed ? `Créer « ${trimmed} »` : 'Créer un client'}
                     icon="add"
                     haptic
-                    onPress={() => {
-                      setForm((f) => ({ ...f, lastName: trimmed }));
-                      setCreating(true);
-                    }}
+                    onPress={() => setCreating(true)}
                   />
                 </View>
               ) : null}
@@ -212,7 +149,7 @@ export function ClientPicker({
               {items?.map((customer, index) => (
                 <ListRow
                   key={customer.id}
-                  title={displayName(customer)}
+                  title={customer.displayName}
                   subtitle={customer.phone ?? customer.email ?? customer.city ?? null}
                   icon="person-outline"
                   last={index === items.length - 1}
@@ -229,10 +166,7 @@ export function ClientPicker({
                     title={trimmed ? `Créer « ${trimmed} »` : 'Nouveau client'}
                     variant="secondary"
                     icon="add"
-                    onPress={() => {
-                      setForm((f) => ({ ...f, lastName: trimmed }));
-                      setCreating(true);
-                    }}
+                    onPress={() => setCreating(true)}
                   />
                 </View>
               ) : null}

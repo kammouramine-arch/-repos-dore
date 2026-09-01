@@ -193,21 +193,25 @@ export default function CatalogueScreen() {
         ) : null}
       </ScrollView>
 
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          bottom: 0,
-          padding: spacing.lg,
-          paddingBottom: spacing['2xl'],
-          backgroundColor: colors.canvas,
-          borderTopWidth: 1,
-          borderTopColor: colors.line,
-        }}
-      >
-        <Button title="Nouvelle prestation" icon="add" haptic onPress={() => setDraft(BLANK)} />
-      </View>
+      {/* L'état vide porte déjà son action : deux boutons identiques à l'écran
+          ne donneraient qu'une impression de brouillon. */}
+      {items && items.length > 0 ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: spacing.lg,
+            paddingBottom: spacing['2xl'],
+            backgroundColor: colors.canvas,
+            borderTopWidth: 1,
+            borderTopColor: colors.line,
+          }}
+        >
+          <Button title="Nouvelle prestation" icon="add" haptic onPress={() => setDraft(BLANK)} />
+        </View>
+      ) : null}
 
       <Modal
         visible={draft !== null}

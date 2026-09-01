@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { buildHeuristicQuoteDraft } from '@/lib/ai/heuristic';
 
 /**
  * Détection de `ANTHROPIC_API_KEY` au runtime.
@@ -103,5 +104,44 @@ describe('confinement du secret', () => {
     const capabilities = loaded.ai.aiCapabilities();
     expect(JSON.stringify(capabilities)).not.toContain('sk-ant');
     expect(Object.values(capabilities).every((v) => typeof v === 'boolean')).toBe(true);
+  });
+});
+
+/**
+ * Objet du devis produit sans fournisseur IA.
+ *
+ * L'objet reprenait la première phrase entière : une description dictée d'un
+ * seul trait donnait un titre aussi long que le devis, répété juste en dessous
+ * par le résumé, et rogné à l'écran.
+ */
+describe('objet du devis', () => {
+  const base = { catalog: [], hourlyRateCents: 4500, defaultVatRate: 20, trade: 'PLOMBIER' };
+
+  it('reste un titre, pas la description entière', () => {
+    const draft = buildHeuristicQuoteDraft({
+      ...base,
+      description:
+        "Remplacement d'un chauffe-eau 200 litres, deux heures sur place, evacuation de l'ancien et remise en service.",
+    });
+    expect(draft.titre.length).toBeLessThanOrEqual(63);
+    expect(draft.titre.length).toBeGreaterThan(8);
+    expect(draft.titre.length).toBeLessThan(draft.resume.length);
+  });
+
+  it('coupe sur un mot entier', () => {
+    const draft = buildHeuristicQuoteDraft({
+      ...base,
+      description:
+        'Renovation complete de la salle de bain avec depose du carrelage existant pose de faience murale et installation dune douche italienne',
+    });
+    expect(draft.titre.endsWith('…')).toBe(true);
+    // Le caractère avant les points de suspension termine un mot, il n'est
+    // donc pas suivi d'un fragment : le titre entier existe dans le résumé.
+    expect(draft.resume.toLowerCase()).toContain(draft.titre.replace('…', '').toLowerCase());
+  });
+
+  it('nomme le métier quand la description est trop courte pour un titre', () => {
+    const draft = buildHeuristicQuoteDraft({ ...base, description: 'fuite' });
+    expect(draft.titre).toMatch(/Intervention/i);
   });
 });

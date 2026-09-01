@@ -29,6 +29,12 @@ const eslintConfig = [
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
     },
   },
+  {
+    // Les scripts de maintenance et d'audit parlent à un opérateur dans un
+    // terminal : leur sortie console est leur raison d'être.
+    files: ['scripts/**/*.mjs'],
+    rules: { 'no-console': 'off' },
+  },
 ];
 
 export default eslintConfig;

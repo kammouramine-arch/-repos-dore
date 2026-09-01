@@ -135,6 +135,8 @@ export interface CustomerDTO {
   firstName: string | null;
   lastName: string | null;
   companyName: string | null;
+  /** Toujours renseigné : le contrat partagé le promet à l'application mobile. */
+  displayName: string;
   email: string | null;
   phone: string | null;
   addressLine1: string | null;
@@ -149,12 +151,30 @@ export interface CustomerDTO {
   createdAt: string;
 }
 
+/**
+ * Nom affichable d'un client.
+ *
+ * Le contrat annonçait `displayName`, mais la conversion ne le produisait pas :
+ * les listes mobiles affichaient une fiche sans nom, avec ses seules
+ * coordonnées. Un client enregistré au seul nom de famille — le cas courant
+ * quand la fiche naît pendant un devis — devenait ainsi invisible.
+ */
+export function customerDisplayName(customer: {
+  companyName: string | null;
+  firstName: string | null;
+  lastName: string | null;
+}): string {
+  const person = [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim();
+  return customer.companyName?.trim() || person || 'Client sans nom';
+}
+
 export function toCustomerDTO(customer: Customer): CustomerDTO {
   return {
     id: customer.id,
     firstName: customer.firstName,
     lastName: customer.lastName,
     companyName: customer.companyName,
+    displayName: customerDisplayName(customer),
     email: customer.email,
     phone: customer.phone,
     addressLine1: customer.addressLine1,

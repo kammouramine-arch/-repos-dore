@@ -3,15 +3,24 @@ import { FlatList, Linking, Pressable, RefreshControl, View } from 'react-native
 import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatCents, type CustomerDTO } from '@devisia/shared';
-import { Body, Divider, EmptyState, Field, Ionicons, Muted, Skeleton, Title } from '@/components/ui';
+import { Body, Button, Divider, EmptyState, Field, Ionicons, Muted, Skeleton, Title } from '@/components/ui';
+import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
 
-/** Répertoire client : appeler en un geste depuis le chantier. */
+/**
+ * Répertoire client.
+ *
+ * L'écran savait chercher et appeler, mais pas créer : arrivé ici depuis
+ * « Ajoutez un client », l'artisan tombait sur une liste vide sans aucune
+ * action. La fiche s'ouvre maintenant d'ici comme depuis un devis, par le même
+ * formulaire.
+ */
 export default function ClientsScreen() {
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
+  const [creating, setCreating] = React.useState(false);
 
   React.useEffect(() => {
     const timer = setTimeout(() => setDebounced(search.trim()), 260);
@@ -53,7 +62,7 @@ export default function ClientsScreen() {
         <FlatList
           data={query.data?.items ?? []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing['4xl'] }}
+          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 120 }}
           ItemSeparatorComponent={() => <Divider />}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh()} tintColor={colors.accent} />
@@ -62,7 +71,19 @@ export default function ClientsScreen() {
             <EmptyState
               icon="people-outline"
               title={debounced ? 'Aucun client trouvé.' : 'Aucun client pour le moment.'}
-              description={debounced ? 'Essayez un autre nom ou une ville.' : undefined}
+              description={
+                debounced
+                  ? 'Essayez un autre nom ou une ville.'
+                  : 'Vos clients arrivent aussi tout seuls : chaque devis crée la fiche correspondante.'
+              }
+              action={
+                <Button
+                  title="Nouveau client"
+                  icon="person-add-outline"
+                  haptic
+                  onPress={() => setCreating(true)}
+                />
+              }
             />
           }
           renderItem={({ item }) => (
@@ -100,6 +121,40 @@ export default function ClientsScreen() {
           )}
         />
       )}
+
+      {/* L'état vide porte déjà son action : on n'affiche la barre du bas que
+          lorsqu'il y a une liste au-dessus d'elle. */}
+      {(query.data?.items.length ?? 0) > 0 ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: spacing.lg,
+            paddingBottom: spacing['2xl'],
+            backgroundColor: colors.canvas,
+            borderTopWidth: 1,
+            borderTopColor: colors.line,
+          }}
+        >
+          <Button
+            title="Nouveau client"
+            icon="person-add-outline"
+            haptic
+            onPress={() => setCreating(true)}
+          />
+        </View>
+      ) : null}
+
+      <ClientSheet
+        visible={creating}
+        onClose={() => setCreating(false)}
+        onCreated={() => {
+          setCreating(false);
+          void query.reload();
+        }}
+      />
     </SafeAreaView>
   );
 }
