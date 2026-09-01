@@ -80,7 +80,7 @@ await shot('05-plus');
 const plusText = await page.locator('body').innerText();
 console.log('« Sur le web » présent :', /Sur le web/i.test(plusText));
 
-for (const [label, name] of [['Catalogue de prix','06-catalogue'], ['Mon entreprise','07-entreprise'], ['Activité','08-activite']]) {
+for (const [label, name] of [['Abonnement','06-abonnement'], ['Catalogue de prix','07-catalogue'], ['Mon entreprise','08-entreprise'], ['Activité','09-activite']]) {
   await page.getByText(label, { exact: false }).filter({visible:true}).first().click().catch(()=>{});
   await page.waitForTimeout(2200);
   await shot(name);
@@ -91,14 +91,14 @@ for (const [label, name] of [['Catalogue de prix','06-catalogue'], ['Mon entrepr
 // Création de devis
 await page.getByLabel('Créer un devis').filter({visible:true}).first().click().catch(()=>{});
 await page.waitForTimeout(2000);
-await shot('09-nouveau-devis');
+await shot('10-nouveau-devis');
 const zone = page.locator('textarea').filter({visible:true}).first();
 await zone.fill("Le client a une fuite sous l'evier. Remplacer le siphon, verifier les raccordements.").catch(()=>{});
 await page.waitForTimeout(400);
-await shot('10-description');
+await shot('11-description');
 await vis(/Préparer le devis/i).click().catch(()=>{});
 await page.waitForTimeout(9000);
-await shot('11-etape-suivante');
+await shot('12-etape-suivante');
 console.log('questions ou vérification :', await seen(/Il me manque|Vérifiez votre devis/i, 12000));
 
 console.log('\nERREURS CONSOLE (' + errors.length + ')');

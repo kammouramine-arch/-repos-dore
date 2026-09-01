@@ -225,6 +225,16 @@ export default function AbonnementScreen() {
         ))}
       </Card>
 
+      {!data.billingReady ? (
+        /* Le message parle du compte de l'artisan, pas de la configuration du
+           serveur : « cette instance » ne veut rien dire pour lui. */
+        <Banner
+          tone="info"
+          title="Rien ne vous sera prélevé pour l’instant"
+          description="Profitez de votre essai. Nous vous préviendrons avant qu’il se termine, et vous choisirez alors votre formule."
+        />
+      ) : null}
+
       <View style={{ gap: spacing.md }}>
         {PLAN_ORDER.map((planId) => {
           const plan = PLANS[planId];
@@ -281,16 +291,6 @@ export default function AbonnementScreen() {
           );
         })}
       </View>
-
-      {!data.billingReady ? (
-        /* Le message parle du compte de l'artisan, pas de la configuration du
-           serveur : « cette instance » ne veut rien dire pour lui. */
-        <Banner
-          tone="info"
-          title="Rien ne vous sera prélevé pour l’instant"
-          description="Profitez de votre essai. Nous vous préviendrons avant qu’il se termine, et vous choisirez alors votre formule."
-        />
-      ) : null}
 
       {data.canManage && data.subscription.status !== 'trialing' ? (
         <View style={{ gap: spacing.md }}>
