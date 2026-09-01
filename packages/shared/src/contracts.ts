@@ -64,7 +64,13 @@ export interface SessionDTO {
   user: SessionUserDTO;
   organization: SessionOrganizationDTO;
   subscription: SubscriptionDTO | null;
-  capabilities: { generation: boolean; vision: boolean; transcription: boolean };
+  capabilities: {
+    generation: boolean;
+    vision: boolean;
+    transcription: boolean;
+    /** Fournisseur d'IA réellement actif côté serveur. */
+    provider: 'gemini' | 'anthropic' | 'local';
+  };
 }
 
 /** Réponse d'authentification mobile : jeton porteur + contexte. */

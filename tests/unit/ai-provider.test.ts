@@ -103,7 +103,11 @@ describe('confinement du secret', () => {
     restore = loaded.restore;
     const capabilities = loaded.ai.aiCapabilities();
     expect(JSON.stringify(capabilities)).not.toContain('sk-ant');
-    expect(Object.values(capabilities).every((v) => typeof v === 'boolean')).toBe(true);
+    // Les capacités ne portent que des drapeaux et le nom du fournisseur :
+    // aucune valeur libre où une clé pourrait se glisser.
+    const { provider, ...drapeaux } = capabilities;
+    expect(Object.values(drapeaux).every((v) => typeof v === 'boolean')).toBe(true);
+    expect(['gemini', 'anthropic', 'local']).toContain(provider);
   });
 });
 
@@ -262,6 +266,44 @@ describe('choix du fournisseur', () => {
     });
     expect(env.aiProviderKind()).toBe('local');
     expect(ai.getAIProvider()).toBeNull();
+    restore();
+  });
+});
+
+/**
+ * Fournisseur annoncé par les capacités.
+ *
+ * `generation: true` dit seulement qu'une clé existe. Deux fois de suite, une
+ * production dégradée s'est révélée indiscernable d'un déploiement qui n'était
+ * pas encore parti : le nom du fournisseur actif lève l'ambiguïté sans rien
+ * divulguer.
+ */
+describe('fournisseur annoncé', () => {
+  it('nomme Gemini quand c’est lui qui sert', async () => {
+    const { ai, restore } = await loadWith({
+      GEMINI_API_KEY: 'cle-gemini',
+      ANTHROPIC_API_KEY: undefined,
+      AI_PROVIDER: undefined,
+    });
+    expect(ai.aiCapabilities().provider).toBe('gemini');
+    restore();
+  });
+
+  it('nomme le moteur local quand aucune clé n’est posée', async () => {
+    const { ai, restore } = await loadWith({
+      GEMINI_API_KEY: undefined,
+      ANTHROPIC_API_KEY: undefined,
+      AI_PROVIDER: undefined,
+    });
+    const capacites = ai.aiCapabilities();
+    expect(capacites.provider).toBe('local');
+    expect(capacites.generation).toBe(false);
+    restore();
+  });
+
+  it('ne divulgue jamais la clé elle-même', async () => {
+    const { ai, restore } = await loadWith({ GEMINI_API_KEY: 'CLE-SECRETE-123' });
+    expect(JSON.stringify(ai.aiCapabilities())).not.toContain('CLE-SECRETE-123');
     restore();
   });
 });
