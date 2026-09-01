@@ -21,23 +21,6 @@
 
 <section class="on-dark pdp-section" data-product
          data-product-available="{% if product.available %}true{% else %}false{% endif %}">
-  <script type="application/json" data-product-json>
-{
-  "id": {{ product.id | json }},
-  "options": {{ product.options | json }},
-  "variants": [
-    {%- for v in product.variants -%}
-    {
-      "id": {{ v.id | json }},
-      "price": {{ v.price | json }},
-      "available": {% if v.available %}true{% else %}false{% endif %},
-      "options": {{ v.options | json }},
-      "media": {% if v.featured_media %}{{ v.featured_media.position | json }}{% else %}null{% endif %}
-    }{%- unless forloop.last -%},{%- endunless -%}
-    {%- endfor -%}
-  ]
-}
-  </script>
 
   <div class="shell pdp">
     <div class="pdp__gallery" aria-label="{{ short_title | escape }} imagery">
@@ -86,32 +69,80 @@
       {%- form 'product', product, data-product-form: '' -%}
         <input type="hidden" name="id" value="{{ current.id }}" data-variant-id>
 
+        {%- comment -%}
+          Server-authoritative variant picker.
+
+          Every option value is a link to a REAL variant id, resolved here by Liquid at
+          render time against product.variants. Choosing one navigates (or, with JS, swaps
+          this section via the Section Rendering API) and Shopify re-renders with that
+          variant selected. Nothing on the client decides which variant is chosen, whether
+          it exists, or whether it can be bought.
+
+          For each value we look for the variant that keeps every other option as it is.
+          If that exact combination does not exist we fall back to the first variant that
+          uses the value at all, so the customer moves to a valid combination instead of
+          hitting a dead end. A value no variant uses is rendered inert.
+        {%- endcomment -%}
         {%- for option in product.options_with_values -%}
           {%- assign idx = forloop.index0 -%}
           {%- assign is_color = false -%}
-          {%- if option.name == 'Color' or option.name == 'Colour' -%}{%- assign is_color = true -%}{%- endif -%}
+          {%- assign lname = option.name | downcase -%}
+          {%- if lname == 'color' or lname == 'colour' -%}{%- assign is_color = true -%}{%- endif -%}
           <fieldset class="opt {% if is_color %}opt--color{% endif %}">
             <legend class="vh">{{ option.name }}</legend>
             <div class="opt__head">
               <span class="t-micro t-faint">{% if is_color %}Colour{% else %}{{ option.name }}{% endif %}</span>
               {%- if is_color -%}
-                <span class="t-micro opt__val" data-opt-val="{{ idx }}">{{ option.selected_value }}</span>
+                <span class="t-micro opt__val">{{ option.selected_value }}</span>
               {%- else -%}
                 <a class="t-micro t-faint link-line" href="/pages/size-guide">Size guide</a>
               {%- endif -%}
             </div>
             <div class="optgrid {% if is_color %}opt-color{% else %}opt-size{% endif %}">
               {%- for value in option.values -%}
-                <input type="radio" class="vh" id="opt-{{ idx }}-{{ forloop.index0 }}" name="option-{{ idx }}"
-                       value="{{ value | escape }}" {% if option.selected_value == value %}checked{% endif %}>
-                <label for="opt-{{ idx }}-{{ forloop.index0 }}"{% if is_color %} title="{{ value | escape }}"{% endif %}>
-                  {%- if is_color -%}
-                    <span class="sw sw--lg" style="background:{% render 'gr-swatch-hex', color: value %}"></span>
-                    <span class="vh">{{ value }}</span>
-                  {%- else -%}
-                    <span>{{ value }}</span>
+                {%- assign exact = nil -%}
+                {%- assign loose = nil -%}
+                {%- for v in product.variants -%}
+                  {%- if v.options[idx] == value -%}
+                    {%- if loose == nil -%}{%- assign loose = v -%}{%- endif -%}
+                    {%- assign same = true -%}
+                    {%- for other in product.options_with_values -%}
+                      {%- assign oi = forloop.index0 -%}
+                      {%- unless oi == idx -%}
+                        {%- unless v.options[oi] == current.options[oi] -%}{%- assign same = false -%}{%- endunless -%}
+                      {%- endunless -%}
+                    {%- endfor -%}
+                    {%- if same and exact == nil -%}{%- assign exact = v -%}{%- endif -%}
                   {%- endif -%}
-                </label>
+                {%- endfor -%}
+                {%- assign target = exact | default: loose -%}
+                {%- assign chosen = false -%}
+                {%- if option.selected_value == value -%}{%- assign chosen = true -%}{%- endif -%}
+
+                {%- if target -%}
+                  <a class="optval{% if chosen %} is-on{% endif %}{% unless target.available %} is-off{% endunless %}"
+                     href="{{ product.url }}?variant={{ target.id }}"
+                     data-variant-link
+                     {% if chosen %}aria-current="true"{% endif %}
+                     {% if is_color %}title="{{ value | escape }}"{% endif %}>
+                    {%- if is_color -%}
+                      <span class="sw sw--lg" style="background:{% render 'gr-swatch-hex', color: value %}"></span>
+                      <span class="vh">{{ value }}{% unless target.available %} — sold out{% endunless %}</span>
+                    {%- else -%}
+                      <span>{{ value }}</span>
+                    {%- endif -%}
+                  </a>
+                {%- else -%}
+                  <span class="optval is-void" aria-disabled="true"
+                        {% if is_color %}title="{{ value | escape }}"{% endif %}>
+                    {%- if is_color -%}
+                      <span class="sw sw--lg" style="background:{% render 'gr-swatch-hex', color: value %}"></span>
+                      <span class="vh">{{ value }} — not made in this chapter</span>
+                    {%- else -%}
+                      <span>{{ value }}</span>
+                    {%- endif -%}
+                  </span>
+                {%- endif -%}
               {%- endfor -%}
             </div>
           </fieldset>

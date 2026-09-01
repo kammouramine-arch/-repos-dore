@@ -156,120 +156,21 @@
       }).catch(() => {});
   });
 
-  /* ---------- product form ----------
-     Availability is server-authoritative. This controller may only DOWNGRADE the
-     button after a positive variant match. Parse failure, an unmatched combination,
-     or missing data all leave Liquid's purchasable state untouched. */
-  qsa("[data-product]").forEach((root) => {
+  /* ---------- product ----------
+     Availability is decided ENTIRELY by Shopify. Liquid renders the selected variant,
+     its price and the button state; every option value is a link to a real variant id.
+     Nothing here computes, infers or overrides availability — this code only swaps the
+     server-rendered section in without a full page load, and posts the add to cart.
+     If any of it fails, the links navigate normally and the page still works. */
+
+  const SECTION_ID = "main";   // the product section's id in templates/product.json
+
+  const bindProduct = (root) => {
     const form = qs("form[data-product-form]", root);
     const idInput = qs("[data-variant-id]", root);
-    const priceEls = qsa("[data-price]", root);
     const btns = qsa("[data-atc]", root);
     const setText = (b, t) => { const s = qs("[data-atc-text]", b); (s || b).textContent = t; };
     const label = (b) => b.dataset.label || "Add to bag";
-
-    let data = null;
-    const raw = qs("[data-product-json]", root);
-    if (raw) { try { data = JSON.parse(raw.textContent); } catch (e) { data = null; } }
-
-    // Without trustworthy data we do nothing at all: the server already rendered the truth.
-    const usable = data && Array.isArray(data.variants) && data.variants.length
-      && Array.isArray(data.options) && data.options.length;
-
-    if (usable) {
-      const variants = data.variants;
-      const optNames = data.options;
-
-      const selection = () => optNames.map((_, i) => {
-        const el = qs('input[name="option-' + i + '"]:checked', root);
-        return el ? el.value : null;
-      });
-
-      const match = (sel) => variants.find((v) =>
-        Array.isArray(v.options) && sel.every((val, i) => val === null || v.options[i] === val));
-
-      const sync = () => {
-        const sel = selection();
-        const v = match(sel);
-
-        // reflect the chosen colour name
-        qsa("[data-opt-val]", root).forEach((el) => {
-          const i = parseInt(el.dataset.optVal, 10);
-          if (sel[i]) el.textContent = sel[i];
-        });
-
-        // Mark sizes for the chosen colour. Two distinct states:
-        //   is-void = that combination does not exist  -> not selectable
-        //   is-off  = it exists but is not purchasable -> selectable, shows Sold out
-        optNames.forEach((n, i) => {
-          if (/colou?r/i.test(n)) return;
-          qsa('input[name="option-' + i + '"]', root).forEach((inp) => {
-            const probe = sel.slice();
-            probe[i] = inp.value;
-            const m = match(probe);
-            const lab = inp.nextElementSibling;
-            if (!lab) return;
-            lab.classList.toggle("is-void", !m);
-            lab.classList.toggle("is-off", !!m && m.available === false);
-            inp.disabled = !m;
-          });
-        });
-
-        // If the chosen colour does not come in the chosen size, snap to the first size
-        // that colour is actually made in, rather than stranding a stale variant.
-        if (!v) {
-          const sizeIdx = optNames.findIndex((n) => !/colou?r/i.test(n));
-          if (sizeIdx > -1) {
-            const alt = variants.find((x) =>
-              sel.every((val, i) => i === sizeIdx || val === null || x.options[i] === val));
-            if (alt) {
-              const inp = qs('input[name="option-' + sizeIdx + '"][value="' +
-                alt.options[sizeIdx].replace(/"/g, '\\"') + '"]', root);
-              if (inp && !inp.checked) { inp.checked = true; return sync(); }
-            }
-          }
-          return;                             // still unmatched: leave server state alone
-        }
-
-        if (idInput && v.id != null) idInput.value = v.id;
-        if (typeof v.price === "number") priceEls.forEach((p) => (p.textContent = money(v.price)));
-
-        const ok = v.available !== false;     // only an explicit false disables
-        btns.forEach((b) => {
-          b.disabled = !ok;
-          setText(b, ok ? label(b) : "Sold out");
-        });
-
-        // Show only the chosen colourway's shots. If that would empty the gallery,
-        // show everything rather than leave the customer looking at nothing.
-        const colorIdx = optNames.findIndex((n) => /colou?r/i.test(n));
-        const chosen = colorIdx > -1 ? sel[colorIdx] : null;
-        const shots = qsa(".pdp__shot", root);
-        if (chosen && shots.length) {
-          let shown = 0;
-          shots.forEach((f) => {
-            const cs = (f.dataset.colors || "").split("|").filter(Boolean);
-            const on = cs.length === 0 || cs.indexOf(chosen) > -1;
-            f.hidden = !on;
-            if (on) shown++;
-          });
-          if (!shown) shots.forEach((f) => (f.hidden = false));
-        }
-
-        if (v.media) {
-          const shot = qs('.pdp__shot[data-media-position="' + v.media + '"]', root);
-          if (shot && !shot.hidden) shot.scrollIntoView({ behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest" });
-        }
-        try {
-          const u = new URL(location);
-          u.searchParams.set("variant", v.id);
-          history.replaceState({}, "", u);
-        } catch (e) {}
-      };
-
-      qsa('input[type="radio"]', root).forEach((r) => r.addEventListener("change", sync));
-      sync();
-    }
 
     const submit = () => {
       const id = idInput && parseInt(idInput.value, 10);
@@ -299,6 +200,35 @@
         }).observe(buyBox);
       }
     }
+  };
+
+  qsa("[data-product]").forEach(bindProduct);
+
+  // Choosing an option: let Shopify re-render the section for that variant.
+  document.addEventListener("click", (e) => {
+    const a = e.target.closest("[data-variant-link]");
+    if (!a) return;
+    if (e.metaKey || e.ctrlKey || e.shiftKey || e.button !== 0) return;   // let the browser do it
+    const root = a.closest("[data-product]");
+    if (!root) return;
+    e.preventDefault();
+
+    const url = new URL(a.href, location.href);
+    const fallback = () => location.assign(url.href);
+    if (!window.fetch || !window.DOMParser) return fallback();
+
+    root.classList.add("is-swapping");
+    fetch(url.pathname + url.search + "&section_id=" + SECTION_ID, { headers: { Accept: "text/html" } })
+      .then((r) => { if (!r.ok) throw new Error(r.status); return r.text(); })
+      .then((html) => {
+        const fresh = new DOMParser().parseFromString(html, "text/html").querySelector("[data-product]");
+        if (!fresh) throw new Error("no section");
+        root.replaceWith(fresh);
+        bindProduct(fresh);
+        fresh.classList.remove("is-swapping");
+        history.replaceState({}, "", url.href);
+      })
+      .catch(fallback);
   });
 
   /* ---------- boot ---------- */

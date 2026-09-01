@@ -452,34 +452,46 @@ input, select, textarea { font: inherit; color: inherit; border-radius: 0; }
 .opt { border: 0; padding: 0; margin: 1.75rem 0 0; }
 .opt__head { display: flex; justify-content: space-between; align-items: baseline; margin-bottom: .7rem; }
 .optgrid { display: flex; flex-wrap: wrap; gap: .5rem; }
-.optgrid label { cursor: pointer; position: relative; transition: border-color .22s var(--ease), background .22s var(--ease), color .22s var(--ease), opacity .22s var(--ease); }
+/* Each option value is a link to a real variant, rendered by Liquid. is-on marks the
+   selected one, is-off a variant Shopify reports unavailable, is-void a combination
+   that does not exist as a variant at all. */
+.optval {
+  cursor: pointer; position: relative; display: inline-flex;
+  transition: border-color .22s var(--ease), background .22s var(--ease),
+              color .22s var(--ease), opacity .22s var(--ease);
+}
+.optval.is-void { pointer-events: none; }
+.optval:focus-visible { outline: 2px solid var(--bone); outline-offset: 2px; }
 
-.opt-size label {
-  display: inline-flex; align-items: center; justify-content: center;
+.opt-size .optval {
+  align-items: center; justify-content: center;
   min-width: 54px; min-height: 48px; padding: 0 .85rem;
   border: 1px solid var(--d-line);
   font-family: var(--f-mono); font-size: .8rem; letter-spacing: .04em;
 }
-.opt-size label:hover { border-color: var(--d-ink-2); }
-.opt-size input:checked + label { background: var(--bone); color: var(--black); border-color: var(--bone); }
-.opt-size input:focus-visible + label { outline: 2px solid var(--bone); outline-offset: 2px; }
-.opt-size label.is-off { opacity: .4; text-decoration: line-through; }
-.opt-size label.is-void { opacity: .18; pointer-events: none; text-decoration: line-through; }
+.opt-size .optval:hover { border-color: var(--d-ink-2); }
+.opt-size .optval.is-on { background: var(--bone); color: var(--black); border-color: var(--bone); }
+.opt-size .optval.is-off { opacity: .4; text-decoration: line-through; }
+.opt-size .optval.is-void { opacity: .18; text-decoration: line-through; }
 
 .opt-color .optgrid { gap: .65rem; }
-.opt-color label {
+.opt-color .optval {
   width: 38px; height: 38px; padding: 3px; border: 1px solid transparent;
   display: grid; place-items: center;
 }
-.opt-color label .sw {
+.opt-color .optval .sw {
   width: 100%; height: 100%;
   border: 1px solid rgba(233, 228, 218, .45);
   box-shadow: inset 0 0 0 1px rgba(14, 15, 17, .35);
 }
-.opt-color label:hover { border-color: var(--d-ink-3); }
-.opt-color input:checked + label { border-color: var(--bone); }
-.opt-color input:checked + label .sw { border-color: rgba(233, 228, 218, .7); }
-.opt-color input:focus-visible + label { outline: 2px solid var(--bone); outline-offset: 2px; }
+.opt-color .optval:hover { border-color: var(--d-ink-3); }
+.opt-color .optval.is-on { border-color: var(--bone); }
+.opt-color .optval.is-on .sw { border-color: rgba(233, 228, 218, .7); }
+.opt-color .optval.is-off .sw { opacity: .4; }
+.opt-color .optval.is-void .sw { opacity: .18; }
+
+/* while a section swap is in flight */
+.pdp-section.is-swapping { opacity: .55; transition: opacity .15s linear; }
 
 .pdp__buy { margin-top: 2.1rem; }
 .btn--atc { min-height: 58px; letter-spacing: .22em; }
