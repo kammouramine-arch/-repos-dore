@@ -158,9 +158,10 @@ describe('erreurs Gemini distinguées', () => {
     return erreur as { code: string; message: string };
   }
 
-  it('signale l’absence de modèle utilisable quand le repli échoue aussi', async () => {
+  it('signale l’absence de modèle utilisable et ce qu’il a tenté', async () => {
     const e = await echouer(404, { error: { message: 'models/x is not found' } });
     expect(e.message).toMatch(/aucun modèle/i);
+    expect(e.message).toContain('gemini-2.5-flash');
   });
 
   it('rapporte le motif d’une requête refusée', async () => {
@@ -240,5 +241,45 @@ describe('repli de modèle', () => {
     const r = await new GeminiProvider('cle', 'inconnu').generateText({ system: 'c', untrusted: 'd' });
     vi.unstubAllGlobals();
     expect(r.usage.model).toBe('gemini-2.0-flash');
+  });
+});
+
+/**
+ * Le message d'erreur porte le diagnostic.
+ *
+ * Un opérateur sans accès aux journaux de l'hébergeur doit pouvoir comprendre
+ * une panne de configuration depuis la réponse. Statuts HTTP et noms de
+ * modèles ne sont pas des secrets ; la clé, elle, ne doit jamais y figurer.
+ */
+describe('diagnostic remonté', () => {
+  it('rapporte le refus de la liste des modèles', async () => {
+    vi.stubGlobal('fetch', async (url: string) =>
+      url.endsWith('/models')
+        ? new Response(JSON.stringify({ error: { message: 'API non activée' } }), { status: 403 })
+        : new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 }),
+    );
+    const e = (await new GeminiProvider('CLE-SECRETE', 'gemini-2.5-flash')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as Error)) as unknown as Error;
+    vi.unstubAllGlobals();
+    expect(e.message).toContain('403');
+    expect(e.message).toContain('API non activée');
+    expect(e.message).not.toContain('CLE-SECRETE');
+  });
+
+  it('rapporte une liste vide de modèles exploitables', async () => {
+    vi.stubGlobal('fetch', async (url: string) =>
+      url.endsWith('/models')
+        ? new Response(
+            JSON.stringify({ models: [{ name: 'models/embed', supportedGenerationMethods: ['embedContent'] }] }),
+            { status: 200, headers: { 'content-type': 'application/json' } },
+          )
+        : new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 }),
+    );
+    const e = (await new GeminiProvider('cle', 'gemini-2.5-flash')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as Error)) as unknown as Error;
+    vi.unstubAllGlobals();
+    expect(e.message).toMatch(/aucun modèle de génération parmi 1 entrées/i);
   });
 });

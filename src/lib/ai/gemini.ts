@@ -55,6 +55,15 @@ export class GeminiProvider implements AIProvider {
   private model: string;
   /** Modèle retenu après repli automatique, mémorisé pour le processus. */
   private resolu: string | null = null;
+  /**
+   * Ce qu'a donné la dernière recherche de modèle.
+   *
+   * Remonté dans le message d'erreur, pas seulement journalisé : un opérateur
+   * qui n'a pas accès aux journaux de l'hébergeur doit pouvoir comprendre une
+   * panne de configuration depuis la réponse elle-même. Un statut HTTP et des
+   * noms de modèles ne sont pas des secrets.
+   */
+  private diagnostic: string | null = null;
 
   constructor(apiKey: string, model: string) {
     this.apiKey = apiKey;
@@ -80,6 +89,7 @@ export class GeminiProvider implements AIProvider {
         signal: AbortSignal.timeout(30_000),
       });
     } catch (cause) {
+      this.diagnostic = 'liste des modèles injoignable';
       console.error('[ia] liste des modèles injoignable :', cause);
       return null;
     }
@@ -88,6 +98,7 @@ export class GeminiProvider implements AIProvider {
       // n'a rien trouvé — et l'on ne sait pas si la clé, le projet ou le quota
       // est en cause.
       const detail = extractMessage(await reponse.text().catch(() => ''));
+      this.diagnostic = `liste des modèles refusée (${reponse.status} ${detail.slice(0, 120)})`;
       console.error(`[ia] liste des modèles refusée — statut ${reponse.status} : ${detail}`);
       return null;
     }
@@ -101,9 +112,11 @@ export class GeminiProvider implements AIProvider {
       .filter((id) => id && !HORS_SUJET.test(id));
 
     if (disponibles.length === 0) {
+      this.diagnostic = `aucun modèle de génération parmi ${models.length} entrées`;
       console.error(`[ia] l'API ne sert aucun modèle de génération (${models.length} entrées reçues).`);
       return null;
     }
+    this.diagnostic = `modèles servis : ${disponibles.slice(0, 8).join(', ')}`;
 
     const choisi = PREFERENCES.find((p) => disponibles.includes(p)) ?? disponibles[0] ?? null;
     if (choisi) {
@@ -247,7 +260,9 @@ export class GeminiProvider implements AIProvider {
       if (reponse.status === 404) {
         throw new AppError(
           'PROVIDER_UNAVAILABLE',
-          `Aucun modèle d'IA utilisable (${this.modeleActif}).`,
+          `Aucun modèle d'IA utilisable — essayé « ${this.modeleActif} »` +
+            (this.diagnostic ? ` ; ${this.diagnostic}` : '') +
+            '.',
         );
       }
       if (reponse.status === 400) {
