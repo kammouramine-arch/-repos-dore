@@ -14,8 +14,15 @@ const serverSchema = z.object({
   // IA — laissé vide, le fournisseur est déduit de la présence de la clé.
   AI_PROVIDER: z.preprocess(
     (value) => (value === '' || value == null ? undefined : value),
-    z.enum(['anthropic', 'local']).optional(),
+    z.enum(['gemini', 'anthropic', 'local']).optional(),
   ),
+  // Gemini est le fournisseur retenu : son palier gratuit couvre la
+  // préparation des devis, texte et photos comprises.
+  GEMINI_API_KEY: z.preprocess(
+    (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
+    z.string().optional(),
+  ),
+  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
   // Une valeur vide (« ANTHROPIC_API_KEY= » dans .env) équivaut à l'absence de clé.
   ANTHROPIC_API_KEY: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
@@ -97,9 +104,12 @@ export function env(): ServerEnv {
  * nécessaire au déploiement. `AI_PROVIDER` reste un forçage explicite, utile
  * pour désactiver l'IA externe (`local`) alors qu'une clé est présente.
  */
-export function aiProviderKind(): 'anthropic' | 'local' {
+export function aiProviderKind(): 'gemini' | 'anthropic' | 'local' {
   const config = env();
   if (config.AI_PROVIDER) return config.AI_PROVIDER;
+  // Gemini d'abord : c'est le fournisseur choisi pour la production. Anthropic
+  // reste utilisable sans changer une ligne, en posant sa clé.
+  if (config.GEMINI_API_KEY) return 'gemini';
   return config.ANTHROPIC_API_KEY ? 'anthropic' : 'local';
 }
 

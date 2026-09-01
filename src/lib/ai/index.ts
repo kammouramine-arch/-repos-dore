@@ -1,5 +1,6 @@
 import { aiProviderKind } from '../env';
 import { createAnthropicProvider } from './anthropic';
+import { createGeminiProvider } from './gemini';
 import { createTranscriptionProvider } from './transcription';
 import type { AIProvider, TranscriptionProvider } from './types';
 
@@ -12,7 +13,15 @@ let transcriptionCache: { value: TranscriptionProvider | null } | null = null;
  */
 export function getAIProvider(): AIProvider | null {
   if (!providerCache) {
-    providerCache = { value: aiProviderKind() === 'anthropic' ? createAnthropicProvider() : null };
+    const kind = aiProviderKind();
+    providerCache = {
+      value:
+        kind === 'gemini'
+          ? createGeminiProvider()
+          : kind === 'anthropic'
+            ? createAnthropicProvider()
+            : null,
+    };
   }
   return providerCache.value;
 }
@@ -48,5 +57,6 @@ export function aiCapabilities(): AICapabilities {
 export * from './types';
 export * from './schemas';
 export { buildHeuristicQuoteDraft, buildTemplateFollowUp, tradeLabel } from './heuristic';
+export { GeminiProvider, createGeminiProvider, toGeminiSchema } from './gemini';
 export { matchCatalog, findBestCatalogEntry, type CatalogEntry, type CatalogMatch } from './catalog-match';
 export { wrapUntrusted, sanitizeUntrusted, escapeForPrompt } from './sanitize';

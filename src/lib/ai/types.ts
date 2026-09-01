@@ -6,7 +6,7 @@
  */
 import type { z } from 'zod';
 
-export type AIProviderName = 'anthropic' | 'local';
+export type AIProviderName = 'gemini' | 'anthropic' | 'local';
 
 export interface AIUsage {
   inputTokens?: number;

@@ -204,3 +204,64 @@ describe('forme de la requête Claude', () => {
     expect(Array.isArray(requete.tools)).toBe(true);
   });
 });
+
+/**
+ * Choix du fournisseur.
+ *
+ * Gemini passe devant : c'est le fournisseur retenu pour la production. Poser
+ * une clé Anthropic doit continuer à suffire pour y revenir, et `AI_PROVIDER`
+ * reste le dernier mot — sans quoi on ne pourrait pas forcer le moteur local.
+ */
+describe('choix du fournisseur', () => {
+  it('retient Gemini dès que sa clé est présente', async () => {
+    const { env, ai, restore } = await loadWith({
+      GEMINI_API_KEY: 'cle-gemini',
+      ANTHROPIC_API_KEY: undefined,
+      AI_PROVIDER: undefined,
+    });
+    expect(env.aiProviderKind()).toBe('gemini');
+    expect(ai.getAIProvider()?.name).toBe('gemini');
+    restore();
+  });
+
+  it('préfère Gemini à Anthropic quand les deux clés existent', async () => {
+    const { env, restore } = await loadWith({
+      GEMINI_API_KEY: 'cle-gemini',
+      ANTHROPIC_API_KEY: 'cle-anthropic',
+      AI_PROVIDER: undefined,
+    });
+    expect(env.aiProviderKind()).toBe('gemini');
+    restore();
+  });
+
+  it('revient à Anthropic si seule sa clé est posée', async () => {
+    const { env, restore } = await loadWith({
+      GEMINI_API_KEY: undefined,
+      ANTHROPIC_API_KEY: 'cle-anthropic',
+      AI_PROVIDER: undefined,
+    });
+    expect(env.aiProviderKind()).toBe('anthropic');
+    restore();
+  });
+
+  it('laisse AI_PROVIDER trancher, même avec une clé Gemini', async () => {
+    const { env, ai, restore } = await loadWith({
+      GEMINI_API_KEY: 'cle-gemini',
+      AI_PROVIDER: 'local',
+    });
+    expect(env.aiProviderKind()).toBe('local');
+    expect(ai.getAIProvider()).toBeNull();
+    restore();
+  });
+
+  it('sans aucune clé, le moteur local prend la main', async () => {
+    const { env, ai, restore } = await loadWith({
+      GEMINI_API_KEY: undefined,
+      ANTHROPIC_API_KEY: undefined,
+      AI_PROVIDER: undefined,
+    });
+    expect(env.aiProviderKind()).toBe('local');
+    expect(ai.getAIProvider()).toBeNull();
+    restore();
+  });
+});
