@@ -1,0 +1,30 @@
+{%- comment -%}
+  Real-storefront availability probe.
+
+  Shopify renders the password page with whichever theme is being previewed, so
+  dropping this into an UNPUBLISHED theme's layout/password.liquid and fetching
+  /?preview_theme_id=<that theme> returns genuine Shopify Liquid — real product
+  objects, real market, real currency — on a password-protected store.
+
+  Insert immediately after {{ content_for_layout }}. Remove when finished.
+{%- endcomment -%}
+<!--GRDIAG-START
+country={{ localization.country.iso_code }} currency={{ cart.currency.iso_code }} market={{ localization.market.handle }}
+{%- assign probe = 'gymreign-the-tee-chapter-001,gymreign-the-hoodie-chapter-001,gymreign-the-jogger-chapter-001,gymreign-the-shorts-chapter-001,gymreign-the-cap-chapter-001' | split: ',' -%}
+{%- for h in probe %}
+{%- assign p = all_products[h] -%}
+{%- assign sel = p.selected_or_first_available_variant | default: p.variants.first -%}
+{{ p.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' }}:
+  vendor                     = {{ p.vendor }}
+  product.available          = {{ p.available }}
+  selected.variant.id        = {{ sel.id }}
+  selected.variant.title     = {{ sel.title }}
+  selected variant.available = {{ sel.available }}
+  inventory_quantity         = {{ sel.inventory_quantity }}
+  inventory_policy           = {{ sel.inventory_policy }}
+  inventory_management       = {{ sel.inventory_management }}
+  first_available_variant    = {{ p.first_available_variant.id }}
+  variants                   = {{ p.variants.size }}
+  BUTTON                     = {% if sel and sel.available %}ADD TO BAG{% else %}SOLD OUT{% endif %}
+{%- endfor %}
+GRDIAG-END-->
