@@ -112,37 +112,80 @@
       "type": "gr-editorial",
       "settings": {}
     },
-    "community": {
-      "type": "gr-community",
+    "circle": {
+      "type": "gr-circle",
       "blocks": {
-        "c1": {
-          "type": "slot",
+        "i1": {
+          "type": "item",
           "settings": {
-            "placeholder": "001 \u2014 Reserved"
+            "item": "First sight of every chapter before it opens"
           }
         },
-        "c2": {
-          "type": "slot",
+        "i2": {
+          "type": "item",
           "settings": {
-            "placeholder": "002 \u2014 Reserved"
+            "item": "Notice before a chapter closes for good"
           }
         },
-        "c3": {
-          "type": "slot",
+        "i3": {
+          "type": "item",
           "settings": {
-            "placeholder": "003 \u2014 Reserved"
+            "item": "No discounts \u2014 the price is the price"
           }
         }
       },
       "block_order": [
-        "c1",
-        "c2",
-        "c3"
+        "i1",
+        "i2",
+        "i3"
       ],
       "settings": {}
     },
-    "circle": {
-      "type": "gr-circle",
+    "inside": {
+      "type": "gr-inside",
+      "blocks": {
+        "b1": {
+          "type": "fact",
+          "settings": {
+            "product": "gymreign-the-hoodie-chapter-001",
+            "figure": "350",
+            "unit": "GSM",
+            "heading": "The weight",
+            "copy": "Most hoodies in this price band sit near 280 GSM. Chapter 001 is built at 350 \u2014 organic ring-spun cotton, cut oversized, with a tear-away label so nothing sits against the neck.",
+            "link_label": "The Hoodie \u2014 \u20ac135",
+            "link": "/products/gymreign-the-hoodie-chapter-001"
+          }
+        },
+        "b2": {
+          "type": "fact",
+          "settings": {
+            "product": "gymreign-the-tee-chapter-001",
+            "figure": "60",
+            "unit": "MM",
+            "heading": "The mark",
+            "copy": "One crowned mark, one placement, measured from the hem \u2014 never a second logo on the outside. Restraint is the recognition strategy: the same mark, the same position, five times.",
+            "link_label": "The Tee \u2014 \u20ac75",
+            "link": "/products/gymreign-the-tee-chapter-001"
+          }
+        },
+        "b3": {
+          "type": "fact",
+          "settings": {
+            "product": "gymreign-the-jogger-chapter-001",
+            "figure": "001",
+            "unit": "CHAPTER",
+            "heading": "The chapter",
+            "copy": "Numbered, opened once, and closed for good. Graphics from a closed chapter are never reprinted \u2014 which is also why nothing here is ever discounted.",
+            "link_label": "The Jogger \u2014 \u20ac110",
+            "link": "/products/gymreign-the-jogger-chapter-001"
+          }
+        }
+      },
+      "block_order": [
+        "b1",
+        "b2",
+        "b3"
+      ],
       "settings": {}
     }
   },
@@ -154,7 +197,7 @@
     "specs",
     "silhouettes",
     "editorial",
-    "community",
+    "inside",
     "circle"
   ]
 }

@@ -150,81 +150,132 @@
       }).catch(() => {});
   });
 
-  /* ---------- product form ---------- */
+  /* ---------- product form ----------
+     Availability is server-authoritative. This controller may only DOWNGRADE the
+     button after a positive variant match. Parse failure, an unmatched combination,
+     or missing data all leave Liquid's purchasable state untouched. */
   qsa("[data-product]").forEach((root) => {
-    let data;
-    try { data = JSON.parse(qs("[data-product-json]", root).textContent); } catch (e) { return; }
-    const variants = data.variants;
-    const optNames = data.options;
     const form = qs("form[data-product-form]", root);
-    const priceEl = qsa("[data-price]", root);
+    const idInput = qs("[data-variant-id]", root);
+    const priceEls = qsa("[data-price]", root);
     const btns = qsa("[data-atc]", root);
-    const idInput = qs('input[name="id"]', form);
+    const setText = (b, t) => { const s = qs("[data-atc-text]", b); (s || b).textContent = t; };
+    const label = (b) => b.dataset.label || "Add to bag";
 
-    const current = () => optNames.map((n, i) =>
-      (qs('input[name="option-' + i + '"]:checked', root) || {}).value);
+    let data = null;
+    const raw = qs("[data-product-json]", root);
+    if (raw) { try { data = JSON.parse(raw.textContent); } catch (e) { data = null; } }
 
-    const findVariant = (sel) => variants.find((v) =>
-      sel.every((val, i) => !val || v.options[i] === val));
+    // Without trustworthy data we do nothing at all: the server already rendered the truth.
+    const usable = data && Array.isArray(data.variants) && data.variants.length
+      && Array.isArray(data.options) && data.options.length;
 
-    function sync() {
-      const sel = current();
-      const v = findVariant(sel);
-      // disable size labels with no available variant for the chosen colour
-      optNames.forEach((n, i) => {
-        if (!/size/i.test(n)) return;
-        qsa('input[name="option-' + i + '"]', root).forEach((inp) => {
-          const test = sel.slice();
-          test[i] = inp.value;
-          const match = variants.find((x) => x.options.every((o, j) => o === test[j] || !test[j]));
-          const ok = match && match.available;
-          inp.nextElementSibling.classList.toggle("is-off", !ok);
+    if (usable) {
+      const variants = data.variants;
+      const optNames = data.options;
+
+      const selection = () => optNames.map((_, i) => {
+        const el = qs('input[name="option-' + i + '"]:checked', root);
+        return el ? el.value : null;
+      });
+
+      const match = (sel) => variants.find((v) =>
+        Array.isArray(v.options) && sel.every((val, i) => val === null || v.options[i] === val));
+
+      const sync = () => {
+        const sel = selection();
+        const v = match(sel);
+
+        // reflect the chosen colour name
+        qsa("[data-opt-val]", root).forEach((el) => {
+          const i = parseInt(el.dataset.optVal, 10);
+          if (sel[i]) el.textContent = sel[i];
         });
-      });
-      qsa("[data-opt-val]", root).forEach((el) => {
-        const i = parseInt(el.dataset.optVal, 10);
-        el.textContent = sel[i] || "";
-      });
-      if (!v) { btns.forEach((b) => { b.disabled = true; b.textContent = "Unavailable"; }); return; }
-      idInput.value = v.id;
-      priceEl.forEach((p) => (p.textContent = money(v.price)));
-      const ok = v.available;
-      btns.forEach((b) => { b.disabled = !ok; b.textContent = ok ? b.dataset.label : "Sold out"; });
-      // swap gallery to the variant image
-      if (v.featured_media_position) {
-        const shot = qsa(".pdp__shot", root)[v.featured_media_position - 1];
-        if (shot) shot.scrollIntoView({ behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest" });
-      }
-      const u = new URL(location);
-      u.searchParams.set("variant", v.id);
-      history.replaceState({}, "", u);
-    }
-    qsa("input[type=radio]", root).forEach((r) => r.addEventListener("change", sync));
-    sync();
 
-    if (form) form.addEventListener("submit", (e) => {
-      e.preventDefault();
-      btns.forEach((b) => { b.disabled = true; b.textContent = "Adding…"; });
-      api("/cart/add.js", { method: "POST", body: JSON.stringify({ id: parseInt(idInput.value, 10), quantity: 1 }) })
+        // Mark sizes for the chosen colour. Two distinct states:
+        //   is-void = that combination does not exist  -> not selectable
+        //   is-off  = it exists but is not purchasable -> selectable, shows Sold out
+        optNames.forEach((n, i) => {
+          if (/colou?r/i.test(n)) return;
+          qsa('input[name="option-' + i + '"]', root).forEach((inp) => {
+            const probe = sel.slice();
+            probe[i] = inp.value;
+            const m = match(probe);
+            const lab = inp.nextElementSibling;
+            if (!lab) return;
+            lab.classList.toggle("is-void", !m);
+            lab.classList.toggle("is-off", !!m && m.available === false);
+            inp.disabled = !m;
+          });
+        });
+
+        // If the chosen colour does not come in the chosen size, snap to the first size
+        // that colour is actually made in, rather than stranding a stale variant.
+        if (!v) {
+          const sizeIdx = optNames.findIndex((n) => !/colou?r/i.test(n));
+          if (sizeIdx > -1) {
+            const alt = variants.find((x) =>
+              sel.every((val, i) => i === sizeIdx || val === null || x.options[i] === val));
+            if (alt) {
+              const inp = qs('input[name="option-' + sizeIdx + '"][value="' +
+                alt.options[sizeIdx].replace(/"/g, '\\"') + '"]', root);
+              if (inp && !inp.checked) { inp.checked = true; return sync(); }
+            }
+          }
+          return;                             // still unmatched: leave server state alone
+        }
+
+        if (idInput && v.id != null) idInput.value = v.id;
+        if (typeof v.price === "number") priceEls.forEach((p) => (p.textContent = money(v.price)));
+
+        const ok = v.available !== false;     // only an explicit false disables
+        btns.forEach((b) => {
+          b.disabled = !ok;
+          setText(b, ok ? label(b) : "Sold out");
+        });
+
+        if (v.media) {
+          const shot = qs('.pdp__shot[data-media-position="' + v.media + '"]', root);
+          if (shot) shot.scrollIntoView({ behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest" });
+        }
+        try {
+          const u = new URL(location);
+          u.searchParams.set("variant", v.id);
+          history.replaceState({}, "", u);
+        } catch (e) {}
+      };
+
+      qsa('input[type="radio"]', root).forEach((r) => r.addEventListener("change", sync));
+      sync();
+    }
+
+    const submit = () => {
+      const id = idInput && parseInt(idInput.value, 10);
+      if (!id) return;
+      btns.forEach((b) => { b.disabled = true; setText(b, "Adding…"); });
+      api("/cart/add.js", { method: "POST", body: JSON.stringify({ id: id, quantity: 1 }) })
         .then(() => refreshCart())
         .then(() => {
-          btns.forEach((b) => { b.disabled = false; b.textContent = "Added — in your bag"; });
-          setTimeout(() => btns.forEach((b) => { b.textContent = b.dataset.label; }), 2200);
+          btns.forEach((b) => { b.disabled = false; setText(b, "Added to bag"); });
+          setTimeout(() => btns.forEach((b) => setText(b, label(b))), 2200);
           openCart();
         })
-        .catch(() => btns.forEach((b) => { b.disabled = false; b.textContent = b.dataset.label; }));
-    });
+        .catch(() => btns.forEach((b) => { b.disabled = false; setText(b, label(b)); }));
+    };
 
-    /* sticky mobile ATC */
-    const sticky = qs("[data-sticky-atc]");
+    if (form) form.addEventListener("submit", (e) => { e.preventDefault(); submit(); });
+
+    const sticky = qs("[data-sticky-atc]", root);
     const buyBox = qs("[data-buy-box]", root);
-    if (sticky && buyBox && "IntersectionObserver" in window) {
-      new IntersectionObserver((es) => {
-        es.forEach((en) => sticky.classList.toggle("is-on", !en.isIntersecting && en.boundingClientRect.top < 0));
-      }).observe(buyBox);
-      qs("button", sticky).addEventListener("click", () => {
-        form.requestSubmit();
-      });
+    if (sticky) {
+      const sBtn = qs("button", sticky);
+      if (sBtn) sBtn.addEventListener("click", submit);
+      if (buyBox && "IntersectionObserver" in window) {
+        new IntersectionObserver((es) => {
+          es.forEach((en) => sticky.classList.toggle("is-on",
+            !en.isIntersecting && en.boundingClientRect.top < 0));
+        }).observe(buyBox);
+      }
     }
   });
 

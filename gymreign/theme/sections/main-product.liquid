@@ -1,30 +1,42 @@
 {%- assign short_title = product.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
-{%- assign current = product.selected_or_first_available_variant -%}
-<section class="on-dark band-s" data-product>
+{%- assign current = product.selected_or_first_available_variant | default: product.variants.first -%}
+
+{%- comment -%}
+  Availability is SERVER-AUTHORITATIVE.
+  Liquid decides the button state and renders it. JavaScript may only refine it after a
+  positive variant match. Any parse failure, unmatched combination or missing data leaves
+  the server's purchasable state intact — a false "Sold out" must never be possible.
+{%- endcomment -%}
+{%- assign can_buy = false -%}
+{%- if current and current.available -%}{%- assign can_buy = true -%}{%- endif -%}
+
+<section class="on-dark pdp-section" data-product
+         data-product-available="{% if product.available %}true{% else %}false{% endif %}">
   <script type="application/json" data-product-json>
+{
+  "id": {{ product.id | json }},
+  "options": {{ product.options | json }},
+  "variants": [
+    {%- for v in product.variants -%}
     {
-      "options": {{ product.options | json }},
-      "variants": [
-        {%- for v in product.variants -%}
-        {
-          "id": {{ v.id }},
-          "price": {{ v.price }},
-          "available": {{ v.available }},
-          "options": {{ v.options | json }},
-          "featured_media_position": {{ v.featured_media.position | default: 'null' }}
-        }{% unless forloop.last %},{% endunless %}
-        {%- endfor -%}
-      ]
-    }
+      "id": {{ v.id | json }},
+      "price": {{ v.price | json }},
+      "available": {% if v.available %}true{% else %}false{% endif %},
+      "options": {{ v.options | json }},
+      "media": {% if v.featured_media %}{{ v.featured_media.position | json }}{% else %}null{% endif %}
+    }{%- unless forloop.last -%},{%- endunless -%}
+    {%- endfor -%}
+  ]
+}
   </script>
 
   <div class="shell pdp">
-    <div class="pdp__gallery" aria-label="Product imagery">
+    <div class="pdp__gallery" aria-label="{{ short_title | escape }} imagery">
       {%- for media in product.media -%}
-        <figure class="pdp__shot">
+        <figure class="pdp__shot" data-media-position="{{ forloop.index }}">
           <img src="{{ media | image_url: width: 1200 }}"
                srcset="{{ media | image_url: width: 720 }} 720w, {{ media | image_url: width: 1200 }} 1200w, {{ media | image_url: width: 1800 }} 1800w"
-               sizes="(min-width: 990px) 55vw, 92vw"
+               sizes="(min-width: 990px) 54vw, 92vw"
                alt="{{ media.alt | default: short_title | escape }}"
                {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
                width="1200" height="1500">
@@ -33,34 +45,42 @@
     </div>
 
     <div class="pdp__info">
-      <p class="t-label t-faint pdp__vendor">GYMREIGN — Chapter 001</p>
-      <h1 class="t-h2 pdp__title">{{ short_title }}</h1>
-      <p class="pdp__price" data-price>{{ current.price | money }}</p>
-      <p class="t-micro pdp__tax">Taxes included · tracked delivery</p>
+      <div class="pdp__head">
+        <p class="t-micro t-faint">Chapter 001 — Ascension</p>
+        <h1 class="pdp__title">{{ short_title }}</h1>
+        <div class="pdp__pricerow">
+          <span class="pdp__price t-num" data-price>{{ current.price | money }}</span>
+          <span class="t-micro t-faint">Taxes included</span>
+        </div>
+      </div>
 
       {%- form 'product', product, data-product-form: '' -%}
-        <input type="hidden" name="id" value="{{ current.id }}">
+        <input type="hidden" name="id" value="{{ current.id }}" data-variant-id>
 
         {%- for option in product.options_with_values -%}
           {%- assign idx = forloop.index0 -%}
           {%- assign is_color = false -%}
           {%- if option.name == 'Color' or option.name == 'Colour' -%}{%- assign is_color = true -%}{%- endif -%}
-          <fieldset class="opt" style="border:0;padding:0;margin-top:1.8rem">
-            <legend class="visually-hidden" style="position:absolute;left:-999em">{{ option.name }}</legend>
+          <fieldset class="opt {% if is_color %}opt--color{% endif %}">
+            <legend class="vh">{{ option.name }}</legend>
             <div class="opt__head">
-              <span class="t-label t-faint">{{ option.name }}</span>
-              <span class="t-label opt__val" data-opt-val="{{ idx }}">{{ option.selected_value }}</span>
+              <span class="t-micro t-faint">{% if is_color %}Colour{% else %}{{ option.name }}{% endif %}</span>
+              {%- if is_color -%}
+                <span class="t-micro opt__val" data-opt-val="{{ idx }}">{{ option.selected_value }}</span>
+              {%- else -%}
+                <a class="t-micro t-faint link-line" href="/pages/size-guide">Size guide</a>
+              {%- endif -%}
             </div>
             <div class="optgrid {% if is_color %}opt-color{% else %}opt-size{% endif %}">
               {%- for value in option.values -%}
-                <input type="radio" id="opt-{{ idx }}-{{ forloop.index0 }}" name="option-{{ idx }}"
+                <input type="radio" class="vh" id="opt-{{ idx }}-{{ forloop.index0 }}" name="option-{{ idx }}"
                        value="{{ value | escape }}" {% if option.selected_value == value %}checked{% endif %}>
-                <label for="opt-{{ idx }}-{{ forloop.index0 }}" {% if is_color %}title="{{ value }}"{% endif %}>
+                <label for="opt-{{ idx }}-{{ forloop.index0 }}"{% if is_color %} title="{{ value | escape }}"{% endif %}>
                   {%- if is_color -%}
                     <span class="sw sw--lg" style="background:{% render 'gr-swatch-hex', color: value %}"></span>
-                    <span class="visually-hidden" style="position:absolute;left:-999em">{{ value }}</span>
+                    <span class="vh">{{ value }}</span>
                   {%- else -%}
-                    {{ value }}
+                    <span>{{ value }}</span>
                   {%- endif -%}
                 </label>
               {%- endfor -%}
@@ -69,42 +89,49 @@
         {%- endfor -%}
 
         <div class="pdp__buy" data-buy-box>
-          <button type="submit" class="btn btn--solid btn--wide" data-atc data-label="Add to bag">Add to bag</button>
-          <div class="pdp__note t-micro">
-            <span>Free shipping over €120</span>
-            <span>30-day returns</span>
-            <span>Secure checkout</span>
-          </div>
+          <button type="submit" class="btn btn--solid btn--wide btn--atc"
+                  data-atc data-label="Add to bag"{% unless can_buy %} disabled{% endunless %}>
+            <span data-atc-text>{% if can_buy %}Add to bag{% else %}Sold out{% endif %}</span>
+          </button>
         </div>
       {%- endform -%}
+
+      <ul class="pdp__assure">
+        <li><span class="t-micro">Free shipping over €120</span></li>
+        <li><span class="t-micro">30-day returns</span></li>
+        <li><span class="t-micro">Made to order — dispatch within 10 days</span></li>
+      </ul>
 
       <div class="acc">
         {%- if product.description != blank -%}
         <details open>
-          <summary class="t-label">The piece</summary>
+          <summary><span class="t-label">The piece</span></summary>
           <div class="acc__body">{{ product.description }}</div>
         </details>
         {%- endif -%}
         <details>
-          <summary class="t-label">Size &amp; fit</summary>
+          <summary><span class="t-label">Size &amp; fit</span></summary>
           <div class="acc__body">
-            <p>Cut relaxed. If you sit between sizes, size down for the intended fit — the silhouette carries the room.</p>
+            <p>Cut relaxed. If you sit between sizes, size down for the intended fit — the
+            silhouette carries the room.</p>
             <p><a class="link-line" href="/pages/size-guide">Full size guide</a></p>
           </div>
         </details>
         <details>
-          <summary class="t-label">Shipping &amp; returns</summary>
+          <summary><span class="t-label">Shipping &amp; returns</span></summary>
           <div class="acc__body">
-            <p>Made to order — each piece enters production when you claim it. Allow up to 10 days of
-            production before dispatch, then tracked delivery. Complimentary worldwide shipping on
-            orders over €120; €9.90 below.</p>
-            <p>30 days to return, unworn, from delivery. <a class="link-line" href="/pages/returns">Returns</a> · <a class="link-line" href="/pages/shipping">Shipping</a></p>
+            <p>Made to order — each piece enters production when you claim it. Allow up to 10
+            days of production before dispatch, then tracked delivery. Complimentary worldwide
+            shipping over €120; €9.90 below.</p>
+            <p>30 days to return, unworn, from delivery.
+            <a class="link-line" href="/pages/returns">Returns</a> ·
+            <a class="link-line" href="/pages/shipping">Shipping</a></p>
           </div>
         </details>
         <details>
-          <summary class="t-label">Care</summary>
+          <summary><span class="t-label">Care</span></summary>
           <div class="acc__body">
-            <p>Wash cold, inside out. Hang dry. No bleach, no tumble. The mark outlasts the season if you let it.</p>
+            <p>Wash cold, inside out. Hang dry. No bleach, no tumble.</p>
           </div>
         </details>
       </div>
@@ -112,20 +139,25 @@
   </div>
 
   <div class="sticky-atc" data-sticky-atc>
-    <div>
+    <div class="sticky-atc__meta">
       <p class="t-micro t-faint">{{ short_title }}</p>
       <p class="t-num t-small" data-price>{{ current.price | money }}</p>
     </div>
-    <button type="button" class="btn btn--solid" data-atc data-label="Add to bag">Add to bag</button>
+    <button type="button" class="btn btn--solid btn--atc" data-atc data-label="Add to bag"
+            {% unless can_buy %}disabled{% endunless %}>
+      <span data-atc-text>{% if can_buy %}Add to bag{% else %}Sold out{% endif %}</span>
+    </button>
   </div>
 </section>
 
-{%- comment -%} Complete the Reign {%- endcomment -%}
 {%- assign chapter = collections['chapter-001'] -%}
 {%- if chapter.products.size > 1 -%}
 <section class="on-light band-s">
   <div class="shell">
-    <p class="t-label t-faint eyebrow reveal">Complete the reign</p>
+    <div class="sec-head reveal">
+      <h2 class="t-h2">Complete the reign</h2>
+      <a class="t-micro link-line" href="{{ chapter.url }}">The full chapter</a>
+    </div>
     <div class="grid grid--pad grid--4">
       {%- assign shown = 0 -%}
       {%- for rec in chapter.products -%}
@@ -139,7 +171,6 @@
 </section>
 {%- endif -%}
 
-{%- comment -%} Product structured data {%- endcomment -%}
 <script type="application/ld+json">
 {
   "@context": "https://schema.org",
@@ -154,6 +185,7 @@
     "priceCurrency": {{ cart.currency.iso_code | json }},
     "lowPrice": {{ product.price_min | divided_by: 100.0 | json }},
     "highPrice": {{ product.price_max | divided_by: 100.0 | json }},
+    "offerCount": {{ product.variants.size | json }},
     "availability": "https://schema.org/{% if product.available %}InStock{% else %}OutOfStock{% endif %}"
   }
 }

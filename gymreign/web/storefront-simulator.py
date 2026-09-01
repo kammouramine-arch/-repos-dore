@@ -48,11 +48,14 @@ def load_products():
                 "featured_media": fm,
                 "option1": v["selectedOptions"][0]["value"] if v["selectedOptions"] else None,
             }))
+        _sel = next((v for v in variants if v["available"]), variants[0] if variants else None)
         opts = [LD({
             "name": o["name"],
             "values": [ov["name"] for ov in o["optionValues"]],
-            "selected_value": [ov["name"] for ov in o["optionValues"]][0],
-        }) for o in p["options"]]
+            # mirror Liquid: selected_value comes from selected_or_first_available_variant
+            "selected_value": (_sel["options"][i] if _sel and i < len(_sel["options"])
+                               else o["optionValues"][0]["name"]),
+        }) for i, o in enumerate(p["options"])]
         price = int(float(p["priceRangeV2"]["minVariantPrice"]["amount"]) * 100)
         prod = LD({
             "id": int(p["id"].split("/")[-1]),
@@ -66,8 +69,8 @@ def load_products():
             "options_with_values": opts,
             "variants": variants,
             "price": price, "price_min": price, "price_max": price,
-            "available": True,
-            "selected_or_first_available_variant": variants[0] if variants else None,
+            "available": any(v["available"] for v in variants),
+            "selected_or_first_available_variant": next((v for v in variants if v["available"]), variants[0] if variants else None),
         })
         products.append(prod)
     order = ["gymreign-the-hoodie-chapter-001", "gymreign-the-tee-chapter-001",
@@ -76,7 +79,27 @@ def load_products():
     products.sort(key=lambda x: order.index(x["handle"]) if x["handle"] in order else 99)
     return products
 
-PRODUCTS = load_products()
+def _apply_avail_override(products):
+    """GR_UNAVAIL="handle:Colour/Size,..." forces variants unavailable, to prove the
+    storefront degrades to per-variant sold-out and never blanket sold-out."""
+    spec = os.environ.get("GR_UNAVAIL", "").strip()
+    if not spec: return products
+    for rule in spec.split(","):
+        if ":" not in rule: continue
+        h, combo = rule.split(":", 1)
+        want = [x.strip() for x in combo.split("/")]
+        for p in products:
+            if p["handle"] != h: continue
+            for v in p["variants"]:
+                if v["options"] == want: v["available"] = False
+            p["available"] = any(v["available"] for v in p["variants"])
+            _sel = next((v for v in p["variants"] if v["available"]), p["variants"][0])
+            p["selected_or_first_available_variant"] = _sel
+            for i, o in enumerate(p["options_with_values"]):
+                if i < len(_sel["options"]): o["selected_value"] = _sel["options"][i]
+    return products
+
+PRODUCTS = _apply_avail_override(load_products())
 BY_HANDLE = {p["handle"]: p for p in PRODUCTS}
 CHAPTER = LD({
     "title": "Chapter 001 — Ascension", "handle": "chapter-001",

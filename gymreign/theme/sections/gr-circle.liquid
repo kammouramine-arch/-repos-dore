@@ -1,25 +1,46 @@
-<section class="on-dark band circle">
-  <div class="shell">
-    <p class="t-label t-muted reveal" style="justify-content:center;display:flex">{{ section.settings.eyebrow }}</p>
-    <h2 class="t-h1 reveal" style="--i:1;margin-top:1rem">{{ section.settings.title }}</h2>
-    <p class="t-lede t-muted measure reveal" style="--i:2;margin:1.4rem auto 0">{{ section.settings.copy }}</p>
-    <div class="reveal" style="--i:3">
-      {%- form 'customer', class: 'circle-form' -%}
+<section class="on-dark circle">
+  <div class="shell circle__in">
+    <div class="circle__lead reveal">
+      <p class="t-micro t-faint">{{ section.settings.eyebrow }}</p>
+      <h2 class="circle__title">{{ section.settings.title }}</h2>
+    </div>
+
+    <div class="circle__panel reveal" style="--i:1">
+      <p class="t-body t-muted circle__copy">{{ section.settings.copy }}</p>
+
+      <ul class="circle__list">
+        {%- for block in section.blocks -%}
+          <li {{ block.shopify_attributes }}>
+            <span class="t-num circle__idx">{{ forloop.index | prepend: '0' }}</span>
+            <span class="t-small">{{ block.settings.item }}</span>
+          </li>
+        {%- endfor -%}
+      </ul>
+
+      {%- form 'customer', class: 'circle__form' -%}
         {%- if form.posted_successfully? -%}
-          <p class="form-ok">Received. You stand in the first circle.</p>
+          <p class="circle__ok" role="status">
+            <span class="t-label">You stand in the first circle.</span>
+            <span class="t-small t-muted">Watch for Chapter 002.</span>
+          </p>
         {%- else -%}
           <input type="hidden" name="contact[tags]" value="newsletter,first-circle">
-          <div style="display:flex;border:1px solid var(--d-line);margin:2.2rem auto 0;max-width:30rem">
-            <label class="visually-hidden" for="circle-email" style="position:absolute;left:-999em">Email</label>
+          <div class="field-line">
+            <label class="vh" for="circle-email">Email address</label>
             <input id="circle-email" type="email" name="contact[email]" required autocomplete="email"
-                   placeholder="Your email" style="flex:1;min-width:0;background:transparent;border:0;color:var(--d-ink);padding:0 1.2rem;min-height:54px">
-            <button type="submit" class="btn btn--solid" style="border:0">Enter</button>
+                   placeholder="Email address" spellcheck="false">
+            <button type="submit" class="field-line__go" aria-label="Request access">
+              {% render 'gr-icon', name: 'arrow' %}
+            </button>
           </div>
-          {%- if form.errors -%}<p class="form-err">That address didn’t take. Try again.</p>{%- endif -%}
+          {%- if form.errors -%}
+            <p class="circle__err t-small" role="alert">That address didn’t take. Check it and try again.</p>
+          {%- else -%}
+            <p class="t-micro t-faint circle__note">{{ section.settings.note }}</p>
+          {%- endif -%}
         {%- endif -%}
       {%- endform -%}
     </div>
-    <p class="t-micro t-faint reveal" style="--i:4;margin-top:1.6rem">{{ section.settings.note }}</p>
   </div>
 </section>
 
@@ -27,11 +48,25 @@
 {
   "name": "First circle",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "The first circle" },
-    { "type": "text", "id": "title", "label": "Title", "default": "Chapters close. Be early." },
-    { "type": "textarea", "id": "copy", "label": "Copy", "default": "Every chapter is numbered and never reprinted. The first circle hears first — before the drop, before the close." },
-    { "type": "text", "id": "note", "label": "Note", "default": "No noise. Chapter openings and closings only." }
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Access" },
+    { "type": "text", "id": "title", "label": "Title", "default": "The First Circle" },
+    { "type": "textarea", "id": "copy", "label": "Copy", "default": "Chapters are numbered, opened once and never reprinted. The first circle is told before the doors move — in either direction." },
+    { "type": "text", "id": "note", "label": "Note", "default": "Two or three sendings a year. Unsubscribe in one click." }
   ],
-  "presets": [{ "name": "First circle" }]
+  "blocks": [
+    {
+      "type": "item",
+      "name": "Item",
+      "settings": [{ "type": "text", "id": "item", "label": "Item", "default": "Item" }]
+    }
+  ],
+  "presets": [{
+    "name": "First circle",
+    "blocks": [
+      { "type": "item", "settings": { "item": "First sight of every chapter before it opens" } },
+      { "type": "item", "settings": { "item": "Notice before a chapter closes for good" } },
+      { "type": "item", "settings": { "item": "No discounts — the price is the price" } }
+    ]
+  }]
 }
 {% endschema %}
