@@ -3,7 +3,7 @@ import { Pressable, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { type DashboardDTO } from '@devisia/shared';
+import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
   Badge,
@@ -64,6 +64,18 @@ function Stat({
       {hint ? <Caption style={{ color: colors.subtle }}>{hint}</Caption> : null}
     </Card>
   );
+}
+
+/** « aujourd'hui », « hier », puis une date : un artisan ne compte pas en ISO. */
+function relativeDay(iso: string): string {
+  const date = new Date(iso);
+  const jour = 24 * 60 * 60 * 1000;
+  const minuit = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+  const ecart = Math.round((minuit(new Date()) - minuit(date)) / jour);
+  if (ecart <= 0) return 'aujourd’hui';
+  if (ecart === 1) return 'hier';
+  if (ecart < 7) return `il y a ${ecart} jours`;
+  return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
 export default function AccueilScreen() {
@@ -278,7 +290,12 @@ export default function AccueilScreen() {
                         <Body numberOfLines={1} style={{ fontWeight: '600' }}>
                           {event.quoteTitle}
                         </Body>
-                        <Muted style={{ fontSize: 13 }}>{event.quoteNumber}</Muted>
+                        {/* Sans ce qui est arrivé au devis, deux évènements du
+                            même devis se ressemblaient à s'y méprendre. */}
+                        <Muted style={{ fontSize: 13 }} numberOfLines={1}>
+                          {QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour'} ·{' '}
+                          {relativeDay(event.createdAt)} · {event.quoteNumber}
+                        </Muted>
                       </View>
                       <Amount cents={event.totalCents} tone="muted" />
                     </Pressable>

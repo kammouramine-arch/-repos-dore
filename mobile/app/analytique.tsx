@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { DevisiaApiError, type DashboardDTO } from '@devisia/shared';
+import { DevisiaApiError, QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
   Badge,
@@ -197,7 +197,11 @@ export default function AnalytiqueScreen() {
                         <Body numberOfLines={1} style={{ fontWeight: '600' }}>
                           {event.quoteTitle}
                         </Body>
-                        <Muted style={{ fontSize: 13 }}>{event.quoteNumber}</Muted>
+                        {/* Deux évènements du même devis sont indiscernables
+                            sans dire ce qui s'est passé. */}
+                        <Muted style={{ fontSize: 13 }} numberOfLines={1}>
+                          {QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour'} · {event.quoteNumber}
+                        </Muted>
                       </View>
                       <Amount cents={event.totalCents} tone="muted" />
                     </View>

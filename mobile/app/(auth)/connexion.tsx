@@ -2,7 +2,7 @@ import * as React from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { Body, Button, Field, Muted, Title } from '@/components/ui';
+import { Banner, Body, Button, Field, Muted, Title } from '@/components/ui';
 import { Logo } from '@/components/logo';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
@@ -39,6 +39,10 @@ export default function ConnexionScreen() {
         </View>
 
         <View style={{ gap: spacing.lg }}>
+          {/* Le message porte sur la tentative, pas sur un champ en
+              particulier : l'accrocher au mot de passe désignait un coupable
+              qui n'en était pas toujours un. */}
+          {error ? <Banner tone="danger" title={error} /> : null}
           <Field
             label="Adresse email"
             value={email}
@@ -59,7 +63,6 @@ export default function ConnexionScreen() {
             placeholder="••••••••••"
             onSubmitEditing={() => void submit()}
             returnKeyType="go"
-            error={error}
           />
 
           <Button title="Se connecter" size="lg" loading={pending} onPress={() => void submit()} haptic />

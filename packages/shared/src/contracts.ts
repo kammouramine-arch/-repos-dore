@@ -6,7 +6,14 @@
  * compilation des deux clients plutôt que de passer inaperçue.
  */
 import type { PlanId, SubscriptionStatusId } from './plans';
-import type { FollowUpTone, LeadStatusId, QuoteItemKindId, QuoteStatusId } from './labels';
+import type {
+  FollowUpTone,
+  LeadStatusId,
+  PriceBookCategoryId,
+  QuoteEventTypeId,
+  QuoteItemKindId,
+  QuoteStatusId,
+} from './labels';
 
 export interface ApiError {
   code:
@@ -194,7 +201,7 @@ export interface DashboardDTO {
   };
   recentActivity: {
     id: string;
-    type: string;
+    type: QuoteEventTypeId;
     quoteId: string;
     quoteNumber: string;
     quoteTitle: string;
@@ -250,7 +257,7 @@ export interface PriceBookItemDTO {
   reference: string | null;
   name: string;
   description: string | null;
-  category: QuoteItemKindId;
+  category: PriceBookCategoryId;
   unit: string;
   costPriceCents: number;
   salePriceCents: number;

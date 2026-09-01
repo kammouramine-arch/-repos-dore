@@ -33,6 +33,43 @@ interface AuthContextValue extends AuthState {
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
 
+/**
+ * Message d'authentification destiné à un artisan.
+ *
+ * Le message du serveur passait tel quel : un refus de validation s'affichait
+ * « Les informations transmises sont incomplètes ou invalides », phrase écrite
+ * pour un développeur, sous un champ qui n'était pas forcément le fautif. Les
+ * erreurs de champ sont donc reformulées, et le reste reçoit une phrase qui dit
+ * quoi faire.
+ */
+export function describeAuthError(error: unknown): string {
+  if (!(error instanceof DevisiaApiError)) {
+    return 'Connexion impossible. Vérifiez votre réseau, puis réessayez.';
+  }
+  switch (error.code) {
+    case 'VALIDATION': {
+      const champs = error.details ?? {};
+      if (champs.email?.length) return 'Cette adresse email n’est pas valide.';
+      if (champs.password?.length) {
+        return 'Le mot de passe doit contenir au moins 10 caractères.';
+      }
+      if (champs.companyName?.length) return 'Indiquez le nom de votre entreprise.';
+      return 'Vérifiez votre adresse email et votre mot de passe.';
+    }
+    case 'UNAUTHENTICATED':
+      return 'Adresse email ou mot de passe incorrect.';
+    case 'CONFLICT':
+      return 'Un compte existe déjà avec cette adresse. Connectez-vous.';
+    case 'RATE_LIMITED':
+      return 'Trop de tentatives. Patientez quelques minutes avant de réessayer.';
+    case 'NETWORK':
+    case 'TIMEOUT':
+      return error.message;
+    default:
+      return 'La connexion n’a pas abouti. Réessayez dans un instant.';
+  }
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<AuthState>({
     status: 'chargement',
@@ -72,7 +109,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     });
     // Restauration de session au démarrage : c'est précisément le rôle de cet
     // effet, et l'état n'est posé qu'après lecture du trousseau sécurisé.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void loadSession();
     return () => setUnauthenticatedHandler(null);
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -91,11 +127,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await writeToken(result.token);
       setState({ status: 'connecte', session: result.session, error: null, offline: false });
     } catch (error) {
-      const message =
-        error instanceof DevisiaApiError
-          ? error.message
-          : 'Connexion impossible. Vérifiez votre réseau.';
-      setState((current) => ({ ...current, error: message }));
+      setState((current) => ({ ...current, error: describeAuthError(error) }));
       throw error;
     }
   }, []);

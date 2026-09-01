@@ -46,7 +46,15 @@ export default function ProspectsScreen() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={{ padding: spacing.lg }}>
         <Title>Prospects</Title>
-        <Muted>{query.data?.length ?? 0} demandes en cours de traitement.</Muted>
+        {/* « 0 demandes en cours de traitement » n'apprend rien : quand il n'y
+            a rien, l'état vide dit déjà tout, et mieux. */}
+        {(query.data?.length ?? 0) > 0 ? (
+          <Muted>
+            {query.data!.length} demande{query.data!.length > 1 ? 's' : ''} en attente de réponse.
+          </Muted>
+        ) : (
+          <Muted>Les demandes de devis reçues arrivent ici.</Muted>
+        )}
       </View>
 
       {query.loading && !query.data ? (

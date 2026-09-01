@@ -2,7 +2,14 @@ import * as React from 'react';
 import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { DevisiaApiError, formatCents, type PriceBookItemDTO } from '@devisia/shared';
+import {
+  DevisiaApiError,
+  formatCents,
+  PRICE_BOOK_CATEGORIES,
+  PRICE_BOOK_CATEGORY_LABELS,
+  type PriceBookCategoryId,
+  type PriceBookItemDTO,
+} from '@devisia/shared';
 import {
   Banner,
   Body,
@@ -32,19 +39,20 @@ import { colors, spacing } from '@/theme';
  * exactement ce qu'on veut corriger sur un chantier, entre deux
  * interventions.
  */
-type Kind = 'MAIN_OEUVRE' | 'MATERIAU' | 'FORFAIT' | 'DEPLACEMENT' | 'AUTRE';
-
-const KINDS: { value: Kind; label: string }[] = [
-  { value: 'MAIN_OEUVRE', label: 'Main-d’œuvre' },
-  { value: 'MATERIAU', label: 'Matériau' },
-  { value: 'FORFAIT', label: 'Forfait' },
-  { value: 'DEPLACEMENT', label: 'Déplacement' },
-];
+/*
+ * Les catégories viennent du contrat partagé, plus d'une liste écrite ici :
+ * cet écran proposait « Forfait » et « Déplacement », deux valeurs absentes de
+ * la base, et l'enregistrement échouait en 422 sur le téléphone.
+ */
+const KINDS = PRICE_BOOK_CATEGORIES.map((value) => ({
+  value,
+  label: PRICE_BOOK_CATEGORY_LABELS[value],
+}));
 
 interface Draft {
   id: string | null;
   name: string;
-  category: Kind;
+  category: PriceBookCategoryId;
   unit: string;
   salePrice: string;
   vatRate: string;
@@ -170,14 +178,14 @@ export default function CatalogueScreen() {
                 <ListRow
                   key={item.id}
                   title={item.name}
-                  subtitle={`${KINDS.find((k) => k.value === item.category)?.label ?? item.category} · par ${item.unit}`}
+                  subtitle={`${PRICE_BOOK_CATEGORY_LABELS[item.category] ?? item.category} · par ${item.unit}`}
                   value={formatCents(item.salePriceCents)}
                   last={index === items.length - 1}
                   onPress={() =>
                     setDraft({
                       id: item.id,
                       name: item.name,
-                      category: item.category as Kind,
+                      category: item.category,
                       unit: item.unit,
                       salePrice: (item.salePriceCents / 100).toFixed(2),
                       vatRate: String(item.vatRate),

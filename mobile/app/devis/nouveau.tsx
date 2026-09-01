@@ -50,13 +50,20 @@ import { colors, radius, shadows, spacing, typography } from '@/theme';
  */
 type Phase = 'saisie' | 'questions' | 'generation' | 'verification';
 
-const ETAPES = [
-  'Analyse de votre description',
-  'Lecture des photos',
-  'Recherche dans votre catalogue',
-  'Rédaction des lignes',
-  'Calcul des montants',
-];
+/*
+ * Étapes annoncées pendant la préparation. « Lecture des photos » ne s'affiche
+ * que si des photos ont été jointes : cocher une étape qui n'a pas eu lieu,
+ * c'est raconter du travail qui n'a pas été fait.
+ */
+function etapesPour(avecPhotos: boolean): string[] {
+  return [
+    'Analyse de votre description',
+    ...(avecPhotos ? ['Lecture de vos photos'] : []),
+    'Recherche dans votre catalogue',
+    'Rédaction des lignes',
+    'Calcul des montants',
+  ];
+}
 
 function customerName(customer: CustomerDTO): string {
   const parts = [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim();
@@ -136,13 +143,14 @@ export default function NouveauDevisScreen() {
     }, []),
   );
   const photos = usePhotoCapture();
+  const etapes = React.useMemo(() => etapesPour(photos.fileIds.length > 0), [photos.fileIds.length]);
 
   // Progression de la génération : une barre qui avance vaut mieux qu'un écran figé.
   React.useEffect(() => {
     if (phase !== 'generation') return undefined;
-    const timer = setInterval(() => setStep((c) => Math.min(c + 1, ETAPES.length - 1)), 850);
+    const timer = setInterval(() => setStep((c) => Math.min(c + 1, etapes.length - 1)), 850);
     return () => clearInterval(timer);
-  }, [phase]);
+  }, [phase, etapes.length]);
 
   const pulse = React.useMemo(() => new Animated.Value(1), []);
   React.useEffect(() => {
@@ -326,7 +334,7 @@ export default function NouveauDevisScreen() {
         </View>
         <Heading>DEVISIA prépare votre devis</Heading>
         <View style={{ gap: spacing.md, alignSelf: 'stretch', paddingHorizontal: spacing.lg }}>
-          {ETAPES.map((label, index) => (
+          {etapes.map((label, index) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               {index < step ? (
                 <Ionicons name="checkmark-circle" size={20} color={colors.success} />
@@ -707,6 +715,7 @@ export default function NouveauDevisScreen() {
             style={[
               typography.body,
               { color: colors.ink, minHeight: 168, padding: spacing.lg, textAlignVertical: 'top' },
+              Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
             ]}
           />
           <View

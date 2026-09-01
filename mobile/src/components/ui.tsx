@@ -2,6 +2,7 @@ import * as React from 'react';
 import {
   ActivityIndicator,
   Animated,
+  Platform,
   Pressable,
   ScrollView,
   StyleSheet,
@@ -11,6 +12,7 @@ import {
   type PressableProps,
   type TextInputProps,
   type TextProps,
+  type TextStyle,
   type ViewProps,
   type ViewStyle,
   type RefreshControlProps,
@@ -165,6 +167,14 @@ export interface FieldProps extends TextInputProps {
   error?: string | null;
 }
 
+/*
+ * Le champ dessine déjà son propre état de focus (bordure accentuée). Sur le
+ * web, le navigateur en ajoute un second, noir, qui casse la maquette ; on le
+ * neutralise sans rien retirer à l'indication visuelle.
+ */
+const sansContourNatif =
+  Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null;
+
 export function Field({ label, hint, error, style, ...props }: FieldProps) {
   const [focused, setFocused] = React.useState(false);
 
@@ -197,6 +207,7 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
             fontSize: 16,
             color: colors.ink,
           },
+          sansContourNatif,
           style,
         ]}
         {...props}
@@ -472,7 +483,11 @@ export function SearchField({
         returnKeyType="search"
         onSubmitEditing={onSubmit}
         clearButtonMode="never"
-        style={[typography.body, { flex: 1, color: colors.ink, paddingVertical: 10 }]}
+        style={[
+          typography.body,
+          { flex: 1, color: colors.ink, paddingVertical: 10 },
+          sansContourNatif,
+        ]}
       />
       {value.length > 0 ? (
         <IconButton icon="close-circle" label="Effacer la recherche" size={18} onPress={() => onChangeText('')} />
@@ -602,7 +617,17 @@ export function ErrorState({
   onRetry: () => void;
 }) {
   return (
-    <View style={{ alignItems: 'center', paddingVertical: spacing['3xl'], gap: spacing.md }}>
+    /* Centré dans la hauteur disponible : collé en haut, l'écran d'erreur
+       ressemblait à un contenu qui n'a pas fini de charger. */
+    <View
+      style={{
+        flex: 1,
+        alignItems: 'center',
+        justifyContent: 'center',
+        paddingVertical: spacing['3xl'],
+        gap: spacing.md,
+      }}
+    >
       <View
         style={{
           width: 46,
@@ -734,7 +759,7 @@ export function GrowingInput({
       multiline
       scrollEnabled={false}
       onContentSizeChange={(event) => setHeight(event.nativeEvent.contentSize.height)}
-      style={[style, { height: Math.max(minHeight, height) }]}
+      style={[style, sansContourNatif, { height: Math.max(minHeight, height) }]}
     />
   );
 }

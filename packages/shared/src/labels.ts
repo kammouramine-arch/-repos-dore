@@ -27,6 +27,56 @@ export type QuoteItemKindId =
   | 'FRAIS'
   | 'REMISE';
 
+/**
+ * Catégories du catalogue de prix.
+ *
+ * Distinctes des natures de ligne de devis : le catalogue n'accepte ni frais ni
+ * remise. Les confondre laissait passer des valeurs refusées par la base — un
+ * écran mobile pouvait proposer une catégorie que l'API rejetait en 422.
+ */
+export type PriceBookCategoryId = 'MATERIAU' | 'MAIN_OEUVRE' | 'SERVICE' | 'PACK';
+
+export const PRICE_BOOK_CATEGORY_LABELS: Record<PriceBookCategoryId, string> = {
+  MAIN_OEUVRE: 'Main-d’œuvre',
+  MATERIAU: 'Matériau',
+  SERVICE: 'Prestation',
+  PACK: 'Forfait',
+};
+
+/** Ordre d'affichage : ce qu'un artisan saisit le plus souvent d'abord. */
+export const PRICE_BOOK_CATEGORIES: PriceBookCategoryId[] = [
+  'MAIN_OEUVRE',
+  'MATERIAU',
+  'SERVICE',
+  'PACK',
+];
+
+/** Ce qui est arrivé à un devis, dit du point de vue de l'artisan. */
+export type QuoteEventTypeId =
+  | 'CREE'
+  | 'MODIFIE'
+  | 'ENVOYE'
+  | 'CONSULTE'
+  | 'ACCEPTE'
+  | 'REFUSE'
+  | 'MODIFICATION_DEMANDEE'
+  | 'RELANCE'
+  | 'PDF_TELECHARGE'
+  | 'ANNULE';
+
+export const QUOTE_EVENT_LABELS: Record<QuoteEventTypeId, string> = {
+  CREE: 'Créé',
+  MODIFIE: 'Modifié',
+  ENVOYE: 'Envoyé au client',
+  CONSULTE: 'Ouvert par le client',
+  ACCEPTE: 'Accepté',
+  REFUSE: 'Refusé',
+  MODIFICATION_DEMANDEE: 'Modification demandée',
+  RELANCE: 'Relancé',
+  PDF_TELECHARGE: 'PDF téléchargé',
+  ANNULE: 'Annulé',
+};
+
 export type FollowUpTone = 'court' | 'professionnel' | 'amical' | 'ferme';
 
 export const QUOTE_STATUS_LABELS: Record<QuoteStatusId, string> = {

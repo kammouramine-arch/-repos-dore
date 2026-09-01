@@ -8,6 +8,8 @@ import { AuthProvider, useAuth } from '@/lib/auth';
 import { hasSeenOnboarding } from '@/lib/onboarding';
 import { ToastProvider } from '@/components/toast';
 import { LaunchScreen } from '@/components/launch';
+import { Logo } from '@/components/logo';
+import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
 void SplashScreen.preventAutoHideAsync();
@@ -55,19 +57,32 @@ function RootNavigator() {
           gap: spacing.md,
         }}
       >
+        <View
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: radius.full,
+            backgroundColor: colors.warningSoft,
+            alignItems: 'center',
+            justifyContent: 'center',
+            marginBottom: spacing.sm,
+          }}
+        >
+          <Ionicons name="cloud-offline-outline" size={26} color={colors.warning} />
+        </View>
         <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>
           Connexion indisponible
         </Text>
         <Text style={[typography.body, { color: colors.muted, textAlign: 'center' }]}>
-          Vos données sont en sécurité. Vérifiez votre réseau, puis réessayez.
+          Vos devis et vos clients sont en sécurité. Vérifiez votre réseau, puis réessayez.
         </Text>
         <Pressable
           accessibilityRole="button"
           onPress={() => void refresh()}
           style={({ pressed }) => ({
-            marginTop: spacing.sm,
-            paddingVertical: 13,
-            paddingHorizontal: spacing['2xl'],
+            marginTop: spacing.lg,
+            paddingVertical: 14,
+            paddingHorizontal: spacing['3xl'],
             borderRadius: radius.md,
             backgroundColor: colors.accent,
             opacity: pressed ? 0.85 : 1,
@@ -75,6 +90,9 @@ function RootNavigator() {
         >
           <Text style={[typography.bodyStrong, { color: colors.white }]}>Réessayer</Text>
         </Pressable>
+        <View style={{ position: 'absolute', bottom: spacing['4xl'] }}>
+          <Logo size={22} />
+        </View>
       </View>
     );
   }

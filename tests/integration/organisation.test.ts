@@ -2,6 +2,7 @@ import { afterAll, beforeAll, describe, expect, it } from 'vitest';
 import { cleanupOrganization, createTestOrganization, prisma } from '../helpers';
 import { businessProfileSchema } from '@/server/validation';
 import { customerDisplayName } from '@/server/dto';
+import { PRICE_BOOK_CATEGORIES, PRICE_BOOK_CATEGORY_LABELS } from '@devisia/shared';
 import { createCustomer, listCustomers } from '@/server/services/customerService';
 
 /**
@@ -133,5 +134,46 @@ describe('nom affichable d’un client', () => {
     const list = await listCustomers(org.organization.id, { search: 'Dupont' });
     expect(list.items.length).toBeGreaterThan(0);
     for (const item of list.items) expect(item.displayName.length).toBeGreaterThan(0);
+  });
+});
+
+/**
+ * Catégories du catalogue de prix.
+ *
+ * Le contrat partagé typait la catégorie d'un article avec l'énumération des
+ * lignes de devis — six valeurs pour quatre réellement acceptées. L'écran
+ * mobile en a hérité deux inventées (« Forfait », « Déplacement ») que l'API
+ * refusait en 422 au moment d'enregistrer. Ce cas compare la liste proposée à
+ * l'énumération de la base.
+ */
+describe('catégories du catalogue', () => {
+  it('ne propose que des catégories acceptées par la base', async () => {
+    const attendues = await prisma.$queryRawUnsafe<{ value: string }[]>(
+      `SELECT unnest(enum_range(NULL::"PriceBookCategory"))::text AS value`,
+    );
+    expect([...PRICE_BOOK_CATEGORIES].sort()).toEqual(attendues.map((r) => r.value).sort());
+  });
+
+  it('donne un libellé à chacune', () => {
+    for (const value of PRICE_BOOK_CATEGORIES) {
+      expect(PRICE_BOOK_CATEGORY_LABELS[value]?.length ?? 0).toBeGreaterThan(2);
+    }
+  });
+
+  it('accepte chaque catégorie proposée sur une création réelle', async () => {
+    for (const category of PRICE_BOOK_CATEGORIES) {
+      const created = await prisma.priceBookItem.create({
+        data: {
+          organizationId: org.organization.id,
+          name: `Article ${category}`,
+          category,
+          unit: 'u',
+          salePriceCents: 1000,
+          vatRate: 20,
+        },
+        select: { id: true, category: true },
+      });
+      expect(created.category).toBe(category);
+    }
   });
 });
