@@ -73,11 +73,24 @@ export class GeminiProvider implements AIProvider {
    * aucune valeur écrite en dur ne peut devenir fausse avec le temps.
    */
   private async resoudreModele(): Promise<string | null> {
-    const reponse = await fetch(`${BASE}/models`, {
-      headers: { 'x-goog-api-key': this.apiKey },
-      signal: AbortSignal.timeout(30_000),
-    }).catch(() => null);
-    if (!reponse?.ok) return null;
+    let reponse: Response;
+    try {
+      reponse = await fetch(`${BASE}/models`, {
+        headers: { 'x-goog-api-key': this.apiKey },
+        signal: AbortSignal.timeout(30_000),
+      });
+    } catch (cause) {
+      console.error('[ia] liste des modèles injoignable :', cause);
+      return null;
+    }
+    if (!reponse.ok) {
+      // Sans ce message, un repli qui échoue est indiscernable d'un repli qui
+      // n'a rien trouvé — et l'on ne sait pas si la clé, le projet ou le quota
+      // est en cause.
+      const detail = extractMessage(await reponse.text().catch(() => ''));
+      console.error(`[ia] liste des modèles refusée — statut ${reponse.status} : ${detail}`);
+      return null;
+    }
 
     const { models = [] } = (await reponse.json().catch(() => ({ models: [] }))) as {
       models?: { name?: string; supportedGenerationMethods?: string[] }[];
@@ -87,8 +100,14 @@ export class GeminiProvider implements AIProvider {
       .map((m) => (m.name ?? '').replace(/^models\//, ''))
       .filter((id) => id && !HORS_SUJET.test(id));
 
+    if (disponibles.length === 0) {
+      console.error(`[ia] l'API ne sert aucun modèle de génération (${models.length} entrées reçues).`);
+      return null;
+    }
+
     const choisi = PREFERENCES.find((p) => disponibles.includes(p)) ?? disponibles[0] ?? null;
     if (choisi) {
+      console.warn(`[ia] modèles servis : ${disponibles.slice(0, 12).join(', ')}`);
       console.warn(
         `[ia] modèle « ${this.model} » introuvable — repli automatique sur « ${choisi} ». ` +
           'Fixez GEMINI_MODEL pour supprimer cette recherche.',
