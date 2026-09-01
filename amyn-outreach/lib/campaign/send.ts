@@ -10,6 +10,10 @@ import { config } from "@/lib/config";
 import { getMailer } from "@/lib/mailer";
 import { logActivity } from "@/lib/activity";
 import { runComplianceChecks, type ComplianceReport, type SendCandidate } from "./compliance";
+import {
+  copierDansEnvoyes, BoiteImap,
+  type BoiteEnvoi, type SentCopyResult,
+} from "@/lib/mailer/sent-copy";
 
 export type SendOutcome = {
   sent: boolean;
@@ -87,11 +91,47 @@ export async function sendOne(candidate: SendCandidate): Promise<SendOutcome> {
       toEmail,
       subject: draft!.subject,
       providerMessageId: result.providerMessageId,
+      providerResponse: result.providerResponse,
+      messageId: result.messageId,
+      // Les octets exacts transmis, conserves pour pouvoir reprendre la copie
+      // dans « Envoyes » a l'identique si elle echoue maintenant.
+      rawMessage: result.raw ? result.raw.toString("utf-8") : null,
       error: result.error,
       complianceReport: JSON.stringify(compliance),
       sequenceStep: candidate.step,
     },
   });
+
+  // --- Copie dans « Envoyes » ---------------------------------------------
+  //
+  // SMTP transmet, il ne range rien. Sans ce depot, un email reellement parti
+  // reste invisible depuis la boite — c'est exactement ce qui s'est produit.
+  //
+  // ATTENTION A L'ORDRE ET AUX CONSEQUENCES : l'envoi est deja journalise
+  // SENT ci-dessus. Ce qui suit ne peut plus l'annuler. Un echec de copie est
+  // consigne comme tel, et n'a AUCUN effet sur le statut d'envoi : traiter une
+  // copie ratee comme un envoi rate conduirait a renvoyer le message.
+  if (result.status === "SENT" && result.raw && result.messageId) {
+    const copie = await copierEnvoiDansDossier({
+      sendLogId: log.id,
+      raw: result.raw,
+      messageId: result.messageId,
+    });
+
+    if (copie.status === "FAILED") {
+      await logActivity({
+        actor: "SYSTEM",
+        module: "SEND",
+        action: "send.sent_copy_failed",
+        entityType: "Prospect",
+        entityId: candidate.prospectId,
+        summary:
+          `Email BIEN ENVOYÉ à ${toEmail}, mais absent du dossier Envoyés : ${copie.detail} ` +
+          `Reprise possible sans réexpédier : npm run amyn -- sent-copy retry`,
+        level: "WARN",
+      });
+    }
+  }
 
   // Le statut n'avance QUE sur un envoi reellement transmis.
   if (result.status === "SENT") {
@@ -128,7 +168,11 @@ export async function sendOne(candidate: SendCandidate): Promise<SendOutcome> {
     entityType: "Prospect",
     entityId: candidate.prospectId,
     summary: `${result.dryRun ? "Envoi SIMULÉ" : "Email envoyé"} à ${toEmail} — « ${draft!.subject} »`,
-    details: { transport: result.transport, status: result.status, messageId: result.providerMessageId },
+    details: {
+      transport: result.transport,
+      status: result.status,
+      messageId: result.messageId ?? result.providerMessageId,
+    },
   });
 
   return {
@@ -138,6 +182,110 @@ export async function sendOne(candidate: SendCandidate): Promise<SendOutcome> {
     compliance,
     sendLogId: log.id,
   };
+}
+
+/**
+ * Depose une copie dans « Envoyes » et consigne le resultat sur le SendLog.
+ *
+ * IDEMPOTENCE A DEUX NIVEAUX. La base evite un travail inutile — un envoi
+ * deja copie n'est pas retente. Le serveur IMAP tranche vraiment : il est
+ * interroge sur le Message-ID avant tout depot, si bien qu'une base restaurée
+ * ou un double appel ne peuvent pas produire deux copies.
+ */
+export async function copierEnvoiDansDossier(input: {
+  sendLogId: string;
+  raw: Buffer;
+  messageId: string;
+  /** Injectable : les tests ne se connectent a aucune boite. */
+  boite?: BoiteEnvoi;
+}): Promise<SentCopyResult> {
+  const log = await prisma.sendLog.findUnique({
+    where: { id: input.sendLogId },
+    select: { sentCopyStatus: true, sentCopyFolder: true, sentCopyUid: true },
+  });
+
+  if (log && (log.sentCopyStatus === "COPIED" || log.sentCopyStatus === "ALREADY_PRESENT")) {
+    return {
+      status: log.sentCopyStatus as SentCopyResult["status"],
+      folder: log.sentCopyFolder ?? undefined,
+      uid: log.sentCopyUid ?? undefined,
+      detail: "Copie déjà effectuée : rien à refaire.",
+    };
+  }
+
+  const propre = !input.boite;
+  const boite = input.boite ?? new BoiteImap();
+
+  const resultat = await copierDansEnvoyes(
+    {
+      raw: input.raw,
+      messageId: input.messageId,
+      folder: process.env.IMAP_SENT_FOLDER?.trim() || undefined,
+    },
+    boite,
+  );
+
+  if (propre && boite instanceof BoiteImap) await boite.fermer().catch(() => {});
+
+  await prisma.sendLog.update({
+    where: { id: input.sendLogId },
+    data: {
+      sentCopyStatus: resultat.status,
+      sentCopyFolder: resultat.folder ?? null,
+      sentCopyUid: resultat.uid ?? null,
+      sentCopyError: resultat.status === "FAILED" ? resultat.detail : null,
+      sentCopyAt: new Date(),
+    },
+  });
+
+  return resultat;
+}
+
+/**
+ * Reprend les copies manquantes, a partir des octets conserves.
+ *
+ * Ne reexpedie RIEN : le message n'est pas renvoye au serveur SMTP, il est
+ * seulement depose dans le dossier. C'est la difference entre ranger une
+ * lettre deja postee et la poster une seconde fois.
+ */
+export async function reprendreCopiesManquantes(
+  options: { max?: number; boite?: BoiteEnvoi } = {},
+): Promise<{ traites: number; copies: number; dejaPresents: number; echecs: number; details: string[] }> {
+  const enAttente = await prisma.sendLog.findMany({
+    where: {
+      status: "SENT",
+      dryRun: false,
+      rawMessage: { not: null },
+      messageId: { not: null },
+      sentCopyStatus: { in: ["NOT_ATTEMPTED", "FAILED"] },
+    },
+    select: { id: true, messageId: true, rawMessage: true, toEmail: true, subject: true },
+    orderBy: { createdAt: "asc" },
+    take: options.max ?? 50,
+  });
+
+  const bilan = { traites: 0, copies: 0, dejaPresents: 0, echecs: 0, details: [] as string[] };
+  if (enAttente.length === 0) return bilan;
+
+  const propre = !options.boite;
+  const boite = options.boite ?? new BoiteImap();
+
+  for (const log of enAttente) {
+    const r = await copierEnvoiDansDossier({
+      sendLogId: log.id,
+      raw: Buffer.from(log.rawMessage!, "utf-8"),
+      messageId: log.messageId!,
+      boite,
+    });
+    bilan.traites += 1;
+    if (r.status === "COPIED") bilan.copies += 1;
+    else if (r.status === "ALREADY_PRESENT") bilan.dejaPresents += 1;
+    else bilan.echecs += 1;
+    bilan.details.push(`${log.toEmail} — « ${log.subject} » : ${r.detail}`);
+  }
+
+  if (propre && boite instanceof BoiteImap) await boite.fermer().catch(() => {});
+  return bilan;
 }
 
 /** Envoi test vers sa propre adresse. Obligatoire avant tout envoi reel. */

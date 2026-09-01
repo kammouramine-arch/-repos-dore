@@ -86,6 +86,7 @@ async function main() {
     case "funnel": case "entonnoir": return funnelCommand();
     case "autopilot": case "pilote": return autopilotCommand(rest);
     case "sends": case "envois": return sendsCommand(rest);
+    case "sent-copy": case "copie-envoyes": return sentCopyCommand(rest);
     case "sirene-live": return sireneLiveCommand(rest);
     case "tick": case "worker": return tickCommand();
     case "policy": return policyCommand(rest);
@@ -1124,6 +1125,76 @@ async function queueCommand(args: string[]) {
   console.log(`    ${C.bold}${r.commandeApprobation}${C.reset}`);
 }
 
+// --- COPIE DANS « ENVOYÉS » -------------------------------------------------
+
+async function sentCopyCommand(args: string[]) {
+  const { prisma: db } = await import("../lib/db");
+  const sous = args[0];
+
+  if (sous === "retry" || sous === "reprendre") {
+    const { reprendreCopiesManquantes } = await import("../lib/campaign/send");
+    title("REPRISE DES COPIES MANQUANTES");
+    info("Aucun email n'est réexpédié : les messages déjà partis sont seulement");
+    info("déposés dans le dossier Envoyés, à partir des octets conservés.");
+    console.log();
+
+    const r = await reprendreCopiesManquantes({ max: Number(option(args, "max") ?? 50) });
+    if (r.traites === 0) {
+      ok("Aucune copie en attente.");
+      return;
+    }
+    for (const d of r.details) info(d);
+    console.log();
+    console.log(
+      `  ${r.traites} traité(s) : ${r.copies} copié(s), ${r.dejaPresents} déjà présent(s), ${r.echecs} en échec.`,
+    );
+    return;
+  }
+
+  title("COPIES DANS LE DOSSIER ENVOYÉS");
+  const parStatut = await db.sendLog.groupBy({
+    by: ["sentCopyStatus"],
+    where: { status: "SENT", dryRun: false },
+    _count: { _all: true },
+  });
+
+  if (parStatut.length === 0) {
+    info("Aucun envoi réel enregistré.");
+    return;
+  }
+
+  for (const l of parStatut) {
+    const ligne = `${l.sentCopyStatus.padEnd(16)} ${l._count._all}`;
+    if (l.sentCopyStatus === "COPIED" || l.sentCopyStatus === "ALREADY_PRESENT") ok(ligne);
+    else warn(ligne);
+  }
+
+  const reprenables = await db.sendLog.count({
+    where: {
+      status: "SENT", dryRun: false,
+      rawMessage: { not: null }, messageId: { not: null },
+      sentCopyStatus: { in: ["NOT_ATTEMPTED", "FAILED"] },
+    },
+  });
+  const sansOctets = await db.sendLog.count({
+    where: {
+      status: "SENT", dryRun: false,
+      sentCopyStatus: { in: ["NOT_ATTEMPTED", "FAILED"] },
+      OR: [{ rawMessage: null }, { messageId: null }],
+    },
+  });
+
+  console.log();
+  if (reprenables > 0) {
+    info(`${reprenables} copie(s) reprenable(s) à l'identique : npm run amyn -- sent-copy retry`);
+  }
+  if (sansOctets > 0) {
+    warn(`${sansOctets} envoi(s) sans message conservé : la copie exacte est IMPOSSIBLE.`);
+    info("Ces emails ont été envoyés avant que les octets ne soient conservés.");
+    info("Les recopier reviendrait à fabriquer un message ressemblant, pas le message envoyé.");
+  }
+}
+
 // --- JOURNAL DES ENVOIS -----------------------------------------------------
 
 /**
@@ -1150,6 +1221,7 @@ async function sendsCommand(args: string[]) {
     select: {
       status: true, toEmail: true, subject: true, createdAt: true, dryRun: true,
       transport: true, error: true, providerMessageId: true, sequenceStep: true,
+      messageId: true, providerResponse: true, sentCopyStatus: true, sentCopyFolder: true,
       prospect: { select: { name: true, city: true } },
     },
   });
@@ -1175,8 +1247,16 @@ async function sendsCommand(args: string[]) {
       `  ${e.prospect.city} · transport ${e.transport}` +
         (e.dryRun ? " · SIMULATION" : " · ENVOI RÉEL") +
         (e.sequenceStep > 0 ? ` · relance ${e.sequenceStep}` : "") +
-        (e.providerMessageId ? ` · id ${e.providerMessageId.slice(0, 40)}` : ""),
+        (e.messageId ? ` · Message-ID ${e.messageId}` : ""),
     );
+    if (e.providerResponse) info(`  serveur : ${e.providerResponse.slice(0, 120)}`);
+    if (!e.dryRun && e.status === "SENT") {
+      const copie =
+        e.sentCopyStatus === "COPIED" || e.sentCopyStatus === "ALREADY_PRESENT"
+          ? `copie dans « ${e.sentCopyFolder ?? "Envoyés"} »`
+          : `copie Envoyés : ${e.sentCopyStatus}`;
+      info(`  ${copie}`);
+    }
     if (e.error) info(`  motif : ${e.error.slice(0, 160)}`);
     console.log();
   }
@@ -1429,6 +1509,8 @@ function help() {
                                (refusé tant que le sas n'est pas franchi)
     sends [--jours=N] [--tout]  journal des envois : entreprise, destinataire,
                                objet, heure, statut. --tout inclut les simulations
+    sent-copy                  état des copies dans le dossier Envoyés
+    sent-copy retry            déposer les copies manquantes (sans réexpédier)
     sirene-live [--dept=59]    test réel de l'API Sirene (nécessite la clé)
 
   ${C.bold}Opérateur${C.reset}

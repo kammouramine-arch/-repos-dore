@@ -434,10 +434,48 @@ model SendLog {
   toEmail String
   subject String @default("")
 
+  /// Identifiant rapporte par la bibliotheque d'envoi.
+  ///
+  /// ATTENTION : lorsqu'on transmet un message deja compose, nodemailer
+  /// INVENTE cet identifiant au lieu de lire l'en-tete du message. Il ne
+  /// permet donc PAS de retrouver le message dans une boite. Pour cela, c'est
+  /// `messageId` qui fait foi.
   providerMessageId String?
-  error             String?
-  bounceType        String? // HARD | SOFT
-  bounceDetail      String?
+
+  /// Reponse d'acceptation du serveur SMTP, telle quelle.
+  ///
+  /// Contient l'identifiant de file du fournisseur — « 250 2.0.0 Ok: queued
+  /// as ABC123 ». C'est LA reference a fournir a OVHcloud pour retrouver la
+  /// trace d'un envoi dans leurs journaux.
+  providerResponse String?
+  /// En-tete Message-ID du courriel, fixe par nous AVANT l'envoi.
+  ///
+  /// Le fixer nous-memes est ce qui rend la copie possible : c'est la cle qui
+  /// permet de retrouver le message dans le dossier Envoyes et de savoir s'il
+  /// s'y trouve deja.
+  messageId        String?
+
+  /// Message MIME exact, tel qu'il a ete transmis au serveur.
+  ///
+  /// Conserve pour une seule raison : si la copie IMAP echoue — boite
+  /// injoignable, session expiree — elle doit pouvoir etre reprise plus tard
+  /// A L'IDENTIQUE. Reconstruire le message a partir du brouillon donnerait un
+  /// message ressemblant, pas le message envoye.
+  rawMessage String?
+
+  /// NOT_ATTEMPTED | COPIED | ALREADY_PRESENT | FAILED | SKIPPED
+  ///
+  /// L'echec de la copie n'est JAMAIS un echec d'envoi : le message est parti.
+  /// Confondre les deux conduirait a le renvoyer.
+  sentCopyStatus String    @default("NOT_ATTEMPTED")
+  sentCopyFolder String?
+  sentCopyUid    Int?
+  sentCopyError  String?
+  sentCopyAt     DateTime?
+
+  error        String?
+  bounceType   String? // HARD | SOFT
+  bounceDetail String?
 
   /// JSON : resultat de chaque controle de conformite avant envoi
   complianceReport String?
@@ -449,6 +487,8 @@ model SendLog {
   @@index([campaignId])
   @@index([createdAt])
   @@index([status])
+  @@index([messageId])
+  @@index([sentCopyStatus])
 }
 
 model Reply {

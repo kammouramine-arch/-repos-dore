@@ -25,6 +25,32 @@ export type SendResult = {
   transport: string;
   dryRun: boolean;
   providerMessageId?: string;
+
+  /**
+   * Reponse d'acceptation du serveur SMTP, mot pour mot.
+   *
+   * C'est la seule reference qu'un hebergeur sait retrouver dans ses journaux.
+   */
+  providerResponse?: string;
+
+  /**
+   * En-tete Message-ID, FIXE PAR NOUS avant l'envoi.
+   *
+   * Laisser le serveur le generer rendrait la copie dans « Envoyes »
+   * fragile : sans identifiant connu a l'avance, impossible de verifier si
+   * le message s'y trouve deja, donc impossible de garantir l'absence de
+   * doublon.
+   */
+  messageId?: string;
+
+  /**
+   * Le message MIME exact transmis au serveur.
+   *
+   * C'est ce qui permet de deposer dans « Envoyes » une copie identique a ce
+   * qui est parti — pas une reconstruction qui lui ressemble.
+   */
+  raw?: Buffer;
+
   error?: string;
 };
 
