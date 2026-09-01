@@ -9,6 +9,7 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import { env } from '../env';
 import { AppError } from '../errors';
+import { prisma } from '../prisma';
 import type { StorageProvider, StoredObject } from './types';
 
 /** Stockage disque, pour le développement local et les tests. */
@@ -46,6 +47,50 @@ class LocalStorage implements StorageProvider {
 
   async signedUrl(): Promise<string | null> {
     // Les fichiers sont servis par /api/files/[id], qui vérifie l'organisation.
+    return null;
+  }
+}
+
+/**
+ * Stockage du binaire dans PostgreSQL.
+ *
+ * C'est le pilote par défaut, et ce choix est délibéré : les hébergeurs
+ * serverless montent le système de fichiers de l'application en lecture seule,
+ * si bien qu'un pilote disque échoue en production alors qu'il passe en
+ * développement — exactement le genre de panne qui ne se voit qu'une fois
+ * l'application entre les mains d'un artisan. La base, elle, est déjà là et
+ * déjà cloisonnée par organisation.
+ *
+ * Pour un volume important, `STORAGE_PROVIDER=s3` reste préférable : le binaire
+ * quitte alors la base sans changer une ligne du code appelant.
+ */
+class DatabaseStorage implements StorageProvider {
+  readonly name = 'database';
+
+  async put(key: string, body: Buffer, contentType: string): Promise<StoredObject> {
+    // Prisma attend un `Uint8Array` adossé à un `ArrayBuffer` ; un `Buffer`
+    // Node peut l'être à un `SharedArrayBuffer`, que le type rejette.
+    const bytes = new Uint8Array(body);
+    await prisma.fileBlob.upsert({
+      where: { storageKey: key },
+      create: { storageKey: key, bytes },
+      update: { bytes },
+    });
+    return { key, size: body.byteLength, contentType };
+  }
+
+  async get(key: string): Promise<Buffer> {
+    const row = await prisma.fileBlob.findUnique({ where: { storageKey: key } });
+    if (!row) throw new AppError('NOT_FOUND', 'Fichier introuvable.');
+    return Buffer.from(row.bytes);
+  }
+
+  async delete(key: string): Promise<void> {
+    await prisma.fileBlob.deleteMany({ where: { storageKey: key } });
+  }
+
+  async signedUrl(): Promise<string | null> {
+    // Servi par /api/files/[id], qui vérifie l'organisation appelante.
     return null;
   }
 }
@@ -121,8 +166,10 @@ export function getStorageProvider(): StorageProvider {
       accessKeyId: config.S3_ACCESS_KEY_ID,
       secretAccessKey: config.S3_SECRET_ACCESS_KEY,
     });
-  } else {
+  } else if (config.STORAGE_PROVIDER === 'local') {
     cached = new LocalStorage(config.STORAGE_LOCAL_DIR);
+  } else {
+    cached = new DatabaseStorage();
   }
   return cached;
 }

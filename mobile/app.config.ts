@@ -95,6 +95,8 @@ const config: ExpoConfig = {
         'DEVISIA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
       NSPhotoLibraryUsageDescription:
         'DEVISIA accède à vos photos pour joindre des images de chantier à vos devis.',
+      NSSpeechRecognitionUsageDescription:
+        'DEVISIA transcrit votre description de chantier pour préparer le devis à votre place.',
       NSFaceIDUsageDescription:
         'DEVISIA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
     },
@@ -159,6 +161,15 @@ const config: ExpoConfig = {
           'DEVISIA accède à vos photos pour joindre des images de chantier à vos devis.',
         cameraPermission:
           'DEVISIA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
+      },
+    ],
+    [
+      '@jamsch/expo-speech-recognition',
+      {
+        microphonePermission:
+          'DEVISIA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
+        speechRecognitionPermission:
+          'DEVISIA transcrit votre description de chantier pour préparer le devis à votre place.',
       },
     ],
     [

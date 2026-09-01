@@ -3,12 +3,14 @@ import type {
   ApiResponse,
   AuthTokenDTO,
   BillingOverviewDTO,
+  BusinessProfileDTO,
   CustomerDTO,
   DashboardDTO,
   FollowUpDraftDTO,
   GeneratedQuoteDTO,
   LeadDTO,
   NotificationDTO,
+  PriceBookItemDTO,
   QuoteDetailDTO,
   QuoteSummaryDTO,
   SessionDTO,
@@ -44,22 +46,59 @@ export class DevisiaApiError extends Error {
 export const DEFAULT_TIMEOUT_MS = 20_000;
 
 /**
- * Construit l'erreur rendue lorsque la requête n'a jamais atteint le serveur :
- * pas de réseau, DNS injoignable, ou délai dépassé. Le code `NETWORK` permet
- * aux écrans de distinguer une panne de connexion d'un refus du serveur.
+ * Construit l'erreur rendue lorsque la requête n'a jamais atteint le serveur.
+ *
+ * Le message ne prétend jamais savoir *pourquoi*. L'application ne peut
+ * constater qu'une chose — elle n'a pas obtenu de réponse — et affirmer « pas
+ * de connexion » à un artisan dont le téléphone affiche quatre barres de
+ * réseau détruit la confiance dans tous les autres messages.
  */
-function networkError(cause: unknown): DevisiaApiError {
+function transportError(cause: unknown): DevisiaApiError {
   const aborted = cause instanceof Error && cause.name === 'AbortError';
   return new DevisiaApiError(
     {
-      code: 'NETWORK',
+      code: aborted ? 'TIMEOUT' : 'NETWORK',
       message: aborted
-        ? 'Le serveur met trop de temps à répondre. Vérifiez votre connexion.'
-        : 'Pas de connexion. Vérifiez votre réseau et réessayez.',
+        ? 'Le serveur met trop de temps à répondre. Réessayez dans un instant.'
+        : 'DEVISIA n’a pas pu joindre le serveur. Vérifiez votre connexion, puis réessayez.',
       retryable: true,
     },
     0,
   );
+}
+
+/** Traduit un statut HTTP nu, lorsque la réponse ne porte aucun corps JSON. */
+function fromStatus(status: number): ApiError {
+  if (status === 401) {
+    return { code: 'UNAUTHENTICATED', message: 'Votre session a expiré. Reconnectez-vous.' };
+  }
+  if (status === 403) {
+    return { code: 'FORBIDDEN', message: "Vous n'avez pas accès à cette action." };
+  }
+  if (status === 404) {
+    return { code: 'NOT_FOUND', message: 'Cet élément est introuvable.' };
+  }
+  if (status === 413) {
+    return { code: 'VALIDATION', message: 'Ce fichier est trop volumineux.', retryable: false };
+  }
+  if (status === 429) {
+    return { code: 'RATE_LIMITED', message: 'Trop de demandes. Patientez un instant.', retryable: true };
+  }
+  if (status === 503) {
+    return {
+      code: 'PROVIDER_UNAVAILABLE',
+      message: 'Ce service est momentanément indisponible.',
+      retryable: true,
+    };
+  }
+  if (status >= 500) {
+    return {
+      code: 'INTERNAL',
+      message: 'Le serveur a rencontré un problème. Vos informations sont conservées.',
+      retryable: true,
+    };
+  }
+  return { code: 'INTERNAL', message: "Une erreur inattendue s'est produite.", retryable: false };
 }
 
 export interface ApiClientOptions {
@@ -94,7 +133,10 @@ export function createApiClient(options: ApiClientOptions) {
     try {
       return await doFetch(url, { ...init, signal: controller.signal });
     } catch (cause) {
-      throw networkError(cause);
+      // Une erreur déjà normalisée (401 relayé par un appelant) ne doit pas
+      // être repeinte en panne de transport.
+      if (cause instanceof DevisiaApiError) throw cause;
+      throw transportError(cause);
     } finally {
       clearTimeout(timer);
     }
@@ -115,17 +157,11 @@ export function createApiClient(options: ApiClientOptions) {
     }
 
     if (!response.ok || !payload || 'error' in payload) {
+      // Le serveur a répondu : son diagnostic prime toujours sur le nôtre. Ce
+      // n'est que faute de corps exploitable — page d'erreur d'un proxy, 502
+      // d'une passerelle — que l'on déduit un code du statut HTTP.
       const error: ApiError =
-        payload && 'error' in payload
-          ? payload.error
-          : {
-              code: response.status === 401 ? 'UNAUTHENTICATED' : 'INTERNAL',
-              message:
-                response.status === 401
-                  ? 'Votre session a expiré. Reconnectez-vous.'
-                  : "Une erreur inattendue s'est produite. Merci de réessayer.",
-              retryable: response.status >= 500,
-            };
+        payload && 'error' in payload ? payload.error : fromStatus(response.status);
       if (error.code === 'UNAUTHENTICATED') options.onUnauthenticated?.();
       throw new DevisiaApiError(error, response.status);
     }
@@ -261,6 +297,25 @@ export function createApiClient(options: ApiClientOptions) {
         form.append('audio', file as unknown as Blob);
         return upload<{ text: string }>('/api/ai/transcribe', form);
       },
+    },
+
+    priceBook: {
+      list: (search?: string) =>
+        request<PriceBookItemDTO[]>(
+          `/api/pricebook${search ? `?q=${encodeURIComponent(search)}` : ''}`,
+        ),
+      create: (input: unknown) =>
+        request<PriceBookItemDTO>('/api/pricebook', { method: 'POST', json: input }),
+      update: (id: string, input: unknown) =>
+        request<PriceBookItemDTO>(`/api/pricebook/${id}`, { method: 'PATCH', json: input }),
+      remove: (id: string) =>
+        request<{ deleted: boolean }>(`/api/pricebook/${id}`, { method: 'DELETE' }),
+    },
+
+    organisation: {
+      profile: () => request<BusinessProfileDTO>('/api/organisation'),
+      save: (input: Partial<BusinessProfileDTO>) =>
+        request<BusinessProfileDTO>('/api/organisation', { method: 'PATCH', json: input }),
     },
 
     notifications: {

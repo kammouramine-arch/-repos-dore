@@ -13,7 +13,9 @@ process.env.APP_URL = 'http://localhost:3000';
 process.env.AUTH_SECRET = 'test-secret-devisia-0123456789';
 process.env.AI_PROVIDER = 'local';
 process.env.EMAIL_PROVIDER = 'console';
-process.env.STORAGE_PROVIDER = 'local';
+// Le pilote par défaut (base) est aussi celui de la production : les tests
+// exercent donc le même chemin que les artisans.
+delete process.env.STORAGE_PROVIDER;
 process.env.STORAGE_LOCAL_DIR = './.tmp-storage';
 delete process.env.ANTHROPIC_API_KEY;
 delete process.env.RESEND_API_KEY;

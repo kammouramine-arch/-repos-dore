@@ -936,6 +936,19 @@ model UsageRecord {
 // Fichiers, IA, audit, notifications, intégrations
 // ---------------------------------------------------------------------------
 
+/// Contenu binaire des fichiers, servi par le pilote de stockage « database ».
+///
+/// Table séparée de `File` : les métadonnées sont lues à chaque affichage de
+/// devis, le binaire seulement au téléchargement. Les garder ensemble ferait
+/// remonter plusieurs mégaoctets à chaque requête de liste.
+model FileBlob {
+  storageKey String   @id
+  bytes      Bytes
+  createdAt  DateTime @default(now())
+
+  @@map("file_blobs")
+}
+
 model File {
   id             String    @id @default(uuid()) @db.Uuid
   organizationId String    @db.Uuid

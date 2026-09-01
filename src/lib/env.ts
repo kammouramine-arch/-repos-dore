@@ -35,7 +35,12 @@ const serverSchema = z.object({
   EMAIL_FROM: z.string().default('DEVISIA <bonjour@devisia.fr>'),
 
   // Stockage
-  STORAGE_PROVIDER: z.enum(['local', 's3']).default('local'),
+  // `database` : le binaire vit dans PostgreSQL. Aucune configuration externe,
+  //              et surtout aucun disque à écrire — les hébergeurs serverless
+  //              montent le système de fichiers en lecture seule.
+  // `s3`       : stockage objet, à préférer dès que le volume grandit.
+  // `local`    : disque, réservé au développement.
+  STORAGE_PROVIDER: z.enum(['database', 'local', 's3']).default('database'),
   STORAGE_LOCAL_DIR: z.string().default('./storage'),
   S3_ENDPOINT: z.string().optional(),
   S3_REGION: z.string().optional(),

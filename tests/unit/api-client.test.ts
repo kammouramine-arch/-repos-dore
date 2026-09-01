@@ -57,7 +57,10 @@ describe('client API — transport', () => {
     const error = await expectFailure(api.dashboard());
     expect(error.code).toBe('NETWORK');
     expect(error.retryable).toBe(true);
-    expect(error.message).toMatch(/connexion/i);
+    // Le message constate un échec de jonction ; il n'affirme pas que le
+    // téléphone est hors ligne, ce que l'application ne peut pas savoir.
+    expect(error.message).toMatch(/n’a pas pu joindre le serveur/i);
+    expect(error.message).not.toMatch(/^pas de connexion/i);
   });
 
   it('abandonne une requête qui ne répond pas', async () => {
@@ -75,7 +78,7 @@ describe('client API — transport', () => {
     });
 
     const error = await expectFailure(api.dashboard());
-    expect(error.code).toBe('NETWORK');
+    expect(error.code).toBe('TIMEOUT');
     expect(error.message).toMatch(/trop de temps/i);
   });
 
@@ -96,6 +99,53 @@ describe('client API — transport', () => {
     expect(error.code).toBe('UNAUTHENTICATED');
     expect(error.status).toBe(401);
     expect(onUnauthenticated).toHaveBeenCalledTimes(1);
+  });
+
+  it('relaie le diagnostic du serveur plutôt que le sien', async () => {
+    const api = createApiClient({
+      baseUrl: 'https://exemple.test',
+      getToken: () => 'jeton',
+      fetchImpl: (async () =>
+        jsonResponse(
+          {
+            error: {
+              code: 'PROVIDER_UNAVAILABLE',
+              message: 'La transcription n’est pas activée.',
+              retryable: true,
+            },
+          },
+          503,
+        )) as unknown as typeof fetch,
+    });
+
+    const error = await expectFailure(api.dashboard());
+    expect(error.code).toBe('PROVIDER_UNAVAILABLE');
+    expect(error.message).toBe('La transcription n’est pas activée.');
+  });
+
+  it('déduit un code utile quand la réponse ne porte aucun JSON', async () => {
+    const cases: [number, string][] = [
+      [401, 'UNAUTHENTICATED'],
+      [403, 'FORBIDDEN'],
+      [404, 'NOT_FOUND'],
+      [413, 'VALIDATION'],
+      [429, 'RATE_LIMITED'],
+      [503, 'PROVIDER_UNAVAILABLE'],
+      [502, 'INTERNAL'],
+    ];
+
+    for (const [status, code] of cases) {
+      const api = createApiClient({
+        baseUrl: 'https://exemple.test',
+        getToken: () => 'jeton',
+        // Une passerelle qui rend du HTML, pas le JSON de DEVISIA.
+        fetchImpl: (async () =>
+          new Response('<html>Bad Gateway</html>', { status })) as unknown as typeof fetch,
+      });
+      const error = await expectFailure(api.dashboard());
+      expect(`${status} ${error.code}`).toBe(`${status} ${code}`);
+      expect(error.message).not.toMatch(/html|<|>/i);
+    }
   });
 
   it('construit les chemins de devis attendus par le backend', async () => {

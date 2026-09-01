@@ -20,6 +20,7 @@ export interface ApiError {
     | 'PROVIDER_UNAVAILABLE'
     // Émis par le client seul : la requête n'a jamais atteint le serveur.
     | 'NETWORK'
+    | 'TIMEOUT'
     | 'INTERNAL';
   message: string;
   details?: Record<string, string[]>;
@@ -242,6 +243,47 @@ export interface FollowUpDraftDTO {
   objet: string;
   message: string;
   degraded: boolean;
+}
+
+export interface PriceBookItemDTO {
+  id: string;
+  reference: string | null;
+  name: string;
+  description: string | null;
+  category: QuoteItemKindId;
+  unit: string;
+  costPriceCents: number;
+  salePriceCents: number;
+  vatRate: number;
+  keywords: string[];
+  archivedAt?: string | null;
+}
+
+/** Profil d'entreprise, tel que l'API `/api/organisation` le rend et l'accepte. */
+export interface BusinessProfileDTO {
+  legalName: string;
+  ownerName: string | null;
+  email: string | null;
+  phone: string | null;
+  website: string | null;
+  addressLine1: string | null;
+  city: string | null;
+  postalCode: string | null;
+  country: string;
+  siret: string | null;
+  vatNumber: string | null;
+  insurance: string | null;
+  trade: string;
+  vatStatus: string;
+  defaultVatRate: number | string;
+  defaultHourlyRateCents: number;
+  quoteValidityDays: number;
+  depositPercent: number | string;
+  paymentTerms: string | null;
+  quoteTerms: string | null;
+  quoteFooter: string | null;
+  brandColor: string;
+  logoFileId: string | null;
 }
 
 export interface NotificationDTO {
