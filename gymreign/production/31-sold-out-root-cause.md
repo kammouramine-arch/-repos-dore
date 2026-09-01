@@ -91,3 +91,59 @@ from the theme without lying to customers.
    doing in Printify.
 
 I have not made any of these changes.
+
+---
+
+# Follow-up: the actual discriminator is the vendor field
+
+Variant count was a red herring. The real pattern:
+
+| Product | vendor | printify_product_id | variants | Storefront |
+|---|---|---|---|---|
+| The Tee | **GYMREIGN** | 6a943a0cdf83b77551058bc4 | 46 | **unavailable** |
+| The Hoodie | **GYMREIGN** | 6a943a0e47600eef7e0d8ff0 | 15 | **unavailable** |
+| The Jogger | **GYMREIGN** | 6a943a10df83b77551058bca | 30 | **unavailable** |
+| The Shorts | **GYMREIGN** | 6a946cfed65d512e750d06c6 | 20 | **unavailable** |
+| The Cap | **Printify** | 6a943a1247600eef7e0d8ffb | 4 | **available** |
+
+The four broken products are exactly the four whose `vendor` was rewritten from
+"Printify" to "GYMREIGN" during the brand identity phase. The one product whose
+vendor was never touched is the one that still works. All five still carry the
+`printify_custom.printify_product_id` metafield, so the Printify link exists on
+all of them — but on the four edited ones the inventory association is no longer
+being maintained.
+
+That is a textbook consequence of editing a Printify-managed product on the
+Shopify side, and it makes a Printify re-sync the correct repair.
+
+## Why I cannot perform the re-sync
+
+I have no Printify credentials and no Printify API access, and I will not ask for
+any. The Printify app is installed on the store with write scopes, but that is the
+app's own access — an installed app's sync cannot be triggered through the Shopify
+Admin API. Publishing/re-syncing a product is an action inside Printify.
+
+## Exact steps in Printify
+
+For **The Tee, The Hoodie, The Jogger and The Shorts** only — leave The Cap alone:
+
+1. Printify → **My Products** → find the product.
+2. Open the **…** menu on the product → **Publish** (or *Edit publishing details*
+   → then Publish). If it shows as already published, use **Unpublish** first,
+   then **Publish** — that is what rebuilds the Shopify records.
+3. In the publishing options make sure **Variants** and **Inventory/quantity**
+   are selected, along with anything else you want authoritative from Printify.
+   Leave **Title**, **Description** and **Images** unticked if you want the
+   Shopify copy and imagery preserved — those are already approved.
+4. Repeat for all four. Wait for each to report published.
+
+One warning: a re-sync may set `vendor` back to "Printify" on those four. Leave it
+that way until availability is verified — changing it back is what appears to have
+broken the association in the first place. We can decide about the vendor label
+afterwards; it is not shown anywhere on the storefront.
+
+## Verification is ready to run
+
+The moment the sync is done I re-run the same real-Liquid probe against the France
+storefront and report product.available, selected variant.available and
+inventory_quantity for all five, then do the five real add-to-cart tests.
