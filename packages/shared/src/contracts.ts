@@ -267,6 +267,7 @@ export interface BusinessProfileDTO {
   phone: string | null;
   website: string | null;
   addressLine1: string | null;
+  addressLine2: string | null;
   city: string | null;
   postalCode: string | null;
   country: string;
@@ -276,9 +277,8 @@ export interface BusinessProfileDTO {
   trade: string;
   vatStatus: string;
   defaultVatRate: number | string;
-  defaultHourlyRateCents: number;
+  defaultHourlyCents: number;
   quoteValidityDays: number;
-  depositPercent: number | string;
   paymentTerms: string | null;
   quoteTerms: string | null;
   quoteFooter: string | null;

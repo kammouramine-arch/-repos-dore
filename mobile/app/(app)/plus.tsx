@@ -1,43 +1,57 @@
 import * as React from 'react';
-import { Alert, Linking, Pressable, View } from 'react-native';
+import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PLANS, accessStateFor, trialMessage } from '@devisia/shared';
-import { Body, Button, Card, Divider, Ionicons, Muted, Screen, Title } from '@/components/ui';
+import { Button, Caption, Card, Ionicons, ListRow, Muted, Screen, Title } from '@/components/ui';
 import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
-import { API_URL } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+
+/**
+ * Écran « Plus ».
+ *
+ * Trois entrées y renvoyaient vers le navigateur, avec la mention « Sur le web
+ * · connexion demandée » — c'est-à-dire : sortez de l'application, puis
+ * ressaisissez votre mot de passe pour consulter vos propres prix. Tout est
+ * désormais natif, et l'artisan reste dans DEVISIA.
+ */
+interface Entry {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  hint: string;
+  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique';
+}
 
 export default function PlusScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
   const access = accessStateFor(session?.subscription ?? null);
 
-  const links: { icon: keyof typeof Ionicons.glyphMap; label: string; hint: string; action: () => void }[] = [
+  const entries: Entry[] = [
     {
       icon: 'card-outline',
       label: 'Abonnement',
-      hint: session?.subscription ? PLANS[session.subscription.plan].name : 'Formule',
-      action: () => router.push('/abonnement'),
+      hint: session?.subscription ? PLANS[session.subscription.plan].name : 'Formule et facturation',
+      href: '/abonnement',
     },
     {
       icon: 'book-outline',
       label: 'Catalogue de prix',
-      hint: 'Sur le web · connexion demandée',
-      action: () => void Linking.openURL(`${API_URL}/app/catalogue`),
+      hint: 'Vos prestations et vos tarifs',
+      href: '/catalogue',
     },
     {
-      icon: 'settings-outline',
-      label: 'Paramètres de l’entreprise',
-      hint: 'Sur le web · logo, TVA, conditions',
-      action: () => void Linking.openURL(`${API_URL}/app/parametres/entreprise`),
+      icon: 'business-outline',
+      label: 'Mon entreprise',
+      hint: 'Identité, TVA, mentions du devis',
+      href: '/entreprise',
     },
     {
       icon: 'bar-chart-outline',
-      label: 'Analytique',
-      hint: 'Sur le web · 90 jours',
-      action: () => void Linking.openURL(`${API_URL}/app/analytique`),
+      label: 'Activité',
+      hint: 'Chiffre d’affaires et taux d’acceptation',
+      href: '/analytique',
     },
   ];
 
@@ -53,28 +67,15 @@ export default function PlusScreen() {
         <TrialBanner subscription={session?.subscription ?? null} />
 
         <Card style={{ padding: 0, overflow: 'hidden' }}>
-          {links.map((link, index) => (
-            <View key={link.label}>
-              {index > 0 ? <Divider /> : null}
-              <Pressable
-                accessibilityRole="button"
-                onPress={link.action}
-                style={({ pressed }) => ({
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  gap: spacing.md,
-                  padding: spacing.lg,
-                  opacity: pressed ? 0.7 : 1,
-                })}
-              >
-                <Ionicons name={link.icon} size={20} color={colors.inkSoft} />
-                <View style={{ flex: 1 }}>
-                  <Body style={{ fontWeight: '600' }}>{link.label}</Body>
-                  <Muted style={{ fontSize: 12 }}>{link.hint}</Muted>
-                </View>
-                <Ionicons name="chevron-forward" size={18} color={colors.subtle} />
-              </Pressable>
-            </View>
+          {entries.map((entry, index) => (
+            <ListRow
+              key={entry.label}
+              icon={entry.icon}
+              title={entry.label}
+              subtitle={entry.hint}
+              last={index === entries.length - 1}
+              onPress={() => router.push(entry.href)}
+            />
           ))}
         </Card>
 
@@ -83,14 +84,21 @@ export default function PlusScreen() {
           variant="secondary"
           icon="log-out-outline"
           onPress={() =>
-            Alert.alert('Se déconnecter ?', 'Vous devrez saisir votre mot de passe à la prochaine ouverture.', [
-              { text: 'Annuler', style: 'cancel' },
-              { text: 'Se déconnecter', style: 'destructive', onPress: () => void signOut() },
-            ])
+            Alert.alert(
+              'Se déconnecter ?',
+              'Vous devrez saisir votre mot de passe à la prochaine ouverture.',
+              [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Se déconnecter', style: 'destructive', onPress: () => void signOut() },
+              ],
+            )
           }
         />
 
-        <Muted style={{ textAlign: 'center', fontSize: 12 }}>DEVISIA · version 1.0.0</Muted>
+        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+          DEVISIA · version 1.0.0
+        </Caption>
+        <View style={{ height: spacing.xl }} />
       </Screen>
     </SafeAreaView>
   );
