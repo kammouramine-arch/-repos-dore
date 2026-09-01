@@ -1,42 +1,54 @@
-<section class="on-dark circle">
+{%- comment -%}
+  The First Circle — a register, not a newsletter box.
+  Answers, in order: what it is · why join · what you receive · what it costs.
+{%- endcomment -%}
+<section class="circle on-dark">
+  <div class="circle__seal" aria-hidden="true">
+    <img src="{{ 'gr-mark-chrome-sm.png' | asset_url }}" alt="" width="520" height="523" loading="lazy">
+  </div>
+
   <div class="shell circle__in">
-    <div class="circle__lead reveal">
-      <p class="t-micro t-faint">{{ section.settings.eyebrow }}</p>
-      <h2 class="circle__title">{{ section.settings.title }}</h2>
-    </div>
+    <p class="t-micro circle__eyebrow reveal">{{ section.settings.eyebrow }}</p>
 
-    <div class="circle__panel reveal" style="--i:1">
-      <p class="t-body t-muted circle__copy">{{ section.settings.copy }}</p>
+    <h2 class="circle__title reveal" style="--i:1">{{ section.settings.title }}</h2>
 
-      <ul class="circle__list">
-        {%- for block in section.blocks -%}
-          <li {{ block.shopify_attributes }}>
-            <span class="t-num circle__idx">{{ forloop.index | prepend: '0' }}</span>
-            <span class="t-small">{{ block.settings.item }}</span>
-          </li>
-        {%- endfor -%}
-      </ul>
+    <p class="circle__lede reveal" style="--i:2">{{ section.settings.lede }}</p>
 
+    <dl class="circle__terms reveal" style="--i:3">
+      {%- for block in section.blocks -%}
+        <div class="circle__term" {{ block.shopify_attributes }}>
+          <dt class="t-micro">{{ block.settings.term }}</dt>
+          <dd>{{ block.settings.detail }}</dd>
+        </div>
+      {%- endfor -%}
+    </dl>
+
+    <div class="circle__register reveal" style="--i:4">
       {%- form 'customer', class: 'circle__form' -%}
         {%- if form.posted_successfully? -%}
-          <p class="circle__ok" role="status">
-            <span class="t-label">You stand in the first circle.</span>
-            <span class="t-small t-muted">Watch for Chapter 002.</span>
-          </p>
+          <div class="circle__done" role="status">
+            <p class="circle__done-mark t-num">— 001 —</p>
+            <p class="circle__done-head">Your name is in the register.</p>
+            <p class="t-small t-muted">You will hear before Chapter 002 opens. Nothing else.</p>
+          </div>
         {%- else -%}
           <input type="hidden" name="contact[tags]" value="newsletter,first-circle">
-          <div class="field-line">
-            <label class="vh" for="circle-email">Email address</label>
-            <input id="circle-email" type="email" name="contact[email]" required autocomplete="email"
-                   placeholder="Email address" spellcheck="false">
-            <button type="submit" class="field-line__go" aria-label="Request access">
+          <label class="circle__label t-micro" for="circle-email">{{ section.settings.field_label }}</label>
+          <div class="register-line{% if form.errors %} has-error{% endif %}">
+            <input id="circle-email" type="email" name="contact[email]" required
+                   autocomplete="email" spellcheck="false" placeholder="name@domain"
+                   {% if form.errors %}aria-invalid="true" aria-describedby="circle-error"{% endif %}>
+            <button type="submit" class="register-line__submit">
+              <span>{{ section.settings.cta }}</span>
               {% render 'gr-icon', name: 'arrow' %}
             </button>
           </div>
           {%- if form.errors -%}
-            <p class="circle__err t-small" role="alert">That address didn’t take. Check it and try again.</p>
+            <p class="circle__err t-small" id="circle-error" role="alert">
+              That address didn’t take. Check it and enter again.
+            </p>
           {%- else -%}
-            <p class="t-micro t-faint circle__note">{{ section.settings.note }}</p>
+            <p class="circle__fine t-micro">{{ section.settings.fine }}</p>
           {%- endif -%}
         {%- endif -%}
       {%- endform -%}
@@ -48,24 +60,29 @@
 {
   "name": "First circle",
   "settings": [
-    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Access" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Access · by register" },
     { "type": "text", "id": "title", "label": "Title", "default": "The First Circle" },
-    { "type": "textarea", "id": "copy", "label": "Copy", "default": "Chapters are numbered, opened once and never reprinted. The first circle is told before the doors move — in either direction." },
-    { "type": "text", "id": "note", "label": "Note", "default": "Two or three sendings a year. Unsubscribe in one click." }
+    { "type": "textarea", "id": "lede", "label": "Lede", "default": "A chapter opens once and is never reprinted. The first circle is told before the doors move — in either direction." },
+    { "type": "text", "id": "field_label", "label": "Field label", "default": "Enter your name in the register" },
+    { "type": "text", "id": "cta", "label": "CTA", "default": "Request access" },
+    { "type": "text", "id": "fine", "label": "Fine print", "default": "Two or three sendings a year. One click to leave. Never sold, never shared." }
   ],
   "blocks": [
     {
-      "type": "item",
-      "name": "Item",
-      "settings": [{ "type": "text", "id": "item", "label": "Item", "default": "Item" }]
+      "type": "term",
+      "name": "Term",
+      "settings": [
+        { "type": "text", "id": "term", "label": "Term", "default": "What it is" },
+        { "type": "textarea", "id": "detail", "label": "Detail", "default": "Detail" }
+      ]
     }
   ],
   "presets": [{
     "name": "First circle",
     "blocks": [
-      { "type": "item", "settings": { "item": "First sight of every chapter before it opens" } },
-      { "type": "item", "settings": { "item": "Notice before a chapter closes for good" } },
-      { "type": "item", "settings": { "item": "No discounts — the price is the price" } }
+      { "type": "term", "settings": { "term": "What it is", "detail": "The register of people told first when a chapter opens — and told again before it closes for good." } },
+      { "type": "term", "settings": { "term": "What you receive", "detail": "First sight of each chapter, its measurements before release, and the closing notice while pieces remain." } },
+      { "type": "term", "settings": { "term": "What it costs", "detail": "Nothing, and never a discount code. The price is the price. What you get is time." } }
     ]
   }]
 }

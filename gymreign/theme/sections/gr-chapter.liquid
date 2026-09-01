@@ -12,8 +12,8 @@
         <a class="t-label link-line" style="display:inline-block;margin-top:1.1rem" href="{{ col.url }}">View the chapter</a>
       </div>
     </div>
-    <div class="grid--pad grid grid--4">
-      {%- for product in col.products limit: 4 -%}
+    <div class="grid--pad grid grid--5">
+      {%- for product in col.products limit: 5 -%}
         {% render 'gr-card', product: product, index: forloop.index0 %}
       {%- endfor -%}
     </div>

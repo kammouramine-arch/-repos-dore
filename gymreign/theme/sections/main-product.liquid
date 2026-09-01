@@ -1,6 +1,15 @@
 {%- assign short_title = product.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
 {%- assign current = product.selected_or_first_available_variant | default: product.variants.first -%}
 
+{%- comment -%} Which option carries colour, and which colour is on screen now. {%- endcomment -%}
+{%- assign color_idx = -1 -%}
+{%- for opt in product.options -%}
+  {%- assign lo = opt | downcase -%}
+  {%- if lo == 'color' or lo == 'colour' -%}{%- assign color_idx = forloop.index0 -%}{%- endif -%}
+{%- endfor -%}
+{%- assign current_color = '' -%}
+{%- if color_idx > -1 and current -%}{%- assign current_color = current.options[color_idx] -%}{%- endif -%}
+
 {%- comment -%}
   Availability is SERVER-AUTHORITATIVE.
   Liquid decides the button state and renders it. JavaScript may only refine it after a
@@ -32,15 +41,35 @@
 
   <div class="shell pdp">
     <div class="pdp__gallery" aria-label="{{ short_title | escape }} imagery">
+      {%- comment -%}
+        Each image now carries its colourway in its alt text (written into Shopify,
+        so it serves accessibility and search as well as this filter). Byte-identical
+        duplicates supplied by the print partner are listed in custom.gallery_skip.
+      {%- endcomment -%}
+      {%- assign skip = product.metafields.custom.gallery_skip | default: '' | append: ',' -%}
+      {%- assign shown = 0 -%}
       {%- for media in product.media -%}
-        <figure class="pdp__shot" data-media-position="{{ forloop.index }}">
-          <img src="{{ media | image_url: width: 1200 }}"
-               srcset="{{ media | image_url: width: 720 }} 720w, {{ media | image_url: width: 1200 }} 1200w, {{ media | image_url: width: 1800 }} 1800w"
-               sizes="(min-width: 990px) 54vw, 92vw"
-               alt="{{ media.alt | default: short_title | escape }}"
-               {% if forloop.first %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
-               width="1200" height="1500">
-        </figure>
+        {%- assign mid = media.id | append: ',' -%}
+        {%- unless skip contains mid -%}
+          {%- assign shot_color = '' -%}
+          {%- if media.alt contains ' — ' -%}
+            {%- assign shot_color = media.alt | split: ' — ' | last | strip -%}
+          {%- endif -%}
+          {%- assign shot_on = true -%}
+          {%- if shot_color != '' and current_color != '' and shot_color != current_color -%}
+            {%- assign shot_on = false -%}
+          {%- endif -%}
+          {%- if shot_on -%}{%- assign shown = shown | plus: 1 -%}{%- endif -%}
+          <figure class="pdp__shot" data-media-position="{{ forloop.index }}"
+                  data-colors="{{ shot_color | escape }}"{% unless shot_on %} hidden{% endunless %}>
+            <img src="{{ media | image_url: width: 1200 }}"
+                 srcset="{{ media | image_url: width: 720 }} 720w, {{ media | image_url: width: 1200 }} 1200w, {{ media | image_url: width: 1800 }} 1800w"
+                 sizes="(min-width: 990px) 54vw, 92vw"
+                 alt="{{ media.alt | default: short_title | escape }}"
+                 {% if shown == 1 and shot_on %}fetchpriority="high"{% else %}loading="lazy"{% endif %}
+                 width="1200" height="1500">
+          </figure>
+        {%- endunless -%}
       {%- endfor -%}
     </div>
 

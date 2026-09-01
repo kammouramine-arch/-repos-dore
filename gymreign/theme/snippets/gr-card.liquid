@@ -6,11 +6,29 @@
 {%- for opt in product.options_with_values -%}
   {%- if opt.name == 'Color' or opt.name == 'Colour' -%}{%- assign color_opt_index = forloop.index0 -%}{%- endif -%}
 {%- endfor -%}
+{%- comment -%}
+  The hover frame must be the same garment in the same colour — a second angle,
+  not a different colourway. Media alt text carries the colourway, so pick the
+  next shot that matches the featured one.
+{%- endcomment -%}
+{%- assign lead_color = '' -%}
+{%- if product.featured_media.alt contains ' — ' -%}
+  {%- assign lead_color = product.featured_media.alt | split: ' — ' | last | strip -%}
+{%- endif -%}
+{%- assign alt_media = null -%}
+{%- if lead_color != '' -%}
+  {%- for m in product.media -%}
+    {%- if m.id != product.featured_media.id and m.alt contains ' — ' -%}
+      {%- assign mc = m.alt | split: ' — ' | last | strip -%}
+      {%- if mc == lead_color and alt_media == null -%}{%- assign alt_media = m -%}{%- endif -%}
+    {%- endif -%}
+  {%- endfor -%}
+{%- endif -%}
 <article class="card reveal" style="--i:{{ index | default: 0 }}">
   <div class="card__media">
-    {%- if product.media.size > 1 -%}
-      <img class="card__alt" src="{{ product.media[1] | image_url: width: 720 }}"
-           srcset="{{ product.media[1] | image_url: width: 480 }} 480w, {{ product.media[1] | image_url: width: 720 }} 720w"
+    {%- if alt_media -%}
+      <img class="card__alt" src="{{ alt_media | image_url: width: 720 }}"
+           srcset="{{ alt_media | image_url: width: 480 }} 480w, {{ alt_media | image_url: width: 720 }} 720w"
            sizes="(min-width: 750px) 25vw, 50vw" alt="" loading="lazy" width="720" height="900">
     {%- endif -%}
     <img class="card__main" src="{{ product.featured_media | image_url: width: 720 }}"

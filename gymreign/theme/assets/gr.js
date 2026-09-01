@@ -8,6 +8,12 @@
     return "€" + n;
   };
   const qs = (s, r) => (r || document).querySelector(s);
+  // Shopify CDN sizing via the width parameter — survives the ?v= cache buster,
+  // unlike the legacy _360x filename form.
+  const thumb = (u) => {
+    try { const x = new URL(u, location.origin); x.searchParams.set("width", "360"); return x.toString(); }
+    catch (e) { return u; }
+  };
   const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
 
   /* ---------- reveal on scroll ---------- */
@@ -94,7 +100,7 @@
       return (
         '<div class="cline" data-line data-key="' + it.key + '">' +
         '<a class="cline__media" href="' + it.url + '">' +
-        (it.image ? '<img src="' + it.image.replace(/(\.[a-z]+)(\?|$)/, "_360x$1$2") + '" alt="" loading="lazy" width="84" height="105">' : "") +
+        (it.image ? '<img src="' + thumb(it.image) + '" alt="" loading="lazy" width="84" height="105">' : "") +
         "</a>" +
         '<div><div class="cline__top"><a class="card__title" href="' + it.url + '">' + it.product_title.replace("GYMREIGN — ", "").replace(" — Chapter 001", "") + "</a>" +
         '<span class="t-num t-small">' + money(it.final_line_price) + "</span></div>" +
@@ -234,9 +240,25 @@
           setText(b, ok ? label(b) : "Sold out");
         });
 
+        // Show only the chosen colourway's shots. If that would empty the gallery,
+        // show everything rather than leave the customer looking at nothing.
+        const colorIdx = optNames.findIndex((n) => /colou?r/i.test(n));
+        const chosen = colorIdx > -1 ? sel[colorIdx] : null;
+        const shots = qsa(".pdp__shot", root);
+        if (chosen && shots.length) {
+          let shown = 0;
+          shots.forEach((f) => {
+            const cs = (f.dataset.colors || "").split("|").filter(Boolean);
+            const on = cs.length === 0 || cs.indexOf(chosen) > -1;
+            f.hidden = !on;
+            if (on) shown++;
+          });
+          if (!shown) shots.forEach((f) => (f.hidden = false));
+        }
+
         if (v.media) {
           const shot = qs('.pdp__shot[data-media-position="' + v.media + '"]', root);
-          if (shot) shot.scrollIntoView({ behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest" });
+          if (shot && !shot.hidden) shot.scrollIntoView({ behavior: reduced ? "auto" : "smooth", inline: "center", block: "nearest" });
         }
         try {
           const u = new URL(location);

@@ -53,9 +53,9 @@
         "s4": {
           "type": "stat",
           "settings": {
-            "value": "001",
-            "unit": "CH",
-            "label": "Never reprinted"
+            "value": "140",
+            "unit": "MM",
+            "label": "The crowned mark"
           }
         }
       },
@@ -87,7 +87,7 @@
         "t3": {
           "type": "tile",
           "settings": {
-            "label": "The Bottoms",
+            "label": "The Jogger",
             "product": "gymreign-the-jogger-chapter-001",
             "url": "/collections/chapter-001"
           }
@@ -115,29 +115,32 @@
     "circle": {
       "type": "gr-circle",
       "blocks": {
-        "i1": {
-          "type": "item",
+        "t1": {
+          "type": "term",
           "settings": {
-            "item": "First sight of every chapter before it opens"
+            "term": "What it is",
+            "detail": "The register of people told first when a chapter opens \u2014 and told again before it closes for good."
           }
         },
-        "i2": {
-          "type": "item",
+        "t2": {
+          "type": "term",
           "settings": {
-            "item": "Notice before a chapter closes for good"
+            "term": "What you receive",
+            "detail": "First sight of each chapter, its measurements before release, and the closing notice while pieces remain."
           }
         },
-        "i3": {
-          "type": "item",
+        "t3": {
+          "type": "term",
           "settings": {
-            "item": "No discounts \u2014 the price is the price"
+            "term": "What it costs",
+            "detail": "Nothing, and never a discount code. The price is the price. What you get is time."
           }
         }
       },
       "block_order": [
-        "i1",
-        "i2",
-        "i3"
+        "t1",
+        "t2",
+        "t3"
       ],
       "settings": {}
     },
