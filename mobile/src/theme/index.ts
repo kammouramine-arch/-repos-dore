@@ -88,5 +88,23 @@ export const shadows = {
   }),
 } as const;
 
-export const theme = { colors, spacing, radius, typography, shadows };
+
+/**
+ * Durées d'animation.
+ *
+ * Une interface paraît chère quand le mouvement est court et régulier. Au-delà
+ * d'environ 300 ms, l'utilisateur attend l'animation au lieu de la percevoir.
+ */
+export const motion = {
+  instant: 120,
+  quick: 180,
+  base: 240,
+  slow: 320,
+} as const;
+
+/** Hauteur minimale d'une cible tactile, recommandation Apple. */
+export const HIT_SLOP = { top: 8, bottom: 8, left: 8, right: 8 } as const;
+export const TOUCH_MIN = 44;
+
+export const theme = { colors, spacing, radius, typography, shadows, motion };
 export type Theme = typeof theme;

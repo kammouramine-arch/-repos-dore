@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
+import { formatCents } from '@devisia/shared';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /**
@@ -296,11 +297,14 @@ export function Banner({
   title,
   description,
   action,
+  onDismiss,
 }: {
   tone?: 'info' | 'warning' | 'danger' | 'success';
   title: string;
   description?: string;
   action?: React.ReactNode;
+  /** Croix de fermeture : un avertissement traité ne doit pas rester à l'écran. */
+  onDismiss?: () => void;
 }) {
   const palette = {
     info: { bg: colors.accentSoft, fg: colors.accentHover, border: colors.accentBorder },
@@ -320,7 +324,14 @@ export function Banner({
         gap: 6,
       }}
     >
-      <Text style={{ color: palette.fg, fontSize: 14, fontWeight: '600' }}>{title}</Text>
+      <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+        <Text style={{ flex: 1, color: palette.fg, fontSize: 14, fontWeight: '600' }}>{title}</Text>
+        {onDismiss ? (
+          <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onDismiss} hitSlop={10}>
+            <Ionicons name="close" size={16} color={palette.fg} />
+          </Pressable>
+        ) : null}
+      </View>
       {description ? (
         <Text style={{ color: palette.fg, fontSize: 13, lineHeight: 18, opacity: 0.9 }}>
           {description}
@@ -365,3 +376,332 @@ export function Screen({
 }
 
 export { Ionicons };
+
+/* ==========================================================================
+ * Composants ajoutés lors de la reprise produit.
+ *
+ * Chacun existe parce qu'un écran le réinventait avec des valeurs codées en
+ * dur : c'est ce qui rendait l'application inégale d'un écran à l'autre.
+ * ========================================================================== */
+
+/** Bouton à icône seule, avec une cible tactile conforme même si l'icône est petite. */
+export function IconButton({
+  icon,
+  label,
+  onPress,
+  tone = 'neutral',
+  size = 20,
+  disabled,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  /** Lu par VoiceOver : une icône seule n'est jamais explicite. */
+  label: string;
+  onPress: () => void;
+  tone?: 'neutral' | 'accent' | 'danger';
+  size?: number;
+  disabled?: boolean;
+}) {
+  const color =
+    tone === 'accent' ? colors.accent : tone === 'danger' ? colors.danger : colors.muted;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={label}
+      accessibilityState={{ disabled: Boolean(disabled) }}
+      disabled={disabled}
+      onPress={onPress}
+      hitSlop={8}
+      style={({ pressed }) => ({
+        minWidth: 44,
+        minHeight: 44,
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: radius.md,
+        opacity: disabled ? 0.35 : pressed ? 0.55 : 1,
+      })}
+    >
+      <Ionicons name={icon} size={size} color={color} />
+    </Pressable>
+  );
+}
+
+/** Champ de recherche : le clavier se ferme à la validation, l'effacement est immédiat. */
+export function SearchField({
+  value,
+  onChangeText,
+  placeholder,
+  autoFocus,
+  onSubmit,
+}: {
+  value: string;
+  onChangeText: (next: string) => void;
+  placeholder: string;
+  autoFocus?: boolean;
+  onSubmit?: () => void;
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.sm,
+        backgroundColor: colors.surface2,
+        borderRadius: radius.md,
+        paddingHorizontal: spacing.md,
+        minHeight: 46,
+      }}
+    >
+      <Ionicons name="search" size={17} color={colors.subtle} />
+      <TextInput
+        value={value}
+        onChangeText={onChangeText}
+        placeholder={placeholder}
+        placeholderTextColor={colors.subtle}
+        accessibilityLabel={placeholder}
+        autoFocus={autoFocus}
+        autoCorrect={false}
+        returnKeyType="search"
+        onSubmitEditing={onSubmit}
+        clearButtonMode="never"
+        style={[typography.body, { flex: 1, color: colors.ink, paddingVertical: 10 }]}
+      />
+      {value.length > 0 ? (
+        <IconButton icon="close-circle" label="Effacer la recherche" size={18} onPress={() => onChangeText('')} />
+      ) : null}
+    </View>
+  );
+}
+
+/** Intitulé de section, avec action facultative alignée à droite. */
+export function SectionHeader({
+  title,
+  action,
+}: {
+  title: string;
+  action?: { label: string; onPress: () => void };
+}) {
+  return (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: spacing.md,
+      }}
+    >
+      <Text style={[typography.caption, { color: colors.subtle, textTransform: 'uppercase' }]}>
+        {title}
+      </Text>
+      {action ? (
+        <Pressable accessibilityRole="button" onPress={action.onPress} hitSlop={8}>
+          <Text style={[typography.small, { color: colors.accent, fontWeight: '600' }]}>
+            {action.label}
+          </Text>
+        </Pressable>
+      ) : null}
+    </View>
+  );
+}
+
+/** Ligne de liste tactile : un titre, un sous-titre, une valeur, un chevron. */
+export function ListRow({
+  title,
+  subtitle,
+  value,
+  icon,
+  onPress,
+  destructive,
+  last,
+}: {
+  title: string;
+  subtitle?: string | null;
+  value?: string | null;
+  icon?: keyof typeof Ionicons.glyphMap;
+  onPress?: () => void;
+  destructive?: boolean;
+  last?: boolean;
+}) {
+  const content = (
+    <View
+      style={{
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        paddingVertical: spacing.md,
+        paddingHorizontal: spacing.lg,
+        minHeight: 56,
+        borderBottomWidth: last ? 0 : StyleSheet.hairlineWidth,
+        borderBottomColor: colors.line,
+      }}
+    >
+      {icon ? (
+        <Ionicons name={icon} size={19} color={destructive ? colors.danger : colors.inkSoft} />
+      ) : null}
+      <View style={{ flex: 1, gap: 2 }}>
+        <Text
+          numberOfLines={1}
+          style={[typography.body, { fontWeight: '600', color: destructive ? colors.danger : colors.ink }]}
+        >
+          {title}
+        </Text>
+        {subtitle ? (
+          <Text numberOfLines={1} style={[typography.small, { color: colors.muted }]}>
+            {subtitle}
+          </Text>
+        ) : null}
+      </View>
+      {value ? (
+        <Text style={[typography.body, { color: colors.muted, fontVariant: ['tabular-nums'] }]}>
+          {value}
+        </Text>
+      ) : null}
+      {onPress ? <Ionicons name="chevron-forward" size={17} color={colors.subtle} /> : null}
+    </View>
+  );
+
+  if (!onPress) return content;
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={title}
+      onPress={onPress}
+      style={({ pressed }) => ({ backgroundColor: pressed ? colors.surface2 : 'transparent' })}
+    >
+      {content}
+    </Pressable>
+  );
+}
+
+/** État de chargement nommé : l'utilisateur sait ce que l'application attend. */
+export function LoadingState({ label }: { label: string }) {
+  return (
+    <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: spacing['4xl'], gap: spacing.md }}>
+      <ActivityIndicator color={colors.accent} />
+      <Text style={[typography.small, { color: colors.muted }]}>{label}</Text>
+    </View>
+  );
+}
+
+/** Échec de chargement : toujours accompagné d'une reprise possible. */
+export function ErrorState({
+  title = 'Chargement impossible',
+  description,
+  onRetry,
+}: {
+  title?: string;
+  description: string;
+  onRetry: () => void;
+}) {
+  return (
+    <View style={{ alignItems: 'center', paddingVertical: spacing['3xl'], gap: spacing.md }}>
+      <View
+        style={{
+          width: 46,
+          height: 46,
+          borderRadius: radius.full,
+          backgroundColor: colors.dangerSoft,
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+      >
+        <Ionicons name="cloud-offline-outline" size={22} color={colors.danger} />
+      </View>
+      <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>{title}</Text>
+      <Text style={[typography.small, { color: colors.muted, textAlign: 'center', paddingHorizontal: spacing.xl }]}>
+        {description}
+      </Text>
+      <Button title="Réessayer" variant="secondary" icon="refresh" onPress={onRetry} />
+    </View>
+  );
+}
+
+/** Progression d'un parcours en étapes. */
+export function ProgressDots({ total, current }: { total: number; current: number }) {
+  return (
+    <View
+      accessibilityRole="progressbar"
+      accessibilityLabel={`Étape ${current + 1} sur ${total}`}
+      style={{ flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' }}
+    >
+      {Array.from({ length: total }, (_, index) => (
+        <View
+          key={index}
+          style={{
+            height: 6,
+            width: index === current ? 22 : 6,
+            borderRadius: radius.full,
+            backgroundColor: index === current ? colors.accent : colors.lineStrong,
+          }}
+        />
+      ))}
+    </View>
+  );
+}
+
+/** Choix parmi quelques options courtes, sans ouvrir de sélecteur. */
+export function ChoiceRow<T extends string>({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: T; label: string }[];
+  value: T | null;
+  onChange: (next: T) => void;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+      {options.map((option) => {
+        const selected = option.value === value;
+        return (
+          <Pressable
+            key={option.value}
+            accessibilityRole="radio"
+            accessibilityState={{ selected }}
+            onPress={() => {
+              void Haptics.selectionAsync();
+              onChange(option.value);
+            }}
+            style={({ pressed }) => ({
+              paddingVertical: 10,
+              paddingHorizontal: spacing.lg,
+              minHeight: 44,
+              justifyContent: 'center',
+              borderRadius: radius.md,
+              borderWidth: 1,
+              borderColor: selected ? colors.accent : colors.line,
+              backgroundColor: selected ? colors.accentSoft : colors.canvas,
+              opacity: pressed ? 0.7 : 1,
+            })}
+          >
+            <Text
+              style={[
+                typography.body,
+                { fontWeight: '600', color: selected ? colors.accent : colors.inkSoft },
+              ]}
+            >
+              {option.label}
+            </Text>
+          </Pressable>
+        );
+      })}
+    </View>
+  );
+}
+
+/** Montant aligné, en chiffres à chasse fixe pour que les colonnes se lisent. */
+export function Amount({
+  cents,
+  size = 'body',
+  tone = 'ink',
+}: {
+  cents: number;
+  size?: 'body' | 'metric';
+  tone?: 'ink' | 'muted' | 'accent';
+}) {
+  const color = tone === 'muted' ? colors.muted : tone === 'accent' ? colors.accent : colors.ink;
+  return (
+    <Text style={[typography[size === 'metric' ? 'metric' : 'body'], { color, fontVariant: ['tabular-nums'] }]}>
+      {formatCents(cents)}
+    </Text>
+  );
+}
