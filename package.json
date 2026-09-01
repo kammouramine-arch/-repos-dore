@@ -17,6 +17,7 @@
     "db:deploy": "prisma migrate deploy",
     "db:deploy:production": "node scripts/migrate-production.mjs",
     "db:clean:test": "node scripts/nettoyer-donnees-test.mjs",
+    "db:migrate:supabase": "node scripts/migrer-supabase.mjs",
     "db:sql:production": "node scripts/build-production-sql.mjs > prisma/production-init.sql",
     "db:reset": "prisma migrate reset --force",
     "db:seed": "tsx prisma/seed.ts",
