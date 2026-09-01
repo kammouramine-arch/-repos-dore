@@ -1,53 +1,87 @@
-<section class="on-light plp-hero">
-  <div class="shell">
-    <p class="t-label t-faint eyebrow">The catalogue</p>
-    <h1 class="t-h1">{{ collection.title }}</h1>
-    {%- if collection.description != blank -%}
-      <p class="t-lede t-muted measure" style="margin-top:1.2rem">{{ collection.description | strip_html }}</p>
-    {%- endif -%}
+{%- comment -%}
+  The chapter, not a category page.
 
-    <div class="plp-bar">
-      <span class="t-label t-faint">{{ collection.products_count }} pieces</span>
-      <form method="get" id="sortform">
-        <label class="t-micro t-faint" for="sortsel">Sort</label>
-        <select id="sortsel" name="sort_by" onchange="this.form.submit()">
-          {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
-          <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>Chapter order</option>
-          <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price — low</option>
-          <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price — high</option>
-          <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A–Z</option>
-        </select>
-      </form>
-    </div>
+  Opens like a title card, then lays the pieces out on an editorial rhythm rather
+  than a uniform grid — but every piece keeps its name, price, colourways and a
+  direct route in, and sorting and pagination still work exactly as Shopify
+  expects.
+{%- endcomment -%}
+{%- assign is_chapter = false -%}
+{%- if collection.handle == 'chapter-001' -%}{%- assign is_chapter = true -%}{%- endif -%}
+
+<section class="plp-open on-dark">
+  <div class="plp-open__mark" aria-hidden="true">
+    <img src="{{ 'gr-mark-hero.jpg' | asset_url }}" alt="" width="1200" height="1208" loading="eager">
+  </div>
+  <div class="plp-open__grade" aria-hidden="true"></div>
+  <div class="shell plp-open__in">
+    <p class="t-micro plp-open__eyebrow">
+      {% if is_chapter %}The chapter now open{% else %}The catalogue{% endif %}
+    </p>
+    {%- if is_chapter -%}<p class="plp-open__num t-num">001</p>{%- endif -%}
+    <h1 class="plp-open__title" data-split>{{ collection.title | remove: 'Chapter 001 — ' }}</h1>
+    {%- if collection.description != blank -%}
+      <p class="plp-open__lede">{{ collection.description | strip_html }}</p>
+    {%- endif -%}
+  </div>
+
+  <div class="shell plp-bar plp-open__bar">
+    <span class="t-micro">{{ collection.products_count }} piece{% if collection.products_count != 1 %}s{% endif %}</span>
+    <form method="get" id="sortform" class="plp-sort">
+      <label class="t-micro" for="sortsel">Sort</label>
+      <select id="sortsel" name="sort_by" onchange="this.form.submit()">
+        {%- assign current_sort = collection.sort_by | default: collection.default_sort_by -%}
+        <option value="manual" {% if current_sort == 'manual' %}selected{% endif %}>Chapter order</option>
+        <option value="price-ascending" {% if current_sort == 'price-ascending' %}selected{% endif %}>Price — low</option>
+        <option value="price-descending" {% if current_sort == 'price-descending' %}selected{% endif %}>Price — high</option>
+        <option value="title-ascending" {% if current_sort == 'title-ascending' %}selected{% endif %}>A–Z</option>
+      </select>
+    </form>
   </div>
 </section>
 
-<section class="on-light band-s">
+<section class="on-light plp-body">
   <div class="shell">
     {%- paginate collection.products by 24 -%}
       {%- if collection.products.size > 0 -%}
-        <div class="grid grid--pad grid--3">
+        <div class="plp-lay">
           {%- for product in collection.products -%}
-            {% render 'gr-card', product: product, index: forloop.index0 %}
+            {%- assign slot = forloop.index0 | modulo: 4 -%}
+            <div class="plp-cell plp-cell--{{ slot }}">
+              {% render 'gr-card', product: product, index: forloop.index0 %}
+            </div>
           {%- endfor -%}
         </div>
       {%- else -%}
         <div class="util-hero">
-          <p class="t-label t-faint">Nothing here yet</p>
+          <p class="t-micro t-faint">Nothing here yet</p>
           <h2 class="t-h2">This chapter has not opened.</h2>
           <a class="btn btn--ghost" href="/collections/chapter-001">Return to Chapter 001</a>
         </div>
       {%- endif -%}
+
       {%- if paginate.pages > 1 -%}
-        <nav class="plp-bar" aria-label="Pagination" style="margin-top:2.5rem">
-          {%- if paginate.previous -%}<a class="t-label link-line" href="{{ paginate.previous.url }}">Previous</a>{%- else -%}<span></span>{%- endif -%}
+        <nav class="plp-bar plp-page" aria-label="Pagination">
+          {%- if paginate.previous -%}<a class="t-micro link-line" href="{{ paginate.previous.url }}">Previous</a>{%- else -%}<span></span>{%- endif -%}
           <span class="t-micro t-faint">{{ paginate.current_page }} / {{ paginate.pages }}</span>
-          {%- if paginate.next -%}<a class="t-label link-line" href="{{ paginate.next.url }}">Next</a>{%- else -%}<span></span>{%- endif -%}
+          {%- if paginate.next -%}<a class="t-micro link-line" href="{{ paginate.next.url }}">Next</a>{%- else -%}<span></span>{%- endif -%}
         </nav>
       {%- endif -%}
     {%- endpaginate -%}
   </div>
 </section>
+
+{%- if is_chapter -%}
+<section class="on-dark plp-close">
+  <div class="shell plp-close__in">
+    <p class="t-micro t-faint">When it closes</p>
+    <h2 class="plp-close__head">Nothing here is reprinted.</h2>
+    <p class="t-small t-muted measure">A chapter opens once. When the last of it goes, the graphics retire with it —
+      which is also why nothing in this house is ever discounted.</p>
+    <a class="t-micro link-line" href="/pages/our-reign">Read the house rules</a>
+  </div>
+</section>
+{%- endif -%}
 
 {% schema %}
 { "name": "Collection", "settings": [] }

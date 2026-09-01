@@ -27,14 +27,43 @@
 </header>
 
 <nav class="mnav" data-mnav aria-hidden="true" aria-label="Menu">
-  {%- for link in section.settings.menu.links -%}
-    <a class="mnav__big" href="{{ link.url }}">{{ link.title }}</a>
-  {%- endfor -%}
-  <div class="mnav__foot">
-    <a href="{{ routes.search_url }}">Search</a>
-    <a href="{{ routes.account_url }}">Account</a>
-    <a href="/pages/size-guide">Size guide</a>
-    <a href="/pages/shipping">Shipping</a>
+  <div class="mnav__mark" aria-hidden="true">
+    <img src="{{ 'gr-mark-chrome-sm.png' | asset_url }}" alt="" width="520" height="523" loading="lazy">
+  </div>
+  <div class="mnav__in">
+    <p class="t-micro mnav__eyebrow">Chapter 001 — Ascension</p>
+    <ul class="mnav__list">
+      {%- for link in section.settings.menu.links -%}
+        <li style="--n:{{ forloop.index0 }}">
+          <a class="mnav__big" href="{{ link.url }}">
+            <span class="mnav__no t-num">{{ forloop.index | prepend: '00' | slice: -2, 2 }}</span>
+            <span class="mnav__label">{{ link.title }}</span>
+          </a>
+        </li>
+      {%- endfor -%}
+    </ul>
+    {%- assign chap = collections['chapter-001'] -%}
+    {%- if chap.products.size > 0 -%}
+      <div class="mnav__pieces">
+        <p class="t-micro mnav__pieces-head">The chapter</p>
+        <ul>
+          {%- for p in chap.products limit: 5 -%}
+            {%- assign nm = p.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
+            <li><a href="{{ p.url }}"><span>{{ nm }}</span><span class="t-num">{{ p.price | money }}</span></a></li>
+          {%- endfor -%}
+        </ul>
+      </div>
+    {%- endif -%}
+
+    <div class="mnav__foot">
+      <div class="mnav__links">
+        <a href="{{ routes.search_url }}">Search</a>
+        <a href="{{ routes.account_url }}">Account</a>
+        <a href="/pages/size-guide">Size guide</a>
+        <a href="/pages/shipping">Shipping</a>
+      </div>
+      <p class="t-micro mnav__sign">Earn your reign.</p>
+    </div>
   </div>
 </nav>
 

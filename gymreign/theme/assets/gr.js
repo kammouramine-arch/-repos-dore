@@ -16,6 +16,177 @@
   };
   const qsa = (s, r) => Array.from((r || document).querySelectorAll(s));
 
+  /* ================================================================
+     MOTION ENGINE
+     One rAF loop, one IntersectionObserver, no libraries. Every effect
+     below is an enhancement: with JS off, or prefers-reduced-motion on,
+     the page is a plain, complete, scrollable document.
+     ================================================================ */
+
+  const raf = [];                                   // per-frame subscribers
+  let ticking = false;
+  const onFrame = (fn) => { raf.push(fn); if (!ticking) { ticking = true; loop(); } };
+  function loop() {
+    const y = window.scrollY || window.pageYOffset;
+    const vh = window.innerHeight || 800;
+    for (let i = 0; i < raf.length; i++) raf[i](y, vh);
+    requestAnimationFrame(loop);
+  }
+  const clamp = (n, a, b) => (n < a ? a : n > b ? b : n);
+  // progress of an element through the viewport, 0 before, 1 after
+  const through = (el, y, vh) => {
+    const r = el.getBoundingClientRect();
+    return clamp((vh - r.top) / (vh + r.height), 0, 1);
+  };
+
+  /* ---------- preloader ---------- */
+  (() => {
+    const boot = qs("[data-boot]");
+    if (!boot) return;
+    if (reduced || sessionStorage.getItem("gr-booted")) { boot.remove(); return; }
+    boot.hidden = false;
+    doc.classList.add("is-booting");
+    const count = qs("[data-boot-count]", boot);
+    const fill = qs("[data-boot-fill]", boot);
+    let n = 1;
+    const done = () => {
+      doc.classList.remove("is-booting");
+      doc.classList.add("is-booted");
+      try { sessionStorage.setItem("gr-booted", "1"); } catch (e) {}
+      setTimeout(() => boot.remove(), 1200);
+    };
+    const tick = setInterval(() => {
+      n = Math.min(100, n + Math.max(1, Math.round((100 - n) * 0.14)));
+      if (count) count.textContent = String(n).padStart(3, "0");
+      if (fill) fill.style.transform = "scaleX(" + n / 100 + ")";
+      if (n >= 100) { clearInterval(tick); setTimeout(done, 420); }
+    }, 55);
+    setTimeout(() => { clearInterval(tick); done(); }, 4000);   // never trap anyone
+  })();
+
+  /* ---------- split a heading into animatable lines ---------- */
+  qsa("[data-split]").forEach((el) => {
+    if (reduced) return;
+    const words = el.textContent.trim().split(/\s+/);
+    el.textContent = "";
+    words.forEach((w, i) => {
+      const span = document.createElement("span");
+      span.className = "sp";
+      span.style.setProperty("--w", i);
+      span.innerHTML = "<i>" + w + "</i>";
+      el.appendChild(span);
+      if (i < words.length - 1) el.appendChild(document.createTextNode(" "));
+    });
+    el.classList.add("is-split");
+  });
+
+  /* ---------- scroll progress + edge readout ---------- */
+  (() => {
+    const bar = qs("[data-scroll-bar]");
+    const pct = qs("[data-scroll-pct]");
+    if (!bar && !pct) return;
+    onFrame((y) => {
+      const max = document.documentElement.scrollHeight - window.innerHeight;
+      const p = max > 0 ? clamp(y / max, 0, 1) : 0;
+      if (bar) bar.style.transform = "scaleX(" + p + ")";
+      if (pct) pct.textContent = String(Math.round(p * 100)).padStart(3, "0");
+    });
+  })();
+
+  /* ---------- overture: one object, two beats ---------- */
+  (() => {
+    const ovt = qs("[data-overture]");
+    if (!ovt || reduced) return;
+    const mark = qs("[data-ovt-mark]", ovt);
+    const beats = qsa("[data-ovt-beat]", ovt);
+    ovt.classList.add("is-live");
+    onFrame((y, vh) => {
+      const r = ovt.getBoundingClientRect();
+      const span = ovt.offsetHeight - vh;
+      const p = span > 0 ? clamp(-r.top / span, 0, 1) : 0;      // 0 -> 1 across the act
+      if (mark) {
+        const s = 1 - p * 0.34;
+        mark.style.transform =
+          "translate3d(" + (-p * 13) + "vw," + (p * 6) + "vh,0) scale(" + s + ") rotate(" + (p * -7) + "deg)";
+        mark.style.opacity = String(0.85 - p * 0.28);
+      }
+      // beat 0 holds, hands over to beat 1 across the middle third
+      const t = clamp((p - 0.34) / 0.3, 0, 1);
+      if (beats[0]) {
+        beats[0].style.opacity = String(1 - t);
+        beats[0].style.transform = "translate3d(0," + (-t * 9) + "vh,0)";
+        beats[0].style.pointerEvents = t > 0.5 ? "none" : "";
+      }
+      if (beats[1]) {
+        beats[1].style.opacity = String(t);
+        beats[1].style.transform = "translate3d(0," + ((1 - t) * 9) + "vh,0)";
+        beats[1].style.pointerEvents = t > 0.5 ? "" : "none";
+      }
+    });
+  })();
+
+  /* ---------- header: transparent over the opening, inverts on light ground ---------- */
+  (() => {
+    const hdr = qs(".hdr");
+    if (!hdr) return;
+    const lights = qsa(".on-light, .on-light-tint");
+    let stuck = null, light = null;
+    onFrame((y) => {
+      const s = y > 40;
+      if (s !== stuck) { stuck = s; hdr.classList.toggle("is-stuck", s); }
+      const line = hdr.getBoundingClientRect().bottom - 8;
+      let over = false;
+      for (let i = 0; i < lights.length; i++) {
+        const r = lights[i].getBoundingClientRect();
+        if (r.top <= line && r.bottom >= line) { over = true; break; }
+      }
+      if (over !== light) { light = over; hdr.classList.toggle("is-light", over); }
+    });
+  })();
+
+  /* ---------- parallax inside product plates ---------- */
+  (() => {
+    const inners = qsa("[data-plate-inner]");
+    if (!inners.length || reduced) return;
+    onFrame((y, vh) => {
+      inners.forEach((el) => {
+        const host = el.closest("[data-plate]") || el;
+        const r = host.getBoundingClientRect();
+        if (r.bottom < -200 || r.top > vh + 200) return;         // offscreen, skip
+        const p = through(host, y, vh) - 0.5;                    // -0.5 .. 0.5
+        el.style.transform = "translate3d(0," + (p * -7) + "%,0) scale(1.08)";
+      });
+    });
+  })();
+
+  /* ---------- contrast rows: figure counts as it arrives ---------- */
+  (() => {
+    const rows = qsa("[data-ctr]");
+    if (!rows.length || !("IntersectionObserver" in window)) return;
+    const io = new IntersectionObserver((es) => {
+      es.forEach((e) => { if (e.isIntersecting) { e.target.classList.add("is-in"); io.unobserve(e.target); } });
+    }, { threshold: 0.35 });
+    rows.forEach((r) => io.observe(r));
+  })();
+
+  /* ---------- magnetic buttons (fine pointers only) ---------- */
+  (() => {
+    if (reduced || !window.matchMedia("(hover:hover) and (pointer:fine)").matches) return;
+    qsa(".btn--mag").forEach((b) => {
+      const reset = () => { b.style.transform = ""; const s = qs("span", b); if (s) s.style.transform = ""; };
+      b.addEventListener("pointermove", (e) => {
+        const r = b.getBoundingClientRect();
+        const dx = (e.clientX - (r.left + r.width / 2)) / r.width;
+        const dy = (e.clientY - (r.top + r.height / 2)) / r.height;
+        b.style.transform = "translate3d(" + dx * 12 + "px," + dy * 8 + "px,0)";
+        const s = qs("span", b);
+        if (s) s.style.transform = "translate3d(" + dx * 5 + "px," + dy * 3 + "px,0)";
+      });
+      b.addEventListener("pointerleave", reset);
+      b.addEventListener("blur", reset);
+    });
+  })();
+
   /* ---------- reveal on scroll ---------- */
   const revealables = qsa(".reveal");
   if (revealables.length && "IntersectionObserver" in window && !reduced) {

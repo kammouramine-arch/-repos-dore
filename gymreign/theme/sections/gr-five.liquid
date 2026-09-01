@@ -1,0 +1,101 @@
+{%- comment -%}
+  THE FIVE.
+
+  Not a product grid. Each piece is a full-height frame with the garment large
+  and the type set around it. Desktop reads as a stack of framed plates with the
+  index and the price locked to the edges; mobile gives each piece the full
+  screen width with the name over the garment.
+
+  Everything a customer needs to act is here: name, price, colourways, and a
+  route straight into the piece.
+{%- endcomment -%}
+{%- assign col = collections[section.settings.collection] | default: collections['chapter-001'] -%}
+<section class="five on-light">
+  <div class="shell">
+    <div class="sec-head reveal">
+      <div>
+        <p class="t-micro t-faint">{{ section.settings.eyebrow }}</p>
+        <h2 class="t-h2">{{ section.settings.title }}</h2>
+      </div>
+      <div class="five__note">
+        <p class="t-small t-muted">{{ section.settings.note }}</p>
+        <a class="t-micro link-line" href="{{ col.url | default: '/collections/chapter-001' }}">{{ section.settings.link_label }}</a>
+      </div>
+    </div>
+  </div>
+
+  <div class="five__list">
+    {%- for product in col.products limit: 5 -%}
+      {%- assign short = product.title | remove: 'GYMREIGN — ' | remove: ' — Chapter 001' -%}
+      {%- assign ci = -1 -%}
+      {%- for o in product.options_with_values -%}
+        {%- assign ln = o.name | downcase -%}
+        {%- if ln == 'color' or ln == 'colour' -%}{%- assign ci = forloop.index0 -%}{%- endif -%}
+      {%- endfor -%}
+      {%- comment -%} second angle of the SAME colourway, for the hover frame {%- endcomment -%}
+      {%- assign lead_color = '' -%}
+      {%- if product.featured_media.alt contains ' — ' -%}
+        {%- assign lead_color = product.featured_media.alt | split: ' — ' | last | strip -%}
+      {%- endif -%}
+      {%- assign alt_media = null -%}
+      {%- if lead_color != '' -%}
+        {%- for m in product.media -%}
+          {%- if m.id != product.featured_media.id and m.alt contains ' — ' -%}
+            {%- assign mc = m.alt | split: ' — ' | last | strip -%}
+            {%- if mc == lead_color and alt_media == null -%}{%- assign alt_media = m -%}{%- endif -%}
+          {%- endif -%}
+        {%- endfor -%}
+      {%- endif -%}
+
+      <article class="plate" data-plate style="--i:{{ forloop.index0 }}">
+        <a class="plate__link" href="{{ product.url }}" aria-label="{{ short | escape }} — {{ product.price | money }}">
+          <p class="plate__idx t-num" aria-hidden="true">{{ forloop.index | prepend: '00' | slice: -3, 3 }}</p>
+
+          <div class="plate__media">
+            <div class="plate__inner" data-plate-inner>
+              {%- if alt_media -%}
+                <img class="plate__alt" src="{{ alt_media | image_url: width: 1000 }}"
+                     srcset="{{ alt_media | image_url: width: 600 }} 600w, {{ alt_media | image_url: width: 1000 }} 1000w"
+                     sizes="(min-width: 900px) 44vw, 92vw" alt="" loading="lazy" width="1000" height="1250">
+              {%- endif -%}
+              <img class="plate__main" src="{{ product.featured_media | image_url: width: 1000 }}"
+                   srcset="{{ product.featured_media | image_url: width: 600 }} 600w, {{ product.featured_media | image_url: width: 1000 }} 1000w, {{ product.featured_media | image_url: width: 1500 }} 1500w"
+                   sizes="(min-width: 900px) 44vw, 92vw"
+                   alt="{{ product.featured_media.alt | default: short | escape }}"
+                   loading="{% if forloop.first %}eager{% else %}lazy{% endif %}" width="1000" height="1250">
+            </div>
+          </div>
+
+          <div class="plate__type">
+            <h3 class="plate__name">{{ short }}</h3>
+            <p class="plate__price t-num">{{ product.price | money }}</p>
+            {%- if ci > -1 -%}
+              {%- assign colors = product.options_with_values[ci].values -%}
+              <div class="plate__sw" aria-hidden="true">
+                {%- for c in colors limit: 6 -%}
+                  <span class="sw" style="background:{% render 'gr-swatch-hex', color: c %}"></span>
+                {%- endfor -%}
+              </div>
+              <p class="t-micro plate__meta">{{ colors.size }} colourway{% if colors.size != 1 %}s{% endif %}</p>
+            {%- endif -%}
+            <span class="plate__go t-micro">Open the piece {% render 'gr-icon', name: 'arrow' %}</span>
+          </div>
+        </a>
+      </article>
+    {%- endfor -%}
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "The five",
+  "settings": [
+    { "type": "collection", "id": "collection", "label": "Collection" },
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "Chapter 001 — Ascension" },
+    { "type": "text", "id": "title", "label": "Title", "default": "Five pieces. One standard." },
+    { "type": "textarea", "id": "note", "label": "Note", "default": "Each carries the crowned mark once — placed, measured, and left alone. When the chapter closes, none of it is reprinted." },
+    { "type": "text", "id": "link_label", "label": "Link label", "default": "View the whole chapter" }
+  ],
+  "presets": [{ "name": "The five" }]
+}
+{% endschema %}

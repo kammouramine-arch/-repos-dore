@@ -1,0 +1,12 @@
+{%- comment -%}
+  The first brand moment. Black, the mark surfacing out of it, a counter that
+  reads like an edition number. Removes itself on load; if anything at all goes
+  wrong it is removed by a timeout in gr.js, and with no JS it never shows.
+{%- endcomment -%}
+<div class="boot" data-boot hidden>
+  <div class="boot__stage">
+    <img class="boot__mark" src="{{ 'gr-mark-chrome-sm.png' | asset_url }}" alt="" width="520" height="523">
+  </div>
+  <p class="boot__count t-num" data-boot-count>001</p>
+  <span class="boot__rule"><span data-boot-fill></span></span>
+</div>

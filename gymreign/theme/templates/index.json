@@ -1,115 +1,7 @@
 {
   "sections": {
-    "hero": {
-      "type": "gr-hero",
-      "settings": {
-        "cta_url": "/collections/chapter-001",
-        "cta2_url": "/pages/our-reign"
-      }
-    },
-    "chapter": {
-      "type": "gr-chapter",
-      "settings": {
-        "collection": "chapter-001"
-      }
-    },
-    "featured": {
-      "type": "gr-featured",
-      "settings": {
-        "product": "gymreign-the-hoodie-chapter-001"
-      }
-    },
     "manifesto": {
       "type": "gr-manifesto",
-      "settings": {}
-    },
-    "specs": {
-      "type": "gr-specs",
-      "blocks": {
-        "s1": {
-          "type": "stat",
-          "settings": {
-            "value": "350",
-            "unit": "GSM",
-            "label": "The Hoodie"
-          }
-        },
-        "s2": {
-          "type": "stat",
-          "settings": {
-            "value": "339",
-            "unit": "GSM",
-            "label": "The Jogger"
-          }
-        },
-        "s3": {
-          "type": "stat",
-          "settings": {
-            "value": "240",
-            "unit": "GSM",
-            "label": "The Tee \u2014 organic"
-          }
-        },
-        "s4": {
-          "type": "stat",
-          "settings": {
-            "value": "140",
-            "unit": "MM",
-            "label": "The crowned mark"
-          }
-        }
-      },
-      "block_order": [
-        "s1",
-        "s2",
-        "s3",
-        "s4"
-      ],
-      "settings": {}
-    },
-    "silhouettes": {
-      "type": "gr-silhouettes",
-      "blocks": {
-        "t1": {
-          "type": "tile",
-          "settings": {
-            "label": "The Tee",
-            "product": "gymreign-the-tee-chapter-001"
-          }
-        },
-        "t2": {
-          "type": "tile",
-          "settings": {
-            "label": "The Hoodie",
-            "product": "gymreign-the-hoodie-chapter-001"
-          }
-        },
-        "t3": {
-          "type": "tile",
-          "settings": {
-            "label": "The Jogger",
-            "product": "gymreign-the-jogger-chapter-001",
-            "url": "/collections/chapter-001"
-          }
-        },
-        "t4": {
-          "type": "tile",
-          "settings": {
-            "label": "The Cap",
-            "product": "gymreign-the-cap-chapter-001"
-          }
-        }
-      },
-      "block_order": [
-        "t1",
-        "t2",
-        "t3",
-        "t4"
-      ],
-      "settings": {}
-    },
-    "editorial": {
-      "type": "gr-editorial",
       "settings": {}
     },
     "circle": {
@@ -144,41 +36,57 @@
       ],
       "settings": {}
     },
-    "inside": {
-      "type": "gr-inside",
+    "overture": {
+      "type": "gr-overture",
+      "settings": {
+        "cta_url": "/collections/chapter-001",
+        "cta2_url": "/pages/our-reign"
+      }
+    },
+    "five": {
+      "type": "gr-five",
+      "settings": {
+        "collection": "chapter-001"
+      }
+    },
+    "contrast": {
+      "type": "gr-contrast",
       "blocks": {
         "b1": {
-          "type": "fact",
+          "type": "beat",
           "settings": {
-            "product": "gymreign-the-hoodie-chapter-001",
+            "against": "280 GSM",
+            "against_note": "What this price band settles for",
             "figure": "350",
             "unit": "GSM",
-            "heading": "The weight",
-            "copy": "Most hoodies in this price band sit near 280 GSM. Chapter 001 is built at 350 \u2014 organic ring-spun cotton, cut oversized, with a tear-away label so nothing sits against the neck.",
+            "heading": "The weight \u2014 The Hoodie",
+            "copy": "Organic ring-spun cotton at 350 grams per square metre, cut oversized with a drop shoulder and a tear-away label so nothing sits against the neck. You feel the difference in the first minute of wearing it.",
             "link_label": "The Hoodie \u2014 \u20ac135",
             "link": "/products/gymreign-the-hoodie-chapter-001"
           }
         },
         "b2": {
-          "type": "fact",
+          "type": "beat",
           "settings": {
-            "product": "gymreign-the-tee-chapter-001",
+            "against": "Logo, front and back",
+            "against_note": "The category's recognition strategy",
             "figure": "60",
             "unit": "MM",
-            "heading": "The mark",
-            "copy": "One crowned mark, one placement, measured from the hem \u2014 never a second logo on the outside. Restraint is the recognition strategy: the same mark, the same position, five times.",
+            "heading": "The mark \u2014 one placement",
+            "copy": "One crowned mark, sixty millimetres, measured from the hem and left alone. Never a second logo on the outside. Restraint is the strategy: the same mark, the same position, five times.",
             "link_label": "The Tee \u2014 \u20ac75",
             "link": "/products/gymreign-the-tee-chapter-001"
           }
         },
         "b3": {
-          "type": "fact",
+          "type": "beat",
           "settings": {
-            "product": "gymreign-the-jogger-chapter-001",
+            "against": "Restocked forever",
+            "against_note": "How the category protects revenue",
             "figure": "001",
             "unit": "CHAPTER",
-            "heading": "The chapter",
-            "copy": "Numbered, opened once, and closed for good. Graphics from a closed chapter are never reprinted \u2014 which is also why nothing here is ever discounted.",
+            "heading": "The edition \u2014 closed for good",
+            "copy": "Numbered, opened once, and retired when it closes. Graphics from a closed chapter are never reprinted, which is also why nothing in this house is ever discounted.",
             "link_label": "The Jogger \u2014 \u20ac110",
             "link": "/products/gymreign-the-jogger-chapter-001"
           }
@@ -193,14 +101,10 @@
     }
   },
   "order": [
-    "hero",
-    "chapter",
-    "featured",
+    "overture",
+    "five",
+    "contrast",
     "manifesto",
-    "specs",
-    "silhouettes",
-    "editorial",
-    "inside",
     "circle"
   ]
 }

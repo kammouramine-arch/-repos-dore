@@ -1,0 +1,74 @@
+{%- comment -%}
+  ACT I — the overture.
+
+  One object, two beats. The crowned mark is a single sticky stage that stays on
+  screen while the copy changes around it: the brand statement, then the chapter.
+  Two viewports of scroll, no more — the brand is established and then it gets
+  out of the way.
+
+  Everything is legible with JavaScript off: the beats are simply stacked and the
+  mark sits behind them.
+{%- endcomment -%}
+<section class="ovt" data-overture>
+  <div class="ovt__stage">
+    <div class="ovt__mark" data-ovt-mark>
+      <img src="{{ 'gr-mark-hero.jpg' | asset_url }}" alt="" width="1200" height="1208" fetchpriority="high">
+    </div>
+    <div class="ovt__grade"></div>
+
+    <div class="ovt__beat ovt__beat--one" data-ovt-beat="0">
+      <div class="shell">
+        <p class="t-micro ovt__eyebrow">{{ section.settings.eyebrow }}</p>
+        <h1 class="ovt__title" data-split>{{ section.settings.title }}</h1>
+        <p class="ovt__lede">{{ section.settings.lede }}</p>
+        <div class="ovt__cta">
+          <a class="btn btn--solid btn--mag" href="{{ section.settings.cta_url | default: '/collections/chapter-001' }}">
+            <span>{{ section.settings.cta_label }}</span>
+          </a>
+          <a class="btn btn--ghost btn--mag" href="{{ section.settings.cta2_url | default: '/pages/our-reign' }}">
+            <span>{{ section.settings.cta2_label }}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+
+    <div class="ovt__beat ovt__beat--two" data-ovt-beat="1">
+      <div class="shell ovt__chapter">
+        <p class="t-micro ovt__eyebrow">{{ section.settings.chapter_eyebrow }}</p>
+        <p class="ovt__num t-num">001</p>
+        <h2 class="ovt__word" data-split>{{ section.settings.chapter_word }}</h2>
+        <p class="ovt__lede ovt__lede--c">{{ section.settings.chapter_lede }}</p>
+      </div>
+    </div>
+
+    <div class="shell ovt__foot t-micro">
+      <span>{{ section.settings.foot_1 }}</span>
+      <span class="t-num ovt__foot-mid">{{ section.settings.foot_2 }}</span>
+      <span>{{ section.settings.foot_3 }}</span>
+    </div>
+
+    <span class="ovt__cue" aria-hidden="true"><span></span></span>
+  </div>
+</section>
+
+{% schema %}
+{
+  "name": "Overture",
+  "settings": [
+    { "type": "text", "id": "eyebrow", "label": "Eyebrow", "default": "GYMREIGN — Chapter 001 · Ascension" },
+    { "type": "text", "id": "title", "label": "Statement", "default": "Reign is not given." },
+    { "type": "textarea", "id": "lede", "label": "Lede", "default": "It is built in the hours nobody watches. Five pieces for the work — published with their measurements, numbered, and never reprinted." },
+    { "type": "text", "id": "cta_label", "label": "Primary CTA", "default": "Shop Chapter 001" },
+    { "type": "url", "id": "cta_url", "label": "Primary URL" },
+    { "type": "text", "id": "cta2_label", "label": "Secondary CTA", "default": "The house" },
+    { "type": "url", "id": "cta2_url", "label": "Secondary URL" },
+    { "type": "text", "id": "chapter_eyebrow", "label": "Chapter eyebrow", "default": "The chapter now open" },
+    { "type": "text", "id": "chapter_word", "label": "Chapter word", "default": "Ascension" },
+    { "type": "textarea", "id": "chapter_lede", "label": "Chapter lede", "default": "The first ground taken. Five pieces, one standard, closed for good when it closes." },
+    { "type": "text", "id": "foot_1", "label": "Foot left", "default": "Five pieces" },
+    { "type": "text", "id": "foot_2", "label": "Foot middle", "default": "240 / 339 / 350 GSM" },
+    { "type": "text", "id": "foot_3", "label": "Foot right", "default": "Never reprinted" }
+  ],
+  "presets": [{ "name": "Overture" }]
+}
+{% endschema %}

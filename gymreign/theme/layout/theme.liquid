@@ -52,6 +52,9 @@
 <body class="on-dark template-{{ request.page_type }}">
   <a class="skip-link" href="#main">Skip to content</a>
 
+  {% render 'gr-preloader' %}
+  {% render 'gr-chrome' %}
+
   {% sections 'header-group' %}
 
   <main id="main" tabindex="-1">
