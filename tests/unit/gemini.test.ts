@@ -158,10 +158,9 @@ describe('erreurs Gemini distinguées', () => {
     return erreur as { code: string; message: string };
   }
 
-  it('nomme le modèle introuvable', async () => {
+  it('signale l’absence de modèle utilisable quand le repli échoue aussi', async () => {
     const e = await echouer(404, { error: { message: 'models/x is not found' } });
-    expect(e.message).toContain('gemini-2.5-flash');
-    expect(e.message).toMatch(/introuvable/i);
+    expect(e.message).toMatch(/aucun modèle/i);
   });
 
   it('rapporte le motif d’une requête refusée', async () => {
@@ -173,5 +172,73 @@ describe('erreurs Gemini distinguées', () => {
     const e = await echouer(403, { error: { message: 'permission denied' } });
     expect(e.message).toMatch(/clé d'API/i);
     expect(e.message).not.toContain('cle');
+  });
+});
+
+/**
+ * Repli automatique de modèle.
+ *
+ * Un nom de modèle a une durée de vie. Le jour où Google en retire un, DEVISIA
+ * ne doit pas retomber en silence sur son moteur local : le fournisseur
+ * demande à l'API quels modèles elle sert réellement, et rejoue une fois.
+ */
+describe('repli de modèle', () => {
+  function serveur(disponibles: string[], modelesQuiRepondent: string[]) {
+    const appels: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      appels.push(url);
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: [
+              ...disponibles.map((id) => ({
+                name: `models/${id}`,
+                supportedGenerationMethods: ['generateContent'],
+              })),
+              { name: 'models/text-embedding-004', supportedGenerationMethods: ['embedContent'] },
+            ],
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      if (!modelesQuiRepondent.includes(modele)) {
+        return new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 });
+      }
+      return new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: 'bonjour' }] } }],
+          usageMetadata: { promptTokenCount: 3, candidatesTokenCount: 1 },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    return appels;
+  }
+
+  it('bascule sur un modèle réellement servi quand le configuré n’existe plus', async () => {
+    const appels = serveur(['gemini-2.0-flash', 'gemini-2.5-pro'], ['gemini-2.0-flash', 'gemini-2.5-pro']);
+    const resultat = await new GeminiProvider('cle', 'modele-perime').generateText({
+      system: 'c',
+      untrusted: 'd',
+    });
+    vi.unstubAllGlobals();
+    expect(resultat.data).toBe('bonjour');
+    expect(resultat.usage.model).toBe('gemini-2.0-flash');
+    expect(appels.some((u) => u.endsWith('/models'))).toBe(true);
+  });
+
+  it('ne consulte pas la liste quand le modèle configuré répond', async () => {
+    const appels = serveur(['gemini-2.0-flash'], ['gemini-2.5-flash']);
+    await new GeminiProvider('cle', 'gemini-2.5-flash').generateText({ system: 'c', untrusted: 'd' });
+    vi.unstubAllGlobals();
+    expect(appels.some((u) => u.endsWith('/models'))).toBe(false);
+  });
+
+  it('ignore les modèles inaptes à rédiger un devis', async () => {
+    serveur(['imagen-3.0', 'gemini-2.0-flash'], ['gemini-2.0-flash']);
+    const r = await new GeminiProvider('cle', 'inconnu').generateText({ system: 'c', untrusted: 'd' });
+    vi.unstubAllGlobals();
+    expect(r.usage.model).toBe('gemini-2.0-flash');
   });
 });

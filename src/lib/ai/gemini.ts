@@ -15,6 +15,25 @@ import type {
 
 const BASE = 'https://generativelanguage.googleapis.com/v1beta';
 const MAX_IMAGES = 6;
+
+/**
+ * Modèles retenus, du plus souhaitable au moins.
+ *
+ * Les modèles « flash » couvrent le palier gratuit avec les quotas les plus
+ * larges et acceptent texte comme images. La liste sert de repli quand le
+ * modèle configuré n'existe pas : un nom de modèle a une durée de vie, et
+ * DEVISIA ne doit pas tomber en panne le jour où Google en retire un.
+ */
+const PREFERENCES = [
+  'gemini-2.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash-lite',
+  'gemini-2.0-flash-lite',
+];
+
+/** Modèles inaptes à préparer un devis, quel que soit leur nom. */
+const HORS_SUJET = /embedding|aqa|imagen|veo|tts|image-generation|gemma/i;
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 /**
@@ -34,10 +53,48 @@ export class GeminiProvider implements AIProvider {
   readonly name = 'gemini' as const;
   private apiKey: string;
   private model: string;
+  /** Modèle retenu après repli automatique, mémorisé pour le processus. */
+  private resolu: string | null = null;
 
   constructor(apiKey: string, model: string) {
     this.apiKey = apiKey;
     this.model = model;
+  }
+
+  private get modeleActif(): string {
+    return this.resolu ?? this.model;
+  }
+
+  /**
+   * Cherche un modèle réellement servi par l'API.
+   *
+   * Appelé uniquement après un 404 : tant que le modèle configuré répond, ce
+   * chemin ne coûte rien. La liste des modèles vient de l'API elle-même, donc
+   * aucune valeur écrite en dur ne peut devenir fausse avec le temps.
+   */
+  private async resoudreModele(): Promise<string | null> {
+    const reponse = await fetch(`${BASE}/models`, {
+      headers: { 'x-goog-api-key': this.apiKey },
+      signal: AbortSignal.timeout(30_000),
+    }).catch(() => null);
+    if (!reponse?.ok) return null;
+
+    const { models = [] } = (await reponse.json().catch(() => ({ models: [] }))) as {
+      models?: { name?: string; supportedGenerationMethods?: string[] }[];
+    };
+    const disponibles = models
+      .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
+      .map((m) => (m.name ?? '').replace(/^models\//, ''))
+      .filter((id) => id && !HORS_SUJET.test(id));
+
+    const choisi = PREFERENCES.find((p) => disponibles.includes(p)) ?? disponibles[0] ?? null;
+    if (choisi) {
+      console.warn(
+        `[ia] modèle « ${this.model} » introuvable — repli automatique sur « ${choisi} ». ` +
+          'Fixez GEMINI_MODEL pour supprimer cette recherche.',
+      );
+    }
+    return choisi;
   }
 
   get available() {
@@ -113,7 +170,7 @@ export class GeminiProvider implements AIProvider {
       latencyMs: Date.now() - started,
       inputTokens: reponse.usageMetadata?.promptTokenCount,
       outputTokens: reponse.usageMetadata?.candidatesTokenCount,
-      model: this.model,
+      model: this.modeleActif,
       provider: this.name,
     };
   }
@@ -126,17 +183,17 @@ export class GeminiProvider implements AIProvider {
    * qu'on sache si la cause est un quota, un modèle inconnu ou une clé morte.
    * Ni la clé ni l'URL complète n'y figurent jamais.
    */
-  private async call(corps: Record<string, unknown>): Promise<GeminiResponse> {
+  private async call(corps: Record<string, unknown>, secondEssai = false): Promise<GeminiResponse> {
     let reponse: Response;
     try {
-      reponse = await fetch(`${BASE}/models/${this.model}:generateContent`, {
+      reponse = await fetch(`${BASE}/models/${this.modeleActif}:generateContent`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify(corps),
         signal: AbortSignal.timeout(90_000),
       });
     } catch (cause) {
-      console.error(`[ia] gemini injoignable — modèle ${this.model} :`, cause);
+      console.error(`[ia] gemini injoignable — modèle ${this.modeleActif} :`, cause);
       throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.", {
         cause,
       });
@@ -146,8 +203,19 @@ export class GeminiProvider implements AIProvider {
       const detail = await reponse.text().catch(() => '');
       const message = extractMessage(detail);
       console.error(
-        `[ia] gemini a refusé l'appel — statut ${reponse.status}, modèle ${this.model} : ${message}`,
+        `[ia] gemini a refusé l'appel — statut ${reponse.status}, modèle ${this.modeleActif} : ${message}`,
       );
+
+      // Un modèle inconnu se répare tout seul : on demande à l'API quels
+      // modèles elle sert, et on rejoue une fois. Sans cela, un nom de modèle
+      // périmé suffit à faire retomber tout le produit sur son moteur local.
+      if (reponse.status === 404 && !secondEssai && !this.resolu) {
+        const alternative = await this.resoudreModele();
+        if (alternative && alternative !== this.modeleActif) {
+          this.resolu = alternative;
+          return this.call(corps, true);
+        }
+      }
       if (reponse.status === 429) {
         throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.");
       }
@@ -160,7 +228,7 @@ export class GeminiProvider implements AIProvider {
       if (reponse.status === 404) {
         throw new AppError(
           'PROVIDER_UNAVAILABLE',
-          `Le modèle d'IA configuré est introuvable (${this.model}).`,
+          `Aucun modèle d'IA utilisable (${this.modeleActif}).`,
         );
       }
       if (reponse.status === 400) {
