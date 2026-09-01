@@ -138,3 +138,40 @@ describe('appel Gemini', () => {
     vi.unstubAllGlobals();
   });
 });
+
+/**
+ * Distinction des pannes.
+ *
+ * Un modèle inconnu ou une requête mal formée sont des erreurs de
+ * configuration : les présenter comme une panne passagère fait attendre un
+ * rétablissement qui ne viendra jamais, et masque la seule information utile.
+ */
+describe('erreurs Gemini distinguées', () => {
+  async function echouer(statut: number, corps: unknown) {
+    vi.stubGlobal('fetch', async () =>
+      new Response(JSON.stringify(corps), { status: statut, headers: { 'content-type': 'application/json' } }),
+    );
+    const erreur = await new GeminiProvider('cle', 'gemini-2.5-flash')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((e) => e);
+    vi.unstubAllGlobals();
+    return erreur as { code: string; message: string };
+  }
+
+  it('nomme le modèle introuvable', async () => {
+    const e = await echouer(404, { error: { message: 'models/x is not found' } });
+    expect(e.message).toContain('gemini-2.5-flash');
+    expect(e.message).toMatch(/introuvable/i);
+  });
+
+  it('rapporte le motif d’une requête refusée', async () => {
+    const e = await echouer(400, { error: { message: 'Invalid JSON payload' } });
+    expect(e.message).toContain('Invalid JSON payload');
+  });
+
+  it('signale une clé invalide sans la citer', async () => {
+    const e = await echouer(403, { error: { message: 'permission denied' } });
+    expect(e.message).toMatch(/clé d'API/i);
+    expect(e.message).not.toContain('cle');
+  });
+});

@@ -154,6 +154,18 @@ export class GeminiProvider implements AIProvider {
       if (reponse.status === 401 || reponse.status === 403) {
         throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");
       }
+      // Un modèle inconnu et une requête refusée sont des erreurs de
+      // configuration, pas des incidents passagers : les confondre avec une
+      // panne réseau fait attendre un rétablissement qui ne viendra jamais.
+      if (reponse.status === 404) {
+        throw new AppError(
+          'PROVIDER_UNAVAILABLE',
+          `Le modèle d'IA configuré est introuvable (${this.model}).`,
+        );
+      }
+      if (reponse.status === 400) {
+        throw new AppError('PROVIDER_UNAVAILABLE', `Requête refusée par le service d'IA : ${message}`);
+      }
       throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.");
     }
 
