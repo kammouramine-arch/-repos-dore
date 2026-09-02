@@ -11,41 +11,58 @@ import { quoteDraftSchema, imageAnalysisSchema } from '@/lib/ai/schemas';
  * pas celui qu'on lui a promis. Ces cas portent sur les schémas réellement
  * envoyés en production, pas sur des exemples.
  */
-const INTERDITS = [
-  '$schema',
-  '$id',
-  'additionalProperties',
-  'exclusiveMinimum',
-  'exclusiveMaximum',
-  'default',
-  'const',
-  '$defs',
-  'definitions',
-];
+/**
+ * Seuls mots-clés que Gemini accepte dans un schéma de réponse.
+ *
+ * Les contraintes de validation produites par Zod — bornes, longueurs,
+ * motifs — font répondre « Request contains an invalid argument », défaut
+ * réellement rencontré en production. Elles n'apportent rien : Zod revalide
+ * la réponse. La liste blanche est donc vérifiée, pas une liste noire, qu'un
+ * mot-clé nouveau contournerait en silence.
+ */
+const AUTORISES = new Set([
+  'type',
+  'properties',
+  'required',
+  'items',
+  'enum',
+  'nullable',
+  'description',
+  'anyOf',
+]);
 
-function cles(noeud: unknown, vues: string[] = []): string[] {
+/** Mots-clés rencontrés hors des noms de champs (qui, eux, sont libres). */
+function motsCles(noeud: unknown, dansProprietes = false, vus = new Set<string>()): Set<string> {
   if (Array.isArray(noeud)) {
-    noeud.forEach((n) => cles(n, vues));
-    return vues;
+    noeud.forEach((n) => motsCles(n, false, vus));
+    return vus;
   }
   if (noeud && typeof noeud === 'object') {
     for (const [k, v] of Object.entries(noeud)) {
-      vues.push(k);
-      cles(v, vues);
+      if (!dansProprietes) vus.add(k);
+      motsCles(v, k === 'properties', vus);
     }
   }
-  return vues;
+  return vus;
 }
 
 describe('schéma Gemini', () => {
-  it('ne laisse passer aucun mot-clé refusé, sur le vrai schéma de devis', () => {
-    const presentes = new Set(cles(toGeminiSchema(quoteDraftSchema)));
-    for (const interdit of INTERDITS) expect(presentes.has(interdit), interdit).toBe(false);
+  it('n’émet que des mots-clés acceptés, sur le vrai schéma de devis', () => {
+    const hors = [...motsCles(toGeminiSchema(quoteDraftSchema))].filter((k) => !AUTORISES.has(k));
+    expect(hors).toEqual([]);
   });
 
-  it('ne laisse passer aucun mot-clé refusé sur l’analyse de photos', () => {
-    const presentes = new Set(cles(toGeminiSchema(imageAnalysisSchema)));
-    for (const interdit of INTERDITS) expect(presentes.has(interdit), interdit).toBe(false);
+  it('n’émet que des mots-clés acceptés sur l’analyse de photos', () => {
+    const hors = [...motsCles(toGeminiSchema(imageAnalysisSchema))].filter((k) => !AUTORISES.has(k));
+    expect(hors).toEqual([]);
+  });
+
+  it('conserve les noms de champs, qui ne sont pas des mots-clés', () => {
+    const schema = toGeminiSchema(quoteDraftSchema);
+    const champs = Object.keys(schema.properties as object);
+    expect(champs).toContain('materiaux');
+    expect(champs).toContain('mainOeuvre');
+    expect(champs).toContain('questions');
   });
 
   it('garde la structure utile : type, propriétés, champs requis', () => {

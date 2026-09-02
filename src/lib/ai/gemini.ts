@@ -393,18 +393,24 @@ export function toGeminiSchema(schema: z.ZodType): Record<string, unknown> {
   return nettoyer(json) as Record<string, unknown>;
 }
 
-const REFUSES = new Set([
-  '$schema',
-  '$id',
-  'additionalProperties',
-  'exclusiveMinimum',
-  'exclusiveMaximum',
-  'default',
-  'const',
-  'examples',
-  'patternProperties',
-  'definitions',
-  '$defs',
+/**
+ * Mots-clés conservés dans le schéma transmis à Gemini.
+ *
+ * Liste blanche plutôt que liste noire : `z.toJSONSchema` produit des
+ * contraintes de validation — bornes, longueurs, motifs — que l'API refuse
+ * par « Request contains an invalid argument », et qui n'apportent rien ici
+ * puisque Zod revalide la réponse de toute façon. Seule la structure compte
+ * pour guider le modèle ; la validation reste de notre côté.
+ */
+const CONSERVES = new Set([
+  'type',
+  'properties',
+  'required',
+  'items',
+  'enum',
+  'nullable',
+  'description',
+  'anyOf',
 ]);
 
 function nettoyer(noeud: unknown): unknown {
@@ -415,7 +421,7 @@ function nettoyer(noeud: unknown): unknown {
   const sortie: Record<string, unknown> = {};
 
   for (const [cle, valeur] of Object.entries(source)) {
-    if (REFUSES.has(cle)) continue;
+    if (!CONSERVES.has(cle)) continue;
 
     // `type: ['string', 'null']` devient `type: 'string'` + `nullable: true`.
     if (cle === 'type' && Array.isArray(valeur)) {
@@ -436,6 +442,15 @@ function nettoyer(noeud: unknown): unknown {
         continue;
       }
       sortie.anyOf = branches.map(nettoyer);
+      continue;
+    }
+
+    // Sous `properties`, les clés sont des noms de champs choisis par le
+    // schéma, pas des mots-clés : elles traversent sans filtrage.
+    if (cle === 'properties' && valeur && typeof valeur === 'object') {
+      sortie.properties = Object.fromEntries(
+        Object.entries(valeur as Record<string, unknown>).map(([nom, sous]) => [nom, nettoyer(sous)]),
+      );
       continue;
     }
 
