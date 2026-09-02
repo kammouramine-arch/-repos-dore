@@ -559,3 +559,43 @@ describe('sémantique du schéma transmis', () => {
     }
   });
 });
+
+/**
+ * Ordre des candidats.
+ *
+ * Un modèle « lite » a rendu en production un devis sans aucune ligne, avec un
+ * total à zéro, présenté comme préparé par l'IA. Il répond vite mais bâcle :
+ * il vient donc après les modèles complets, saturation comprise.
+ */
+describe('ordre des modèles candidats', () => {
+  it('essaie les modèles complets avant les variantes lite', async () => {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: ['gemini-flash-lite-latest', 'gemini-2.5-pro', 'gemini-2.5-flash'].map((id) => ({
+              name: `models/${id}`,
+              supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      essayes.push(modele);
+      return new Response(JSON.stringify({ error: { message: 'nope' } }), { status: 404 });
+    });
+    await new GeminiProvider('cle', 'introuvable')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch(() => undefined);
+    vi.unstubAllGlobals();
+
+    const complets = essayes.filter((m) => !/lite/.test(m));
+    const lites = essayes.filter((m) => /lite/.test(m));
+    expect(complets.length).toBeGreaterThan(0);
+    expect(lites.length).toBeGreaterThan(0);
+    // Le dernier modèle complet est essayé avant le premier « lite ».
+    expect(essayes.lastIndexOf(complets.at(-1)!)).toBeLessThan(essayes.indexOf(lites[0]!));
+  });
+});

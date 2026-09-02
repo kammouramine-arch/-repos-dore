@@ -140,10 +140,16 @@ export class GeminiProvider implements AIProvider {
     }
     this.diagnostic = `modèles servis : ${servis.slice(0, 8).join(', ')}`;
 
+    // Les variantes « lite » passent en dernier : elles répondent vite, mais
+    // rendent parfois un devis sans aucune ligne. Mieux vaut un modèle complet
+    // saturé qu'un modèle rapide qui bâcle.
+    const lite = (m: string) => /lite/i.test(m);
     const ordonnes = [
       this.model,
-      ...PREFERENCES.filter((p) => servis.includes(p)),
-      ...servis,
+      ...PREFERENCES.filter((p) => servis.includes(p) && !lite(p)),
+      ...servis.filter((m) => !lite(m)),
+      ...PREFERENCES.filter((p) => servis.includes(p) && lite(p)),
+      ...servis.filter(lite),
     ];
     return [...new Set(ordonnes)].filter((m) => servis.includes(m));
   }

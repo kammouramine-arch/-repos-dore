@@ -1,5 +1,6 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
+import { AppError } from '@/lib/errors';
 import {
   buildHeuristicQuoteDraft,
   findBestCatalogEntry,
@@ -103,6 +104,17 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
         schemaName: 'projet_de_devis',
         maxTokens: 4096,
       });
+      // Un devis sans aucune ligne n'est pas un devis. Le schéma l'autorise —
+      // les tableaux ont une valeur par défaut — et un modèle rapide peut ne
+      // rendre qu'un titre et un résumé. Le livrer comme un devis préparé par
+      // l'IA serait pire que le mode dégradé : l'artisan verrait un total à
+      // zéro, présenté comme fiable.
+      if (result.data.materiaux.length === 0 && result.data.mainOeuvre.length === 0) {
+        throw new AppError(
+          'PROVIDER_UNAVAILABLE',
+          "L'IA n'a chiffré aucune ligne : devis inexploitable.",
+        );
+      }
       draft = result.data;
       degraded = false;
       providerName = result.usage.provider;
