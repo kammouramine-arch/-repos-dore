@@ -533,3 +533,29 @@ describe('motif du mode dégradé', () => {
     expect(contrats).toBeDefined();
   });
 });
+
+/**
+ * Sémantique portée par les descriptions.
+ *
+ * En retirant les contraintes du schéma transmis, on a retiré le seul indice
+ * d'échelle qui restait : Gemini a rendu une confiance de 1 sur un devis
+ * complet, lue comme 1 %. Les descriptions traversent, elles ; elles doivent
+ * donc porter ce que les bornes disaient.
+ */
+describe('sémantique du schéma transmis', () => {
+  it('énonce l’échelle de confiance dans le schéma envoyé', () => {
+    const schema = toGeminiSchema(quoteDraftSchema);
+    const confiance = (schema.properties as Record<string, Record<string, unknown>>).confiance!;
+    expect(String(confiance.description)).toMatch(/0 à 100/);
+  });
+
+  it('décrit les champs dont le sens n’est pas évident', () => {
+    const props = toGeminiSchema(quoteDraftSchema).properties as Record<
+      string,
+      Record<string, unknown>
+    >;
+    for (const champ of ['questions', 'alertes', 'observations', 'hypotheses', 'dureeEstimeeMinutes']) {
+      expect(String(props[champ]?.description ?? ''), champ).not.toBe('');
+    }
+  });
+});

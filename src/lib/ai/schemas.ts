@@ -23,8 +23,13 @@ export const aiMaterialSchema = z.object({
 export const aiLabourSchema = z.object({
   designation: z.string().min(1).max(160),
   description: z.string().max(600).nullish(),
-  heures: z.number().min(0).max(2000),
-  tauxHoraire: z.number().min(0).max(100_000).nullish(),
+  heures: z.number().min(0).max(2000).describe('Nombre d’heures, en heures décimales.'),
+  tauxHoraire: z
+    .number()
+    .min(0)
+    .max(100_000)
+    .nullish()
+    .describe('Taux horaire en euros hors taxes.'),
   referenceCatalogue: z.string().max(64).nullish(),
 });
 
@@ -34,17 +39,42 @@ export const quoteDraftSchema = z.object({
   descriptionTravaux: z.array(z.string().max(600)).max(20).default([]),
   materiaux: z.array(aiMaterialSchema).max(40).default([]),
   mainOeuvre: z.array(aiLabourSchema).max(20).default([]),
-  /** Informations manquantes que l'artisan doit compléter avant envoi. */
-  questions: z.array(z.string().max(300)).max(12).default([]),
-  /** Points de vigilance (risques, non-inclus). */
-  alertes: z.array(z.string().max(300)).max(12).default([]),
-  /** Ce qui est réellement visible sur les photos ou explicite dans la description. */
-  observations: z.array(z.string().max(300)).max(12).default([]),
-  /** Ce que l'IA a supposé faute d'information : à confirmer par l'artisan. */
-  hypotheses: z.array(z.string().max(300)).max(12).default([]),
-  dureeEstimeeMinutes: z.number().int().min(0).max(100_000).nullish(),
-  /** Confiance de l'IA sur l'exhaustivité du devis, de 0 à 100. */
-  confiance: z.number().min(0).max(100).default(50),
+  questions: z
+    .array(z.string().max(300))
+    .max(12)
+    .default([])
+    .describe('Informations manquantes que l’artisan doit compléter avant envoi.'),
+  alertes: z
+    .array(z.string().max(300))
+    .max(12)
+    .default([])
+    .describe('Points de vigilance : risques, travaux non inclus.'),
+  observations: z
+    .array(z.string().max(300))
+    .max(12)
+    .default([])
+    .describe('Ce qui est réellement visible sur les photos ou explicite dans la description.'),
+  hypotheses: z
+    .array(z.string().max(300))
+    .max(12)
+    .default([])
+    .describe('Ce qui a été supposé faute d’information, à confirmer par l’artisan.'),
+  dureeEstimeeMinutes: z
+    .number()
+    .int()
+    .min(0)
+    .max(100_000)
+    .nullish()
+    .describe('Durée totale d’intervention estimée, en minutes.'),
+  confiance: z
+    .number()
+    .min(0)
+    .max(100)
+    .default(50)
+    .describe(
+      'Confiance sur l’exhaustivité du devis, entier de 0 à 100 — ' +
+        '0 très incertain, 100 certain. Jamais une fraction entre 0 et 1.',
+    ),
 });
 
 export type QuoteDraft = z.infer<typeof quoteDraftSchema>;
