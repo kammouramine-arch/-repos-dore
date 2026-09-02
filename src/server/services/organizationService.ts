@@ -43,19 +43,39 @@ const INTEGRATION_CATALOG = [
   { provider: 'MAKE' as const, status: 'BIENTOT' as const },
 ];
 
-/** Slug unique et lisible pour une organisation. */
+/** Au-delà, on cesse de sonder un à un et on tire un suffixe. */
+const SONDAGES_MAX = 5;
+
+/**
+ * Slug unique et lisible pour une organisation.
+ *
+ * La version précédente sondait les suffixes un par un, sans borne, à
+ * l'intérieur de la transaction de création. Deux artisans nommés « Plomberie
+ * Martin » ne posaient pas de problème ; vingt-cinq homonymes faisaient vingt-
+ * cinq allers-retours en base avant le premier `insert`, dépassaient le délai
+ * de transaction, et l'inscription échouait en 500 sans rien dire. Un nom
+ * d'entreprise banal est précisément ce qui devient fréquent avec le succès.
+ *
+ * On sonde donc quelques suffixes lisibles, puis on tire au sort : un slug
+ * moins joli vaut mieux qu'une inscription refusée.
+ */
 export async function uniqueSlug(
   name: string,
   client: Prisma.TransactionClient | typeof prisma = prisma,
 ): Promise<string> {
   const base = slugify(name) || 'entreprise';
-  let candidate = base;
-  let suffix = 1;
-  while (await client.organization.findUnique({ where: { slug: candidate }, select: { id: true } })) {
-    suffix += 1;
-    candidate = `${base}-${suffix}`;
-  }
-  return candidate;
+  const candidats = [base, ...Array.from({ length: SONDAGES_MAX }, (_, i) => `${base}-${i + 2}`)];
+  const pris = new Set(
+    (
+      await client.organization.findMany({
+        where: { slug: { in: candidats } },
+        select: { slug: true },
+      })
+    ).map((o) => o.slug),
+  );
+  const libre = candidats.find((c) => !pris.has(c));
+  if (libre) return libre;
+  return `${base}-${Math.random().toString(36).slice(2, 8)}`;
 }
 
 export interface CreateOrganizationInput {
@@ -71,8 +91,19 @@ export interface CreateOrganizationInput {
  * abonnement en période d'essai, automatisations et catalogue d'intégrations.
  */
 export async function createOrganization(input: CreateOrganizationInput) {
+  // Le slug est résolu hors transaction : la transaction ne doit contenir que
+  // des écritures, pas une recherche dont la durée dépend du nombre
+  // d'homonymes déjà inscrits.
+  const slugPrevu = await uniqueSlug(input.name);
   return prisma.$transaction(async (tx) => {
-    const slug = await uniqueSlug(input.name, tx);
+    // Deux inscriptions simultanées peuvent viser le même slug : on ne
+    // rattrape pas la course par un verrou, on lui laisse une porte de sortie.
+    const slug = (await tx.organization.findUnique({
+      where: { slug: slugPrevu },
+      select: { id: true },
+    }))
+      ? `${slugPrevu}-${Math.random().toString(36).slice(2, 8)}`
+      : slugPrevu;
     const organization = await tx.organization.create({
       data: {
         name: input.name,
