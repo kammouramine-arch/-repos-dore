@@ -53,12 +53,17 @@ const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/h
  * finit toujours par apparaître dans un journal.
  */
 /**
- * Signal interne : ce modèle-là n'est pas servi.
+ * Signal interne : ce couple version/modèle n'a pas abouti, mais un autre
+ * pourrait aboutir.
  *
- * Volontairement distinct d'AppError — il ne remonte jamais à l'utilisateur,
- * il sert seulement à décider s'il vaut la peine d'essayer un autre modèle.
+ * Couvre le modèle absent (404) comme le modèle saturé (5xx) : Google répond
+ * « high demand, try again later » sur un modèle très demandé alors qu'un
+ * autre répond normalement. Retomber sur le moteur local dans ce cas prive
+ * l'artisan de ce qu'on lui promet, pour une panne qui dure quelques secondes.
+ *
+ * Volontairement distinct d'AppError : il ne remonte jamais à l'utilisateur.
  */
-class ModeleAbsent extends Error {}
+class ModeleIndisponible extends Error {}
 
 interface GeminiPart {
   text?: string;
@@ -227,8 +232,16 @@ export class GeminiProvider implements AIProvider {
    */
   private async call(corps: Record<string, unknown>): Promise<GeminiResponse> {
     // Le couple déjà retenu est rejoué directement : la recherche ne coûte
-    // qu'une fois par processus.
-    if (this.resolu) return this.envoyer(this.resolu.version, this.resolu.modele, corps);
+    // qu'une fois par processus. S'il devient indisponible — saturation
+    // passagère, modèle retiré — on l'oublie et on cherche à nouveau.
+    if (this.resolu) {
+      try {
+        return await this.envoyer(this.resolu.version, this.resolu.modele, corps);
+      } catch (erreur) {
+        if (!(erreur instanceof ModeleIndisponible)) throw erreur;
+        this.resolu = null;
+      }
+    }
 
     let derniere: Error | null = null;
     for (const version of VERSIONS) {
@@ -240,7 +253,7 @@ export class GeminiProvider implements AIProvider {
         derniere = erreur as Error;
         // Seul un modèle introuvable justifie d'en essayer un autre : une clé
         // refusée ou un quota atteint ne se répare pas en changeant de nom.
-        if (!(erreur instanceof ModeleAbsent)) throw erreur;
+        if (!(erreur instanceof ModeleIndisponible)) throw erreur;
       }
     }
 
@@ -257,14 +270,14 @@ export class GeminiProvider implements AIProvider {
           return reponse;
         } catch (erreur) {
           derniere = erreur as Error;
-          if (!(erreur instanceof ModeleAbsent)) throw erreur;
+          if (!(erreur instanceof ModeleIndisponible)) throw erreur;
         }
       }
     }
 
     throw new AppError(
       'PROVIDER_UNAVAILABLE',
-      `Aucun modèle d'IA utilisable — essayé « ${this.model} »` +
+      `Aucun modèle d'IA disponible — dernier motif : ${derniere?.message ?? 'inconnu'}` +
         (this.diagnostic ? ` ; ${this.diagnostic}` : '') +
         '.',
       { cause: derniere ?? undefined },
@@ -307,10 +320,14 @@ export class GeminiProvider implements AIProvider {
       if (reponse.status === 401 || reponse.status === 403) {
         throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");
       }
-      // Code interne : il ne remonte jamais à l'utilisateur, il sert à savoir
-      // s'il vaut la peine d'essayer un autre modèle.
-      if (reponse.status === 404) {
-        throw new ModeleAbsent(`Modèle ${modele} non servi par ${version}.`);
+      // Codes internes : ils ne remontent jamais à l'utilisateur, ils servent
+      // à savoir s'il vaut la peine d'essayer autre chose. Un 5xx sur un
+      // modèle très demandé n'est pas une panne du service : les modèles ont
+      // des capacités distinctes.
+      if (reponse.status === 404 || reponse.status >= 500) {
+        throw new ModeleIndisponible(
+          `${version}/${modele} indisponible (${reponse.status} ${message.slice(0, 100)}).`,
+        );
       }
       if (reponse.status === 400) {
         throw new AppError('PROVIDER_UNAVAILABLE', `Requête refusée par le service d'IA : ${message}`);

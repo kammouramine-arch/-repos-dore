@@ -380,7 +380,7 @@ describe('échecs auto-descriptifs', () => {
     return e.message;
   }
 
-  it('nomme le statut et le message sur une erreur serveur', async () => {
+  it('nomme le statut et le message quand tous les modèles saturent', async () => {
     const m = await motif(() =>
       new Response(JSON.stringify({ error: { message: 'internal failure' } }), { status: 500 }),
     );
@@ -409,5 +409,81 @@ describe('échecs auto-descriptifs', () => {
       );
       expect(m, String(statut)).not.toContain('CLE-SECRETE-123');
     }
+  });
+});
+
+/**
+ * Modèle saturé.
+ *
+ * Cas réellement rencontré en production : Google répond 503 « high demand »
+ * sur gemini-flash-latest. Les modèles ont des capacités distinctes — retomber
+ * sur le moteur local prive l'artisan de ce qu'on lui promet pour une panne
+ * qui dure quelques secondes.
+ */
+describe('modèle saturé', () => {
+  function api(listes: string[], repondent: string[], statutEchec = 503) {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: listes.map((id) => ({
+              name: `models/${id}`,
+              supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      essayes.push(modele);
+      if (!repondent.includes(modele)) {
+        return new Response(
+          JSON.stringify({ error: { message: 'This model is currently experiencing high demand.' } }),
+          { status: statutEchec },
+        );
+      }
+      return new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: 'bonjour' }] } }],
+          usageMetadata: { promptTokenCount: 3, candidatesTokenCount: 1 },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    return essayes;
+  }
+
+  it('bascule sur un autre modèle quand le premier est saturé', async () => {
+    api(['gemini-flash-latest', 'gemini-2.5-flash'], ['gemini-2.5-flash']);
+    const r = await new GeminiProvider('cle', 'gemini-flash-latest').generateText({
+      system: 'c',
+      untrusted: 'd',
+    });
+    vi.unstubAllGlobals();
+    expect(r.data).toBe('bonjour');
+    expect(r.usage.model).toBe('gemini-2.5-flash');
+  });
+
+  it('oublie le couple mémorisé s’il devient saturé et en trouve un autre', async () => {
+    const fournisseur = new GeminiProvider('cle', 'gemini-flash-latest');
+    api(['gemini-flash-latest', 'gemini-2.5-flash'], ['gemini-flash-latest']);
+    const premier = await fournisseur.generateText({ system: 'c', untrusted: 'd' });
+    expect(premier.usage.model).toBe('gemini-flash-latest');
+    vi.unstubAllGlobals();
+
+    api(['gemini-flash-latest', 'gemini-2.5-flash'], ['gemini-2.5-flash']);
+    const second = await fournisseur.generateText({ system: 'c', untrusted: 'd' });
+    vi.unstubAllGlobals();
+    expect(second.usage.model).toBe('gemini-2.5-flash');
+  });
+
+  it('n’essaie pas d’autre modèle sur un quota dépassé', async () => {
+    const essayes = api(['a', 'b'], [], 429);
+    await new GeminiProvider('cle', 'a')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch(() => undefined);
+    vi.unstubAllGlobals();
+    expect(essayes.length).toBe(1);
   });
 });
