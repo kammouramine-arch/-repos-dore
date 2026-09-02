@@ -361,3 +361,53 @@ describe('modèle listé mais non servi', () => {
     expect(essayes.length).toBe(1);
   });
 });
+
+/**
+ * Tout échec se décrit lui-même.
+ *
+ * Six déploiements ont été dépensés à deviner pourquoi la production
+ * basculait sur son moteur local, parce que le motif ne vivait que dans les
+ * journaux de l'hébergeur. Statuts HTTP, noms de modèles et messages de l'API
+ * ne sont pas des secrets : ils appartiennent au message d'erreur. La clé, non.
+ */
+describe('échecs auto-descriptifs', () => {
+  async function motif(reponse: () => Response | Promise<Response>) {
+    vi.stubGlobal('fetch', async () => reponse());
+    const e = (await new GeminiProvider('CLE-SECRETE-123', 'gemini-flash-latest')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as Error)) as Error;
+    vi.unstubAllGlobals();
+    return e.message;
+  }
+
+  it('nomme le statut et le message sur une erreur serveur', async () => {
+    const m = await motif(() =>
+      new Response(JSON.stringify({ error: { message: 'internal failure' } }), { status: 500 }),
+    );
+    expect(m).toContain('500');
+    expect(m).toContain('gemini-flash-latest');
+    expect(m).toContain('internal failure');
+    expect(m).not.toContain('CLE-SECRETE-123');
+  });
+
+  it('nomme la panne réseau plutôt que de la taire', async () => {
+    vi.stubGlobal('fetch', async () => {
+      throw new TypeError('fetch failed');
+    });
+    const e = (await new GeminiProvider('cle', 'gemini-flash-latest')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as Error)) as Error;
+    vi.unstubAllGlobals();
+    expect(e.message).toMatch(/injoignable/i);
+    expect(e.message).toContain('fetch failed');
+  });
+
+  it('ne divulgue jamais la clé, quel que soit l’échec', async () => {
+    for (const statut of [400, 429, 403, 500, 503]) {
+      const m = await motif(() =>
+        new Response(JSON.stringify({ error: { message: 'x' } }), { status: statut }),
+      );
+      expect(m, String(statut)).not.toContain('CLE-SECRETE-123');
+    }
+  });
+});

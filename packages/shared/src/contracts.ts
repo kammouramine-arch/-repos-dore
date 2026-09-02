@@ -242,6 +242,8 @@ export interface GeneratedQuoteDTO {
   estimatedDurationMin: number | null;
   degraded: boolean;
   provider: string;
+  /** Modèle qui a réellement rédigé le devis ; nul en mode dégradé. */
+  model: string | null;
   totals: {
     subtotalCents: number;
     discountCents: number;

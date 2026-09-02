@@ -48,6 +48,8 @@ export interface GeneratedQuote {
   totals: ReturnType<typeof totalsFor>;
   degraded: boolean;
   provider: string;
+  /** Modèle qui a réellement rédigé le devis ; nul en mode dégradé. */
+  model: string | null;
 }
 
 /**
@@ -73,6 +75,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   let draft: QuoteDraft;
   let degraded = true;
   let providerName = 'local';
+  let modelName: string | null = null;
 
   if (provider) {
     try {
@@ -94,6 +97,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
       draft = result.data;
       degraded = false;
       providerName = result.usage.provider;
+      modelName = result.usage.model ?? null;
       await logAIRequest(input, 'QUOTE_DRAFT', result.usage.provider, result.usage.model, result.usage);
     } catch (error) {
       // Le moteur local prend le relais : l'utilisateur obtient toujours un devis.
@@ -149,6 +153,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     totals,
     degraded,
     provider: providerName,
+    model: modelName,
   };
 }
 

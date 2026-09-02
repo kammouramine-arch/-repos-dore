@@ -287,9 +287,15 @@ export class GeminiProvider implements AIProvider {
       });
     } catch (cause) {
       console.error(`[ia] gemini injoignable — ${version}/${modele} :`, cause);
-      throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.", {
-        cause,
-      });
+      // Le motif fait partie du message : diagnostiquer une panne de
+      // production ne doit pas exiger l'accès aux journaux de l'hébergeur.
+      // Un nom d'erreur réseau n'est pas un secret.
+      const motif = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
+      throw new AppError(
+        'PROVIDER_UNAVAILABLE',
+        `Service d'IA injoignable (${motif.slice(0, 120)}).`,
+        { cause },
+      );
     }
 
     if (!reponse.ok) {
@@ -309,7 +315,10 @@ export class GeminiProvider implements AIProvider {
       if (reponse.status === 400) {
         throw new AppError('PROVIDER_UNAVAILABLE', `Requête refusée par le service d'IA : ${message}`);
       }
-      throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.");
+      throw new AppError(
+        'PROVIDER_UNAVAILABLE',
+        `Service d'IA en erreur (${reponse.status} sur ${version}/${modele} : ${message.slice(0, 140)}).`,
+      );
     }
 
     return (await reponse.json()) as GeminiResponse;
