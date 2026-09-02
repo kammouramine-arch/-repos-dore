@@ -244,6 +244,8 @@ export interface GeneratedQuoteDTO {
   provider: string;
   /** Modèle qui a réellement rédigé le devis ; nul en mode dégradé. */
   model: string | null;
+  /** Pourquoi le moteur local a pris le relais ; nul quand l'IA a répondu. */
+  degradedReason: string | null;
   totals: {
     subtotalCents: number;
     discountCents: number;

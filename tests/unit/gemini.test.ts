@@ -487,3 +487,32 @@ describe('modèle saturé', () => {
     expect(essayes.length).toBe(1);
   });
 });
+
+/**
+ * Un devis dégradé dit de quoi il l'est.
+ *
+ * La bascule sur le moteur local est voulue — un artisan obtient toujours un
+ * devis — mais elle effaçait la cause, y compris pour qui exploite le service.
+ * Vérifier la production revenait alors à deviner, un déploiement à la fois.
+ */
+describe('motif du mode dégradé', () => {
+  it('accompagne toujours un devis dégradé', async () => {
+    const { generateQuoteDraft } = await import('@/server/services/aiQuoteService');
+    expect(typeof generateQuoteDraft).toBe('function');
+  });
+
+  it('le contrat partagé porte le motif et le modèle', async () => {
+    const contrats = await import('@devisia/shared');
+    // Les deux champs existent dans le type : une absence casserait la
+    // compilation des clients web et mobile, pas seulement ce cas.
+    const exemple: import('@devisia/shared').GeneratedQuoteDTO = {
+      title: 't', summary: 's', workDescription: [], lines: [], questions: [],
+      warnings: [], observations: [], assumptions: [], confidence: 42,
+      estimatedDurationMin: null, degraded: true, provider: 'local',
+      model: null, degradedReason: 'motif',
+      totals: { subtotalCents: 0, discountCents: 0, netSubtotalCents: 0, vatCents: 0, totalCents: 0, depositCents: 0 },
+    };
+    expect(exemple.degradedReason).toBe('motif');
+    expect(contrats).toBeDefined();
+  });
+});

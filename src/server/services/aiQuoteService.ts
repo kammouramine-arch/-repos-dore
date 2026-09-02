@@ -50,6 +50,14 @@ export interface GeneratedQuote {
   provider: string;
   /** Modèle qui a réellement rédigé le devis ; nul en mode dégradé. */
   model: string | null;
+  /**
+   * Pourquoi le moteur local a pris le relais ; nul quand l'IA a répondu.
+   *
+   * La bascule est voulue — un artisan obtient toujours un devis — mais elle
+   * effaçait jusqu'ici la cause, y compris pour qui exploite le service. Un
+   * devis dégradé doit pouvoir dire de quoi il l'est.
+   */
+  degradedReason: string | null;
 }
 
 /**
@@ -76,6 +84,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   let degraded = true;
   let providerName = 'local';
   let modelName: string | null = null;
+  let degradedReason: string | null = provider ? null : "Aucun fournisseur d'IA configuré.";
 
   if (provider) {
     try {
@@ -102,6 +111,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     } catch (error) {
       // Le moteur local prend le relais : l'utilisateur obtient toujours un devis.
       console.error('[ai] génération LLM indisponible, bascule sur le moteur local', error);
+      degradedReason = error instanceof Error ? error.message : String(error);
       draft = buildHeuristicQuoteDraft({
         description: input.description,
         catalog,
@@ -154,6 +164,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     degraded,
     provider: providerName,
     model: modelName,
+    degradedReason: degraded ? degradedReason : null,
   };
 }
 
