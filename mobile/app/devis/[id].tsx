@@ -11,6 +11,7 @@ import {
   type QuoteDetailDTO,
 } from '@devisia/shared';
 import {
+  Amount,
   Badge,
   Banner,
   Body,
@@ -25,8 +26,9 @@ import {
   Title,
 } from '@/components/ui';
 import { useToast } from '@/components/toast';
+import { ouvrirPdfDevis } from '@/features/pdf';
 import { useQuery } from '@/lib/query';
-import { api, API_URL } from '@/lib/api';
+import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -41,6 +43,8 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'dang
 };
 
 const SENDABLE = ['BROUILLON', 'ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'];
+/** Statuts pour lesquels la page publique existe réellement côté serveur. */
+const LIEN_PUBLIC_VISIBLE = ['ENVOYE', 'CONSULTE', 'ACCEPTE', 'REFUSE', 'MODIFICATION_DEMANDEE', 'EXPIRE'];
 const FOLLOWABLE = ['ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'];
 
 export default function DevisDetailScreen() {
@@ -53,10 +57,40 @@ export default function DevisDetailScreen() {
 
   const [sending, setSending] = React.useState(false);
   const [followUpOpen, setFollowUpOpen] = React.useState(false);
+  const [pdfEnCours, setPdfEnCours] = React.useState(false);
+
+  /**
+   * Le PDF vient de la route authentifiée, pas de la page web publique :
+   * celle-ci refuse les brouillons et renvoyait « 404 » sur un devis non
+   * encore envoyé. iOS présente ensuite le document lui-même.
+   */
+  async function ouvrirPdf() {
+    if (!quote || pdfEnCours) return;
+    setPdfEnCours(true);
+    try {
+      await ouvrirPdfDevis(quote.id, quote.number);
+    } catch (cause) {
+      toast({
+        title:
+          cause instanceof DevisiaApiError
+            ? cause.message
+            : 'Le PDF n’a pas pu être préparé. Réessayez dans un instant.',
+        tone: 'error',
+      });
+    } finally {
+      setPdfEnCours(false);
+    }
+  }
 
   async function shareQuote() {
     if (!quote) return;
     try {
+      // Un brouillon n'a pas de page publique : partager son lien enverrait le
+      // client sur un 404. On partage alors le document lui-même.
+      if (!LIEN_PUBLIC_VISIBLE.includes(quote.status)) {
+        await ouvrirPdfDevis(quote.id, quote.number);
+        return;
+      }
       await Share.share({
         message: `Votre devis ${quote.number} — ${formatCents(quote.totalCents)} TTC\n${quote.publicUrl}`,
         url: quote.publicUrl,
@@ -127,9 +161,7 @@ export default function DevisDetailScreen() {
           <Muted>
             {quote.number} · {quote.customerName}
           </Muted>
-          <Body style={{ fontSize: 30, lineHeight: 34, fontWeight: '700', letterSpacing: -0.9, color: colors.ink }}>
-            {formatCents(quote.totalCents)}
-          </Body>
+          <Amount cents={quote.totalCents} size="metric" />
         </View>
 
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
@@ -174,7 +206,10 @@ export default function DevisDetailScreen() {
               icon="document-outline"
               variant="secondary"
               style={{ flex: 1 }}
-              onPress={() => void WebBrowser.openBrowserAsync(`${API_URL}/devis/${quote.publicToken}`)}
+              loading={pdfEnCours}
+              disabled={pdfEnCours}
+              haptic
+              onPress={() => void ouvrirPdf()}
             />
           </View>
 
@@ -211,31 +246,41 @@ export default function DevisDetailScreen() {
           <Row label="TVA" value={formatCents(quote.vatCents)} />
           <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
             <Heading>Total TTC</Heading>
-            <Body style={{ fontSize: 20, fontWeight: '700', color: colors.accent }}>
-              {formatCents(quote.totalCents)}
-            </Body>
+            <Amount cents={quote.totalCents} size="metric" tone="accent" />
           </View>
         </Card>
 
-        <Pressable
-          onPress={() => void WebBrowser.openBrowserAsync(quote.publicUrl)}
-          style={{
-            flexDirection: 'row',
-            alignItems: 'center',
-            gap: spacing.sm,
-            padding: spacing.md,
-            borderRadius: radius.md,
-            backgroundColor: colors.canvas,
-            borderWidth: 1,
-            borderColor: colors.line,
-          }}
-        >
-          <Ionicons name="link-outline" size={18} color={colors.subtle} />
-          <Muted style={{ flex: 1 }} numberOfLines={1}>
-            {quote.publicUrl}
+        {/* La page publique refuse les brouillons et les devis annulés : y
+            renvoyer donnerait au client un lien mort. Le lien n'apparaît donc
+            qu'une fois le devis parti. */}
+        {LIEN_PUBLIC_VISIBLE.includes(quote.status) ? (
+          <Pressable
+            accessibilityRole="link"
+            accessibilityLabel="Ouvrir le lien client"
+            onPress={() => void WebBrowser.openBrowserAsync(quote.publicUrl)}
+            style={({ pressed }) => ({
+              flexDirection: 'row',
+              alignItems: 'center',
+              gap: spacing.sm,
+              padding: spacing.md,
+              borderRadius: radius.md,
+              backgroundColor: colors.canvas,
+              borderWidth: 1,
+              borderColor: colors.line,
+              opacity: pressed ? 0.6 : 1,
+            })}
+          >
+            <Ionicons name="link-outline" size={18} color={colors.subtle} />
+            <Muted style={{ flex: 1 }} numberOfLines={1}>
+              {quote.publicUrl}
+            </Muted>
+            <Muted style={{ fontSize: 12 }}>Lien client</Muted>
+          </Pressable>
+        ) : (
+          <Muted style={{ fontSize: 13 }}>
+            Le lien client sera disponible une fois le devis envoyé.
           </Muted>
-          <Muted style={{ fontSize: 12 }}>Lien client</Muted>
-        </Pressable>
+        )}
       </ScrollView>
 
       <FollowUpSheet

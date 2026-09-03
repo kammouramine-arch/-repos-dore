@@ -12,6 +12,7 @@ import {
   type PressableProps,
   type TextInputProps,
   type TextProps,
+  type StyleProp,
   type TextStyle,
   type ViewProps,
   type ViewStyle,
@@ -36,12 +37,44 @@ export function Heading({ style, ...props }: TextProps) {
   return <Text style={[typography.heading, { color: colors.ink }, style]} {...props} />;
 }
 
+/**
+ * Applique une échelle typographique sans rogner le texte.
+ *
+ * Chaque style de base fixe un `lineHeight`. Quand un appelant agrandit la
+ * police sans y toucher — `<Body style={{ fontSize: 24 }}>` — la glyphe déborde
+ * de sa boîte et se retrouve coupée en haut et en bas : c'est ce qu'on voyait
+ * sur les prix d'abonnement d'un vrai iPhone. Le même piège guette la mise à
+ * l'échelle d'accessibilité, car `lineHeight` ne suit pas la taille demandée
+ * par le système.
+ *
+ * On retire donc l'interligne fixe dès que la taille est surchargée à la
+ * hausse : les métriques naturelles de la police prennent le relais, et elles,
+ * elles s'adaptent.
+ */
+function sansRognage(base: { fontSize: number; lineHeight: number }, style: StyleProp<TextStyle>) {
+  const aplati = StyleSheet.flatten(style) as TextStyle | undefined;
+  const demandee = aplati?.fontSize;
+  if (typeof demandee !== 'number' || demandee <= base.fontSize) return [base, style];
+  if (typeof aplati?.lineHeight === 'number') return [base, style];
+  return [base, { lineHeight: undefined }, style];
+}
+
 export function Body({ style, ...props }: TextProps) {
-  return <Text style={[typography.body, { color: colors.inkSoft }, style]} {...props} />;
+  return (
+    <Text
+      style={[{ color: colors.inkSoft }, sansRognage(typography.body, style), style]}
+      {...props}
+    />
+  );
 }
 
 export function Muted({ style, ...props }: TextProps) {
-  return <Text style={[typography.small, { color: colors.muted }, style]} {...props} />;
+  return (
+    <Text
+      style={[{ color: colors.muted }, sansRognage(typography.small, style), style]}
+      {...props}
+    />
+  );
 }
 
 export function Caption({
@@ -761,5 +794,45 @@ export function GrowingInput({
       onContentSizeChange={(event) => setHeight(event.nativeEvent.contentSize.height)}
       style={[style, sansContourNatif, { height: Math.max(minHeight, height) }]}
     />
+  );
+}
+
+/**
+ * Prix d'abonnement.
+ *
+ * Deux pièges évités ici. D'abord l'interligne : un montant en 26 points dans
+ * une boîte prévue pour 15 se fait couper — c'est ce qu'on voyait sur iPhone.
+ * Ensuite l'imbrication : un `Text` de taille différente dans un autre `Text`
+ * fait retomber toute la ligne sur l'interligne du parent. Le montant et son
+ * suffixe sont donc deux éléments frères, alignés sur leur ligne de base.
+ */
+export function Price({
+  cents,
+  suffix,
+  size = 26,
+}: {
+  cents: number;
+  suffix?: string;
+  size?: number;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' }}>
+      <Text
+        style={{
+          fontSize: size,
+          fontWeight: '700',
+          letterSpacing: -0.7,
+          color: colors.ink,
+          fontVariant: ['tabular-nums'],
+        }}
+      >
+        {formatCents(cents, { compact: true })}
+      </Text>
+      {suffix ? (
+        <Text style={{ fontSize: 13, fontWeight: '400', color: colors.muted, marginLeft: 4 }}>
+          {suffix}
+        </Text>
+      ) : null}
+    </View>
   );
 }

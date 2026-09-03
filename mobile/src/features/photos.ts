@@ -1,5 +1,6 @@
 import { useCallback, useRef, useState } from 'react';
 import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError } from '@devisia/shared';
 import { api } from '@/lib/api';
@@ -33,6 +34,51 @@ export interface Attachment {
 const MAX_PHOTOS = 6;
 /** Qualité d'export : au-delà, on transporte des mégaoctets sans gagner en lisibilité. */
 const QUALITY = 0.6;
+
+/**
+ * Côté le plus long après réduction, en points.
+ *
+ * Une photo d'iPhone fait 4032 × 3024 et pèse de deux à cinq mégaoctets. La
+ * plateforme d'hébergement refuse tout corps de requête au-delà de quatre
+ * mégaoctets et demi : l'envoi échouait donc une fois sur deux, et le reste du
+ * temps dépassait le délai en 4G. Aucun de ces mégaoctets ne sert : ni
+ * l'artisan qui relit son devis, ni le modèle qui décrit le chantier n'ont
+ * besoin de douze mégapixels. Mille six cents points suffisent, pour environ
+ * trois cents kilooctets.
+ */
+const COTE_MAX = 1600;
+/** Compression appliquée après réduction. */
+const QUALITE_ENVOI = 0.7;
+
+/**
+ * Réduit et normalise une photo avant l'envoi.
+ *
+ * Deux effets, tous deux nécessaires sur iPhone : le poids retombe très en
+ * dessous de la limite de la plateforme, et le format HEIC des photos iOS
+ * devient un JPEG que tout le monde sait lire — serveur, PDF, modèle de
+ * vision. En cas d'échec de la conversion, on envoie l'original plutôt que de
+ * perdre la photo : le serveur tranchera.
+ */
+async function preparerPourEnvoi(photo: Attachment): Promise<{
+  uri: string;
+  name: string;
+  mimeType: string;
+}> {
+  try {
+    const contexte = ImageManipulator.manipulate(photo.uri);
+    contexte.resize({ width: COTE_MAX });
+    const rendu = await contexte.renderAsync();
+    const image = await rendu.saveAsync({ format: SaveFormat.JPEG, compress: QUALITE_ENVOI });
+    return {
+      uri: image.uri,
+      name: photo.name.replace(/\.(heic|heif|png|webp)$/i, '.jpg'),
+      mimeType: 'image/jpeg',
+    };
+  } catch (cause) {
+    console.warn('[photo] réduction impossible, envoi de l’original :', cause);
+    return { uri: photo.uri, name: photo.name, mimeType: photo.mimeType };
+  }
+}
 
 function labelFor(cause: unknown): string {
   if (cause instanceof DevisiaApiError) {
@@ -70,8 +116,9 @@ export function usePhotoCapture() {
     async (photo: Attachment) => {
       patch(photo.localId, { status: 'envoi', error: null });
       try {
+        const pret = await preparerPourEnvoi(photo);
         const uploaded = await api.files.upload(
-          { uri: photo.uri, name: photo.name, type: photo.mimeType },
+          { uri: pret.uri, name: pret.name, type: pret.mimeType },
           'PHOTO_CHANTIER',
         );
         patch(photo.localId, { status: 'pret', fileId: uploaded.id, error: null });

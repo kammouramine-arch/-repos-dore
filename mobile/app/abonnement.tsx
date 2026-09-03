@@ -7,7 +7,6 @@ import {
   PLAN_ORDER,
   TRIAL_DAYS,
   accessStateFor,
-  formatCents,
   planChange,
   trialMessage,
   type BillingOverviewDTO,
@@ -23,6 +22,7 @@ import {
   Divider,
   Heading,
   Ionicons,
+  Price,
   Muted,
   Screen,
   Skeleton,
@@ -256,10 +256,7 @@ export default function AbonnementScreen() {
                 {!isCurrent && plan.recommended ? <Badge label="Recommandé" tone="success" /> : null}
               </View>
 
-              <Body style={{ fontSize: 24, fontWeight: '700', letterSpacing: -0.7 }}>
-                {formatCents(plan.monthlyPriceCents, { compact: true })}
-                <Body style={{ fontSize: 13, color: colors.muted, fontWeight: '400' }}> / mois HT</Body>
-              </Body>
+              <Price cents={plan.monthlyPriceCents} suffix="/ mois HT" />
 
               <Divider />
 

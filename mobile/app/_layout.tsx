@@ -102,7 +102,24 @@ function RootNavigator() {
   }
 
   return (
-    <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface } }}>
+    <Stack
+      screenOptions={{
+        headerShown: false,
+        contentStyle: { backgroundColor: colors.surface },
+        /*
+         * Sans intitulé explicite, iOS reprend le titre de l'écran précédent
+         * pour le bouton retour — et quand cet écran est un groupe de routes,
+         * il affiche « (app) ». Constaté sur iPhone. Le défaut est donc posé
+         * ici, une fois, plutôt qu'écran par écran : un écran ajouté demain
+         * hérite du bon libellé sans qu'on y pense.
+         */
+        headerBackTitle: 'Retour',
+        headerBackButtonDisplayMode: 'generic',
+        headerTintColor: colors.accent,
+        headerTitleStyle: { color: colors.ink },
+        headerStyle: { backgroundColor: colors.canvas },
+      }}
+    >
       <Stack.Protected guard={!connected && !seenOnboarding}>
         <Stack.Screen name="(public)" />
       </Stack.Protected>
@@ -120,19 +137,19 @@ function RootNavigator() {
         <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
         <Stack.Screen
           name="abonnement"
-          options={{ headerShown: true, title: 'Abonnement', headerBackTitle: 'Retour' }}
+          options={{ headerShown: true, title: 'Abonnement' }}
         />
         <Stack.Screen
           name="catalogue"
-          options={{ headerShown: true, title: 'Catalogue de prix', headerBackTitle: 'Retour' }}
+          options={{ headerShown: true, title: 'Catalogue de prix' }}
         />
         <Stack.Screen
           name="entreprise"
-          options={{ headerShown: true, title: 'Mon entreprise', headerBackTitle: 'Retour' }}
+          options={{ headerShown: true, title: 'Mon entreprise' }}
         />
         <Stack.Screen
           name="analytique"
-          options={{ headerShown: true, title: 'Activité', headerBackTitle: 'Retour' }}
+          options={{ headerShown: true, title: 'Activité' }}
         />
       </Stack.Protected>
     </Stack>

@@ -44,6 +44,15 @@ export class DevisiaApiError extends Error {
 
 /** Délai au-delà duquel une requête est abandonnée (réseau de chantier). */
 export const DEFAULT_TIMEOUT_MS = 20_000;
+/**
+ * Délai propre aux téléversements.
+ *
+ * Vingt secondes conviennent à un appel JSON ; une photo de chantier envoyée
+ * en 4G depuis un sous-sol met couramment plus longtemps. L'artisan voyait
+ * alors « Vérifiez votre connexion » alors que sa connexion allait bien : le
+ * client avait abandonné avant le serveur.
+ */
+export const UPLOAD_TIMEOUT_MS = 60_000;
 
 /**
  * Construit l'erreur rendue lorsque la requête n'a jamais atteint le serveur.
@@ -127,9 +136,13 @@ export function createApiClient(options: ApiClientOptions) {
    * Enveloppe chaque appel : délai maximal, et traduction des pannes réseau en
    * `DevisiaApiError` afin qu'aucun écran ne reçoive un `TypeError` brut.
    */
-  async function send(url: string, init: RequestInit): Promise<Response> {
+  async function send(
+    url: string,
+    init: RequestInit,
+    delaiMax = timeoutMs,
+  ): Promise<Response> {
     const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const timer = setTimeout(() => controller.abort(), delaiMax);
     try {
       return await doFetch(url, { ...init, signal: controller.signal });
     } catch (cause) {
@@ -191,12 +204,18 @@ export function createApiClient(options: ApiClientOptions) {
     path: string,
     form: FormData,
   ): Promise<T> {
-    const response = await send(`${base}${path}`, {
-      method: 'POST',
-      headers: await authHeaders(),
-      body: form,
-      credentials: options.getToken ? 'omit' : 'include',
-    });
+    const response = await send(
+      `${base}${path}`,
+      {
+        method: 'POST',
+        // Surtout ne pas fixer `Content-Type` : la limite multipart est générée
+        // par la plateforme, et l'écraser rend le corps illisible au serveur.
+        headers: await authHeaders(),
+        body: form,
+        credentials: options.getToken ? 'omit' : 'include',
+      },
+      UPLOAD_TIMEOUT_MS,
+    );
     return unwrap<T>(response);
   }
 
