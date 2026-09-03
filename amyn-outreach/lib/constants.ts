@@ -325,7 +325,9 @@ export const RECOMMENDED_ACTION: Record<ReplyClass, string> = {
 };
 
 /** Etat de traitement d'une reponse dans le centre de tri. */
-export const REVIEW_STATUSES = ["NEW", "REVIEWED", "ACTION_REQUIRED", "RESOLVED"] as const;
+export const REVIEW_STATUSES = [
+  "NEW", "REVIEWED", "ACTION_REQUIRED", "RESOLVED", "SYSTEM", "UNMATCHED",
+] as const;
 export type ReviewStatus = (typeof REVIEW_STATUSES)[number];
 
 export const REVIEW_META: Record<ReviewStatus, { label: string; badge: string }> = {
@@ -333,6 +335,19 @@ export const REVIEW_META: Record<ReviewStatus, { label: string; badge: string }>
   REVIEWED: { label: "Lue", badge: "bg-zinc-500/10 text-zinc-400 ring-zinc-400/20" },
   ACTION_REQUIRED: { label: "Action requise", badge: "bg-amber-500/10 text-amber-300 ring-amber-400/25" },
   RESOLVED: { label: "Traitée", badge: "bg-emerald-500/10 text-emerald-300 ring-emerald-400/20" },
+  // Deux etats volontairement distincts de « traitee » : ils ne demandent rien,
+  // mais pour des raisons opposees. L'un n'est pas un message, l'autre en est
+  // un dont on ignore l'auteur — et celui-la merite un coup d'oeil.
+  SYSTEM: { label: "Système", badge: "bg-stone-500/10 text-stone-400 ring-stone-400/20" },
+  UNMATCHED: { label: "Non rattachée", badge: "bg-violet-500/10 text-violet-300 ring-violet-400/20" },
+};
+
+/** Nature d'un courrier automatique, pour l'affichage. */
+export const SYSTEM_KIND_LABEL: Record<string, string> = {
+  DMARC_REPORT: "Rapport DMARC",
+  BOUNCE: "Avis de non-remise",
+  AUTO_REPLY: "Réponse automatique",
+  SYSTEM: "Message de service",
 };
 
 /** Comment le prospect a ete rattache a une reponse. */

@@ -23,6 +23,15 @@ export type InboundEmail = {
   inReplyTo: string | null;
   /** L'email a-t-il l'allure d'un retour automatique ? */
   isAutoReply: boolean;
+  /**
+   * En-tetes techniques retenus pour reconnaitre un courrier automatique.
+   *
+   * Le sujet seul ne suffit pas : un rapport DMARC et une reponse humaine
+   * peuvent avoir des sujets voisins, alors que `Auto-Submitted` ou
+   * `Content-Type: multipart/report` tranchent sans ambiguite. Aucun contenu
+   * sensible n'est conserve — uniquement ces marqueurs.
+   */
+  headers?: Record<string, string>;
 };
 
 export type FetchOptions = {

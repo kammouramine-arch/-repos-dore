@@ -206,6 +206,15 @@ async function finalise(
 ): Promise<Decision> {
   if (!persist) return decision;
 
+  const reply = await prisma.reply.findUnique({
+    where: { id: replyId },
+    select: { isSystem: true, reviewStatus: true },
+  });
+  // Les états SYSTEM et UNMATCHED sont des conclusions, pas des étapes : rien
+  // ne doit les faire remonter en « Action requise » par un autre chemin.
+  const promouvable =
+    reply !== null && !reply.isSystem && !["SYSTEM", "UNMATCHED"].includes(reply.reviewStatus);
+
   await prisma.reply.update({
     where: { id: replyId },
     data: {
@@ -213,8 +222,12 @@ async function finalise(
       decisionAuto: decision.autoAllowed,
       decisionReason: decision.reason,
       recommendedAction: decision.recommendation,
-      // Un cas qui demande une lecture humaine remonte en tête du centre de tri.
-      ...(decision.action === "HUMAN_REVIEW" ? { reviewStatus: "ACTION_REQUIRED" } : {}),
+      // Un cas qui demande une lecture humaine remonte en tête du centre de
+      // tri — MAIS jamais un courrier automatique ni un expéditeur inconnu.
+      // Sans ce garde, un rapport DMARC quotidien finirait en tête de liste :
+      // aucune règle ne le couvre, donc la décision est HUMAN_REVIEW, donc il
+      // remonte. C'est exactement le bruit qu'on cherche à éliminer.
+      ...(decision.action === "HUMAN_REVIEW" && promouvable ? { reviewStatus: "ACTION_REQUIRED" } : {}),
     },
   });
 

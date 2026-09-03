@@ -543,11 +543,23 @@ model Reply {
   proposedAt      DateTime?
   approvedBy      String?
 
-  /// NEW | REVIEWED | ACTION_REQUIRED | RESOLVED
-  reviewStatus String    @default("NEW")
-  handled      Boolean   @default(false)
-  handledAt    DateTime?
-  handledNote  String?
+  /// NEW | REVIEWED | ACTION_REQUIRED | RESOLVED | SYSTEM | UNMATCHED
+  reviewStatus String @default("NEW")
+
+  /// Le message est-il un courrier automatique plutot qu'une reponse humaine ?
+  ///
+  /// Rapports DMARC, avis de non-remise, absences du bureau, notifications de
+  /// service : ils arrivent dans la meme boite mais ne sont pas des reponses.
+  /// Les compter comme telles gonfle un chiffre qui sert a decider, et les
+  /// fait remonter en « Action requise » ou ils noient les vraies reponses.
+  ///
+  /// Rien n'est supprime : le message reste enregistre et consultable.
+  isSystem    Boolean   @default(false)
+  /// DMARC_REPORT | BOUNCE | AUTO_REPLY | SYSTEM
+  systemKind  String?
+  handled     Boolean   @default(false)
+  handledAt   DateTime?
+  handledNote String?
 
   externalId String? @unique
 
@@ -555,6 +567,7 @@ model Reply {
   @@index([classification])
   @@index([reviewStatus])
   @@index([receivedAt])
+  @@index([isSystem])
 }
 
 // ---------------------------------------------------------------------------

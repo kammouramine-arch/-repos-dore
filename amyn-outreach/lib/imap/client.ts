@@ -93,10 +93,25 @@ export class ImapSource implements InboundMailSource {
           null;
         if (!fromEmail) continue; // sans expediteur, rien d'exploitable
 
+        // En-tetes retenus pour reconnaitre un courrier automatique. Les
+        // trois derniers sont ceux qui distinguent de facon fiable un rapport
+        // DMARC, un avis de non-remise et une liste de diffusion — un sujet
+        // ne le fait pas.
         const headers: Record<string, string> = {};
-        for (const key of ["auto-submitted", "x-autoreply", "x-autorespond", "precedence"]) {
+        for (const key of [
+          "auto-submitted", "x-autoreply", "x-autorespond", "precedence",
+          "content-type", "list-id", "list-unsubscribe", "x-report-type",
+        ]) {
           const value = parsed.headers.get(key);
           if (typeof value === "string") headers[key] = value;
+          // `content-type` est structure : mailparser le rend en objet.
+          else if (value && typeof value === "object" && "value" in value) {
+            const v = value as { value?: unknown; params?: Record<string, string> };
+            const params = v.params
+              ? Object.entries(v.params).map(([k, p]) => `; ${k}=${p}`).join("")
+              : "";
+            headers[key] = `${String(v.value ?? "")}${params}`;
+          }
         }
 
         const subject = parsed.subject ?? "(sans objet)";
@@ -117,6 +132,7 @@ export class ImapSource implements InboundMailSource {
           receivedAt,
           inReplyTo: parsed.inReplyTo ?? null,
           isAutoReply: looksAutomatic({ subject, headers }),
+          headers,
         });
       }
 

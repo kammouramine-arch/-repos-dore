@@ -114,6 +114,7 @@ export async function syncReplies(
       imapUid: email.uid,
       source: "IMAP",
       isAutoReply: email.isAutoReply,
+      headers: email.headers,
     });
 
     report.outcomes.push(outcome);
@@ -173,8 +174,21 @@ export async function replyInbox() {
       .filter((r) => r[field] === key)
       .reduce((s, r) => s + r._count._all, 0);
 
+  // Une « réponse » est une réponse de prospect. Les rapports DMARC, avis de
+  // non-remise et messages d'inconnus restent enregistrés et consultables,
+  // mais ils ne comptent pas : ils gonfleraient un chiffre qui sert à décider.
+  const [systeme, nonRattachees, reponsesReelles] = await Promise.all([
+    prisma.reply.count({ where: { isSystem: true } }),
+    prisma.reply.count({ where: { isSystem: false, reviewStatus: "UNMATCHED" } }),
+    prisma.reply.count({ where: { isSystem: false, reviewStatus: { not: "UNMATCHED" } } }),
+  ]);
+
   return {
     total: byStatus.reduce((s, r) => s + r._count._all, 0),
+    /** Réponses réellement attribuables à un prospect. */
+    prospectReplies: reponsesReelles,
+    systemMessages: systeme,
+    unmatched: nonRattachees,
     new: count(byStatus, "NEW", "reviewStatus"),
     actionRequired: count(byStatus, "ACTION_REQUIRED", "reviewStatus"),
     reviewed: count(byStatus, "REVIEWED", "reviewStatus"),

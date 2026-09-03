@@ -555,8 +555,28 @@ describe("Contrat du centre de tri", () => {
     assert.match(RECOMMENDED_ACTION.NEEDS_HUMAN, /intervention humaine/i);
   });
 
-  test("les quatre états de traitement existent", () => {
-    assert.deepEqual([...REVIEW_STATUSES], ["NEW", "REVIEWED", "ACTION_REQUIRED", "RESOLVED"]);
+  test("les états de traitement du flux humain existent", () => {
+    for (const requis of ["NEW", "REVIEWED", "ACTION_REQUIRED", "RESOLVED"]) {
+      assert.ok(
+        (REVIEW_STATUSES as readonly string[]).includes(requis),
+        `état manquant : ${requis}`,
+      );
+    }
+  });
+
+  test("les états écartant le bruit existent aussi", () => {
+    // SYSTEM : rapports DMARC, rebonds, absences du bureau.
+    // UNMATCHED : un humain a écrit, mais rien ne permet de le rattacher.
+    // Deux raisons opposées de ne rien demander — d'où deux états distincts.
+    assert.ok((REVIEW_STATUSES as readonly string[]).includes("SYSTEM"));
+    assert.ok((REVIEW_STATUSES as readonly string[]).includes("UNMATCHED"));
+  });
+
+  test("chaque état porte un libellé lisible", async () => {
+    const { REVIEW_META } = await import("@/lib/constants");
+    for (const statut of REVIEW_STATUSES) {
+      assert.ok(REVIEW_META[statut]?.label, `état sans libellé : ${statut}`);
+    }
   });
 
   test("les catégories exigées sont toutes présentes", () => {

@@ -95,6 +95,7 @@ async function main() {
     case "imap-check": return imapCheck();
     case "sync-replies": return syncRepliesCommand(rest);
     case "inbox": return inbox();
+    case "replies": return repliesCommand(rest);
     case "test-email": return testEmail(rest);
     case "reply": return reply(rest);
     case "client": return client(rest);
@@ -1125,6 +1126,55 @@ async function queueCommand(args: string[]) {
   console.log(`    ${C.bold}${r.commandeApprobation}${C.reset}`);
 }
 
+// --- TRI DES RÉPONSES -------------------------------------------------------
+
+async function repliesCommand(args: string[]) {
+  const { reclasserReponses } = await import("../lib/replies/system-mail");
+  const sous = args[0];
+
+  if (sous === "reclassify" || sous === "reclasser") {
+    const simulation = args.includes("--dry-run") || args.includes("--simulation");
+    title("REQUALIFICATION DES RÉPONSES");
+    info("Aucun message n'est supprimé : seule leur présentation change.");
+    if (simulation) warn("SIMULATION : rien n'est écrit.");
+    console.log();
+
+    const r = await reclasserReponses({ dryRun: simulation });
+    for (const d of r.details) {
+      warn(`${d.de} — « ${d.sujet} »`);
+      info(`  ${d.avant} → ${d.apres}`);
+      if (d.motif) info(`  ${d.motif}`);
+    }
+    console.log();
+    console.log(
+      `  ${r.examines} examinée(s) : ${r.systeme} système, ${r.nonRattachees} non rattachée(s), ` +
+        `${r.inchangees} inchangée(s).`,
+    );
+    return;
+  }
+
+  const { prisma: db } = await import("../lib/db");
+  title("CENTRE DE TRI DES RÉPONSES");
+
+  const parStatut = await db.reply.groupBy({ by: ["reviewStatus"], _count: { _all: true } });
+  if (parStatut.length === 0) {
+    info("Aucune réponse enregistrée.");
+    return;
+  }
+  for (const l of parStatut.sort((a, b) => a.reviewStatus.localeCompare(b.reviewStatus))) {
+    const ligne = `${l.reviewStatus.padEnd(16)} ${l._count._all}`;
+    if (l.reviewStatus === "ACTION_REQUIRED") warn(ligne);
+    else info(ligne);
+  }
+
+  const reelles = await db.reply.count({
+    where: { isSystem: false, reviewStatus: { not: "UNMATCHED" } },
+  });
+  console.log();
+  console.log(`  ${reelles} réponse(s) réellement attribuable(s) à un prospect.`);
+  info("Requalifier les anciennes : npm run amyn -- replies reclassify");
+}
+
 // --- COPIE DANS « ENVOYÉS » -------------------------------------------------
 
 async function sentCopyCommand(args: string[]) {
@@ -1524,6 +1574,10 @@ function help() {
     imap-check                 vérifier la connexion IMAP (sans rien lire)
     sync-replies [--max=N]     lire les nouvelles réponses de la boîte
     inbox                      état du centre de tri des réponses
+    replies                    répartition des réponses par état de tri
+    replies reclassify [--dry-run]
+                               requalifier les anciennes réponses (rien n'est
+                               supprimé : rapports DMARC, rebonds, inconnus)
     test-email <adresse>       envoyer un email de test (simulé si DRY_RUN=true)
     reply <email> "<texte>"    enregistrer et classer une réponse à la main
     client "<nom>" <OFFRE> [email]

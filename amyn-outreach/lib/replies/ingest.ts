@@ -18,6 +18,7 @@ import { addToSuppressionList } from "@/lib/campaign/compliance";
 import { RECOMMENDED_ACTION, type ReplyClass } from "@/lib/constants";
 import { classifyReply } from "./classify";
 import { matchProspect } from "./match";
+import { detecterCourrierSysteme, type SystemKind } from "./system-mail";
 
 export type IngestInput = {
   fromEmail: string;
@@ -31,6 +32,9 @@ export type IngestInput = {
   imapUid?: number | null;
   source?: "IMAP" | "MANUAL";
   isAutoReply?: boolean;
+  /** En-tetes du message, quand la source les fournit. Servent a reconnaitre
+   *  un courrier automatique de facon fiable plutot que par son sujet. */
+  headers?: Record<string, string | undefined>;
   /**
    * Rattachement impose (saisie manuelle : vous savez de qui vient la reponse).
    * Le rattachement automatique reste calcule, mais celui-ci fait foi.
@@ -49,6 +53,12 @@ export type IngestOutcome = {
   prospectName: string | null;
   matchedBy: string;
   optedOut: boolean;
+  /** Le message est-il un courrier automatique plutot qu'une reponse ? */
+  isSystem: boolean;
+  systemKind: SystemKind;
+  /** Compte-t-il comme reponse commerciale ? Rattachement fiable exige. */
+  isProspectReply: boolean;
+  reviewStatus: string;
   reason: string;
 };
 
@@ -93,7 +103,10 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
   if (messageId) {
     const existing = await prisma.reply.findUnique({
       where: { messageId },
-      select: { id: true, classification: true, confidence: true, prospectId: true, matchedBy: true },
+      select: {
+        id: true, classification: true, confidence: true, prospectId: true,
+        matchedBy: true, isSystem: true, systemKind: true, reviewStatus: true,
+      },
     });
     if (existing) {
       return {
@@ -107,12 +120,28 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
         prospectName: null,
         matchedBy: existing.matchedBy,
         optedOut: existing.classification === "OPT_OUT",
+        isSystem: existing.isSystem,
+        systemKind: (existing.systemKind as SystemKind | null) ?? "NONE",
+        isProspectReply: !existing.isSystem && existing.prospectId !== null,
+        reviewStatus: existing.reviewStatus,
         reason: `Message déjà traité (Message-ID ${messageId}). Aucun doublon créé.`,
       };
     }
   }
 
-  // --- 2. CLASSIFICATION ---------------------------------------------------
+  // --- 2. COURRIER SYSTÈME OU RÉPONSE HUMAINE ? ---------------------------
+  //
+  // Cette question se pose AVANT la classification commerciale. Un rapport
+  // DMARC contient les mots « report », « fail », « policy » : le classer
+  // comme une réponse produit un verdict qui n'a aucun sens, et le fait
+  // remonter en « Action requise ».
+  const systeme = detecterCourrierSysteme({
+    fromEmail,
+    subject: input.subject,
+    headers: input.headers,
+  });
+
+  // --- 3. CLASSIFICATION ---------------------------------------------------
   const classified = classifyReply({ subject: input.subject, body: input.body });
 
   // Un retour automatique n'est pas une reponse humaine : on ne le laisse pas
@@ -125,6 +154,25 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
     classification = "UNKNOWN";
     confidence = "LOW";
     reason = "Réponse automatique (absence du bureau ou accusé de réception) : non interprétée.";
+  }
+
+  // Un courrier système n'exprime aucune intention commerciale : le classer
+  // reviendrait à prêter une opinion à une machine.
+  //
+  // DEUX EXCEPTIONS, et elles vont toutes deux dans le sens de la protection
+  // du destinataire : un avis de non-remise reste un BOUNCE — il doit
+  // bloquer l'adresse ; une opposition explicite reste une opposition, même
+  // si elle arrive dans un message automatique.
+  if (systeme.isSystem && classification !== "OPT_OUT") {
+    if (systeme.kind === "BOUNCE") {
+      classification = "BOUNCE";
+      confidence = "HIGH";
+      reason = systeme.reason;
+    } else {
+      classification = "UNKNOWN";
+      confidence = "HIGH";
+      reason = systeme.reason;
+    }
   }
 
   // --- 3. OPPOSITION — PRIORITAIRE SUR TOUT LE RESTE -----------------------
@@ -173,7 +221,27 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
     });
   }
 
-  const recommendedAction = RECOMMENDED_ACTION[classification] ?? "À lire.";
+  const recommendedAction = systeme.isSystem
+    ? "Aucune action : courrier automatique."
+    : (RECOMMENDED_ACTION[classification] ?? "À lire.");
+
+  // --- ÉTAT DE TRI ---------------------------------------------------------
+  //
+  // « Action requise » est réservé à ce qui peut être relié de façon fiable à
+  // un prospect ou à un email réellement envoyé. Sans ce rattachement, on ne
+  // sait pas de quoi le message parle — le mettre en tête du centre de tri
+  // ferait passer une inconnue pour une opportunité.
+  //
+  // Rien ne disparaît pour autant : chacun de ces états est consultable.
+  const rattachementFiable =
+    prospect !== null && ["CONTACT", "SEND_LOG", "CLIENT", "DOMAIN", "MANUAL"].includes(match.matchedBy);
+  const isProspectReply = !systeme.isSystem && rattachementFiable;
+
+  const reviewStatus = systeme.isSystem
+    ? "SYSTEM"
+    : !rattachementFiable
+      ? "UNMATCHED"
+      : (REVIEW_BY_CLASS[classification] ?? "NEW");
 
   // --- 5. ENREGISTREMENT ---------------------------------------------------
   const reply = await prisma.reply.create({
@@ -195,13 +263,19 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
       messageId,
       imapFolder: input.imapFolder ?? null,
       imapUid: input.imapUid ?? null,
-      reviewStatus: REVIEW_BY_CLASS[classification] ?? "NEW",
+      isSystem: systeme.isSystem,
+      systemKind: systeme.isSystem ? systeme.kind : null,
+      reviewStatus,
     },
   });
 
   // --- 6. MISE A JOUR DU PROSPECT -----------------------------------------
   if (prospect) {
-    const newStatus = STATUS_BY_CLASS[classification];
+    // Un courrier automatique ne fait pas avancer un prospect — sauf s'il
+    // porte une opposition ou un rebond, qui doivent au contraire l'arreter.
+    const systemeSansConsequence =
+      systeme.isSystem && classification !== "OPT_OUT" && classification !== "BOUNCE";
+    const newStatus = systemeSansConsequence ? undefined : STATUS_BY_CLASS[classification];
     const advance = newStatus && newStatus !== prospect.status && prospect.status !== "WON";
 
     await prisma.prospect.update({
@@ -225,11 +299,15 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
       });
     }
 
-    // Une reponse arrete toute relance en cours.
-    await prisma.campaignMember.updateMany({
-      where: { prospectId: prospect.id, status: { in: ["APPROVED", "SENT", "READY", "PENDING"] } },
-      data: { status: "REPLIED", nextSendAt: null },
-    });
+    // Une reponse arrete toute relance en cours. Un courrier automatique,
+    // non : une absence du bureau n'est pas un refus, et interrompre la
+    // sequence sur ce motif ferait perdre le prospect sans decision.
+    if (!systemeSansConsequence) {
+      await prisma.campaignMember.updateMany({
+        where: { prospectId: prospect.id, status: { in: ["APPROVED", "SENT", "READY", "PENDING"] } },
+        data: { status: "REPLIED", nextSendAt: null },
+      });
+    }
   }
 
   await logActivity({
@@ -256,6 +334,10 @@ export async function ingestReply(input: IngestInput): Promise<IngestOutcome> {
     prospectName: prospect?.name ?? null,
     matchedBy: match.matchedBy,
     optedOut,
+    isSystem: systeme.isSystem,
+    systemKind: systeme.kind,
+    isProspectReply,
+    reviewStatus,
     reason: `${reason} ${match.reason}`.trim(),
   };
 }
