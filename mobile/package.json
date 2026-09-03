@@ -14,7 +14,8 @@
     "build:preview": "eas build --profile preview",
     "build:production": "eas build --profile production",
     "submit:ios": "eas submit --platform ios",
-    "submit:android": "eas submit --platform android"
+    "submit:android": "eas submit --platform android",
+    "postinstall": "patch-package"
   },
   "dependencies": {
     "@expo/vector-icons": "^15.0.2",
@@ -51,6 +52,7 @@
     "@types/react": "~19.2.0",
     "eslint": "^9.39.5",
     "eslint-config-expo": "~57.0.2",
+    "patch-package": "^8.0.1",
     "typescript": "~6.0.3"
   }
 }
