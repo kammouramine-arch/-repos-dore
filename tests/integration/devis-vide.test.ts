@@ -101,3 +101,28 @@ describe('devis sans lignes rendu par l’IA', () => {
     expect(devis.lines.length).toBeGreaterThan(0);
   });
 });
+
+/**
+ * Jetons consommés.
+ *
+ * Sans cette mesure, le coût par artisan ne peut être qu'estimé. Les jetons de
+ * raisonnement comptent : les modèles qui réfléchissent avant de répondre les
+ * facturent à part, et les ignorer sous-estime la note.
+ */
+describe('jetons consommés', () => {
+  it('sont exposés quand l’IA a répondu', async () => {
+    const devis = await avecReponseIA({
+      ...VIDE,
+      mainOeuvre: [{ designation: 'Main-d’œuvre', heures: 2, tauxHoraire: 55 }],
+    });
+    expect(devis.degraded).toBe(false);
+    expect(devis.usage).not.toBeNull();
+    expect(devis.usage!.latencyMs).toBeGreaterThanOrEqual(0);
+  });
+
+  it('sont nuls en mode dégradé : rien n’a été consommé', async () => {
+    const devis = await avecReponseIA(VIDE);
+    expect(devis.degraded).toBe(true);
+    expect(devis.usage).toBeNull();
+  });
+});

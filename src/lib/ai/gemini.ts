@@ -250,6 +250,8 @@ export class GeminiProvider implements AIProvider {
       latencyMs: Date.now() - started,
       inputTokens: reponse.usageMetadata?.promptTokenCount,
       outputTokens: reponse.usageMetadata?.candidatesTokenCount,
+      thoughtsTokens: reponse.usageMetadata?.thoughtsTokenCount,
+      totalTokens: reponse.usageMetadata?.totalTokenCount,
       model: this.modeleActif,
       provider: this.name,
     };
@@ -394,7 +396,13 @@ export class GeminiProvider implements AIProvider {
 
 interface GeminiResponse {
   candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string }[];
-  usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+  usageMetadata?: {
+    promptTokenCount?: number;
+    candidatesTokenCount?: number;
+    /** Jetons consommés à réfléchir, facturés à part par Google. */
+    thoughtsTokenCount?: number;
+    totalTokenCount?: number;
+  };
 }
 
 /**

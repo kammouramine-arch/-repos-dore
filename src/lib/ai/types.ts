@@ -11,6 +11,12 @@ export type AIProviderName = 'gemini' | 'anthropic' | 'local';
 export interface AIUsage {
   inputTokens?: number;
   outputTokens?: number;
+  /**
+   * Jetons de raisonnement, facturés séparément par les modèles qui
+   * réfléchissent avant de répondre. Les ignorer sous-estime le coût réel.
+   */
+  thoughtsTokens?: number;
+  totalTokens?: number;
   latencyMs: number;
   model?: string;
   provider: AIProviderName;

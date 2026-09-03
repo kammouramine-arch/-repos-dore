@@ -246,6 +246,14 @@ export interface GeneratedQuoteDTO {
   model: string | null;
   /** Pourquoi le moteur local a pris le relais ; nul quand l'IA a répondu. */
   degradedReason: string | null;
+  /** Jetons consommés ; nul en mode dégradé. Sert à chiffrer le coût réel. */
+  usage: {
+    inputTokens: number | null;
+    outputTokens: number | null;
+    thoughtsTokens: number | null;
+    totalTokens: number | null;
+    latencyMs: number;
+  } | null;
   totals: {
     subtotalCents: number;
     discountCents: number;

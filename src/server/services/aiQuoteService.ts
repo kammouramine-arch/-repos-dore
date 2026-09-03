@@ -59,6 +59,19 @@ export interface GeneratedQuote {
    * devis dégradé doit pouvoir dire de quoi il l'est.
    */
   degradedReason: string | null;
+  /**
+   * Jetons consommés par la génération ; nul en mode dégradé.
+   *
+   * Exposé pour qu'un coût par artisan puisse être calculé sur des mesures
+   * réelles plutôt que sur une estimation.
+   */
+  usage: {
+    inputTokens: number | null;
+    outputTokens: number | null;
+    thoughtsTokens: number | null;
+    totalTokens: number | null;
+    latencyMs: number;
+  } | null;
 }
 
 /**
@@ -86,6 +99,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   let providerName = 'local';
   let modelName: string | null = null;
   let degradedReason: string | null = provider ? null : "Aucun fournisseur d'IA configuré.";
+  let usage: GeneratedQuote['usage'] = null;
 
   if (provider) {
     try {
@@ -119,6 +133,13 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
       degraded = false;
       providerName = result.usage.provider;
       modelName = result.usage.model ?? null;
+      usage = {
+        inputTokens: result.usage.inputTokens ?? null,
+        outputTokens: result.usage.outputTokens ?? null,
+        thoughtsTokens: result.usage.thoughtsTokens ?? null,
+        totalTokens: result.usage.totalTokens ?? null,
+        latencyMs: result.usage.latencyMs,
+      };
       await logAIRequest(input, 'QUOTE_DRAFT', result.usage.provider, result.usage.model, result.usage);
     } catch (error) {
       // Le moteur local prend le relais : l'utilisateur obtient toujours un devis.
@@ -177,6 +198,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     provider: providerName,
     model: modelName,
     degradedReason: degraded ? degradedReason : null,
+    usage: degraded ? null : usage,
   };
 }
 

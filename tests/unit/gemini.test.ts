@@ -538,7 +538,7 @@ describe('motif du mode dégradé', () => {
       title: 't', summary: 's', workDescription: [], lines: [], questions: [],
       warnings: [], observations: [], assumptions: [], confidence: 42,
       estimatedDurationMin: null, degraded: true, provider: 'local',
-      model: null, degradedReason: 'motif',
+      model: null, degradedReason: 'motif', usage: null,
       totals: { subtotalCents: 0, discountCents: 0, netSubtotalCents: 0, vatCents: 0, totalCents: 0, depositCents: 0 },
     };
     expect(exemple.degradedReason).toBe('motif');
