@@ -40,6 +40,9 @@ const PREFERENCES = [
   'gemini-2.0-flash-lite',
 ];
 
+/** Au-delà, l'attente cumulée dépasse ce qu'un artisan accepte devant l'écran. */
+const ESSAIS_MAX = 3;
+
 /** Modèles inaptes à préparer un devis, quel que soit leur nom. */
 const HORS_SUJET = /embedding|aqa|imagen|veo|tts|image-generation|gemma/i;
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
@@ -175,7 +178,10 @@ export class GeminiProvider implements AIProvider {
       generationConfig: {
         responseMimeType: 'application/json',
         responseSchema: toGeminiSchema(request.schema),
-        maxOutputTokens: request.maxTokens ?? 4096,
+        // Un devis structuré complet dépasse 4096 jetons sur les modèles qui
+        // raisonnent avant de répondre : le JSON était coupé en plein objet,
+        // et la réponse déclarée inexploitable.
+        maxOutputTokens: request.maxTokens ?? 8192,
         temperature: request.temperature ?? 0.2,
       },
     });
@@ -187,7 +193,7 @@ export class GeminiProvider implements AIProvider {
 
     let brut: unknown;
     try {
-      brut = JSON.parse(texte);
+      brut = JSON.parse(deballer(texte));
     } catch {
       throw new AppError('PROVIDER_UNAVAILABLE', "La réponse de l'IA n'était pas exploitable.");
     }
@@ -272,8 +278,14 @@ export class GeminiProvider implements AIProvider {
       }
     }
 
+    // Chaque candidat coûte un aller-retour : au-delà de quelques essais, on
+    // fait attendre l'artisan plus longtemps que le moteur local ne mettrait à
+    // répondre. Mieux vaut un devis dégradé rapide qu'un bon devis trop tard.
+    let essais = 0;
     for (const modele of await this.candidats()) {
       if (modele === this.model) continue;
+      if (essais >= ESSAIS_MAX) break;
+      essais += 1;
       for (const version of VERSIONS) {
         try {
           const reponse = await this.envoyer(version, modele, corps);
@@ -371,6 +383,18 @@ export class GeminiProvider implements AIProvider {
 interface GeminiResponse {
   candidates?: { content?: { parts?: GeminiPart[] }; finishReason?: string }[];
   usageMetadata?: { promptTokenCount?: number; candidatesTokenCount?: number };
+}
+
+/**
+ * Retire un éventuel encadrement Markdown autour du JSON.
+ *
+ * `responseMimeType: application/json` suffit presque toujours ; certains
+ * modèles ajoutent malgré tout une clôture ```json. Refuser la réponse pour
+ * trois caractères de décoration serait absurde.
+ */
+function deballer(texte: string): string {
+  const encadre = texte.trim().match(/^```(?:json)?\s*([\s\S]*?)\s*```$/i);
+  return encadre ? encadre[1]! : texte;
 }
 
 function textOf(reponse: GeminiResponse): string {

@@ -611,3 +611,92 @@ describe('ordre des modèles candidats', () => {
     expect(essayes.lastIndexOf(complets.at(-1)!)).toBeLessThan(essayes.indexOf(lites[0]!));
   });
 });
+
+/**
+ * Robustesse de la réponse.
+ *
+ * Constaté en production : 43 secondes d'attente puis « réponse inexploitable ».
+ * La chaîne avait épuisé les modèles rapides, atterri sur un modèle qui
+ * raisonne avant de répondre, et saturé son budget de sortie en plein JSON.
+ */
+describe('lecture de la réponse', () => {
+  function repond(texte: string) {
+    vi.stubGlobal('fetch', async () =>
+      new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: texte }] } }],
+          usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 3 },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      ),
+    );
+  }
+
+  it('accepte un JSON encadré par une clôture Markdown', async () => {
+    repond('```json\n{"texte":"ok"}\n```');
+    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+      system: 'c',
+      untrusted: 'd',
+      schema: z.object({ texte: z.string() }),
+      schemaName: 'essai',
+    });
+    vi.unstubAllGlobals();
+    expect(r.data).toEqual({ texte: 'ok' });
+  });
+
+  it('accepte le JSON nu, sans encadrement', async () => {
+    repond('{"texte":"ok"}');
+    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+      system: 'c',
+      untrusted: 'd',
+      schema: z.object({ texte: z.string() }),
+      schemaName: 'essai',
+    });
+    vi.unstubAllGlobals();
+    expect(r.data).toEqual({ texte: 'ok' });
+  });
+
+  it('demande un budget de sortie suffisant pour un devis complet', async () => {
+    const corps: string[] = [];
+    vi.stubGlobal('fetch', async (_u: string, init: RequestInit) => {
+      corps.push(init.body as string);
+      return new Response(
+        JSON.stringify({ candidates: [{ content: { parts: [{ text: '{"texte":"ok"}' }] } }], usageMetadata: {} }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+      system: 'c',
+      untrusted: 'd',
+      schema: z.object({ texte: z.string() }),
+      schemaName: 'essai',
+    });
+    vi.unstubAllGlobals();
+    expect(JSON.parse(corps[0]!).generationConfig.maxOutputTokens).toBeGreaterThanOrEqual(8192);
+  });
+
+  it('borne le nombre de modèles essayés', async () => {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: ['m1', 'm2', 'm3', 'm4', 'm5', 'm6'].map((id) => ({
+              name: `models/${id}`,
+              supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      essayes.push(url.split('/models/')[1]!.split(':')[0]!);
+      return new Response(JSON.stringify({ error: { message: 'nope' } }), { status: 503 });
+    });
+    await new GeminiProvider('cle', 'configure')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch(() => undefined);
+    vi.unstubAllGlobals();
+    // Le modèle configuré sur deux versions, puis au plus trois candidats.
+    expect(essayes.length).toBeLessThanOrEqual(2 + 3 * 2);
+  });
+});
