@@ -41,9 +41,12 @@ export default async function AnalyticsPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label={t.dashboard.revenueWon} value={formatCents(metrics.revenueWonCents, { compact: true })} />
+        <StatCard label={t.dashboard.quotedRevenue} value={formatCents(metrics.quotedRevenueCents, { compact: true })} />
         <StatCard label={t.dashboard.revenuePotential} value={formatCents(metrics.revenuePotentialCents, { compact: true })} />
-        <StatCard label={t.dashboard.acceptanceRate} value={`${metrics.acceptanceRate} %`} />
+        <StatCard
+          label={t.dashboard.toRecoverLabel}
+          value={formatCents(metrics.toRecover.totalCents, { compact: true })}
+        />
         <StatCard label={t.dashboard.averageQuote} value={formatCents(metrics.averageQuoteCents, { compact: true })} />
       </div>
 

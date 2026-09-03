@@ -105,7 +105,7 @@ export default function DevisDetailScreen() {
     if (!quote) return;
     Alert.alert(
       `Envoyer le devis ${quote.number} ?`,
-      `Le client recevra le PDF et un lien pour accepter en ligne.`,
+      `Le client recevra le devis par email, avec le PDF et un lien pour le consulter.`,
       [
         { text: 'Annuler', style: 'cancel' },
         { text: 'Envoyer', style: 'default', onPress: () => void send() },
@@ -118,7 +118,18 @@ export default function DevisDetailScreen() {
     setSending(true);
     try {
       const result = await api.quotes.send(quote.id);
-      toast({ title: 'Devis envoyé', description: `Envoyé à ${result.recipient}.` });
+      // Ne jamais annoncer un envoi qui n'a pas eu lieu : sans fournisseur
+      // d'email configuré, le devis est bien marqué envoyé, mais rien n'est
+      // parti — et l'artisan doit le savoir avant d'attendre une réponse.
+      toast(
+        result.delivered
+          ? { title: 'Devis envoyé', description: `Envoyé à ${result.recipient}.` }
+          : {
+              title: 'Devis marqué comme envoyé',
+              description: `L’email n’a pas pu être remis à ${result.recipient} : l’envoi d’emails n’est pas configuré.`,
+              tone: 'error',
+            },
+      );
       await query.reload();
     } catch (cause) {
       Alert.alert(

@@ -6,19 +6,25 @@ export type DashboardPeriod = 7 | 30 | 90 | 365;
 
 export interface DashboardMetrics {
   period: DashboardPeriod;
-  revenueWonCents: number;
+  /**
+   * Montant total des devis envoyés sur la période.
+   *
+   * Remplace le chiffre d'affaires « gagné » et le taux d'acceptation, qui
+   * supposaient une validation du client dans DEVISIA. Le produit ne demande
+   * pas au client d'accepter quoi que ce soit : l'artisan rédige, envoie, et
+   * l'email part. Ce qu'il veut voir, c'est ce qu'il a chiffré et ce qui reste
+   * sans réponse.
+   */
+  quotedRevenueCents: number;
   revenuePotentialCents: number;
   quotesSent: number;
-  quotesAccepted: number;
-  acceptanceRate: number;
   averageQuoteCents: number;
   pendingQuotes: number;
   newLeads: number;
   conversionRate: number;
   previous: {
-    revenueWonCents: number;
+    quotedRevenueCents: number;
     quotesSent: number;
-    acceptanceRate: number;
   };
   series: { date: string; wonCents: number; sentCents: number; quotes: number }[];
   funnel: { label: string; value: number }[];
@@ -79,14 +85,10 @@ export async function getDashboardMetrics(
   ]);
 
   const sent = quotes.filter((quote) => quote.sentAt != null);
-  const accepted = quotes.filter((quote) => quote.status === 'ACCEPTE');
   const previousSent = previousQuotes.filter((quote) => quote.sentAt != null);
-  const previousAccepted = previousQuotes.filter((quote) => quote.status === 'ACCEPTE');
 
-  const revenueWonCents = accepted.reduce((acc, quote) => acc + quote.totalCents, 0);
-  const acceptanceRate = sent.length === 0 ? 0 : Math.round((accepted.length / sent.length) * 100);
-  const previousAcceptance =
-    previousSent.length === 0 ? 0 : Math.round((previousAccepted.length / previousSent.length) * 100);
+  const quotedRevenueCents = sent.reduce((acc, quote) => acc + quote.totalCents, 0);
+  const previousQuotedCents = previousSent.reduce((acc, quote) => acc + quote.totalCents, 0);
 
   // Série journalière (ou hebdomadaire sur les longues périodes).
   const buckets = new Map<string, { wonCents: number; sentCents: number; quotes: number }>();
@@ -130,26 +132,26 @@ export async function getDashboardMetrics(
 
   return {
     period,
-    revenueWonCents,
+    quotedRevenueCents,
     revenuePotentialCents: toRecover.totalCents,
     quotesSent: sent.length,
-    quotesAccepted: accepted.length,
-    acceptanceRate,
-    averageQuoteCents: accepted.length === 0 ? 0 : Math.round(revenueWonCents / accepted.length),
+    // Le devis moyen se calcule sur ce qui a été envoyé, non sur ce qui aurait
+    // été « accepté » : c'est l'envoi qui est l'acte du produit.
+    averageQuoteCents: sent.length === 0 ? 0 : Math.round(quotedRevenueCents / sent.length),
     pendingQuotes: toRecover.quoteCount,
     newLeads: leads,
-    conversionRate: leads === 0 ? 0 : Math.round((accepted.length / leads) * 100),
+    conversionRate: leads === 0 ? 0 : Math.round((sent.length / leads) * 100),
     previous: {
-      revenueWonCents: previousAccepted.reduce((acc, quote) => acc + quote.totalCents, 0),
+      quotedRevenueCents: previousQuotedCents,
       quotesSent: previousSent.length,
-      acceptanceRate: previousAcceptance,
     },
     series: [...buckets.entries()].map(([date, value]) => ({ date, ...value })),
+    // L'entonnoir s'arrête à la consultation : DEVISIA ne demande pas au
+    // client de valider quoi que ce soit dans l'application.
     funnel: [
       { label: 'Prospects', value: leads + previousLeads * 0 },
       { label: 'Devis envoyés', value: sent.length },
       { label: 'Devis consultés', value: viewed.length },
-      { label: 'Devis acceptés', value: accepted.length },
     ],
     topServices: [...services.entries()]
       .sort((a, b) => b[1].revenueCents - a[1].revenueCents)

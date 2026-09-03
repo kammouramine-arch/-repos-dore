@@ -61,9 +61,16 @@ describe('assistant', () => {
     expect(answer.answer).toMatch(/Siphon|Main|prestation/i);
   });
 
-  it('donne le taux d’acceptation réel', async () => {
-    const answer = await askAssistant(org.organization.id, org.user.id, 'Quel est mon taux d’acceptation ?');
-    expect(answer.answer).toMatch(/taux d'acceptation|%/i);
+  it('répond sur l’activité réelle, sans parler d’acceptation', async () => {
+    // Le produit ne demande aucune validation au client : l'assistant ne doit
+    // donc pas répondre en taux d'acceptation, même si la question l'emploie.
+    const answer = await askAssistant(
+      org.organization.id,
+      org.user.id,
+      'Quel est mon taux d’acceptation ?',
+    );
+    expect(answer.answer).toMatch(/devis|chiffré/i);
+    expect(answer.answer).not.toMatch(/taux d'acceptation/i);
   });
 
   it('n’expose jamais les données d’une autre entreprise', async () => {

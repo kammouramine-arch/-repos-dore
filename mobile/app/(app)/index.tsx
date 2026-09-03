@@ -95,12 +95,43 @@ export default function AccueilScreen() {
   const firstName = session?.user.firstName?.trim() || data?.greetingName || '';
 
   if (query.loading && !data) {
+    /*
+     * Le démarrage enchaînait deux allers-retours réseau — validation de la
+     * session, puis tableau de bord — devant trois rectangles anonymes. Sur un
+     * vrai iPhone, cela donnait un écran quasiment vide.
+     *
+     * Le prénom, lui, est déjà en mémoire dès l'authentification : l'en-tête
+     * s'affiche donc immédiatement, et seule la zone des chiffres attend. Le
+     * squelette épouse la forme réelle de ce qui va venir, pour que rien ne
+     * saute quand les données arrivent.
+     */
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
         <Screen>
-          <Skeleton height={34} width="60%" />
-          <Skeleton height={104} />
-          <Skeleton height={104} />
+          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+            <View style={{ gap: 2 }}>
+              <Title>{firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}</Title>
+              <Muted>Un instant, je rassemble votre activité.</Muted>
+            </View>
+            <Logo size={26} showName={false} />
+          </View>
+
+          <Card style={{ gap: spacing.md }}>
+            <Skeleton height={13} width="45%" />
+            <Skeleton height={30} width="60%" />
+            <Skeleton height={13} width="70%" />
+          </Card>
+
+          <View style={{ flexDirection: 'row', gap: spacing.md }}>
+            <Card style={{ flex: 1, gap: spacing.sm }}>
+              <Skeleton height={11} width="70%" />
+              <Skeleton height={26} width="80%" />
+            </Card>
+            <Card style={{ flex: 1, gap: spacing.sm }}>
+              <Skeleton height={11} width="70%" />
+              <Skeleton height={26} width="55%" />
+            </Card>
+          </View>
         </Screen>
       </SafeAreaView>
     );
@@ -125,7 +156,7 @@ export default function AccueilScreen() {
         refreshControl={
           <RefreshControl
             refreshing={query.refreshing}
-            onRefresh={() => void query.refresh()}
+            onRefresh={() => void query.refresh({ force: true })}
             tintColor={colors.accent}
           />
         }
@@ -253,14 +284,15 @@ export default function AccueilScreen() {
               </Pressable>
             ) : null}
 
+            {/* Ce qu'un artisan veut voir : ce qu'il a chiffré, et combien de
+                devis sont partis. DEVISIA ne demande aucune acceptation au
+                client, il n'y a donc pas de taux à afficher. */}
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <Stat label="CA gagné">
-                <Amount cents={data.revenueWonCents} size="metric" />
+              <Stat label="CA devisé" hint="sur 30 jours">
+                <Amount cents={data.quotedRevenueCents} size="metric" />
               </Stat>
-              <Stat label="Taux d’acceptation" hint={`${data.quotesAccepted}/${data.quotesSent} devis`}>
-                <Body style={[typography.metric, { color: colors.ink }]}>
-                  {Math.round(data.acceptanceRate)} %
-                </Body>
+              <Stat label="Devis envoyés" hint={`${data.pendingQuotes} sans réponse`}>
+                <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
               </Stat>
             </View>
 

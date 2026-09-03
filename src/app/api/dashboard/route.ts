@@ -26,11 +26,9 @@ export async function GET(request: Request) {
     const payload: DashboardDTO = {
       greetingName: auth.user.firstName ?? auth.user.email.split('@')[0] ?? '',
       period,
-      revenueWonCents: metrics.revenueWonCents,
+      quotedRevenueCents: metrics.quotedRevenueCents,
       revenuePotentialCents: metrics.revenuePotentialCents,
       quotesSent: metrics.quotesSent,
-      quotesAccepted: metrics.quotesAccepted,
-      acceptanceRate: metrics.acceptanceRate,
       averageQuoteCents: metrics.averageQuoteCents,
       pendingQuotes: metrics.pendingQuotes,
       newLeads: metrics.newLeads,

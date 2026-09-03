@@ -191,11 +191,10 @@ export interface RecoverableQuoteDTO {
 export interface DashboardDTO {
   greetingName: string;
   period: number;
-  revenueWonCents: number;
+  /** Montant total des devis envoyés : ce que l'artisan a chiffré. */
+  quotedRevenueCents: number;
   revenuePotentialCents: number;
   quotesSent: number;
-  quotesAccepted: number;
-  acceptanceRate: number;
   averageQuoteCents: number;
   pendingQuotes: number;
   newLeads: number;

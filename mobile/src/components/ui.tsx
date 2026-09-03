@@ -150,12 +150,26 @@ export function Button({
   const palette = BUTTON_COLORS[variant];
   const height = size === 'lg' ? 54 : 46;
 
+  /*
+   * Un envoi de devis, une suppression, un achat ne doivent jamais partir
+   * deux fois parce qu'un pouce a tremblé. L'état `loading` protège quand
+   * l'appelant le gère ; ce garde protège même quand il l'oublie, et ne coûte
+   * rien à l'usage normal.
+   */
+  const dernierAppui = React.useRef(0);
+
   return (
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ disabled: Boolean(disabled) || loading, busy: loading }}
       disabled={disabled || loading}
+      // Une cible de 46 points est conforme ; quelques points de marge rendent
+      // l'appui plus sûr sur un écran tenu d'une main, gants compris.
+      hitSlop={6}
       onPress={(event) => {
+        const maintenant = Date.now();
+        if (maintenant - dernierAppui.current < 600) return;
+        dernierAppui.current = maintenant;
         if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
         onPress?.(event);
       }}

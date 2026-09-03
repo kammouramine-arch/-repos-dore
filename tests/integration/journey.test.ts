@@ -230,10 +230,11 @@ describe('parcours complet prospect → devis → acceptation', () => {
   it('remonte les indicateurs du tableau de bord', async () => {
     const metrics = await getDashboardMetrics(org.organization.id, 30);
     expect(metrics.quotesSent).toBeGreaterThan(0);
-    expect(metrics.quotesAccepted).toBeGreaterThan(0);
-    expect(metrics.acceptanceRate).toBeGreaterThan(0);
+    // Le produit mesure ce qui est chiffré et envoyé, pas une acceptation que
+    // DEVISIA ne demande jamais au client.
+    expect(metrics.quotedRevenueCents).toBeGreaterThan(0);
     expect(metrics.series.length).toBeGreaterThan(0);
-    expect(metrics.funnel).toHaveLength(4);
+    expect(metrics.funnel).toHaveLength(3);
   });
 
   it('limite la recherche globale à l’organisation', async () => {

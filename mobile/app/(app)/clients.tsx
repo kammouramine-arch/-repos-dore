@@ -65,7 +65,7 @@ export default function ClientsScreen() {
           contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 120 }}
           ItemSeparatorComponent={() => <Divider />}
           refreshControl={
-            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh()} tintColor={colors.accent} />
+            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
           ListEmptyComponent={
             <EmptyState

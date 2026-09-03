@@ -65,7 +65,9 @@ export async function sendQuote(input: SendQuoteInput) {
     message: input.message,
   });
 
-  await getEmailProvider().send({
+  // Le résultat n'est pas jeté : sans fournisseur configuré, l'email n'est pas
+  // remis et l'appelant doit pouvoir le dire plutôt que d'annoncer un envoi.
+  const remise = await getEmailProvider().send({
     to: recipient,
     replyTo: profile?.email ?? undefined,
     ...email,
@@ -91,5 +93,11 @@ export async function sendQuote(input: SendQuoteInput) {
 
   await scheduleFollowUpsForQuote(input.organizationId, quote.id);
 
-  return { quote: updated, publicUrl, recipient };
+  return {
+    quote: updated,
+    publicUrl,
+    recipient,
+    delivered: remise.delivered,
+    emailProvider: remise.provider,
+  };
 }

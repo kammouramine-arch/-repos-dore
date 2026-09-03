@@ -94,7 +94,7 @@ export default function DevisScreen() {
           keyExtractor={(item) => item.id}
           contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing['4xl'] }}
           refreshControl={
-            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh()} tintColor={colors.accent} />
+            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
           ItemSeparatorComponent={() => <Divider />}
           ListEmptyComponent={

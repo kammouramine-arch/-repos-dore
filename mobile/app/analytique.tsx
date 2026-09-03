@@ -93,7 +93,7 @@ export default function AnalytiqueScreen() {
     );
   }
 
-  const noActivity = data.quotesSent === 0 && data.revenueWonCents === 0;
+  const noActivity = data.quotesSent === 0 && data.quotedRevenueCents === 0;
 
   return (
     <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -116,15 +116,15 @@ export default function AnalytiqueScreen() {
           <EmptyState
             icon="bar-chart-outline"
             title="Vos chiffres arrivent"
-            description="Dès votre premier devis envoyé, vous verrez ici ce que vous avez gagné, ce qui est en attente, et ce qu’il reste à relancer."
+            description="Dès votre premier devis envoyé, vous verrez ici ce que vous avez chiffré, ce qui est en attente, et ce qu’il reste à relancer."
           />
         ) : (
           <>
             <Card style={{ gap: spacing.lg }}>
               <SectionHeader title="Chiffre d’affaires" />
               <View style={{ flexDirection: 'row', gap: spacing.lg }}>
-                <Metric label="Gagné" hint="devis acceptés">
-                  <Amount cents={data.revenueWonCents} size="metric" />
+                <Metric label="Devisé" hint="devis envoyés">
+                  <Amount cents={data.quotedRevenueCents} size="metric" />
                 </Metric>
                 <Metric label="En jeu" hint="devis en attente">
                   <Amount cents={data.revenuePotentialCents} size="metric" tone="muted" />
@@ -138,15 +138,16 @@ export default function AnalytiqueScreen() {
                 <Metric label="Envoyés">
                   <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
                 </Metric>
-                <Metric label="Acceptés">
-                  <Body style={[typography.metric, { color: colors.success }]}>
-                    {data.quotesAccepted}
+                {/* Ni « acceptés » ni « taux » : le client n'a rien à valider
+                    dans DEVISIA. Ce qui compte, c'est ce qui attend une
+                    réponse et mérite une relance. */}
+                <Metric label="Sans réponse">
+                  <Body style={[typography.metric, { color: colors.ink }]}>
+                    {data.toRecover.quoteCount}
                   </Body>
                 </Metric>
-                <Metric label="Taux">
-                  <Body style={[typography.metric, { color: colors.ink }]}>
-                    {Math.round(data.acceptanceRate)} %
-                  </Body>
+                <Metric label="Prospects">
+                  <Body style={[typography.metric, { color: colors.ink }]}>{data.newLeads}</Body>
                 </Metric>
               </View>
               <Divider />

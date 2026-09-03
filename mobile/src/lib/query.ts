@@ -12,15 +12,29 @@ export interface QueryState<T> {
   refreshing: boolean;
   error: string | null;
   reload: () => Promise<void>;
-  refresh: () => Promise<void>;
+  /** Rafraîchit, sauf si les données viennent d'être chargées. */
+  refresh: (options?: { force?: boolean }) => Promise<void>;
   setData: React.Dispatch<React.SetStateAction<T | null>>;
 }
+
+/** En deçà, les données sont considérées comme encore fraîches. */
+const FRAICHEUR_MS = 15_000;
 
 export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyList = []): QueryState<T> {
   const [data, setData] = React.useState<T | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
+  /**
+   * Instant du dernier chargement réussi.
+   *
+   * Chaque retour sur un onglet déclenchait un appel réseau. Passer d'un onglet
+   * à l'autre trois fois de suite en faisait trois, pour des chiffres qui
+   * n'avaient pas bougé — de la latence et de la batterie dépensées pour rien,
+   * et un scintillement à l'écran. En deçà de ce délai, on garde ce qu'on a ;
+   * le geste « tirer pour rafraîchir » force toujours l'appel.
+   */
+  const dernierSucces = React.useRef(0);
 
   // La fonction de chargement change à chaque rendu : on la fige dans une ref,
   // mise à jour depuis un effet pour ne jamais y toucher pendant le rendu.
@@ -51,6 +65,7 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
       const pending = inFlight.current ?? fetcherRef.current();
       inFlight.current = pending;
       const result = await pending;
+      dernierSucces.current = Date.now();
       if (mounted.current) setData(result);
     } catch (cause) {
       if (mounted.current) {
@@ -83,7 +98,10 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
     refreshing,
     error,
     reload: () => run('load'),
-    refresh: () => run('refresh'),
+    refresh: ({ force = false } = {}) =>
+      force || Date.now() - dernierSucces.current > FRAICHEUR_MS
+        ? run('refresh')
+        : Promise.resolve(),
     setData,
   };
 }

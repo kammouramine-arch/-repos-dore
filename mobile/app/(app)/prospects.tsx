@@ -70,7 +70,7 @@ export default function ProspectsScreen() {
           contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing['4xl'] }}
           ItemSeparatorComponent={() => <Divider />}
           refreshControl={
-            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh()} tintColor={colors.accent} />
+            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
           ListEmptyComponent={
             <EmptyState

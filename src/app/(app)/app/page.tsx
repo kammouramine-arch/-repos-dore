@@ -167,11 +167,11 @@ export default async function DashboardPage({
         </div>
       </header>
 
-      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t.dashboard.revenueWon}>
+      <section className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label={t.dashboard.quotedRevenue}>
         <StatCard
-          label={t.dashboard.revenueWon}
-          value={formatCents(metrics.revenueWonCents, { compact: true })}
-          trend={variation(metrics.revenueWonCents, metrics.previous.revenueWonCents)}
+          label={t.dashboard.quotedRevenue}
+          value={formatCents(metrics.quotedRevenueCents, { compact: true })}
+          trend={variation(metrics.quotedRevenueCents, metrics.previous.quotedRevenueCents)}
           hint={t.dashboard.vsPrevious}
         />
         <StatCard
@@ -180,9 +180,9 @@ export default async function DashboardPage({
           trend={variation(metrics.quotesSent, metrics.previous.quotesSent)}
         />
         <StatCard
-          label={t.dashboard.acceptanceRate}
-          value={`${metrics.acceptanceRate} %`}
-          hint={format(t.dashboard.accepted, { count: metrics.quotesAccepted })}
+          label={t.dashboard.toRecoverLabel}
+          value={formatCents(metrics.toRecover.totalCents, { compact: true })}
+          hint={format(t.dashboard.toRecoverHint, { count: metrics.toRecover.quoteCount })}
         />
         <StatCard
           label={t.dashboard.averageQuote}

@@ -127,9 +127,8 @@ async function collectContext(organizationId: string, question: string): Promise
 
   const facts = [
     `Période analysée : 30 derniers jours.`,
-    `Chiffre d'affaires gagné : ${formatCents(metrics.revenueWonCents)}.`,
-    `Devis envoyés : ${metrics.quotesSent}. Devis acceptés : ${metrics.quotesAccepted}.`,
-    `Taux d'acceptation : ${metrics.acceptanceRate} %.`,
+    `Chiffre d'affaires devisé : ${formatCents(metrics.quotedRevenueCents)}.`,
+    `Devis envoyés : ${metrics.quotesSent}.`,
     `Panier moyen : ${formatCents(metrics.averageQuoteCents)}.`,
     `Nouveaux prospects : ${metrics.newLeads}.`,
     `Chiffre d'affaires en attente de réponse : ${formatCents(toRecover.totalCents)} sur ${toRecover.quoteCount} devis et ${toRecover.customerCount} clients.`,
@@ -214,13 +213,13 @@ function answerLocally(
 
   if (/taux.*acceptation|combien.*accept/.test(text)) {
     return {
-      answer: `Sur les 30 derniers jours, votre taux d'acceptation est de ${metrics.acceptanceRate} % (${metrics.quotesAccepted} devis acceptés sur ${metrics.quotesSent} envoyés).`,
+      answer: `Sur les 30 derniers jours, vous avez envoyé ${metrics.quotesSent} devis, pour ${formatCents(metrics.quotedRevenueCents)} chiffrés.`,
       actions: [{ label: 'Voir les devis', href: '/app/devis' }],
     };
   }
   if (/gagne|chiffre|ca\b|revenu|mois/.test(text)) {
     return {
-      answer: `Vous avez gagné ${formatCents(metrics.revenueWonCents)} sur les 30 derniers jours, et ${formatCents(toRecover.totalCents)} sont encore en attente de réponse sur ${toRecover.quoteCount} devis.`,
+      answer: `Vous avez chiffré ${formatCents(metrics.quotedRevenueCents)} sur les 30 derniers jours, dont ${formatCents(toRecover.totalCents)} encore sans réponse sur ${toRecover.quoteCount} devis.`,
       actions: [{ label: 'Relancer maintenant', href: '/app/relances' }],
     };
   }
@@ -245,7 +244,7 @@ function answerLocally(
   }
 
   return {
-    answer: `Sur 30 jours : ${metrics.quotesSent} devis envoyés, ${metrics.quotesAccepted} acceptés (${metrics.acceptanceRate} %), ${formatCents(metrics.revenueWonCents)} gagnés et ${formatCents(toRecover.totalCents)} en attente de réponse.`,
+    answer: `Sur 30 jours : ${metrics.quotesSent} devis envoyés pour ${formatCents(metrics.quotedRevenueCents)} chiffrés, dont ${formatCents(toRecover.totalCents)} sans réponse à ce jour.`,
     actions: [
       { label: 'Tableau de bord', href: '/app' },
       { label: 'Relances', href: '/app/relances' },

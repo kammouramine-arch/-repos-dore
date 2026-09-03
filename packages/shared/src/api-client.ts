@@ -260,7 +260,14 @@ export function createApiClient(options: ApiClientOptions) {
       update: (id: string, input: unknown) =>
         request<QuoteDetailDTO>(`/api/quotes/${id}`, { method: 'PATCH', json: input }),
       send: (id: string, input: { message?: string | null; to?: string | null } = {}) =>
-        request<{ quote: QuoteDetailDTO; publicUrl: string; recipient: string }>(
+        request<{
+          quote: QuoteDetailDTO;
+          publicUrl: string;
+          recipient: string;
+          /** Faux quand aucun fournisseur d'email n'est configuré. */
+          delivered: boolean;
+          emailProvider: string;
+        }>(
           `/api/quotes/${id}/envoi`,
           { method: 'POST', json: input },
         ),
