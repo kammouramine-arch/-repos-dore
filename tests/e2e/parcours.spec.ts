@@ -21,7 +21,7 @@ async function signUp(page: Page) {
 }
 
 test.describe('parcours complet', () => {
-  test('de l’inscription au devis accepté', async ({ page, context }) => {
+  test('de l’inscription au devis envoyé et consulté', async ({ page, context }) => {
     // 1. Inscription -----------------------------------------------------------
     await signUp(page);
     await expect(page.getByRole('heading', { name: /Bienvenue sur DEVISIA/i })).toBeVisible();
@@ -122,7 +122,10 @@ test.describe('parcours complet', () => {
     });
 
     await page.goto('/app');
-    await expect(page.getByText(/Chiffre d’affaires gagné/i).first()).toBeVisible();
+    // Le tableau de bord mesure ce qui est chiffré et envoyé : DEVISIA ne
+    // demande aucune acceptation au client.
+    await expect(page.getByText(/Chiffre d’affaires devisé/i).first()).toBeVisible();
+    await expect(page.getByText(/Taux d’acceptation/i)).toHaveCount(0);
 
     const notifications = await page.request.get('/api/notifications');
     expect(notifications.ok()).toBeTruthy();
