@@ -864,3 +864,83 @@ describe('profils par tâche', () => {
     expect(r.usage.model).toBe('gemini-2.5-flash');
   });
 });
+
+/**
+ * Ce que dit un échec complet.
+ *
+ * Une vérification de production n'a rendu que le motif du dernier essai sur
+ * trois : découvrir les deux autres aurait demandé un redéploiement. Chaque
+ * tentative doit se raconter d'un coup. Et un modèle que l'API refuse ne
+ * mérite pas d'être réessayé — elle continue de l'annoncer après l'avoir fermé.
+ */
+describe('mémoire des échecs', () => {
+  it('rapporte chaque essai, pas seulement le dernier', async () => {
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: ['m-ferme', 'm-sature'].map((id) => ({
+              name: `models/${id}`, supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      return new Response(
+        JSON.stringify({ error: { message: modele === 'm-ferme' ? 'no longer available' : 'oups' } }),
+        { status: modele === 'm-ferme' ? 404 : 500 },
+      );
+    });
+    const e = (await new GeminiProvider('cle', profilDevis('absent'), profilVision('absent'))
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as Error)) as Error;
+    vi.unstubAllGlobals();
+    expect(e.message).toContain('m-ferme');
+    expect(e.message).toContain('m-sature');
+    expect(e.message).toMatch(/Essais/);
+  });
+
+  it('ne réessaie pas un modèle que l’API a fermé', async () => {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: ['m-ferme', 'm-bon'].map((id) => ({
+              name: `models/${id}`, supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      essayes.push(modele);
+      if (modele === 'm-bon') {
+        return new Response(
+          JSON.stringify({ candidates: [{ content: { parts: [{ text: 'ok' }] } }], usageMetadata: {} }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      return new Response(JSON.stringify({ error: { message: 'fermé' } }), { status: 404 });
+    });
+
+    const f = new GeminiProvider('cle', profilDevis('m-ferme'), profilVision('m-ferme'));
+    await f.generateText({ system: 'c', untrusted: 'd' });
+    const avant = essayes.filter((m) => m === 'm-ferme').length;
+    f['resolus'].clear();
+    await f.generateText({ system: 'c', untrusted: 'd' });
+    vi.unstubAllGlobals();
+    // Le modèle fermé n'est réessayé que par le chemin « préféré », jamais
+    // reproposé comme candidat.
+    expect(essayes.filter((m) => m === 'm-ferme').length).toBeLessThanOrEqual(avant * 2);
+    expect(essayes).toContain('m-bon');
+  });
+
+  it('propose des modèles de vision réellement servis aujourd’hui', () => {
+    // Liste relevée en production ; aucune préférence ne doit viser un modèle
+    // que Google a fermé aux nouveaux comptes.
+    const fermes = ['gemini-2.0-flash', 'gemini-2.0-flash-lite'];
+    for (const m of profilVision().preferences) expect(fermes).not.toContain(m);
+  });
+});

@@ -67,10 +67,10 @@ const PREFERENCES_DEVIS = [
  */
 const PREFERENCES_VISION = [
   'gemini-2.5-flash',
-  'gemini-flash-latest',
-  'gemini-2.0-flash',
-  'gemini-2.5-flash-lite',
   'gemini-flash-lite-latest',
+  'gemini-3.5-flash-lite',
+  'gemini-flash-latest',
+  'gemini-3.5-flash',
 ];
 
 /**
@@ -140,6 +140,8 @@ export class GeminiProvider implements AIProvider {
    * noms de modèles ne sont pas des secrets.
    */
   private diagnostic: string | null = null;
+  /** Modèles que l'API annonce mais refuse : inutile d'y revenir. */
+  private condamnes = new Set<string>();
 
   constructor(apiKey: string, devis: ProfilTache, vision: ProfilTache) {
     this.apiKey = apiKey;
@@ -188,7 +190,10 @@ export class GeminiProvider implements AIProvider {
     const servis = models
       .filter((m) => (m.supportedGenerationMethods ?? []).includes('generateContent'))
       .map((m) => (m.name ?? '').replace(/^models\//, ''))
-      .filter((id) => id && !HORS_SUJET.test(id));
+      .filter((id) => id && !HORS_SUJET.test(id))
+      // Un modèle que l'API a déjà refusé ne mérite pas un second essai : elle
+      // continue de l'annoncer après l'avoir fermé aux nouveaux comptes.
+      .filter((id) => !this.condamnes.has(id));
 
     if (servis.length === 0) {
       this.diagnostic = `aucun modèle de génération parmi ${models.length} entrées`;
@@ -314,6 +319,10 @@ export class GeminiProvider implements AIProvider {
       }
     }
 
+    // Chaque échec est retenu : ne rapporter que le dernier oblige à
+    // redéployer pour découvrir les précédents, ce qui a coûté plusieurs
+    // allers-retours.
+    const motifs: string[] = [];
     let derniere: Error | null = null;
     for (const version of VERSIONS) {
       try {
@@ -323,6 +332,7 @@ export class GeminiProvider implements AIProvider {
       } catch (erreur) {
         derniere = erreur as Error;
         if (!(erreur instanceof ModeleIndisponible)) throw erreur;
+        motifs.push((erreur as Error).message);
       }
     }
 
@@ -343,6 +353,7 @@ export class GeminiProvider implements AIProvider {
         } catch (erreur) {
           derniere = erreur as Error;
           if (!(erreur instanceof ModeleIndisponible)) throw erreur;
+          motifs.push((erreur as Error).message);
         }
       }
     }
@@ -354,7 +365,7 @@ export class GeminiProvider implements AIProvider {
     }
     throw new AppError(
       'PROVIDER_UNAVAILABLE',
-      `Aucun modèle d'IA disponible — dernier motif : ${derniere?.message ?? 'inconnu'}` +
+      `Aucun modèle d'IA disponible. Essais : ${motifs.join(' | ') || 'aucun'}` +
         (this.diagnostic ? ` ; ${this.diagnostic}` : '') +
         '.',
       { cause: derniere ?? undefined },
@@ -412,6 +423,7 @@ export class GeminiProvider implements AIProvider {
       // à savoir s'il vaut la peine d'essayer autre chose. Un 5xx sur un
       // modèle très demandé n'est pas une panne du service : les modèles ont
       // des capacités distinctes.
+      if (reponse.status === 404) this.condamnes.add(modele);
       if (reponse.status === 404 || reponse.status >= 500) {
         throw new ModeleIndisponible(
           `${version}/${modele} indisponible (${reponse.status} ${message.slice(0, 100)}).`,
@@ -588,7 +600,9 @@ export function profilVision(prefere?: string): ProfilTache {
     prefere: prefere?.trim() || PREFERENCES_VISION[0]!,
     preferences: PREFERENCES_VISION,
     timeoutMs: 20_000,
-    essaisMax: 2,
+    // Un échec de vision est rapide — quota ou modèle fermé répondent en une
+    // demi-seconde. Trois replis restent très loin du budget de vingt secondes.
+    essaisMax: 3,
   };
 }
 
