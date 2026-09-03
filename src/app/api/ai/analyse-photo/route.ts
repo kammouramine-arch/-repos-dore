@@ -70,6 +70,20 @@ export async function POST(request: Request) {
       })
       .catch(() => undefined);
 
-    return ok(result.data);
+    // Le devis dit quel modèle l'a rédigé ; l'analyse doit en faire autant.
+    // Sans cela, vérifier quel modèle sert réellement la vision oblige à le
+    // déduire — et une déduction n'est pas une preuve.
+    return ok({
+      ...result.data,
+      provider: result.usage.provider,
+      model: result.usage.model ?? null,
+      usage: {
+        inputTokens: result.usage.inputTokens ?? null,
+        outputTokens: result.usage.outputTokens ?? null,
+        thoughtsTokens: result.usage.thoughtsTokens ?? null,
+        totalTokens: result.usage.totalTokens ?? null,
+        latencyMs: result.usage.latencyMs,
+      },
+    });
   });
 }
