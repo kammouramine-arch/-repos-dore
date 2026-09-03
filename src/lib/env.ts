@@ -22,7 +22,18 @@ const serverSchema = z.object({
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),
     z.string().optional(),
   ),
-  GEMINI_MODEL: z.string().default('gemini-2.5-flash'),
+  /**
+   * Modèle hérité, appliqué à la préparation des devis seulement.
+   *
+   * Un même modèle ne convient pas aux deux usages : rédiger un devis
+   * structuré demande de la finesse et tolère l'attente, lire une photo doit
+   * répondre tout de suite. Les deux réglages ci-dessous priment.
+   */
+  GEMINI_MODEL: z.string().optional(),
+  /** Rédaction des devis : on privilégie la qualité. */
+  GEMINI_QUOTE_MODEL: z.string().optional(),
+  /** Lecture des photos : on privilégie la rapidité. */
+  GEMINI_VISION_MODEL: z.string().optional(),
   // Une valeur vide (« ANTHROPIC_API_KEY= » dans .env) équivaut à l'absence de clé.
   ANTHROPIC_API_KEY: z.preprocess(
     (value) => (typeof value === 'string' && value.trim() === '' ? undefined : value),

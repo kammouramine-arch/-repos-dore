@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from 'vitest';
 import { z } from 'zod';
-import { toGeminiSchema, GeminiProvider } from '@/lib/ai/gemini';
+import { toGeminiSchema, GeminiProvider, profilDevis, profilVision } from '@/lib/ai/gemini';
 import { quoteDraftSchema, imageAnalysisSchema } from '@/lib/ai/schemas';
 
 /**
@@ -114,7 +114,7 @@ describe('appel Gemini', () => {
 
   it('envoie la clé en en-tête et jamais dans l’URL', async () => {
     const { appels } = await capturer(reponseValide);
-    await new GeminiProvider('CLE-SECRETE-123', 'gemini-2.5-flash').generateStructuredOutput({
+    await new GeminiProvider('CLE-SECRETE-123', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateStructuredOutput({
       system: 'consigne',
       untrusted: 'description',
       schema: z.object({ texte: z.string() }),
@@ -130,7 +130,7 @@ describe('appel Gemini', () => {
 
   it('demande bien une réponse JSON contrainte par le schéma', async () => {
     const { appels } = await capturer(reponseValide);
-    await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+    await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateStructuredOutput({
       system: 'consigne',
       untrusted: 'description',
       schema: z.object({ texte: z.string() }),
@@ -147,7 +147,7 @@ describe('appel Gemini', () => {
   it('remonte une erreur exploitable sans divulguer la clé', async () => {
     await capturer({ error: { message: 'quota dépassé', status: 'RESOURCE_EXHAUSTED' } }, 429);
     await expect(
-      new GeminiProvider('CLE-SECRETE-123', 'gemini-2.5-flash').generateText({
+      new GeminiProvider('CLE-SECRETE-123', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateText({
         system: 'c',
         untrusted: 'd',
       }),
@@ -168,7 +168,7 @@ describe('erreurs Gemini distinguées', () => {
     vi.stubGlobal('fetch', async () =>
       new Response(JSON.stringify(corps), { status: statut, headers: { 'content-type': 'application/json' } }),
     );
-    const erreur = await new GeminiProvider('cle', 'gemini-2.5-flash')
+    const erreur = await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((e) => e);
     vi.unstubAllGlobals();
@@ -236,7 +236,7 @@ describe('repli de modèle', () => {
 
   it('bascule sur un modèle réellement servi quand le configuré n’existe plus', async () => {
     const appels = serveur(['gemini-2.0-flash', 'gemini-2.5-pro'], ['gemini-2.0-flash', 'gemini-2.5-pro']);
-    const resultat = await new GeminiProvider('cle', 'modele-perime').generateText({
+    const resultat = await new GeminiProvider('cle', profilDevis('modele-perime'), profilVision('modele-perime')).generateText({
       system: 'c',
       untrusted: 'd',
     });
@@ -248,14 +248,14 @@ describe('repli de modèle', () => {
 
   it('ne consulte pas la liste quand le modèle configuré répond', async () => {
     const appels = serveur(['gemini-2.0-flash'], ['gemini-2.5-flash']);
-    await new GeminiProvider('cle', 'gemini-2.5-flash').generateText({ system: 'c', untrusted: 'd' });
+    await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateText({ system: 'c', untrusted: 'd' });
     vi.unstubAllGlobals();
     expect(appels.some((u) => u.endsWith('/models'))).toBe(false);
   });
 
   it('ignore les modèles inaptes à rédiger un devis', async () => {
     serveur(['imagen-3.0', 'gemini-2.0-flash'], ['gemini-2.0-flash']);
-    const r = await new GeminiProvider('cle', 'inconnu').generateText({ system: 'c', untrusted: 'd' });
+    const r = await new GeminiProvider('cle', profilDevis('inconnu'), profilVision('inconnu')).generateText({ system: 'c', untrusted: 'd' });
     vi.unstubAllGlobals();
     expect(r.usage.model).toBe('gemini-2.0-flash');
   });
@@ -275,7 +275,7 @@ describe('diagnostic remonté', () => {
         ? new Response(JSON.stringify({ error: { message: 'API non activée' } }), { status: 403 })
         : new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 }),
     );
-    const e = (await new GeminiProvider('CLE-SECRETE', 'gemini-2.5-flash')
+    const e = (await new GeminiProvider('CLE-SECRETE', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((x: unknown) => x as Error)) as unknown as Error;
     vi.unstubAllGlobals();
@@ -293,7 +293,7 @@ describe('diagnostic remonté', () => {
           )
         : new Response(JSON.stringify({ error: { message: 'not found' } }), { status: 404 }),
     );
-    const e = (await new GeminiProvider('cle', 'gemini-2.5-flash')
+    const e = (await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((x: unknown) => x as Error)) as unknown as Error;
     vi.unstubAllGlobals();
@@ -345,7 +345,7 @@ describe('modèle listé mais non servi', () => {
       ['gemini-2.5-flash', 'gemini-flash-latest', 'gemini-2.5-pro'],
       ['gemini-flash-latest'],
     );
-    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateText({
+    const r = await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateText({
       system: 'c',
       untrusted: 'd',
     });
@@ -357,7 +357,7 @@ describe('modèle listé mais non servi', () => {
 
   it('mémorise le couple retenu et ne recherche plus ensuite', async () => {
     const essayes = api(['a-perime', 'gemini-flash-latest'], ['gemini-flash-latest']);
-    const fournisseur = new GeminiProvider('cle', 'a-perime');
+    const fournisseur = new GeminiProvider('cle', profilDevis('a-perime'), profilVision('a-perime'));
     await fournisseur.generateText({ system: 'c', untrusted: 'd' });
     const avant = essayes.length;
     await fournisseur.generateText({ system: 'c', untrusted: 'd' });
@@ -371,7 +371,7 @@ describe('modèle listé mais non servi', () => {
       if (!url.endsWith('/models')) essayes.push(url);
       return new Response(JSON.stringify({ error: { message: 'denied' } }), { status: 403 });
     });
-    await new GeminiProvider('cle', 'gemini-2.5-flash')
+    await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch(() => undefined);
     vi.unstubAllGlobals();
@@ -390,7 +390,7 @@ describe('modèle listé mais non servi', () => {
 describe('échecs auto-descriptifs', () => {
   async function motif(reponse: () => Response | Promise<Response>) {
     vi.stubGlobal('fetch', async () => reponse());
-    const e = (await new GeminiProvider('CLE-SECRETE-123', 'gemini-flash-latest')
+    const e = (await new GeminiProvider('CLE-SECRETE-123', profilDevis('gemini-flash-latest'), profilVision('gemini-flash-latest'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((x: unknown) => x as Error)) as Error;
     vi.unstubAllGlobals();
@@ -411,7 +411,7 @@ describe('échecs auto-descriptifs', () => {
     vi.stubGlobal('fetch', async () => {
       throw new TypeError('fetch failed');
     });
-    const e = (await new GeminiProvider('cle', 'gemini-flash-latest')
+    const e = (await new GeminiProvider('cle', profilDevis('gemini-flash-latest'), profilVision('gemini-flash-latest'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((x: unknown) => x as Error)) as Error;
     vi.unstubAllGlobals();
@@ -473,7 +473,7 @@ describe('modèle saturé', () => {
 
   it('bascule sur un autre modèle quand le premier est saturé', async () => {
     api(['gemini-flash-latest', 'gemini-2.5-flash'], ['gemini-2.5-flash']);
-    const r = await new GeminiProvider('cle', 'gemini-flash-latest').generateText({
+    const r = await new GeminiProvider('cle', profilDevis('gemini-flash-latest'), profilVision('gemini-flash-latest')).generateText({
       system: 'c',
       untrusted: 'd',
     });
@@ -483,7 +483,7 @@ describe('modèle saturé', () => {
   });
 
   it('oublie le couple mémorisé s’il devient saturé et en trouve un autre', async () => {
-    const fournisseur = new GeminiProvider('cle', 'gemini-flash-latest');
+    const fournisseur = new GeminiProvider('cle', profilDevis('gemini-flash-latest'), profilVision('gemini-flash-latest'));
     api(['gemini-flash-latest', 'gemini-2.5-flash'], ['gemini-flash-latest']);
     const premier = await fournisseur.generateText({ system: 'c', untrusted: 'd' });
     expect(premier.usage.model).toBe('gemini-flash-latest');
@@ -499,7 +499,7 @@ describe('modèle saturé', () => {
     // Les quotas gratuits sont comptés par modèle : un 429 sur l'un ne dit
     // rien des autres. Constaté en production.
     api(['a-epuise', 'gemini-2.5-flash'], ['gemini-2.5-flash'], 429);
-    const r = await new GeminiProvider('cle', 'a-epuise').generateText({
+    const r = await new GeminiProvider('cle', profilDevis('a-epuise'), profilVision('a-epuise')).generateText({
       system: 'c',
       untrusted: 'd',
     });
@@ -509,7 +509,7 @@ describe('modèle saturé', () => {
 
   it('dit « saturé » plutôt que « indisponible » si tous sont épuisés', async () => {
     api(['a', 'b'], [], 429);
-    const e = (await new GeminiProvider('cle', 'a')
+    const e = (await new GeminiProvider('cle', profilDevis('a'), profilVision('a'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch((x: unknown) => x as { code: string })) as { code: string };
     vi.unstubAllGlobals();
@@ -603,7 +603,7 @@ describe('ordre des modèles candidats', () => {
       essayes.push(url.split('/models/')[1]!.split(':')[0]!);
       return new Response(JSON.stringify({ error: { message: 'quota' } }), { status: 429 });
     });
-    await new GeminiProvider('cle', 'gemini-flash-latest')
+    await new GeminiProvider('cle', profilDevis('gemini-flash-latest'), profilVision('gemini-flash-latest'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch(() => undefined);
     vi.unstubAllGlobals();
@@ -640,7 +640,7 @@ describe('ordre des modèles candidats', () => {
       essayes.push(modele);
       return new Response(JSON.stringify({ error: { message: 'nope' } }), { status: 404 });
     });
-    await new GeminiProvider('cle', 'introuvable')
+    await new GeminiProvider('cle', profilDevis('introuvable'), profilVision('introuvable'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch(() => undefined);
     vi.unstubAllGlobals();
@@ -676,7 +676,7 @@ describe('lecture de la réponse', () => {
 
   it('accepte un JSON encadré par une clôture Markdown', async () => {
     repond('```json\n{"texte":"ok"}\n```');
-    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+    const r = await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateStructuredOutput({
       system: 'c',
       untrusted: 'd',
       schema: z.object({ texte: z.string() }),
@@ -688,7 +688,7 @@ describe('lecture de la réponse', () => {
 
   it('accepte le JSON nu, sans encadrement', async () => {
     repond('{"texte":"ok"}');
-    const r = await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+    const r = await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateStructuredOutput({
       system: 'c',
       untrusted: 'd',
       schema: z.object({ texte: z.string() }),
@@ -707,7 +707,7 @@ describe('lecture de la réponse', () => {
         { status: 200, headers: { 'content-type': 'application/json' } },
       );
     });
-    await new GeminiProvider('cle', 'gemini-2.5-flash').generateStructuredOutput({
+    await new GeminiProvider('cle', profilDevis('gemini-2.5-flash'), profilVision('gemini-2.5-flash')).generateStructuredOutput({
       system: 'c',
       untrusted: 'd',
       schema: z.object({ texte: z.string() }),
@@ -734,11 +734,133 @@ describe('lecture de la réponse', () => {
       essayes.push(url.split('/models/')[1]!.split(':')[0]!);
       return new Response(JSON.stringify({ error: { message: 'nope' } }), { status: 503 });
     });
-    await new GeminiProvider('cle', 'configure')
+    await new GeminiProvider('cle', profilDevis('configure'), profilVision('configure'))
       .generateText({ system: 'c', untrusted: 'd' })
       .catch(() => undefined);
     vi.unstubAllGlobals();
     // Le modèle configuré sur deux versions, puis au plus trois candidats.
     expect(essayes.length).toBeLessThanOrEqual(2 + 3 * 2);
+  });
+});
+
+/**
+ * Séparation des modèles par tâche.
+ *
+ * Mesuré en production : un devis a pris quatre-vingt-neuf secondes, et
+ * l'analyse de photo qui suivait a expiré sur le même budget. Rédiger un devis
+ * structuré tolère l'attente — l'écran la couvre par une progression ; lire une
+ * photo sur un chantier, non. Deux usages, deux modèles, deux budgets.
+ */
+describe('profils par tâche', () => {
+  function serveur() {
+    const envois: { modele: string; corps: Record<string, unknown> }[] = [];
+    vi.stubGlobal('fetch', async (url: string, init: RequestInit) => {
+      if (url.endsWith('/models')) {
+        return new Response(JSON.stringify({ models: [] }), {
+          status: 200, headers: { 'content-type': 'application/json' },
+        });
+      }
+      envois.push({
+        modele: url.split('/models/')[1]!.split(':')[0]!,
+        corps: JSON.parse(init.body as string),
+      });
+      return new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: '{"description":"d","observations":[],"detectedItems":[],"missingInformation":[]}' }] } }],
+          usageMetadata: { promptTokenCount: 5, candidatesTokenCount: 3 },
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    return envois;
+  }
+
+  it('lit les photos avec le modèle de vision, pas celui des devis', async () => {
+    const envois = serveur();
+    const f = new GeminiProvider(
+      'cle',
+      profilDevis('gemini-3.5-flash'),
+      profilVision('gemini-2.5-flash'),
+    );
+    await f.analyzeImage({ images: [], trade: 'PLOMBIER' });
+    vi.unstubAllGlobals();
+    expect(envois[0]!.modele).toBe('gemini-2.5-flash');
+  });
+
+  it('rédige les devis avec le modèle de devis', async () => {
+    const envois = serveur();
+    const f = new GeminiProvider(
+      'cle',
+      profilDevis('gemini-3.5-flash'),
+      profilVision('gemini-2.5-flash'),
+    );
+    await f.generateStructuredOutput({
+      system: 'c', untrusted: 'd',
+      schema: z.object({ description: z.string() }), schemaName: 'essai',
+    });
+    vi.unstubAllGlobals();
+    expect(envois[0]!.modele).toBe('gemini-3.5-flash');
+  });
+
+  it('donne à la vision un budget nettement plus court qu’au devis', () => {
+    const devis = profilDevis();
+    const vision = profilVision();
+    expect(vision.timeoutMs).toBeLessThan(devis.timeoutMs / 3);
+    expect(vision.timeoutMs).toBeLessThanOrEqual(30_000);
+  });
+
+  it('propose par défaut gemini-3.5-flash au devis et gemini-2.5-flash à la vision', () => {
+    expect(profilDevis().prefere).toBe('gemini-3.5-flash');
+    expect(profilVision().prefere).toBe('gemini-2.5-flash');
+  });
+
+  it('accepte les variantes rapides en repli de vision, jamais en tête de devis', () => {
+    expect(profilVision().preferences.some((m) => /lite/.test(m))).toBe(true);
+    expect(/lite/.test(profilDevis().preferences[0]!)).toBe(false);
+  });
+
+  it('mémorise les deux tâches séparément', async () => {
+    const envois = serveur();
+    const f = new GeminiProvider('cle', profilDevis('modele-devis'), profilVision('modele-vision'));
+    await f.analyzeImage({ images: [] });
+    await f.generateStructuredOutput({
+      system: 'c', untrusted: 'd',
+      schema: z.object({ description: z.string() }), schemaName: 'e',
+    });
+    vi.unstubAllGlobals();
+    expect(envois.map((e) => e.modele)).toEqual(['modele-vision', 'modele-devis']);
+  });
+
+  it('un dépassement de délai fait essayer un autre modèle, pas échouer', async () => {
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: ['lent', 'gemini-2.5-flash'].map((id) => ({
+              name: `models/${id}`, supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      const modele = url.split('/models/')[1]!.split(':')[0]!;
+      essayes.push(modele);
+      if (modele === 'lent') throw Object.assign(new Error('The operation was aborted due to timeout'), { name: 'TimeoutError' });
+      return new Response(
+        JSON.stringify({
+          candidates: [{ content: { parts: [{ text: '{"description":"ok","observations":[],"detectedItems":[],"missingInformation":[]}' }] } }],
+          usageMetadata: {},
+        }),
+        { status: 200, headers: { 'content-type': 'application/json' } },
+      );
+    });
+    const r = await new GeminiProvider('cle', profilDevis(), profilVision('lent')).analyzeImage({
+      images: [],
+    });
+    vi.unstubAllGlobals();
+    expect(r.data.description).toBe('ok');
+    expect(essayes).toContain('lent');
+    expect(r.usage.model).toBe('gemini-2.5-flash');
   });
 });

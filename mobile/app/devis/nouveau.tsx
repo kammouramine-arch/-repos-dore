@@ -152,6 +152,25 @@ export default function NouveauDevisScreen() {
     return () => clearInterval(timer);
   }, [phase, etapes.length]);
 
+  // Une fois toutes les étapes cochées, l'écran ne doit pas se figer : on a
+  // mesuré des préparations de quatre-vingt-dix secondes. Le compteur dit que
+  // le travail continue, et ouvre une sortie plutôt qu'une attente aveugle.
+  // Le repère de départ vit dans une référence, et l'état ne sert qu'à
+  // provoquer un rendu par seconde : poser l'état depuis le corps d'un effet
+  // déclencherait une cascade de rendus.
+  const departGeneration = React.useRef(0);
+  const [, tic] = React.useState(0);
+  React.useEffect(() => {
+    if (phase !== 'generation') return undefined;
+    departGeneration.current = Date.now();
+    const timer = setInterval(() => tic((n) => n + 1), 1000);
+    return () => clearInterval(timer);
+  }, [phase]);
+  const attente =
+    phase === 'generation' && departGeneration.current
+      ? Math.floor((Date.now() - departGeneration.current) / 1000)
+      : 0;
+
   const pulse = React.useMemo(() => new Animated.Value(1), []);
   React.useEffect(() => {
     if (dictation.status !== 'ecoute') {
@@ -355,6 +374,28 @@ export default function NouveauDevisScreen() {
             </View>
           ))}
         </View>
+
+        {attente >= 8 ? (
+          <View style={{ alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg }}>
+            <Caption style={{ color: colors.subtle }}>{seconds(attente * 1000)}</Caption>
+            <Muted style={{ textAlign: 'center' }}>
+              {attente >= 30
+                ? 'C’est plus long que d’habitude. Vous pouvez patienter encore, ou revenir à votre description — rien n’est perdu.'
+                : 'DEVISIA affine les quantités et les prix. Encore un instant.'}
+            </Muted>
+            {attente >= 30 ? (
+              <Button
+                title="Revenir à ma description"
+                variant="secondary"
+                onPress={() => {
+                  setPhase(questions.length > 0 ? 'questions' : 'saisie');
+                  setError(null);
+                  setRetry(() => () => void prepare());
+                }}
+              />
+            ) : null}
+          </View>
+        ) : null}
       </View>
     );
   }

@@ -32,16 +32,46 @@ const MAX_IMAGES = 6;
  * modèle configuré n'existe pas : un nom de modèle a une durée de vie, et
  * DEVISIA ne doit pas tomber en panne le jour où Google en retire un.
  */
-const PREFERENCES = [
+/**
+ * Deux usages, deux exigences.
+ *
+ * Rédiger un devis structuré demande de la finesse et tolère une attente que
+ * l'écran couvre par une progression. Lire une photo doit répondre tout de
+ * suite : mesuré en production, un devis a pris quatre-vingt-neuf secondes, et
+ * l'analyse de photo qui suivait a expiré. Un même modèle et un même délai ne
+ * peuvent pas servir les deux.
+ */
+export interface ProfilTache {
+  /** Modèle souhaité en premier. */
+  prefere: string;
+  /** Repli, du plus souhaitable au moins, si le préféré ne répond pas. */
+  preferences: string[];
+  /** Budget d'un envoi. Au-delà, mieux vaut échouer que faire attendre. */
+  timeoutMs: number;
+  /** Modèles alternatifs essayés avant d'abandonner. */
+  essaisMax: number;
+}
+
+const PREFERENCES_DEVIS = [
+  'gemini-3.5-flash',
+  'gemini-flash-latest',
+  'gemini-2.5-flash',
+  'gemini-2.0-flash',
+  'gemini-2.5-flash-lite',
+];
+
+/**
+ * Pour la vision, les modèles les plus rapides d'abord — y compris les
+ * variantes « lite », qui suffisent à décrire une photo de chantier et
+ * portent un quota distinct.
+ */
+const PREFERENCES_VISION = [
   'gemini-2.5-flash',
   'gemini-flash-latest',
   'gemini-2.0-flash',
   'gemini-2.5-flash-lite',
-  'gemini-2.0-flash-lite',
+  'gemini-flash-lite-latest',
 ];
-
-/** Au-delà, l'attente cumulée dépasse ce qu'un artisan accepte devant l'écran. */
-const ESSAIS_MAX = 3;
 
 /**
  * Modèles écartés de la préparation d'un devis.
@@ -97,9 +127,10 @@ interface GeminiPart {
 export class GeminiProvider implements AIProvider {
   readonly name = 'gemini' as const;
   private apiKey: string;
-  private model: string;
-  /** Modèle retenu après repli automatique, mémorisé pour le processus. */
-  private resolu: { version: string; modele: string } | null = null;
+  private devis: ProfilTache;
+  private vision: ProfilTache;
+  /** Couple retenu par tâche après repli, mémorisé pour le processus. */
+  private resolus = new Map<string, { version: string; modele: string }>();
   /**
    * Ce qu'a donné la dernière recherche de modèle.
    *
@@ -110,17 +141,18 @@ export class GeminiProvider implements AIProvider {
    */
   private diagnostic: string | null = null;
 
-  constructor(apiKey: string, model: string) {
+  constructor(apiKey: string, devis: ProfilTache, vision: ProfilTache) {
     this.apiKey = apiKey;
-    this.model = model;
+    this.devis = devis;
+    this.vision = vision;
   }
 
   get available() {
     return true;
   }
 
-  private get modeleActif(): string {
-    return this.resolu?.modele ?? this.model;
+  private modeleActif(profil: ProfilTache): string {
+    return this.resolus.get(profil.prefere)?.modele ?? profil.prefere;
   }
 
   /**
@@ -131,12 +163,12 @@ export class GeminiProvider implements AIProvider {
    * préférences, puis le reste — ainsi un modèle retiré n'arrête pas le
    * produit, et un modèle listé mais non servi laisse sa place au suivant.
    */
-  private async candidats(): Promise<string[]> {
+  private async candidats(profil: ProfilTache): Promise<string[]> {
     let reponse: Response;
     try {
       reponse = await fetch(`${BASE}/models`, {
         headers: { 'x-goog-api-key': this.apiKey },
-        signal: AbortSignal.timeout(30_000),
+        signal: AbortSignal.timeout(15_000),
       });
     } catch (cause) {
       this.diagnostic = 'liste des modèles injoignable';
@@ -164,22 +196,19 @@ export class GeminiProvider implements AIProvider {
     }
     this.diagnostic = `modèles servis : ${servis.slice(0, 8).join(', ')}`;
 
-    // Les variantes « lite » passent en dernier : elles répondent vite, mais
-    // rendent parfois un devis sans aucune ligne. Mieux vaut un modèle complet
-    // saturé qu'un modèle rapide qui bâcle.
-    const lite = (m: string) => /lite/i.test(m);
+    // L'ordre vient du profil : la vision accepte les variantes rapides que la
+    // rédaction d'un devis relègue en dernier.
     const ordonnes = [
-      this.model,
-      ...PREFERENCES.filter((p) => servis.includes(p) && !lite(p)),
-      ...servis.filter((m) => !lite(m)),
-      ...PREFERENCES.filter((p) => servis.includes(p) && lite(p)),
-      ...servis.filter(lite),
+      profil.prefere,
+      ...profil.preferences.filter((p) => servis.includes(p)),
+      ...servis,
     ];
     return [...new Set(ordonnes)].filter((m) => servis.includes(m));
   }
 
   async generateStructuredOutput<TSchema extends z.ZodType>(
     request: StructuredRequest<TSchema>,
+    profil: ProfilTache = this.devis,
   ): Promise<AIResult<z.infer<TSchema>>> {
     const started = Date.now();
     const reponse = await this.call({
@@ -196,7 +225,7 @@ export class GeminiProvider implements AIProvider {
         maxOutputTokens: request.maxTokens ?? 8192,
         temperature: request.temperature ?? 0.2,
       },
-    });
+    }, profil);
 
     const texte = textOf(reponse);
     if (!texte) {
@@ -217,7 +246,7 @@ export class GeminiProvider implements AIProvider {
       });
     }
 
-    return { data: parsed.data, degraded: false, usage: this.usage(reponse, started) };
+    return { data: parsed.data, degraded: false, usage: this.usage(reponse, started, profil) };
   }
 
   async generateText(request: TextRequest): Promise<AIResult<string>> {
@@ -229,11 +258,17 @@ export class GeminiProvider implements AIProvider {
         maxOutputTokens: request.maxTokens ?? 1024,
         temperature: request.temperature ?? 0.4,
       },
-    });
-    return { data: textOf(reponse).trim(), degraded: false, usage: this.usage(reponse, started) };
+    }, this.devis);
+    return {
+      data: textOf(reponse).trim(),
+      degraded: false,
+      usage: this.usage(reponse, started, this.devis),
+    };
   }
 
   async analyzeImage(request: ImageAnalysisRequest): Promise<AIResult<ImageAnalysis>> {
+    // Profil vision : modèles rapides et budget court. Une photo lue en trente
+    // secondes n'a plus d'intérêt sur un chantier.
     return this.generateStructuredOutput({
       system: IMAGE_ANALYSIS_SYSTEM,
       context: request.trade ? `Métier de l'entreprise : ${request.trade}.` : undefined,
@@ -242,17 +277,17 @@ export class GeminiProvider implements AIProvider {
       schema: imageAnalysisSchema,
       schemaName: 'analyse_photos',
       maxTokens: 2048,
-    });
+    }, this.vision);
   }
 
-  private usage(reponse: GeminiResponse, started: number) {
+  private usage(reponse: GeminiResponse, started: number, profil: ProfilTache) {
     return {
       latencyMs: Date.now() - started,
       inputTokens: reponse.usageMetadata?.promptTokenCount,
       outputTokens: reponse.usageMetadata?.candidatesTokenCount,
       thoughtsTokens: reponse.usageMetadata?.thoughtsTokenCount,
       totalTokens: reponse.usageMetadata?.totalTokenCount,
-      model: this.modeleActif,
+      model: this.modeleActif(profil),
       provider: this.name,
     };
   }
@@ -265,48 +300,44 @@ export class GeminiProvider implements AIProvider {
    * qu'on sache si la cause est un quota, un modèle inconnu ou une clé morte.
    * Ni la clé ni l'URL complète n'y figurent jamais.
    */
-  private async call(corps: Record<string, unknown>): Promise<GeminiResponse> {
-    // Le couple déjà retenu est rejoué directement : la recherche ne coûte
-    // qu'une fois par processus. S'il devient indisponible — saturation
-    // passagère, modèle retiré — on l'oublie et on cherche à nouveau.
-    if (this.resolu) {
+  private async call(
+    corps: Record<string, unknown>,
+    profil: ProfilTache,
+  ): Promise<GeminiResponse> {
+    const memo = this.resolus.get(profil.prefere);
+    if (memo) {
       try {
-        return await this.envoyer(this.resolu.version, this.resolu.modele, corps);
+        return await this.envoyer(memo.version, memo.modele, corps, profil);
       } catch (erreur) {
         if (!(erreur instanceof ModeleIndisponible)) throw erreur;
-        this.resolu = null;
+        this.resolus.delete(profil.prefere);
       }
     }
 
     let derniere: Error | null = null;
     for (const version of VERSIONS) {
       try {
-        const reponse = await this.envoyer(version, this.model, corps);
-        this.resolu = { version, modele: this.model };
+        const reponse = await this.envoyer(version, profil.prefere, corps, profil);
+        this.resolus.set(profil.prefere, { version, modele: profil.prefere });
         return reponse;
       } catch (erreur) {
         derniere = erreur as Error;
-        // Seul un modèle introuvable justifie d'en essayer un autre : une clé
-        // refusée ou un quota atteint ne se répare pas en changeant de nom.
         if (!(erreur instanceof ModeleIndisponible)) throw erreur;
       }
     }
 
-    // Chaque candidat coûte un aller-retour : au-delà de quelques essais, on
-    // fait attendre l'artisan plus longtemps que le moteur local ne mettrait à
-    // répondre. Mieux vaut un devis dégradé rapide qu'un bon devis trop tard.
     let essais = 0;
-    for (const modele of await this.candidats()) {
-      if (modele === this.model) continue;
-      if (essais >= ESSAIS_MAX) break;
+    for (const modele of await this.candidats(profil)) {
+      if (modele === profil.prefere) continue;
+      if (essais >= profil.essaisMax) break;
       essais += 1;
       for (const version of VERSIONS) {
         try {
-          const reponse = await this.envoyer(version, modele, corps);
-          this.resolu = { version, modele };
+          const reponse = await this.envoyer(version, modele, corps, profil);
+          this.resolus.set(profil.prefere, { version, modele });
           console.warn(
-            `[ia] modèle « ${this.model} » indisponible — bascule sur « ${modele} » (${version}). ` +
-              'Fixez GEMINI_MODEL pour supprimer cette recherche.',
+            `[ia] « ${profil.prefere} » indisponible — bascule sur « ${modele} » (${version}). ` +
+              'Fixez GEMINI_QUOTE_MODEL ou GEMINI_VISION_MODEL pour supprimer cette recherche.',
           );
           return reponse;
         } catch (erreur) {
@@ -317,11 +348,9 @@ export class GeminiProvider implements AIProvider {
     }
 
     if (derniere instanceof QuotaEpuise) {
-      throw new AppError(
-        'RATE_LIMITED',
-        "Le service d'IA est saturé. Réessayez dans un instant.",
-        { cause: derniere },
-      );
+      throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.", {
+        cause: derniere,
+      });
     }
     throw new AppError(
       'PROVIDER_UNAVAILABLE',
@@ -337,6 +366,7 @@ export class GeminiProvider implements AIProvider {
     version: string,
     modele: string,
     corps: Record<string, unknown>,
+    profil: ProfilTache,
   ): Promise<GeminiResponse> {
     let reponse: Response;
     try {
@@ -344,7 +374,7 @@ export class GeminiProvider implements AIProvider {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': this.apiKey },
         body: JSON.stringify(corps),
-        signal: AbortSignal.timeout(90_000),
+        signal: AbortSignal.timeout(profil.timeoutMs),
       });
     } catch (cause) {
       console.error(`[ia] gemini injoignable — ${version}/${modele} :`, cause);
@@ -352,6 +382,12 @@ export class GeminiProvider implements AIProvider {
       // production ne doit pas exiger l'accès aux journaux de l'hébergeur.
       // Un nom d'erreur réseau n'est pas un secret.
       const motif = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
+      // Un modèle qui dépasse son budget n'est pas une panne du service : un
+      // autre répondra peut-être dans les temps. C'est le cas exact qui a fait
+      // expirer une analyse de photo pendant qu'un devis occupait la ligne.
+      if (cause instanceof Error && /timeout|abort/i.test(cause.name + cause.message)) {
+        throw new ModeleIndisponible(`${version}/${modele} : délai de ${profil.timeoutMs} ms dépassé.`);
+      }
       throw new AppError(
         'PROVIDER_UNAVAILABLE',
         `Service d'IA injoignable (${motif.slice(0, 120)}).`,
@@ -530,8 +566,39 @@ function nettoyer(noeud: unknown): unknown {
   return sortie;
 }
 
+/** Profil de rédaction : la qualité prime, l'écran couvre l'attente. */
+export function profilDevis(prefere?: string): ProfilTache {
+  return {
+    prefere: prefere?.trim() || PREFERENCES_DEVIS[0]!,
+    preferences: PREFERENCES_DEVIS,
+    timeoutMs: 90_000,
+    essaisMax: 3,
+  };
+}
+
+/**
+ * Profil de lecture de photo : la rapidité prime.
+ *
+ * Vingt secondes par envoi, deux replis : au pire, l'artisan attend une minute
+ * et reçoit un message clair, au lieu de patienter sans savoir. Le devis, lui,
+ * garde son budget long — il est couvert par une progression à l'écran.
+ */
+export function profilVision(prefere?: string): ProfilTache {
+  return {
+    prefere: prefere?.trim() || PREFERENCES_VISION[0]!,
+    preferences: PREFERENCES_VISION,
+    timeoutMs: 20_000,
+    essaisMax: 2,
+  };
+}
+
 export function createGeminiProvider(): GeminiProvider | null {
   const config = env();
   if (!config.GEMINI_API_KEY) return null;
-  return new GeminiProvider(config.GEMINI_API_KEY, config.GEMINI_MODEL);
+  return new GeminiProvider(
+    config.GEMINI_API_KEY,
+    // `GEMINI_MODEL` est hérité : il ne s'applique plus qu'aux devis.
+    profilDevis(config.GEMINI_QUOTE_MODEL ?? config.GEMINI_MODEL),
+    profilVision(config.GEMINI_VISION_MODEL),
+  );
 }
