@@ -65,6 +65,15 @@ const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/h
  */
 class ModeleIndisponible extends Error {}
 
+/**
+ * Signal interne : ce modèle-là a épuisé son quota.
+ *
+ * Distinct de l'indisponibilité pour que le message final dise la vérité —
+ * « saturé, réessayez » plutôt que « aucun modèle disponible » — quand tous
+ * les candidats sont épuisés.
+ */
+class QuotaEpuise extends ModeleIndisponible {}
+
 interface GeminiPart {
   text?: string;
   inlineData?: { mimeType: string; data: string };
@@ -281,6 +290,13 @@ export class GeminiProvider implements AIProvider {
       }
     }
 
+    if (derniere instanceof QuotaEpuise) {
+      throw new AppError(
+        'RATE_LIMITED',
+        "Le service d'IA est saturé. Réessayez dans un instant.",
+        { cause: derniere },
+      );
+    }
     throw new AppError(
       'PROVIDER_UNAVAILABLE',
       `Aucun modèle d'IA disponible — dernier motif : ${derniere?.message ?? 'inconnu'}` +
@@ -320,8 +336,12 @@ export class GeminiProvider implements AIProvider {
     if (!reponse.ok) {
       const message = extractMessage(await reponse.text().catch(() => ''));
       console.error(`[ia] gemini a refusé — statut ${reponse.status}, ${version}/${modele} : ${message}`);
+      // Les quotas du palier gratuit sont comptés par modèle, pas par projet :
+      // un modèle épuisé n'empêche pas les autres de répondre. Constaté en
+      // production, où une analyse de photo a réussi dans la seconde qui
+      // suivait un 429 sur la génération de devis.
       if (reponse.status === 429) {
-        throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.");
+        throw new QuotaEpuise(`${version}/${modele} : quota atteint.`);
       }
       if (reponse.status === 401 || reponse.status === 403) {
         throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");

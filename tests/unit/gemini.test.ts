@@ -495,13 +495,25 @@ describe('modèle saturé', () => {
     expect(second.usage.model).toBe('gemini-2.5-flash');
   });
 
-  it('n’essaie pas d’autre modèle sur un quota dépassé', async () => {
-    const essayes = api(['a', 'b'], [], 429);
-    await new GeminiProvider('cle', 'a')
-      .generateText({ system: 'c', untrusted: 'd' })
-      .catch(() => undefined);
+  it('essaie un autre modèle quand le premier a épuisé son quota', async () => {
+    // Les quotas gratuits sont comptés par modèle : un 429 sur l'un ne dit
+    // rien des autres. Constaté en production.
+    api(['a-epuise', 'gemini-2.5-flash'], ['gemini-2.5-flash'], 429);
+    const r = await new GeminiProvider('cle', 'a-epuise').generateText({
+      system: 'c',
+      untrusted: 'd',
+    });
     vi.unstubAllGlobals();
-    expect(essayes.length).toBe(1);
+    expect(r.usage.model).toBe('gemini-2.5-flash');
+  });
+
+  it('dit « saturé » plutôt que « indisponible » si tous sont épuisés', async () => {
+    api(['a', 'b'], [], 429);
+    const e = (await new GeminiProvider('cle', 'a')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch((x: unknown) => x as { code: string })) as { code: string };
+    vi.unstubAllGlobals();
+    expect(e.code).toBe('RATE_LIMITED');
   });
 });
 
