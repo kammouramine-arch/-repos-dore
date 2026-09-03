@@ -1,0 +1,12 @@
+{
+  "name": "@devisia/shared",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Moteur financier, formules et contrats d'API partagés entre le web et le mobile DEVISIA.",
+  "main": "src/index.ts",
+  "types": "src/index.ts",
+  "sideEffects": false,
+  "peerDependencies": {
+    "zod": "^4.0.0"
+  }
+}

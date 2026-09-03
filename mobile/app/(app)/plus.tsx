@@ -1,0 +1,105 @@
+import * as React from 'react';
+import { Alert, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { PLANS, accessStateFor, trialMessage } from '@devisia/shared';
+import { Button, Caption, Card, Ionicons, ListRow, Muted, Screen, Title } from '@/components/ui';
+import { TrialBanner } from '@/components/trial-banner';
+import { useAuth } from '@/lib/auth';
+import { colors, spacing } from '@/theme';
+
+/**
+ * Écran « Plus ».
+ *
+ * Trois entrées y renvoyaient vers le navigateur, avec la mention « Sur le web
+ * · connexion demandée » — c'est-à-dire : sortez de l'application, puis
+ * ressaisissez votre mot de passe pour consulter vos propres prix. Tout est
+ * désormais natif, et l'artisan reste dans DEVISIA.
+ */
+interface Entry {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  hint: string;
+  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique';
+}
+
+export default function PlusScreen() {
+  const router = useRouter();
+  const { session, signOut } = useAuth();
+  const access = accessStateFor(session?.subscription ?? null);
+
+  const entries: Entry[] = [
+    {
+      icon: 'card-outline',
+      label: 'Abonnement',
+      hint: session?.subscription ? PLANS[session.subscription.plan].name : 'Formule et facturation',
+      href: '/abonnement',
+    },
+    {
+      icon: 'book-outline',
+      label: 'Catalogue de prix',
+      hint: 'Vos prestations et vos tarifs',
+      href: '/catalogue',
+    },
+    {
+      icon: 'business-outline',
+      label: 'Mon entreprise',
+      hint: 'Identité, TVA, mentions du devis',
+      href: '/entreprise',
+    },
+    {
+      icon: 'bar-chart-outline',
+      label: 'Activité',
+      hint: 'Chiffre d’affaires et taux d’acceptation',
+      href: '/analytique',
+    },
+  ];
+
+  return (
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
+      <Screen>
+        <View style={{ gap: 4 }}>
+          <Title>{session?.organization.name}</Title>
+          <Muted>{session?.user.email}</Muted>
+          {access.inTrial ? <Muted>{trialMessage(access.trialDaysLeft)}</Muted> : null}
+        </View>
+
+        <TrialBanner subscription={session?.subscription ?? null} />
+
+        <Card style={{ padding: 0, overflow: 'hidden' }}>
+          {entries.map((entry, index) => (
+            <ListRow
+              key={entry.label}
+              icon={entry.icon}
+              title={entry.label}
+              subtitle={entry.hint}
+              last={index === entries.length - 1}
+              onPress={() => router.push(entry.href)}
+            />
+          ))}
+        </Card>
+
+        <Button
+          title="Se déconnecter"
+          variant="secondary"
+          icon="log-out-outline"
+          onPress={() =>
+            Alert.alert(
+              'Se déconnecter ?',
+              'Vous devrez saisir votre mot de passe à la prochaine ouverture.',
+              [
+                { text: 'Annuler', style: 'cancel' },
+                { text: 'Se déconnecter', style: 'destructive', onPress: () => void signOut() },
+              ],
+            )
+          }
+        />
+
+        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+          DEVISIA · version 1.0.0
+        </Caption>
+        <View style={{ height: spacing.xl }} />
+      </Screen>
+    </SafeAreaView>
+  );
+}
