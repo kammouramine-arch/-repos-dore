@@ -580,6 +580,48 @@ describe('sémantique du schéma transmis', () => {
  * il vient donc après les modèles complets, saturation comprise.
  */
 describe('ordre des modèles candidats', () => {
+  it('écarte expérimentaux, préversions, images et modèles pro', async () => {
+    // Liste réellement servie en production le jour de la vérification.
+    const servis = [
+      'gemini-2.5-flash', 'gemini-2.5-pro', 'gemini-flash-latest-high-res-exp',
+      'gemini-flash-latest', 'gemini-flash-lite-latest', 'gemini-pro-latest',
+      'gemini-2.5-flash-lite', 'gemini-2.5-flash-image',
+    ];
+    const essayes: string[] = [];
+    vi.stubGlobal('fetch', async (url: string) => {
+      if (url.endsWith('/models')) {
+        return new Response(
+          JSON.stringify({
+            models: servis.map((id) => ({
+              name: `models/${id}`,
+              supportedGenerationMethods: ['generateContent'],
+            })),
+          }),
+          { status: 200, headers: { 'content-type': 'application/json' } },
+        );
+      }
+      essayes.push(url.split('/models/')[1]!.split(':')[0]!);
+      return new Response(JSON.stringify({ error: { message: 'quota' } }), { status: 429 });
+    });
+    await new GeminiProvider('cle', 'gemini-flash-latest')
+      .generateText({ system: 'c', untrusted: 'd' })
+      .catch(() => undefined);
+    vi.unstubAllGlobals();
+
+    for (const rejete of [
+      'gemini-2.5-pro',
+      'gemini-pro-latest',
+      'gemini-flash-latest-high-res-exp',
+      'gemini-2.5-flash-image',
+    ]) {
+      expect(essayes, rejete).not.toContain(rejete);
+    }
+    // Les trois essais vont aux modèles rapides, lite compris : ils portent
+    // un quota distinct, et valent mieux qu'une bascule sur le moteur local.
+    expect(essayes).toContain('gemini-2.5-flash');
+    expect(essayes.some((m) => /lite/.test(m))).toBe(true);
+  });
+
   it('essaie les modèles complets avant les variantes lite', async () => {
     const essayes: string[] = [];
     vi.stubGlobal('fetch', async (url: string) => {

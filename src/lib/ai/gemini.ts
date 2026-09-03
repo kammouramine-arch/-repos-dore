@@ -43,8 +43,20 @@ const PREFERENCES = [
 /** Au-delà, l'attente cumulée dépasse ce qu'un artisan accepte devant l'écran. */
 const ESSAIS_MAX = 3;
 
-/** Modèles inaptes à préparer un devis, quel que soit leur nom. */
-const HORS_SUJET = /embedding|aqa|imagen|veo|tts|image-generation|gemma/i;
+/**
+ * Modèles écartés de la préparation d'un devis.
+ *
+ * Trois familles, pour trois raisons distinctes :
+ * — ceux qui ne rédigent pas de texte structuré (embeddings, images, audio) ;
+ * — les expérimentaux et préversions, qui répondent 404 sans prévenir — un
+ *   essai gâché sur « gemini-flash-latest-high-res-exp » a suffi à faire
+ *   basculer un devis sur le moteur local ;
+ * — les modèles « pro », qui raisonnent longuement : sur le palier gratuit ils
+ *   sont les plus contraints, et un artisan attend devant son écran. Un modèle
+ *   rapide qui chiffre vaut mieux qu'un modèle savant qui arrive trop tard.
+ */
+const HORS_SUJET =
+  /embedding|aqa|imagen|veo|tts|image|gemma|learnlm|[-.]exp\b|exp$|preview|\bpro\b|-pro/i;
 const SUPPORTED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/heic', 'image/heif'];
 
 /**
