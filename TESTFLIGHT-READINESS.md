@@ -12,7 +12,7 @@
 
 ## Checks
 
-- 161 unit tests passed, including transport timeout, cache isolation, and forged Apple receipt rejection.
+- 167 unit tests passed, including transport timeout, cache isolation, forged Apple receipt rejection, account binding, ordering, and refund persistence.
 - Full database integration tests are pending: the local PostgreSQL test database was unavailable.
 - Dependency audit reports a high-severity recursive-object merge advisory in Prisma's configuration tooling (`deepmerge-ts`). No forced downgrade was applied; review separately before public launch.
 - Smoothness improvements require real-device validation; web previews cannot prove iPhone frame timing.
@@ -20,3 +20,13 @@
 ## Quote fix
 
 The AI quote route exceeded the mobile client's general 20-second deadline. Native aborts were shown as generic connection errors. Quote generation now has a dedicated client deadline, bounded server model attempts, lower reasoning overhead, and malformed-JSON fallback. The approved preferred quote model is `gemini-3.5-flash`.
+
+## Delivery status
+
+- Production deployed successfully: `dpl_7V7zfiNHyNGibjd53fchEkp5gXhK`, stable host `https://devisia-bice.vercel.app`.
+- Migration applied successfully through the same project's Supabase session pooler; the direct IPv6 endpoint was unreachable from the builder. Reference: https://supabase.com/docs/guides/database/prisma
+- Live site returns HTTP 200; unsigned webhook payload correctly returns HTTP 422.
+- Apple group `22361541`: Entreprise `6808981897` (level 1), Pro `6808991416` (level 2), Essentiel `6808994981` (level 3). France prices €149/€79/€39, monthly, each with a free first week. French product and group localizations saved.
+- Production and sandbox notification URLs both saved to the stable host's `/api/webhooks/apple`. Current Apple UI offered no notification-version selector; signed version-2 delivery still needs end-to-end verification.
+- Apple agreement, bank and tax statuses are active. App-level DSA text says non-trader; owner must review that declaration before commercial launch.
+- Native iOS build 8 succeeded: `8b1ea0f2-165b-4442-b3a6-3be41f9261ad`; auto-submission `96713e37-960a-4a30-b3aa-6fbb7b6bab5c` scheduled. Apple processing and real-device purchase/AI verification remain separate gates.
