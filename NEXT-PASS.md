@@ -2,7 +2,7 @@
 
 ## Release status — build 9
 - User requested TestFlight delivery of the current partial update. Server deployed successfully: dpl_DKuphGk1yGYfNwtmgaSkDe9a7Wi5, stable alias https://devisia-bice.vercel.app. EmailChallenge migration applied successfully by hosting. Homepage returns 200; unauthenticated session endpoint returns 401.
-- iOS build 1.0.0 (9): 891ce992-44f5-4821-916c-c2c2a256af08. Automatic Apple submission: 68350c98-1b2b-40dc-885a-b48dc468508f. Build started from current working tree (uncommitted changes included); Git metadata still references 1a4e321. Native build and Apple processing pending at this checkpoint.
+- iOS build 1.0.0 (9): 891ce992-44f5-4821-916c-c2c2a256af08 FINISHED. Automatic Apple submission: 68350c98-1b2b-40dc-885a-b48dc468508f FINISHED, error null. Build started from current working tree (uncommitted changes included); Git metadata references 1a4e321, code subsequently recorded in 5a19ae3. Apple processing COMPLETE, build ada5336c-f012-4444-b043-a035bf00ede3. Verified assigned to DEVISIA Internal (Internal, 1 tester). French testing notes added with known limitations. Ready for the existing internal tester to install through TestFlight.
 - Release checks: full root production build, 181 unit tests, mobile typecheck/lint and complete iOS bundle export all passed. Test database integration setup remains unavailable; hosted additive migration did succeed.
 - Explicitly disclosed to user: email delivery remains unconfigured, Apple sign-in and requested design refresh are not included. Mandatory email verification remains off, so testers are not locked out by missing delivery.
 
