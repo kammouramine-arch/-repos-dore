@@ -3,7 +3,7 @@
 ## Build 10 — subscription blocker regression
 - User reported blank prices and disabled Subscribe in build 9. Root cause: our EUR-only render/purchase guard, not a missing Apple product. Removed currency gating; preserve Apple's displayPrice, show currency code for non-EUR, and explain final confirmation without asserting the tester's account country is wrong. Missing products/prices, pending actions and non-owner role still disable purchase.
 - Intro plan cards now have a visible choose action and open the chosen plan on the paywall for connected users. Reference French prices are labeled as such.
-- Mobile typecheck, lint, iOS bundle export and diff checks passed. No server changes needed. Native build 4f9659c5-d8b9-478a-8d0b-836288099997, submission 9ae4ad7e-ec98-4331-afd2-6bd6434396f9 queued, version 1.0.0 (10). Actual iPhone purchase confirmation still needs device testing.
+- Mobile typecheck, lint, iOS bundle export and diff checks passed. No server changes needed. Native build 4f9659c5-d8b9-478a-8d0b-836288099997 FINISHED, submission 9ae4ad7e-ec98-4331-afd2-6bd6434396f9 FINISHED with error null, version 1.0.0 (10). Apple processing Complete, build 176cdadf-3b74-47c6-be11-a17db1fadfa0, assigned to DEVISIA Internal. Actual iPhone purchase confirmation still needs device testing.
 - Confirmed research: RevenueCat's official Apple sandbox documentation explicitly describes USD metadata in TestFlight with a potentially localized Apple purchase sheet. Do not hardcode EUR onto a USD charge or require changing the user's real account country to proceed.
 
 ## Release status — build 9
