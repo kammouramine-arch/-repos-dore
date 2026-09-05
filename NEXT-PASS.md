@@ -1,5 +1,11 @@
 # Follow-up from build 8 device testing
 
+## Build 10 — subscription blocker regression
+- User reported blank prices and disabled Subscribe in build 9. Root cause: our EUR-only render/purchase guard, not a missing Apple product. Removed currency gating; preserve Apple's displayPrice, show currency code for non-EUR, and explain final confirmation without asserting the tester's account country is wrong. Missing products/prices, pending actions and non-owner role still disable purchase.
+- Intro plan cards now have a visible choose action and open the chosen plan on the paywall for connected users. Reference French prices are labeled as such.
+- Mobile typecheck, lint, iOS bundle export and diff checks passed. No server changes needed. Native build 4f9659c5-d8b9-478a-8d0b-836288099997, submission 9ae4ad7e-ec98-4331-afd2-6bd6434396f9 queued, version 1.0.0 (10). Actual iPhone purchase confirmation still needs device testing.
+- Confirmed research: RevenueCat's official Apple sandbox documentation explicitly describes USD metadata in TestFlight with a potentially localized Apple purchase sheet. Do not hardcode EUR onto a USD charge or require changing the user's real account country to proceed.
+
 ## Release status — build 9
 - User requested TestFlight delivery of the current partial update. Server deployed successfully: dpl_DKuphGk1yGYfNwtmgaSkDe9a7Wi5, stable alias https://devisia-bice.vercel.app. EmailChallenge migration applied successfully by hosting. Homepage returns 200; unauthenticated session endpoint returns 401.
 - iOS build 1.0.0 (9): 891ce992-44f5-4821-916c-c2c2a256af08 FINISHED. Automatic Apple submission: 68350c98-1b2b-40dc-885a-b48dc468508f FINISHED, error null. Build started from current working tree (uncommitted changes included); Git metadata references 1a4e321, code subsequently recorded in 5a19ae3. Apple processing COMPLETE, build ada5336c-f012-4444-b043-a035bf00ede3. Verified assigned to DEVISIA Internal (Internal, 1 tester). French testing notes added with known limitations. Ready for the existing internal tester to install through TestFlight.

@@ -212,7 +212,11 @@ export default function DecouverteScreen() {
             {PLAN_ORDER.map((id) => {
               const plan = PLANS[id];
               return (
-                <Card key={id} style={{ gap: spacing.sm }}>
+                <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Choisir ${plan.name}`} onPress={() => {
+                  if (status === 'connecte') router.push({ pathname: '/abonnement', params: { plan: id } });
+                  else void leave('/inscription');
+                }}>
+                <Card style={{ gap: spacing.sm }}>
                   <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm }}>
                     <Heading>{plan.name}</Heading>
                     {id === 'PRO' ? <Badge label="Le plus choisi" tone="accent" /> : null}
@@ -226,7 +230,9 @@ export default function DecouverteScreen() {
                       <Body style={{ flex: 1, color: colors.inkSoft }}>{line}</Body>
                     </View>
                   ))}
+                  <Caption style={{ color: colors.accent }}>Choisir {plan.name} →</Caption>
                 </Card>
+                </Pressable>
               );
             })}
 
@@ -244,7 +250,7 @@ export default function DecouverteScreen() {
               />
             </View>
             <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-              Le prix final et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.
+              Tarifs de référence en France. Le prix final, la devise et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.
             </Caption>
           </ScrollView>
         </ScrollView>

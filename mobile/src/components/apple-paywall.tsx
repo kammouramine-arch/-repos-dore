@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, Linking, Pressable, View } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, Screen, Title } from './ui';
@@ -12,7 +12,8 @@ import { colors, radius, spacing } from '@/theme';
 export function ApplePaywall() {
   const { session, refresh, signOut } = useAuth();
   const router = useRouter();
-  const [selected, setSelected] = React.useState<PlanId>('PRO');
+  const { plan } = useLocalSearchParams<{ plan?: string }>();
+  const [selected, setSelected] = React.useState<PlanId>(() => PLAN_ORDER.find((id) => id === plan) ?? 'PRO');
   const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -80,7 +81,7 @@ export function ApplePaywall() {
             <Ionicons name={chosen ? 'radio-button-on' : 'radio-button-off'} color={chosen ? colors.accent : colors.subtle} size={23} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
-            <Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p?.currency === 'EUR' ? p.displayPrice : '—'}</Body><Muted>/ mois</Muted>
+            <Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p?.displayPrice || (loading ? 'Chargement…' : 'Indisponible')}</Body><Muted>/ mois{p?.currency && p.currency !== 'EUR' ? ` · ${p.currency}` : ''}</Muted>
           </View>
           {!appleActive ? <Caption>3 jours gratuits pour les nouveaux abonnés éligibles</Caption> : null}
           {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{h}</Muted></View>)}
@@ -95,11 +96,11 @@ export function ApplePaywall() {
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
-      title={loading ? 'Chargement des offres Apple…' : trial ? 'Commencer mon essai gratuit' : `S’abonner${product && euroStore ? ` · ${product.displayPrice}/mois` : ''}`}
-      loading={busy || loading} disabled={busy || loading || !product || !euroStore || session?.organization.role !== 'OWNER'} haptic
+      title={loading ? 'Chargement des offres Apple…' : trial ? 'Commencer mon essai gratuit' : `S’abonner${product ? ` · ${product.displayPrice}/mois` : ''}`}
+      loading={busy || loading} disabled={busy || loading || !product?.displayPrice || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(() => purchaseApplePlan(selected, session!.organization.id))}
     />}
-    {!loading && product && !euroStore ? <Banner title="Votre compte Apple utilise une autre devise" description="DEVISIA est proposé en euros sur l’App Store français. Vérifiez le pays de votre compte Apple (ou de votre compte Sandbox pour TestFlight), puis rechargez les offres. Aucun achat ne sera lancé dans une autre devise." action={<Button title="Recharger les offres" variant="secondary" onPress={() => void load()} />} /> : null}
+    {!loading && product && !euroStore ? <Banner title={`Prix transmis par Apple${product.currency ? ` (${product.currency})` : ''}`} description="Vous pouvez continuer. Le montant et la devise définitifs figurent sur la fenêtre de confirmation Apple : vérifiez-les avant de valider. Les tarifs français sont en euros ; l’environnement de test peut afficher une autre devise." action={<Button title="Recharger les offres" variant="secondary" onPress={() => void load()} />} /> : null}
     {!loading && !product ? <Button title="Recharger les offres" variant="secondary" onPress={() => void load()} /> : null}
     <Button title="Restaurer mes achats" variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert('Aucun abonnement trouvé', 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.</Muted>
