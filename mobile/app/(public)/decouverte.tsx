@@ -3,7 +3,8 @@ import { Animated, Easing, Pressable, ScrollView, View, useWindowDimensions } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { PLANS, TRIAL_DAYS } from '@devisia/shared';
+import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@devisia/shared';
+import { useAuth } from '@/lib/auth';
 import {
   Badge,
   Body,
@@ -66,6 +67,7 @@ const PILLARS: Pillar[] = [
 
 export default function DecouverteScreen() {
   const router = useRouter();
+  const { status } = useAuth();
   const { width } = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
   const scroller = React.useRef<ScrollView>(null);
@@ -92,7 +94,7 @@ export default function DecouverteScreen() {
 
   async function leave(destination: '/inscription' | '/connexion') {
     await markOnboardingSeen();
-    router.replace(destination);
+    router.replace(status === 'connecte' ? '/abonnement' : destination);
   }
 
   return (
@@ -202,12 +204,12 @@ export default function DecouverteScreen() {
               </View>
               <Title style={{ textAlign: 'center' }}>Essayez sans engagement</Title>
               <Muted style={{ textAlign: 'center' }}>
-                Aucune carte bancaire pour commencer. Vous choisirez votre formule à la fin de
-                l’essai.
+                Choisissez votre formule, puis confirmez avec Apple. Après les 7 jours gratuits,
+                l’abonnement se renouvelle automatiquement sauf annulation. Offre réservée aux comptes éligibles.
               </Muted>
             </View>
 
-            {(['ESSENTIEL', 'PRO'] as const).map((id) => {
+            {PLAN_ORDER.map((id) => {
               const plan = PLANS[id];
               return (
                 <Card key={id} style={{ gap: spacing.sm }}>
@@ -215,7 +217,7 @@ export default function DecouverteScreen() {
                     <Heading>{plan.name}</Heading>
                     {id === 'PRO' ? <Badge label="Le plus choisi" tone="accent" /> : null}
                     <View style={{ flex: 1 }} />
-                    <Price cents={plan.monthlyPriceCents} suffix="/ mois HT" size={24} />
+                    <Price cents={plan.monthlyPriceCents} suffix="/ mois" size={24} />
                   </View>
                   <Divider />
                   {plan.highlights.slice(0, 3).map((line) => (
@@ -230,7 +232,7 @@ export default function DecouverteScreen() {
 
             <View style={{ gap: spacing.sm }}>
               <Button
-                title={`Essayer gratuitement pendant ${TRIAL_DAYS} jours`}
+                title="Choisir ma formule"
                 icon="arrow-forward"
                 haptic
                 onPress={() => void leave('/inscription')}
@@ -242,7 +244,7 @@ export default function DecouverteScreen() {
               />
             </View>
             <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-              L’essai s’arrête tout seul. Rien ne vous est prélevé sans votre accord.
+              Le prix final et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.
             </Caption>
           </ScrollView>
         </ScrollView>

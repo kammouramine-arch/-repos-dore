@@ -50,6 +50,8 @@ export interface ProfilTache {
   timeoutMs: number;
   /** Modèles alternatifs essayés avant d'abandonner. */
   essaisMax: number;
+  /** Total budget across all models, not a fresh budget for each fallback. */
+  totalTimeoutMs?: number;
 }
 
 const PREFERENCES_DEVIS = [
@@ -165,12 +167,12 @@ export class GeminiProvider implements AIProvider {
    * préférences, puis le reste — ainsi un modèle retiré n'arrête pas le
    * produit, et un modèle listé mais non servi laisse sa place au suivant.
    */
-  private async candidats(profil: ProfilTache): Promise<string[]> {
+  private async candidats(profil: ProfilTache, timeoutMs = 3_000): Promise<string[]> {
     let reponse: Response;
     try {
       reponse = await fetch(`${BASE}/models`, {
         headers: { 'x-goog-api-key': this.apiKey },
-        signal: AbortSignal.timeout(15_000),
+        signal: AbortSignal.timeout(timeoutMs),
       });
     } catch (cause) {
       this.diagnostic = 'liste des modèles injoignable';
@@ -309,10 +311,20 @@ export class GeminiProvider implements AIProvider {
     corps: Record<string, unknown>,
     profil: ProfilTache,
   ): Promise<GeminiResponse> {
+    const deadline = Date.now() + (profil.totalTimeoutMs ?? 45_000);
+    const tried = new Set<string>();
+    const attempt = async (version: string, modele: string) => {
+      const key = `${version}/${modele}`;
+      if (tried.has(key)) throw new ModeleIndisponible('Modèle déjà essayé.');
+      tried.add(key);
+      const remaining = deadline - Date.now();
+      if (remaining <= 0) throw new AppError('PROVIDER_UNAVAILABLE', 'La préparation IA a dépassé son délai.');
+      return this.envoyer(version, modele, corps, { ...profil, timeoutMs: Math.min(profil.timeoutMs, remaining) });
+    };
     const memo = this.resolus.get(profil.prefere);
     if (memo) {
       try {
-        return await this.envoyer(memo.version, memo.modele, corps, profil);
+        return await attempt(memo.version, memo.modele);
       } catch (erreur) {
         if (!(erreur instanceof ModeleIndisponible)) throw erreur;
         this.resolus.delete(profil.prefere);
@@ -326,24 +338,26 @@ export class GeminiProvider implements AIProvider {
     let derniere: Error | null = null;
     for (const version of VERSIONS) {
       try {
-        const reponse = await this.envoyer(version, profil.prefere, corps, profil);
+        const reponse = await attempt(version, profil.prefere);
         this.resolus.set(profil.prefere, { version, modele: profil.prefere });
         return reponse;
       } catch (erreur) {
         derniere = erreur as Error;
         if (!(erreur instanceof ModeleIndisponible)) throw erreur;
         motifs.push((erreur as Error).message);
+        // A saturated model has the same capacity on v1: try another model.
+        if (!(erreur as Error).message.includes('(404 ')) break;
       }
     }
 
     let essais = 0;
-    for (const modele of await this.candidats(profil)) {
+    for (const modele of await this.candidats(profil, Math.max(1, Math.min(3_000, deadline - Date.now())))) {
       if (modele === profil.prefere) continue;
       if (essais >= profil.essaisMax) break;
       essais += 1;
       for (const version of VERSIONS) {
         try {
-          const reponse = await this.envoyer(version, modele, corps, profil);
+          const reponse = await attempt(version, modele);
           this.resolus.set(profil.prefere, { version, modele });
           console.warn(
             `[ia] « ${profil.prefere} » indisponible — bascule sur « ${modele} » (${version}). ` +
@@ -354,6 +368,7 @@ export class GeminiProvider implements AIProvider {
           derniere = erreur as Error;
           if (!(erreur instanceof ModeleIndisponible)) throw erreur;
           motifs.push((erreur as Error).message);
+          if (!(erreur as Error).message.includes('(404 ')) break;
         }
       }
     }
@@ -384,7 +399,18 @@ export class GeminiProvider implements AIProvider {
       reponse = await fetch(`${RACINE}/${version}/models/${modele}:generateContent`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': this.apiKey },
-        body: JSON.stringify(corps),
+        body: JSON.stringify({
+          ...corps,
+          generationConfig: {
+            ...(corps.generationConfig as Record<string, unknown>),
+            // Keep reasoning bounded so the model has time/tokens for the JSON.
+            ...(/^gemini-3[.-].*flash/.test(modele)
+              ? { thinkingConfig: { thinkingLevel: 'minimal' } }
+              : /^gemini-2\.5-flash/.test(modele)
+                ? { thinkingConfig: { thinkingBudget: 512 } }
+                : {}),
+          },
+        }),
         signal: AbortSignal.timeout(profil.timeoutMs),
       });
     } catch (cause) {
@@ -438,7 +464,16 @@ export class GeminiProvider implements AIProvider {
       );
     }
 
-    return (await reponse.json()) as GeminiResponse;
+    const result = (await reponse.json()) as GeminiResponse;
+    if ((corps.generationConfig as Record<string, unknown>)?.responseMimeType === 'application/json') {
+      try {
+        JSON.parse(deballer(textOf(result)));
+      } catch {
+        // Do not memoize a model that returned truncated JSON as a success.
+        throw new ModeleIndisponible(`${version}/${modele} : réponse JSON incomplète.`);
+      }
+    }
+    return result;
   }
 }
 
@@ -583,7 +618,8 @@ export function profilDevis(prefere?: string): ProfilTache {
   return {
     prefere: prefere?.trim() || PREFERENCES_DEVIS[0]!,
     preferences: PREFERENCES_DEVIS,
-    timeoutMs: 90_000,
+    timeoutMs: 22_000,
+    totalTimeoutMs: 45_000,
     essaisMax: 3,
   };
 }
@@ -600,6 +636,7 @@ export function profilVision(prefere?: string): ProfilTache {
     prefere: prefere?.trim() || PREFERENCES_VISION[0]!,
     preferences: PREFERENCES_VISION,
     timeoutMs: 20_000,
+    totalTimeoutMs: 30_000,
     // Un échec de vision est rapide — quota ou modèle fermé répondent en une
     // demi-seconde. Trois replis restent très loin du budget de vingt secondes.
     essaisMax: 3,

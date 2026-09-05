@@ -7,6 +7,8 @@ import { assertWithinPlan } from '@/server/services/usageService';
 import { generateQuoteDraft } from '@/server/services/aiQuoteService';
 import { prisma } from '@/lib/prisma';
 
+export const maxDuration = 60;
+
 const bodySchema = z.object({
   description: z.string().trim().min(10, 'Décrivez le chantier en quelques mots.').max(8000),
   fileIds: z.array(z.string().uuid()).max(6).default([]),

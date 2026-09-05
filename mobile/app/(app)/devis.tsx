@@ -35,6 +35,7 @@ export default function DevisScreen() {
   const query = useQuery<{ total: number; items: QuoteSummaryDTO[] }>(
     () => api.quotes.list({ statut: filter || undefined, take: 100 }),
     [filter],
+    `quotes:${filter}`,
   );
 
   useFocusEffect(

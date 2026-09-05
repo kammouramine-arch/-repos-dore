@@ -53,6 +53,7 @@ export interface SessionOrganizationDTO {
 }
 
 export interface SubscriptionDTO {
+  provider?: 'apple' | 'stripe' | 'trial';
   plan: PlanId;
   status: SubscriptionStatusId;
   trialEndsAt: string | null;

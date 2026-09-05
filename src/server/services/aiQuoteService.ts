@@ -116,7 +116,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
         images,
         schema: quoteDraftSchema,
         schemaName: 'projet_de_devis',
-        maxTokens: 4096,
+        maxTokens: 8192,
       });
       // Un devis sans aucune ligne n'est pas un devis. Le schéma l'autorise —
       // les tableaux ont une valeur par défaut — et un modèle rapide peut ne

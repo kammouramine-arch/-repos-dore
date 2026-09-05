@@ -53,6 +53,8 @@ export const DEFAULT_TIMEOUT_MS = 20_000;
  * client avait abandonné avant le serveur.
  */
 export const UPLOAD_TIMEOUT_MS = 60_000;
+/** AI has a bounded server-side budget, separate from ordinary JSON reads. */
+export const AI_TIMEOUT_MS = 75_000;
 
 /**
  * Construit l'erreur rendue lorsque la requête n'a jamais atteint le serveur.
@@ -62,8 +64,8 @@ export const UPLOAD_TIMEOUT_MS = 60_000;
  * de connexion » à un artisan dont le téléphone affiche quatre barres de
  * réseau détruit la confiance dans tous les autres messages.
  */
-function transportError(cause: unknown): DevisiaApiError {
-  const aborted = cause instanceof Error && cause.name === 'AbortError';
+function transportError(cause: unknown, timedOut = false): DevisiaApiError {
+  const aborted = timedOut || (cause instanceof Error && /abort|timeout/i.test(cause.name));
   return new DevisiaApiError(
     {
       code: aborted ? 'TIMEOUT' : 'NETWORK',
@@ -118,6 +120,8 @@ export interface ApiClientOptions {
   getToken?: () => Promise<string | null> | string | null;
   /** Appelé lorsque le serveur répond 401 : permet de déconnecter proprement. */
   onUnauthenticated?: () => void;
+  /** Invalidate display snapshots after a successful write. */
+  onMutation?: () => void;
   fetchImpl?: typeof fetch;
   /** Convert native file URIs to actual Blobs supported by Expo's fetch. */
   readUploadFile?: (file: UploadFile) => Promise<Blob>;
@@ -174,7 +178,7 @@ export function createApiClient(options: ApiClientOptions) {
         await new Promise((resolve) => setTimeout(resolve, 300));
         return send(url, init, delaiMax, false);
       }
-      throw transportError(cause);
+      throw transportError(cause, controller.signal.aborted);
     } finally {
       clearTimeout(timer);
     }
@@ -209,9 +213,9 @@ export function createApiClient(options: ApiClientOptions) {
 
   async function request<T>(
     path: string,
-    init: RequestInit & { json?: unknown } = {},
+    init: RequestInit & { json?: unknown; timeoutMs?: number } = {},
   ): Promise<T> {
-    const { json, headers, ...rest } = init;
+    const { json, headers, timeoutMs: requestTimeout, ...rest } = init;
     const response = await send(`${base}${path}`, {
       ...rest,
       headers: {
@@ -221,8 +225,10 @@ export function createApiClient(options: ApiClientOptions) {
       },
       body: json !== undefined ? JSON.stringify(json) : rest.body,
       credentials: options.getToken ? 'omit' : 'include',
-    });
-    return unwrap<T>(response);
+    }, requestTimeout);
+    const data = await unwrap<T>(response);
+    if ((rest.method ?? 'GET') !== 'GET') options.onMutation?.();
+    return data;
   }
 
   async function upload<T>(
@@ -261,6 +267,7 @@ export function createApiClient(options: ApiClientOptions) {
         firstName?: string;
         lastName?: string;
         deviceName?: string;
+        billingProvider?: 'apple';
       }) => request<AuthTokenDTO>('/api/auth/inscription', { method: 'POST', json: input }),
       signOut: () => request<{ signedOut: boolean }>('/api/auth/session', { method: 'DELETE' }),
       me: () => request<SessionDTO>('/api/auth/session'),
@@ -327,7 +334,7 @@ export function createApiClient(options: ApiClientOptions) {
 
     ai: {
       generateQuote: (input: { description: string; fileIds?: string[]; leadId?: string | null }) =>
-        request<GeneratedQuoteDTO>('/api/ai/quote', { method: 'POST', json: input }),
+        request<GeneratedQuoteDTO>('/api/ai/quote', { method: 'POST', json: input, timeoutMs: AI_TIMEOUT_MS }),
       assistant: (question: string) =>
         request<{ answer: string; actions: { label: string; href?: string | null }[]; degraded: boolean }>(
           '/api/ai/assistant',

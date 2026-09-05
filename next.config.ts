@@ -15,6 +15,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   reactStrictMode: true,
   poweredByHeader: false,
+  outputFileTracingIncludes: {
+    '/api/billing/apple': ['./src/lib/billing/certificates/*.cer'],
+    '/api/webhooks/apple': ['./src/lib/billing/certificates/*.cer'],
+  },
   serverExternalPackages: ['@prisma/client', 'bcryptjs'],
   experimental: {
     optimizePackageImports: ['lucide-react', 'recharts', 'date-fns'],

@@ -15,6 +15,7 @@ export const ACTIVE_STATUSES: SubscriptionStatusId[] = ['trialing', 'active', 'p
 export const BLOCKED_STATUSES: SubscriptionStatusId[] = ['canceled', 'incomplete'];
 
 export interface SubscriptionSnapshot {
+  provider?: 'apple' | 'stripe' | 'trial';
   plan: PlanId;
   status: SubscriptionStatusId;
   trialEndsAt: string | null;
@@ -66,6 +67,9 @@ export function accessStateFor(
   }
 
   const trialDaysLeft = daysUntil(subscription.trialEndsAt, now);
+  if (subscription.provider === 'apple' && (!subscription.currentPeriodEnd || new Date(subscription.currentPeriodEnd).getTime() <= now.getTime())) {
+    return { canWrite: false, inTrial: false, trialDaysLeft: 0, trialExpired: subscription.status === 'trialing', paymentIssue: false, reason: 'Votre abonnement Apple doit être renouvelé ou restauré pour continuer.' };
+  }
   const trialing = subscription.status === 'trialing';
   const trialExpired = trialing && trialDaysLeft === 0;
 

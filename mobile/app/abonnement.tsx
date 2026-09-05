@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Alert, Platform, Pressable, View } from 'react-native';
+import { ApplePaywall } from '@/components/apple-paywall';
 import * as WebBrowser from 'expo-web-browser';
 import {
   DevisiaApiError,
@@ -44,9 +45,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 /** Abonnement : conversion, changement de formule et résiliation. */
 export default function AbonnementScreen() {
+  return Platform.OS === 'ios' ? <ApplePaywall /> : <WebAbonnementScreen />;
+}
+
+function WebAbonnementScreen() {
   const { toast } = useToast();
   const { refresh } = useAuth();
-  const query = useQuery<BillingOverviewDTO>(() => api.billing.overview());
+  const query = useQuery<BillingOverviewDTO>(() => api.billing.overview(), [], 'billing');
   const [pending, setPending] = React.useState<PlanId | 'portal' | 'cancel' | null>(null);
 
   const data = query.data;

@@ -104,7 +104,7 @@ function relativeDay(iso: string): string {
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const query = useQuery<DashboardDTO>(() => api.dashboard(30));
+  const query = useQuery<DashboardDTO>(() => api.dashboard(30), [], 'dashboard:30');
 
   // Les montants changent pendant que l'artisan travaille : on recharge au retour.
   useFocusEffect(

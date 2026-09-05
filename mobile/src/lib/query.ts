@@ -1,5 +1,6 @@
 import * as React from 'react';
 import { DevisiaApiError } from '@devisia/shared';
+import { cacheEpoch, readQueryCache, writeQueryCache } from './query-cache';
 
 /**
  * Chargement de données minimaliste : état, rafraîchissement tiré vers le bas
@@ -20,9 +21,9 @@ export interface QueryState<T> {
 /** En deçà, les données sont considérées comme encore fraîches. */
 const FRAICHEUR_MS = 15_000;
 
-export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyList = []): QueryState<T> {
-  const [data, setData] = React.useState<T | null>(null);
-  const [loading, setLoading] = React.useState(true);
+export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyList = [], cacheKey?: string): QueryState<T> {
+  const [data, setData] = React.useState<T | null>(() => readQueryCache<T>(cacheKey)?.data ?? null);
+  const [loading, setLoading] = React.useState(() => !readQueryCache(cacheKey));
   const [refreshing, setRefreshing] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   /**
@@ -37,12 +38,14 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
   const dernierSucces = React.useRef(0);
   const generation = React.useRef(0);
   const hasData = React.useRef(false);
+  const keyRef = React.useRef(cacheKey);
 
   // La fonction de chargement change à chaque rendu : on la fige dans une ref,
   // mise à jour depuis un effet pour ne jamais y toucher pendant le rendu.
   const fetcherRef = React.useRef(fetcher);
   React.useEffect(() => {
     fetcherRef.current = fetcher;
+    keyRef.current = cacheKey;
   });
 
   // Un écran monté deux fois — navigation par onglets, remontage de React —
@@ -62,6 +65,8 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
     // Focus and mount often arrive together; only one consumer owns updates.
     if (inFlight.current) return;
     const requestGeneration = generation.current;
+    const requestEpoch = cacheEpoch();
+    const requestKey = keyRef.current;
     if (mode === 'refresh' || hasData.current) setRefreshing(true);
     else setLoading(true);
     setError(null);
@@ -70,10 +75,11 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
       const pending = fetcherRef.current();
       inFlight.current = pending;
       const result = await pending;
-      if (!mounted.current || requestGeneration !== generation.current) return;
+      if (!mounted.current || requestGeneration !== generation.current || requestEpoch !== cacheEpoch()) return;
       dernierSucces.current = Date.now();
       hasData.current = true;
       setData(result);
+      writeQueryCache(requestKey, result, requestEpoch);
     } catch (cause) {
       if (mounted.current && requestGeneration === generation.current) {
         setError(
@@ -94,20 +100,22 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
   React.useEffect(() => {
     generation.current += 1;
     inFlight.current = null;
-    dernierSucces.current = 0;
-    hasData.current = false;
+    const cached = readQueryCache<T>(cacheKey);
+    dernierSucces.current = cached?.at ?? 0;
+    hasData.current = cached !== null;
     // A different filter/customer must not display the previous response.
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setData(null);
+    setData(cached?.data ?? null);
     // Chargement initial : l'état de chargement est posé volontairement au
     // montage, c'est le comportement attendu d'un écran qui va chercher ses données.
-    void run('load');
+    if (!cached || Date.now() - cached.at > FRAICHEUR_MS) void run('load');
+    else setLoading(false);
     return () => {
       generation.current += 1;
       inFlight.current = null;
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, deps);
+  }, [...deps, cacheKey]);
 
   return {
     data,
@@ -116,7 +124,7 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
     error,
     reload: () => run('load'),
     refresh: ({ force = false } = {}) =>
-      force || Date.now() - dernierSucces.current > FRAICHEUR_MS
+      force || (cacheKey && readQueryCache(cacheKey)?.at === 0) || Date.now() - dernierSucces.current > FRAICHEUR_MS
         ? run('refresh')
         : Promise.resolve(),
     setData,

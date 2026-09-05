@@ -52,7 +52,7 @@ export default function DevisDetailScreen() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id]);
+  const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id], `quote:${id}`);
   const quote = query.data;
 
   const [sending, setSending] = React.useState(false);

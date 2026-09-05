@@ -40,7 +40,7 @@ export default function InscriptionScreen() {
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace('/(app)');
+      router.replace('/abonnement');
     } catch {
       // Message affiché sous le champ mot de passe.
     } finally {
@@ -127,7 +127,9 @@ export default function InscriptionScreen() {
                 haptic
               />
               <Muted style={{ fontSize: 12, textAlign: 'center' }}>
-                {TRIAL_DAYS} jours pour découvrir DEVISIA. Vous choisirez votre formule avant toute facturation.
+                {Platform.OS === 'ios'
+                  ? `Choisissez ensuite votre formule et confirmez votre essai de ${TRIAL_DAYS} jours avec Apple, si vous êtes éligible.`
+                  : `Découvrez DEVISIA pendant ${TRIAL_DAYS} jours, puis choisissez votre formule.`}
               </Muted>
             </Card>
 

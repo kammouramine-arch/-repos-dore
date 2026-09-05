@@ -30,6 +30,7 @@ export default function ClientsScreen() {
   const query = useQuery<{ total: number; items: CustomerDTO[] }>(
     () => api.customers.list(debounced || undefined),
     [debounced],
+    `customers:${debounced}`,
   );
 
   useFocusEffect(

@@ -12,3 +12,4 @@ export * from './contracts';
 export * from './labels';
 export * from './api-client';
 export * from './password';
+export * from './apple-products';

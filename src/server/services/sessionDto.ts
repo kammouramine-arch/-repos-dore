@@ -93,8 +93,11 @@ export function toSubscriptionDTO(subscription: {
   trialEndsAt: Date | null;
   currentPeriodEnd: Date | null;
   cancelAtPeriodEnd: boolean;
+  appleProductId?: string | null;
+  stripeSubscriptionId?: string | null;
 }): SubscriptionDTO {
   return {
+    provider: subscription.appleProductId ? 'apple' : subscription.stripeSubscriptionId ? 'stripe' : 'trial',
     plan: subscription.plan,
     status: subscription.status,
     trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,

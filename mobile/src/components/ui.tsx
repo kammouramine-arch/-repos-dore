@@ -21,7 +21,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCents } from '@devisia/shared';
-import { Reveal, useReducedMotion } from '@/components/motion';
+import { useReducedMotion } from '@/components/motion';
 import { colors, radius, shadows, spacing, spring, typography } from '@/theme';
 
 /**
@@ -486,12 +486,11 @@ export function Screen({
   contentStyle?: ViewStyle;
 }) {
   const content = (
-    <Reveal
-      distance={8}
+    <View
       style={[{ padding: spacing.xl, gap: spacing.xl, paddingBottom: spacing['5xl'] }, contentStyle]}
     >
       {children}
-    </Reveal>
+    </View>
   );
 
   if (!scroll) {
@@ -505,7 +504,7 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       showsVerticalScrollIndicator={false}
-      decelerationRate="fast"
+      decelerationRate="normal"
       refreshControl={refreshControl}
     >
       {content}

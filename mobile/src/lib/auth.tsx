@@ -1,7 +1,10 @@
 import * as React from 'react';
+import { Alert, AppState, Platform } from 'react-native';
+import { listenForApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
-import { clearToken, readToken, writeToken } from './storage';
+import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot } from './storage';
+import { clearQueryCache } from './query-cache';
 import { registerForPush, unregisterPush } from './push';
 
 /**
@@ -71,6 +74,8 @@ export function describeAuthError(error: unknown): string {
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
+  const sessionGeneration = React.useRef(0);
+  const restoring = React.useRef<Promise<void> | null>(null);
   const [state, setState] = React.useState<AuthState>({
     status: 'chargement',
     session: null,
@@ -79,32 +84,49 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   });
 
   const loadSession = React.useCallback(async () => {
+    if (restoring.current) return restoring.current;
+    const generation = sessionGeneration.current;
+    const pending = (async () => {
     // `readToken` est asynchrone : aucun état n'est posé pendant le rendu.
     const token = await readToken();
+    if (generation !== sessionGeneration.current) return;
     if (!token) {
       setState({ status: 'deconnecte', session: null, error: null, offline: false });
       return;
     }
+    const cached = await readSessionSnapshot(token);
+    if (generation !== sessionGeneration.current) return;
+    if (cached) setState((current) => current.status === 'chargement'
+      ? { status: 'connecte', session: cached, error: null, offline: false }
+      : current);
     try {
       const session = await api.auth.me();
+      if (generation !== sessionGeneration.current) return;
       setState({ status: 'connecte', session, error: null, offline: false });
+      await writeSessionSnapshot(token, session);
     } catch (cause) {
+      if (generation !== sessionGeneration.current) return;
       // Une panne de réseau n'est pas une session invalide : sur un chantier
       // sans couverture, l'artisan doit retrouver son application, pas l'écran
       // de connexion. Le jeton n'est effacé que si le serveur l'a refusé.
       const refused = cause instanceof DevisiaApiError && cause.status === 401;
       if (!refused) {
-        setState((current) => ({ ...current, status: 'chargement', offline: true }));
+        setState((current) => ({ ...current, status: current.session ? 'connecte' : 'chargement', offline: true }));
         return;
       }
       await clearToken();
       setState({ status: 'deconnecte', session: null, error: null, offline: false });
     }
+    })();
+    restoring.current = pending;
+    try { await pending; } finally { if (restoring.current === pending) restoring.current = null; }
   }, []);
 
   React.useEffect(() => {
     // Rappel différé : déclenché par une réponse 401 de l'API, jamais au rendu.
     setUnauthenticatedHandler(() => {
+      sessionGeneration.current += 1;
+      clearQueryCache();
       setState({ status: 'deconnecte', session: null, error: null, offline: false });
     });
     // Restauration de session au démarrage : c'est précisément le rôle de cet
@@ -120,11 +142,25 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     void registerForPush();
   }, [state.status]);
 
+  React.useEffect(() => {
+    if (state.status !== 'connecte' || Platform.OS !== 'ios' || state.session?.organization.role !== 'OWNER') return;
+    let disposed = false;
+    let cleanup: (() => void) | undefined;
+    void listenForApplePurchases(() => { void loadSession(); }, (error) => {
+      if (!disposed) Alert.alert('Abonnement', error instanceof Error ? error.message : 'La confirmation Apple n’a pas abouti. Restaurez vos achats.');
+    }).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
+    const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
+    return () => { disposed = true; cleanup?.(); foreground.remove(); };
+  }, [state.status, state.session?.organization.id, state.session?.organization.role, loadSession]);
+
   const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>) => {
     setState((current) => ({ ...current, error: null }));
     try {
       const result = await action();
+      sessionGeneration.current += 1;
+      clearQueryCache();
       await writeToken(result.token);
+      await writeSessionSnapshot(result.token, result.session);
       setState({ status: 'connecte', session: result.session, error: null, offline: false });
     } catch (error) {
       setState((current) => ({ ...current, error: describeAuthError(error) }));
@@ -136,8 +172,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       signIn: (email, password) => handle(() => api.auth.signIn(email, password, 'DEVISIA mobile')),
-      signUp: (input) => handle(() => api.auth.signUp({ ...input, deviceName: 'DEVISIA mobile' })),
+      signUp: (input) => handle(() => api.auth.signUp({ ...input, deviceName: 'DEVISIA mobile', ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}) })),
       signOut: async () => {
+        sessionGeneration.current += 1;
+        clearQueryCache();
         await unregisterPush().catch(() => undefined);
         await api.auth.signOut().catch(() => undefined);
         await clearToken();

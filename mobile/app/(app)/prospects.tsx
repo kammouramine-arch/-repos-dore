@@ -23,7 +23,7 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'info
 export default function ProspectsScreen() {
   const router = useRouter();
   const { toast } = useToast();
-  const query = useQuery<LeadDTO[]>(() => api.leads.list());
+  const query = useQuery<LeadDTO[]>(() => api.leads.list(), [], 'leads');
 
   useFocusEffect(
     React.useCallback(() => {

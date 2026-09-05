@@ -126,6 +126,9 @@ export default function NouveauDevisScreen() {
   // exactement l'opération qui a échoué.
   const [retry, setRetry] = React.useState<(() => void) | null>(null);
   const [step, setStep] = React.useState(0);
+  const requestVersion = React.useRef(0);
+  const generating = React.useRef(false);
+  React.useEffect(() => () => { requestVersion.current += 1; }, []);
 
   const [draft, setDraft] = React.useState<GeneratedQuoteDTO | null>(null);
   const [lines, setLines] = React.useState<GeneratedQuoteDTO['lines']>([]);
@@ -192,6 +195,9 @@ export default function NouveauDevisScreen() {
   const composed = `${description}${dictation.partial ? ` ${dictation.partial}` : ''}`.trim();
 
   async function generate(text: string) {
+    if (generating.current) return;
+    generating.current = true;
+    const version = ++requestVersion.current;
     setError(null);
     setRetry(null);
     setStep(0);
@@ -201,12 +207,14 @@ export default function NouveauDevisScreen() {
         description: text.trim(),
         fileIds: photos.fileIds,
       });
+      if (version !== requestVersion.current) return;
       setDraft(result);
       setLines(result.lines);
       setTitle(result.title);
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      if (version !== requestVersion.current) return;
       setRetry(() => () => void generate(text));
       setError(
         cause instanceof DevisiaApiError
@@ -215,11 +223,14 @@ export default function NouveauDevisScreen() {
       );
       // On revient là d'où l'artisan est parti : ses réponses restent saisies.
       setPhase(questions.length > 0 ? 'questions' : 'saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
     }
   }
 
   /** Première passe : on demande d'abord ce qui manque, avant de faire attendre. */
   async function prepare() {
+    if (generating.current) return;
     if (composed.trim().length < 12) {
       setRetry(null);
       setError('Décrivez le chantier en quelques mots avant de continuer.');
@@ -230,6 +241,8 @@ export default function NouveauDevisScreen() {
       setError('Une photo est en cours d’envoi. Encore un instant.');
       return;
     }
+    generating.current = true;
+    const version = ++requestVersion.current;
     setError(null);
     setRetry(null);
     setStep(0);
@@ -239,6 +252,7 @@ export default function NouveauDevisScreen() {
         description: composed.trim(),
         fileIds: photos.fileIds,
       });
+      if (version !== requestVersion.current) return;
       const missing = toQuestions(first);
       if (missing.length > 0) {
         setDraft(first);
@@ -253,6 +267,7 @@ export default function NouveauDevisScreen() {
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      if (version !== requestVersion.current) return;
       setRetry(() => () => void prepare());
       setError(
         cause instanceof DevisiaApiError
@@ -260,6 +275,8 @@ export default function NouveauDevisScreen() {
           : 'La préparation du devis n’a pas abouti.',
       );
       setPhase('saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
     }
   }
 
@@ -418,6 +435,8 @@ export default function NouveauDevisScreen() {
                 title="Revenir à ma description"
                 variant="secondary"
                 onPress={() => {
+                  requestVersion.current += 1;
+                  generating.current = false;
                   setPhase(questions.length > 0 ? 'questions' : 'saisie');
                   setError(null);
                   setRetry(() => () => void prepare());
