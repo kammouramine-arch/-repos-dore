@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { passwordErrors } from '@devisia/shared';
 
 /** Schémas partagés entre les routes API et les formulaires. */
 
@@ -12,8 +13,9 @@ export const emailSchema = z
 
 export const passwordSchema = z
   .string()
-  .min(10, 'Le mot de passe doit contenir au moins 10 caractères.')
-  .max(200);
+  .superRefine((value, context) => {
+    for (const message of passwordErrors(value)) context.addIssue({ code: 'custom', message });
+  });
 
 export const phoneSchema = z
   .string()

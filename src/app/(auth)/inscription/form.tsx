@@ -61,7 +61,7 @@ export function SignUpForm() {
       <Field
         label="Mot de passe"
         htmlFor="password"
-        hint="10 caractères minimum"
+        hint="10 caractères minimum, avec une lettre et un chiffre."
         error={state.fieldErrors?.password?.[0]}
       >
         <Input

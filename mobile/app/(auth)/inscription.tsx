@@ -2,7 +2,7 @@ import * as React from 'react';
 import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { TRIAL_DAYS } from '@devisia/shared';
+import { TRIAL_DAYS, PASSWORD_HINT, passwordErrors } from '@devisia/shared';
 import { Banner, Body, Button, Card, Field, Muted, Title } from '@/components/ui';
 import { Reveal } from '@/components/motion';
 import { Logo } from '@/components/logo';
@@ -19,11 +19,19 @@ export default function InscriptionScreen() {
     password: '',
   });
   const [pending, setPending] = React.useState(false);
+  const [validationError, setValidationError] = React.useState<string | null>(null);
+  const [showPassword, setShowPassword] = React.useState(false);
 
-  const update = (key: keyof typeof form) => (value: string) =>
+  const update = (key: keyof typeof form) => (value: string) => {
+    setValidationError(null);
     setForm((current) => ({ ...current, [key]: value }));
+  };
 
   async function submit() {
+    if (pending) return;
+    const problems = passwordErrors(form.password);
+    setValidationError(problems.length ? problems.join(' ') : null);
+    if (problems.length) return;
     setPending(true);
     try {
       await signUp({
@@ -71,7 +79,7 @@ export default function InscriptionScreen() {
             </View>
 
             <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-              {error ? <Banner tone="danger" title={error} /> : null}
+              {validationError || error ? <Banner tone="danger" title={validationError ?? error!} /> : null}
               <Field
                 label="Nom de votre entreprise"
                 value={form.companyName}
@@ -98,13 +106,18 @@ export default function InscriptionScreen() {
               />
               <Field
                 label="Mot de passe"
-                hint="10 caractères minimum"
+                hint={PASSWORD_HINT}
                 value={form.password}
                 onChangeText={update('password')}
-                secureTextEntry
+                secureTextEntry={!showPassword}
+                autoCapitalize="none"
+                autoCorrect={false}
                 autoComplete="new-password"
                 placeholder="••••••••••"
               />
+              <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => setShowPassword((current) => !current)}>
+                <Body style={{ color: colors.accent }}>{showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}</Body>
+              </Pressable>
 
               <Button
                 title="Créer mon compte"

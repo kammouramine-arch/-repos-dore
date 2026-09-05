@@ -51,7 +51,7 @@ export function describeAuthError(error: unknown): string {
       const champs = error.details ?? {};
       if (champs.email?.length) return 'Cette adresse email n’est pas valide.';
       if (champs.password?.length) {
-        return 'Le mot de passe doit contenir au moins 10 caractères.';
+        return champs.password.join(' ');
       }
       if (champs.companyName?.length) return 'Indiquez le nom de votre entreprise.';
       return 'Vérifiez votre adresse email et votre mot de passe.';

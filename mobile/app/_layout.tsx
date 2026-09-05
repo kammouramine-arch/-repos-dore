@@ -26,7 +26,6 @@ void SplashScreen.preventAutoHideAsync();
 function RootNavigator() {
   const { status, offline, refresh } = useAuth();
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
-  const [launchSettled, setLaunchSettled] = React.useState(false);
 
   React.useEffect(() => {
     void hasSeenOnboarding().then(setSeenOnboarding);
@@ -41,7 +40,6 @@ function RootNavigator() {
   }, []);
 
   const connected = status === 'connecte';
-  const onSettled = React.useCallback(() => setLaunchSettled(true), []);
 
   // Session existante mais serveur injoignable : on ne déconnecte pas
   // l'artisan, on lui propose de réessayer. Son jeton reste dans le trousseau.
@@ -97,8 +95,8 @@ function RootNavigator() {
     );
   }
 
-  if (!decided || !launchSettled) {
-    return <LaunchScreen onSettled={onSettled} />;
+  if (!decided) {
+    return <LaunchScreen />;
   }
 
   return (

@@ -119,6 +119,8 @@ export interface ApiClientOptions {
   /** Appelé lorsque le serveur répond 401 : permet de déconnecter proprement. */
   onUnauthenticated?: () => void;
   fetchImpl?: typeof fetch;
+  /** Convert native file URIs to actual Blobs supported by Expo's fetch. */
+  readUploadFile?: (file: UploadFile) => Promise<Blob>;
 }
 
 export interface UploadFile {
@@ -132,6 +134,15 @@ export function createApiClient(options: ApiClientOptions) {
   const base = options.baseUrl.replace(/\/$/, '');
   const timeoutMs = options.timeoutMs ?? DEFAULT_TIMEOUT_MS;
 
+  async function appendFile(form: FormData, field: string, file: UploadFile) {
+    if (options.readUploadFile) {
+      form.append(field, await options.readUploadFile(file), file.name);
+    } else {
+      // Compatibility for consumers using React Native's legacy transport.
+      form.append(field, file as unknown as Blob);
+    }
+  }
+
   /**
    * Enveloppe chaque appel : délai maximal, et traduction des pannes réseau en
    * `DevisiaApiError` afin qu'aucun écran ne reçoive un `TypeError` brut.
@@ -140,15 +151,29 @@ export function createApiClient(options: ApiClientOptions) {
     url: string,
     init: RequestInit,
     delaiMax = timeoutMs,
+    retry = true,
   ): Promise<Response> {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), delaiMax);
     try {
-      return await doFetch(url, { ...init, signal: controller.signal });
+      const response = await doFetch(url, { ...init, signal: controller.signal });
+      if (retry && (init.method ?? 'GET') === 'GET' && [502, 503, 504].includes(response.status)) {
+        clearTimeout(timer);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return send(url, init, delaiMax, false);
+      }
+      return response;
     } catch (cause) {
       // Une erreur déjà normalisée (401 relayé par un appelant) ne doit pas
       // être repeinte en panne de transport.
       if (cause instanceof DevisiaApiError) throw cause;
+      // A dropped connection can be retried for reads, never for writes:
+      // replaying a quote creation or photo upload could create duplicates.
+      if (retry && (init.method ?? 'GET') === 'GET' && !controller.signal.aborted) {
+        clearTimeout(timer);
+        await new Promise((resolve) => setTimeout(resolve, 300));
+        return send(url, init, delaiMax, false);
+      }
       throw transportError(cause);
     } finally {
       clearTimeout(timer);
@@ -311,16 +336,15 @@ export function createApiClient(options: ApiClientOptions) {
     },
 
     files: {
-      upload: (file: UploadFile, kind = 'PHOTO_CHANTIER') => {
+      upload: async (file: UploadFile, kind = 'PHOTO_CHANTIER') => {
         const form = new FormData();
-        // React Native accepte un objet {uri,name,type} là où le web attend un File.
-        form.append('file', file as unknown as Blob);
+        await appendFile(form, 'file', file);
         form.append('kind', kind);
         return upload<{ id: string; url: string; fileName: string }>('/api/files', form);
       },
-      transcribe: (file: UploadFile) => {
+      transcribe: async (file: UploadFile) => {
         const form = new FormData();
-        form.append('audio', file as unknown as Blob);
+        await appendFile(form, 'audio', file);
         return upload<{ text: string }>('/api/ai/transcribe', form);
       },
     },

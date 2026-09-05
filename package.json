@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.mts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "ai:verify:gemini": "node scripts/verifier-gemini.mjs",

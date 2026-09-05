@@ -28,7 +28,7 @@ export function NewPasswordForm({ token }: { token: string }) {
       <Field
         label="Nouveau mot de passe"
         htmlFor="password"
-        hint="10 caractères minimum"
+        hint="10 caractères minimum, avec une lettre et un chiffre."
         error={state.fieldErrors?.password?.[0]}
       >
         <Input

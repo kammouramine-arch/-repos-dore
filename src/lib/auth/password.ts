@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
 import { validation } from '../errors';
+import { passwordErrors } from '@devisia/shared';
 
 const ROUNDS = 12;
 
@@ -18,10 +19,7 @@ export async function verifyPassword(plain: string, hash: string): Promise<boole
 
 /** Politique de mot de passe : lisible pour l'utilisateur, suffisante contre le bruteforce. */
 export function assertPasswordStrength(plain: string) {
-  const errors: string[] = [];
-  if (plain.length < 10) errors.push('Au moins 10 caractères.');
-  if (!/[a-zà-ÿ]/i.test(plain)) errors.push('Au moins une lettre.');
-  if (!/\d/.test(plain)) errors.push('Au moins un chiffre.');
+  const errors = passwordErrors(plain);
   if (errors.length > 0) {
     throw validation('Mot de passe trop faible.', { password: errors });
   }

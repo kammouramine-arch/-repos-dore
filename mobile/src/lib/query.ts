@@ -35,6 +35,8 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
    * le geste « tirer pour rafraîchir » force toujours l'appel.
    */
   const dernierSucces = React.useRef(0);
+  const generation = React.useRef(0);
+  const hasData = React.useRef(false);
 
   // La fonction de chargement change à chaque rendu : on la fige dans une ref,
   // mise à jour depuis un effet pour ne jamais y toucher pendant le rendu.
@@ -57,18 +59,23 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
   }, []);
 
   const run = React.useCallback(async (mode: 'load' | 'refresh') => {
-    if (mode === 'refresh') setRefreshing(true);
+    // Focus and mount often arrive together; only one consumer owns updates.
+    if (inFlight.current) return;
+    const requestGeneration = generation.current;
+    if (mode === 'refresh' || hasData.current) setRefreshing(true);
     else setLoading(true);
     setError(null);
 
     try {
-      const pending = inFlight.current ?? fetcherRef.current();
+      const pending = fetcherRef.current();
       inFlight.current = pending;
       const result = await pending;
+      if (!mounted.current || requestGeneration !== generation.current) return;
       dernierSucces.current = Date.now();
-      if (mounted.current) setData(result);
+      hasData.current = true;
+      setData(result);
     } catch (cause) {
-      if (mounted.current) {
+      if (mounted.current && requestGeneration === generation.current) {
         setError(
           cause instanceof DevisiaApiError
             ? cause.message
@@ -76,8 +83,8 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
         );
       }
     } finally {
-      inFlight.current = null;
-      if (mounted.current) {
+      if (mounted.current && requestGeneration === generation.current) {
+        inFlight.current = null;
         setLoading(false);
         setRefreshing(false);
       }
@@ -85,10 +92,20 @@ export function useQuery<T>(fetcher: () => Promise<T>, deps: React.DependencyLis
   }, []);
 
   React.useEffect(() => {
+    generation.current += 1;
+    inFlight.current = null;
+    dernierSucces.current = 0;
+    hasData.current = false;
+    // A different filter/customer must not display the previous response.
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setData(null);
     // Chargement initial : l'état de chargement est posé volontairement au
     // montage, c'est le comportement attendu d'un écran qui va chercher ses données.
-    // eslint-disable-next-line react-hooks/set-state-in-effect
     void run('load');
+    return () => {
+      generation.current += 1;
+      inFlight.current = null;
+    };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, deps);
 

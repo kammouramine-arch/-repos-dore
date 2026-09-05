@@ -11,3 +11,4 @@ export * from './entitlements';
 export * from './contracts';
 export * from './labels';
 export * from './api-client';
+export * from './password';

@@ -59,8 +59,8 @@ const QUALITE_ENVOI = 0.7;
  * Deux effets, tous deux nécessaires sur iPhone : le poids retombe très en
  * dessous de la limite de la plateforme, et le format HEIC des photos iOS
  * devient un JPEG que tout le monde sait lire — serveur, PDF, modèle de
- * vision. En cas d'échec de la conversion, on envoie l'original plutôt que de
- * perdre la photo : le serveur tranchera.
+ * vision. Si la conversion échoue, la photo reste visible et renvoyable ;
+ * aucun original potentiellement trop lourd n'est envoyé silencieusement.
  */
 async function preparerPourEnvoi(photo: Attachment): Promise<{
   uri: string;
@@ -71,8 +71,9 @@ async function preparerPourEnvoi(photo: Attachment): Promise<{
     return { uri: photo.uri, name: photo.name, mimeType: photo.mimeType };
   }
 
+  const contexte = ImageManipulator.manipulate(photo.uri);
+  let rendu: Awaited<ReturnType<typeof contexte.renderAsync>> | undefined;
   try {
-    const contexte = ImageManipulator.manipulate(photo.uri);
     const largeur = photo.width ?? 0;
     const hauteur = photo.height ?? 0;
     const coteLong = Math.max(largeur, hauteur);
@@ -82,16 +83,21 @@ async function preparerPourEnvoi(photo: Attachment): Promise<{
     if (coteLong > COTE_MAX) {
       contexte.resize(hauteur > largeur ? { height: COTE_MAX } : { width: COTE_MAX });
     }
-    const rendu = await contexte.renderAsync();
+    rendu = await contexte.renderAsync();
     const image = await rendu.saveAsync({ format: SaveFormat.JPEG, compress: QUALITE_ENVOI });
     return {
       uri: image.uri,
-      name: photo.name.replace(/\.(heic|heif|png|webp)$/i, '.jpg'),
+      name: `${photo.localId}.jpg`,
       mimeType: 'image/jpeg',
     };
-  } catch (cause) {
-    console.warn('[photo] réduction impossible, envoi de l’original :', cause);
-    return { uri: photo.uri, name: photo.name, mimeType: photo.mimeType };
+  } catch {
+    throw new DevisiaApiError({
+      code: 'VALIDATION',
+      message: 'La photo n’a pas pu être préparée. Ouvrez-la dans Photos puis sélectionnez-la à nouveau.',
+    }, 0);
+  } finally {
+    rendu?.release();
+    contexte.release();
   }
 }
 
@@ -99,7 +105,7 @@ function labelFor(cause: unknown): string {
   if (cause instanceof DevisiaApiError) {
     switch (cause.code) {
       case 'VALIDATION':
-        return 'Cette image est trop lourde ou dans un format non pris en charge.';
+        return cause.message;
       case 'UNAUTHENTICATED':
         return 'Votre session a expiré. Reconnectez-vous pour joindre la photo.';
       case 'RATE_LIMITED':
@@ -108,7 +114,7 @@ function labelFor(cause: unknown): string {
         return cause.message;
       case 'NETWORK':
       case 'TIMEOUT':
-        return 'L’envoi n’a pas abouti. Vérifiez votre connexion, puis renvoyez la photo.';
+        return cause.message;
       default:
         return 'Le serveur n’a pas accepté cette photo. Réessayez dans un instant.';
     }
@@ -120,6 +126,7 @@ export function usePhotoCapture() {
   const [photos, setPhotos] = useState<Attachment[]>([]);
   const [permissionNotice, setPermissionNotice] = useState<string | null>(null);
   const counter = useRef(0);
+  const activeUploads = useRef(new Set<string>());
 
   const patch = useCallback((localId: string, next: Partial<Attachment>) => {
     setPhotos((current) =>
@@ -129,6 +136,8 @@ export function usePhotoCapture() {
 
   const send = useCallback(
     async (photo: Attachment) => {
+      if (activeUploads.current.has(photo.localId) || photo.status === 'pret') return;
+      activeUploads.current.add(photo.localId);
       patch(photo.localId, { status: 'envoi', error: null });
       try {
         const pret = await preparerPourEnvoi(photo);
@@ -152,6 +161,8 @@ export function usePhotoCapture() {
         // La pièce jointe reste dans la liste : elle est renvoyable, et la
         // vignette prouve à l'artisan que sa photo n'est pas perdue.
         patch(photo.localId, { status: 'echec', error: labelFor(cause) });
+      } finally {
+        activeUploads.current.delete(photo.localId);
       }
     },
     [patch],

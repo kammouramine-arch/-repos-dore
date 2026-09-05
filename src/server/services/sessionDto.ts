@@ -6,7 +6,34 @@ import type { SessionDTO, SubscriptionDTO } from '@devisia/shared';
 
 /** Contexte de session tel que le consomment le web et le mobile. */
 export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
-  return buildSessionDTOFor(auth.user.id, auth.organization.organizationId);
+  // requireAuth already read and validated the user and membership for this
+  // request. Reuse them instead of adding another database round trip at launch.
+  const organizationId = auth.organization.organizationId;
+  const [subscription, profile] = await Promise.all([
+    prisma.subscription.findUnique({ where: { organizationId } }),
+    prisma.businessProfile.findUnique({
+      where: { organizationId },
+      select: { trade: true, onboardingCompleted: true },
+    }),
+  ]);
+  return {
+    user: {
+      id: auth.user.id,
+      email: auth.user.email,
+      firstName: auth.user.firstName,
+      lastName: auth.user.lastName,
+      emailVerified: auth.user.emailVerified,
+    },
+    organization: {
+      id: organizationId,
+      name: auth.organization.organizationName,
+      role: auth.organization.role,
+      trade: profile?.trade ?? null,
+      onboardingCompleted: profile?.onboardingCompleted ?? false,
+    },
+    subscription: subscription ? toSubscriptionDTO(subscription) : null,
+    capabilities: aiCapabilities(),
+  };
 }
 
 /**
