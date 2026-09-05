@@ -1,5 +1,11 @@
 # Follow-up from build 8 device testing
 
+## Navigation polish after build 10 — local, not released
+- Selected tab icons gently spring to 1.1x with a two-point lift and accent background; selection haptics and native shift transitions. Reduce Motion disables scale/shift animations.
+- Horizontal swipes beginning on the bottom bar switch Accueil / Prospects / Clients / Plus, excluding the create-quote action. Gesture capture is confined to the bottom strip to preserve screen scrolling/forms. This is release-triggered tab switching, not an interactive full-screen pager. Needs physical-device gesture and safe-area QA.
+- Euro headline prices show actual Apple EUR prices when available; otherwise explicitly labeled France reference prices. The actual non-EUR Apple amount remains visible separately before purchase. Never relabel USD as EUR. No currency purchase block reintroduced.
+- Mobile typecheck and lint passed. Not included in build 10. Apple purchase-logo issue not resolved: inspected Essentiel subscription, optional image empty; UI explicitly describes offer-code/win-back/promotion usage, not proof it fixes the standard purchase sheet. Asked user for a redacted screenshot of the exact missing-logo screen.
+
 ## Build 10 — subscription blocker regression
 - User reported blank prices and disabled Subscribe in build 9. Root cause: our EUR-only render/purchase guard, not a missing Apple product. Removed currency gating; preserve Apple's displayPrice, show currency code for non-EUR, and explain final confirmation without asserting the tester's account country is wrong. Missing products/prices, pending actions and non-owner role still disable purchase.
 - Intro plan cards now have a visible choose action and open the chosen plan on the paywall for connected users. Reference French prices are labeled as such.

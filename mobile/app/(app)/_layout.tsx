@@ -1,8 +1,11 @@
-import { Tabs, useRouter } from 'expo-router';
-import { Platform, Pressable, View } from 'react-native';
+import * as React from 'react';
+import { Tabs, usePathname, useRouter } from 'expo-router';
+import { PanResponder, Platform, Pressable, View, useWindowDimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '@/theme';
+import { TabIcon } from '@/components/tab-icon';
+import { useReducedMotion } from '@/components/motion';
 
 /**
  * Navigation principale. Le bouton central « Nouveau devis » reste accessible
@@ -10,10 +13,29 @@ import { colors, radius, shadows } from '@/theme';
  */
 export default function AppTabsLayout() {
   const router = useRouter();
+  const reduced = useReducedMotion();
+  const pathname = usePathname();
+  const { height } = useWindowDimensions();
+  const swipe = React.useMemo(() => PanResponder.create({
+    // Only the bottom navigation owns this gesture, never lists or form fields.
+    onMoveShouldSetPanResponderCapture: (event, gesture) => gesture.y0 > height - 100 && event.nativeEvent.pageY > height - 110 && Math.abs(gesture.dx) > 22 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2,
+    onPanResponderRelease: (_event, gesture) => {
+      if (Math.abs(gesture.dx) < 38) return;
+      const paths = ['/', '/prospects', '/clients', '/plus'];
+      const destinations = ['/(app)', '/(app)/prospects', '/(app)/clients', '/(app)/plus'] as const;
+      const current = paths.indexOf(pathname);
+      if (current < 0) return;
+      const next = Math.max(0, Math.min(paths.length - 1, current + (gesture.dx < 0 ? 1 : -1)));
+      if (next !== current) { void Haptics.selectionAsync().catch(() => undefined); router.navigate(destinations[next]); }
+    },
+  }), [height, pathname, router]);
 
   return (
+    <View style={{ flex: 1 }} {...swipe.panHandlers}>
     <Tabs
+      screenListeners={{ tabPress: () => { void Haptics.selectionAsync().catch(() => undefined); } }}
       screenOptions={{
+        animation: reduced ? 'none' : 'shift',
         headerShown: false,
         sceneStyle: { backgroundColor: colors.surface },
         lazy: true,
@@ -42,7 +64,7 @@ export default function AppTabsLayout() {
         options={{
           title: 'Accueil',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'home' : 'home-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'home' : 'home-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
@@ -51,7 +73,7 @@ export default function AppTabsLayout() {
         options={{
           title: 'Prospects',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
@@ -95,7 +117,7 @@ export default function AppTabsLayout() {
         options={{
           title: 'Clients',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'people' : 'people-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'people' : 'people-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
@@ -104,11 +126,12 @@ export default function AppTabsLayout() {
         options={{
           title: 'Plus',
           tabBarIcon: ({ color, size, focused }) => (
-            <Ionicons name={focused ? 'grid' : 'grid-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'grid' : 'grid-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
       <Tabs.Screen name="devis" options={{ href: null }} />
     </Tabs>
+    </View>
   );
 }

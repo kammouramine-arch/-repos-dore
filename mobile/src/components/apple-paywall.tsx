@@ -3,7 +3,7 @@ import { Alert, Linking, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
-import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, Screen, Title } from './ui';
+import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, Price, Screen, Title } from './ui';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -58,7 +58,7 @@ export function ApplePaywall() {
     <View style={{ gap: spacing.md }}>
       <Caption upper>Votre temps mérite mieux</Caption>
       <Title>{appleActive ? 'Votre abonnement Apple' : 'Moins de devis à faire.\nPlus de temps pour vous.'}</Title>
-      <Muted>Choisissez la formule qui accompagne votre activité. Les offres et prix ci-dessous sont confirmés par Apple.</Muted>
+      <Muted>Choisissez la formule qui accompagne votre activité. Les tarifs français sont en euros ; Apple confirme le prix et la devise de votre achat avant votre accord.</Muted>
       {!appleActive ? <Card style={{ backgroundColor: colors.accentSoft, gap: spacing.sm }}>
         <Heading>3 jours pour essayer DEVISIA</Heading>
         <Body>Gratuit sur chaque formule pour les nouveaux abonnés éligibles. Ensuite, renouvellement mensuel automatique sauf annulation.</Body>
@@ -81,8 +81,10 @@ export function ApplePaywall() {
             <Ionicons name={chosen ? 'radio-button-on' : 'radio-button-off'} color={chosen ? colors.accent : colors.subtle} size={23} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
-            <Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p?.displayPrice || (loading ? 'Chargement…' : 'Indisponible')}</Body><Muted>/ mois{p?.currency && p.currency !== 'EUR' ? ` · ${p.currency}` : ''}</Muted>
+            {p?.currency === 'EUR' ? <><Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p.displayPrice}</Body><Muted>/ mois</Muted></> : <Price cents={PLANS[plan].monthlyPriceCents} suffix="/ mois" size={30} />}
           </View>
+          {p?.currency !== 'EUR' ? <Caption>Tarif de référence en France — pas une conversion du prix Apple.</Caption> : null}
+          {p && p.currency !== 'EUR' ? <Muted>Prix retourné par Apple : {p.displayPrice} {p.currency}/mois. Vérifiez le montant final avant de confirmer.</Muted> : null}
           {!appleActive ? <Caption>3 jours gratuits pour les nouveaux abonnés éligibles</Caption> : null}
           {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{h}</Muted></View>)}
         </Card>
@@ -96,7 +98,7 @@ export function ApplePaywall() {
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
-      title={loading ? 'Chargement des offres Apple…' : trial ? 'Commencer mon essai gratuit' : `S’abonner${product ? ` · ${product.displayPrice}/mois` : ''}`}
+      title={loading ? 'Chargement des offres Apple…' : trial ? 'Commencer mon essai gratuit' : 'Continuer avec Apple'}
       loading={busy || loading} disabled={busy || loading || !product?.displayPrice || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(() => purchaseApplePlan(selected, session!.organization.id))}
     />}
