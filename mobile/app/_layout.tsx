@@ -142,6 +142,8 @@ function RootNavigator() {
         />
         <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
         </Stack.Protected>
+        <Stack.Screen name="presentation" options={{ headerShown: false }} />
+        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
         <Stack.Screen
           name="abonnement"
           options={{ headerShown: true, title: 'Abonnement' }}
@@ -159,7 +161,6 @@ function RootNavigator() {
           options={{ headerShown: true, title: 'Activité' }}
         />
       </Stack.Protected>
-      <Stack.Screen name="presentation" options={{ headerShown: true, title: 'Découvrir DEVISIA' }} />
     </Stack>
   );
 }

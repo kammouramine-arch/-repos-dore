@@ -204,7 +204,7 @@ export default function DecouverteScreen() {
               </View>
               <Title style={{ textAlign: 'center' }}>Essayez sans engagement</Title>
               <Muted style={{ textAlign: 'center' }}>
-                Choisissez votre formule, puis confirmez avec Apple. Après les 7 jours gratuits,
+                Choisissez votre formule, puis confirmez avec Apple. Après les {TRIAL_DAYS} jours gratuits,
                 l’abonnement se renouvelle automatiquement sauf annulation. Offre réservée aux comptes éligibles.
               </Muted>
             </View>

@@ -1,0 +1,99 @@
+import 'server-only';
+import { randomInt, randomUUID, timingSafeEqual } from 'node:crypto';
+import { Prisma } from '@prisma/client';
+import { prisma } from '@/lib/prisma';
+import { hashToken } from '@/lib/auth/tokens';
+import { verifyPassword } from '@/lib/auth/password';
+import { AppError, conflict, forbidden, validation } from '@/lib/errors';
+import { getEmailProvider, layout, esc } from '@/lib/email';
+
+const TTL = 10 * 60_000;
+const HOUR = 60 * 60_000;
+const digest = (id: string, userId: string, email: string, code: string) => hashToken(`${id}:${userId}:${email}:${code}`);
+
+export async function updateAccountName(userId: string, firstName: string, lastName: string) {
+  await prisma.user.update({ where: { id: userId }, data: { firstName: firstName.trim() || null, lastName: lastName.trim() || null } });
+}
+
+/** Serialized on the user row: limits survive serverless instances and concurrent requests. */
+export async function requestEmailCode(userId: string, input: { email: string; password?: string }) {
+  const email = input.email.trim().toLowerCase();
+  const provider = getEmailProvider();
+  if (provider.name === 'console' || !provider.available) {
+    throw new AppError('PROVIDER_UNAVAILABLE', 'La vérification par email est momentanément indisponible. Votre adresse actuelle reste inchangée.');
+  }
+  const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
+  if (user.deletedAt) throw forbidden();
+  // Changing the login address requires reauthentication, including before the first purchase.
+  if (email !== user.email && (!input.password || !await verifyPassword(input.password, user.passwordHash))) {
+    throw validation('Saisissez votre mot de passe actuel pour changer d’adresse email.');
+  }
+  const code = String(randomInt(0, 1_000_000)).padStart(6, '0');
+  const id = randomUUID();
+  const now = new Date();
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
+    const current = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+    if (current.email !== user.email || current.passwordHash !== user.passwordHash || current.deletedAt) throw conflict('Votre compte a changé. Rechargez vos informations.');
+    const previous = await tx.emailChallenge.findUnique({ where: { userId } });
+    const sameWindow = previous && now.getTime() - previous.windowStart.getTime() < HOUR;
+    if (previous && (now.getTime() - previous.sentAt.getTime() < 60_000 || (sameWindow && previous.sendCount >= 5))) {
+      throw new AppError('RATE_LIMITED', 'Patientez avant de demander un nouveau code. Maximum : cinq envois par heure.');
+    }
+    const data = { id, email, tokenHash: digest(id, userId, email, code), expiresAt: new Date(now.getTime() + TTL), sentAt: now, attempts: 0, usedAt: null, windowStart: sameWindow ? previous.windowStart : now, sendCount: sameWindow ? previous.sendCount + 1 : 1 };
+    await tx.emailChallenge.upsert({ where: { userId }, create: { userId, ...data }, update: data });
+  });
+  try {
+    const sent = await provider.send({
+      to: email,
+      subject: 'Votre code de confirmation DEVISIA',
+      text: `Votre code DEVISIA : ${code}. Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.`,
+      html: layout({ title: 'Confirmez votre adresse email', body: `<p>Votre code de confirmation :</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.</p>` }),
+    });
+    if (!sent.delivered) throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Réessayez plus tard.');
+  } catch {
+    await prisma.emailChallenge.updateMany({ where: { userId, id }, data: { usedAt: new Date() } });
+    throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Votre adresse actuelle reste inchangée.');
+  }
+  return { requested: true, email, expiresInSeconds: TTL / 1000 };
+}
+
+export async function confirmEmailCode(userId: string, sessionId: string, code: string) {
+  let outcome: string;
+  try {
+    outcome = await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
+      const challenge = await tx.emailChallenge.findUnique({ where: { userId } });
+      const now = new Date();
+      if (!challenge || challenge.usedAt || challenge.expiresAt <= now || challenge.attempts >= 5) return 'invalid';
+      const expected = Buffer.from(challenge.tokenHash, 'hex');
+      const actual = Buffer.from(digest(challenge.id, userId, challenge.email, code), 'hex');
+      if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
+        // Return instead of throwing: commit the failed attempt, don't roll it back.
+        await tx.emailChallenge.update({ where: { userId }, data: { attempts: { increment: 1 } } });
+        return 'invalid';
+      }
+      const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+      if (user.deletedAt) return 'invalid';
+      const existing = await tx.user.findUnique({ where: { email: challenge.email }, select: { id: true } });
+      if (existing && existing.id !== userId) {
+        await tx.emailChallenge.update({ where: { userId }, data: { usedAt: now } });
+        return 'conflict';
+      }
+      await tx.user.update({ where: { id: userId }, data: { email: challenge.email, emailVerifiedAt: now } });
+      await tx.emailChallenge.update({ where: { userId }, data: { usedAt: now } });
+      // Old reset and verification links must never apply to the new address.
+      await tx.authToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
+      if (user.email !== challenge.email) {
+        await tx.session.updateMany({ where: { userId, id: { not: sessionId }, revokedAt: null }, data: { revokedAt: now } });
+      }
+      return 'ok';
+    });
+  } catch (error) {
+    if (error instanceof Prisma.PrismaClientKnownRequestError && error.code === 'P2002') throw conflict('Cette adresse est déjà utilisée par un autre compte.');
+    throw error;
+  }
+  if (outcome === 'conflict') throw conflict('Cette adresse est déjà utilisée par un autre compte.');
+  if (outcome !== 'ok') throw validation('Code incorrect ou expiré. Après cinq essais, demandez un nouveau code.');
+  return { verified: true };
+}

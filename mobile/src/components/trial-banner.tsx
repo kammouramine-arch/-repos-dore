@@ -10,6 +10,9 @@ export function TrialBanner({ subscription }: { subscription: SubscriptionDTO | 
   const router = useRouter();
   const state = accessStateFor(subscription);
 
+  // Apple already owns the renewal: never sell the same plan a second time.
+  if (subscription?.provider === 'apple' && state.canWrite) return null;
+
   if (state.trialExpired) {
     return (
       <Banner

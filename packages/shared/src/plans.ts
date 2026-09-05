@@ -47,7 +47,7 @@ export interface PlanDefinition {
   recommended?: boolean;
 }
 
-export const TRIAL_DAYS = 7;
+export const TRIAL_DAYS = 3;
 
 export const PLANS: Record<PlanId, PlanDefinition> = {
   ESSENTIEL: {

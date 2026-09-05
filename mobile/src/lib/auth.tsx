@@ -122,6 +122,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try { await pending; } finally { if (restoring.current === pending) restoring.current = null; }
   }, []);
 
+  // A mutation (purchase/profile update) must not reuse a read started before it.
+  const refreshSession = React.useCallback(async () => {
+    if (restoring.current) await restoring.current;
+    await loadSession();
+  }, [loadSession]);
+
   React.useEffect(() => {
     // Rappel différé : déclenché par une réponse 401 de l'API, jamais au rendu.
     setUnauthenticatedHandler(() => {
@@ -146,12 +152,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (state.status !== 'connecte' || Platform.OS !== 'ios' || state.session?.organization.role !== 'OWNER') return;
     let disposed = false;
     let cleanup: (() => void) | undefined;
-    void listenForApplePurchases(() => { void loadSession(); }, (error) => {
+    void listenForApplePurchases(() => { void refreshSession(); }, (error) => {
       if (!disposed) Alert.alert('Abonnement', error instanceof Error ? error.message : 'La confirmation Apple n’a pas abouti. Restaurez vos achats.');
     }).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
     const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
     return () => { disposed = true; cleanup?.(); foreground.remove(); };
-  }, [state.status, state.session?.organization.id, state.session?.organization.role, loadSession]);
+  }, [state.status, state.session?.organization.id, state.session?.organization.role, loadSession, refreshSession]);
 
   const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>) => {
     setState((current) => ({ ...current, error: null }));
@@ -181,9 +187,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await clearToken();
         setState({ status: 'deconnecte', session: null, error: null, offline: false });
       },
-      refresh: loadSession,
+      refresh: refreshSession,
     }),
-    [state, handle, loadSession],
+    [state, handle, refreshSession],
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

@@ -351,10 +351,10 @@ function drawObject(ctx: Ctx, input: QuotePdfInput) {
 
 const COLUMNS = {
   label: MARGIN + 8,
-  quantity: MARGIN + 300,
-  unit: MARGIN + 344,
-  unitPrice: MARGIN + 392,
-  vat: MARGIN + 452,
+  quantity: MARGIN + 238,
+  unit: MARGIN + 277,
+  unitPrice: MARGIN + 323,
+  vat: MARGIN + 389,
   total: A4.width - MARGIN - 8,
 };
 
@@ -401,8 +401,8 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
   drawTableHeader(ctx);
 
   for (const line of input.lines) {
-    const labelLines = wrap(line.label, ctx.bold, 9.5, 270);
-    const descLines = line.description ? wrap(line.description, ctx.regular, 8.5, 270) : [];
+    const labelLines = wrap(line.label, ctx.bold, 9.5, 220);
+    const descLines = line.description ? wrap(line.description, ctx.regular, 8.5, 220) : [];
     const height = labelLines.length * 12 + descLines.length * 10.5 + 12;
 
     if (ctx.y - height < MARGIN + 80) {
@@ -421,10 +421,10 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
     }
 
     drawRight(ctx, formatQuantity(line.quantity), COLUMNS.quantity + 26, rowTop);
-    drawText(ctx, line.unit, { x: COLUMNS.unit, y: rowTop, size: 9.5, color: MUTED });
-    drawRight(ctx, money(line.unitPriceCents), COLUMNS.unitPrice + 50, rowTop);
-    drawRight(ctx, input.company.vatExempt ? '-' : formatPercent(line.vatRate), COLUMNS.vat + 30, rowTop);
-    drawRight(ctx, money(line.lineTotalCents), COLUMNS.total, rowTop, 9.5, true);
+    drawText(ctx, line.unit, { x: COLUMNS.unit, y: rowTop, size: 8, color: MUTED });
+    drawRight(ctx, money(line.unitPriceCents), COLUMNS.unitPrice + 50, rowTop, 8);
+    drawRight(ctx, input.company.vatExempt ? '-' : formatPercent(line.vatRate), COLUMNS.vat + 30, rowTop, 8);
+    drawRight(ctx, money(line.lineTotalCents), COLUMNS.total, rowTop, 8, true);
 
     if (line.discountRate > 0) {
       drawText(ctx, `Remise ${formatPercent(line.discountRate)}`, {

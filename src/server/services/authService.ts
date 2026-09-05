@@ -9,6 +9,7 @@ import { getEmailProvider, resetPasswordEmail, verifyEmailTemplate, welcomeEmail
 import { createOrganization } from './organizationService';
 import { recordAudit } from './auditService';
 import { trackEvent } from './analyticsService';
+import { requestEmailCode } from './accountService';
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;
@@ -64,7 +65,7 @@ export async function signUp(input: SignUpInput) {
   });
   await trackEvent('signup', { organizationId: organization.id, userId: user.id });
 
-  await sendVerificationEmail(user.id, email).catch((error) =>
+  await (input.billingProvider === 'apple' ? requestEmailCode(user.id, { email }) : sendVerificationEmail(user.id, email)).catch((error) =>
     console.error('[auth] envoi de vérification impossible', error),
   );
   await getEmailProvider()
@@ -115,20 +116,25 @@ export async function signIn(input: SignInInput) {
   return { user, organizationId: membership.organizationId };
 }
 
-async function issueToken(userId: string, kind: AuthTokenKind, ttlMs: number) {
+async function issueToken(userId: string, kind: AuthTokenKind, ttlMs: number, email: string) {
   const token = generateToken(32);
-  await prisma.authToken.updateMany({
+  await prisma.$transaction(async (tx) => {
+  await tx.$queryRaw`SELECT id FROM users WHERE id = ${userId}::uuid FOR UPDATE`;
+  const user = await tx.user.findUniqueOrThrow({ where: { id: userId } });
+  if (user.email !== email || user.deletedAt) throw validation('Votre adresse a changé. Renouvelez votre demande.');
+  await tx.authToken.updateMany({
     where: { userId, kind, usedAt: null },
     data: { usedAt: new Date() },
   });
-  await prisma.authToken.create({
+  await tx.authToken.create({
     data: { userId, kind, tokenHash: hashToken(token), expiresAt: new Date(Date.now() + ttlMs) },
+  });
   });
   return token;
 }
 
 export async function sendVerificationEmail(userId: string, email: string) {
-  const token = await issueToken(userId, 'EMAIL_VERIFICATION', VERIFICATION_TTL_MS);
+  const token = await issueToken(userId, 'EMAIL_VERIFICATION', VERIFICATION_TTL_MS, email);
   const url = appUrl(`/verification?token=${encodeURIComponent(token)}`);
   await getEmailProvider().send({ to: email, ...verifyEmailTemplate({ url }) });
 }
@@ -141,10 +147,12 @@ export async function verifyEmail(token: string) {
   if (!record || record.kind !== 'EMAIL_VERIFICATION' || record.usedAt || record.expiresAt < new Date()) {
     throw validation('Ce lien de vérification est invalide ou expiré.');
   }
-  await prisma.$transaction([
-    prisma.authToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
-    prisma.user.update({ where: { id: record.userId }, data: { emailVerifiedAt: new Date() } }),
-  ]);
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM users WHERE id = ${record.userId}::uuid FOR UPDATE`;
+    const claimed = await tx.authToken.updateMany({ where: { id: record.id, usedAt: null, expiresAt: { gt: new Date() } }, data: { usedAt: new Date() } });
+    if (claimed.count !== 1) throw validation('Ce lien de vérification est invalide ou expiré.');
+    await tx.user.update({ where: { id: record.userId }, data: { emailVerifiedAt: new Date() } });
+  });
   return record.user;
 }
 
@@ -152,7 +160,7 @@ export async function verifyEmail(token: string) {
 export async function requestPasswordReset(email: string) {
   const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
   if (!user || user.deletedAt) return;
-  const token = await issueToken(user.id, 'PASSWORD_RESET', RESET_TTL_MS);
+  const token = await issueToken(user.id, 'PASSWORD_RESET', RESET_TTL_MS, user.email);
   const url = appUrl(`/mot-de-passe/nouveau?token=${encodeURIComponent(token)}`);
   await getEmailProvider().send({ to: user.email, ...resetPasswordEmail({ url }) });
 }
@@ -163,12 +171,15 @@ export async function resetPassword(token: string, password: string, ip?: string
     throw validation('Ce lien de réinitialisation est invalide ou expiré.');
   }
   const passwordHash = await hashPassword(password);
-  await prisma.$transaction([
-    prisma.authToken.update({ where: { id: record.id }, data: { usedAt: new Date() } }),
-    prisma.user.update({ where: { id: record.userId }, data: { passwordHash } }),
+  await prisma.$transaction(async (tx) => {
+    await tx.$queryRaw`SELECT id FROM users WHERE id = ${record.userId}::uuid FOR UPDATE`;
+    const claimed = await tx.authToken.updateMany({ where: { id: record.id, usedAt: null, expiresAt: { gt: new Date() } }, data: { usedAt: new Date() } });
+    if (claimed.count !== 1) throw validation('Ce lien de réinitialisation est invalide ou expiré.');
+    await tx.user.update({ where: { id: record.userId }, data: { passwordHash } });
+    await tx.emailChallenge.updateMany({ where: { userId: record.userId, usedAt: null }, data: { usedAt: new Date() } });
     // Toutes les sessions existantes sont invalidées après un changement de mot de passe.
-    prisma.session.updateMany({ where: { userId: record.userId }, data: { revokedAt: new Date() } }),
-  ]);
+    await tx.session.updateMany({ where: { userId: record.userId }, data: { revokedAt: new Date() } });
+  });
   await recordAudit({ action: 'auth.password_reset', userId: record.userId, ip });
   return record.userId;
 }

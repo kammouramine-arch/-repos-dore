@@ -292,9 +292,26 @@ model User {
   auditLogs     AuditLog[]
   aiRequests    AIRequest[]
   deviceTokens  DeviceToken[]
+  emailChallenge EmailChallenge?
 
   @@index([deletedAt])
   @@map("users")
+}
+
+model EmailChallenge {
+  userId      String @id @db.Uuid
+  id          String @unique @db.Uuid
+  email       String
+  tokenHash   String
+  expiresAt   DateTime
+  sentAt      DateTime
+  attempts    Int @default(0)
+  windowStart DateTime
+  sendCount   Int @default(1)
+  usedAt      DateTime?
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@map("email_challenges")
 }
 
 model Session {

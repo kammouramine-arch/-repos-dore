@@ -20,7 +20,7 @@ interface Entry {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   hint: string;
-  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique' | '/presentation';
+  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique' | '/presentation' | '/compte';
 }
 
 export default function PlusScreen() {
@@ -29,6 +29,7 @@ export default function PlusScreen() {
   const access = accessStateFor(session?.subscription ?? null);
 
   const entries: Entry[] = [
+    { icon: 'person-outline', label: 'Mon compte', hint: 'Nom, email et vérification', href: '/compte' },
     { icon: 'sparkles-outline', label: 'Découvrir DEVISIA', hint: 'Présentation et formules', href: '/presentation' },
     {
       icon: 'card-outline',

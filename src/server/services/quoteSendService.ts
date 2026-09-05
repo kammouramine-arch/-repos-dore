@@ -24,6 +24,10 @@ export interface SendQuoteInput {
  * Un devis n'est jamais envoyé sans action explicite de l'utilisateur.
  */
 export async function sendQuote(input: SendQuoteInput) {
+  const provider = getEmailProvider();
+  if (provider.name === 'console' || !provider.available) {
+    throw new AppError('PROVIDER_UNAVAILABLE', 'L’envoi d’emails n’est pas encore configuré. Votre devis reste inchangé. Vous pouvez partager son PDF.');
+  }
   const quote = await prisma.quote.findFirst({
     where: { id: input.quoteId, organizationId: input.organizationId, deletedAt: null },
     include: {
@@ -67,7 +71,7 @@ export async function sendQuote(input: SendQuoteInput) {
 
   // Le résultat n'est pas jeté : sans fournisseur configuré, l'email n'est pas
   // remis et l'appelant doit pouvoir le dire plutôt que d'annoncer un envoi.
-  const remise = await getEmailProvider().send({
+  const remise = await provider.send({
     to: recipient,
     replyTo: profile?.email ?? undefined,
     ...email,
@@ -76,6 +80,9 @@ export async function sendQuote(input: SendQuoteInput) {
     ],
   });
 
+  if (!remise.delivered) {
+    throw new AppError('PROVIDER_UNAVAILABLE', 'Le service d’envoi n’a pas accepté cet email. Votre devis n’a pas été marqué comme envoyé.');
+  }
   const updated = await markQuoteSent(input.organizationId, quote.id, input.userId);
   await incrementUsage(input.organizationId, 'QUOTE_SENT');
 
