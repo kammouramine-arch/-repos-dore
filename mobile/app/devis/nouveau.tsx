@@ -24,10 +24,10 @@ import {
   ChoiceRow,
   Divider,
   GrowingInput,
-  Heading,
   IconButton,
   Ionicons,
   Muted,
+  PageHeader,
   ProgressDots,
   SectionHeader,
   Title,
@@ -126,6 +126,9 @@ export default function NouveauDevisScreen() {
   // exactement l'opération qui a échoué.
   const [retry, setRetry] = React.useState<(() => void) | null>(null);
   const [step, setStep] = React.useState(0);
+  const requestVersion = React.useRef(0);
+  const generating = React.useRef(false);
+  React.useEffect(() => () => { requestVersion.current += 1; }, []);
 
   const [draft, setDraft] = React.useState<GeneratedQuoteDTO | null>(null);
   const [lines, setLines] = React.useState<GeneratedQuoteDTO['lines']>([]);
@@ -192,6 +195,9 @@ export default function NouveauDevisScreen() {
   const composed = `${description}${dictation.partial ? ` ${dictation.partial}` : ''}`.trim();
 
   async function generate(text: string) {
+    if (generating.current) return;
+    generating.current = true;
+    const version = ++requestVersion.current;
     setError(null);
     setRetry(null);
     setStep(0);
@@ -201,12 +207,14 @@ export default function NouveauDevisScreen() {
         description: text.trim(),
         fileIds: photos.fileIds,
       });
+      if (version !== requestVersion.current) return;
       setDraft(result);
       setLines(result.lines);
       setTitle(result.title);
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      if (version !== requestVersion.current) return;
       setRetry(() => () => void generate(text));
       setError(
         cause instanceof DevisiaApiError
@@ -215,11 +223,14 @@ export default function NouveauDevisScreen() {
       );
       // On revient là d'où l'artisan est parti : ses réponses restent saisies.
       setPhase(questions.length > 0 ? 'questions' : 'saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
     }
   }
 
   /** Première passe : on demande d'abord ce qui manque, avant de faire attendre. */
   async function prepare() {
+    if (generating.current) return;
     if (composed.trim().length < 12) {
       setRetry(null);
       setError('Décrivez le chantier en quelques mots avant de continuer.');
@@ -230,6 +241,8 @@ export default function NouveauDevisScreen() {
       setError('Une photo est en cours d’envoi. Encore un instant.');
       return;
     }
+    generating.current = true;
+    const version = ++requestVersion.current;
     setError(null);
     setRetry(null);
     setStep(0);
@@ -239,6 +252,7 @@ export default function NouveauDevisScreen() {
         description: composed.trim(),
         fileIds: photos.fileIds,
       });
+      if (version !== requestVersion.current) return;
       const missing = toQuestions(first);
       if (missing.length > 0) {
         setDraft(first);
@@ -253,6 +267,7 @@ export default function NouveauDevisScreen() {
       setPhase('verification');
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
+      if (version !== requestVersion.current) return;
       setRetry(() => () => void prepare());
       setError(
         cause instanceof DevisiaApiError
@@ -260,6 +275,8 @@ export default function NouveauDevisScreen() {
           : 'La préparation du devis n’a pas abouti.',
       );
       setPhase('saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
     }
   }
 
@@ -332,7 +349,7 @@ export default function NouveauDevisScreen() {
       <View
         style={{
           flex: 1,
-          backgroundColor: colors.canvas,
+          backgroundColor: colors.accentDeep,
           alignItems: 'center',
           justifyContent: 'center',
           padding: spacing.xl,
@@ -341,24 +358,54 @@ export default function NouveauDevisScreen() {
       >
         <View
           style={{
-            width: 72,
-            height: 72,
+            position: 'absolute',
+            width: 300,
+            height: 300,
+            borderRadius: 150,
+            backgroundColor: colors.accent,
+            opacity: 0.22,
+            top: -130,
+            right: -120,
+          }}
+        />
+        <View
+          style={{
+            width: 78,
+            height: 78,
             borderRadius: radius.full,
-            backgroundColor: colors.accentSoft,
+            backgroundColor: 'rgba(255,255,255,0.13)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.18)',
             alignItems: 'center',
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="sparkles" size={30} color={colors.accent} />
+          <Ionicons name="sparkles" size={32} color={colors.white} />
         </View>
-        <Heading>DEVISIA prépare votre devis</Heading>
-        <View style={{ gap: spacing.md, alignSelf: 'stretch', paddingHorizontal: spacing.lg }}>
+        <View style={{ alignItems: 'center', gap: 6 }}>
+          <Title style={{ color: colors.white, textAlign: 'center' }}>Votre devis prend forme</Title>
+          <Muted style={{ color: 'rgba(255,255,255,0.68)', textAlign: 'center' }}>
+            DEVISIA analyse, chiffre et met en page.
+          </Muted>
+        </View>
+        <View
+          style={{
+            gap: spacing.md,
+            alignSelf: 'stretch',
+            marginHorizontal: spacing.sm,
+            padding: spacing.xl,
+            borderRadius: radius.xl,
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.12)',
+          }}
+        >
           {etapes.map((label, index) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               {index < step ? (
-                <Ionicons name="checkmark-circle" size={20} color={colors.success} />
+                <Ionicons name="checkmark-circle" size={20} color="#78E4B6" />
               ) : index === step ? (
-                <ActivityIndicator size="small" color={colors.accent} />
+                <ActivityIndicator size="small" color={colors.white} />
               ) : (
                 <View
                   style={{
@@ -366,19 +413,19 @@ export default function NouveauDevisScreen() {
                     height: 20,
                     borderRadius: 10,
                     borderWidth: 1,
-                    borderColor: colors.line,
+                    borderColor: 'rgba(255,255,255,0.25)',
                   }}
                 />
               )}
-              <Body style={{ color: index <= step ? colors.ink : colors.subtle }}>{label}</Body>
+              <Body style={{ color: index <= step ? colors.white : 'rgba(255,255,255,0.42)' }}>{label}</Body>
             </View>
           ))}
         </View>
 
         {attente >= 8 ? (
           <View style={{ alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg }}>
-            <Caption style={{ color: colors.subtle }}>{seconds(attente * 1000)}</Caption>
-            <Muted style={{ textAlign: 'center' }}>
+            <Caption style={{ color: 'rgba(255,255,255,0.55)' }}>{seconds(attente * 1000)}</Caption>
+            <Muted style={{ textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
               {attente >= 30
                 ? 'C’est plus long que d’habitude. Vous pouvez patienter encore, ou revenir à votre description — rien n’est perdu.'
                 : 'DEVISIA affine les quantités et les prix. Encore un instant.'}
@@ -388,6 +435,8 @@ export default function NouveauDevisScreen() {
                 title="Revenir à ma description"
                 variant="secondary"
                 onPress={() => {
+                  requestVersion.current += 1;
+                  generating.current = false;
                   setPhase(questions.length > 0 ? 'questions' : 'saisie');
                   setError(null);
                   setRetry(() => () => void prepare());
@@ -414,8 +463,11 @@ export default function NouveauDevisScreen() {
         >
           <View style={{ gap: spacing.sm }}>
             <ProgressDots total={questions.length} current={Math.min(answered, questions.length - 1)} />
-            <Title>{missingLabel(questions.length)}</Title>
-            <Muted>Une précision de votre part vaut mieux qu’une estimation de ma part.</Muted>
+            <PageHeader
+              eyebrow="Derniers détails"
+              title={missingLabel(questions.length)}
+              subtitle="Une précision de votre part vaut mieux qu’une estimation de ma part."
+            />
           </View>
 
           {questions.map((question) => (
@@ -484,11 +536,14 @@ export default function NouveauDevisScreen() {
           style={{ flex: 1, backgroundColor: colors.surface }}
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: 160 }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
         >
-          <View style={{ gap: 4 }}>
-            <Title>Vérifiez votre devis</Title>
-            <Muted>Rien n’est envoyé sans votre validation.</Muted>
-          </View>
+          <PageHeader
+            eyebrow="Votre devis"
+            title="Vérifiez les détails"
+            subtitle="Relisez, ajustez puis enregistrez. Rien n’est envoyé automatiquement."
+          />
 
           {error ? <Banner tone="danger" title={error} /> : null}
 
@@ -683,8 +738,8 @@ export default function NouveauDevisScreen() {
               padding: spacing.lg,
               paddingBottom: spacing['2xl'],
               backgroundColor: colors.canvas,
-              borderTopWidth: 1,
-              borderTopColor: colors.line,
+              borderTopLeftRadius: radius.xl,
+              borderTopRightRadius: radius.xl,
             },
             shadows.floating as object,
           ]}
@@ -719,11 +774,14 @@ export default function NouveauDevisScreen() {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing['4xl'] }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
       >
-        <View style={{ gap: 4 }}>
-          <Title>Décrivez votre chantier</Title>
-          <Muted>Parlez comme vous le feriez à votre apprenti. DEVISIA met en forme.</Muted>
-        </View>
+        <PageHeader
+          eyebrow="Nouveau devis"
+          title="Décrivez le chantier"
+          subtitle="Dictez naturellement. DEVISIA transforme vos mots en lignes chiffrées."
+        />
 
         <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />
         {dictation.error ? (
@@ -741,7 +799,7 @@ export default function NouveauDevisScreen() {
           />
         ) : null}
 
-        <Card style={{ padding: 0, overflow: 'hidden' }}>
+        <Card style={{ padding: 0, overflow: 'hidden', borderColor: colors.accentBorder }}>
           <TextInput
             value={composed}
             onChangeText={(text) => {
@@ -775,7 +833,7 @@ export default function NouveauDevisScreen() {
               </View>
             ) : (
               <Caption style={{ color: colors.subtle }}>
-                {dictation.onDevice ? 'Dictée sans réseau' : ''}
+              {dictation.onDevice ? 'Dictée protégée sur l’appareil' : ''}
               </Caption>
             )}
             <Caption style={{ color: colors.subtle }}>{composed.length} / 8000</Caption>
@@ -792,12 +850,14 @@ export default function NouveauDevisScreen() {
               onPress={() => (listening ? dictation.stop() : void dictation.start())}
               style={({ pressed }) => [
                 {
-                  width: 88,
-                  height: 88,
+                  width: 86,
+                  height: 86,
                   borderRadius: radius.full,
                   alignItems: 'center',
                   justifyContent: 'center',
                   backgroundColor: listening ? colors.danger : colors.accent,
+                  borderWidth: 6,
+                  borderColor: colors.canvas,
                   opacity: !dictation.supported ? 0.4 : pressed ? 0.85 : 1,
                   transform: [{ scale: pressed ? 0.96 : 1 }],
                 },

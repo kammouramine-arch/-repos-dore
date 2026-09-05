@@ -28,6 +28,46 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('client API — transport', () => {
+  it.each(['photo', 'audio'])('sends real %s bytes instead of a URI object', async (kind) => {
+    const source = new Blob(['file bytes'], { type: kind === 'photo' ? 'image/jpeg' : 'audio/mp4' });
+    const readUploadFile = vi.fn().mockResolvedValue(source);
+    const fetchImpl = vi.fn().mockResolvedValue(jsonResponse({ data: { id: 'file-id', text: 'chantier' } }));
+    const api = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl, readUploadFile, getToken: () => 'token' });
+    const input = { uri: 'file:///cache/image.jpg', name: 'chantier.jpg', type: source.type };
+    if (kind === 'photo') await api.files.upload(input);
+    else await api.files.transcribe(input);
+    const init = fetchImpl.mock.calls[0][1] as RequestInit;
+    const form = init.body as FormData;
+    const part = form.get(kind === 'photo' ? 'file' : 'audio') as File;
+    expect(part).toBeInstanceOf(Blob);
+    expect(await part.text()).toBe('file bytes');
+    expect(part.name).toBe('chantier.jpg');
+    expect(part.type).toBe(source.type);
+    expect(init.headers).toEqual({ Authorization: 'Bearer token' });
+    expect(readUploadFile).toHaveBeenCalledWith(input);
+  });
+  it('recovers from one dropped read connection', async () => {
+    const fetchImpl = vi.fn()
+      .mockRejectedValueOnce(new TypeError('Network request failed'))
+      .mockResolvedValueOnce(jsonResponse({ data: { total: 0, items: [] } }));
+    const api = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl });
+    await expect(api.quotes.list()).resolves.toEqual({ total: 0, items: [] });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
+
+  it('never replays a write after a connection failure', async () => {
+    const fetchImpl = vi.fn().mockRejectedValue(new TypeError('Network request failed'));
+    const api = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl });
+    await expect(api.quotes.create({ title: 'Chantier' })).rejects.toMatchObject({ code: 'NETWORK' });
+    expect(fetchImpl).toHaveBeenCalledTimes(1);
+  });
+
+  it('retries a temporary gateway failure only once', async () => {
+    const fetchImpl = vi.fn().mockImplementation(async () => new Response('Unavailable', { status: 502 }));
+    const api = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl });
+    await expect(api.quotes.list()).rejects.toMatchObject({ status: 502 });
+    expect(fetchImpl).toHaveBeenCalledTimes(2);
+  });
   it('joint le jeton porteur et omet les cookies', async () => {
     const fetchImpl = vi.fn(async () => jsonResponse({ data: { unread: 0, items: [] } }));
     const api = createApiClient({

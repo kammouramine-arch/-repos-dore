@@ -13,9 +13,10 @@ import {
   Card,
   Divider,
   ErrorState,
-  Heading,
   Ionicons,
   Muted,
+  PageHeader,
+  PressableCard,
   Screen,
   SectionHeader,
   Skeleton,
@@ -26,7 +27,7 @@ import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography } from '@/theme';
 
 /**
  * Accueil.
@@ -42,26 +43,48 @@ function Stat({
   children,
   hint,
   tone = 'plain',
+  icon,
 }: {
   label: string;
   children: React.ReactNode;
   hint?: string;
   tone?: 'plain' | 'accent';
+  icon?: keyof typeof Ionicons.glyphMap;
 }) {
   return (
     <Card
       style={{
         flex: 1,
-        gap: 2,
+        gap: spacing.sm,
+        minHeight: 132,
+        justifyContent: 'space-between',
         backgroundColor: tone === 'accent' ? colors.accentSoft : colors.canvas,
         borderColor: tone === 'accent' ? colors.accentBorder : colors.line,
       }}
     >
-      <Caption upper style={{ color: tone === 'accent' ? colors.accentHover : colors.subtle }}>
-        {label}
-      </Caption>
-      {children}
-      {hint ? <Caption style={{ color: colors.subtle }}>{hint}</Caption> : null}
+      <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
+        <Caption upper style={{ color: tone === 'accent' ? colors.accentHover : colors.subtle }}>
+          {label}
+        </Caption>
+        {icon ? (
+          <View
+            style={{
+              width: 30,
+              height: 30,
+              borderRadius: 10,
+              backgroundColor: tone === 'accent' ? colors.canvas : colors.surface2,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name={icon} size={15} color={tone === 'accent' ? colors.accent : colors.muted} />
+          </View>
+        ) : null}
+      </View>
+      <View style={{ gap: 1 }}>
+        {children}
+        {hint ? <Caption style={{ color: colors.subtle }}>{hint}</Caption> : null}
+      </View>
     </Card>
   );
 }
@@ -81,7 +104,7 @@ function relativeDay(iso: string): string {
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const query = useQuery<DashboardDTO>(() => api.dashboard(30));
+  const query = useQuery<DashboardDTO>(() => api.dashboard(30), [], 'dashboard:30');
 
   // Les montants changent pendant que l'artisan travaille : on recharge au retour.
   useFocusEffect(
@@ -108,13 +131,16 @@ export default function AccueilScreen() {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
         <Screen>
-          <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-            <View style={{ gap: 2 }}>
-              <Title>{firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}</Title>
-              <Muted>Un instant, je rassemble votre activité.</Muted>
-            </View>
-            <Logo size={26} showName={false} />
-          </View>
+          <PageHeader
+            eyebrow="Votre atelier"
+            title={firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}
+            subtitle="Un instant, je rassemble votre activité."
+            action={
+              <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                <Logo size={26} showName={false} />
+              </View>
+            }
+          />
 
           <Card style={{ gap: spacing.md }}>
             <Skeleton height={13} width="45%" />
@@ -161,17 +187,31 @@ export default function AccueilScreen() {
           />
         }
       >
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <View style={{ gap: 2 }}>
-            <Title>{firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}</Title>
-            <Muted>
-              {started
-                ? 'Voici où en est votre activité.'
-                : 'Prenons deux minutes pour votre premier devis.'}
-            </Muted>
-          </View>
-          <Logo size={26} showName={false} />
-        </View>
+        <PageHeader
+          eyebrow="Votre atelier"
+          title={firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}
+          subtitle={
+            started
+              ? 'Votre activité, claire et prête à avancer.'
+              : 'Votre premier devis commence ici.'
+          }
+          action={
+            <View
+              style={{
+                width: 44,
+                height: 44,
+                borderRadius: 15,
+                backgroundColor: colors.canvas,
+                borderWidth: 1,
+                borderColor: colors.line,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Logo size={27} showName={false} />
+            </View>
+          }
+        />
 
         <TrialBanner subscription={session?.subscription ?? null} />
 
@@ -179,29 +219,38 @@ export default function AccueilScreen() {
           /* Première utilisation : une seule chose à faire, et on explique
              comment elle se passe plutôt que d'afficher des compteurs vides. */
           <>
-            <Pressable
-              accessibilityRole="button"
+            <PressableCard
               accessibilityLabel="Créer mon premier devis"
               onPress={() => {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push('/devis/nouveau');
               }}
-              style={({ pressed }) => [
-                {
-                  backgroundColor: colors.accent,
-                  borderRadius: radius.xl,
-                  padding: spacing.xl,
-                  gap: spacing.md,
-                  transform: [{ scale: pressed ? 0.985 : 1 }],
-                },
-                shadows.floating as object,
-              ]}
+              style={{
+                backgroundColor: colors.accentDeep,
+                borderColor: colors.accentDeep,
+                borderRadius: radius.xl,
+                padding: spacing.xl,
+                gap: spacing.md,
+                overflow: 'hidden',
+              }}
             >
               <View
                 style={{
-                  width: 48,
-                  height: 48,
-                  borderRadius: radius.full,
+                  position: 'absolute',
+                  width: 180,
+                  height: 180,
+                  borderRadius: 90,
+                  backgroundColor: colors.accent,
+                  opacity: 0.32,
+                  right: -62,
+                  top: -76,
+                }}
+              />
+              <View
+                style={{
+                  width: 52,
+                  height: 52,
+                  borderRadius: 17,
                   backgroundColor: 'rgba(255,255,255,0.18)',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -209,7 +258,7 @@ export default function AccueilScreen() {
               >
                 <Ionicons name="mic" size={24} color={colors.white} />
               </View>
-              <Heading style={{ color: colors.white }}>Créez votre premier devis</Heading>
+              <Title style={{ color: colors.white, fontSize: 25 }}>Créez votre premier devis</Title>
               <Body style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 22 }}>
                 Décrivez le chantier à voix haute. DEVISIA prépare les lignes, vous vérifiez, vous
                 envoyez.
@@ -218,7 +267,7 @@ export default function AccueilScreen() {
                 <Body style={{ color: colors.white, fontWeight: '600' }}>Commencer</Body>
                 <Ionicons name="arrow-forward" size={17} color={colors.white} />
               </View>
-            </Pressable>
+            </PressableCard>
 
             <Card style={{ gap: spacing.lg }}>
               <SectionHeader title="Pour aller plus vite ensuite" />
@@ -275,7 +324,7 @@ export default function AccueilScreen() {
                 accessibilityLabel="Voir les devis à relancer"
                 onPress={() => router.push('/devis')}
               >
-                <Stat label="Chiffre d’affaires à récupérer" tone="accent">
+                <Stat label="Chiffre d’affaires à récupérer" tone="accent" icon="arrow-redo-outline">
                   <Amount cents={data.toRecover.totalCents} size="metric" tone="accent" />
                   <Body style={{ color: colors.accentHover, marginTop: 2 }}>
                     {data.toRecover.quoteCount} devis sans réponse · relancez-les
@@ -288,10 +337,10 @@ export default function AccueilScreen() {
                 devis sont partis. DEVISIA ne demande aucune acceptation au
                 client, il n'y a donc pas de taux à afficher. */}
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <Stat label="CA devisé" hint="sur 30 jours">
+              <Stat label="CA devisé" hint="sur 30 jours" icon="trending-up-outline">
                 <Amount cents={data.quotedRevenueCents} size="metric" />
               </Stat>
-              <Stat label="Devis envoyés" hint={`${data.pendingQuotes} sans réponse`}>
+              <Stat label="Devis envoyés" hint={`${data.pendingQuotes} sans réponse`} icon="paper-plane-outline">
                 <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
               </Stat>
             </View>

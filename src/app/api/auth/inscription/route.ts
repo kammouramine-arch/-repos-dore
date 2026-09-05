@@ -9,6 +9,7 @@ import { buildSessionDTOFor } from '@/server/services/sessionDto';
 
 const bodySchema = signUpSchema.extend({
   deviceName: z.string().trim().max(80).optional(),
+  billingProvider: z.literal('apple').optional(),
 });
 
 /** Inscription depuis l'application mobile : compte, entreprise et jeton. */

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Alert, Pressable, View } from 'react-native';
+import { Alert, Platform, Pressable, View } from 'react-native';
+import { ApplePaywall } from '@/components/apple-paywall';
 import * as WebBrowser from 'expo-web-browser';
 import {
   DevisiaApiError,
@@ -22,11 +23,11 @@ import {
   Divider,
   Heading,
   Ionicons,
+  PageHeader,
   Price,
   Muted,
   Screen,
   Skeleton,
-  Title,
 } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
@@ -44,9 +45,13 @@ const STATUS_LABELS: Record<string, string> = {
 
 /** Abonnement : conversion, changement de formule et résiliation. */
 export default function AbonnementScreen() {
+  return Platform.OS === 'ios' ? <ApplePaywall /> : <WebAbonnementScreen />;
+}
+
+function WebAbonnementScreen() {
   const { toast } = useToast();
   const { refresh } = useAuth();
-  const query = useQuery<BillingOverviewDTO>(() => api.billing.overview());
+  const query = useQuery<BillingOverviewDTO>(() => api.billing.overview(), [], 'billing');
   const [pending, setPending] = React.useState<PlanId | 'portal' | 'cancel' | null>(null);
 
   const data = query.data;
@@ -154,14 +159,15 @@ export default function AbonnementScreen() {
 
   return (
     <Screen>
-      <View style={{ gap: 4 }}>
-        <Title>Votre abonnement</Title>
-        <Muted>
-          {access?.inTrial
+      <PageHeader
+        eyebrow="DEVISIA"
+        title="Votre abonnement"
+        subtitle={
+          access?.inTrial
             ? trialMessage(access.trialDaysLeft)
-            : `Formule ${PLANS[currentPlan].name} · ${STATUS_LABELS[data.subscription.status]}`}
-        </Muted>
-      </View>
+            : `Formule ${PLANS[currentPlan].name} · ${STATUS_LABELS[data.subscription.status]}`
+        }
+      />
 
       {access?.trialExpired ? (
         <Banner
@@ -194,8 +200,16 @@ export default function AbonnementScreen() {
         />
       ) : null}
 
-      <Card style={{ gap: spacing.md }}>
-        <Caption>Consommation du mois</Caption>
+      <Card style={{ gap: spacing.lg }}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Ionicons name="pulse-outline" size={17} color={colors.accent} />
+          </View>
+          <View>
+            <Heading style={{ fontSize: 16 }}>Votre utilisation</Heading>
+            <Caption>Ce mois-ci</Caption>
+          </View>
+        </View>
         {[
           { label: 'Générations IA', ...data.usage.aiGenerations },
           { label: 'Relances envoyées', ...data.usage.followUps },
@@ -245,9 +259,10 @@ export default function AbonnementScreen() {
             <Card
               key={planId}
               style={{
-                gap: spacing.sm,
+                gap: spacing.md,
                 borderColor: plan.recommended ? colors.accent : colors.line,
                 borderWidth: plan.recommended ? 1.5 : 1,
+                backgroundColor: plan.recommended ? colors.accentSoft : colors.canvas,
               }}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>

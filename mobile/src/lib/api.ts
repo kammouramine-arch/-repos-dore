@@ -1,6 +1,9 @@
 import Constants from 'expo-constants';
-import { createApiClient, type DevisiaApi } from '@devisia/shared';
+import { File } from 'expo-file-system';
+import { Platform } from 'react-native';
+import { createApiClient, DevisiaApiError, type DevisiaApi } from '@devisia/shared';
 import { clearToken, readToken } from './storage';
+import { clearQueryCache, invalidateQueryCache } from './query-cache';
 
 /** URL de l'API, injectée à la construction (voir eas.json). */
 export const API_URL: string =
@@ -18,7 +21,24 @@ export function setUnauthenticatedHandler(handler: (() => void) | null) {
 export const api: DevisiaApi = createApiClient({
   baseUrl: API_URL,
   getToken: readToken,
+  onMutation: invalidateQueryCache,
+  readUploadFile: async (input) => {
+    if (Platform.OS === 'web') {
+      const response = await fetch(input.uri);
+      if (!response.ok) throw new Error('Image locale illisible.');
+      return response.blob();
+    }
+    const file = new File(input.uri);
+    if (!file.exists || file.size === 0) {
+      throw new DevisiaApiError({
+        code: 'VALIDATION',
+        message: 'Ce fichier n’est plus disponible sur le téléphone. Sélectionnez-le à nouveau.',
+      }, 0);
+    }
+    return file;
+  },
   onUnauthenticated: () => {
+    clearQueryCache();
     void clearToken();
     onUnauthenticated?.();
   },

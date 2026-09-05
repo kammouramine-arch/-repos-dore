@@ -51,7 +51,7 @@ export async function listCustomers(
       include: {
         quotes: {
           where: { deletedAt: null },
-          select: { id: true, status: true, totalCents: true },
+          select: { id: true, status: true, totalCents: true, sentAt: true },
         },
       },
     }),
@@ -61,12 +61,12 @@ export async function listCustomers(
   return {
     total,
     items: rows.map((customer) => {
-      const accepted = customer.quotes.filter((quote) => quote.status === 'ACCEPTE');
+      const sent = customer.quotes.filter((quote) => quote.sentAt != null);
       return {
         ...toCustomerDTO(customer),
         quoteCount: customer.quotes.length,
-        acceptedCount: accepted.length,
-        revenueCents: accepted.reduce((acc, quote) => acc + quote.totalCents, 0),
+        sentCount: sent.length,
+        revenueCents: sent.reduce((acc, quote) => acc + quote.totalCents, 0),
       };
     }),
   };
@@ -93,14 +93,14 @@ export async function getCustomer(organizationId: string, customerId: string) {
   });
   if (!customer) throw notFound('Client introuvable.');
 
-  const accepted = customer.quotes.filter((quote) => quote.status === 'ACCEPTE');
+  const sent = customer.quotes.filter((quote) => quote.sentAt != null);
   return {
     customer,
     stats: {
       quoteCount: customer.quotes.length,
-      acceptedCount: accepted.length,
+      sentCount: sent.length,
       jobCount: customer.jobs.length,
-      revenueCents: accepted.reduce((acc, quote) => acc + quote.totalCents, 0),
+      revenueCents: sent.reduce((acc, quote) => acc + quote.totalCents, 0),
       pendingCents: customer.quotes
         .filter((quote) => ['ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'].includes(quote.status))
         .reduce((acc, quote) => acc + quote.totalCents, 0),

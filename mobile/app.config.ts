@@ -130,6 +130,7 @@ const config: ExpoConfig = {
   },
 
   plugins: [
+    'expo-iap',
     'expo-router',
     // Applique `userInterfaceStyle` sur Android : l'interface DEVISIA est
     // dessinée en clair, elle ne doit pas suivre le thème sombre du système.

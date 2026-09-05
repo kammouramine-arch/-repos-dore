@@ -23,7 +23,6 @@ function formatDay(value: string) {
 
 interface Point {
   date: string;
-  wonCents: number;
   sentCents: number;
   quotes: number;
 }
@@ -60,8 +59,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
     () =>
       data.map((point) => ({
         date: point.date,
-        gagne: centsToEuros(point.wonCents),
-        envoye: centsToEuros(point.sentCents),
+        devise: centsToEuros(point.sentCents),
       })),
     [data],
   );
@@ -71,7 +69,7 @@ export function RevenueChart({ data }: { data: Point[] }) {
       <ResponsiveContainer width="100%" height="100%">
         <AreaChart data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
           <defs>
-            <linearGradient id="devisia-won" x1="0" y1="0" x2="0" y2="1">
+            <linearGradient id="devisia-quoted" x1="0" y1="0" x2="0" y2="1">
               <stop offset="0%" stopColor="#2547e0" stopOpacity={0.22} />
               <stop offset="100%" stopColor="#2547e0" stopOpacity={0} />
             </linearGradient>
@@ -97,20 +95,11 @@ export function RevenueChart({ data }: { data: Point[] }) {
           <Tooltip content={<ChartTooltip />} cursor={{ stroke: '#d4d9e1' }} />
           <Area
             type="monotone"
-            dataKey="envoye"
-            name="Envoyé"
-            stroke="#c9d3fb"
-            strokeWidth={1.5}
-            fill="none"
-            dot={false}
-          />
-          <Area
-            type="monotone"
-            dataKey="gagne"
-            name="Gagné"
+            dataKey="devise"
+            name="Devisé"
             stroke="#2547e0"
             strokeWidth={2}
-            fill="url(#devisia-won)"
+            fill="url(#devisia-quoted)"
             dot={false}
           />
         </AreaChart>

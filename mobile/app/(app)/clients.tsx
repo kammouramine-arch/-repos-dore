@@ -3,7 +3,7 @@ import { FlatList, Linking, Pressable, RefreshControl, View } from 'react-native
 import { useFocusEffect } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatCents, type CustomerDTO } from '@devisia/shared';
-import { Body, Button, Divider, EmptyState, Field, Ionicons, Muted, Skeleton, Title } from '@/components/ui';
+import { Body, Button, Card, EmptyState, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
 import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
@@ -30,6 +30,7 @@ export default function ClientsScreen() {
   const query = useQuery<{ total: number; items: CustomerDTO[] }>(
     () => api.customers.list(debounced || undefined),
     [debounced],
+    `customers:${debounced}`,
   );
 
   useFocusEffect(
@@ -41,19 +42,21 @@ export default function ClientsScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View style={{ padding: spacing.lg, gap: spacing.md }}>
-        <Title>Clients</Title>
-        <Field
-          label="Rechercher"
+      <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.lg }}>
+        <PageHeader
+          eyebrow="Répertoire"
+          title="Vos clients"
+          subtitle={query.data ? `${query.data.total} client${query.data.total > 1 ? 's' : ''} dans votre atelier` : 'Coordonnées, devis et chiffre d’affaires.'}
+        />
+        <SearchField
           value={search}
           onChangeText={setSearch}
           placeholder="Nom, ville, téléphone…"
-          autoCapitalize="none"
         />
       </View>
 
       {query.loading && !query.data ? (
-        <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
+        <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2].map((index) => (
             <Skeleton key={index} height={64} />
           ))}
@@ -62,8 +65,8 @@ export default function ClientsScreen() {
         <FlatList
           data={query.data?.items ?? []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: 120 }}
-          ItemSeparatorComponent={() => <Divider />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: 120, gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
@@ -87,8 +90,22 @@ export default function ClientsScreen() {
             />
           }
           renderItem={({ item }) => (
-            <View style={{ paddingVertical: spacing.md, flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-              <View style={{ flex: 1, gap: 2 }}>
+            <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  backgroundColor: colors.surface2,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Body style={{ fontWeight: '700', color: colors.inkSoft }}>
+                  {item.displayName.trim().charAt(0).toUpperCase() || 'C'}
+                </Body>
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
                 <Body style={{ fontWeight: '600' }} numberOfLines={1}>
                   {item.displayName}
                 </Body>
@@ -96,7 +113,7 @@ export default function ClientsScreen() {
                   {[item.city, item.email].filter(Boolean).join(' · ') || 'Aucune coordonnée'}
                 </Muted>
                 <Muted style={{ fontSize: 12 }}>
-                  {item.acceptedCount}/{item.quoteCount} devis · {formatCents(item.revenueCents, { compact: true })}
+                  {item.quoteCount} devis · {formatCents(item.revenueCents, { compact: true })} devisés
                 </Muted>
               </View>
 
@@ -117,7 +134,7 @@ export default function ClientsScreen() {
                   <Ionicons name="call" size={19} color={colors.accent} />
                 </Pressable>
               ) : null}
-            </View>
+            </Card>
           )}
         />
       )}

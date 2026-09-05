@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
+import { Platform, Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/lib/auth';
@@ -24,9 +24,8 @@ void SplashScreen.preventAutoHideAsync();
  * couvre le temps de décider lequel s'applique.
  */
 function RootNavigator() {
-  const { status, offline, refresh } = useAuth();
+  const { status, session, offline, refresh } = useAuth();
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
-  const [launchSettled, setLaunchSettled] = React.useState(false);
 
   React.useEffect(() => {
     void hasSeenOnboarding().then(setSeenOnboarding);
@@ -41,11 +40,11 @@ function RootNavigator() {
   }, []);
 
   const connected = status === 'connecte';
-  const onSettled = React.useCallback(() => setLaunchSettled(true), []);
+  const needsPlan = Platform.OS === 'ios' && session?.organization.role === 'OWNER' && (!session.subscription || session.subscription.status === 'incomplete');
 
   // Session existante mais serveur injoignable : on ne déconnecte pas
   // l'artisan, on lui propose de réessayer. Son jeton reste dans le trousseau.
-  if (offline) {
+  if (offline && !connected) {
     return (
       <View
         style={{
@@ -97,8 +96,8 @@ function RootNavigator() {
     );
   }
 
-  if (!decided || !launchSettled) {
-    return <LaunchScreen onSettled={onSettled} />;
+  if (!decided) {
+    return <LaunchScreen />;
   }
 
   return (
@@ -106,6 +105,11 @@ function RootNavigator() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.surface },
+        animation: 'slide_from_right',
+        animationDuration: 260,
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+        animationMatchesGesture: true,
         /*
          * Sans intitulé explicite, iOS reprend le titre de l'écran précédent
          * pour le bouton retour — et quand cet écran est un groupe de routes,
@@ -118,6 +122,7 @@ function RootNavigator() {
         headerTintColor: colors.accent,
         headerTitleStyle: { color: colors.ink },
         headerStyle: { backgroundColor: colors.canvas },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Protected guard={!connected && !seenOnboarding}>
@@ -129,12 +134,14 @@ function RootNavigator() {
       </Stack.Protected>
 
       <Stack.Protected guard={connected}>
+        <Stack.Protected guard={!needsPlan}>
         <Stack.Screen name="(app)" />
         <Stack.Screen
           name="devis/nouveau"
           options={{ presentation: 'modal', headerShown: true, title: 'Nouveau devis' }}
         />
         <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
+        </Stack.Protected>
         <Stack.Screen
           name="abonnement"
           options={{ headerShown: true, title: 'Abonnement' }}
@@ -152,6 +159,7 @@ function RootNavigator() {
           options={{ headerShown: true, title: 'Activité' }}
         />
       </Stack.Protected>
+      <Stack.Screen name="presentation" options={{ headerShown: true, title: 'Découvrir DEVISIA' }} />
     </Stack>
   );
 }

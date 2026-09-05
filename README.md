@@ -44,7 +44,7 @@ minute.
 | **Récupération de CA** | Calcul permanent du chiffre d'affaires envoyé sans réponse, par client et par devis. |
 | **Clients / Prospects** | Fiches complètes, pipeline commercial, conversion prospect → client + chantier, formulaire public de demande de devis. |
 | **Catalogue de prix** | Articles, prix d'achat/vente, marges, import/export CSV, mots-clés utilisés par le moteur de rapprochement. |
-| **Tableau de bord** | CA gagné et potentiel, taux d'acceptation, panier moyen, tunnel de conversion, activité récente. |
+| **Tableau de bord** | CA devisé et à relancer, devis envoyés, panier moyen, parcours de consultation, activité récente. |
 | **Assistant** | Questions en langage naturel répondues à partir des données réelles de l'entreprise. |
 | **Multi-tenant** | Organisations, rôles (propriétaire / administrateur / membre), isolation vérifiée côté serveur. |
 | **Abonnements** | Trois formules, période d'essai, quotas d'usage, Stripe Checkout + portail + webhooks. |
@@ -259,7 +259,7 @@ fichiers, requêtes IA, journal d'audit, notifications, intégrations, événeme
 webhooks.
 
 Les données financières ne sont jamais supprimées physiquement : suppression logique
-(`deletedAt`) et refus de supprimer un devis accepté.
+(`deletedAt`) et conservation de l’historique des devis envoyés.
 
 ---
 
@@ -304,7 +304,7 @@ remontée des informations manquantes dans `questions`, et **aucun calcul de mon
 `EMAIL_PROVIDER=resend` + `RESEND_API_KEY` + `EMAIL_FROM` (domaine vérifié chez Resend).
 
 Modèles disponibles, tous en français et responsive : bienvenue, vérification d'email,
-réinitialisation de mot de passe, envoi de devis (PDF joint), relance, devis accepté,
+réinitialisation de mot de passe, envoi de devis (PDF joint), relance, devis consulté,
 nouveau prospect, invitation d'équipe, confirmation d'abonnement.
 
 ---
@@ -619,7 +619,7 @@ pour un lancement commercial.
 
 ## Limites connues
 
-- La facturation client (émission de factures à partir d'un devis accepté) est modélisée en base et
+- La facturation client (émission de factures à partir d'un devis envoyé) est modélisée en base et
   visible dans les fiches, mais l'écran de création de facture reste à construire : le MVP se
   concentre sur le devis et la récupération de chiffre d'affaires.
 - Les invitations d'équipe sont modélisées et affichées ; l'envoi et l'acceptation d'invitation

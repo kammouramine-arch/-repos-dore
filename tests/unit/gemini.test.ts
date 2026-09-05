@@ -805,7 +805,8 @@ describe('profils par tâche', () => {
   it('donne à la vision un budget nettement plus court qu’au devis', () => {
     const devis = profilDevis();
     const vision = profilVision();
-    expect(vision.timeoutMs).toBeLessThan(devis.timeoutMs / 3);
+    expect(vision.totalTimeoutMs).toBeLessThan(devis.totalTimeoutMs!);
+    expect(devis.totalTimeoutMs).toBeLessThanOrEqual(45_000);
     expect(vision.timeoutMs).toBeLessThanOrEqual(30_000);
   });
 

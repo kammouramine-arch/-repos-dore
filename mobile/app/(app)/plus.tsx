@@ -3,7 +3,7 @@ import { Alert, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { PLANS, accessStateFor, trialMessage } from '@devisia/shared';
-import { Button, Caption, Card, Ionicons, ListRow, Muted, Screen, Title } from '@/components/ui';
+import { Body, Button, Caption, Card, Ionicons, ListRow, Muted, PageHeader, Screen } from '@/components/ui';
 import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
@@ -20,7 +20,7 @@ interface Entry {
   icon: keyof typeof Ionicons.glyphMap;
   label: string;
   hint: string;
-  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique';
+  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique' | '/presentation';
 }
 
 export default function PlusScreen() {
@@ -29,6 +29,7 @@ export default function PlusScreen() {
   const access = accessStateFor(session?.subscription ?? null);
 
   const entries: Entry[] = [
+    { icon: 'sparkles-outline', label: 'Découvrir DEVISIA', hint: 'Présentation et formules', href: '/presentation' },
     {
       icon: 'card-outline',
       label: 'Abonnement',
@@ -50,7 +51,7 @@ export default function PlusScreen() {
     {
       icon: 'bar-chart-outline',
       label: 'Activité',
-      hint: 'Chiffre d’affaires et taux d’acceptation',
+      hint: 'Chiffre d’affaires et suivi des devis',
       href: '/analytique',
     },
   ];
@@ -58,11 +59,28 @@ export default function PlusScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <Screen>
-        <View style={{ gap: 4 }}>
-          <Title>{session?.organization.name}</Title>
-          <Muted>{session?.user.email}</Muted>
-          {access.inTrial ? <Muted>{trialMessage(access.trialDaysLeft)}</Muted> : null}
-        </View>
+        <PageHeader
+          eyebrow="Votre espace"
+          title={session?.organization.name ?? 'DEVISIA'}
+          subtitle={session?.user.email}
+          action={
+            <View
+              style={{
+                width: 48,
+                height: 48,
+                borderRadius: 16,
+                backgroundColor: colors.accentDeep,
+                alignItems: 'center',
+                justifyContent: 'center',
+              }}
+            >
+              <Body style={{ color: colors.white, fontWeight: '700', fontSize: 18, lineHeight: 24 }}>
+                {(session?.organization.name ?? 'D').trim().charAt(0).toUpperCase()}
+              </Body>
+            </View>
+          }
+        />
+        {access.inTrial ? <Muted>{trialMessage(access.trialDaysLeft)}</Muted> : null}
 
         <TrialBanner subscription={session?.subscription ?? null} />
 

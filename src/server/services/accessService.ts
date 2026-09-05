@@ -14,6 +14,7 @@ export async function getAccessState(organizationId: string): Promise<AccessStat
     where: { organizationId },
     select: {
       plan: true,
+      appleProductId: true,
       status: true,
       trialEndsAt: true,
       currentPeriodEnd: true,
@@ -24,6 +25,7 @@ export async function getAccessState(organizationId: string): Promise<AccessStat
   const snapshot: SubscriptionSnapshot | null = subscription
     ? {
         plan: subscription.plan,
+        provider: subscription.appleProductId ? 'apple' : undefined,
         status: subscription.status,
         trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
         currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,

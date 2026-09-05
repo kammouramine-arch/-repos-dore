@@ -5,6 +5,7 @@ node_modules/
 /android/
 .expo/
 dist/
+dist-ios-check/
 web-build/
 *.log
 .DS_Store

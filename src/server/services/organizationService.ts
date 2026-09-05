@@ -79,6 +79,7 @@ export async function uniqueSlug(
 }
 
 export interface CreateOrganizationInput {
+  requireApplePurchase?: boolean;
   name: string;
   ownerUserId: string;
   ownerName?: string | null;
@@ -121,10 +122,10 @@ export async function createOrganization(input: CreateOrganizationInput) {
         subscription: {
           create: {
             plan: 'ESSENTIEL',
-            status: 'trialing',
+            status: input.requireApplePurchase ? 'incomplete' : 'trialing',
             billingPeriod: 'MENSUEL',
-            trialStartedAt: new Date(),
-            trialEndsAt: new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
+            trialStartedAt: input.requireApplePurchase ? null : new Date(),
+            trialEndsAt: input.requireApplePurchase ? null : new Date(Date.now() + TRIAL_DAYS * 24 * 60 * 60 * 1000),
           },
         },
       },

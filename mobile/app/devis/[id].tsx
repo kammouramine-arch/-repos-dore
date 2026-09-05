@@ -35,9 +35,9 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'dang
   BROUILLON: 'neutral',
   ENVOYE: 'info',
   CONSULTE: 'accent',
-  ACCEPTE: 'success',
-  REFUSE: 'danger',
-  MODIFICATION_DEMANDEE: 'warning',
+  ACCEPTE: 'accent',
+  REFUSE: 'accent',
+  MODIFICATION_DEMANDEE: 'accent',
   EXPIRE: 'neutral',
   ANNULE: 'neutral',
 };
@@ -52,7 +52,7 @@ export default function DevisDetailScreen() {
   const router = useRouter();
   const { toast } = useToast();
 
-  const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id]);
+  const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id], `quote:${id}`);
   const quote = query.data;
 
   const [sending, setSending] = React.useState(false);

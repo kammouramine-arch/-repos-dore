@@ -53,7 +53,7 @@ export default async function AnalyticsPage() {
       <div className="grid gap-4 lg:grid-cols-[1.6fr_1fr]">
         <Card>
           <CardHeader>
-            <CardTitle>Chiffre d’affaires sur 90 jours</CardTitle>
+            <CardTitle>Chiffre d’affaires devisé sur 90 jours</CardTitle>
           </CardHeader>
           <CardContent className="pt-2">
             <RevenueChart data={metrics.series} />

@@ -16,7 +16,7 @@ interface Message {
 }
 
 const SUGGESTIONS = [
-  'Quel est mon taux d’acceptation ?',
+  'Combien de devis ai-je envoyés ?',
   'Quels clients n’ont pas répondu ?',
   'Combien ai-je gagné ce mois-ci ?',
   'Montre-moi les devis supérieurs à 2 000 €',

@@ -18,6 +18,7 @@ export function normalizeEmail(email: string): string {
 }
 
 export interface SignUpInput {
+  billingProvider?: 'apple';
   email: string;
   password: string;
   firstName?: string;
@@ -47,6 +48,7 @@ export async function signUp(input: SignUpInput) {
   });
 
   const organization = await createOrganization({
+    requireApplePurchase: input.billingProvider === 'apple',
     name: input.companyName.trim(),
     ownerUserId: user.id,
     ownerName: [input.firstName, input.lastName].filter(Boolean).join(' ') || null,

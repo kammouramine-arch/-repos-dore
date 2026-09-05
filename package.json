@@ -10,6 +10,7 @@
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
+    "test:unit": "vitest run --config vitest.unit.config.mts",
     "test:watch": "vitest",
     "test:e2e": "playwright test",
     "ai:verify:gemini": "node scripts/verifier-gemini.mjs",
@@ -30,6 +31,7 @@
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.117.1",
+    "@apple/app-store-server-library": "^3.1.0",
     "@aws-sdk/client-s3": "^3.1112.0",
     "@aws-sdk/s3-request-presigner": "^3.1112.0",
     "@prisma/client": "^6.19.3",

@@ -900,7 +900,11 @@ model Subscription {
   plan                 SubscriptionPlan   @default(ESSENTIEL)
   status               SubscriptionStatus @default(trialing)
   stripeCustomerId     String?            @unique
-  stripeSubscriptionId String?            @unique
+    stripeSubscriptionId String?            @unique
+    appleOriginalTransactionId String?      @unique
+    appleProductId       String?
+    appleEnvironment     String?
+    appleSignedAt        DateTime?
   billingPeriod        BillingPeriod      @default(MENSUEL)
   currentPeriodEnd     DateTime?
   trialStartedAt       DateTime?

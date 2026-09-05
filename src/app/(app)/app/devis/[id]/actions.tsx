@@ -165,7 +165,7 @@ export function QuoteActions({
             <DialogHeader>
               <DialogTitle>Envoyer le devis {quoteNumber}</DialogTitle>
               <DialogDescription>
-                Le client reçoit le PDF en pièce jointe et un lien pour accepter en ligne.
+                Le client reçoit le PDF en pièce jointe et un lien pour le consulter à tout moment.
               </DialogDescription>
             </DialogHeader>
 

@@ -15,6 +15,7 @@ import { colors, motion, spacing, typography } from '@/theme';
 export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
   const opacity = React.useMemo(() => new Animated.Value(0), []);
   const rise = React.useMemo(() => new Animated.Value(14), []);
+  const scale = React.useMemo(() => new Animated.Value(0.94), []);
 
   React.useEffect(() => {
     const animation = Animated.parallel([
@@ -30,34 +31,68 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
         easing: Easing.out(Easing.cubic),
         useNativeDriver: true,
       }),
+      Animated.spring(scale, {
+        toValue: 1,
+        damping: 18,
+        stiffness: 220,
+        mass: 0.7,
+        useNativeDriver: true,
+      }),
     ]);
     animation.start(({ finished }) => {
       if (finished) onSettled?.();
     });
     return () => animation.stop();
-  }, [opacity, rise, onSettled]);
+  }, [opacity, rise, scale, onSettled]);
 
   return (
     <View
       style={{
         flex: 1,
-        backgroundColor: colors.canvas,
+        backgroundColor: colors.surface,
         alignItems: 'center',
         justifyContent: 'center',
-        gap: spacing.md,
+        gap: spacing.lg,
       }}
     >
-      <Animated.View style={{ opacity, transform: [{ translateY: rise }] }}>
-        <Logo size={64} />
+      <View
+        style={{
+          position: 'absolute',
+          width: 280,
+          height: 280,
+          borderRadius: 140,
+          backgroundColor: colors.accentGlow,
+          opacity: 0.55,
+        }}
+      />
+      <Animated.View style={{ opacity, transform: [{ translateY: rise }, { scale }] }}>
+        <Logo size={70} />
       </Animated.View>
       <Animated.Text
         style={[
           typography.small,
-          { color: colors.subtle, opacity, transform: [{ translateY: rise }] },
+          {
+            color: colors.muted,
+            opacity,
+            transform: [{ translateY: rise }],
+            letterSpacing: 0.1,
+          },
         ]}
       >
         L’IA qui transforme votre travail en devis
       </Animated.Text>
+      <Animated.View
+        style={{
+          position: 'absolute',
+          bottom: 54,
+          width: 42,
+          height: 3,
+          borderRadius: 2,
+          backgroundColor: colors.accent,
+          opacity,
+          transform: [{ scaleX: scale }],
+        }}
+      />
     </View>
   );
 }
