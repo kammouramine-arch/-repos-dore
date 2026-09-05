@@ -28,7 +28,7 @@ export default async function AdminPage() {
     prisma.user.count({ where: { deletedAt: null } }),
     prisma.subscription.groupBy({ by: ['plan', 'status'], _count: true }),
     prisma.quote.aggregate({
-      where: { deletedAt: null, status: 'ACCEPTE' },
+      where: { deletedAt: null, sentAt: { not: null } },
       _sum: { totalCents: true },
       _count: true,
     }),
@@ -57,9 +57,9 @@ export default async function AdminPage() {
         <StatCard label="Utilisateurs" value={String(users)} />
         <StatCard label="MRR estimé" value={formatCents(mrrCents, { compact: true })} emphasis />
         <StatCard
-          label="CA client signé"
+          label="CA client devisé"
           value={formatCents(quoteStats._sum.totalCents ?? 0, { compact: true })}
-          hint={`${quoteStats._count} devis acceptés`}
+          hint={`${quoteStats._count} devis envoyés`}
         />
       </div>
 

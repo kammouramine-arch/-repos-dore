@@ -26,7 +26,7 @@ export interface DashboardMetrics {
     quotedRevenueCents: number;
     quotesSent: number;
   };
-  series: { date: string; wonCents: number; sentCents: number; quotes: number }[];
+  series: { date: string; sentCents: number; quotes: number }[];
   funnel: { label: string; value: number }[];
   topServices: { label: string; count: number; revenueCents: number }[];
   toRecover: Awaited<ReturnType<typeof revenueToRecover>>;
@@ -51,7 +51,7 @@ export async function getDashboardMetrics(
   const since = startOf(period);
   const previousSince = startOf(period * 2);
 
-  const [quotes, previousQuotes, leads, previousLeads, toRecover, acceptedItems] = await Promise.all([
+  const [quotes, previousQuotes, leads, previousLeads, toRecover, sentItems] = await Promise.all([
     prisma.quote.findMany({
       where: { organizationId, deletedAt: null, createdAt: { gte: since } },
       select: {
@@ -60,7 +60,6 @@ export async function getDashboardMetrics(
         totalCents: true,
         createdAt: true,
         sentAt: true,
-        acceptedAt: true,
       },
     }),
     prisma.quote.findMany({
@@ -69,7 +68,7 @@ export async function getDashboardMetrics(
         deletedAt: null,
         createdAt: { gte: previousSince, lt: since },
       },
-      select: { status: true, totalCents: true, sentAt: true, acceptedAt: true },
+      select: { status: true, totalCents: true, sentAt: true },
     }),
     prisma.lead.count({ where: { organizationId, deletedAt: null, createdAt: { gte: since } } }),
     prisma.lead.count({
@@ -78,7 +77,7 @@ export async function getDashboardMetrics(
     revenueToRecover(organizationId),
     prisma.quoteItem.findMany({
       where: {
-        quote: { organizationId, deletedAt: null, status: 'ACCEPTE', acceptedAt: { gte: since } },
+        quote: { organizationId, deletedAt: null, sentAt: { gte: since } },
       },
       select: { label: true, lineTotalCents: true },
     }),
@@ -91,10 +90,10 @@ export async function getDashboardMetrics(
   const previousQuotedCents = previousSent.reduce((acc, quote) => acc + quote.totalCents, 0);
 
   // Série journalière (ou hebdomadaire sur les longues périodes).
-  const buckets = new Map<string, { wonCents: number; sentCents: number; quotes: number }>();
+  const buckets = new Map<string, { sentCents: number; quotes: number }>();
   const step = period > 90 ? 7 : 1;
   for (let i = period; i >= 0; i -= step) {
-    buckets.set(dayKey(startOf(i)), { wonCents: 0, sentCents: 0, quotes: 0 });
+    buckets.set(dayKey(startOf(i)), { sentCents: 0, quotes: 0 });
   }
   const keys = [...buckets.keys()];
   const bucketFor = (date: Date) => {
@@ -112,15 +111,10 @@ export async function getDashboardMetrics(
         bucket.quotes += 1;
       }
     }
-    if (quote.acceptedAt) {
-      const key = bucketFor(quote.acceptedAt);
-      const bucket = key ? buckets.get(key) : undefined;
-      if (bucket) bucket.wonCents += quote.totalCents;
-    }
   }
 
   const services = new Map<string, { count: number; revenueCents: number }>();
-  for (const item of acceptedItems) {
+  for (const item of sentItems) {
     const key = item.label.trim().toLowerCase();
     const entry = services.get(key) ?? { count: 0, revenueCents: 0 };
     entry.count += 1;
@@ -168,7 +162,12 @@ export async function getDashboardMetrics(
 /** Activité récente, toutes entités confondues. */
 export async function getRecentActivity(organizationId: string, limit = 12) {
   const events = await prisma.quoteEvent.findMany({
-    where: { quote: { organizationId, deletedAt: null } },
+    where: {
+      quote: { organizationId, deletedAt: null },
+      // Les décisions de l'ancien portail restent en base pour préserver
+      // l'historique, mais ne sont plus une fonctionnalité DEVISIA.
+      type: { notIn: ['ACCEPTE', 'REFUSE', 'MODIFICATION_DEMANDEE'] },
+    },
     orderBy: { createdAt: 'desc' },
     take: limit,
     include: { quote: { select: { id: true, number: true, title: true, totalCents: true } } },

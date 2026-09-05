@@ -78,13 +78,12 @@ interface AssistantContext {
   toRecover: Awaited<ReturnType<typeof revenueToRecover>>;
   bigQuotes: { number: string; title: string; totalCents: number; customerName: string; id: string }[];
   silentCustomers: { name: string; number: string; days: number }[];
-  refusedQuotes: { number: string; customerName: string; totalCents: number; reason: string | null }[];
   topServices: { label: string; count: number; revenueCents: number }[];
 }
 
 async function collectContext(organizationId: string, question: string): Promise<AssistantContext> {
   const threshold = extractAmountCents(question);
-  const [metrics, toRecover, bigQuotesRaw, refusedRaw] = await Promise.all([
+  const [metrics, toRecover, bigQuotesRaw] = await Promise.all([
     getDashboardMetrics(organizationId, 30),
     revenueToRecover(organizationId),
     prisma.quote.findMany({
@@ -97,12 +96,6 @@ async function collectContext(organizationId: string, question: string): Promise
       orderBy: { totalCents: 'desc' },
       take: 8,
     }),
-    prisma.quote.findMany({
-      where: { organizationId, deletedAt: null, status: { in: ['REFUSE', 'EXPIRE'] } },
-      include: { customer: true },
-      orderBy: { respondedAt: 'desc' },
-      take: 6,
-    }),
   ]);
 
   const bigQuotes = bigQuotesRaw.map((quote) => ({
@@ -111,13 +104,6 @@ async function collectContext(organizationId: string, question: string): Promise
     title: quote.title,
     totalCents: quote.totalCents,
     customerName: fullName(quote.customer.firstName, quote.customer.lastName, quote.customer.companyName),
-  }));
-
-  const refusedQuotes = refusedRaw.map((quote) => ({
-    number: quote.number,
-    customerName: fullName(quote.customer.firstName, quote.customer.lastName, quote.customer.companyName),
-    totalCents: quote.totalCents,
-    reason: quote.clientMessage,
   }));
 
   const silentCustomers = toRecover.quotes
@@ -140,12 +126,7 @@ async function collectContext(organizationId: string, question: string): Promise
     ),
     silentCustomers.length > 0 ? 'Clients sans réponse :' : 'Aucun client sans réponse.',
     ...silentCustomers.map((customer) => `- ${customer.name} (devis ${customer.number}, ${customer.days} jours)`),
-    refusedQuotes.length > 0 ? 'Devis non aboutis (refusés ou expirés) :' : 'Aucun devis refusé ou expiré.',
-    ...refusedQuotes.map(
-      (quote) =>
-        `- ${quote.number} | ${quote.customerName} | ${formatCents(quote.totalCents)}${quote.reason ? ` | motif : ${quote.reason}` : ''}`,
-    ),
-    metrics.topServices.length > 0 ? 'Prestations les plus rentables :' : 'Aucune prestation vendue.',
+    metrics.topServices.length > 0 ? 'Prestations les plus chiffrées :' : 'Aucune prestation envoyée.',
     ...metrics.topServices.map(
       (service) => `- ${service.label} | ${formatCents(service.revenueCents)} | ${service.count} fois`,
     ),
@@ -157,7 +138,6 @@ async function collectContext(organizationId: string, question: string): Promise
     toRecover,
     bigQuotes,
     silentCustomers,
-    refusedQuotes,
     topServices: metrics.topServices,
   };
 }
@@ -177,33 +157,25 @@ function answerLocally(
   context: AssistantContext,
 ): { answer: string; actions: { label: string; href?: string | null }[] } {
   const text = normalize(question);
-  const { metrics, toRecover, bigQuotes, silentCustomers, refusedQuotes, topServices } = context;
+  const { metrics, toRecover, bigQuotes, silentCustomers, topServices } = context;
 
   if (/refus|pas\s+(?:ete\s+)?accept|non\s+accept|perdu|sans\s+suite|expire/.test(text)) {
-    if (refusedQuotes.length === 0) {
-      return { answer: "Aucun devis refusé ni expiré : tous vos devis sont encore en jeu.", actions: [] };
-    }
     return {
-      answer: `${refusedQuotes.length} devis n'ont pas abouti :\n${refusedQuotes
-        .map(
-          (quote) =>
-            `• ${quote.number} — ${quote.customerName} — ${formatCents(quote.totalCents)}${quote.reason ? ` (${quote.reason})` : ''}`,
-        )
-        .join('\n')}`,
-      actions: [{ label: 'Voir les devis', href: '/app/devis?statut=REFUSE' }],
+      answer: `DEVISIA ne demande pas au client d’accepter ou de refuser dans l’application. ${toRecover.quoteCount} devis sont actuellement sans réponse, pour ${formatCents(toRecover.totalCents)} à relancer.`,
+      actions: [{ label: 'Voir les relances', href: '/app/relances' }],
     };
   }
 
   if (/service|prestation|rapporte|rentab|vend/.test(text)) {
     if (topServices.length === 0) {
       return {
-        answer: 'Aucune prestation vendue sur la période : les chiffres apparaîtront après vos premiers devis acceptés.',
+        answer: 'Aucune prestation chiffrée sur la période : les données apparaîtront après vos premiers devis envoyés.',
         actions: [],
       };
     }
     const best = topServices[0]!;
     return {
-      answer: `Votre prestation la plus rentable est « ${best.label} » : ${formatCents(best.revenueCents)} sur ${best.count} devis acceptés.\n${topServices
+      answer: `Votre prestation la plus chiffrée est « ${best.label} » : ${formatCents(best.revenueCents)} sur ${best.count} devis envoyés.\n${topServices
         .slice(1)
         .map((service) => `• ${service.label} — ${formatCents(service.revenueCents)}`)
         .join('\n')}`,

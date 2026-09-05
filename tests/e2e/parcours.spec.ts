@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 
 /**
- * Parcours principal de DEVISIA, du compte vide au devis accepté par le client.
+ * Parcours principal de DEVISIA, du compte vide au devis envoyé et consulté.
  * Chaque exécution crée sa propre entreprise : les tests restent indépendants.
  */
 
@@ -108,16 +108,15 @@ test.describe('parcours complet', () => {
     await expect(clientPage.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(clientPage.getByText(/Total TTC/i).first()).toBeVisible();
 
-    // 10. Acceptation ----------------------------------------------------------
-    await clientPage.getByRole('button', { name: /Accepter le devis/i }).click();
-    await clientPage.getByLabel(/Votre nom/i).fill('Paul Roussel');
-    await clientPage.getByRole('button', { name: /Je valide ce devis/i }).click();
-    await expect(clientPage.getByText(/Devis accepté le/i)).toBeVisible({ timeout: 30_000 });
+    // La page sert à lire le devis et à contacter l'artisan, pas à accepter ou
+    // refuser dans DEVISIA.
+    await expect(clientPage.getByText(/Votre devis est disponible/i)).toBeVisible();
+    await expect(clientPage.getByRole('button', { name: /Accepter|Refuser/i })).toHaveCount(0);
     await clientPage.close();
 
-    // 11. Retour côté artisan : statut et notification --------------------------
+    // 10. Retour côté artisan : consultation et indicateurs --------------------
     await page.goto(quoteUrl);
-    await expect(page.getByText(/^Accepté$/).filter({ visible: true }).first()).toBeVisible({
+    await expect(page.getByText(/^Consulté$/).filter({ visible: true }).first()).toBeVisible({
       timeout: 30_000,
     });
 
@@ -127,12 +126,7 @@ test.describe('parcours complet', () => {
     await expect(page.getByText(/Chiffre d’affaires devisé/i).first()).toBeVisible();
     await expect(page.getByText(/Taux d’acceptation/i)).toHaveCount(0);
 
-    const notifications = await page.request.get('/api/notifications');
-    expect(notifications.ok()).toBeTruthy();
-    const payload = (await notifications.json()) as {
-      data: { items: { title: string }[] };
-    };
-    expect(payload.data.items.some((item) => /accepté/i.test(item.title))).toBe(true);
+    await expect(page.getByText(/Devis acceptés/i)).toHaveCount(0);
   });
 
   test('la page publique refuse un jeton inconnu', async ({ page }) => {

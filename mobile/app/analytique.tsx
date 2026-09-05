@@ -138,9 +138,9 @@ export default function AnalytiqueScreen() {
                 <Metric label="Envoyés">
                   <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
                 </Metric>
-                {/* Ni « acceptés » ni « taux » : le client n'a rien à valider
-                    dans DEVISIA. Ce qui compte, c'est ce qui attend une
-                    réponse et mérite une relance. */}
+                {/* Le nouveau parcours mesure l'envoi et la consultation.
+                    Ce qui compte, c'est ce qui attend une réponse et mérite
+                    une relance. */}
                 <Metric label="Sans réponse">
                   <Body style={[typography.metric, { color: colors.ink }]}>
                     {data.toRecover.quoteCount}

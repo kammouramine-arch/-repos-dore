@@ -69,9 +69,9 @@ export default async function CustomerDetailPage({
       </header>
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Chiffre d’affaires" value={formatCents(stats.revenueCents, { compact: true })} />
+        <StatCard label="CA devisé" value={formatCents(stats.revenueCents, { compact: true })} />
         <StatCard label="En attente" value={formatCents(stats.pendingCents, { compact: true })} />
-        <StatCard label="Devis" value={`${stats.acceptedCount}/${stats.quoteCount}`} hint="acceptés" />
+        <StatCard label="Devis envoyés" value={String(stats.sentCount)} hint={`${stats.quoteCount} au total`} />
         <StatCard label="Chantiers" value={String(stats.jobCount)} />
       </div>
 

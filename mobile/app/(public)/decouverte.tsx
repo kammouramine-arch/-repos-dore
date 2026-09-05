@@ -14,6 +14,7 @@ import {
   Heading,
   Ionicons,
   Muted,
+  Price,
   ProgressDots,
   Title,
 } from '@/components/ui';
@@ -53,7 +54,7 @@ const PILLARS: Pillar[] = [
     icon: 'document-text',
     benefit: 'Un devis net, envoyé en deux gestes',
     detail:
-      'Un PDF à votre image, un lien que le client ouvre et accepte depuis son téléphone.',
+      'Un PDF à votre image, prêt à être vérifié puis envoyé directement à votre client.',
   },
   {
     icon: 'notifications',
@@ -95,7 +96,7 @@ export default function DecouverteScreen() {
   }
 
   return (
-    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.canvas }}>
+    <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View
         style={{
           flexDirection: 'row',
@@ -113,7 +114,9 @@ export default function DecouverteScreen() {
             onPress={() => goTo(total - 1)}
             hitSlop={10}
           >
-            <Body style={{ color: colors.muted }}>Passer</Body>
+            <View style={{ backgroundColor: colors.canvas, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 }}>
+              <Body style={{ color: colors.muted, fontSize: 13 }}>Passer</Body>
+            </View>
           </Pressable>
         ) : (
           <View style={{ width: 52 }} />
@@ -131,7 +134,7 @@ export default function DecouverteScreen() {
             setIndex(Math.round(event.nativeEvent.contentOffset.x / width))
           }
         >
-          {PILLARS.map((pillar) => (
+          {PILLARS.map((pillar, pillarIndex) => (
             <View
               key={pillar.benefit}
               style={{
@@ -141,22 +144,44 @@ export default function DecouverteScreen() {
                 paddingBottom: spacing['4xl'],
                 alignItems: 'center',
                 justifyContent: 'center',
-                gap: spacing.xl,
+                gap: spacing['3xl'],
               }}
             >
               <View
                 style={{
-                  width: 96,
-                  height: 96,
-                  borderRadius: radius.full,
-                  backgroundColor: colors.accentSoft,
+                  width: Math.min(width - 48, 270),
+                  height: 238,
+                  borderRadius: 34,
+                  backgroundColor: colors.accentDeep,
                   alignItems: 'center',
                   justifyContent: 'center',
+                  overflow: 'hidden',
                 }}
               >
-                <Ionicons name={pillar.icon} size={42} color={colors.accent} />
+                <View style={{ position: 'absolute', width: 190, height: 190, borderRadius: 95, backgroundColor: colors.accent, opacity: 0.34, right: -54, top: -64 }} />
+                <View style={{ position: 'absolute', width: 120, height: 120, borderRadius: 60, backgroundColor: colors.accentBright, opacity: 0.12, left: -46, bottom: -30 }} />
+                <View
+                  style={{
+                    width: 78,
+                    height: 78,
+                    borderRadius: 25,
+                    backgroundColor: 'rgba(255,255,255,0.14)',
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.2)',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name={pillar.icon} size={36} color={colors.white} />
+                </View>
+                <View style={{ position: 'absolute', left: 30, right: 30, bottom: 28, flexDirection: 'row', gap: 7 }}>
+                  {[0, 1, 2].map((bar) => (
+                    <View key={bar} style={{ flex: bar === 1 ? 1.6 : 1, height: 4, borderRadius: 2, backgroundColor: bar === pillarIndex % 3 ? colors.white : 'rgba(255,255,255,0.25)' }} />
+                  ))}
+                </View>
               </View>
               <View style={{ gap: spacing.md, alignItems: 'center' }}>
+                <Caption upper style={{ color: colors.accent }}>{String(pillarIndex + 1).padStart(2, '0')} · {String(PILLARS.length).padStart(2, '0')}</Caption>
                 <Title style={{ textAlign: 'center' }}>{pillar.benefit}</Title>
                 <Body style={{ color: colors.muted, textAlign: 'center', lineHeight: 23 }}>
                   {pillar.detail}
@@ -190,8 +215,7 @@ export default function DecouverteScreen() {
                     <Heading>{plan.name}</Heading>
                     {id === 'PRO' ? <Badge label="Le plus choisi" tone="accent" /> : null}
                     <View style={{ flex: 1 }} />
-                    <Body style={{ fontWeight: '700' }}>{plan.monthlyPriceCents / 100} €</Body>
-                    <Caption style={{ color: colors.subtle }}>/ mois HT</Caption>
+                    <Price cents={plan.monthlyPriceCents} suffix="/ mois HT" size={24} />
                   </View>
                   <Divider />
                   {plan.highlights.slice(0, 3).map((line) => (

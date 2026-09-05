@@ -18,8 +18,8 @@ const BASES: Record<string, number> = {
   Body: 15,
   Muted: 13,
   Caption: 11.5,
-  Heading: 17,
-  Title: 22,
+  Heading: 18,
+  Title: 27,
 };
 
 function fichiers(dossier: string, trouves: string[] = []): string[] {

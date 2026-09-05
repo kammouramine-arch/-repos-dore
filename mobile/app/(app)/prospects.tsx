@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Alert, FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { Alert, FlatList, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEAD_STATUS_LABELS, formatCents, type LeadDTO } from '@devisia/shared';
-import { Badge, Body, Divider, EmptyState, Muted, Skeleton, Title } from '@/components/ui';
+import { Badge, Body, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
@@ -44,21 +44,20 @@ export default function ProspectsScreen() {
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View style={{ padding: spacing.lg }}>
-        <Title>Prospects</Title>
-        {/* « 0 demandes en cours de traitement » n'apprend rien : quand il n'y
-            a rien, l'état vide dit déjà tout, et mieux. */}
-        {(query.data?.length ?? 0) > 0 ? (
-          <Muted>
-            {query.data!.length} demande{query.data!.length > 1 ? 's' : ''} en attente de réponse.
-          </Muted>
-        ) : (
-          <Muted>Les demandes de devis reçues arrivent ici.</Muted>
-        )}
+      <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md }}>
+        <PageHeader
+          eyebrow="Opportunités"
+          title="Prospects"
+          subtitle={
+            (query.data?.length ?? 0) > 0
+              ? `${query.data!.length} demande${query.data!.length > 1 ? 's' : ''} à transformer en chantier.`
+              : 'Les nouvelles demandes de devis arrivent ici.'
+          }
+        />
       </View>
 
       {query.loading && !query.data ? (
-        <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
+        <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2].map((index) => (
             <Skeleton key={index} height={78} />
           ))}
@@ -67,8 +66,8 @@ export default function ProspectsScreen() {
         <FlatList
           data={query.data ?? []}
           keyExtractor={(item) => item.id}
-          contentContainerStyle={{ paddingHorizontal: spacing.lg, paddingBottom: spacing['4xl'] }}
-          ItemSeparatorComponent={() => <Divider />}
+          showsVerticalScrollIndicator={false}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'], gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
@@ -80,7 +79,8 @@ export default function ProspectsScreen() {
             />
           }
           renderItem={({ item }) => (
-            <Pressable
+            <PressableCard
+              accessibilityLabel={`Ouvrir la demande de ${item.contactName}`}
               onPress={() =>
                 Alert.alert(item.contactName, item.description ?? item.title, [
                   { text: 'Fermer', style: 'cancel' },
@@ -89,12 +89,17 @@ export default function ProspectsScreen() {
                     : [{ text: 'Convertir en client', onPress: () => void convert(item) }]),
                 ])
               }
-              style={({ pressed }) => ({ paddingVertical: spacing.md, opacity: pressed ? 0.7 : 1, gap: 6 })}
+              style={{ gap: spacing.sm }}
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', gap: spacing.md }}>
-                <Body style={{ fontWeight: '600', flex: 1 }} numberOfLines={1}>
-                  {item.contactName}
-                </Body>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flex: 1 }}>
+                  <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                    <Ionicons name="sparkles-outline" size={16} color={colors.accent} />
+                  </View>
+                  <Body style={{ fontWeight: '600', flex: 1 }} numberOfLines={1}>
+                    {item.contactName}
+                  </Body>
+                </View>
                 {item.estimatedCents ? (
                   <Body style={{ fontWeight: '600' }}>{formatCents(item.estimatedCents, { compact: true })}</Body>
                 ) : null}
@@ -104,7 +109,7 @@ export default function ProspectsScreen() {
                 <Badge label={LEAD_STATUS_LABELS[item.status]} tone={TONES[item.status] ?? 'neutral'} />
                 {item.phone ? <Muted style={{ fontSize: 12 }}>{item.phone}</Muted> : null}
               </View>
-            </Pressable>
+            </PressableCard>
           )}
         />
       )}

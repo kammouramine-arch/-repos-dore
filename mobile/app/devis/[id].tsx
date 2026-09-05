@@ -35,9 +35,9 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'dang
   BROUILLON: 'neutral',
   ENVOYE: 'info',
   CONSULTE: 'accent',
-  ACCEPTE: 'success',
-  REFUSE: 'danger',
-  MODIFICATION_DEMANDEE: 'warning',
+  ACCEPTE: 'accent',
+  REFUSE: 'accent',
+  MODIFICATION_DEMANDEE: 'accent',
   EXPIRE: 'neutral',
   ANNULE: 'neutral',
 };

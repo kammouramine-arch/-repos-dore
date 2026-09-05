@@ -21,7 +21,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCents } from '@devisia/shared';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { Reveal, useReducedMotion } from '@/components/motion';
+import { colors, radius, shadows, spacing, spring, typography } from '@/theme';
 
 /**
  * Composants de base DEVISIA mobile.
@@ -104,13 +105,63 @@ export function Card({ style, ...props }: ViewProps) {
           borderRadius: radius.lg,
           borderWidth: StyleSheet.hairlineWidth,
           borderColor: colors.line,
-          padding: spacing.lg,
+          padding: 18,
         },
         shadows.card as ViewStyle,
         style,
       ]}
       {...props}
     />
+  );
+}
+
+/** Carte interactive avec une vraie compression tactile, pas un simple fondu. */
+export function PressableCard({
+  children,
+  onPress,
+  style,
+  accessibilityLabel,
+}: {
+  children: React.ReactNode;
+  onPress: () => void;
+  style?: StyleProp<ViewStyle>;
+  accessibilityLabel: string;
+}) {
+  const reduced = useReducedMotion();
+  const scale = React.useMemo(() => new Animated.Value(1), []);
+
+  const animate = React.useCallback(
+    (toValue: number) => {
+      if (reduced) return;
+      Animated.spring(scale, { toValue, ...spring, useNativeDriver: true }).start();
+    },
+    [reduced, scale],
+  );
+
+  return (
+    <Animated.View style={{ transform: [{ scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={accessibilityLabel}
+        onPress={onPress}
+        onPressIn={() => animate(0.982)}
+        onPressOut={() => animate(1)}
+        style={({ pressed }) => [
+          {
+            backgroundColor: colors.canvas,
+            borderRadius: radius.lg,
+            borderWidth: StyleSheet.hairlineWidth,
+            borderColor: colors.line,
+            padding: 18,
+            opacity: pressed ? 0.96 : 1,
+          },
+          shadows.card as ViewStyle,
+          style,
+        ]}
+      >
+        {children}
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -145,10 +196,14 @@ export function Button({
   haptic = false,
   disabled,
   onPress,
+  onPressIn,
+  onPressOut,
   ...props
 }: ButtonProps) {
   const palette = BUTTON_COLORS[variant];
-  const height = size === 'lg' ? 54 : 46;
+  const height = size === 'lg' ? 56 : 48;
+  const reduced = useReducedMotion();
+  const scale = React.useMemo(() => new Animated.Value(1), []);
 
   /*
    * Un envoi de devis, une suppression, un achat ne doivent jamais partir
@@ -158,24 +213,36 @@ export function Button({
    */
   const dernierAppui = React.useRef(0);
 
+  function animate(toValue: number) {
+    if (reduced) return;
+    Animated.spring(scale, { toValue, ...spring, useNativeDriver: true }).start();
+  }
+
   return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityState={{ disabled: Boolean(disabled) || loading, busy: loading }}
-      disabled={disabled || loading}
-      // Une cible de 46 points est conforme ; quelques points de marge rendent
-      // l'appui plus sûr sur un écran tenu d'une main, gants compris.
-      hitSlop={6}
-      onPress={(event) => {
-        const maintenant = Date.now();
-        if (maintenant - dernierAppui.current < 600) return;
-        dernierAppui.current = maintenant;
-        if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-        onPress?.(event);
-      }}
-      style={({ pressed }) => [
-        {
+    <Animated.View style={[style, { transform: [{ scale }] }]}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ disabled: Boolean(disabled) || loading, busy: loading }}
+        disabled={disabled || loading}
+        hitSlop={6}
+        onPressIn={(event) => {
+          animate(0.975);
+          onPressIn?.(event);
+        }}
+        onPressOut={(event) => {
+          animate(1);
+          onPressOut?.(event);
+        }}
+        onPress={(event) => {
+          const maintenant = Date.now();
+          if (maintenant - dernierAppui.current < 600) return;
+          dernierAppui.current = maintenant;
+          if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          onPress?.(event);
+        }}
+        style={({ pressed }) => ({
           height,
+          width: '100%',
           borderRadius: radius.md,
           backgroundColor: palette.bg,
           borderWidth: variant === 'secondary' ? StyleSheet.hairlineWidth : 0,
@@ -185,26 +252,24 @@ export function Button({
           flexDirection: 'row',
           gap: spacing.sm,
           paddingHorizontal: spacing.xl,
-          opacity: disabled || loading ? 0.55 : pressed ? 0.85 : 1,
-          transform: [{ scale: pressed ? 0.985 : 1 }],
-        },
-        style,
-      ]}
-      {...props}
-    >
-      {loading ? <ActivityIndicator color={palette.fg} size="small" /> : null}
-      {!loading && icon ? <Ionicons name={icon} size={18} color={palette.fg} /> : null}
-      <Text
-        style={{
-          color: palette.fg,
-          fontSize: size === 'lg' ? 16 : 15,
-          fontWeight: '600',
-          letterSpacing: -0.1,
-        }}
+          opacity: disabled || loading ? 0.55 : pressed ? 0.9 : 1,
+        })}
+        {...props}
       >
-        {title}
-      </Text>
-    </Pressable>
+        {loading ? <ActivityIndicator color={palette.fg} size="small" /> : null}
+        {!loading && icon ? <Ionicons name={icon} size={19} color={palette.fg} /> : null}
+        <Text
+          style={{
+            color: palette.fg,
+            fontSize: size === 'lg' ? 16 : 15,
+            fontWeight: '600',
+            letterSpacing: -0.15,
+          }}
+        >
+          {title}
+        </Text>
+      </Pressable>
+    </Animated.View>
   );
 }
 
@@ -244,12 +309,12 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
         }}
         style={[
           {
-            minHeight: 48,
+            minHeight: 52,
             borderRadius: radius.md,
             borderWidth: StyleSheet.hairlineWidth * 2,
             borderColor: error ? colors.danger : focused ? colors.accent : colors.lineStrong,
-            backgroundColor: colors.canvas,
-            paddingHorizontal: spacing.md,
+            backgroundColor: focused ? colors.canvas : '#FCFCFD',
+            paddingHorizontal: spacing.lg,
             paddingVertical: spacing.md,
             fontSize: 16,
             color: colors.ink,
@@ -421,9 +486,12 @@ export function Screen({
   contentStyle?: ViewStyle;
 }) {
   const content = (
-    <View style={[{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing['4xl'] }, contentStyle]}>
+    <Reveal
+      distance={8}
+      style={[{ padding: spacing.xl, gap: spacing.xl, paddingBottom: spacing['5xl'] }, contentStyle]}
+    >
       {children}
-    </View>
+    </Reveal>
   );
 
   if (!scroll) {
@@ -435,10 +503,36 @@ export function Screen({
       style={{ flex: 1, backgroundColor: colors.surface }}
       contentInsetAdjustmentBehavior="automatic"
       keyboardShouldPersistTaps="handled"
+      keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+      showsVerticalScrollIndicator={false}
+      decelerationRate="fast"
       refreshControl={refreshControl}
     >
       {content}
     </ScrollView>
+  );
+}
+
+export function PageHeader({
+  title,
+  subtitle,
+  eyebrow,
+  action,
+}: {
+  title: string;
+  subtitle?: string;
+  eyebrow?: string;
+  action?: React.ReactNode;
+}) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg }}>
+      <View style={{ flex: 1, gap: 5 }}>
+        {eyebrow ? <Caption upper style={{ color: colors.accent }}>{eyebrow}</Caption> : null}
+        <Title>{title}</Title>
+        {subtitle ? <Muted>{subtitle}</Muted> : null}
+      </View>
+      {action ? <View style={{ paddingTop: eyebrow ? 14 : 0 }}>{action}</View> : null}
+    </View>
   );
 }
 
@@ -512,7 +606,9 @@ export function SearchField({
         flexDirection: 'row',
         alignItems: 'center',
         gap: spacing.sm,
-        backgroundColor: colors.surface2,
+        backgroundColor: colors.canvas,
+        borderWidth: StyleSheet.hairlineWidth,
+        borderColor: colors.line,
         borderRadius: radius.md,
         paddingHorizontal: spacing.md,
         minHeight: 46,
@@ -606,7 +702,18 @@ export function ListRow({
       }}
     >
       {icon ? (
-        <Ionicons name={icon} size={19} color={destructive ? colors.danger : colors.inkSoft} />
+        <View
+          style={{
+            width: 38,
+            height: 38,
+            borderRadius: 12,
+            backgroundColor: destructive ? colors.dangerSoft : colors.surface2,
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Ionicons name={icon} size={18} color={destructive ? colors.danger : colors.inkSoft} />
+        </View>
       ) : null}
       <View style={{ flex: 1, gap: 2 }}>
         <Text
@@ -823,7 +930,7 @@ export function GrowingInput({
 export function Price({
   cents,
   suffix,
-  size = 26,
+  size = 30,
 }: {
   cents: number;
   suffix?: string;

@@ -15,13 +15,11 @@ import { QuoteStatusBadge, quoteStatusLabel } from '@/components/status';
 
 export const metadata: Metadata = { title: 'Devis' };
 
-const FILTERS: { value: QuoteStatus | 'TOUS'; key: 'all' | 'drafts' | 'sent' | 'viewed' | 'accepted' | 'refused' }[] = [
+const FILTERS: { value: QuoteStatus | 'TOUS'; key: 'all' | 'drafts' | 'sent' | 'viewed' }[] = [
   { value: 'TOUS', key: 'all' },
   { value: 'BROUILLON', key: 'drafts' },
   { value: 'ENVOYE', key: 'sent' },
   { value: 'CONSULTE', key: 'viewed' },
-  { value: 'ACCEPTE', key: 'accepted' },
-  { value: 'REFUSE', key: 'refused' },
 ];
 
 export default async function QuotesPage({

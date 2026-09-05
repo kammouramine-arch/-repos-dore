@@ -106,6 +106,11 @@ function RootNavigator() {
       screenOptions={{
         headerShown: false,
         contentStyle: { backgroundColor: colors.surface },
+        animation: 'slide_from_right',
+        animationDuration: 260,
+        gestureEnabled: true,
+        fullScreenGestureEnabled: true,
+        animationMatchesGesture: true,
         /*
          * Sans intitulé explicite, iOS reprend le titre de l'écran précédent
          * pour le bouton retour — et quand cet écran est un groupe de routes,
@@ -118,6 +123,7 @@ function RootNavigator() {
         headerTintColor: colors.accent,
         headerTitleStyle: { color: colors.ink },
         headerStyle: { backgroundColor: colors.canvas },
+        headerShadowVisible: false,
       }}
     >
       <Stack.Protected guard={!connected && !seenOnboarding}>

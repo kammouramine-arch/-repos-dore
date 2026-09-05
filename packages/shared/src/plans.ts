@@ -71,7 +71,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       'Devis par IA : voix, photo ou texte',
       'Catalogue de prix illimité',
       'PDF professionnel à votre image',
-      'Page de devis en ligne et acceptation client',
+      'Page de devis en ligne, prête à partager',
       'Relances suggérées, envoyées en un clic',
       '1 utilisateur',
     ],

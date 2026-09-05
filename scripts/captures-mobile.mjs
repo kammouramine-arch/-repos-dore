@@ -68,7 +68,7 @@ async function creerCompte(nom) {
   return { email, token: out.token, organizationId: out.session.organization.id };
 }
 
-/** Compte « actif » : catalogue, clients, devis envoyés, un devis accepté. */
+/** Compte « actif » : catalogue, clients et devis envoyés. */
 async function semer(token) {
   const catalogue = [
     { name: 'Main-d’œuvre plombier', category: 'MAIN_OEUVRE', unit: 'h', salePriceCents: 5500, vatRate: 10 },
@@ -89,21 +89,21 @@ async function semer(token) {
 
   const devis = [
     {
-      customerId: crees[0].id, title: 'Remplacement du chauffe-eau', accepte: true,
+      customerId: crees[0].id, title: 'Remplacement du chauffe-eau',
       items: [
         { kind: 'MATERIAU', label: 'Chauffe-eau 200 L', unit: 'u', quantity: 1, unitPriceCents: 74900, vatRate: 10 },
         { kind: 'MAIN_OEUVRE', label: 'Main-d’œuvre plombier', unit: 'h', quantity: 3, unitPriceCents: 5500, vatRate: 10 },
       ],
     },
     {
-      customerId: crees[1].id, title: 'Réfection salle de bain', accepte: false,
+      customerId: crees[1].id, title: 'Réfection salle de bain',
       items: [
         { kind: 'MAIN_OEUVRE', label: 'Main-d’œuvre plombier', unit: 'h', quantity: 16, unitPriceCents: 5500, vatRate: 10 },
         { kind: 'MATERIAU', label: 'Mitigeur thermostatique', unit: 'u', quantity: 2, unitPriceCents: 12900, vatRate: 10 },
       ],
     },
     {
-      customerId: crees[2].id, title: 'Fuite sous évier', accepte: false,
+      customerId: crees[2].id, title: 'Fuite sous évier',
       items: [
         { kind: 'MATERIAU', label: 'Siphon laiton', unit: 'u', quantity: 1, unitPriceCents: 3200, vatRate: 10 },
         { kind: 'MAIN_OEUVRE', label: 'Main-d’œuvre plombier', unit: 'h', quantity: 1, unitPriceCents: 5500, vatRate: 10 },
@@ -118,14 +118,7 @@ async function semer(token) {
       body: { customerId: d.customerId, title: d.title, items: d.items, aiGenerated: true, aiConfidence: 78 },
     });
     premier ??= quote;
-    const envoi = await call(`/api/quotes/${quote.id}/envoi`, { method: 'POST', token, body: {} });
-    if (d.accepte && envoi.publicUrl) {
-      const jeton = envoi.publicUrl.split('/').pop();
-      await call(`/api/public/devis/${jeton}`, {
-        method: 'POST',
-        body: { decision: 'ACCEPTE', signatureName: 'Sylvie Bernard' },
-      }).catch(() => {});
-    }
+    await call(`/api/quotes/${quote.id}/envoi`, { method: 'POST', token, body: {} });
   }
   return premier;
 }

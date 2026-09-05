@@ -63,9 +63,9 @@ export function AppPreview() {
           <div className="grid grid-cols-2 gap-2.5 lg:grid-cols-4">
             {[
               { label: 'Devis envoyés', value: '12' },
-              { label: 'Acceptés', value: '8' },
-              { label: "Taux d'acceptation", value: '67 %' },
-              { label: 'CA gagné', value: '14 850 €' },
+              { label: 'Consultés', value: '8' },
+              { label: 'Sans réponse', value: '3' },
+              { label: 'CA devisé', value: '14 850 €' },
             ].map((stat) => (
               <div key={stat.label} className="rounded-[10px] border border-line bg-canvas p-3">
                 <p className="text-[10.5px] uppercase tracking-wide text-subtle">{stat.label}</p>
@@ -97,7 +97,7 @@ export function AppPreview() {
               </p>
               <ul className="mt-2.5 space-y-2">
                 {[
-                  ['Marie D. a accepté', 'DEV-2026-0038'],
+                  ['Marie D. a consulté', 'DEV-2026-0038'],
                   ['Paul R. a consulté', 'DEV-2026-0042'],
                   ['Devis envoyé', 'DEV-2026-0043'],
                 ].map(([label, ref]) => (

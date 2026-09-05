@@ -141,8 +141,6 @@ export function AutomationSettings({
             {[
               ['followUpsEnabled', 'Préparer automatiquement les relances', settings.followUpsEnabled],
               ['notifyOnQuoteViewed', 'M’alerter quand un client consulte un devis', settings.notifyOnQuoteViewed],
-              ['notifyOnQuoteAccepted', 'M’alerter quand un devis est accepté', settings.notifyOnQuoteAccepted],
-              ['notifyOnQuoteRefused', 'M’alerter quand un devis est refusé', settings.notifyOnQuoteRefused],
               ['notifyOnNewLead', 'M’alerter à chaque nouvelle demande', settings.notifyOnNewLead],
               ['notifyByEmail', 'Recevoir aussi les alertes par email', settings.notifyByEmail],
               ['publicLeadFormEnabled', 'Activer le formulaire public de demande de devis', settings.publicLeadFormEnabled],

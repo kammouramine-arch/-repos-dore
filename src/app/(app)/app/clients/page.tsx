@@ -69,13 +69,13 @@ export default async function CustomersPage({
 
                   <div className="flex items-center gap-6 text-right">
                     <div>
-                      <p className="text-[12px] text-subtle">{t.nav.quotes}</p>
+                      <p className="text-[12px] text-subtle">Envoyés</p>
                       <p className="text-[13.5px] font-medium text-ink tabular">
-                        {customer.acceptedCount}/{customer.quoteCount}
+                        {customer.sentCount}
                       </p>
                     </div>
                     <div>
-                      <p className="text-[12px] text-subtle">{t.customers.revenue}</p>
+                      <p className="text-[12px] text-subtle">CA devisé</p>
                       <p className="text-[13.5px] font-medium text-ink tabular">
                         {formatCents(customer.revenueCents, { compact: true })}
                       </p>

@@ -146,7 +146,8 @@ export interface CustomerDTO {
   postalCode: string | null;
   addressLine1: string | null;
   quoteCount: number;
-  acceptedCount: number;
+  sentCount: number;
+  /** Montant cumulé des devis envoyés, pas un chiffre d’affaires supposé gagné. */
   revenueCents: number;
 }
 

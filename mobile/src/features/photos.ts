@@ -27,6 +27,9 @@ export interface Attachment {
   uri: string;
   name: string;
   mimeType: string;
+  width: number | null;
+  height: number | null;
+  prepared: boolean;
   status: AttachmentStatus;
   error: string | null;
 }
@@ -64,9 +67,21 @@ async function preparerPourEnvoi(photo: Attachment): Promise<{
   name: string;
   mimeType: string;
 }> {
+  if (photo.prepared) {
+    return { uri: photo.uri, name: photo.name, mimeType: photo.mimeType };
+  }
+
   try {
     const contexte = ImageManipulator.manipulate(photo.uri);
-    contexte.resize({ width: COTE_MAX });
+    const largeur = photo.width ?? 0;
+    const hauteur = photo.height ?? 0;
+    const coteLong = Math.max(largeur, hauteur);
+    // Ne jamais agrandir une petite image. Pour une photo portrait, limiter
+    // la largeur laisserait encore plus de 2 000 px en hauteur : c'était du
+    // poids inutile sur le réseau mobile.
+    if (coteLong > COTE_MAX) {
+      contexte.resize(hauteur > largeur ? { height: COTE_MAX } : { width: COTE_MAX });
+    }
     const rendu = await contexte.renderAsync();
     const image = await rendu.saveAsync({ format: SaveFormat.JPEG, compress: QUALITE_ENVOI });
     return {
@@ -117,6 +132,16 @@ export function usePhotoCapture() {
       patch(photo.localId, { status: 'envoi', error: null });
       try {
         const pret = await preparerPourEnvoi(photo);
+        // La vignette bascule tout de suite sur le JPEG réduit. Une nouvelle
+        // tentative réutilise ce fichier léger au lieu de reconvertir l'HEIC
+        // de plusieurs mégaoctets.
+        patch(photo.localId, {
+          uri: pret.uri,
+          name: pret.name,
+          mimeType: pret.mimeType,
+          prepared: true,
+          status: 'envoi',
+        });
         const uploaded = await api.files.upload(
           { uri: pret.uri, name: pret.name, type: pret.mimeType },
           'PHOTO_CHANTIER',
@@ -144,6 +169,9 @@ export function usePhotoCapture() {
           uri: asset.uri,
           name: asset.fileName ?? `chantier-${counter.current}.jpg`,
           mimeType: asset.mimeType ?? 'image/jpeg',
+          width: asset.width ?? null,
+          height: asset.height ?? null,
+          prepared: false,
           status: 'envoi',
           error: null,
         };

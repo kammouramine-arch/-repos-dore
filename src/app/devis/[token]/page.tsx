@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import { notFound } from 'next/navigation';
 import { headers } from 'next/headers';
-import { CheckCircle2, Clock3, FileText, XCircle } from 'lucide-react';
+import { Clock3, FileText, Mail, Phone } from 'lucide-react';
 import { prisma } from '@/lib/prisma';
 import { registerQuoteView } from '@/server/services/quoteService';
 import { computeQuoteTotals, formatCents, formatQuantity, formatPercent } from '@/lib/money';
@@ -9,7 +9,6 @@ import { hashIp } from '@/lib/auth/tokens';
 import { clientIpFrom } from '@/lib/auth/session';
 import { fullName } from '@/lib/utils';
 import { formatDate } from '@/lib/i18n';
-import { QuoteDecision } from './decision';
 
 export const dynamic = 'force-dynamic';
 
@@ -62,7 +61,6 @@ export default async function PublicQuotePage({
   });
 
   const expired = quote.validUntil != null && quote.validUntil < new Date();
-  const decided = ['ACCEPTE', 'REFUSE'].includes(quote.status);
   const companyName = profile?.legalName ?? quote.organization.name;
 
   return (
@@ -271,28 +269,10 @@ export default async function PublicQuotePage({
           ) : null}
         </div>
 
-        {/* Décision du client */}
+        {/* Consultation uniquement : la réception du devis ne demande aucune
+            décision dans DEVISIA. L'artisan garde la relation avec son client. */}
         <div className="mt-5">
-          {decided ? (
-            <div
-              className={`flex items-center gap-3 rounded-[14px] border px-5 py-4 ${
-                quote.status === 'ACCEPTE'
-                  ? 'border-success/25 bg-success-soft text-success'
-                  : 'border-line bg-canvas text-muted'
-              }`}
-            >
-              {quote.status === 'ACCEPTE' ? (
-                <CheckCircle2 className="h-5 w-5 shrink-0" aria-hidden />
-              ) : (
-                <XCircle className="h-5 w-5 shrink-0" aria-hidden />
-              )}
-              <p className="text-[14px]">
-                {quote.status === 'ACCEPTE'
-                  ? `Devis accepté le ${formatDate(quote.acceptedAt)}. ${companyName} a été prévenu et vous recontactera.`
-                  : `Devis refusé le ${formatDate(quote.refusedAt)}.`}
-              </p>
-            </div>
-          ) : expired ? (
+          {expired ? (
             <div className="flex items-center gap-3 rounded-[14px] border border-warning/25 bg-warning-soft px-5 py-4 text-warning">
               <Clock3 className="h-5 w-5 shrink-0" aria-hidden />
               <p className="text-[14px]">
@@ -300,7 +280,36 @@ export default async function PublicQuotePage({
               </p>
             </div>
           ) : (
-            <QuoteDecision token={token} brandColor={brandColor} companyName={companyName} />
+            <div className="rounded-[16px] border border-line bg-canvas p-5 shadow-sm sm:p-6">
+              <p className="text-[15px] font-semibold text-ink">Votre devis est disponible</p>
+              <p className="mt-1 text-[13.5px] leading-relaxed text-muted">
+                Ce document vous est transmis pour consultation. Pour une question ou pour donner
+                suite, contactez directement {companyName}.
+              </p>
+              {profile?.phone || profile?.email ? (
+                <div className="mt-4 flex flex-wrap gap-2.5">
+                  {profile.phone ? (
+                    <a
+                      href={`tel:${profile.phone}`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-[10px] px-4 text-[13.5px] font-medium text-white"
+                      style={{ background: brandColor }}
+                    >
+                      <Phone className="h-4 w-4" aria-hidden />
+                      Appeler {companyName}
+                    </a>
+                  ) : null}
+                  {profile.email ? (
+                    <a
+                      href={`mailto:${profile.email}?subject=${encodeURIComponent(`Devis ${quote.number}`)}`}
+                      className="inline-flex min-h-11 items-center gap-2 rounded-[10px] border border-line px-4 text-[13.5px] font-medium text-ink transition-colors hover:border-line-strong"
+                    >
+                      <Mail className="h-4 w-4" aria-hidden />
+                      Envoyer un email
+                    </a>
+                  ) : null}
+                </div>
+              ) : null}
+            </div>
           )}
         </div>
 
@@ -315,7 +324,7 @@ export default async function PublicQuotePage({
           {profile?.quoteFooter ? <p>{profile.quoteFooter}</p> : null}
           <p className="flex items-center justify-center gap-1.5 pt-2 text-subtle">
             <FileText className="h-3.5 w-3.5" aria-hidden />
-            Document contractuel — à retourner accepté avant tout début de travaux.
+            Document contractuel — conservez ce devis avec vos échanges.
           </p>
         </footer>
       </main>

@@ -14,9 +14,11 @@ const QUOTE_STATUS: Record<
   BROUILLON: { label: 'Brouillon', tone: 'neutral', dot: 'bg-subtle' },
   ENVOYE: { label: 'Envoyé', tone: 'info', dot: 'bg-info' },
   CONSULTE: { label: 'Consulté', tone: 'accent', dot: 'bg-accent' },
-  ACCEPTE: { label: 'Accepté', tone: 'success', dot: 'bg-success' },
-  REFUSE: { label: 'Refusé', tone: 'danger', dot: 'bg-danger' },
-  MODIFICATION_DEMANDEE: { label: 'Modification demandée', tone: 'warning', dot: 'bg-warning' },
+  // Les anciens statuts de décision restent lisibles en base, mais sont
+  // désormais présentés comme une simple consultation dans le produit.
+  ACCEPTE: { label: 'Consulté', tone: 'accent', dot: 'bg-accent' },
+  REFUSE: { label: 'Consulté', tone: 'accent', dot: 'bg-accent' },
+  MODIFICATION_DEMANDEE: { label: 'Consulté', tone: 'accent', dot: 'bg-accent' },
   EXPIRE: { label: 'Expiré', tone: 'neutral', dot: 'bg-subtle' },
   ANNULE: { label: 'Annulé', tone: 'neutral', dot: 'bg-subtle' },
 };

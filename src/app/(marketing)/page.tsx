@@ -226,7 +226,7 @@ export default function HomePage() {
               Un devis à votre logo, conforme, lisible, que vous pouvez envoyer sans le retoucher.
             </FeatureCard>
             <FeatureCard icon={Gauge} title="Suivi du chiffre d’affaires">
-              Gagné, en attente, taux d’acceptation, panier moyen : votre entreprise en un écran.
+              Devisé, en attente, sans réponse, panier moyen : votre activité en un écran.
             </FeatureCard>
             <FeatureCard icon={Smartphone} title="Pensé pour le chantier">
               Installable sur votre téléphone, utilisable d’une main, lisible en plein soleil.
