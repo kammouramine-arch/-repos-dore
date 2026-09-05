@@ -6,7 +6,22 @@ import {
   type StyleProp,
   type ViewStyle,
 } from 'react-native';
-import { motion } from '@/theme';
+import { motion, spring } from '@/theme';
+
+/** Reusable touch response; animation never delays the action itself. */
+export function useTouchMotion(pressedScale = 0.985) {
+  const reduced = useReducedMotion();
+  const [scale] = React.useState(() => new Animated.Value(1));
+  React.useEffect(() => {
+    if (reduced) { scale.stopAnimation(); scale.setValue(1); }
+    return () => scale.stopAnimation();
+  }, [reduced, scale]);
+  const animate = React.useCallback((toValue: number) => {
+    if (reduced) return;
+    Animated.spring(scale, { toValue, ...spring, useNativeDriver: true }).start();
+  }, [reduced, scale]);
+  return { scale, pressIn: () => animate(pressedScale), pressOut: () => animate(1) };
+}
 
 /** Respecte le réglage iOS « Réduire les animations ». */
 export function useReducedMotion() {

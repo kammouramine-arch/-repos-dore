@@ -1,6 +1,8 @@
 # Follow-up from build 8 device testing
 
 ## Navigation polish after build 10 — local, not released
+- Continued polish: safe-area-aware bottom bar height/padding and rounded top corners; swipe bounds follow actual bar height instead of a hardcoded strip. Shared spring feedback now covers buttons, cards and settings rows, resets when Reduce Motion changes, and does not delay actions. Plan cards keep a constant border width to avoid selection layout jumps and are disabled during purchase processing.
+- Extracted navigation gesture rules with five new unit tests: skips quote action, no edge wrap, ignores hidden routes, small gestures and content/vertical drags. Full unit suite: 186 tests passed. Mobile typecheck, lint, iOS bundle export and diff checks passed. Physical-device appearance/gesture testing still pending; no new TestFlight build issued in this pass.
 - Selected tab icons gently spring to 1.1x with a two-point lift and accent background; selection haptics and native shift transitions. Reduce Motion disables scale/shift animations.
 - Horizontal swipes beginning on the bottom bar switch Accueil / Prospects / Clients / Plus, excluding the create-quote action. Gesture capture is confined to the bottom strip to preserve screen scrolling/forms. This is release-triggered tab switching, not an interactive full-screen pager. Needs physical-device gesture and safe-area QA.
 - Euro headline prices show actual Apple EUR prices when available; otherwise explicitly labeled France reference prices. The actual non-EUR Apple amount remains visible separately before purchase. Never relabel USD as EUR. No currency purchase block reintroduced.

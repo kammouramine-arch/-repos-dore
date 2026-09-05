@@ -21,8 +21,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { formatCents } from '@devisia/shared';
-import { useReducedMotion } from '@/components/motion';
-import { colors, radius, shadows, spacing, spring, typography } from '@/theme';
+import { useTouchMotion } from '@/components/motion';
+import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /**
  * Composants de base DEVISIA mobile.
@@ -121,31 +121,30 @@ export function PressableCard({
   onPress,
   style,
   accessibilityLabel,
+  accessibilityRole = 'button',
+  accessibilityState,
+  disabled = false,
 }: {
   children: React.ReactNode;
   onPress: () => void;
   style?: StyleProp<ViewStyle>;
   accessibilityLabel: string;
+  accessibilityRole?: PressableProps['accessibilityRole'];
+  accessibilityState?: PressableProps['accessibilityState'];
+  disabled?: boolean;
 }) {
-  const reduced = useReducedMotion();
-  const scale = React.useMemo(() => new Animated.Value(1), []);
-
-  const animate = React.useCallback(
-    (toValue: number) => {
-      if (reduced) return;
-      Animated.spring(scale, { toValue, ...spring, useNativeDriver: true }).start();
-    },
-    [reduced, scale],
-  );
+  const touch = useTouchMotion(0.982);
 
   return (
-    <Animated.View style={{ transform: [{ scale }] }}>
+    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
       <Pressable
-        accessibilityRole="button"
+        accessibilityRole={accessibilityRole}
         accessibilityLabel={accessibilityLabel}
-        onPress={onPress}
-        onPressIn={() => animate(0.982)}
-        onPressOut={() => animate(1)}
+        accessibilityState={{ ...accessibilityState, disabled }}
+        disabled={disabled}
+        onPress={() => { touch.pressOut(); onPress(); }}
+        onPressIn={touch.pressIn}
+        onPressOut={touch.pressOut}
         style={({ pressed }) => [
           {
             backgroundColor: colors.canvas,
@@ -202,8 +201,7 @@ export function Button({
 }: ButtonProps) {
   const palette = BUTTON_COLORS[variant];
   const height = size === 'lg' ? 56 : 48;
-  const reduced = useReducedMotion();
-  const scale = React.useMemo(() => new Animated.Value(1), []);
+  const touch = useTouchMotion(0.975);
 
   /*
    * Un envoi de devis, une suppression, un achat ne doivent jamais partir
@@ -213,31 +211,27 @@ export function Button({
    */
   const dernierAppui = React.useRef(0);
 
-  function animate(toValue: number) {
-    if (reduced) return;
-    Animated.spring(scale, { toValue, ...spring, useNativeDriver: true }).start();
-  }
-
   return (
-    <Animated.View style={[style, { transform: [{ scale }] }]}>
+    <Animated.View style={[style, { transform: [{ scale: touch.scale }] }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ disabled: Boolean(disabled) || loading, busy: loading }}
         disabled={disabled || loading}
         hitSlop={6}
         onPressIn={(event) => {
-          animate(0.975);
+          touch.pressIn();
           onPressIn?.(event);
         }}
         onPressOut={(event) => {
-          animate(1);
+          touch.pressOut();
           onPressOut?.(event);
         }}
         onPress={(event) => {
+          touch.pressOut();
           const maintenant = Date.now();
           if (maintenant - dernierAppui.current < 600) return;
           dernierAppui.current = maintenant;
-          if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+          if (haptic) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
           onPress?.(event);
         }}
         style={({ pressed }) => ({
@@ -687,6 +681,7 @@ export function ListRow({
   destructive?: boolean;
   last?: boolean;
 }) {
+  const touch = useTouchMotion(0.992);
   const content = (
     <View
       style={{
@@ -738,14 +733,18 @@ export function ListRow({
 
   if (!onPress) return content;
   return (
+    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={title}
       onPress={onPress}
+      onPressIn={touch.pressIn}
+      onPressOut={touch.pressOut}
       style={({ pressed }) => ({ backgroundColor: pressed ? colors.surface2 : 'transparent' })}
     >
       {content}
     </Pressable>
+    </Animated.View>
   );
 }
 

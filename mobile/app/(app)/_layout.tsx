@@ -1,11 +1,13 @@
 import * as React from 'react';
 import { Tabs, usePathname, useRouter } from 'expo-router';
-import { PanResponder, Platform, Pressable, View, useWindowDimensions } from 'react-native';
+import { PanResponder, Pressable, View, useWindowDimensions } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { useReducedMotion } from '@/components/motion';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { isTabBarSwipe, tabSwipeDestination } from '@/lib/tab-navigation';
 
 /**
  * Navigation principale. Le bouton central « Nouveau devis » reste accessible
@@ -16,19 +18,17 @@ export default function AppTabsLayout() {
   const reduced = useReducedMotion();
   const pathname = usePathname();
   const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const bottomPadding = Math.max(insets.bottom, 12);
+  const barHeight = 64 + bottomPadding;
   const swipe = React.useMemo(() => PanResponder.create({
     // Only the bottom navigation owns this gesture, never lists or form fields.
-    onMoveShouldSetPanResponderCapture: (event, gesture) => gesture.y0 > height - 100 && event.nativeEvent.pageY > height - 110 && Math.abs(gesture.dx) > 22 && Math.abs(gesture.dx) > Math.abs(gesture.dy) * 2,
+    onMoveShouldSetPanResponderCapture: (event, gesture) => isTabBarSwipe({ startY: gesture.y0, currentY: event.nativeEvent.pageY, height, barHeight, dx: gesture.dx, dy: gesture.dy }),
     onPanResponderRelease: (_event, gesture) => {
-      if (Math.abs(gesture.dx) < 38) return;
-      const paths = ['/', '/prospects', '/clients', '/plus'];
-      const destinations = ['/(app)', '/(app)/prospects', '/(app)/clients', '/(app)/plus'] as const;
-      const current = paths.indexOf(pathname);
-      if (current < 0) return;
-      const next = Math.max(0, Math.min(paths.length - 1, current + (gesture.dx < 0 ? 1 : -1)));
-      if (next !== current) { void Haptics.selectionAsync().catch(() => undefined); router.navigate(destinations[next]); }
+      const destination = tabSwipeDestination(pathname, gesture.dx);
+      if (destination) { void Haptics.selectionAsync().catch(() => undefined); router.navigate(destination); }
     },
-  }), [height, pathname, router]);
+  }), [height, barHeight, pathname, router]);
 
   return (
     <View style={{ flex: 1 }} {...swipe.panHandlers}>
@@ -46,9 +46,11 @@ export default function AppTabsLayout() {
         tabBarStyle: {
           backgroundColor: colors.canvas,
           borderTopWidth: 0,
-          height: 88,
+          height: barHeight,
+          borderTopLeftRadius: 26,
+          borderTopRightRadius: 26,
           paddingTop: 10,
-          paddingBottom: Platform.OS === 'ios' ? 9 : 10,
+          paddingBottom: bottomPadding,
           shadowColor: colors.ink,
           shadowOpacity: 0.08,
           shadowRadius: 18,

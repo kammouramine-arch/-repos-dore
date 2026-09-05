@@ -3,7 +3,7 @@ import { Alert, Linking, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
-import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, Price, Screen, Title } from './ui';
+import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, PressableCard, Price, Screen, Title } from './ui';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -74,8 +74,8 @@ export function ApplePaywall() {
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
       const chosen = plan === selected;
-      return <Pressable key={plan} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={`Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}>
-        <Card style={{ borderColor: chosen ? colors.accent : colors.line, borderWidth: chosen ? 2 : 1, gap: spacing.md, backgroundColor: chosen ? colors.accentSoft : colors.canvas }}>
+      return <PressableCard key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={`Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
+        style={{ borderColor: chosen ? colors.accent : colors.line, borderWidth: 2, gap: spacing.md, backgroundColor: chosen ? colors.accentSoft : colors.canvas }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <View style={{ flex: 1, gap: 4 }}><Heading>{PLANS[plan].name}</Heading><Caption>{plan === 'PRO' ? 'Le choix des entreprises' : plan === 'ESSENTIEL' ? 'Pour travailler en solo' : 'Pour votre équipe'}</Caption></View>
             <Ionicons name={chosen ? 'radio-button-on' : 'radio-button-off'} color={chosen ? colors.accent : colors.subtle} size={23} />
@@ -87,8 +87,7 @@ export function ApplePaywall() {
           {p && p.currency !== 'EUR' ? <Muted>Prix retourné par Apple : {p.displayPrice} {p.currency}/mois. Vérifiez le montant final avant de confirmer.</Muted> : null}
           {!appleActive ? <Caption>3 jours gratuits pour les nouveaux abonnés éligibles</Caption> : null}
           {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{h}</Muted></View>)}
-        </Card>
-      </Pressable>;
+      </PressableCard>;
     })}
     {trial ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
       <Heading>Votre essai, en toute clarté</Heading>
