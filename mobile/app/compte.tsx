@@ -67,6 +67,12 @@ export default function CompteScreen() {
       </Card>
       <Button title="Me déconnecter / utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void perform(signOut)} />
       <Card style={{ gap: spacing.lg }}>
+        <Heading>Langue de l’application</Heading>
+        <Muted>Le français reste la langue par défaut. Votre choix est conservé sur votre compte et guide les réponses et documents générés.</Muted>
+        <Button title={session.user.locale === 'fr' ? '✓ Français' : 'Français'} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); setNotice('Langue française enregistrée.'); })} />
+        <Button title={session.user.locale === 'en' ? '✓ English' : 'English'} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); setNotice('English language saved.'); })} />
+      </Card>
+      <Card style={{ gap: spacing.lg }}>
         <Heading>Confidentialité et assistance</Heading>
         <Button title="Partager le diagnostic technique" variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISIA', events: readDiagnostics() }, null, 2) }); })} />
         <Muted>Diagnostic local : durées et catégories d’erreurs, sans nom de client, description de chantier ni jeton de connexion.</Muted>

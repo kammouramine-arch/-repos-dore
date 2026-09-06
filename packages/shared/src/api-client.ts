@@ -298,6 +298,7 @@ export function createApiClient(options: ApiClientOptions) {
       signOut: () => request<{ signedOut: boolean }>('/api/auth/session', { method: 'DELETE' }),
       me: () => request<SessionDTO>('/api/auth/session'),
       updateName: (firstName: string, lastName: string) => request<{ saved: boolean }>('/api/auth/compte', { method: 'PATCH', json: { firstName, lastName } }),
+      updateLanguage: (language: 'fr' | 'en') => request<{ language: 'fr' | 'en' }>('/api/auth/langue', { method: 'PATCH', json: { language } }),
       requestEmailCode: (email: string, password?: string) => request<{ requested: boolean; email: string; expiresInSeconds: number }>('/api/auth/code-email', { method: 'POST', json: { email, password } }),
       confirmEmailCode: (code: string) => request<{ verified: boolean }>('/api/auth/code-email', { method: 'PATCH', json: { code } }),
       requestPasswordReset: (email: string) =>
