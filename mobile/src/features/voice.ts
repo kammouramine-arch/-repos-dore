@@ -67,7 +67,10 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
   // La reconnaissance n'existe pas sur le web de développement : l'écran doit
   // alors proposer la saisie sans laisser croire à un bouton mort.
   const supported = Platform.OS === 'ios' || Platform.OS === 'android';
-  const onDevice = supported && supportsOnDeviceRecognition();
+  // Native capability checks must not run (or throw) on every text render.
+  const [onDevice] = useState(() => {
+    try { return supported && supportsOnDeviceRecognition(); } catch { return false; }
+  });
 
   // Le dernier texte reconnu est conservé hors du rendu : l'événement `end`
   // arrive après le démontage possible du composant, et doit rester fiable.

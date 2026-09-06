@@ -10,7 +10,7 @@ import {
   TextInput,
   View,
 } from 'react-native';
-import { useRouter } from 'expo-router';
+import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError, type CustomerDTO, type GeneratedQuoteDTO } from '@devisia/shared';
 import {
@@ -39,6 +39,7 @@ import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
 import { api } from '@/lib/api';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
+export { RouteError as ErrorBoundary } from '@/components/route-error';
 
 /**
  * Création d'un devis — l'écran qui porte la promesse du produit.
@@ -116,6 +117,7 @@ function ErrorBanner({
 
 export default function NouveauDevisScreen() {
   const router = useRouter();
+  const { customerId } = useLocalSearchParams<{ customerId?: string }>();
   const { toast } = useToast();
 
   const [phase, setPhase] = React.useState<Phase>('saisie');
@@ -134,6 +136,14 @@ export default function NouveauDevisScreen() {
   const [lines, setLines] = React.useState<GeneratedQuoteDTO['lines']>([]);
   const [title, setTitle] = React.useState('');
   const [customer, setCustomer] = React.useState<CustomerDTO | null>(null);
+  React.useEffect(() => {
+    if (!customerId) return;
+    let active = true;
+    void api.customers.get(customerId).then(result => {
+      if (active) setCustomer(result.customer);
+    }).catch(() => { if (active) setError('Le client n’a pas pu être chargé. Vous pourrez le sélectionner avant l’enregistrement.'); });
+    return () => { active = false; };
+  }, [customerId]);
   const [pickerOpen, setPickerOpen] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
 

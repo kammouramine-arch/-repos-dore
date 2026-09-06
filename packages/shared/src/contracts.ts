@@ -152,6 +152,12 @@ export interface CustomerDTO {
   revenueCents: number;
 }
 
+export interface CustomerProfileDTO {
+  customer: CustomerDTO & { notes: string | null; tags: string[]; createdAt: string };
+  stats: { quoteCount: number; sentCount: number; jobCount: number; revenueCents: number; pendingCents: number };
+  quotes: { id: string; number: string; title: string; status: string; totalCents: number; createdAt: string; sentAt: string | null }[];
+}
+
 export interface LeadDTO {
   id: string;
   contactName: string;

@@ -1,9 +1,9 @@
 import * as React from 'react';
 import { FlatList, Linking, Pressable, RefreshControl, View } from 'react-native';
-import { useFocusEffect } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatCents, type CustomerDTO } from '@devisia/shared';
-import { Body, Button, Card, EmptyState, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
+import { Banner, Body, Button, PressableCard, EmptyState, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
 import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
@@ -18,6 +18,7 @@ import { colors, spacing } from '@/theme';
  * formulaire.
  */
 export default function ClientsScreen() {
+  const router = useRouter();
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
   const [creating, setCreating] = React.useState(false);
@@ -55,6 +56,7 @@ export default function ClientsScreen() {
         />
       </View>
 
+      {query.error ? <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}><Banner tone="danger" title={query.error} /><Button title="Réessayer" onPress={() => void query.reload()} /></View> : null}
       {query.loading && !query.data ? (
         <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2].map((index) => (
@@ -63,6 +65,7 @@ export default function ClientsScreen() {
         </View>
       ) : (
         <FlatList
+          keyboardShouldPersistTaps="handled"
           data={query.data?.items ?? []}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
@@ -90,7 +93,7 @@ export default function ClientsScreen() {
             />
           }
           renderItem={({ item }) => (
-            <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <PressableCard accessibilityLabel={`Ouvrir la fiche de ${item.displayName}`} onPress={() => router.push({ pathname: '/clients/[id]', params: { id: item.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <View
                 style={{
                   width: 44,
@@ -121,7 +124,7 @@ export default function ClientsScreen() {
                 <Pressable
                   accessibilityRole="button"
                   accessibilityLabel={`Appeler ${item.displayName}`}
-                  onPress={() => void Linking.openURL(`tel:${item.phone}`)}
+                  onPress={(event) => { event.stopPropagation(); void Linking.openURL(`tel:${item.phone}`); }}
                   style={{
                     width: 42,
                     height: 42,
@@ -134,7 +137,7 @@ export default function ClientsScreen() {
                   <Ionicons name="call" size={19} color={colors.accent} />
                 </Pressable>
               ) : null}
-            </Card>
+            </PressableCard>
           )}
         />
       )}

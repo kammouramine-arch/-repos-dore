@@ -4,6 +4,7 @@ import { Platform } from 'react-native';
 import { createApiClient, DevisiaApiError, type DevisiaApi } from '@devisia/shared';
 import { clearToken, readToken } from './storage';
 import { clearQueryCache, invalidateQueryCache } from './query-cache';
+import { recordDiagnostic } from './diagnostics';
 
 /** URL de l'API, injectée à la construction (voir eas.json). */
 export const API_URL: string =
@@ -20,6 +21,7 @@ export function setUnauthenticatedHandler(handler: (() => void) | null) {
 
 export const api: DevisiaApi = createApiClient({
   baseUrl: API_URL,
+  onDiagnostic: recordDiagnostic,
   getToken: readToken,
   onMutation: invalidateQueryCache,
   readUploadFile: async (input) => {

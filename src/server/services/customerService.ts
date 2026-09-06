@@ -4,6 +4,30 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from '@/lib/errors';
 import { toCustomerDTO } from '../dto';
 import { recordAudit } from './auditService';
+import type { CustomerProfileDTO } from '@devisia/shared';
+
+/** Mobile profile reads only what it renders, not invoices/conversations/messages. */
+export async function getCustomerProfile(organizationId: string, customerId: string): Promise<CustomerProfileDTO> {
+  const customer = await prisma.customer.findFirst({
+    where: { id: customerId, organizationId, deletedAt: null },
+    include: {
+      quotes: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, select: { id: true, number: true, title: true, status: true, totalCents: true, createdAt: true, sentAt: true } },
+      _count: { select: { jobs: { where: { deletedAt: null } } } },
+    },
+  });
+  if (!customer) throw notFound('Client introuvable.');
+  const sent = customer.quotes.filter(quote => quote.sentAt !== null);
+  const stats = {
+    quoteCount: customer.quotes.length, sentCount: sent.length, jobCount: customer._count.jobs,
+    revenueCents: sent.reduce((sum, quote) => sum + quote.totalCents, 0),
+    pendingCents: customer.quotes.filter(quote => ['ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'].includes(quote.status)).reduce((sum, quote) => sum + quote.totalCents, 0),
+  };
+  return {
+    customer: { ...toCustomerDTO(customer), quoteCount: stats.quoteCount, sentCount: stats.sentCount, revenueCents: stats.revenueCents },
+    stats,
+    quotes: customer.quotes.map(quote => ({ ...quote, createdAt: quote.createdAt.toISOString(), sentAt: quote.sentAt?.toISOString() ?? null })),
+  };
+}
 
 export interface CustomerWriteInput {
   firstName?: string | null;

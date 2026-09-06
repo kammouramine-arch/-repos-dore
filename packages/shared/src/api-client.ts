@@ -5,6 +5,7 @@ import type {
   BillingOverviewDTO,
   BusinessProfileDTO,
   CustomerDTO,
+  CustomerProfileDTO,
   DashboardDTO,
   FollowUpDraftDTO,
   GeneratedQuoteDTO,
@@ -113,6 +114,8 @@ function fromStatus(status: number): ApiError {
 }
 
 export interface ApiClientOptions {
+  /** No URLs, request bodies, tokens or exception messages in diagnostics. */
+  onDiagnostic?: (event: { area: string; durationMs: number; code: ApiError['code'] | 'OK' }) => void;
   baseUrl: string;
   /** Délai maximal par requête, en millisecondes. */
   timeoutMs?: number;
@@ -215,6 +218,9 @@ export function createApiClient(options: ApiClientOptions) {
     path: string,
     init: RequestInit & { json?: unknown; timeoutMs?: number } = {},
   ): Promise<T> {
+    const started = Date.now();
+    let code: ApiError['code'] | 'OK' = 'OK';
+    try {
     const { json, headers, timeoutMs: requestTimeout, ...rest } = init;
     const response = await send(`${base}${path}`, {
       ...rest,
@@ -229,6 +235,14 @@ export function createApiClient(options: ApiClientOptions) {
     const data = await unwrap<T>(response);
     if ((rest.method ?? 'GET') !== 'GET') options.onMutation?.();
     return data;
+    } catch (error) {
+      code = error instanceof DevisiaApiError ? error.code : 'INTERNAL';
+      throw error;
+    } finally {
+      const candidate = path.split('/')[2]?.split('?')[0];
+      const area = ['auth', 'customers', 'quotes', 'leads', 'dashboard', 'ai', 'billing', 'pricebook'].includes(candidate) ? candidate : 'other';
+      try { options.onDiagnostic?.({ area, durationMs: Date.now() - started, code }); } catch { /* diagnostics must never break a request */ }
+    }
   }
 
   async function upload<T>(
@@ -255,6 +269,7 @@ export function createApiClient(options: ApiClientOptions) {
     upload,
 
     auth: {
+      exportPersonal: () => request<Record<string, unknown>>('/api/auth/export'),
       signIn: (email: string, password: string, deviceName?: string) =>
         request<AuthTokenDTO>('/api/auth/session', {
           method: 'POST',
@@ -317,6 +332,8 @@ export function createApiClient(options: ApiClientOptions) {
     },
 
     customers: {
+      get: (id: string) => request<CustomerProfileDTO>(`/api/customers/${encodeURIComponent(id)}`),
+      update: (id: string, input: unknown) => request<CustomerDTO>(`/api/customers/${encodeURIComponent(id)}`, { method: 'PATCH', json: input }),
       list: (search?: string) =>
         request<{ total: number; items: CustomerDTO[] }>(
           `/api/customers${search ? `?q=${encodeURIComponent(search)}` : ''}`,

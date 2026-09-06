@@ -3,10 +3,9 @@ import { idSchema, ok, parseBody, route } from '@/server/api';
 import { customerSchema } from '@/server/validation';
 import {
   deleteCustomer,
-  getCustomer,
+  getCustomerProfile,
   updateCustomer,
 } from '@/server/services/customerService';
-import { toCustomerDTO } from '@/server/dto';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -14,8 +13,7 @@ export async function GET(_request: Request, { params }: Params) {
   return route(async () => {
     const auth = await requirePermission('customer:read');
     const id = idSchema.parse((await params).id);
-    const result = await getCustomer(auth.organization.organizationId, id);
-    return ok({ customer: toCustomerDTO(result.customer), stats: result.stats });
+    return ok(await getCustomerProfile(auth.organization.organizationId, id));
   });
 }
 

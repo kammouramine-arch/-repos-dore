@@ -1,6 +1,11 @@
 const paths = ['/', '/prospects', '/clients', '/plus'];
 const destinations = ['/(app)', '/(app)/prospects', '/(app)/clients', '/(app)/plus'] as const;
 
+/** Small thumb movement is a tap, not an instruction to cancel the + button. */
+export function shouldCaptureTabDrag(dx: number, dy: number) {
+  return Number.isFinite(dx) && Number.isFinite(dy) && Math.abs(dx) >= 20 && Math.abs(dx) > Math.abs(dy) * 2;
+}
+
 export function tabSwipeDestination(pathname: string, dx: number) {
   if (!Number.isFinite(dx) || Math.abs(dx) < 38) return null;
   const current = paths.indexOf(pathname);

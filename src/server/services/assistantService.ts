@@ -73,6 +73,7 @@ export async function askAssistant(
 }
 
 interface AssistantContext {
+  closedQuotes: { number: string; title: string; clientMessage: string | null }[];
   facts: string[];
   metrics: Awaited<ReturnType<typeof getDashboardMetrics>>;
   toRecover: Awaited<ReturnType<typeof revenueToRecover>>;
@@ -83,7 +84,7 @@ interface AssistantContext {
 
 async function collectContext(organizationId: string, question: string): Promise<AssistantContext> {
   const threshold = extractAmountCents(question);
-  const [metrics, toRecover, bigQuotesRaw] = await Promise.all([
+  const [metrics, toRecover, bigQuotesRaw, closedQuotes] = await Promise.all([
     getDashboardMetrics(organizationId, 30),
     revenueToRecover(organizationId),
     prisma.quote.findMany({
@@ -95,6 +96,11 @@ async function collectContext(organizationId: string, question: string): Promise
       include: { customer: true },
       orderBy: { totalCents: 'desc' },
       take: 8,
+    }),
+    prisma.quote.findMany({
+      where: { organizationId, deletedAt: null, status: { in: ['REFUSE', 'EXPIRE', 'ANNULE'] } },
+      select: { number: true, title: true, clientMessage: true },
+      orderBy: { updatedAt: 'desc' }, take: 8,
     }),
   ]);
 
@@ -112,6 +118,7 @@ async function collectContext(organizationId: string, question: string): Promise
     .map((quote) => ({ name: quote.customerName, number: quote.number, days: quote.daysWaiting }));
 
   const facts = [
+    ...closedQuotes.map(quote => `Devis classé sans suite : ${quote.number} | ${quote.title} | ${quote.clientMessage ?? 'Motif non renseigné'}`),
     `Période analysée : 30 derniers jours.`,
     `Chiffre d'affaires devisé : ${formatCents(metrics.quotedRevenueCents)}.`,
     `Devis envoyés : ${metrics.quotesSent}.`,
@@ -133,6 +140,7 @@ async function collectContext(organizationId: string, question: string): Promise
   ];
 
   return {
+    closedQuotes,
     facts,
     metrics,
     toRecover,
@@ -161,7 +169,7 @@ function answerLocally(
 
   if (/refus|pas\s+(?:ete\s+)?accept|non\s+accept|perdu|sans\s+suite|expire/.test(text)) {
     return {
-      answer: `DEVISIA ne demande pas au client d’accepter ou de refuser dans l’application. ${toRecover.quoteCount} devis sont actuellement sans réponse, pour ${formatCents(toRecover.totalCents)} à relancer.`,
+      answer: context.closedQuotes.length ? `Voici les devis classés sans suite dans votre historique :\n${context.closedQuotes.map(quote => `${quote.number} — ${quote.title} : ${quote.clientMessage ?? 'motif non renseigné'}`).join('\n')}` : `Aucun devis classé sans suite. ${toRecover.quoteCount} devis sont actuellement sans réponse, pour ${formatCents(toRecover.totalCents)} à relancer.`,
       actions: [{ label: 'Voir les relances', href: '/app/relances' }],
     };
   }

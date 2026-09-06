@@ -1,0 +1,86 @@
+[
+  {
+    "path": "archive/reva-site/assets/img/case.svg",
+    "sha256": "f98e69f616ad812b858bb8f5d98453b90651e24939701533cc0c09b7f8b9d132",
+    "bytes": 1747,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/eye.svg",
+    "sha256": "9d5b87e8c0c6c65fd5be93144865f3aa081c476618f3773bad413e4b9b7d8402",
+    "bytes": 2766,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/fabric.svg",
+    "sha256": "4b6117edd95b078ec6b6b8cf886b4e2bc89ae9a7762e21b8f99b36d69c85178f",
+    "bytes": 2013,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/foot.svg",
+    "sha256": "56dfa3d274c63d11fd1c1a0d9460f01afe32160beecbc178c793bac1ecfdda54",
+    "bytes": 2926,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/legs.svg",
+    "sha256": "63577ba5b96385cdc57a86084c5ab45f98ee8b8d01a56329f669bebcc1c5d285",
+    "bytes": 2473,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/neck.svg",
+    "sha256": "a44e591ac150ad7c18549dc7bd3d9fc42c3ee367a220166654dcdc0642b797a0",
+    "bytes": 2355,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "archive/reva-site/assets/img/unit.svg",
+    "sha256": "0717549aa80b2fea8be96d1cca1acb901c6408e2437bc04fcc96c585f416df0e",
+    "bytes": 2344,
+    "proposedInclusion": "EXCLUDED_UNLESS_OWNER_CONFIRMS",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/adaptive-icon.png",
+    "sha256": "f5190a7a75739da40bc54f3d9ba7d10dfcc9be6ca766cc592ee86efe6c30f35f",
+    "bytes": 11793,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/favicon.png",
+    "sha256": "1363e2b98eed73b77694fd7f53ed2ae7630c7ca62406201f6dfa92be64ebf09e",
+    "bytes": 1124,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/icon.png",
+    "sha256": "e7295dfdbc6636af8ffb3b65f9f8afd6998c6c527aa04799c296785fde28f5fc",
+    "bytes": 14245,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/notification-icon.png",
+    "sha256": "b8677a44789e7d7c671e367f7233b364c5796943a0fa6cc13927aefc2808de16",
+    "bytes": 1033,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/splash.png",
+    "sha256": "769b6c49b93dafa13ea05b30056f26570bf855c2cc87d455048d63a704e1cc99",
+    "bytes": 26181,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  }
+]

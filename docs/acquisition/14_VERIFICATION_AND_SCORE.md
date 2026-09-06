@@ -2,6 +2,8 @@
 
 Assessment date: 6 September 2026. This is a first implementation/diligence pass, not an exhaustive security audit or a finished acquisition. Changes are local, not included in earlier TestFlight build 13 and not deployed to the public website.
 
+This initial 55-point assessment is historical. The continuing implementation and newer test/recovery evidence are in [15 Reliability and recovery](15_RELIABILITY_AND_RECOVERY.md). Do not interpret its original integration blocker as current; it was resolved in the subsequent pass. A final re-score is pending completion of the continuing work and release verification.
+
 | Check | Result |
 |---|---|
 | Unit suite | COMPLETE: 194 tests across 20 files passed |

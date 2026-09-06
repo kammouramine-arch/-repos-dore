@@ -43,12 +43,16 @@ export function ClientPicker({
   const [items, setItems] = React.useState<CustomerDTO[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [creating, setCreating] = React.useState(false);
+  const requestVersion = React.useRef(0);
 
   const load = React.useCallback(async (term: string) => {
+    const version = ++requestVersion.current;
     setError(null);
     try {
-      setItems((await api.customers.list(term || undefined)).items);
+      const result = await api.customers.list(term || undefined);
+      if (version === requestVersion.current) setItems(result.items);
     } catch (cause) {
+      if (version !== requestVersion.current) return;
       setItems([]);
       setError(cause instanceof DevisiaApiError ? cause.message : 'Chargement impossible.');
     }
@@ -58,12 +62,13 @@ export function ClientPicker({
     if (!visible) return undefined;
     // Une frappe déclenche une requête : on laisse le doigt finir sa phrase.
     const timer = setTimeout(() => void load(search), search ? 280 : 0);
-    return () => clearTimeout(timer);
+    return () => { clearTimeout(timer); requestVersion.current += 1; };
   }, [visible, search, load]);
 
   // La remise à zéro appartient à la fermeture, pas à un effet : la déclencher
   // depuis un effet provoquerait un rendu en cascade à chaque ouverture.
   const close = React.useCallback(() => {
+    requestVersion.current += 1;
     setSearch('');
     setItems(null);
     setCreating(false);
@@ -72,7 +77,7 @@ export function ClientPicker({
   }, [onClose]);
 
   const trimmed = search.trim();
-  const noMatch = items !== null && items.length === 0;
+  const noMatch = !error && items !== null && items.length === 0;
 
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={close}>
@@ -174,6 +179,7 @@ export function ClientPicker({
               {error && !creating ? (
                 <View style={{ padding: spacing.lg }}>
                   <Banner tone="danger" title={error} />
+                  <Button title="Réessayer" onPress={() => void load(search)} />
                 </View>
               ) : null}
 

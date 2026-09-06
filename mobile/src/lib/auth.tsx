@@ -119,7 +119,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     })();
     restoring.current = pending;
-    try { await pending; } finally { if (restoring.current === pending) restoring.current = null; }
+    try { await pending; } catch {
+      // Secure storage can fail before the network try/catch. Always leave
+      // startup in a recoverable state instead of an unhandled rejection.
+      if (generation === sessionGeneration.current) setState(current => ({ ...current, offline: true }));
+    } finally { if (restoring.current === pending) restoring.current = null; }
   }, []);
 
   // A mutation (purchase/profile update) must not reuse a read started before it.

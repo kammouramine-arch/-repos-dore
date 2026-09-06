@@ -22,6 +22,7 @@ Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedu
 | [12 Listing](12_MARKETPLACE_LISTING_INFO.md) | Fields requiring seller evidence |
 | [13 Privacy](13_LEGAL_AND_PRIVACY_REVIEW.md) | Technical gaps and legal questions |
 | [14 Verification](14_VERIFICATION_AND_SCORE.md) | Test evidence, limits and readiness score |
+| [15 Reliability and recovery](15_RELIABILITY_AND_RECOVERY.md) | Current fixes, database rehearsal and physical iPhone QA |
 
 Status vocabulary: **COMPLETE** means the stated bounded deliverable is verified; **NEEDS IMPROVEMENT** means technical work remains; **BLOCKED BY EXTERNAL ACTION** means a provider/account/device prerequisite; **REQUIRES OWNER DECISION** means commercial scope is undecided; **REQUIRES LEGAL/ACCOUNTING REVIEW** means specialist sign-off is outstanding. Multiple statuses can apply.
 

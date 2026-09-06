@@ -12,7 +12,7 @@ import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 
-void SplashScreen.preventAutoHideAsync();
+void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
 /**
  * Aiguillage de l'application.
@@ -28,7 +28,7 @@ function RootNavigator() {
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
 
   React.useEffect(() => {
-    void hasSeenOnboarding().then(setSeenOnboarding);
+    void hasSeenOnboarding().then(setSeenOnboarding).catch(() => setSeenOnboarding(false));
   }, []);
 
   const decided = status !== 'chargement' && seenOnboarding !== null;
@@ -36,7 +36,7 @@ function RootNavigator() {
   React.useEffect(() => {
     // On masque l'écran natif dès que le nôtre peut prendre le relais, pour
     // éviter le clignotement entre les deux.
-    void SplashScreen.hideAsync();
+    void SplashScreen.hideAsync().catch(() => undefined);
   }, []);
 
   const connected = status === 'connecte';
@@ -141,6 +141,7 @@ function RootNavigator() {
           options={{ presentation: 'modal', headerShown: true, title: 'Nouveau devis' }}
         />
         <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
+        <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: 'Fiche client' }} />
         </Stack.Protected>
         <Stack.Screen name="presentation" options={{ headerShown: false }} />
         <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />

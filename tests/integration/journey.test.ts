@@ -1,4 +1,10 @@
-import { afterAll, beforeAll, describe, expect, it } from 'vitest';
+import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
+// Integration exercises persistence/PDF/scheduling. Delivery is an explicit
+// test transport, never the production console fallback or a real recipient.
+vi.mock('@/lib/email', async importOriginal => ({
+  ...await importOriginal<typeof import('@/lib/email')>(),
+  getEmailProvider: () => ({ name: 'test', available: true, send: vi.fn().mockResolvedValue({ id: 'test-message', provider: 'test', delivered: true }) }),
+}));
 import { cleanupOrganization, createTestOrganization, prisma } from '../helpers';
 import { createLead, convertLeadToCustomer, receivePublicLead } from '@/server/services/leadService';
 import { importPriceBookCsv, loadCatalog, parseCsv } from '@/server/services/priceBookService';

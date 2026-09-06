@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
 
 /**
- * Parcours commercial : essai de 7 jours, expiration, page d'abonnement.
+ * Parcours commercial : essai de 3 jours, expiration, page d'abonnement.
  * Le test manipule directement la base pour simuler la fin de l'essai.
  */
 const prisma = new PrismaClient({
@@ -20,12 +20,12 @@ test.afterAll(async () => {
 });
 
 test.describe('abonnement', () => {
-  test('essai de 7 jours puis conversion', async ({ page }) => {
+  test('essai de 3 jours puis conversion', async ({ page }) => {
     const email = `essai-${Date.now().toString(36)}@devisia.test`;
 
     // Inscription : l'essai démarre automatiquement.
     await page.goto('/inscription');
-    await page.getByLabel(/Nom de votre entreprise/i).fill('Plomberie Sept Jours');
+    await page.getByLabel(/Nom de votre entreprise/i).fill('Plomberie Trois Jours');
     await page.getByLabel(/Adresse email/i).fill(email);
     await page.getByLabel(/Mot de passe/i).fill('devisia-e2e-2026');
     await page.getByRole('button', { name: /Créer mon compte/i }).click();
@@ -44,18 +44,18 @@ test.describe('abonnement', () => {
     expect(subscription?.status).toBe('trialing');
     expect(subscription?.trialStartedAt).not.toBeNull();
 
-    // 7 jours exactement, pas 14.
+    // 3 jours exactement, conformément à la durée décidée par le propriétaire.
     const days = Math.round(
       ((subscription!.trialEndsAt!.getTime() - subscription!.trialStartedAt!.getTime()) /
         (24 * 60 * 60 * 1000)) *
         10,
     ) / 10;
-    expect(days).toBe(7);
+    expect(days).toBe(3);
 
     // Pendant l'essai, la création de devis est ouverte.
     await page.goto('/app/parametres/abonnement');
     await expect(
-      page.getByText(/Période d’essai|essai de 7 jours/i).filter({ visible: true }).first(),
+      page.getByText(/Période d’essai|essai de 3 jours/i).filter({ visible: true }).first(),
     ).toBeVisible();
 
     // Fin de l'essai.
@@ -105,9 +105,9 @@ test.describe('abonnement', () => {
     }
   });
 
-  test('la page tarifs annonce 7 jours d’essai', async ({ page }) => {
+  test('la page tarifs annonce 3 jours d’essai', async ({ page }) => {
     await page.goto('/tarifs');
-    await expect(page.getByText(/7 jours/i).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByText(/3 jours/i).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByText(/14 jours/i)).toHaveCount(0);
   });
 });

@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Tabs, useRouter } from 'expo-router';
 import { Pressable, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, shadows } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { useReducedMotion } from '@/components/motion';

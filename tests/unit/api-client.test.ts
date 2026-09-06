@@ -28,6 +28,17 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('client API — transport', () => {
+  it('reports timing and category without identifiers or search terms', async () => {
+    const onDiagnostic = vi.fn();
+    const api = createApiClient({ baseUrl: 'https://exemple.test', onDiagnostic, fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ data: { items: [], total: 0 } })) });
+    await api.customers.list('private-client-email@example.test');
+    expect(onDiagnostic).toHaveBeenCalledWith({ area: 'customers', code: 'OK', durationMs: expect.any(Number) });
+    expect(JSON.stringify(onDiagnostic.mock.calls)).not.toContain('private-client');
+  });
+  it('does not let a failing diagnostic observer break successful actions', async () => {
+    const api = createApiClient({ baseUrl: 'https://exemple.test', onDiagnostic: () => { throw new Error('observer'); }, fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ data: { items: [], total: 0 } })) });
+    await expect(api.customers.list()).resolves.toEqual({ items: [], total: 0 });
+  });
   it.each(['photo', 'audio'])('sends real %s bytes instead of a URI object', async (kind) => {
     const source = new Blob(['file bytes'], { type: kind === 'photo' ? 'image/jpeg' : 'audio/mp4' });
     const readUploadFile = vi.fn().mockResolvedValue(source);

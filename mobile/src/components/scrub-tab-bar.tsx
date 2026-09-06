@@ -2,11 +2,11 @@ import * as React from 'react';
 import { Animated, Keyboard, PanResponder, Pressable, Text, View } from 'react-native';
 import { Tabs, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { colors } from '@/theme';
 import { useReducedMotion } from './motion';
-import { scrubSlot } from '@/lib/tab-navigation';
+import { scrubSlot, shouldCaptureTabDrag } from '@/lib/tab-navigation';
 
 const items = [
   { name: 'index', label: 'Accueil', icon: 'home-outline' },
@@ -50,7 +50,7 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
     else position(active, true);
   }, [state.routes, navigation, active, position]);
   const gesture = React.useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (_, g) => Math.abs(g.dx) > 6 && Math.abs(g.dx) > Math.abs(g.dy) * 2,
+    onMoveShouldSetPanResponderCapture: (_, g) => shouldCaptureTabDrag(g.dx, g.dy),
     onPanResponderGrant: () => { thumb.stopAnimation(); },
     onPanResponderMove: (_, g) => {
       const x = g.moveX - bounds.x;
@@ -80,9 +80,9 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
         const focused = (preview ?? active) === index;
         return <Pressable key={item.name} accessibilityRole={index === 2 ? 'button' : 'tab'} accessibilityLabel={item.label} accessibilityState={index === 2 ? undefined : { selected: active === index }}
           onPress={() => {
-            if (index === 2) { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined); router.push('/devis/nouveau'); }
+            if (index === 2) { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined); router.navigate('/devis/nouveau'); }
             else select(index);
-          }} style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3 }}>
+          }} style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, opacity: pressed ? 0.65 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
           <Ionicons name={item.icon} size={index === 2 ? 30 : focused ? 25 : 23} color={focused || index === 2 ? colors.accent : colors.subtle} />
           {index !== 2 && <Text style={{ fontSize: 10, fontWeight: '600', color: focused ? colors.accent : colors.subtle }}>{item.label}</Text>}
         </Pressable>;

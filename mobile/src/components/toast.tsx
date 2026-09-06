@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 type Tone = 'success' | 'error' | 'info';

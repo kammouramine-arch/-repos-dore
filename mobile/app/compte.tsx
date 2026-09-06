@@ -1,9 +1,12 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Linking, Platform } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform, Share } from 'react-native';
 import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/components/ui';
 import { useAuth, useSession } from '@/lib/auth';
 import { api, API_URL } from '@/lib/api';
 import { spacing } from '@/theme';
+import { File, Paths } from 'expo-file-system';
+import * as Sharing from 'expo-sharing';
+import { readDiagnostics } from '@/lib/diagnostics';
 
 export default function CompteScreen() {
   const session = useSession();
@@ -64,6 +67,18 @@ export default function CompteScreen() {
       <Button title="Me déconnecter / utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void perform(signOut)} />
       <Card style={{ gap: spacing.lg }}>
         <Heading>Confidentialité et assistance</Heading>
+        <Button title="Partager le diagnostic technique" variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISIA', events: readDiagnostics() }, null, 2) }); })} />
+        <Muted>Diagnostic local : durées et catégories d’erreurs, sans nom de client, description de chantier ni jeton de connexion.</Muted>
+        <Button title="Exporter mes informations de compte" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
+          if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
+          const data = await api.auth.exportPersonal();
+          const file = new File(Paths.cache, `DEVISIA-compte-${Date.now()}.json`);
+          try {
+            file.write(JSON.stringify(data, null, 2));
+            await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
+          } finally { if (file.exists) file.delete(); }
+        })} />
+        <Muted>Cet export contient votre identité et vos rattachements à une entreprise, pas les devis ni le dossier commercial complet.</Muted>
         <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
         <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
         <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />

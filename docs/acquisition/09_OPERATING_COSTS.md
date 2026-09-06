@@ -2,6 +2,19 @@
 
 No billing statements reviewed. Actual monthly spend, credits, tax, free-tier eligibility and negotiated rates are **UNKNOWN**. Do not treat a provider's free tier as a sustainable zero-cost production plan.
 
+## Verified public rates, checked 6 September 2026
+
+These are published rates, NOT proof of the account's subscribed tier or actual invoices.
+
+Account evidence: authenticated Vercel team API on 6 September returned **Hobby / active / USD**. The base plan is free, but Vercel explicitly limits Hobby to personal non-commercial use. **OWNER ACTION before paid commercial launch:** Vercel → select DEVISIA's team → Settings → Billing → Upgrade; review the current Pro price, usage limits and payment details before confirming. No paid upgrade was made. [Hobby terms and upgrade steps](https://vercel.com/docs/plans/hobby). Other team add-ons/invoices were not verified; do not describe all hosting costs as zero.
+
+- Configured quote model `gemini-3.5-flash`: standard paid input **USD 1.50/million tokens**, output including thinking **USD 9.00/million**. Do not use batch/flex rates for the interactive request path. [Google pricing](https://ai.google.dev/gemini-api/docs/pricing?hl=en).
+- Resend: free tier **3,000 emails/month, 100/day**; Pro **USD 20/month for 50,000**, additional **USD 0.90/1,000**. Verified sender remains an operational prerequisite. [Resend pricing](https://resend.com/pricing).
+- Expo: Free lists 15 iOS and 15 Android builds; Starter **USD 19/month plus usage**, with **USD 45 build credit**. Current account tier still needs account evidence. [Expo pricing](https://expo.dev/pricing).
+- Supabase Pro subscription **USD 25/month**; compute/add-ons/overages affect total. PITR starts at **USD 100/month**, not automatically included in the base subscription. [Supabase pricing](https://supabase.com/pricing).
+
+Applying Google's verified standard rates to the explicit text-only workload assumptions below yields **USD 24 / 240 / 1,200 per month**, respectively. This is calculated AI usage, not a forecast of actual COGS. It excludes extra thinking beyond the assumed output, image input, assistant calls, retries and infrastructure. Native iPhone dictation is not the optional server transcription API: do not charge every voice quote an invented transcription API cost.
+
 | Service | Billing model / scaling driver | Billing owner / free-tier evidence |
 |---|---|---|
 | Vercel | Plan plus compute, requests, egress and add-ons | Vercel team Billing; current plan unknown |

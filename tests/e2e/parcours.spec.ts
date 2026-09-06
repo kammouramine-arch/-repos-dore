@@ -1,4 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
+import { PrismaClient } from '@prisma/client';
+const prisma = new PrismaClient({ datasources: { db: { url: process.env.E2E_DATABASE_URL ?? 'postgresql://devisia:devisia@127.0.0.1:5432/devisia_test?schema=public' } } });
+test.afterAll(async () => { await prisma.$disconnect(); });
 
 /**
  * Parcours principal de DEVISIA, du compte vide au devis envoyé et consulté.
@@ -93,7 +96,12 @@ test.describe('parcours complet', () => {
     // 8. Envoi au client -------------------------------------------------------
     await page.getByRole('button', { name: /Envoyer le devis/i }).click();
     await page.getByRole('button', { name: /Envoyer maintenant/i }).click();
-    await expect(page.getByText(/Devis envoyé/i).first()).toBeVisible({ timeout: 30_000 });
+    await expect(page.getByText(/envoi d.emails n.est pas encore configuré/i).first()).toBeVisible({ timeout: 30_000 });
+    expect((await prisma.quote.findUniqueOrThrow({ where: { id: quoteId } })).sentAt).toBeNull();
+    // Explicit database fixture for the public-reading flow. This is NOT an
+    // end-to-end delivery assertion; the console provider must never fake it.
+    await prisma.quote.update({ where: { id: quoteId }, data: { status: 'ENVOYE', sentAt: new Date() } });
+    await page.goto(quoteUrl);
 
     // 9. Consultation par le client -------------------------------------------
     const publicLink = await page

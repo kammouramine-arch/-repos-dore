@@ -2,6 +2,8 @@
 
 Status: **REQUIRES LEGAL/ACCOUNTING REVIEW** and **REQUIRES OWNER DECISION**. Code possession, Git author names and AI assistance do not establish a complete chain of title.
 
+Additional evidence: `evidence/visual-assets.json` identifies tracked bitmap/vector/font/media files with SHA-256 hashes and sizes, distinguishing excluded archive material. `evidence/contributor-records.json` lists Git author names and commit counts without email addresses. These make the evidence package reproducible but intentionally leave creator/license/assignment proof unverified. For each contributor, supply a signed assignment or explain founder/company ownership; for each brand/stock asset, supply the editable original and creation record or license receipt. Never substitute the manifest for legal title.
+
 Inventory findings: 1,615 package instances; all have declared license metadata. Non-permissive/attribution review items include sharp/libvips platform binaries (LGPL and mixed expressions), lightningcss and axe-core (MPL), caniuse-lite (CC-BY), and node-forge (BSD-or-GPL alternative). These are not automatically violations. Determine what is actually distributed, whether modified, and which license alternative applies; preserve required notices/source obligations rather than deleting working dependencies indiscriminately.
 
 Generated `evidence/dependencies.json` lists resolved root/mobile lockfile package instances, versions, package-declared license metadata and development-only classification. Duplicate package instances are retained intentionally. It is not a full SBOM, license-text bundle, vulnerability scan or verification of every transitive asset. Native CocoaPods/build dependencies and vendored icon/font licenses require release-archive review too.

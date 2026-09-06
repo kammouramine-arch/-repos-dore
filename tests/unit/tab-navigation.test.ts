@@ -1,5 +1,17 @@
 import { describe, expect, it } from 'vitest';
-import { isTabBarSwipe, tabSwipeDestination, scrubSlot } from '../../mobile/src/lib/tab-navigation';
+import { isTabBarSwipe, tabSwipeDestination, scrubSlot, shouldCaptureTabDrag } from '../../mobile/src/lib/tab-navigation';
+
+describe('tap versus scrub ownership', () => {
+  it('leaves thumb jitter and vertical motion with the pressed button', () => {
+    for (const dx of [0, 6, 10, 19]) expect(shouldCaptureTabDrag(dx, 0)).toBe(false);
+    expect(shouldCaptureTabDrag(25, 20)).toBe(false);
+    expect(shouldCaptureTabDrag(NaN, 0)).toBe(false);
+  });
+  it('captures deliberate horizontal scrubbing in either direction', () => {
+    expect(shouldCaptureTabDrag(25, 3)).toBe(true);
+    expect(shouldCaptureTabDrag(-25, 3)).toBe(true);
+  });
+});
 
 describe('finger-following tab selection', () => {
   it('selects the tab under the finger, including non-adjacent tabs', () => {

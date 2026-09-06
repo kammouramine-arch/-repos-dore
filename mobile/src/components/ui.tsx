@@ -19,7 +19,7 @@ import {
   type RefreshControlProps,
 } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { Ionicons } from '@expo/vector-icons';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
 import { useTouchMotion } from '@/components/motion';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
