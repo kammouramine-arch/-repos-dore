@@ -25,6 +25,6 @@ This checkpoint records the workspace implementation added after the earlier ent
 
 ## External gates
 
-GitHub API read confirms commits `a45204d` and `4847fc8` exist as objects in `kammouramine-arch/-repos-dore`, but the connected branch ref currently points to `d1438f6`; terminal network permission is unavailable and the browser automation surface is not configured. The new local commit is therefore not claimed as remotely pushed. Manual push from the repository checkout is required before the next EAS build.
+GitHub API read confirms commits `a45204d` and `4847fc8` exist as objects in `kammouramine-arch/-repos-dore`, but the connected branch ref currently points to `d1438f6`; terminal network permission is unavailable and the browser automation surface is not configured. Local HEAD is currently `25e13e9`; it is not claimed as remotely pushed. Manual push from the repository checkout is required before the next EAS build.
 
 Production Resend delivery still requires `devisera.fr` domain verification and Vercel production environment values. Apple App Store metadata, payment-sheet display branding, subscription products and TestFlight physical-device acceptance remain owner/account actions.
