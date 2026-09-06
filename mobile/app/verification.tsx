@@ -6,12 +6,15 @@ import { Banner, Body, Button, Card, Field, Heading, Muted } from '@/components/
 import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { copy, mobileLocale } from '@/lib/i18n';
 
 /** The only app surface available until the account proves mailbox ownership. */
 export default function VerificationScreen() {
   const router = useRouter();
   const session = useSession();
   const { refresh, signOut } = useAuth();
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
   const [code, setCode] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
@@ -30,18 +33,18 @@ export default function VerificationScreen() {
   }
 
   return (
-    <AuthSurface title="Vérifiez votre adresse" subtitle="Une dernière étape pour protéger vos devis et éviter les comptes jetables.">
+    <AuthSurface title={copy(locale, 'verify')} subtitle={en ? 'One last step to protect your quotes and keep your account secure.' : 'Une dernière étape pour protéger vos devis et éviter les comptes jetables.'}>
       <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
         <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
           <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
             <Body style={{ color: colors.accent, fontWeight: '700' }}>@</Body>
           </View>
-          <Heading>Un code vient d’être envoyé</Heading>
-          <Muted>Entrez le code à six chiffres reçu sur {session.user.email}. Il est valable 10 minutes. Vérifiez aussi vos courriers indésirables.</Muted>
+          <Heading>{copy(locale, 'verifySent')}</Heading>
+          <Muted>{en ? `Enter the six-digit code sent to ${session.user.email}. It is valid for 10 minutes. Check your spam folder too.` : `Entrez le code à six chiffres reçu sur ${session.user.email}. Il est valable 10 minutes. Vérifiez aussi vos courriers indésirables.`}</Muted>
           {error ? <Banner tone="danger" title={error} /> : null}
           {notice ? <Banner title={notice} /> : null}
           <Field
-            label="Code de confirmation"
+            label={en ? 'Confirmation code' : 'Code de confirmation'}
             value={code}
             onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))}
             keyboardType="number-pad"
@@ -52,7 +55,7 @@ export default function VerificationScreen() {
             autoFocus
           />
           <Button
-            title="Confirmer mon adresse"
+            title={copy(locale, 'confirm')}
             loading={busy}
             disabled={code.length !== 6}
             onPress={() => void run(async () => {
@@ -62,17 +65,17 @@ export default function VerificationScreen() {
             haptic
           />
           <Button
-            title="Renvoyer un code"
+            title={copy(locale, 'resend')}
             variant="secondary"
             disabled={busy}
             onPress={() => void run(async () => {
               const result = await api.auth.requestEmailCode(session.user.email);
               setCode('');
-              setNotice(`Nouveau code envoyé à ${result.email}.`);
+              setNotice(en ? `New code sent to ${result.email}.` : `Nouveau code envoyé à ${result.email}.`);
             })}
           />
-          <Button title="Modifier mon adresse" variant="ghost" disabled={busy} onPress={() => router.push('/compte')} />
-          <Button title="Utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void run(signOut)} />
+          <Button title={en ? 'Change my email' : 'Modifier mon adresse'} variant="ghost" disabled={busy} onPress={() => router.push('/compte')} />
+          <Button title={en ? 'Use another account' : 'Utiliser un autre compte'} variant="ghost" disabled={busy} onPress={() => void run(signOut)} />
         </Card>
       </KeyboardAvoidingView>
     </AuthSurface>

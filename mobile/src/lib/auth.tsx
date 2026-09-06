@@ -65,6 +65,10 @@ export function describeAuthError(error: unknown): string {
       return 'Un compte existe déjà avec cette adresse. Connectez-vous.';
     case 'RATE_LIMITED':
       return 'Trop de tentatives. Patientez quelques minutes avant de réessayer.';
+    case 'PROVIDER_UNAVAILABLE':
+      return 'La vérification email est momentanément indisponible. Réessayez dans un instant.';
+    case 'INTERNAL':
+      return 'Le service rencontre un problème temporaire. Vos informations sont conservées, réessayez dans un instant.';
     case 'NETWORK':
     case 'TIMEOUT':
       return error.message;

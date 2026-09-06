@@ -5,8 +5,11 @@ import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
 import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
+import { copy, deviceLocale } from '@/lib/i18n';
 
 export default function ConnexionScreen() {
+  const locale = deviceLocale();
+  const en = locale === 'en';
   const router = useRouter();
   const { signIn, error } = useAuth();
   const [email, setEmail] = React.useState('');
@@ -30,12 +33,12 @@ export default function ConnexionScreen() {
   }
 
   return (
-    <AuthSurface title="Content de vous revoir" subtitle="Votre atelier, vos clients et vos devis vous attendent.">
+    <AuthSurface title={en ? 'Welcome back' : 'Content de vous revoir'} subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}>
 
           <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
             {error ? <Banner tone="danger" title={error} /> : null}
             <Field
-              label="Adresse email"
+              label={copy(locale, 'email')}
               value={email}
               onChangeText={setEmail}
               autoCapitalize="none"
@@ -45,7 +48,7 @@ export default function ConnexionScreen() {
               placeholder="vous@entreprise.fr"
             />
             <Field
-              label="Mot de passe"
+              label={copy(locale, 'password')}
               value={password}
               onChangeText={setPassword}
               secureTextEntry
@@ -56,19 +59,19 @@ export default function ConnexionScreen() {
               returnKeyType="go"
             />
 
-            <Button title="Se connecter" size="lg" loading={pending} onPress={() => void submit()} haptic />
+            <Button title={copy(locale, 'login')} size="lg" loading={pending} onPress={() => void submit()} haptic />
           </Card>
 
           <View style={{ alignItems: 'center', gap: spacing.md }}>
             <Link href="/(auth)/mot-de-passe" asChild>
               <Pressable accessibilityRole="link">
-                <Muted>Mot de passe oublié ?</Muted>
+                <Muted>{en ? 'Forgot your password?' : 'Mot de passe oublié ?'}</Muted>
               </Pressable>
             </Link>
             <Link href="/(auth)/inscription" asChild>
               <Pressable accessibilityRole="link">
                 <Body style={{ color: colors.accent, fontWeight: '600' }}>
-                  Créer un compte
+                  {copy(locale, 'createAccount')}
                 </Body>
               </Pressable>
             </Link>

@@ -8,6 +8,8 @@ import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { copy, mobileLocale } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 /**
  * Répertoire client.
@@ -19,6 +21,9 @@ import { colors, spacing } from '@/theme';
  */
 export default function ClientsScreen() {
   const router = useRouter();
+  const { session } = useAuth();
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
   const [creating, setCreating] = React.useState(false);
@@ -45,18 +50,18 @@ export default function ClientsScreen() {
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.lg }}>
         <PageHeader
-          eyebrow="Répertoire"
-          title="Vos clients"
-          subtitle={query.data ? `${query.data.total} client${query.data.total > 1 ? 's' : ''} dans votre atelier` : 'Coordonnées, devis et chiffre d’affaires.'}
+          eyebrow={copy(locale, 'directory')}
+          title={copy(locale, 'yourClients')}
+          subtitle={query.data ? (en ? `${query.data.total} client${query.data.total === 1 ? '' : 's'} in your workspace` : `${query.data.total} client${query.data.total > 1 ? 's' : ''} dans votre atelier`) : (en ? 'Details, quotes and revenue.' : 'Coordonnées, devis et chiffre d’affaires.')}
         />
         <SearchField
           value={search}
           onChangeText={setSearch}
-          placeholder="Nom, ville, téléphone…"
+          placeholder={en ? 'Name, city, phone…' : 'Nom, ville, téléphone…'}
         />
       </View>
 
-      {query.error ? <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}><Banner tone="danger" title={query.error} /><Button title="Réessayer" onPress={() => void query.reload()} /></View> : null}
+      {query.error ? <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}><Banner tone="danger" title={query.error} /><Button title={copy(locale, 'retry')} onPress={() => void query.reload()} /></View> : null}
       {query.loading && !query.data ? (
         <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2].map((index) => (
@@ -76,15 +81,15 @@ export default function ClientsScreen() {
           ListEmptyComponent={
             <EmptyState
               icon="people-outline"
-              title={debounced ? 'Aucun client trouvé.' : 'Aucun client pour le moment.'}
+              title={debounced ? (en ? 'No clients found.' : 'Aucun client trouvé.') : (en ? 'No clients yet.' : 'Aucun client pour le moment.')}
               description={
                 debounced
-                  ? 'Essayez un autre nom ou une ville.'
-                  : 'Vos clients arrivent aussi tout seuls : chaque devis crée la fiche correspondante.'
+                  ? (en ? 'Try another name or city.' : 'Essayez un autre nom ou une ville.')
+                  : (en ? 'Clients can also be created from a quote.' : 'Vos clients arrivent aussi tout seuls : chaque devis crée la fiche correspondante.')
               }
               action={
                 <Button
-                  title="Nouveau client"
+                  title={en ? 'New client' : 'Nouveau client'}
                   icon="person-add-outline"
                   haptic
                   onPress={() => setCreating(true)}

@@ -6,6 +6,8 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows, spacing } from '@/theme';
 import { useReducedMotion, useTouchMotion } from './motion';
+import { useAuth } from '@/lib/auth';
+import { copy, mobileLocale } from '@/lib/i18n';
 
 /**
  * A direct, native-feeling bar. The old version put a horizontal
@@ -25,10 +27,12 @@ type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs
 
 function NavigationItem({
   item,
+  label,
   active,
   onPress,
 }: {
   item: (typeof items)[number];
+  label: string;
   active: boolean;
   onPress: () => void;
 }) {
@@ -57,7 +61,7 @@ function NavigationItem({
     <Animated.View style={{ flex: 1, transform: [{ scale: touch.scale }] }}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={item.label}
+        accessibilityLabel={label}
         accessibilityState={isCreate ? undefined : { selected: active }}
         hitSlop={4}
         onPressIn={touch.pressIn}
@@ -104,7 +108,7 @@ function NavigationItem({
             />
             <Ionicons name={(active ? item.activeIcon : item.icon) as keyof typeof Ionicons.glyphMap} size={22} color={active ? colors.accent : colors.subtle} />
             <Text style={{ marginTop: 3, fontSize: 10, fontWeight: active ? '700' : '600', color: active ? colors.accent : colors.subtle }}>
-              {item.label}
+              {label}
             </Text>
           </>
         )}
@@ -114,14 +118,29 @@ function NavigationItem({
 }
 
 export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
+  const { session } = useAuth();
+  const locale = mobileLocale(session);
   const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+  const [barWidth, setBarWidth] = React.useState(0);
+  const indicatorX = React.useRef(new Animated.Value(0)).current;
 
   React.useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => { show.remove(); hide.remove(); };
   }, []);
+
+  React.useEffect(() => {
+    if (!barWidth) return;
+    Animated.spring(indicatorX, {
+      toValue: Math.max(0, state.index) * (barWidth / items.length),
+      damping: 22,
+      stiffness: 300,
+      mass: 0.7,
+      useNativeDriver: true,
+    }).start();
+  }, [barWidth, indicatorX, state.index]);
 
   if (keyboardVisible) return null;
 
@@ -137,20 +156,45 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
   return (
     <View
       style={{
-        backgroundColor: colors.canvas,
-        paddingTop: 7,
-        paddingBottom: Math.max(insets.bottom, 10),
-        paddingHorizontal: spacing.sm,
-        borderTopLeftRadius: radius.xl,
-        borderTopRightRadius: radius.xl,
-        ...shadows.card,
+        backgroundColor: 'transparent',
+        paddingTop: spacing.sm,
+        paddingBottom: Math.max(insets.bottom, spacing.sm),
+        paddingHorizontal: spacing.md,
       }}
     >
-      <View style={{ height: 64, flexDirection: 'row', alignItems: 'center' }}>
+      <View
+        onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
+        style={{
+          height: 68,
+          flexDirection: 'row',
+          alignItems: 'center',
+          overflow: 'visible',
+          borderRadius: radius.xl,
+          backgroundColor: colors.canvas,
+          borderWidth: 1,
+          borderColor: colors.line,
+          paddingHorizontal: 4,
+          ...shadows.floating,
+        }}
+      >
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            left: 4,
+            top: 8,
+            width: Math.max(0, barWidth / items.length - 8),
+            height: 42,
+            borderRadius: radius.lg,
+            backgroundColor: colors.accentSoft,
+            transform: [{ translateX: indicatorX }],
+          }}
+        />
         {items.map(item => (
           <NavigationItem
             key={item.name}
             item={item}
+            label={item.name === 'index' ? copy(locale, 'home') : item.name === 'clients' ? copy(locale, 'clients') : item.name === 'nouveau' ? copy(locale, 'create') : item.name === 'prospects' ? copy(locale, 'activity') : copy(locale, 'space')}
             active={item.name === activeName}
             onPress={() => select(item.name)}
           />

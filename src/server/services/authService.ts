@@ -81,9 +81,17 @@ export async function signUp(input: SignUpInput) {
   });
   await trackEvent('signup', { organizationId: organization.id, userId: user.id });
 
-  await (input.verificationMethod === 'code' || input.billingProvider === 'apple' ? requestEmailCode(user.id, { email }) : sendVerificationEmail(user.id, email)).catch((error) =>
-    console.error('[auth] envoi de vérification impossible', error),
-  );
+  // Never report a verification step as successful when the provider did not
+  // accept the message. `requestEmailCode` deliberately throws when Resend is
+  // not configured or rejects the request; let that typed error reach the API
+  // so the mobile client can show a recoverable failure instead of an inbox
+  // screen for a code that cannot exist. The account is kept so the user can
+  // sign in and retry the verification request after the provider is fixed.
+  if (input.verificationMethod === 'code' || input.billingProvider === 'apple') {
+    await requestEmailCode(user.id, { email });
+  } else {
+    await sendVerificationEmail(user.id, email);
+  }
   await getEmailProvider()
     .send({ to: email, ...welcomeEmail({ firstName: user.firstName }) })
     .catch((error) => console.error('[auth] email de bienvenue impossible', error));
@@ -152,7 +160,10 @@ async function issueToken(userId: string, kind: AuthTokenKind, ttlMs: number, em
 export async function sendVerificationEmail(userId: string, email: string) {
   const token = await issueToken(userId, 'EMAIL_VERIFICATION', VERIFICATION_TTL_MS, email);
   const url = appUrl(`/verification?token=${encodeURIComponent(token)}`);
-  await getEmailProvider().send({ to: email, ...verifyEmailTemplate({ url }) });
+  const sent = await getEmailProvider().send({ to: email, ...verifyEmailTemplate({ url }) });
+  if (!sent.delivered) {
+    throw new AppError('PROVIDER_UNAVAILABLE', 'Le lien de vérification n’a pas pu être envoyé. Réessayez plus tard.');
+  }
 }
 
 export async function verifyEmail(token: string) {

@@ -30,6 +30,7 @@ import { api } from '@/lib/api';
 import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
+import { mobileLocale } from '@/lib/i18n';
 
 /**
  * Accueil.
@@ -106,6 +107,7 @@ function relativeDay(iso: string): string {
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
+  const en = mobileLocale(session) === 'en';
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();
     const data = await api.dashboard(30);
@@ -154,9 +156,9 @@ export default function AccueilScreen() {
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
         <Screen>
           <PageHeader
-            eyebrow="Votre atelier"
-            title={firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}
-            subtitle="Un instant, je rassemble votre activité."
+            eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+            title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+            subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
             action={
               <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
                 <Logo size={26} showName={false} />
@@ -189,7 +191,7 @@ export default function AccueilScreen() {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
         <ErrorState
-          description={query.error ?? 'Votre activité n’a pas pu être chargée.'}
+          description={query.error ?? (en ? 'Your activity could not be loaded.' : 'Votre activité n’a pas pu être chargée.')}
           onRetry={() => void query.reload()}
         />
       </SafeAreaView>
@@ -210,12 +212,12 @@ export default function AccueilScreen() {
         }
       >
         <PageHeader
-          eyebrow="Votre atelier"
-          title={firstName ? `Bonjour ${firstName}.` : 'Bonjour.'}
+          eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+          title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
           subtitle={
             started
-              ? 'Votre activité, claire et prête à avancer.'
-              : 'Votre premier devis commence ici.'
+              ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
+              : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
           }
           action={
             <View
@@ -235,7 +237,7 @@ export default function AccueilScreen() {
           }
         />
 
-        {(query.loading || query.refreshing || query.error) && <Caption>{query.error ? 'Dernières données disponibles — connexion à réessayer.' : 'Dernières données disponibles · actualisation en cours…'}</Caption>}
+        {(query.loading || query.refreshing || query.error) && <Caption>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
         <TrialBanner subscription={session?.subscription ?? null} />
 
         {!started ? (
@@ -243,7 +245,7 @@ export default function AccueilScreen() {
              comment elle se passe plutôt que d'afficher des compteurs vides. */
           <>
             <PressableCard
-              accessibilityLabel="Créer mon premier devis"
+              accessibilityLabel={en ? 'Create my first quote' : 'Créer mon premier devis'}
               onPress={() => {
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 router.push('/devis/nouveau');
@@ -281,36 +283,35 @@ export default function AccueilScreen() {
               >
                 <Ionicons name="mic" size={24} color={colors.white} />
               </View>
-              <Title style={{ color: colors.white, fontSize: 25 }}>Créez votre premier devis</Title>
+              <Title style={{ color: colors.white, fontSize: 25 }}>{en ? 'Create your first quote' : 'Créez votre premier devis'}</Title>
               <Body style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 22 }}>
-                Décrivez le chantier à voix haute. DEVISERA prépare les lignes, vous vérifiez, vous
-                envoyez.
+                {en ? 'Describe the job out loud. DEVISERA prepares the line items; you review and send.' : 'Décrivez le chantier à voix haute. DEVISERA prépare les lignes, vous vérifiez, vous envoyez.'}
               </Body>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
-                <Body style={{ color: colors.white, fontWeight: '600' }}>Commencer</Body>
+                <Body style={{ color: colors.white, fontWeight: '600' }}>{en ? 'Start' : 'Commencer'}</Body>
                 <Ionicons name="arrow-forward" size={17} color={colors.white} />
               </View>
             </PressableCard>
 
             <Card style={{ gap: spacing.lg }}>
-              <SectionHeader title="Pour aller plus vite ensuite" />
+              <SectionHeader title={en ? 'Set up your workspace' : 'Pour aller plus vite ensuite'} />
               {[
                 {
                   icon: 'book-outline' as const,
-                  label: 'Renseignez votre catalogue',
-                  hint: 'Vos prix seront appliqués au lieu d’être estimés.',
+                  label: en ? 'Add your catalogue' : 'Renseignez votre catalogue',
+                  hint: en ? 'Your prices will be applied instead of estimated.' : 'Vos prix seront appliqués au lieu d’être estimés.',
                   href: '/catalogue' as const,
                 },
                 {
                   icon: 'business-outline' as const,
-                  label: 'Complétez votre entreprise',
-                  hint: 'SIRET, TVA et mentions apparaîtront sur vos devis.',
+                  label: en ? 'Complete your business profile' : 'Complétez votre entreprise',
+                  hint: en ? 'Business details will appear on your quotes.' : 'SIRET, TVA et mentions apparaîtront sur vos devis.',
                   href: '/entreprise' as const,
                 },
                 {
                   icon: 'people-outline' as const,
-                  label: 'Ajoutez un client',
-                  hint: 'Ou créez-le directement pendant un devis.',
+                  label: en ? 'Add a client' : 'Ajoutez un client',
+                  hint: en ? 'Or create one while preparing a quote.' : 'Ou créez-le directement pendant un devis.',
                   href: '/clients' as const,
                 },
               ].map((item, index, all) => (

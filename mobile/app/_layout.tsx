@@ -169,13 +169,13 @@ function RootNavigator() {
 
       <Stack.Protected guard={connected}>
         <Stack.Protected guard={!needsPlan}>
-        <Stack.Screen name="(app)" />
+        <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
         <Stack.Screen
           name="devis/nouveau"
-          options={{ presentation: 'modal', headerShown: true, title: 'Nouveau devis' }}
+          options={{ presentation: 'modal', headerShown: true, title: 'Nouveau devis', headerBackTitle: 'Retour' }}
         />
-        <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
-        <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: 'Fiche client' }} />
+        <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis', headerBackTitle: 'Retour' }} />
+        <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: 'Fiche client', headerBackTitle: 'Retour' }} />
         </Stack.Protected>
         <Stack.Screen
           name="abonnement"

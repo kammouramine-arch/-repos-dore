@@ -6,8 +6,11 @@ import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
 import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
+import { copy, deviceLocale } from '@/lib/i18n';
 
 export default function InscriptionScreen() {
+  const locale = deviceLocale();
+  const en = locale === 'en';
   const router = useRouter();
   const { signUp, error } = useAuth();
   const [form, setForm] = React.useState({
@@ -50,27 +53,27 @@ export default function InscriptionScreen() {
   }
 
   return (
-    <AuthSurface title="Créez votre atelier" subtitle="Vos clients, vos chantiers et vos devis. Tout commence ici.">
+    <AuthSurface title={en ? 'Create your workspace' : 'Créez votre atelier'} subtitle={en ? 'Clients, jobs and quotes. Everything starts here.' : 'Vos clients, vos chantiers et vos devis. Tout commence ici.'}>
 
             <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
               {validationError || error ? <Banner tone="danger" title={validationError ?? error!} /> : null}
               <Field
-                label="Nom de votre entreprise"
+                label={en ? 'Business name' : 'Nom de votre entreprise'}
                 value={form.companyName}
                 onChangeText={update('companyName')}
                 placeholder="Plomberie Martin"
                 autoComplete="organization"
               />
               <Field
-                label="Votre prénom"
-                hint="facultatif"
+                label={en ? 'First name' : 'Votre prénom'}
+                hint={en ? 'optional' : 'facultatif'}
                 value={form.firstName}
                 onChangeText={update('firstName')}
                 placeholder="Karim"
                 autoComplete="given-name"
               />
               <Field
-                label="Adresse email"
+                label={copy(locale, 'email')}
                 value={form.email}
                 onChangeText={update('email')}
                 autoCapitalize="none"
@@ -79,7 +82,7 @@ export default function InscriptionScreen() {
                 placeholder="vous@entreprise.fr"
               />
               <Field
-                label="Mot de passe"
+                label={copy(locale, 'password')}
                 hint={PASSWORD_HINT}
                 value={form.password}
                 onChangeText={update('password')}
@@ -90,11 +93,11 @@ export default function InscriptionScreen() {
                 placeholder="••••••••••"
               />
               <Pressable accessibilityRole="button" style={{ minHeight: 44, justifyContent: 'center' }} onPress={() => setShowPassword((current) => !current)}>
-                <Body style={{ color: colors.accent }}>{showPassword ? 'Masquer le mot de passe' : 'Afficher le mot de passe'}</Body>
+                <Body style={{ color: colors.accent }}>{showPassword ? (en ? 'Hide password' : 'Masquer le mot de passe') : (en ? 'Show password' : 'Afficher le mot de passe')}</Body>
               </Pressable>
 
               <Button
-                title="Créer mon compte"
+                title={en ? 'Create my account' : 'Créer mon compte'}
                 size="lg"
                 loading={pending}
                 onPress={() => void submit()}
@@ -102,15 +105,15 @@ export default function InscriptionScreen() {
               />
               <Muted style={{ fontSize: 12, textAlign: 'center' }}>
                 {Platform.OS === 'ios'
-                  ? `Choisissez ensuite votre formule et confirmez votre essai de ${TRIAL_DAYS} jours avec Apple, si vous êtes éligible.`
-                  : `Découvrez DEVISERA pendant ${TRIAL_DAYS} jours, puis choisissez votre formule.`}
+                  ? (en ? `Next, choose your plan and confirm your ${TRIAL_DAYS}-day Apple trial if eligible.` : `Choisissez ensuite votre formule et confirmez votre essai de ${TRIAL_DAYS} jours avec Apple, si vous êtes éligible.`)
+                  : (en ? `Try DEVISERA for ${TRIAL_DAYS} days, then choose your plan.` : `Découvrez DEVISERA pendant ${TRIAL_DAYS} jours, puis choisissez votre formule.`)}
               </Muted>
             </Card>
 
             <View style={{ alignItems: 'center' }}>
               <Link href="/(auth)/connexion" asChild>
                 <Pressable accessibilityRole="link">
-                  <Body style={{ color: colors.accent, fontWeight: '600' }}>J’ai déjà un compte</Body>
+                  <Body style={{ color: colors.accent, fontWeight: '600' }}>{en ? 'I already have an account' : 'J’ai déjà un compte'}</Body>
                 </Pressable>
               </Link>
             </View>

@@ -7,11 +7,15 @@ import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { spacing } from '@/theme';
 import { ClientForm } from '@/components/client-sheet';
+import { useAuth } from '@/lib/auth';
+import { mobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
 export default function ClientProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
+  const { session } = useAuth();
+  const en = mobileLocale(session) === 'en';
   const query = useQuery(() => api.customers.get(id), [id], `customer:${id}`);
   useFocusEffect(React.useCallback(() => { void query.refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -29,27 +33,27 @@ export default function ClientProfile() {
     {!customer && query.loading ? <><Skeleton height={100} /><Skeleton height={180} /></> : null}
     {customer && query.data ? <>
       <Heading>{customer.displayName}</Heading>
-      <Button title="Modifier le client" variant="secondary" onPress={() => setEditing(true)} />
+      <Button title={en ? 'Edit client' : 'Modifier le client'} variant="secondary" onPress={() => setEditing(true)} />
       <Card style={{ gap: spacing.sm }}>
         {customer.companyName ? <Body>{customer.companyName}</Body> : null}
-        <Body>{[customer.addressLine1, customer.postalCode, customer.city].filter(Boolean).join(', ') || 'Adresse non renseignée'}</Body>
+        <Body>{[customer.addressLine1, customer.postalCode, customer.city].filter(Boolean).join(', ') || (en ? 'No address provided' : 'Adresse non renseignée')}</Body>
         {customer.phone ? <Button title={customer.phone} variant="secondary" icon="call-outline" onPress={() => void contact(`tel:${customer.phone}`)} /> : null}
-        {customer.phone ? <Button title="Envoyer un SMS" variant="ghost" onPress={() => void contact(`sms:${customer.phone}`)} /> : null}
+        {customer.phone ? <Button title={en ? 'Send SMS' : 'Envoyer un SMS'} variant="ghost" onPress={() => void contact(`sms:${customer.phone}`)} /> : null}
         {customer.email ? <Button title={customer.email} variant="secondary" icon="mail-outline" onPress={() => void contact(`mailto:${customer.email}`)} /> : null}
-        <Muted>Client depuis le {new Date(customer.createdAt).toLocaleDateString('fr-FR')}</Muted>
+        <Muted>{en ? 'Client since ' : 'Client depuis le '}{new Date(customer.createdAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}</Muted>
         {customer.notes ? <Body>{customer.notes}</Body> : null}
         {customer.tags.length ? <Muted>{customer.tags.join(' · ')}</Muted> : null}
       </Card>
-      <Button title="Créer un devis pour ce client" icon="add" onPress={() => router.push({ pathname: '/devis/nouveau', params: { customerId: id } })} />
-      <Heading>Historique commercial</Heading>
+      <Button title={en ? 'Create a quote for this client' : 'Créer un devis pour ce client'} icon="add" onPress={() => router.push({ pathname: '/devis/nouveau', params: { customerId: id } })} />
+      <Heading>{en ? 'Business history' : 'Historique commercial'}</Heading>
       <Card style={{ gap: spacing.sm }}>
-        <Body>{query.data.stats.quoteCount} devis · {query.data.stats.jobCount} chantiers</Body>
-        <Body>{formatCents(query.data.quotes.reduce((sum, quote) => sum + quote.totalCents, 0))} au total devisé</Body>
-        <Muted>{formatCents(query.data.quotes.filter(quote => quote.status === 'ACCEPTE').reduce((sum, quote) => sum + quote.totalCents, 0))} de devis acceptés dans l’historique (pas des paiements encaissés)</Muted>
-        <Body>{formatCents(query.data.stats.revenueCents)} de devis envoyés</Body>
-        <Muted>{formatCents(query.data.stats.pendingCents)} en attente</Muted>
+        <Body>{query.data.stats.quoteCount} {en ? 'quotes' : 'devis'} · {query.data.stats.jobCount} {en ? 'jobs' : 'chantiers'}</Body>
+        <Body>{formatCents(query.data.quotes.reduce((sum, quote) => sum + quote.totalCents, 0))} {en ? 'total quoted' : 'au total devisé'}</Body>
+        <Muted>{formatCents(query.data.quotes.filter(quote => quote.status === 'ACCEPTE').reduce((sum, quote) => sum + quote.totalCents, 0))} {en ? 'accepted in history (not collected payments)' : 'de devis acceptés dans l’historique (pas des paiements encaissés)'}</Muted>
+        <Body>{formatCents(query.data.stats.revenueCents)} {en ? 'sent quotes' : 'de devis envoyés'}</Body>
+        <Muted>{formatCents(query.data.stats.pendingCents)} {en ? 'pending' : 'en attente'}</Muted>
       </Card>
-      {query.data.quotes.length === 0 ? <Muted>Aucun devis pour ce client. Préparez son premier devis ci-dessus.</Muted> : null}
+      {query.data.quotes.length === 0 ? <Muted>{en ? 'No quotes for this client yet. Create the first one above.' : 'Aucun devis pour ce client. Préparez son premier devis ci-dessus.'}</Muted> : null}
       {query.data.quotes.map(quote => <PressableCard key={quote.id} accessibilityLabel={`Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
         <View style={{ gap: spacing.sm }}><Body>{quote.number} · {quote.title}</Body><Body>{formatCents(quote.totalCents)}</Body><Muted>{({ BROUILLON: 'Brouillon', ENVOYE: 'Envoyé', CONSULTE: 'Consulté', ACCEPTE: 'Accepté', REFUSE: 'Refusé', EXPIRE: 'Expiré', ANNULE: 'Annulé', MODIFICATION_DEMANDEE: 'Modification demandée' } as Record<string, string>)[quote.status] ?? 'À vérifier'}</Muted><Muted>{quote.sentAt ? `Envoyé le ${new Date(quote.sentAt).toLocaleDateString('fr-FR')}` : 'Non envoyé'}</Muted></View>
       </PressableCard>)}

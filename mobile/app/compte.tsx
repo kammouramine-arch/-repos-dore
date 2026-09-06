@@ -7,10 +7,13 @@ import { spacing } from '@/theme';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { readDiagnostics } from '@/lib/diagnostics';
+import { copy, mobileLocale } from '@/lib/i18n';
 
 export default function CompteScreen() {
   const session = useSession();
   const { refresh, signOut } = useAuth();
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
   const [firstName, setFirstName] = React.useState(session.user.firstName ?? '');
   const [lastName, setLastName] = React.useState(session.user.lastName ?? '');
   const [email, setEmail] = React.useState(session.user.email);
@@ -34,43 +37,43 @@ export default function CompteScreen() {
 
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
     <Screen>
-      <Heading>Votre compte, vos informations</Heading>
-      <Muted>Vous pouvez corriger vos coordonnées sans choisir un abonnement. Vos devis et votre formule restent associés au même compte.</Muted>
+      <Heading>{en ? 'Your account and details' : 'Votre compte, vos informations'}</Heading>
+      <Muted>{en ? 'Update your details without changing your plan. Your quotes and subscription remain on the same account.' : 'Vous pouvez corriger vos coordonnées sans choisir un abonnement. Vos devis et votre formule restent associés au même compte.'}</Muted>
       {error ? <Banner tone="danger" title={error} /> : null}
       {notice ? <Banner title={notice} /> : null}
       <Card style={{ gap: spacing.lg }}>
-        <Heading>Identité</Heading>
-        <Field label="Prénom" value={firstName} onChangeText={setFirstName} autoComplete="given-name" maxLength={80} editable={!busy} />
-        <Field label="Nom" value={lastName} onChangeText={setLastName} autoComplete="family-name" maxLength={80} editable={!busy} />
-        <Button title="Enregistrer mon nom" disabled={busy} onPress={() => void perform(async () => { await api.auth.updateName(firstName, lastName); await refresh(); setNotice('Votre nom a été enregistré.'); })} />
+        <Heading>{en ? 'Identity' : 'Identité'}</Heading>
+        <Field label={en ? 'First name' : 'Prénom'} value={firstName} onChangeText={setFirstName} autoComplete="given-name" maxLength={80} editable={!busy} />
+        <Field label={en ? 'Last name' : 'Nom'} value={lastName} onChangeText={setLastName} autoComplete="family-name" maxLength={80} editable={!busy} />
+        <Button title={en ? 'Save my name' : 'Enregistrer mon nom'} disabled={busy} onPress={() => void perform(async () => { await api.auth.updateName(firstName, lastName); await refresh(); setNotice(en ? 'Your name was saved.' : 'Votre nom a été enregistré.'); })} />
       </Card>
       <Card style={{ gap: spacing.lg }}>
-        <Heading>Adresse de connexion</Heading>
-        <Muted>{session.user.emailVerified ? 'Adresse actuelle confirmée.' : 'Confirmez votre adresse pour sécuriser votre compte.'}</Muted>
+        <Heading>{en ? 'Sign-in address' : 'Adresse de connexion'}</Heading>
+        <Muted>{session.user.emailVerified ? (en ? 'Current address confirmed.' : 'Adresse actuelle confirmée.') : (en ? 'Confirm your address to protect your account.' : 'Confirmez votre adresse pour sécuriser votre compte.')}</Muted>
         <Field label="Email" value={email} onChangeText={setEmail} keyboardType="email-address" autoCapitalize="none" autoCorrect={false} autoComplete="email" maxLength={254} editable={!busy} />
         {changingEmail ? <>
-          <Field label="Mot de passe actuel" value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" editable={!busy} />
-          <Muted>Votre adresse actuelle reste utilisable jusqu’à la confirmation de la nouvelle. Les autres appareils seront déconnectés après ce changement.</Muted>
+          <Field label={en ? 'Current password' : 'Mot de passe actuel'} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" editable={!busy} />
+          <Muted>{en ? 'Your current address remains usable until the new one is confirmed. Other devices will sign out after the change.' : 'Votre adresse actuelle reste utilisable jusqu’à la confirmation de la nouvelle. Les autres appareils seront déconnectés après ce changement.'}</Muted>
         </> : null}
-        <Button title={destination ? 'Renvoyer un code' : 'Recevoir un code de confirmation'} variant="secondary" disabled={busy || !email.trim() || (changingEmail && !password)} onPress={() => void perform(async () => {
+        <Button title={destination ? copy(locale, 'resend') : (en ? 'Get a confirmation code' : 'Recevoir un code de confirmation')} variant="secondary" disabled={busy || !email.trim() || (changingEmail && !password)} onPress={() => void perform(async () => {
           const result = await api.auth.requestEmailCode(email, changingEmail ? password : undefined);
           setDestination(result.email); setPassword(''); setCode('');
-          setNotice(`Code envoyé à ${result.email}. Vérifiez aussi vos courriers indésirables.`);
+          setNotice(en ? `Code sent to ${result.email}. Check your spam folder too.` : `Code envoyé à ${result.email}. Vérifiez aussi vos courriers indésirables.`);
         })} />
-        <Muted>Code valable 10 minutes. Patientez au moins une minute entre deux demandes.</Muted>
-        <Field label="Code reçu par email" value={code} onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" maxLength={6} editable={!busy} />
-        <Button title="Confirmer mon email" disabled={busy || code.length !== 6} onPress={() => void perform(async () => {
+        <Muted>{en ? 'Code valid for 10 minutes. Wait at least one minute between requests.' : 'Code valable 10 minutes. Patientez au moins une minute entre deux demandes.'}</Muted>
+        <Field label={en ? 'Email code' : 'Code reçu par email'} value={code} onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" maxLength={6} editable={!busy} />
+        <Button title={en ? 'Confirm my email' : 'Confirmer mon email'} disabled={busy || code.length !== 6} onPress={() => void perform(async () => {
           await api.auth.confirmEmailCode(code); await refresh();
           if (destination) setEmail(destination);
-          setDestination(null); setCode(''); setNotice('Votre adresse email est confirmée.');
+          setDestination(null); setCode(''); setNotice(en ? 'Your email address is confirmed.' : 'Votre adresse email est confirmée.');
         })} />
       </Card>
-      <Button title="Me déconnecter / utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void perform(signOut)} />
+      <Button title={en ? 'Sign out / use another account' : 'Me déconnecter / utiliser un autre compte'} variant="ghost" disabled={busy} onPress={() => void perform(signOut)} />
       <Card style={{ gap: spacing.lg }}>
-        <Heading>Langue de l’application</Heading>
-        <Muted>Le français reste la langue par défaut. Votre choix est conservé sur votre compte et guide les réponses et documents générés.</Muted>
-        <Button title={session.user.locale === 'fr' ? '✓ Français' : 'Français'} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); setNotice('Langue française enregistrée.'); })} />
-        <Button title={session.user.locale === 'en' ? '✓ English' : 'English'} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); setNotice('English language saved.'); })} />
+        <Heading>{copy(locale, 'language')}</Heading>
+        <Muted>{en ? 'Your choice is saved to your account and guides generated answers and documents.' : 'Votre choix est conservé sur votre compte et guide les réponses et documents générés.'}</Muted>
+        <Button title={session.user.locale === 'fr' ? `✓ ${copy(locale, 'french')}` : copy(locale, 'french')} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); setNotice('Langue française enregistrée.'); })} />
+        <Button title={session.user.locale === 'en' ? `✓ ${copy(locale, 'english')}` : copy(locale, 'english')} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); setNotice('English language saved.'); })} />
       </Card>
       <Card style={{ gap: spacing.lg }}>
         <Heading>Confidentialité et assistance</Heading>
@@ -95,6 +98,16 @@ export default function CompteScreen() {
         })} />
         <Muted>Clients, prospects, chantiers, devis, lignes et factures. Aucun secret ou jeton n’est inclus.</Muted>
         <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
+        <Heading>{copy(locale, 'payments')}</Heading>
+        <Muted>{en ? 'Apple subscriptions are managed by Apple. Open your Apple account to view purchase history, receipts and renewals.' : 'Les abonnements Apple sont gérés par Apple. Ouvrez votre compte Apple pour consulter l’historique des achats, les reçus et les renouvellements.'}</Muted>
+        <Button title={copy(locale, 'manageApple')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL('https://apps.apple.com/account/subscriptions'))} />
+        <Button title={en ? 'View Apple purchases' : 'Voir mes achats Apple'} variant="ghost" disabled={busy} onPress={() => void perform(() => Linking.openURL('https://reportaproblem.apple.com/'))} />
+        <Heading>{en ? 'Your feedback' : 'Votre avis'}</Heading>
+        <Muted>{en ? 'Your feedback helps DEVISERA improve.' : 'Votre retour aide DEVISERA à progresser.'}</Muted>
+        <Button title={copy(locale, 'rate')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL('itms-apps://itunes.apple.com/app/id6806865251?action=write-review'))} />
+        <Heading>{copy(locale, 'contact')}</Heading>
+        <Muted>{en ? 'Questions or a problem? Write to us from your usual mail app.' : 'Une question ou un problème ? Écrivez-nous depuis votre messagerie habituelle.'}</Muted>
+        <Button title={copy(locale, 'support')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL(`mailto:contact@devisera.fr?subject=${encodeURIComponent('DEVISERA support')}&body=${encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\nDEVISERA version: 1.0.0\nLanguage: ${session.user.locale}\nAccount: ${session.user.id}\n\n${en ? 'My request:' : 'Ma demande :'}`)}`))} />
         <Heading>Supprimer mon compte</Heading>
         <Muted>Cette action désactive votre accès, révoque vos sessions et anonymise vos informations personnelles. Les données commerciales peuvent être conservées lorsqu’une obligation légale ou un autre membre de l’entreprise l’exige.</Muted>
         <Field label="Mot de passe actuel" value={deletePassword} onChangeText={setDeletePassword} secureTextEntry editable={!busy} />
@@ -106,7 +119,6 @@ export default function CompteScreen() {
         })} />
         <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
         <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
-        <Button title="Contacter l’assistance" variant="secondary" onPress={() => void perform(() => Linking.openURL('mailto:contact@devisera.fr'))} />
       </Card>
     </Screen>
   </KeyboardAvoidingView>;
