@@ -72,7 +72,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       whiteLabel: false,
     },
     highlights: [
-      'Devis par IA : voix, photo ou texte',
+      'Devis par IA : voix, photo ou texte (50 générations/mois)',
       'Catalogue de prix illimité',
       'PDF professionnel à votre image',
       'Page de devis en ligne, prête à partager',
