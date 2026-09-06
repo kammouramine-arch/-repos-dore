@@ -27,6 +27,7 @@ Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedu
 | [25 Team and entitlements](25_TEAM_WORKSPACE_AND_ENTITLEMENTS.md) | Workspace invitations, seats and server-side plan limits |
 | [26 Team continuation](26_TEAM_CONTINUATION_2026-09-06.md) | Verification checkpoint and external release gates |
 | [27 Strict post-team audit](27_STRICT_AUDIT_POST_TEAM_2026-09-06.md) | Current evidence-based score and exact blockers |
+| [28 Regression and release pass](28_REGRESSION_AND_RELEASE_PASS_2026-09-07.md) | Auth delivery fix, native shell polish, local verification evidence, and release boundary |
 
 Status vocabulary: **COMPLETE** means the stated bounded deliverable is verified; **NEEDS IMPROVEMENT** means technical work remains; **BLOCKED BY EXTERNAL ACTION** means a provider/account/device prerequisite; **REQUIRES OWNER DECISION** means commercial scope is undecided; **REQUIRES LEGAL/ACCOUNTING REVIEW** means specialist sign-off is outstanding. Multiple statuses can apply.
 
