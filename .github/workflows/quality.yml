@@ -30,11 +30,11 @@ jobs:
             package-lock.json
             mobile/package-lock.json
       - run: npm ci
+      - run: npm ci
+        working-directory: mobile
       - run: npx prisma generate
       - run: npm test
       - run: npm run typecheck
       - run: npm run lint
-      - run: npm ci
-        working-directory: mobile
       - run: npm run typecheck && npm run lint
         working-directory: mobile
