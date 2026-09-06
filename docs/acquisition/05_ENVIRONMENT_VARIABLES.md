@@ -11,7 +11,7 @@ Never attach environment exports to the data room. `evidence/environment-names.j
 | GEMINI_API_KEY, GEMINI_MODEL, GEMINI_QUOTE_MODEL, GEMINI_VISION_MODEL | Secret provider key and nonsecret model selectors |
 | ANTHROPIC_API_KEY, ANTHROPIC_MODEL | Optional alternate AI provider |
 | TRANSCRIPTION_PROVIDER, TRANSCRIPTION_API_KEY, TRANSCRIPTION_BASE_URL, TRANSCRIPTION_MODEL | Optional server audio transcription; endpoint must be trusted |
-| EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM | Delivery provider, secret and verified sender identity |
+| EMAIL_PROVIDER, RESEND_API_KEY, EMAIL_FROM, EMAIL_REPLY_TO | Delivery provider, secret, verified sender identity and default platform reply address |
 | STORAGE_PROVIDER, STORAGE_LOCAL_DIR | Database/S3/local selection; local is not durable serverless storage |
 | S3_ENDPOINT, S3_REGION, S3_BUCKET, S3_ACCESS_KEY_ID, S3_SECRET_ACCESS_KEY | Private object-storage configuration and credentials |
 | STRIPE_SECRET_KEY, STRIPE_WEBHOOK_SECRET | Server-only payment secrets |
