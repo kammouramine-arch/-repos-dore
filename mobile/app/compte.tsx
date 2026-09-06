@@ -20,6 +20,7 @@ export default function CompteScreen() {
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
+  const [deletePassword, setDeletePassword] = React.useState('');
   const acting = React.useRef(false);
   const changingEmail = email.trim().toLowerCase() !== session.user.email;
 
@@ -88,6 +89,15 @@ export default function CompteScreen() {
         })} />
         <Muted>Clients, prospects, chantiers, devis, lignes et factures. Aucun secret ou jeton n’est inclus.</Muted>
         <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
+        <Heading>Supprimer mon compte</Heading>
+        <Muted>Cette action désactive votre accès, révoque vos sessions et anonymise vos informations personnelles. Les données commerciales peuvent être conservées lorsqu’une obligation légale ou un autre membre de l’entreprise l’exige.</Muted>
+        <Field label="Mot de passe actuel" value={deletePassword} onChangeText={setDeletePassword} secureTextEntry editable={!busy} />
+        <Button title="Supprimer définitivement mon accès" variant="danger" disabled={busy || !deletePassword} onPress={() => void perform(async () => {
+          const result = await api.auth.deleteAccount(deletePassword);
+          setDeletePassword('');
+          setNotice(result.businessRecordsRetained ? 'Votre accès a été supprimé. Les données commerciales restent conservées selon les obligations applicables.' : 'Votre compte a été supprimé.');
+          await signOut();
+        })} />
         <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
         <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
         <Button title="Contacter l’assistance" variant="secondary" onPress={() => void perform(() => Linking.openURL('mailto:contact@amyn.agency'))} />

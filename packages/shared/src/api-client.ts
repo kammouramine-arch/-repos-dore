@@ -280,6 +280,7 @@ export function createApiClient(options: ApiClientOptions) {
     auth: {
       exportPersonal: () => request<Record<string, unknown>>('/api/auth/export'),
       exportBusiness: () => request<Record<string, unknown>>('/api/organization/export'),
+      deleteAccount: (password: string) => request<{ deleted: boolean; businessRecordsRetained: boolean }>('/api/auth/account', { method: 'DELETE', json: { password, confirmation: 'SUPPRIMER' } }),
       signIn: (email: string, password: string, deviceName?: string) =>
         request<AuthTokenDTO>('/api/auth/session', {
           method: 'POST',

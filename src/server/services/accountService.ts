@@ -15,6 +15,29 @@ export async function updateAccountName(userId: string, firstName: string, lastN
   await prisma.user.update({ where: { id: userId }, data: { firstName: firstName.trim() || null, lastName: lastName.trim() || null } });
 }
 
+/**
+ * Deletes the person's account access without silently destroying an organisation's
+ * commercial records. Those records may need statutory retention and require a
+ * separate owner/legal decision before an organisation is purged.
+ */
+export async function deletePersonalAccount(userId: string, password: string, confirmation: string) {
+  if (confirmation !== 'SUPPRIMER') throw validation('Saisissez SUPPRIMER pour confirmer la suppression.');
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true, deletedAt: true } });
+  if (!user || user.deletedAt || !await verifyPassword(password, user.passwordHash)) {
+    throw validation('Mot de passe incorrect. Votre compte reste inchangé.');
+  }
+  const now = new Date();
+  const replacementEmail = `deleted+${userId}@invalid.devisia.local`;
+  await prisma.$transaction(async (tx) => {
+    await tx.user.update({ where: { id: userId }, data: { email: replacementEmail, firstName: null, lastName: null, phone: null, emailVerifiedAt: null, deletedAt: now } });
+    await tx.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: now } });
+    await tx.authToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
+    await tx.emailChallenge.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
+    await tx.organizationMember.updateMany({ where: { userId, deletedAt: null }, data: { deletedAt: now } });
+  });
+  return { deleted: true, businessRecordsRetained: true };
+}
+
 /** Serialized on the user row: limits survive serverless instances and concurrent requests. */
 export async function requestEmailCode(userId: string, input: { email: string; password?: string }) {
   const email = input.email.trim().toLowerCase();
