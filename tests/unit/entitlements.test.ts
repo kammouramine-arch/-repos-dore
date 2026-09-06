@@ -114,7 +114,7 @@ describe('formules', () => {
 
   it('expose une progression commerciale réelle et documentée', () => {
     expect(PLANS.ESSENTIEL.features.team).toBe(false);
-    expect(PLANS.PRO.features.team).toBe(false);
+    expect(PLANS.PRO.features.team).toBe(true);
     expect(PLANS.ENTREPRISE.features.integrations).toBe(false);
     expect(PLANS.ESSENTIEL.limits.aiImageAnalyses).toBe(25);
     expect(PLANS.PRO.limits.aiImageAnalyses).toBe(150);

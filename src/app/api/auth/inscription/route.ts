@@ -11,6 +11,7 @@ const bodySchema = signUpSchema.extend({
   deviceName: z.string().trim().max(80).optional(),
   billingProvider: z.literal('apple').optional(),
   verificationMethod: z.literal('code').optional(),
+  invitationToken: z.string().trim().min(20).max(200).optional(),
 });
 
 /** Inscription depuis l'application mobile : compte, entreprise et jeton. */

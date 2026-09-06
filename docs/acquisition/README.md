@@ -24,6 +24,7 @@ Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedu
 | [14 Verification](14_VERIFICATION_AND_SCORE.md) | Test evidence, limits and readiness score |
 | [15 Reliability and recovery](15_RELIABILITY_AND_RECOVERY.md) | Current fixes, database rehearsal and physical iPhone QA |
 | [16 Release and owner actions](16_RELEASE_AND_OWNER_ACTIONS.md) | Verified deployment, TestFlight and production-release gates |
+| [25 Team and entitlements](25_TEAM_WORKSPACE_AND_ENTITLEMENTS.md) | Workspace invitations, seats and server-side plan limits |
 
 Status vocabulary: **COMPLETE** means the stated bounded deliverable is verified; **NEEDS IMPROVEMENT** means technical work remains; **BLOCKED BY EXTERNAL ACTION** means a provider/account/device prerequisite; **REQUIRES OWNER DECISION** means commercial scope is undecided; **REQUIRES LEGAL/ACCOUNTING REVIEW** means specialist sign-off is outstanding. Multiple statuses can apply.
 

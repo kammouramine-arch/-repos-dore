@@ -15,9 +15,9 @@ server is the source of truth; mobile/web visibility never grants access.
 | Included seats | 1 | 3 | 10 |
 | Scheduled follow-up automations | No | Yes | Yes |
 | Public quote-request form | Yes | Yes | Yes |
-| Team/invitation capability | Planned/read-only surface | Planned/read-only surface | Planned/read-only surface |
+| Team/invitation capability | No | Yes: three seats and server-enforced invitations | Yes: ten seats and server-enforced invitations |
 
-The client database, catalogue and exports currently have no plan-count ceiling;
+The client database and catalogue currently have no plan-count ceiling;
 photo uploads remain subject to the existing per-file/platform validation. These
 are deliberate current behaviours, not hidden unlimited promises.
 
@@ -31,8 +31,9 @@ are deliberate current behaviours, not hidden unlimited promises.
   check a plan-specific ceiling first.
 - Automation settings could be called directly even when the plan flag was false,
   and scheduled automations were not rejected for Essentiel.
-- The team page displayed seat counts but there is no invitation mutation endpoint;
-  it is therefore not represented as a fully operational team feature yet.
+- The team page displayed seat counts but there was no invitation mutation endpoint;
+  that historical gap is now closed. See `25_TEAM_WORKSPACE_AND_ENTITLEMENTS.md` for
+  the current implementation and remaining database/device verification gates.
 
 ## Changes implemented
 

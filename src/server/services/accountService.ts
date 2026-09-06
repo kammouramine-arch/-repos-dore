@@ -26,6 +26,16 @@ export async function deletePersonalAccount(userId: string, password: string, co
   if (!user || user.deletedAt || !await verifyPassword(password, user.passwordHash)) {
     throw validation('Mot de passe incorrect. Votre compte reste inchangé.');
   }
+  const ownedOrganizations = await prisma.organizationMember.findMany({
+    where: { userId, role: 'OWNER', deletedAt: null },
+    select: { organizationId: true },
+  });
+  if (ownedOrganizations.length) {
+    const ownerCounts = await Promise.all(ownedOrganizations.map(({ organizationId }) => prisma.organizationMember.count({ where: { organizationId, role: 'OWNER', deletedAt: null } })));
+    if (ownerCounts.some((count) => count < 2)) {
+      throw validation('Transférez la propriété de votre espace avant de supprimer ce compte. Les données commerciales restent rattachées à leur entreprise.');
+    }
+  }
   const now = new Date();
   const replacementEmail = `deleted+${userId}@invalid.devisia.local`;
   await prisma.$transaction(async (tx) => {

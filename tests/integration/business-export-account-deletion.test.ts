@@ -5,16 +5,21 @@ import { exportBusinessData } from '@/server/services/businessExportService';
 import { deletePersonalAccount } from '@/server/services/accountService';
 
 let org: Awaited<ReturnType<typeof createTestOrganization>>;
+let successorOwnerId: string;
 const password = 'T3st-password!';
 
 beforeAll(async () => {
   org = await createTestOrganization('Export entreprise');
   await prisma.user.update({ where: { id: org.user.id }, data: { passwordHash: await hashPassword(password) } });
+  const successor = await prisma.user.create({ data: { email: `successor-${org.organization.id}@devisera.test`, passwordHash: 'hash-de-test', firstName: 'Second', lastName: 'Owner' } });
+  successorOwnerId = successor.id;
+  await prisma.organizationMember.update({ where: { organizationId_userId: { organizationId: org.organization.id, userId: successor.id } }, data: { role: 'OWNER' } }).catch(async () => prisma.organizationMember.create({ data: { organizationId: org.organization.id, userId: successor.id, role: 'OWNER' } }));
   await createTestCustomer(org.organization.id, 'client-export@devisera.test');
 });
 
 afterAll(async () => {
   await cleanupOrganization(org.organization.id, org.user.id);
+  if (successorOwnerId) await prisma.user.delete({ where: { id: successorOwnerId } }).catch(() => undefined);
   await prisma.$disconnect();
 });
 

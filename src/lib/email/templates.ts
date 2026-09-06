@@ -244,7 +244,22 @@ export function teamInvitationEmail(params: {
   organizationName: string;
   url: string;
   roleLabel: string;
+  locale?: 'fr' | 'en';
 }): RenderedEmail {
+  if (params.locale === 'en') {
+    return {
+      subject: `Join ${params.organizationName} on DEVISERA`,
+      html: layout({
+        title: `Join ${esc(params.organizationName)}`,
+        body:
+          p(`You have been invited to join <strong>${esc(params.organizationName)}</strong> on DEVISERA as ${esc(params.roleLabel)}.`) +
+          p('DEVISERA helps your team create, send and track quotes from the field.'),
+        cta: { label: 'Accept invitation', href: params.url },
+        footnote: 'This invitation expires in 7 days.',
+      }),
+      text: `Join ${params.organizationName} on DEVISERA: ${params.url}`,
+    };
+  }
   return {
     subject: `Rejoignez ${params.organizationName} sur DEVISERA`,
     html: layout({

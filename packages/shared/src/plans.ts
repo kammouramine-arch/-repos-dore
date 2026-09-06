@@ -90,7 +90,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: { aiGenerations: 300, aiTranscriptions: 300, aiImageAnalyses: 150, followUps: 1000, quotesSent: null, seats: 3 },
     features: {
       automations: true,
-      team: false,
+      team: true,
       advancedAnalytics: true,
       integrations: false,
       publicLeadForm: true,
@@ -102,6 +102,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       'Séquences de relance automatiques',
       'Formulaire de demande de devis pour votre site',
       'Assistant IA sur vos données',
+      'Équipe de 3 utilisateurs',
       'Support prioritaire',
     ],
     recommended: true,
@@ -116,7 +117,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     limits: { aiGenerations: 1000, aiTranscriptions: 1000, aiImageAnalyses: 500, followUps: null, quotesSent: null, seats: 10 },
     features: {
       automations: true,
-      team: false,
+      team: true,
       advancedAnalytics: true,
       integrations: false,
       publicLeadForm: true,
@@ -126,6 +127,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlights: [
       'Tout Pro, jusqu’à 1 000 générations IA par mois',
       'Analytique et objectifs commerciaux',
+      'Équipe jusqu’à 10 utilisateurs',
       'Accompagnement à la mise en route',
     ],
   },

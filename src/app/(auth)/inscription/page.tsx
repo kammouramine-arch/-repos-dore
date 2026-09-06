@@ -11,8 +11,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default async function SignUpPage() {
+export default async function SignUpPage({ searchParams }: { searchParams: Promise<{ invite?: string }> }) {
   if (await getAuthContext()) redirect('/app');
+  const params = await searchParams;
 
   return (
     <div>
@@ -24,7 +25,7 @@ export default async function SignUpPage() {
       </p>
 
       <div className="mt-7">
-        <SignUpForm />
+        <SignUpForm invitationToken={params.invite} />
       </div>
 
       <p className="mt-7 text-center text-[13.5px] text-muted">

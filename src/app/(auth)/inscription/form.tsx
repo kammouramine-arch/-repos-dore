@@ -9,11 +9,12 @@ import { Field, Input } from '@/components/ui/field';
 
 const initialState: FormState = {};
 
-export function SignUpForm() {
+export function SignUpForm({ invitationToken }: { invitationToken?: string }) {
   const [state, action, pending] = useActionState(signUpAction, initialState);
 
   return (
     <form action={action} className="space-y-4" noValidate>
+      {invitationToken ? <input type="hidden" name="invitationToken" value={invitationToken} /> : null}
       {state.error ? (
         <div
           className="flex gap-2.5 rounded-[10px] border border-danger/25 bg-danger-soft px-4 py-3 text-[13.5px] text-danger"

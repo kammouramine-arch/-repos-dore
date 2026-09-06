@@ -10,6 +10,7 @@ import { createOrganization } from './organizationService';
 import { recordAudit } from './auditService';
 import { trackEvent } from './analyticsService';
 import { requestEmailCode } from './accountService';
+import { acceptInvitationForNewUser, invitationPreview } from './teamService';
 
 const VERIFICATION_TTL_MS = 24 * 60 * 60 * 1000;
 const RESET_TTL_MS = 60 * 60 * 1000;
@@ -27,6 +28,7 @@ export interface SignUpInput {
   lastName?: string;
   companyName: string;
   phone?: string;
+  invitationToken?: string;
   ip?: string | null;
 }
 
@@ -36,6 +38,11 @@ export async function signUp(input: SignUpInput) {
   const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
   if (existing) {
     throw conflict('Un compte existe déjà avec cette adresse email.');
+  }
+
+  const invitation = input.invitationToken ? await invitationPreview(input.invitationToken) : null;
+  if (invitation && invitation.email !== email) {
+    throw validation('Cette invitation a été envoyée à une autre adresse email.');
   }
 
   const passwordHash = await hashPassword(input.password);
@@ -49,14 +56,22 @@ export async function signUp(input: SignUpInput) {
     },
   });
 
-  const organization = await createOrganization({
-    requireApplePurchase: input.billingProvider === 'apple',
-    name: input.companyName.trim(),
-    ownerUserId: user.id,
-    ownerName: [input.firstName, input.lastName].filter(Boolean).join(' ') || null,
-    email,
-    phone: input.phone ?? null,
-  });
+  let organization;
+  try {
+    organization = invitation
+      ? await acceptInvitationForNewUser(user.id, input.invitationToken!)
+      : await createOrganization({
+          requireApplePurchase: input.billingProvider === 'apple',
+          name: input.companyName.trim(),
+          ownerUserId: user.id,
+          ownerName: [input.firstName, input.lastName].filter(Boolean).join(' ') || null,
+          email,
+          phone: input.phone ?? null,
+        });
+  } catch (error) {
+    await prisma.user.delete({ where: { id: user.id } }).catch(() => undefined);
+    throw error;
+  }
 
   await recordAudit({
     action: 'auth.signup',

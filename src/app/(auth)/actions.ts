@@ -41,6 +41,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
     lastName: formData.get('lastName') || undefined,
     companyName: formData.get('companyName'),
     phone: formData.get('phone') || undefined,
+    invitationToken: formData.get('invitationToken') || undefined,
   });
   if (!parsed.success) return zodErrors(parsed.error);
 

@@ -30,6 +30,7 @@ export const PERMISSIONS = {
   'settings:read': ['OWNER', 'ADMIN', 'MEMBER'],
   'settings:write': ['OWNER', 'ADMIN'],
   'analytics:read': ['OWNER', 'ADMIN'],
+  'organization:export': ['OWNER', 'ADMIN'],
   'invoice:read': ['OWNER', 'ADMIN'],
   'invoice:write': ['OWNER', 'ADMIN'],
 } as const satisfies Record<string, readonly MemberRole[]>;

@@ -295,6 +295,7 @@ export function createApiClient(options: ApiClientOptions) {
         deviceName?: string;
         billingProvider?: 'apple';
         verificationMethod?: 'code';
+        invitationToken?: string;
       }) => request<AuthTokenDTO>('/api/auth/inscription', { method: 'POST', json: input }),
       signOut: () => request<{ signedOut: boolean }>('/api/auth/session', { method: 'DELETE' }),
       me: () => request<SessionDTO>('/api/auth/session'),
