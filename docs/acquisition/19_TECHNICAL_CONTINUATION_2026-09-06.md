@@ -10,7 +10,7 @@ This note records the work completed after the strict 66/100 acquisition checkpo
 - Customer quote emails and follow-ups now honor the organization language/country/currency, including English regional date and money formatting and an English email footer.
 - Quote PDFs now select regional headings, date formats, currencies, VAT wording, and acceptance copy from the organization profile. France remains the default path; quote-time legal snapshots and visual fixtures are still required before making a compliance claim.
 - The mobile account screen now persists a Français/English preference through the existing authenticated language endpoint.
-- Unit coverage verifies that English output is independent from GB/US country selection, that the AI prompt includes the selected regional context, and that the English fallback does not leak French labels.
+- Unit coverage verifies that English output is independent from GB/US country selection, that the AI prompt includes the selected regional context, that the English fallback does not leak French labels, and that PDF terminology distinguishes GB QUOTE from US ESTIMATE.
 - Business export and authenticated account deletion now have integration coverage. The deletion test verifies confirmation/password enforcement, personal-field anonymization, membership soft-deletion, and the explicit retention of business records.
 - Mobile startup now emits bounded, memory-only diagnostics for root readiness and launch animation settlement. Events contain only area, duration, status code, and timestamp; no user, quote, or customer identifiers are recorded.
 
@@ -18,7 +18,7 @@ This note records the work completed after the strict 66/100 acquisition checkpo
 
 - Root TypeScript: passed.
 - Mobile TypeScript: passed.
-- Unit suite: 22 files, 210 tests passed.
+- Unit suite: 22 files, 211 tests passed.
 - Integration suite: added coverage, but execution still depends on a reachable test PostgreSQL database and the configured test environment. No claim is made that it ran successfully in this environment until that dependency is available.
 
 ## Still incomplete or externally blocked
