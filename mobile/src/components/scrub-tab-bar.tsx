@@ -1,12 +1,13 @@
 import * as React from 'react';
 import { Animated, Keyboard, PanResponder, Pressable, Text, View } from 'react-native';
-import { Tabs, useRouter } from 'expo-router';
+import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { colors } from '@/theme';
 import { useReducedMotion } from './motion';
 import { scrubSlot, shouldCaptureTabDrag } from '@/lib/tab-navigation';
+import { recordDiagnostic } from '@/lib/diagnostics';
 
 const items = [
   { name: 'index', label: 'Accueil', icon: 'home-outline' },
@@ -19,7 +20,6 @@ type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs
 
 /** The thumb tracks the finger; navigation commits only when released. */
 export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
-  const router = useRouter();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
   const bar = React.useRef<View>(null);
@@ -28,12 +28,21 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
   const [thumb] = React.useState(() => new Animated.Value(0));
   const [preview, setPreview] = React.useState<number | null>(null);
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
+  const pendingNavigation = React.useRef<{ name: string; started: number } | null>(null);
   React.useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
     const hide = Keyboard.addListener('keyboardDidHide', () => setKeyboardVisible(false));
     return () => { show.remove(); hide.remove(); };
   }, []);
   const active = items.findIndex(item => item.name === state.routes[state.index].name);
+  React.useEffect(() => {
+    const pending = pendingNavigation.current;
+    if (pending && state.routes[state.index].name === pending.name) {
+      recordDiagnostic({ area: `navigation:${pending.name}`, durationMs: Math.round(performance.now() - pending.started), code: 'STATE_COMMITTED' });
+      pendingNavigation.current = null;
+    }
+  }, [state.index, state.routes]);
+  React.useEffect(() => () => { pendingNavigation.current = null; }, []);
   const slotWidth = width / items.length;
   const position = React.useCallback((slot: number, animate: boolean) => {
     thumb.stopAnimation();
@@ -44,11 +53,16 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
   React.useEffect(() => { position(active, true); }, [active, position]);
   const select = React.useCallback((slot: number) => {
     const route = state.routes.find(route => route.name === items[slot]?.name);
-    if (!route || slot === 2) return;
+    if (!route) return;
     const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-    if (!event.defaultPrevented) navigation.navigate(route.name, route.params);
+    if (!event.defaultPrevented) {
+      const previous = pendingNavigation.current;
+      if (previous) recordDiagnostic({ area: `navigation:${previous.name}`, durationMs: Math.round(performance.now() - previous.started), code: 'SUPERSEDED' });
+      if (state.routes[state.index].key !== route.key) pendingNavigation.current = { name: route.name, started: performance.now() };
+      navigation.navigate(route.name, route.params);
+    }
     else position(active, true);
-  }, [state.routes, navigation, active, position]);
+  }, [state.routes, state.index, navigation, active, position]);
   const gesture = React.useMemo(() => PanResponder.create({
     onMoveShouldSetPanResponderCapture: (_, g) => shouldCaptureTabDrag(g.dx, g.dy),
     onPanResponderGrant: () => { thumb.stopAnimation(); },
@@ -80,8 +94,8 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
         const focused = (preview ?? active) === index;
         return <Pressable key={item.name} accessibilityRole={index === 2 ? 'button' : 'tab'} accessibilityLabel={item.label} accessibilityState={index === 2 ? undefined : { selected: active === index }}
           onPress={() => {
-            if (index === 2) { void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined); router.navigate('/devis/nouveau'); }
-            else select(index);
+            if (index === 2) void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+            select(index);
           }} style={({ pressed }) => ({ flex: 1, alignItems: 'center', justifyContent: 'center', gap: 3, opacity: pressed ? 0.65 : 1, transform: [{ scale: pressed ? 0.94 : 1 }] })}>
           <Ionicons name={item.icon} size={index === 2 ? 30 : focused ? 25 : 23} color={focused || index === 2 ? colors.accent : colors.subtle} />
           {index !== 2 && <Text style={{ fontSize: 10, fontWeight: '600', color: focused ? colors.accent : colors.subtle }}>{item.label}</Text>}

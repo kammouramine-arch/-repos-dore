@@ -28,7 +28,7 @@ export function useReducedMotion() {
   const [reduced, setReduced] = React.useState(false);
 
   React.useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduced);
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => setReduced(true));
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
     return () => subscription.remove();
   }, []);
@@ -76,7 +76,9 @@ export function Reveal({
       style={[
         style,
         {
-          opacity: progress,
+          // Content must remain readable even if a native animation is interrupted.
+          // Only decoration moves; first meaningful paint never waits for a fade.
+          opacity: 1,
           transform: [
             {
               translateY: progress.interpolate({

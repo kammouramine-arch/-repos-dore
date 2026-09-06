@@ -79,6 +79,14 @@ export default function CompteScreen() {
           } finally { if (file.exists) file.delete(); }
         })} />
         <Muted>Cet export contient votre identité et vos rattachements à une entreprise, pas les devis ni le dossier commercial complet.</Muted>
+        <Button title="Exporter mes données commerciales" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
+          if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
+          const data = await api.auth.exportBusiness();
+          const file = new File(Paths.cache, `DEVISIA-donnees-${Date.now()}.json`);
+          try { file.write(JSON.stringify(data, null, 2)); await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' }); }
+          finally { if (file.exists) file.delete(); }
+        })} />
+        <Muted>Clients, prospects, chantiers, devis, lignes et factures. Aucun secret ou jeton n’est inclus.</Muted>
         <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
         <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
         <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />

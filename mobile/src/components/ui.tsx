@@ -286,9 +286,9 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
 
   return (
     <View style={{ gap: 6 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'baseline' }}>
+      <View style={{ gap: 4 }}>
         <Text style={[typography.small, { color: colors.inkSoft, fontWeight: '600' }]}>{label}</Text>
-        {hint ? <Text style={[typography.small, { color: colors.subtle }]}>{hint}</Text> : null}
+        {hint ? <Text style={[typography.small, { color: colors.muted, flexShrink: 1 }]}>{hint}</Text> : null}
       </View>
       <TextInput
         accessibilityLabel={label}

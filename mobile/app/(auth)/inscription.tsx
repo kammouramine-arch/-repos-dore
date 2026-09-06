@@ -1,11 +1,9 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
+import { Platform, Pressable, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
 import { TRIAL_DAYS, PASSWORD_HINT, passwordErrors } from '@devisia/shared';
-import { Banner, Body, Button, Card, Field, Muted, Title } from '@/components/ui';
-import { Reveal } from '@/components/motion';
-import { Logo } from '@/components/logo';
+import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
+import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
 
@@ -19,6 +17,7 @@ export default function InscriptionScreen() {
     password: '',
   });
   const [pending, setPending] = React.useState(false);
+  const submitting = React.useRef(false);
   const [validationError, setValidationError] = React.useState<string | null>(null);
   const [showPassword, setShowPassword] = React.useState(false);
 
@@ -28,10 +27,11 @@ export default function InscriptionScreen() {
   };
 
   async function submit() {
-    if (pending) return;
+    if (submitting.current) return;
     const problems = passwordErrors(form.password);
     setValidationError(problems.length ? problems.join(' ') : null);
     if (problems.length) return;
+    submitting.current = true;
     setPending(true);
     try {
       await signUp({
@@ -40,43 +40,17 @@ export default function InscriptionScreen() {
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace('/presentation');
+      router.replace('/abonnement');
     } catch {
       // Message affiché sous le champ mot de passe.
     } finally {
+      submitting.current = false;
       setPending(false);
     }
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          height: 300,
-          backgroundColor: colors.accentDeep,
-          borderBottomLeftRadius: 42,
-          borderBottomRightRadius: 42,
-        }}
-      />
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1 }}>
-        <ScrollView
-          contentContainerStyle={{ padding: spacing.xl, paddingBottom: spacing['5xl'] }}
-          keyboardShouldPersistTaps="handled"
-          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
-          showsVerticalScrollIndicator={false}
-        >
-          <Reveal style={{ gap: spacing.xl }}>
-            <View style={{ gap: spacing.sm, paddingHorizontal: spacing.sm }}>
-              <Logo tone="white" />
-              <Title style={{ marginTop: spacing.lg, color: colors.white }}>Créez votre atelier</Title>
-              <Muted style={{ color: 'rgba(255,255,255,0.72)' }}>
-                Configurez DEVISIA en moins de deux minutes.
-              </Muted>
-            </View>
+    <AuthSurface title="Créez votre atelier" subtitle="Vos clients, vos chantiers et vos devis. Tout commence ici.">
 
             <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
               {validationError || error ? <Banner tone="danger" title={validationError ?? error!} /> : null}
@@ -140,9 +114,6 @@ export default function InscriptionScreen() {
                 </Pressable>
               </Link>
             </View>
-          </Reveal>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AuthSurface>
   );
 }

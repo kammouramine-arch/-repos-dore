@@ -3,7 +3,7 @@ import { Animated, Easing, Pressable, ScrollView, View, useWindowDimensions } fr
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
-import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@devisia/shared';
+import { TRIAL_DAYS } from '@devisia/shared';
 import { useAuth } from '@/lib/auth';
 import {
   Badge,
@@ -11,11 +11,9 @@ import {
   Button,
   Caption,
   Card,
-  Divider,
   Heading,
   Ionicons,
   Muted,
-  Price,
   ProgressDots,
   Title,
 } from '@/components/ui';
@@ -71,7 +69,7 @@ export default function DecouverteScreen() {
   const { width } = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
   const scroller = React.useRef<ScrollView>(null);
-  const fade = React.useMemo(() => new Animated.Value(0), []);
+  const fade = React.useMemo(() => new Animated.Value(1), []);
 
   React.useEffect(() => {
     Animated.timing(fade, {
@@ -89,7 +87,7 @@ export default function DecouverteScreen() {
     const clamped = Math.max(0, Math.min(total - 1, next));
     setIndex(clamped);
     scroller.current?.scrollTo({ x: clamped * width, animated: true });
-    void Haptics.selectionAsync();
+    void Haptics.selectionAsync().catch(() => undefined);
   }
 
   async function leave(destination: '/inscription' | '/connexion') {
@@ -177,13 +175,13 @@ export default function DecouverteScreen() {
                   <Ionicons name={pillar.icon} size={36} color={colors.white} />
                 </View>
                 <View style={{ position: 'absolute', left: 30, right: 30, bottom: 28, flexDirection: 'row', gap: 7 }}>
-                  {[0, 1, 2].map((bar) => (
-                    <View key={bar} style={{ flex: bar === 1 ? 1.6 : 1, height: 4, borderRadius: 2, backgroundColor: bar === pillarIndex % 3 ? colors.white : 'rgba(255,255,255,0.25)' }} />
+                  {Array.from({ length: total }, (_, bar) => (
+                    <View key={bar} style={{ flex: bar === pillarIndex ? 1.6 : 1, height: 4, borderRadius: 2, backgroundColor: bar === pillarIndex ? colors.white : 'rgba(255,255,255,0.25)' }} />
                   ))}
                 </View>
               </View>
               <View style={{ gap: spacing.md, alignItems: 'center' }}>
-                <Caption upper style={{ color: colors.accent }}>{String(pillarIndex + 1).padStart(2, '0')} · {String(PILLARS.length).padStart(2, '0')}</Caption>
+                <Caption upper style={{ color: colors.accent }}>{String(pillarIndex + 1).padStart(2, '0')} · {String(total).padStart(2, '0')}</Caption>
                 <Title style={{ textAlign: 'center' }}>{pillar.benefit}</Title>
                 <Body style={{ color: colors.muted, textAlign: 'center', lineHeight: 23 }}>
                   {pillar.detail}
@@ -209,45 +207,24 @@ export default function DecouverteScreen() {
               </Muted>
             </View>
 
-            {PLAN_ORDER.map((id) => {
-              const plan = PLANS[id];
-              return (
-                <Pressable key={id} accessibilityRole="button" accessibilityLabel={`Choisir ${plan.name}`} onPress={() => {
-                  if (status === 'connecte') router.push({ pathname: '/abonnement', params: { plan: id } });
-                  else void leave('/inscription');
-                }}>
-                <Card style={{ gap: spacing.sm }}>
-                  <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: spacing.sm }}>
-                    <Heading>{plan.name}</Heading>
-                    {id === 'PRO' ? <Badge label="Le plus choisi" tone="accent" /> : null}
-                    <View style={{ flex: 1 }} />
-                    <Price cents={plan.monthlyPriceCents} suffix="/ mois" size={24} />
-                  </View>
-                  <Divider />
-                  {plan.highlights.slice(0, 3).map((line) => (
-                    <View key={line} style={{ flexDirection: 'row', gap: spacing.sm }}>
-                      <Ionicons name="checkmark" size={16} color={colors.success} />
-                      <Body style={{ flex: 1, color: colors.inkSoft }}>{line}</Body>
-                    </View>
-                  ))}
-                  <Caption style={{ color: colors.accent }}>Choisir {plan.name} →</Caption>
-                </Card>
-                </Pressable>
-              );
-            })}
+            <Card style={{ gap: spacing.lg }}>
+              <Heading>Votre premier devis commence ici</Heading>
+              <Body>Décrivez un vrai chantier, retrouvez vos clients et préparez votre premier PDF.</Body>
+              <Muted>Vous choisirez une seule fois votre formule sur l’écran suivant, avec son prix et les conditions Apple avant de confirmer.</Muted>
+            </Card>
 
             <View style={{ gap: spacing.sm }}>
               <Button
-                title="Choisir ma formule"
+                title={status === 'connecte' ? 'Voir les formules' : 'Créer mon compte'}
                 icon="arrow-forward"
                 haptic
                 onPress={() => void leave('/inscription')}
               />
-              <Button
+              {status !== 'connecte' ? <Button
                 title="J’ai déjà un compte"
                 variant="ghost"
                 onPress={() => void leave('/connexion')}
-              />
+              /> : null}
             </View>
             <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
               Tarifs de référence en France. Le prix final, la devise et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.

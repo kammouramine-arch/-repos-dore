@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, View } from 'react-native';
+import { Pressable, View } from 'react-native';
 import { Link, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { Banner, Body, Button, Card, Field, Muted, Title } from '@/components/ui';
-import { Reveal } from '@/components/motion';
-import { Logo } from '@/components/logo';
+import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
+import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
 
@@ -14,8 +12,11 @@ export default function ConnexionScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [pending, setPending] = React.useState(false);
+  const submitting = React.useRef(false);
 
   async function submit() {
+    if (submitting.current) return;
+    submitting.current = true;
     setPending(true);
     try {
       await signIn(email.trim(), password);
@@ -23,36 +24,13 @@ export default function ConnexionScreen() {
     } catch {
       // Le message est porté par le contexte d'authentification.
     } finally {
+      submitting.current = false;
       setPending(false);
     }
   }
 
   return (
-    <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
-      <View
-        style={{
-          position: 'absolute',
-          left: 0,
-          right: 0,
-          top: 0,
-          height: '42%',
-          backgroundColor: colors.accentDeep,
-          borderBottomLeftRadius: 42,
-          borderBottomRightRadius: 42,
-        }}
-      />
-      <KeyboardAvoidingView
-        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
-        style={{ flex: 1, padding: spacing.xl, justifyContent: 'center' }}
-      >
-        <Reveal style={{ gap: spacing.xl }}>
-          <View style={{ gap: spacing.sm, paddingHorizontal: spacing.sm }}>
-            <Logo tone="white" />
-            <Title style={{ marginTop: spacing.lg, color: colors.white }}>Content de vous revoir</Title>
-            <Muted style={{ color: 'rgba(255,255,255,0.72)' }}>
-              Votre atelier, vos clients et vos devis vous attendent.
-            </Muted>
-          </View>
+    <AuthSurface title="Content de vous revoir" subtitle="Votre atelier, vos clients et vos devis vous attendent.">
 
           <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
             {error ? <Banner tone="danger" title={error} /> : null}
@@ -95,8 +73,6 @@ export default function ConnexionScreen() {
               </Pressable>
             </Link>
           </View>
-        </Reveal>
-      </KeyboardAvoidingView>
-    </SafeAreaView>
+    </AuthSurface>
   );
 }

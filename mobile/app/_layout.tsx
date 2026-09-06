@@ -143,12 +143,12 @@ function RootNavigator() {
         <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis' }} />
         <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: 'Fiche client' }} />
         </Stack.Protected>
-        <Stack.Screen name="presentation" options={{ headerShown: false }} />
-        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
         <Stack.Screen
           name="abonnement"
           options={{ headerShown: true, title: 'Abonnement' }}
         />
+        <Stack.Screen name="presentation" options={{ headerShown: false }} />
+        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
         <Stack.Screen
           name="catalogue"
           options={{ headerShown: true, title: 'Catalogue de prix' }}

@@ -1,11 +1,9 @@
 import * as React from 'react';
-import { Tabs, useRouter } from 'expo-router';
-import { Pressable, View } from 'react-native';
+import { Tabs } from 'expo-router';
+import { View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors, radius, shadows } from '@/theme';
+import { colors } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
-import { useReducedMotion } from '@/components/motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrubTabBar } from '@/components/scrub-tab-bar';
 
@@ -14,8 +12,6 @@ import { ScrubTabBar } from '@/components/scrub-tab-bar';
  * au pouce depuis n'importe quel onglet : c'est le geste qui rapporte.
  */
 export default function AppTabsLayout() {
-  const router = useRouter();
-  const reduced = useReducedMotion();
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 12);
   const barHeight = 64 + bottomPadding;
@@ -23,14 +19,17 @@ export default function AppTabsLayout() {
   return (
     <View style={{ flex: 1 }}>
     <Tabs
+      detachInactiveScreens={false}
       tabBar={props => <ScrubTabBar {...props} />}
       screenListeners={{ tabPress: () => { void Haptics.selectionAsync().catch(() => undefined); } }}
       screenOptions={{
-        animation: reduced ? 'none' : 'shift',
+        // Keep native scenes attached and opaque. Content must not depend on
+        // an interrupted shift animation or thaw after a modal/tab transition.
+        animation: 'none',
         headerShown: false,
         sceneStyle: { backgroundColor: colors.surface },
         lazy: true,
-        freezeOnBlur: true,
+        freezeOnBlur: false,
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.subtle,
         tabBarHideOnKeyboard: true,
@@ -73,36 +72,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="nouveau"
         options={{
-          title: '',
-          tabBarButton: () => (
-            <View style={{ flex: 1, alignItems: 'center', justifyContent: 'flex-start' }}>
-              <Pressable
-                accessibilityRole="button"
-                accessibilityLabel="Créer un devis"
-                onPress={() => {
-                  void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                  router.push('/devis/nouveau');
-                }}
-                style={({ pressed }) => [
-                  {
-                    marginTop: -22,
-                    width: 64,
-                    height: 64,
-                    borderRadius: radius.full,
-                    backgroundColor: colors.accent,
-                    borderWidth: 5,
-                    borderColor: colors.canvas,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    transform: [{ scale: pressed ? 0.92 : 1 }],
-                  },
-                  shadows.floating as object,
-                ]}
-              >
-                <Ionicons name="add" size={31} color={colors.white} />
-              </Pressable>
-            </View>
-          ),
+          title: 'Créer',
         }}
       />
       <Tabs.Screen

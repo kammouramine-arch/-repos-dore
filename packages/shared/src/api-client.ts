@@ -279,6 +279,7 @@ export function createApiClient(options: ApiClientOptions) {
 
     auth: {
       exportPersonal: () => request<Record<string, unknown>>('/api/auth/export'),
+      exportBusiness: () => request<Record<string, unknown>>('/api/organization/export'),
       signIn: (email: string, password: string, deviceName?: string) =>
         request<AuthTokenDTO>('/api/auth/session', {
           method: 'POST',
