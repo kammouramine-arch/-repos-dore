@@ -112,15 +112,22 @@ describe('formules', () => {
     expect(planChange('PRO', 'PRO')).toBe('same');
   });
 
-  it('ouvre les fonctions d’équipe à partir de Pro', () => {
+  it('expose une progression commerciale réelle et documentée', () => {
     expect(PLANS.ESSENTIEL.features.team).toBe(false);
-    expect(PLANS.PRO.features.team).toBe(true);
-    expect(PLANS.ENTREPRISE.features.integrations).toBe(true);
+    expect(PLANS.PRO.features.team).toBe(false);
+    expect(PLANS.ENTREPRISE.features.integrations).toBe(false);
+    expect(PLANS.ESSENTIEL.limits.aiImageAnalyses).toBe(25);
+    expect(PLANS.PRO.limits.aiImageAnalyses).toBe(150);
+    expect(PLANS.ENTREPRISE.limits.aiImageAnalyses).toBe(500);
+    expect(PLANS.ESSENTIEL.limits.seats).toBe(1);
+    expect(PLANS.PRO.limits.seats).toBe(3);
+    expect(PLANS.ENTREPRISE.limits.seats).toBe(10);
   });
 
-  it('laisse la formule Entreprise sans limite d’IA', () => {
+  it('plafonne l’IA Entreprise pour éviter une exposition de coût illimitée', () => {
     expect(PLANS.ESSENTIEL.limits.aiGenerations).toBe(50);
-    expect(PLANS.ENTREPRISE.limits.aiGenerations).toBeNull();
+    expect(PLANS.PRO.limits.aiGenerations).toBe(300);
+    expect(PLANS.ENTREPRISE.limits.aiGenerations).toBe(1000);
   });
 });
 

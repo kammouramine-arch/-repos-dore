@@ -115,12 +115,10 @@ export default async function TeamPage() {
         </CardContent>
       </Card>
 
-      {!PLANS[plan].features.team ? (
-        <Alert tone="info">
-          La formule {PLANS[plan].name} est prévue pour un utilisateur. Passez en formule Pro ou
-          Entreprise pour inviter votre équipe.
-        </Alert>
-      ) : null}
+      <Alert tone="info">
+        Les invitations d’équipe seront disponibles dans une prochaine version. Cette page affiche
+        pour l’instant les membres déjà associés à l’entreprise.
+      </Alert>
     </div>
   );
 }

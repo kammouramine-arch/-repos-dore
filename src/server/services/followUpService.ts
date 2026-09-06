@@ -6,6 +6,7 @@ import { appUrl, env } from '@/lib/env';
 import { buildTemplateFollowUp, getAIProvider, wrapUntrusted, followUpDraftSchema } from '@/lib/ai';
 import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS, localizedSystemPrompt } from '@/lib/ai/prompts';
 import type { FollowUpTone } from '@devisia/shared';
+import { PLANS } from '@/lib/billing/plans';
 import { followUpEmail, getEmailProvider } from '@/lib/email';
 import { formatCents } from '@/lib/money';
 import { fullName } from '@/lib/utils';
@@ -21,6 +22,13 @@ import { assertWithinPlan, incrementUsage } from './usageService';
  * si l'entreprise a explicitement désactivé l'approbation sur une automatisation.
  */
 export async function scheduleFollowUpsForQuote(organizationId: string, quoteId: string) {
+  // Essential keeps manual follow-up suggestions, but scheduled automations
+  // are a Pro capability and must never be enabled by a direct API call.
+  const subscription = await prisma.subscription.findUnique({
+    where: { organizationId },
+    select: { plan: true },
+  });
+  if (!subscription || !PLANS[subscription.plan].features.automations) return [];
   const [settings, automations, quote] = await Promise.all([
     prisma.settings.findUnique({ where: { organizationId } }),
     prisma.automation.findMany({ where: { organizationId, isActive: true } }),

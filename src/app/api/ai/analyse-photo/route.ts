@@ -6,7 +6,7 @@ import { AppError } from '@/lib/errors';
 import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { getAIProvider } from '@/lib/ai';
 import { getStorageProvider } from '@/lib/storage';
-import { incrementUsage } from '@/server/services/usageService';
+import { assertWithinPlan, incrementUsage } from '@/server/services/usageService';
 
 const bodySchema = z.object({
   fileIds: z.array(z.string().uuid()).min(1).max(6),
@@ -17,6 +17,11 @@ export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('quote:write');
     const organizationId = auth.organization.organizationId;
+    const subscription = await prisma.subscription.findUnique({
+      where: { organizationId },
+      select: { plan: true },
+    });
+    await assertWithinPlan(organizationId, subscription?.plan ?? 'ESSENTIEL', 'AI_IMAGE_ANALYSIS');
     await enforceRateLimit({ key: `vision:${organizationId}`, ...RATE_LIMITS.aiGeneration });
 
     const provider = getAIProvider();

@@ -335,6 +335,8 @@ export interface NotificationDTO {
 export interface UsageDTO {
   period: string;
   aiGenerations: { used: number; limit: number | null };
+  aiTranscriptions: { used: number; limit: number | null };
+  aiImageAnalyses: { used: number; limit: number | null };
   followUps: { used: number; limit: number | null };
   quotesSent: { used: number; limit: number | null };
   seats: number;

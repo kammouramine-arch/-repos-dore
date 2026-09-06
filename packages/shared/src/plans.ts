@@ -16,6 +16,10 @@ export type SubscriptionStatusId =
 export interface PlanLimits {
   /** Générations IA de devis incluses par mois (null = illimité). */
   aiGenerations: number | null;
+  /** Transcriptions audio serveur incluses par mois (null = illimité). */
+  aiTranscriptions: number | null;
+  /** Analyses photo IA incluses par mois (null = illimité). */
+  aiImageAnalyses: number | null;
   /** Relances envoyées par mois (null = illimité). */
   followUps: number | null;
   /** Devis envoyés par mois (null = illimité). */
@@ -57,11 +61,11 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     monthlyPriceCents: 3900,
     yearlyPriceCents: 39000,
     stripePriceEnvKey: 'STRIPE_PRICE_ESSENTIEL',
-    limits: { aiGenerations: 50, followUps: 100, quotesSent: 100, seats: 1 },
+    limits: { aiGenerations: 50, aiTranscriptions: 50, aiImageAnalyses: 25, followUps: 100, quotesSent: 100, seats: 1 },
     features: {
       automations: false,
       team: false,
-      advancedAnalytics: false,
+      advancedAnalytics: true,
       integrations: false,
       publicLeadForm: true,
       prioritySupport: false,
@@ -83,22 +87,21 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     monthlyPriceCents: 7900,
     yearlyPriceCents: 79000,
     stripePriceEnvKey: 'STRIPE_PRICE_PRO',
-    limits: { aiGenerations: 300, followUps: 1000, quotesSent: null, seats: 3 },
+    limits: { aiGenerations: 300, aiTranscriptions: 300, aiImageAnalyses: 150, followUps: 1000, quotesSent: null, seats: 3 },
     features: {
       automations: true,
-      team: true,
-      advancedAnalytics: false,
+      team: false,
+      advancedAnalytics: true,
       integrations: false,
       publicLeadForm: true,
       prioritySupport: true,
       whiteLabel: false,
     },
     highlights: [
-      'Tout Essentiel, sans limite de devis',
+      'Tout Essentiel, jusqu’à 300 générations IA par mois',
       'Séquences de relance automatiques',
       'Formulaire de demande de devis pour votre site',
       'Assistant IA sur vos données',
-      'Jusqu’à 3 utilisateurs',
       'Support prioritaire',
     ],
     recommended: true,
@@ -110,22 +113,19 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     monthlyPriceCents: 14900,
     yearlyPriceCents: 149000,
     stripePriceEnvKey: 'STRIPE_PRICE_ENTREPRISE',
-    limits: { aiGenerations: null, followUps: null, quotesSent: null, seats: 10 },
+    limits: { aiGenerations: 1000, aiTranscriptions: 1000, aiImageAnalyses: 500, followUps: null, quotesSent: null, seats: 10 },
     features: {
       automations: true,
-      team: true,
+      team: false,
       advancedAnalytics: true,
-      integrations: true,
+      integrations: false,
       publicLeadForm: true,
       prioritySupport: true,
       whiteLabel: false,
     },
     highlights: [
-      'Tout Pro, sans limite d’IA',
-      'Gestion d’équipe et rôles avancés',
-      'Analytique avancée et objectifs',
-      'Catalogue de prix avec import et export CSV',
-      'Jusqu’à 10 utilisateurs',
+      'Tout Pro, jusqu’à 1 000 générations IA par mois',
+      'Analytique et objectifs commerciaux',
       'Accompagnement à la mise en route',
     ],
   },

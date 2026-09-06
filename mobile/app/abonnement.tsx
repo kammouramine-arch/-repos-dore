@@ -212,6 +212,8 @@ function WebAbonnementScreen() {
         </View>
         {[
           { label: 'Générations IA', ...data.usage.aiGenerations },
+          { label: 'Transcriptions audio', ...data.usage.aiTranscriptions },
+          { label: 'Analyses photo IA', ...data.usage.aiImageAnalyses },
           { label: 'Relances envoyées', ...data.usage.followUps },
           { label: 'Devis envoyés', ...data.usage.quotesSent },
         ].map((quota) => (

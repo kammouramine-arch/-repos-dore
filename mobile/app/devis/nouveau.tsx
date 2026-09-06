@@ -91,10 +91,12 @@ const cellInput = {
 function ErrorBanner({
   error,
   retry,
+  onUpgrade,
   onDismiss,
 }: {
   error: string | null;
   retry: (() => void) | null;
+  onUpgrade?: (() => void) | null;
   onDismiss: () => void;
 }) {
   if (!error) return null;
@@ -107,7 +109,9 @@ function ErrorBanner({
       }
       onDismiss={onDismiss}
       action={
-        retry ? (
+        onUpgrade ? (
+          <Button title="Voir les formules" variant="secondary" icon="arrow-up-circle-outline" onPress={onUpgrade} />
+        ) : retry ? (
           <Button title="Réessayer" variant="secondary" icon="refresh" onPress={retry} />
         ) : undefined
       }
@@ -123,6 +127,7 @@ export default function NouveauDevisScreen() {
   const [phase, setPhase] = React.useState<Phase>('saisie');
   const [description, setDescription] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
+  const [limitReached, setLimitReached] = React.useState(false);
   // Une panne réseau se rejoue ; une description trop courte, non. Le bandeau
   // ne propose « Réessayer » que quand réessayer a un sens, et il rejoue
   // exactement l'opération qui a échoué.
@@ -209,6 +214,7 @@ export default function NouveauDevisScreen() {
     generating.current = true;
     const version = ++requestVersion.current;
     setError(null);
+    setLimitReached(false);
     setRetry(null);
     setStep(0);
     setPhase('generation');
@@ -226,6 +232,7 @@ export default function NouveauDevisScreen() {
     } catch (cause) {
       if (version !== requestVersion.current) return;
       setRetry(() => () => void generate(text));
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(
         cause instanceof DevisiaApiError
           ? cause.message
@@ -254,6 +261,7 @@ export default function NouveauDevisScreen() {
     generating.current = true;
     const version = ++requestVersion.current;
     setError(null);
+    setLimitReached(false);
     setRetry(null);
     setStep(0);
     setPhase('generation');
@@ -279,6 +287,7 @@ export default function NouveauDevisScreen() {
     } catch (cause) {
       if (version !== requestVersion.current) return;
       setRetry(() => () => void prepare());
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(
         cause instanceof DevisiaApiError
           ? cause.message
@@ -298,6 +307,7 @@ export default function NouveauDevisScreen() {
     }
     setSaving(true);
     setError(null);
+    setLimitReached(false);
     try {
       const quote = await api.quotes.create({
         customerId: customer.id,
@@ -325,6 +335,7 @@ export default function NouveauDevisScreen() {
       toast({ title: 'Devis enregistré', description: 'Vous pouvez le relire puis l’envoyer.' });
       router.replace(`/devis/${quote.id}`);
     } catch (cause) {
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(
         cause instanceof DevisiaApiError ? cause.message : 'L’enregistrement n’a pas abouti.',
       );
@@ -515,7 +526,12 @@ export default function NouveauDevisScreen() {
             </Card>
           ))}
 
-          <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />
+          <ErrorBanner
+            error={error}
+            retry={retry}
+            onUpgrade={limitReached ? () => router.push('/abonnement') : null}
+            onDismiss={() => { setError(null); setLimitReached(false); }}
+          />
 
           <View style={{ gap: spacing.sm }}>
             <Button
@@ -793,7 +809,12 @@ export default function NouveauDevisScreen() {
           subtitle="Dictez naturellement. DEVISERA transforme vos mots en lignes chiffrées."
         />
 
-        <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />
+        <ErrorBanner
+          error={error}
+          retry={retry}
+          onUpgrade={limitReached ? () => router.push('/abonnement') : null}
+          onDismiss={() => { setError(null); setLimitReached(false); }}
+        />
         {dictation.error ? (
           <Banner
             tone="warning"

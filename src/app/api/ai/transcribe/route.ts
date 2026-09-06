@@ -7,11 +7,17 @@ import { TRADE_VOCABULARY } from '@/lib/ai/transcription';
 import { AUDIO_MIME_TYPES, MAX_AUDIO_BYTES } from '@/lib/storage/validation';
 import { incrementUsage } from '@/server/services/usageService';
 import { prisma } from '@/lib/prisma';
+import { assertWithinPlan } from '@/server/services/usageService';
 
 export async function POST(request: Request) {
   try {
     const auth = await requirePermission('quote:write');
     const organizationId = auth.organization.organizationId;
+    const subscription = await prisma.subscription.findUnique({
+      where: { organizationId },
+      select: { plan: true },
+    });
+    await assertWithinPlan(organizationId, subscription?.plan ?? 'ESSENTIEL', 'AI_TRANSCRIPTION');
     await enforceRateLimit({ key: `transcribe:${organizationId}`, ...RATE_LIMITS.aiGeneration });
 
     const provider = getTranscriptionProvider();

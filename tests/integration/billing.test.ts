@@ -95,10 +95,41 @@ describe('limites de formule', () => {
     ).rejects.toThrowError(/limite mensuelle/i);
   });
 
-  it('laisse passer les formules sans limite', async () => {
+  it('applique aussi les quotas photo et transcription côté serveur', async () => {
+    await incrementUsage(
+      org.organization.id,
+      'AI_IMAGE_ANALYSIS',
+      PLANS.ESSENTIEL.limits.aiImageAnalyses!,
+    );
+    await expect(
+      assertWithinPlan(org.organization.id, 'ESSENTIEL', 'AI_IMAGE_ANALYSIS'),
+    ).rejects.toThrowError(/limite mensuelle/i);
+
+    await incrementUsage(
+      org.organization.id,
+      'AI_TRANSCRIPTION',
+      PLANS.ESSENTIEL.limits.aiTranscriptions!,
+    );
+    await expect(
+      assertWithinPlan(org.organization.id, 'ESSENTIEL', 'AI_TRANSCRIPTION'),
+    ).rejects.toThrowError(/limite mensuelle/i);
+  });
+
+  it('laisse passer une formule Entreprise sous son plafond', async () => {
     await expect(
       assertWithinPlan(org.organization.id, 'ENTREPRISE', 'AI_GENERATION'),
     ).resolves.toBeUndefined();
+  });
+
+  it('protège aussi le plafond IA Entreprise', async () => {
+    await incrementUsage(
+      org.organization.id,
+      'AI_GENERATION',
+      PLANS.ENTREPRISE.limits.aiGenerations!,
+    );
+    await expect(
+      assertWithinPlan(org.organization.id, 'ENTREPRISE', 'AI_GENERATION'),
+    ).rejects.toThrowError(/limite mensuelle/i);
   });
 
   it('résume la consommation du mois', async () => {

@@ -237,6 +237,8 @@ export const fr = {
     subtitle: 'Performance commerciale sur 90 jours et consommation de votre formule.',
     usage: 'Consommation',
     aiGenerations: 'Générations IA',
+    aiTranscriptions: 'Transcriptions audio',
+    aiImageAnalyses: 'Analyses photo IA',
     followUpsSent: 'Relances envoyées',
     quotesSent: 'Devis envoyés',
     unlimited: 'illimité',

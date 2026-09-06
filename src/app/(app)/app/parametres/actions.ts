@@ -11,6 +11,7 @@ import { recordAudit } from '@/server/services/auditService';
 import { completeOnboarding } from '@/server/services/organizationService';
 import { trackEvent } from '@/server/services/analyticsService';
 import { eurosToCents } from '@/lib/money';
+import { assertPlanFeature } from '@/server/services/accessService';
 
 export interface SettingsState {
   error?: string;
@@ -158,6 +159,7 @@ export async function updateAutomation(
 ): Promise<{ ok: boolean; error?: string }> {
   try {
     const auth = await requirePermission('automation:write');
+    await assertPlanFeature(auth.organization.organizationId, 'automations');
     const result = await prisma.automation.updateMany({
       where: { id: automationId, organizationId: auth.organization.organizationId },
       data,

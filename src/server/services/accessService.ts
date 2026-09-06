@@ -2,6 +2,8 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 import { accessStateFor, type AccessState, type SubscriptionSnapshot } from '@devisia/shared';
+import { PLANS } from '@/lib/billing/plans';
+import type { PlanFeatures } from '@devisia/shared';
 
 /**
  * Droits d'accès d'une organisation, calculés à partir de son abonnement.
@@ -50,4 +52,25 @@ export async function assertCanWrite(organizationId: string): Promise<AccessStat
     );
   }
   return state;
+}
+
+/**
+ * Server-side feature gate. UI visibility is only a convenience; every
+ * mutation that unlocks a paid capability must call this function as well.
+ */
+export async function assertPlanFeature(
+  organizationId: string,
+  feature: keyof PlanFeatures,
+): Promise<void> {
+  const subscription = await prisma.subscription.findUnique({
+    where: { organizationId },
+    select: { plan: true },
+  });
+  const plan = subscription?.plan ?? 'ESSENTIEL';
+  if (!PLANS[plan].features[feature]) {
+    throw new AppError(
+      'PLAN_LIMIT',
+      `La fonctionnalité « ${feature} » n’est pas incluse dans la formule ${PLANS[plan].name}. Passez à une formule supérieure pour continuer.`,
+    );
+  }
 }

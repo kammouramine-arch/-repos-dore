@@ -236,6 +236,8 @@ export const en: Dictionary = {
     subtitle: 'Sales performance over 90 days and your plan usage.',
     usage: 'Usage',
     aiGenerations: 'AI generations',
+    aiTranscriptions: 'Audio transcriptions',
+    aiImageAnalyses: 'AI photo analyses',
     followUpsSent: 'Follow-ups sent',
     quotesSent: 'Quotes sent',
     unlimited: 'unlimited',

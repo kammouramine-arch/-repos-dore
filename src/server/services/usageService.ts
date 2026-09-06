@@ -10,6 +10,8 @@ function currentPeriod(date = new Date()): string {
 
 const METRIC_TO_LIMIT: Partial<Record<UsageMetric, keyof PlanLimits>> = {
   AI_GENERATION: 'aiGenerations',
+  AI_TRANSCRIPTION: 'aiTranscriptions',
+  AI_IMAGE_ANALYSIS: 'aiImageAnalyses',
   FOLLOWUP_SENT: 'followUps',
   QUOTE_SENT: 'quotesSent',
 };
@@ -68,6 +70,8 @@ export async function usageSummary(organizationId: string, plan: SubscriptionPla
   return {
     period,
     aiGenerations: { used: byMetric.get('AI_GENERATION') ?? 0, limit: limits.aiGenerations },
+    aiTranscriptions: { used: byMetric.get('AI_TRANSCRIPTION') ?? 0, limit: limits.aiTranscriptions },
+    aiImageAnalyses: { used: byMetric.get('AI_IMAGE_ANALYSIS') ?? 0, limit: limits.aiImageAnalyses },
     followUps: { used: byMetric.get('FOLLOWUP_SENT') ?? 0, limit: limits.followUps },
     quotesSent: { used: byMetric.get('QUOTE_SENT') ?? 0, limit: limits.quotesSent },
     seats: limits.seats,

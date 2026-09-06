@@ -29,6 +29,8 @@ export default async function AnalyticsPage() {
 
   const quotas = [
     { label: t.analytics.aiGenerations, ...usage.aiGenerations },
+    { label: t.analytics.aiTranscriptions, ...usage.aiTranscriptions },
+    { label: t.analytics.aiImageAnalyses, ...usage.aiImageAnalyses },
     { label: t.analytics.followUpsSent, ...usage.followUps },
     { label: t.analytics.quotesSent, ...usage.quotesSent },
   ];

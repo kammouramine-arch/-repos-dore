@@ -5,7 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { appUrl } from '@/lib/env';
 import { AppError, notFound } from '@/lib/errors';
 import { planFromPriceId, requireStripe, stripePriceId } from '@/lib/billing/stripe';
-import { PLANS, TRIAL_DAYS, planChange } from '@/lib/billing/plans';
+import { PLANS, planChange } from '@/lib/billing/plans';
 import { getEmailProvider, paymentReceiptEmail } from '@/lib/email';
 import { notify } from './notificationService';
 import { recordAudit } from './auditService';
@@ -47,7 +47,15 @@ export async function createCheckoutSession(params: {
     line_items: [{ price: priceId, quantity: 1 }],
     allow_promotion_codes: true,
     subscription_data: {
-      trial_period_days: subscription?.status === 'trialing' ? TRIAL_DAYS : undefined,
+      // Preserve the original trial end instead of restarting a fresh trial
+      // every time a user opens checkout. An expired trial is never eligible
+      // for another free period.
+      trial_end:
+        subscription?.status === 'trialing' &&
+        subscription.trialEndsAt &&
+        subscription.trialEndsAt.getTime() > Date.now()
+          ? Math.floor(subscription.trialEndsAt.getTime() / 1000)
+          : undefined,
       metadata: { organizationId: params.organizationId, plan: params.plan },
     },
     metadata: { organizationId: params.organizationId, plan: params.plan },
