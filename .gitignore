@@ -14,6 +14,7 @@ dist/
 
 # testing
 /output/
+/.tmp-storage*/
 coverage/
 playwright-report/
 test-results/
