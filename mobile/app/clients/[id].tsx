@@ -53,6 +53,23 @@ export default function ClientProfile() {
       {query.data.quotes.map(quote => <PressableCard key={quote.id} accessibilityLabel={`Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
         <View style={{ gap: spacing.sm }}><Body>{quote.number} · {quote.title}</Body><Body>{formatCents(quote.totalCents)}</Body><Muted>{({ BROUILLON: 'Brouillon', ENVOYE: 'Envoyé', CONSULTE: 'Consulté', ACCEPTE: 'Accepté', REFUSE: 'Refusé', EXPIRE: 'Expiré', ANNULE: 'Annulé', MODIFICATION_DEMANDEE: 'Modification demandée' } as Record<string, string>)[quote.status] ?? 'À vérifier'}</Muted><Muted>{quote.sentAt ? `Envoyé le ${new Date(quote.sentAt).toLocaleDateString('fr-FR')}` : 'Non envoyé'}</Muted></View>
       </PressableCard>)}
+      {query.data.jobs?.length ? <>
+        <Heading>Chantiers</Heading>
+        <Muted>Les 30 chantiers les plus récents.</Muted>
+        {query.data.jobs.map(job => <Card key={job.id} style={{ gap: spacing.sm }}>
+          <Body>{job.title}</Body>
+          <Muted>{job.completedAt ? `Terminé le ${new Date(job.completedAt).toLocaleDateString('fr-FR')}` : job.scheduledAt ? `Prévu le ${new Date(job.scheduledAt).toLocaleDateString('fr-FR')}` : 'Date non renseignée'}</Muted>
+        </Card>)}
+      </> : null}
+      <Heading>Activité du client</Heading>
+      <Muted>Les 30 événements de devis les plus récents. Une consultation enregistrée ne prouve pas la lecture de l’email.</Muted>
+      {query.data.activity?.map(event => <PressableCard key={event.id} accessibilityLabel={`Voir ${event.quoteNumber}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: event.quoteId } })}>
+        <View style={{ gap: spacing.sm }}>
+          <Body>{({ CREE: 'Devis créé', MODIFIE: 'Devis modifié', ENVOYE: 'Devis marqué envoyé', CONSULTE: 'Devis consulté', ACCEPTE: 'Devis accepté', REFUSE: 'Devis refusé', MODIFICATION_DEMANDEE: 'Modification demandée', RELANCE: 'Relance enregistrée', PDF_TELECHARGE: 'PDF téléchargé', ANNULE: 'Devis annulé' } as Record<string, string>)[event.type] ?? 'Activité enregistrée'} · {event.quoteNumber}</Body>
+          <Muted>{new Date(event.at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</Muted>
+        </View>
+      </PressableCard>)}
+      <Muted>Client créé le {new Date(customer.createdAt).toLocaleDateString('fr-FR')}</Muted>
     </> : null}
   </Screen>;
 }

@@ -8,13 +8,18 @@ import type { CustomerProfileDTO } from '@devisia/shared';
 
 /** Mobile profile reads only what it renders, not invoices/conversations/messages. */
 export async function getCustomerProfile(organizationId: string, customerId: string): Promise<CustomerProfileDTO> {
-  const customer = await prisma.customer.findFirst({
+  const [customer, activity] = await Promise.all([prisma.customer.findFirst({
     where: { id: customerId, organizationId, deletedAt: null },
     include: {
       quotes: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, select: { id: true, number: true, title: true, status: true, totalCents: true, createdAt: true, sentAt: true } },
       _count: { select: { jobs: { where: { deletedAt: null } } } },
+      jobs: { where: { deletedAt: null }, orderBy: { createdAt: 'desc' }, take: 30, select: { id: true, title: true, status: true, scheduledAt: true, completedAt: true } },
     },
-  });
+  }), prisma.quoteEvent.findMany({
+    where: { quote: { organizationId, customerId, deletedAt: null, customer: { deletedAt: null } } },
+    orderBy: [{ createdAt: 'desc' }, { id: 'desc' }], take: 30,
+    select: { id: true, type: true, createdAt: true, quoteId: true, quote: { select: { number: true } } },
+  })]);
   if (!customer) throw notFound('Client introuvable.');
   const sent = customer.quotes.filter(quote => quote.sentAt !== null);
   const stats = {
@@ -26,6 +31,8 @@ export async function getCustomerProfile(organizationId: string, customerId: str
     customer: { ...toCustomerDTO(customer), quoteCount: stats.quoteCount, sentCount: stats.sentCount, revenueCents: stats.revenueCents },
     stats,
     quotes: customer.quotes.map(quote => ({ ...quote, createdAt: quote.createdAt.toISOString(), sentAt: quote.sentAt?.toISOString() ?? null })),
+    activity: activity.map(event => ({ id: event.id, type: event.type, at: event.createdAt.toISOString(), quoteId: event.quoteId, quoteNumber: event.quote.number })),
+    jobs: customer.jobs.map(job => ({ ...job, scheduledAt: job.scheduledAt?.toISOString() ?? null, completedAt: job.completedAt?.toISOString() ?? null })),
   };
 }
 

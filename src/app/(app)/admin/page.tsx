@@ -14,7 +14,7 @@ export const metadata: Metadata = { title: 'Administration DEVISIA', robots: { i
 export default async function AdminPage() {
   await requirePlatformAdmin();
 
-  const [organizations, users, subscriptions, quoteStats, aiStats, errors] = await Promise.all([
+  const [organizations, users, subscriptions, quoteStats, aiStats, errors, organizationCount] = await Promise.all([
     prisma.organization.findMany({
       where: { deletedAt: null },
       include: {
@@ -38,6 +38,7 @@ export default async function AdminPage() {
       orderBy: { createdAt: 'desc' },
       take: 10,
     }),
+    prisma.organization.count({ where: { deletedAt: null } }),
   ]);
 
   const mrrCents = subscriptions
@@ -53,11 +54,11 @@ export default async function AdminPage() {
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <StatCard label="Entreprises" value={String(organizations.length)} />
+        <StatCard label="Entreprises" value={String(organizationCount)} />
         <StatCard label="Utilisateurs" value={String(users)} />
-        <StatCard label="MRR estimé" value={formatCents(mrrCents, { compact: true })} emphasis />
+        <StatCard label="Valeur catalogue des formules actives" value={formatCents(mrrCents, { compact: true })} hint="Pas un revenu vérifié : peut inclure des comptes de test. Rapprocher les encaissements Apple/Stripe." />
         <StatCard
-          label="CA client devisé"
+          label="Montant des devis envoyés"
           value={formatCents(quoteStats._sum.totalCents ?? 0, { compact: true })}
           hint={`${quoteStats._count} devis envoyés`}
         />
@@ -65,7 +66,7 @@ export default async function AdminPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle>Entreprises</CardTitle>
+            <CardTitle>Les 50 entreprises les plus récentes</CardTitle>
         </CardHeader>
         <CardContent className="pt-1">
           <div className="overflow-x-auto">

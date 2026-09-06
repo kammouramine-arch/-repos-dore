@@ -28,6 +28,26 @@ function jsonResponse(body: unknown, status = 200): Response {
 }
 
 describe('client API — transport', () => {
+  it.each(['read', 'upload'])('does not disconnect a new session after an old %s returns 401', async (kind) => {
+    let token = 'old-session';
+    const onUnauthenticated = vi.fn();
+    const api = createApiClient({
+      baseUrl: 'https://exemple.test', getToken: () => token, onUnauthenticated,
+      readUploadFile: async () => new Blob(['image']),
+      fetchImpl: vi.fn().mockImplementation(async () => {
+        token = 'new-session';
+        return jsonResponse({ error: { code: 'UNAUTHENTICATED', message: 'Expired' } }, 401);
+      }),
+    });
+    await expectFailure(kind === 'read' ? api.dashboard() : api.files.upload({ uri: 'file:///photo.jpg', name: 'photo.jpg', type: 'image/jpeg' }));
+    expect(onUnauthenticated).not.toHaveBeenCalled();
+  });
+  it('does not invalidate a session for an unauthenticated sign-in attempt', async () => {
+    const onUnauthenticated = vi.fn();
+    const api = createApiClient({ baseUrl: 'https://exemple.test', getToken: () => null, onUnauthenticated, fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ error: { code: 'UNAUTHENTICATED', message: 'Invalid credentials' } }, 401)) });
+    await expectFailure(api.auth.signIn('test@example.test', 'incorrect'));
+    expect(onUnauthenticated).not.toHaveBeenCalled();
+  });
   it('reports timing and category without identifiers or search terms', async () => {
     const onDiagnostic = vi.fn();
     const api = createApiClient({ baseUrl: 'https://exemple.test', onDiagnostic, fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ data: { items: [], total: 0 } })) });

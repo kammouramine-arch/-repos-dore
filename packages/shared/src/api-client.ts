@@ -193,7 +193,7 @@ export function createApiClient(options: ApiClientOptions) {
     return token ? { Authorization: `Bearer ${token}` } : {};
   }
 
-  async function unwrap<T>(response: Response): Promise<T> {
+  async function unwrap<T>(response: Response, sentAuthorization?: string): Promise<T> {
     let payload: ApiResponse<T> | null = null;
     try {
       payload = (await response.json()) as ApiResponse<T>;
@@ -207,7 +207,14 @@ export function createApiClient(options: ApiClientOptions) {
       // d'une passerelle — que l'on déduit un code du statut HTTP.
       const error: ApiError =
         payload && 'error' in payload ? payload.error : fromStatus(response.status);
-      if (error.code === 'UNAUTHENTICATED') options.onUnauthenticated?.();
+      if (error.code === 'UNAUTHENTICATED' && options.onUnauthenticated) {
+        // A response belongs to the session that sent it, not whichever user
+        // has signed in while the request was in flight. Never log tokens.
+        const currentToken = options.getToken ? await options.getToken() : null;
+        if (!options.getToken || (currentToken && sentAuthorization === `Bearer ${currentToken}`)) {
+          options.onUnauthenticated();
+        }
+      }
       throw new DevisiaApiError(error, response.status);
     }
 
@@ -222,17 +229,18 @@ export function createApiClient(options: ApiClientOptions) {
     let code: ApiError['code'] | 'OK' = 'OK';
     try {
     const { json, headers, timeoutMs: requestTimeout, ...rest } = init;
+    const authentication = await authHeaders();
     const response = await send(`${base}${path}`, {
       ...rest,
       headers: {
         ...(json !== undefined ? { 'Content-Type': 'application/json' } : {}),
-        ...(await authHeaders()),
+        ...authentication,
         ...(headers as Record<string, string> | undefined),
       },
       body: json !== undefined ? JSON.stringify(json) : rest.body,
       credentials: options.getToken ? 'omit' : 'include',
     }, requestTimeout);
-    const data = await unwrap<T>(response);
+    const data = await unwrap<T>(response, authentication.Authorization);
     if ((rest.method ?? 'GET') !== 'GET') options.onMutation?.();
     return data;
     } catch (error) {
@@ -249,19 +257,20 @@ export function createApiClient(options: ApiClientOptions) {
     path: string,
     form: FormData,
   ): Promise<T> {
+    const authentication = await authHeaders();
     const response = await send(
       `${base}${path}`,
       {
         method: 'POST',
         // Surtout ne pas fixer `Content-Type` : la limite multipart est générée
         // par la plateforme, et l'écraser rend le corps illisible au serveur.
-        headers: await authHeaders(),
+        headers: authentication,
         body: form,
         credentials: options.getToken ? 'omit' : 'include',
       },
       UPLOAD_TIMEOUT_MS,
     );
-    return unwrap<T>(response);
+    return unwrap<T>(response, authentication.Authorization);
   }
 
   return {

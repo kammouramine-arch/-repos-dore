@@ -156,6 +156,9 @@ export interface CustomerProfileDTO {
   customer: CustomerDTO & { notes: string | null; tags: string[]; createdAt: string };
   stats: { quoteCount: number; sentCount: number; jobCount: number; revenueCents: number; pendingCents: number };
   quotes: { id: string; number: string; title: string; status: string; totalCents: number; createdAt: string; sentAt: string | null }[];
+  /** Latest recorded events only; never inferred opens or fabricated activity. */
+  activity?: { id: string; type: string; at: string; quoteId: string; quoteNumber: string }[];
+  jobs?: { id: string; title: string; status: string; scheduledAt: string | null; completedAt: string | null }[];
 }
 
 export interface LeadDTO {

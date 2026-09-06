@@ -13,6 +13,10 @@ it('includes real quotes but does not treat a draft as sent revenue', async () =
   expect(profile.stats.quoteCount).toBe(1);
   expect(profile.stats.revenueCents).toBe(0);
   expect(profile.quotes[0].id).toBe(quote.id);
+  expect(profile.activity).toEqual(expect.arrayContaining([expect.objectContaining({ type: 'CREE', quoteId: quote.id })]));
+  expect(JSON.stringify(profile.activity)).not.toContain('user:');
+  expect(profile.activity?.[0]).not.toHaveProperty('metadata');
+  expect(profile.activity?.[0]).not.toHaveProperty('ipHash');
   expect(profile.customer).not.toHaveProperty('conversations');
 });
 it('does not return a customer through another tenant', async () => {
