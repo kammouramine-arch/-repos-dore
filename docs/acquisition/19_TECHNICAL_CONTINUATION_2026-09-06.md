@@ -6,6 +6,7 @@ This note records the work completed after the strict 66/100 acquisition checkpo
 
 - AI quote generation now receives an explicit locale/country/currency directive from the business profile. French remains the default; English output is requested for English profiles without conflating English with a specific country.
 - The assistant service carries the organization locale into its system prompt.
+- Deterministic assistant fallback answers now recognize common English questions and return English labels, dates/amounts and actions when the account language is English; French remains the default.
 - Automated follow-up generation supports English subject/body fallbacks and locale-aware currency formatting while preserving the existing French templates.
 - Customer quote emails and follow-ups now honor the organization language/country/currency, including English regional date and money formatting and an English email footer.
 - Quote PDFs now select regional headings, date formats, currencies, VAT wording, and acceptance copy from the organization profile. France remains the default path; quote-time legal snapshots and visual fixtures are still required before making a compliance claim.
