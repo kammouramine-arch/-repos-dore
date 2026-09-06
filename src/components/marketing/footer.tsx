@@ -32,6 +32,7 @@ const COLUMNS = [
       { href: '/confidentialite', label: 'Confidentialité' },
       { href: '/conditions', label: "Conditions d'utilisation" },
       { href: '/cookies', label: 'Cookies' },
+      { href: 'mailto:contact@amyn.agency', label: 'Nous contacter' },
     ],
   },
 ];

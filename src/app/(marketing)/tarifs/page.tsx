@@ -37,7 +37,7 @@ export default function PricingPage() {
       <SectionHeading
         eyebrow="Tarifs"
         title="Un tarif clair, remboursé par un seul chantier récupéré."
-        description={`Essai de ${TRIAL_DAYS} jours, sans carte bancaire. Vos données restent exportables à tout moment.`}
+        description={`Essai web de ${TRIAL_DAYS} jours sans carte bancaire. Sur iPhone, consultez les conditions d’essai et de renouvellement Apple.`}
       />
       <div className="mt-14">
         <PricingGrid />

@@ -1,0 +1,25 @@
+name: Quality checks
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+          cache-dependency-path: |
+            package-lock.json
+            mobile/package-lock.json
+      - run: npm ci
+      - run: npx prisma generate
+      - run: npm run test:unit
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm ci
+        working-directory: mobile
+      - run: npm run typecheck && npm run lint
+        working-directory: mobile

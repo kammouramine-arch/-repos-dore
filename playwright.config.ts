@@ -1,10 +1,12 @@
 import { defineConfig, devices } from '@playwright/test';
+import { assertDemoDatabase } from './scripts/lib/demo-safety';
 
 const PORT = Number(process.env.E2E_PORT ?? 3100);
 const BASE_URL = `http://127.0.0.1:${PORT}`;
 const DATABASE_URL =
   process.env.E2E_DATABASE_URL ??
   'postgresql://devisia:devisia@127.0.0.1:5432/devisia_test?schema=public';
+assertDemoDatabase({ NODE_ENV: 'test', DEVISIA_ALLOW_DEMO_SEED: 'true', DATABASE_URL });
 
 /**
  * Parcours de bout en bout : inscription → onboarding → prospect → devis →
@@ -42,6 +44,7 @@ export default defineConfig({
     env: {
       NODE_ENV: 'production',
       DATABASE_URL,
+      DIRECT_URL: DATABASE_URL,
       APP_URL: BASE_URL,
       AUTH_SECRET: 'e2e-secret-devisia-0123456789abcdef',
       AI_PROVIDER: 'local',

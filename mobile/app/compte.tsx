@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform } from 'react-native';
+import { KeyboardAvoidingView, Linking, Platform } from 'react-native';
 import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/components/ui';
 import { useAuth, useSession } from '@/lib/auth';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import { spacing } from '@/theme';
 
 export default function CompteScreen() {
@@ -62,6 +62,13 @@ export default function CompteScreen() {
         })} />
       </Card>
       <Button title="Me déconnecter / utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void perform(signOut)} />
+      <Card style={{ gap: spacing.lg }}>
+        <Heading>Confidentialité et assistance</Heading>
+        <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
+        <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
+        <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
+        <Button title="Contacter l’assistance" variant="secondary" onPress={() => void perform(() => Linking.openURL('mailto:contact@amyn.agency'))} />
+      </Card>
     </Screen>
   </KeyboardAvoidingView>;
 }

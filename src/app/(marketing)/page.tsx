@@ -55,11 +55,11 @@ const FAQ = [
   {
     question: 'Mes clients voient-ils que j’utilise une IA ?',
     answer:
-      "Non. Le client reçoit un devis PDF à votre en-tête et une page de devis à vos couleurs. DEVISIA n'apparaît nulle part dans les documents envoyés.",
+      "Le PDF reprend les informations de votre entreprise. Vérifiez son aperçu avant l'envoi ; les projets préparés par IA restent sous votre responsabilité.",
   },
   {
     question: 'Que se passe-t-il après l’essai gratuit ?',
-    answer: `Vous disposez de ${TRIAL_DAYS} jours d'essai sans carte bancaire. À l'issue, vous choisissez une formule ; sans abonnement, vos données restent accessibles en lecture et exportables.`,
+    answer: `Sur le web, l'essai dure ${TRIAL_DAYS} jours sans carte bancaire. Sur iPhone, l'offre d'essai Apple est réservée aux personnes éligibles : l'abonnement se renouvelle automatiquement au tarif affiché par Apple, sauf annulation. Vérifiez les conditions sur l'écran de confirmation avant de souscrire.`,
   },
   {
     question: 'Puis-je importer mes anciens devis et ma liste de prix ?',
@@ -103,7 +103,7 @@ export default function HomePage() {
             </div>
 
             <p className="animate-in-up delay-4 mt-4 text-[12.5px] text-subtle">
-              {TRIAL_DAYS} jours d’essai gratuit. Aucune carte bancaire requise.
+              {TRIAL_DAYS} jours d’essai sur le web sans carte bancaire. Conditions Apple distinctes sur iPhone.
             </p>
           </div>
 
@@ -169,10 +169,10 @@ export default function HomePage() {
               </p>
               <div className="mt-7 space-y-3">
                 {[
-                  { icon: Mic, label: 'Vous décrivez le chantier', time: '30 s' },
-                  { icon: Sparkles, label: 'DEVISIA prépare le devis', time: '10 s' },
-                  { icon: ListChecks, label: 'Vous vérifiez et ajustez', time: '20 s' },
-                  { icon: Send, label: 'Le client reçoit et accepte en ligne', time: '1 clic' },
+                  { icon: Mic, label: 'Vous décrivez le chantier', time: '01' },
+                  { icon: Sparkles, label: 'DEVISIA prépare le devis', time: '02' },
+                  { icon: ListChecks, label: 'Vous vérifiez et ajustez', time: '03' },
+                  { icon: Send, label: 'Vous partagez le devis avec le client', time: '04' },
                 ].map((step) => (
                   <div
                     key={step.label}
@@ -223,7 +223,7 @@ export default function HomePage() {
               chaque client.
             </FeatureCard>
             <FeatureCard icon={FileText} title="PDF professionnel">
-              Un devis à votre logo, conforme, lisible, que vous pouvez envoyer sans le retoucher.
+              Un devis lisible à votre logo : vérifiez les prix, la TVA et les mentions applicables avant de l’envoyer.
             </FeatureCard>
             <FeatureCard icon={Gauge} title="Suivi du chiffre d’affaires">
               Devisé, en attente, sans réponse, panier moyen : votre activité en un écran.
@@ -259,7 +259,7 @@ export default function HomePage() {
               {
                 step: '03',
                 title: 'Vous validez et envoyez',
-                body: 'Vous ajustez les quantités, vous envoyez. Le client consulte, accepte en ligne, vous êtes notifié immédiatement.',
+                body: 'Vous contrôlez les quantités, les prix et la TVA, puis partagez le devis. Aucune acceptation en ligne n’est nécessaire pour le transmettre.',
                 icon: Send,
               },
             ].map((item) => (
@@ -348,7 +348,7 @@ export default function HomePage() {
           </div>
           <p className="mt-8 flex items-center justify-center gap-2 text-[13px] text-muted">
             <ShieldCheck className="h-4 w-4 text-success" aria-hidden />
-            Vos données restent les vôtres, exportables à tout moment.
+            Vos données restent les vôtres. Export du catalogue disponible ; contactez-nous pour une demande de copie complète.
           </p>
         </div>
       </section>
@@ -370,7 +370,7 @@ export default function HomePage() {
         <div className="container-page">
           <div className="mx-auto max-w-3xl rounded-[20px] border border-line bg-canvas px-6 py-14 text-center shadow-sm sm:px-12">
             <h2 className="text-[28px] font-semibold leading-tight tracking-[-0.03em] text-ink sm:text-[36px]">
-              Créez votre premier devis en moins d’une minute.
+              Préparez votre prochain devis depuis le chantier.
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-[15.5px] leading-relaxed text-muted">
               Ouvrez DEVISIA, décrivez votre prochain chantier et voyez le devis se construire.

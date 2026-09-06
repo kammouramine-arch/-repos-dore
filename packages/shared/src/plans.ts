@@ -124,7 +124,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
       'Tout Pro, sans limite d’IA',
       'Gestion d’équipe et rôles avancés',
       'Analytique avancée et objectifs',
-      'Intégrations (comptabilité, agenda, automatisation)',
+      'Catalogue de prix avec import et export CSV',
       'Jusqu’à 10 utilisateurs',
       'Accompagnement à la mise en route',
     ],

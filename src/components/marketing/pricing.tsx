@@ -22,7 +22,7 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
           >
             {plan.recommended ? (
               <span className="absolute -top-3 left-6 rounded-full bg-accent px-2.5 py-1 text-[11px] font-semibold uppercase tracking-wide text-white">
-                Le plus choisi
+                Recommandé
               </span>
             ) : null}
 
@@ -36,7 +36,7 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
               <span className="text-[13px] text-muted">/ mois HT</span>
             </p>
             <p className="mt-1 text-[12.5px] text-subtle">
-              {TRIAL_DAYS} jours d’essai gratuit, sans carte bancaire.
+              {TRIAL_DAYS} jours d’essai sur le web, sans carte bancaire. Sur iPhone : offre Apple selon éligibilité, renouvellement automatique sauf annulation.
             </p>
 
             <ul className="mt-6 flex-1 space-y-2.5">

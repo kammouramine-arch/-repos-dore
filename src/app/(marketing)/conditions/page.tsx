@@ -50,8 +50,9 @@ export default function TermsPage() {
               {PLANS[id].name} : {formatCents(PLANS[id].monthlyPriceCents)} HT par mois.
             </li>
           ))}
-          <li>Période d’essai de {TRIAL_DAYS} jours, sans carte bancaire.</li>
-          <li>Les abonnements sont sans engagement et résiliables depuis l’espace client.</li>
+          <li>Sur le web : période d’essai de {TRIAL_DAYS} jours sans carte bancaire.</li>
+          <li>Sur iPhone : essai Apple selon éligibilité, puis renouvellement automatique au prix et à la date affichés par Apple, sauf annulation depuis la gestion des abonnements Apple. Les prix web HT ci-dessus ne remplacent pas le prix final Apple.</li>
+          <li>La résiliation s’effectue auprès du fournisseur de facturation utilisé pour la souscription.</li>
         </ul>
       </LegalSection>
 
@@ -67,8 +68,9 @@ export default function TermsPage() {
       <LegalSection title="Propriété des données">
         <p>
           Les données saisies restent la propriété de l’entreprise utilisatrice. Elles sont
-          exportables à tout moment et supprimées sur demande, sous réserve des obligations légales de
-          conservation.
+          accessibles selon les fonctionnalités disponibles. Pour demander une copie ou un effacement,
+          contactez contact@amyn.agency. La demande nécessite une vérification d’identité et un examen
+          des obligations de conservation ; aucun effacement automatique complet n’est promis ici.
         </p>
       </LegalSection>
 

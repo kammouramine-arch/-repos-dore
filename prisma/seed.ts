@@ -8,6 +8,7 @@
 import { PrismaClient, type PrismaClient as Client } from '@prisma/client';
 import bcrypt from 'bcryptjs';
 import { randomBytes } from 'node:crypto';
+import { assertDemoDatabase } from '../scripts/lib/demo-safety';
 
 const prisma = new PrismaClient();
 
@@ -49,6 +50,7 @@ async function reset(client: Client) {
 }
 
 async function main() {
+  assertDemoDatabase(process.env);
   if (process.env.NODE_ENV === 'production') {
     throw new Error('Le seed de démonstration ne doit pas être exécuté en production.');
   }

@@ -1,5 +1,9 @@
 # DEVISIA
 
+## Acquisition and operational status
+
+Start with [the acquisition package](docs/acquisition/README.md) for verified scope, known gaps and handover instructions. This repository is not a representation of legal compliance, verified revenue or completed provider transfer eligibility. Demo seed now requires an explicitly opted-in local demo/test database; see the setup runbook.
+
 **L'IA qui transforme votre travail en devis.**
 Ne perdez plus un client faute de temps.
 
@@ -38,7 +42,7 @@ minute.
 | --- | --- |
 | **Devis par IA** | Description libre, dictée vocale, photos de chantier. Rapprochement automatique avec le catalogue de prix de l'entreprise. |
 | **Éditeur de devis** | Lignes modifiables, réordonnables, duplicables ; remises, TVA multi-taux, acompte, marge estimée. |
-| **PDF** | Génération d'un devis PDF conforme (mentions légales, ventilation de TVA, zone « bon pour accord »), à l'image de l'entreprise. |
+| **PDF** | Génération d'un PDF avec ventilation de TVA et identité de l'entreprise ; mentions et conformité à vérifier par l'artisan. |
 | **Page client** | URL publique sécurisée par jeton, acceptation / refus / demande de modification en ligne, suivi des consultations. |
 | **Relances** | Séquences configurables (24 h, 3 j, 7 j), messages rédigés puis validés par l'utilisateur, jamais envoyés seuls par défaut. |
 | **Récupération de CA** | Calcul permanent du chiffre d'affaires envoyé sans réponse, par client et par devis. |

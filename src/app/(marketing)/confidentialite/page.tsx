@@ -16,15 +16,15 @@ export default function PrivacyPage() {
     >
       <LegalSection title="Responsable de traitement">
         <p>
-          Le service DEVISIA est édité par la société exploitant la plateforme, dont les coordonnées
-          complètes figurent dans les conditions d’utilisation. Pour toute question relative à vos
-          données, une adresse de contact est mise à disposition dans votre espace client.
+          Pour toute question relative à vos données ou pour exercer vos droits, contactez
+          contact@amyn.agency. L’identité juridique complète de l’éditeur et ses coordonnées
+          réglementaires doivent être finalisées avant la commercialisation publique.
         </p>
       </LegalSection>
 
       <LegalSection title="Données collectées">
         <ul>
-          <li>Données de compte : nom, prénom, adresse email, téléphone, mot de passe chiffré.</li>
+          <li>Données de compte : nom, prénom, adresse email, téléphone, empreinte sécurisée du mot de passe.</li>
           <li>
             Données d’entreprise : raison sociale, adresse, SIRET, numéro de TVA, logo, catalogue de
             prix, conditions commerciales.
@@ -34,8 +34,7 @@ export default function PrivacyPage() {
             messages et photos de chantier.
           </li>
           <li>
-            Données techniques : journaux de connexion, adresse IP sous forme d’empreinte non
-            réversible, type de navigateur.
+            Données techniques : journaux de connexion, empreinte de l’adresse IP, type de navigateur.
           </li>
         </ul>
       </LegalSection>
@@ -53,13 +52,14 @@ export default function PrivacyPage() {
         <p>
           Lorsque vous demandez la préparation d’un devis, la description que vous fournissez, les
           photos associées et un extrait de votre catalogue de prix sont transmis au fournisseur d’IA
-          configuré, uniquement le temps de produire le résultat.
+          configuré. Les conditions de conservation et de traitement dépendent du fournisseur et
+          de l’offre utilisés ; elles doivent être vérifiées avant d’y transmettre des données sensibles.
         </p>
         <ul>
           <li>Les données d’une entreprise ne sont jamais utilisées pour une autre entreprise.</li>
           <li>
-            Vos données ne servent pas à entraîner un modèle général sans autorisation explicite et
-            distincte.
+            Les règles d’utilisation des données par le fournisseur doivent être documentées pour
+            l’offre activée. N’incluez pas de données personnelles inutiles dans vos demandes.
           </li>
           <li>
             Les montants ne sont jamais calculés par le modèle : ils sont produits par le moteur de
@@ -78,17 +78,18 @@ export default function PrivacyPage() {
 
       <LegalSection title="Durées de conservation">
         <ul>
-          <li>Données de compte : pendant la durée de l’abonnement, puis 12 mois.</li>
+          <li>Données de compte : durée liée à la fourniture du service et aux obligations applicables ; calendrier détaillé à finaliser par l’éditeur.</li>
           <li>Documents commerciaux et comptables : conservés conformément aux durées légales applicables.</li>
-          <li>Journaux techniques : 12 mois maximum.</li>
+          <li>Journaux techniques et sauvegardes : règles de conservation et de purge à confirmer auprès des prestataires.</li>
         </ul>
       </LegalSection>
 
       <LegalSection title="Vos droits">
         <p>
           Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition
-          et de portabilité. Vos données commerciales sont exportables depuis l’application. Une
-          réclamation peut être introduite auprès de l’autorité de contrôle compétente.
+          et de portabilité. Le catalogue dispose d’un export ; pour une demande plus complète ou
+          un effacement, contactez contact@amyn.agency. Une vérification d’identité et un examen des
+          obligations de conservation sont nécessaires. Vous pouvez introduire une réclamation auprès de la CNIL.
         </p>
       </LegalSection>
 
