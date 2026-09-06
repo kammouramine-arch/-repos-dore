@@ -23,7 +23,7 @@ class ResendProvider implements EmailProvider {
       subject: message.subject,
       html: message.html,
       text: message.text,
-      replyTo: message.replyTo,
+      replyTo: message.replyTo ?? env().EMAIL_REPLY_TO,
       attachments: message.attachments?.map((a) => ({
         filename: a.filename,
         content: typeof a.content === 'string' ? a.content : a.content.toString('base64'),
