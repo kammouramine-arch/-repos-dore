@@ -3,6 +3,7 @@ import { resolveBusinessLocale, businessDocumentLabels } from '@devisia/shared';
 import { localizedSystemPrompt } from '@/lib/ai/prompts';
 import { buildTemplateFollowUp } from '@/lib/ai/heuristic';
 import { quoteSentEmail } from '@/lib/email/templates';
+import { quotePdfLabels } from '@/lib/pdf/quote-pdf';
 
 describe('language and business-country separation', () => {
   it('keeps English independent from the UK/US business country', () => {
@@ -35,5 +36,12 @@ describe('language and business-country separation', () => {
     expect(email.text).toContain('$125.00');
     expect(email.text).not.toContain('Bonjour');
     expect(email.html).toContain('lang="en"');
+  });
+
+  it('selects regional document terminology without conflating language and country', () => {
+    expect(quotePdfLabels({ language: 'fr', country: 'FR' }).title).toBe('DEVIS');
+    expect(quotePdfLabels({ language: 'en', country: 'GB' }).title).toBe('QUOTE');
+    expect(quotePdfLabels({ language: 'en', country: 'US' }).title).toBe('ESTIMATE');
+    expect(quotePdfLabels({ language: 'en', country: 'US' }).tax).toBe('Sales tax');
   });
 });

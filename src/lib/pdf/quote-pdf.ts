@@ -44,12 +44,12 @@ function formatDate(date: Date | null | undefined, input: Pick<QuotePdfInput, 'l
   return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
 }
 
-function copy(input: Pick<QuotePdfInput, 'language' | 'country'>) {
+export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'>) {
   const english = input.language === 'en';
   const us = input.country === 'US';
   return english ? {
     title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'DESCRIPTION',
-    designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: 'TAX', totalEx: 'TOTAL',
+    designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: us ? 'Sales tax' : 'VAT', totalEx: 'TOTAL',
     totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
     deposit: 'Deposit due', duration: 'Estimated duration', payment: 'PAYMENT TERMS', conditions: 'TERMS', notes: 'NOTES',
     acceptance: 'ACCEPTANCE', acceptanceText: 'Please sign and return this quote to confirm.', date: 'Date', signature: 'Customer name and signature',
@@ -252,7 +252,7 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
 
   // Bloc identité du devis, aligné à droite.
   const rightX = A4.width - MARGIN;
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   const label = labels.title;
   drawText(ctx, label, {
     x: rightX - ctx.bold.widthOfTextAtSize(label, 22),
@@ -317,7 +317,7 @@ function drawParties(ctx: Ctx, input: QuotePdfInput) {
     input.customer.phone,
   ].filter(Boolean) as string[];
 
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   drawText(ctx, labels.company, { x: MARGIN, y: startY, size: 7.5, bold: true, color: MUTED });
   drawText(ctx, labels.customer, { x: MARGIN + colWidth + 24, y: startY, size: 7.5, bold: true, color: MUTED });
 
@@ -343,7 +343,7 @@ function drawParties(ctx: Ctx, input: QuotePdfInput) {
 
 function drawObject(ctx: Ctx, input: QuotePdfInput) {
   ensureSpace(ctx, 90);
-  drawText(ctx, copy(input).object, { x: MARGIN, y: ctx.y, size: 7.5, bold: true, color: MUTED });
+  drawText(ctx, quotePdfLabels(input).object, { x: MARGIN, y: ctx.y, size: 7.5, bold: true, color: MUTED });
   ctx.y -= 15;
   for (const line of wrap(input.title, ctx.bold, 12.5, CONTENT_WIDTH)) {
     drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 12.5, bold: true });
@@ -393,7 +393,7 @@ function drawTableHeader(ctx: Ctx, input: QuotePdfInput) {
     color: SOFT,
   });
   const y = ctx.y + 1;
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   drawText(ctx, labels.designation, { x: COLUMNS.label, y, size: 7.5, bold: true, color: MUTED });
   drawRight(ctx, labels.quantity, COLUMNS.quantity + 26, y, 7.5, true, MUTED);
   drawText(ctx, labels.unit, { x: COLUMNS.unit, y, size: 7.5, bold: true, color: MUTED });
@@ -475,7 +475,7 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawTotals(ctx: Ctx, input: QuotePdfInput) {
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   const rows: { label: string; value: string; strong?: boolean }[] = [
     { label: labels.totalExLabel, value: money(input.subtotalCents, input) },
   ];
@@ -539,7 +539,7 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawConditions(ctx: Ctx, input: QuotePdfInput) {
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   const blocks: { title: string; body: string }[] = [];
   if (input.paymentTerms) blocks.push({ title: labels.payment, body: input.paymentTerms });
   if (input.terms) blocks.push({ title: labels.conditions, body: input.terms });
@@ -559,7 +559,7 @@ function drawConditions(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
-  const labels = copy(input);
+  const labels = quotePdfLabels(input);
   ensureSpace(ctx, 108);
   const boxY = ctx.y - 92;
   ctx.page.drawRectangle({
