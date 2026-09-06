@@ -4,7 +4,7 @@ Use an isolated local demo/test database, synthetic seed and a dedicated demo bu
 
 | Time | Exact action / capture | Suggested narration |
 |---|---|---|
-| 0:00–0:20 | Open presentation and dashboard; show phone frame and bottom tabs | “DEVISIA helps an artisan turn a chantier description into a reviewed quote, from the phone.” |
+| 0:00–0:20 | Open presentation and dashboard; show phone frame and bottom tabs | “DEVISERA helps an artisan turn a chantier description into a reviewed quote, from the phone.” |
 | 0:20–1:00 | New quote; dictate “Remplacer un siphon d’évier, une heure de main-d’œuvre et un déplacement”; use a consent-cleared fixture photo if live vision is configured | “Voice and photos provide context. The catalogue supplies the business's prices; the result remains a draft.” |
 | 1:00–1:40 | Review customer, quantities, units, prices and TVA; edit one line; save; generate PDF | “The artisan stays in control. Totals are calculated by the application, not trusted to the language model.” |
 | 1:40–2:10 | Open client and prospect; show conversion and related quote | “Commercial context stays together instead of being lost across notes and messages.” |

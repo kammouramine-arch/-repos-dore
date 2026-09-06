@@ -32,7 +32,7 @@ const COLUMNS = [
       { href: '/confidentialite', label: 'Confidentialité' },
       { href: '/conditions', label: "Conditions d'utilisation" },
       { href: '/cookies', label: 'Cookies' },
-      { href: 'mailto:contact@amyn.agency', label: 'Nous contacter' },
+      { href: 'mailto:contact@devisera.fr', label: 'Nous contacter' },
     ],
   },
 ];
@@ -72,7 +72,7 @@ export function MarketingFooter() {
 
         <div className="mt-12 flex flex-col gap-3 border-t border-line pt-6 sm:flex-row sm:items-center sm:justify-between">
           <p className="text-[12.5px] text-subtle">
-            © {new Date().getFullYear()} DEVISIA. Tous droits réservés.
+            © {new Date().getFullYear()} DEVISERA. Tous droits réservés.
           </p>
           <p className="text-[12.5px] text-subtle">
             Les devis préparés par l’IA doivent être vérifiés avant envoi.

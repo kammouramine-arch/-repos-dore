@@ -6,7 +6,7 @@ import { SignInForm } from './form';
 
 export const metadata: Metadata = {
   title: 'Connexion',
-  description: 'Connectez-vous à votre espace DEVISIA.',
+  description: 'Connectez-vous à votre espace DEVISERA.',
   robots: { index: false, follow: false },
 };
 

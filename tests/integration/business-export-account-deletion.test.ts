@@ -10,7 +10,7 @@ const password = 'T3st-password!';
 beforeAll(async () => {
   org = await createTestOrganization('Export entreprise');
   await prisma.user.update({ where: { id: org.user.id }, data: { passwordHash: await hashPassword(password) } });
-  await createTestCustomer(org.organization.id, 'client-export@devisia.test');
+  await createTestCustomer(org.organization.id, 'client-export@devisera.test');
 });
 
 afterAll(async () => {

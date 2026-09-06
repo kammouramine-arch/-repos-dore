@@ -283,7 +283,7 @@ export default function AccueilScreen() {
               </View>
               <Title style={{ color: colors.white, fontSize: 25 }}>Créez votre premier devis</Title>
               <Body style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 22 }}>
-                Décrivez le chantier à voix haute. DEVISIA prépare les lignes, vous vérifiez, vous
+                Décrivez le chantier à voix haute. DEVISERA prépare les lignes, vous vérifiez, vous
                 envoyez.
               </Body>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6, marginTop: 2 }}>
@@ -357,7 +357,7 @@ export default function AccueilScreen() {
             ) : null}
 
             {/* Ce qu'un artisan veut voir : ce qu'il a chiffré, et combien de
-                devis sont partis. DEVISIA ne demande aucune acceptation au
+                devis sont partis. DEVISERA ne demande aucune acceptation au
                 client, il n'y a donc pas de taux à afficher. */}
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <Stat label="CA devisé" hint="sur 30 jours" icon="trending-up-outline">

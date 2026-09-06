@@ -50,7 +50,7 @@ const results = [];
 const check = (name, ok, note = '') => { results.push({ name, ok, note }); console.log(ok ? '  OK  ' : '  ÉCHEC', name, note); };
 
 const nom = `Dupont${Date.now().toString().slice(-5)}`;
-const email = `zz-audit-${Date.now()}@devisia-verif.test`;
+const email = `zz-audit-${Date.now()}@devisera-verif.test`;
 
 // ---------------------------------------------------------------- Flow A
 await page.goto('http://127.0.0.1:4601/', { waitUntil: 'networkidle' });

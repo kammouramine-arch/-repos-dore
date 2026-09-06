@@ -8,7 +8,7 @@ export async function createTestOrganization(name = 'Entreprise Test') {
   const suffix = randomUUID().slice(0, 8);
   const user = await prisma.user.create({
     data: {
-      email: `test-${suffix}@devisia.test`,
+      email: `test-${suffix}@devisera.test`,
       passwordHash: 'hash-de-test',
       firstName: 'Test',
       lastName: 'Utilisateur',
@@ -25,7 +25,7 @@ export async function createTestOrganization(name = 'Entreprise Test') {
       businessProfile: {
         create: {
           legalName: `${name} ${suffix}`,
-          email: `contact-${suffix}@devisia.test`,
+          email: `contact-${suffix}@devisera.test`,
           defaultHourlyCents: 5500,
           quoteValidityDays: 30,
         },
@@ -50,7 +50,7 @@ export async function createTestCustomer(organizationId: string, email?: string)
       organizationId,
       firstName: 'Jean',
       lastName: 'Dupont',
-      email: email ?? `client-${randomUUID().slice(0, 8)}@devisia.test`,
+      email: email ?? `client-${randomUUID().slice(0, 8)}@devisera.test`,
       city: 'Lyon',
     },
   });

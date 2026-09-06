@@ -2,7 +2,7 @@ import * as React from 'react';
 import { cn } from '@/lib/utils';
 
 /**
- * Marque DEVISIA.
+ * Marque DEVISERA.
  * Le monogramme reprend un document dont l'angle se transforme en signal :
  * le devis qui part et qui revient signé.
  */
@@ -46,7 +46,7 @@ export function Logo({
             inverted ? 'text-white' : 'text-ink',
           )}
         >
-          DEVISIA
+          DEVISERA
         </span>
       ) : null}
     </span>
@@ -54,9 +54,9 @@ export function Logo({
 }
 
 export const BRAND = {
-  name: 'DEVISIA',
+  name: 'DEVISERA',
   signature: "L'IA qui transforme votre travail en devis.",
   positioning: 'Ne perdez plus un client faute de temps.',
-  promise: "Vous travaillez. DEVISIA s'occupe de l'administratif.",
+  promise: "Vous travaillez. DEVISERA s'occupe de l'administratif.",
   recovery: 'Récupérez les devis que vous êtes en train de perdre.',
 } as const;

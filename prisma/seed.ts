@@ -1,5 +1,5 @@
 /**
- * Données de démonstration DEVISIA.
+ * Données de démonstration DEVISERA.
  *
  * Réservées au développement : le script refuse de s'exécuter en production et
  * n'injecte jamais de données dans une organisation existante — il crée sa
@@ -12,8 +12,8 @@ import { assertDemoDatabase } from '../scripts/lib/demo-safety';
 
 const prisma = new PrismaClient();
 
-const DEMO_EMAIL = 'demo@devisia.fr';
-const DEMO_PASSWORD = 'devisia-demo-2026';
+const DEMO_EMAIL = 'demo@devisera.fr';
+const DEMO_PASSWORD = 'devisera-demo-2026';
 const DEMO_SLUG = 'plomberie-martin-demo';
 
 function daysAgo(days: number): Date {

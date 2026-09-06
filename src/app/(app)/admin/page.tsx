@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/app/stat-card';
 import { Badge } from '@/components/ui/badge';
 
-export const metadata: Metadata = { title: 'Administration DEVISIA', robots: { index: false } };
+export const metadata: Metadata = { title: 'Administration DEVISERA', robots: { index: false } };
 
 export default async function AdminPage() {
   await requirePlatformAdmin();
@@ -49,8 +49,8 @@ export default async function AdminPage() {
     <div className="space-y-6">
       <PageHeader
         eyebrow="Interne"
-        title="Administration DEVISIA"
-        description="Vue plateforme réservée à l’équipe DEVISIA."
+        title="Administration DEVISERA"
+        description="Vue plateforme réservée à l’équipe DEVISERA."
       />
 
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">

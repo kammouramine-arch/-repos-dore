@@ -22,7 +22,7 @@ afterAll(async () => {
 
 async function inscrire(index: number) {
   const user = await prisma.user.create({
-    data: { email: `zz-homonyme-${index}-${Date.now()}@devisia-verif.test`, passwordHash: 'x' },
+    data: { email: `zz-homonyme-${index}-${Date.now()}@devisera-verif.test`, passwordHash: 'x' },
     select: { id: true },
   });
   const org = await createOrganization({ name: NOM, ownerUserId: user.id });

@@ -25,7 +25,7 @@ import { useTouchMotion } from '@/components/motion';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 
 /**
- * Composants de base DEVISIA mobile.
+ * Composants de base DEVISERA mobile.
  * Même vocabulaire visuel que le web : un seul accent, des surfaces neutres,
  * des rayons discrets et aucun ornement gratuit.
  */

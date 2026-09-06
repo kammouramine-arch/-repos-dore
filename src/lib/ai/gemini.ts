@@ -30,7 +30,7 @@ const MAX_IMAGES = 6;
  * Les modèles « flash » couvrent le palier gratuit avec les quotas les plus
  * larges et acceptent texte comme images. La liste sert de repli quand le
  * modèle configuré n'existe pas : un nom de modèle a une durée de vie, et
- * DEVISIA ne doit pas tomber en panne le jour où Google en retire un.
+ * DEVISERA ne doit pas tomber en panne le jour où Google en retire un.
  */
 /**
  * Deux usages, deux exigences.

@@ -6,7 +6,7 @@ This is a narrow evidence update after the strict 71/100 audit. It does not repl
 
 - Remote branch `codex/devisia-premium-fluidity` now contains the local continuation through `c4a29ef41b1c4fa6c036f04b263a2426363000cf`.
 - The required earlier commits `a45204d` and `4847fc8` remain present in the remote history.
-- Production iOS build **17** was created for DEVISIA (`fr.devisia.app`, App Store ID `6806865251`).
+- Production iOS build **17** was created for DEVISERA (`fr.devisia.app`, App Store ID `6806865251`).
 - An iOS submission was scheduled for that build.
 - Screenshot-provided EAS references:
   - Build: `83a42357-9da2-46b5-8577-160f4f64db02`

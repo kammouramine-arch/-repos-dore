@@ -1,5 +1,5 @@
 -- =========================================================================
--- DEVISIA — initialisation de la base de production
+-- DEVISERA — initialisation de la base de production
 --
 -- Généré depuis 2 migration(s) Prisma :
 --   20260818093637_init
@@ -7,7 +7,7 @@
 --
 -- À exécuter dans Supabase → SQL Editor → New query → Run.
 -- Le script est transactionnel : en cas d'erreur, rien n'est appliqué.
--- Il refuse de s'exécuter sur une base qui contient déjà les tables DEVISIA,
+-- Il refuse de s'exécuter sur une base qui contient déjà les tables DEVISERA,
 -- afin de ne jamais écraser des données existantes.
 -- =========================================================================
 
@@ -23,7 +23,7 @@ BEGIN
        AND table_name IN ('organizations', '_prisma_migrations')
   ) THEN
     RAISE EXCEPTION
-      'La base contient déjà les tables DEVISIA. Script interrompu, aucune donnée touchée.';
+      'La base contient déjà les tables DEVISERA. Script interrompu, aucune donnée touchée.';
   END IF;
 END $$;
 

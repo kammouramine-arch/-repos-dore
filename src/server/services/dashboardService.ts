@@ -10,7 +10,7 @@ export interface DashboardMetrics {
    * Montant total des devis envoyés sur la période.
    *
    * Remplace le chiffre d'affaires « gagné » et le taux d'acceptation, qui
-   * supposaient une validation du client dans DEVISIA. Le produit ne demande
+   * supposaient une validation du client dans DEVISERA. Le produit ne demande
    * pas au client d'accepter quoi que ce soit : l'artisan rédige, envoie, et
    * l'email part. Ce qu'il veut voir, c'est ce qu'il a chiffré et ce qui reste
    * sans réponse.
@@ -140,7 +140,7 @@ export async function getDashboardMetrics(
       quotesSent: previousSent.length,
     },
     series: [...buckets.entries()].map(([date, value]) => ({ date, ...value })),
-    // L'entonnoir s'arrête à la consultation : DEVISIA ne demande pas au
+    // L'entonnoir s'arrête à la consultation : DEVISERA ne demande pas au
     // client de valider quoi que ce soit dans l'application.
     funnel: [
       { label: 'Prospects', value: leads + previousLeads * 0 },
@@ -165,7 +165,7 @@ export async function getRecentActivity(organizationId: string, limit = 12) {
     where: {
       quote: { organizationId, deletedAt: null },
       // Les décisions de l'ancien portail restent en base pour préserver
-      // l'historique, mais ne sont plus une fonctionnalité DEVISIA.
+      // l'historique, mais ne sont plus une fonctionnalité DEVISERA.
       type: { notIn: ['ACCEPTE', 'REFUSE', 'MODIFICATION_DEMANDEE'] },
     },
     orderBy: { createdAt: 'desc' },

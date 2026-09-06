@@ -105,7 +105,7 @@ export async function completeOnboardingAction(
       organizationId: auth.organization.organizationId,
       userId: auth.user.id,
     });
-    return { success: 'Bienvenue sur DEVISIA.' };
+    return { success: 'Bienvenue sur DEVISERA.' };
   } catch (error) {
     return { error: toUserMessage(error) };
   }

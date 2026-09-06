@@ -1,4 +1,4 @@
-# DEVISIA · Acquisition data room
+# DEVISERA · Acquisition data room
 
 Prepared 6 September 2026. Confidential working material; not a sale offer, legal opinion or warranty. Source inspection and earlier device reports establish implementation, not complete production reliability. No ownership transfer was performed.
 

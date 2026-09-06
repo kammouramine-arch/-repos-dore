@@ -32,7 +32,7 @@ export function stripePriceId(plan: SubscriptionPlan): string | null {
   return env()[key] ?? null;
 }
 
-/** Formule DEVISIA correspondant à un price Stripe (webhooks). */
+/** Formule DEVISERA correspondant à un price Stripe (webhooks). */
 export function planFromPriceId(priceId: string | null | undefined): SubscriptionPlan | null {
   if (!priceId) return null;
   for (const plan of Object.values(PLANS)) {

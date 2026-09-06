@@ -56,9 +56,9 @@ This score is deliberately conservative. It measures repository evidence and the
 
 ### Exact owner actions
 
-1. From the DEVISIA repository directory, run `git push origin codex/devisia-premium-fluidity` and verify the remote head reaches `e6a2058336d7551169ded537ba2596a4effb1481`. This preserves all existing commits; do not cherry-pick or recreate them.
+1. From the DEVISERA repository directory, run `git push origin codex/devisia-premium-fluidity` and verify the remote head reaches `e6a2058336d7551169ded537ba2596a4effb1481`. This preserves all existing commits; do not cherry-pick or recreate them.
 2. From `mobile`, run `npx eas-cli build --platform ios --profile production --auto-submit --non-interactive --no-wait` after installing/authorizing the existing EAS CLI. Record the build and submission URLs.
-3. Complete Resend domain/sender verification for `contact@amyn.agency`, add the DNS records Resend supplies, send a real quote to a controlled inbox, and capture provider delivery plus inbox receipt.
+3. Complete Resend domain/sender verification for `contact@devisera.fr`, add the DNS records Resend supplies, send a real quote to a controlled inbox, and capture provider delivery plus inbox receipt.
 4. Start a disposable PostgreSQL test database, set the test `DATABASE_URL`/`DIRECT_URL`, run `npm test`, and retain the results. Do not point tests at production.
 5. Install the resulting TestFlight build on the named iPhone and run the QA checklist in `docs/acquisition/16_RELEASE_AND_OWNER_ACTIONS.md`, including cold start, +, client tap, poor network, language, purchase/restore, camera/photo and background/resume.
 

@@ -270,7 +270,7 @@ export default async function PublicQuotePage({
         </div>
 
         {/* Consultation uniquement : la réception du devis ne demande aucune
-            décision dans DEVISIA. L'artisan garde la relation avec son client. */}
+            décision dans DEVISERA. L'artisan garde la relation avec son client. */}
         <div className="mt-5">
           {expired ? (
             <div className="flex items-center gap-3 rounded-[14px] border border-warning/25 bg-warning-soft px-5 py-4 text-warning">

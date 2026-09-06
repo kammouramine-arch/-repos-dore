@@ -4,7 +4,7 @@ import { renderQuotePdf } from '../src/lib/pdf/quote-pdf';
 async function main() {
   const bytes = await renderQuotePdf({
     number: 'TEST-2026-001', title: 'Remplacement de siphon de cuisine', createdAt: new Date('2026-09-05'),
-    company: { name: 'DEVISIA — Entreprise de démonstration', addressLine1: 'Adresse de démonstration', vatExempt: false },
+    company: { name: 'DEVISERA — Entreprise de démonstration', addressLine1: 'Adresse de démonstration', vatExempt: false },
     customer: { name: 'Client de démonstration' },
     lines: [
       { label: 'Fourniture et remplacement du siphon', unit: 'u', quantity: 2, unitPriceCents: 4502, discountRate: 0, vatRate: 20, lineTotalCents: 9004 },

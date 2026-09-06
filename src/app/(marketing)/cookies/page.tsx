@@ -3,7 +3,7 @@ import { LegalPage, LegalSection } from '@/components/marketing/legal';
 
 export const metadata: Metadata = {
   title: 'Politique cookies',
-  description: 'Les cookies utilisés par DEVISIA et leur finalité.',
+  description: 'Les cookies utilisés par DEVISERA et leur finalité.',
   alternates: { canonical: '/cookies' },
 };
 
@@ -12,7 +12,7 @@ export default function CookiesPage() {
     <LegalPage
       title="Politique cookies"
       updatedAt="18 août 2026"
-      intro="DEVISIA limite volontairement l'usage des cookies à ce qui est nécessaire au fonctionnement du service."
+      intro="DEVISERA limite volontairement l'usage des cookies à ce qui est nécessaire au fonctionnement du service."
     >
       <LegalSection title="Cookies strictement nécessaires">
         <ul>

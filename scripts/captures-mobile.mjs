@@ -60,7 +60,7 @@ async function call(pathname, { method = 'GET', body, token } = {}) {
 }
 
 async function creerCompte(nom) {
-  const email = `zz-capture-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@devisia-verif.test`;
+  const email = `zz-capture-${Date.now()}-${Math.random().toString(36).slice(2, 7)}@devisera-verif.test`;
   const out = await call('/api/auth/inscription', {
     method: 'POST',
     body: { email, password: 'MotDePasse!2026', companyName: nom, firstName: 'Karim' },

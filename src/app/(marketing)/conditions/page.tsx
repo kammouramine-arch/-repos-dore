@@ -5,7 +5,7 @@ import { formatCents } from '@/lib/money';
 
 export const metadata: Metadata = {
   title: "Conditions générales d'utilisation",
-  description: "Conditions d'utilisation du service DEVISIA.",
+  description: "Conditions d'utilisation du service DEVISERA.",
   alternates: { canonical: '/conditions' },
 };
 
@@ -14,11 +14,11 @@ export default function TermsPage() {
     <LegalPage
       title="Conditions générales d’utilisation"
       updatedAt="18 août 2026"
-      intro="Ces conditions encadrent l'utilisation de DEVISIA. Elles constituent un cadre général et doivent être adaptées par l'éditeur avec son conseil juridique avant toute commercialisation."
+      intro="Ces conditions encadrent l'utilisation de DEVISERA. Elles constituent un cadre général et doivent être adaptées par l'éditeur avec son conseil juridique avant toute commercialisation."
     >
       <LegalSection title="Objet du service">
         <p>
-          DEVISIA est un logiciel en ligne d’aide à la création, à l’envoi et au suivi de devis
+          DEVISERA est un logiciel en ligne d’aide à la création, à l’envoi et au suivi de devis
           destiné aux professionnels. Le service est réservé à un usage professionnel.
         </p>
       </LegalSection>
@@ -69,7 +69,7 @@ export default function TermsPage() {
         <p>
           Les données saisies restent la propriété de l’entreprise utilisatrice. Elles sont
           accessibles selon les fonctionnalités disponibles. Pour demander une copie ou un effacement,
-          contactez contact@amyn.agency. La demande nécessite une vérification d’identité et un examen
+          contactez contact@devisera.fr. La demande nécessite une vérification d’identité et un examen
           des obligations de conservation ; aucun effacement automatique complet n’est promis ici.
         </p>
       </LegalSection>

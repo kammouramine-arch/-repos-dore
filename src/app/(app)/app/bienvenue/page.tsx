@@ -30,7 +30,7 @@ export default async function OnboardingPage() {
           Configuration
         </p>
         <h1 className="mt-2 text-[26px] font-semibold tracking-[-0.028em] text-ink sm:text-[30px]">
-          Bienvenue sur DEVISIA
+          Bienvenue sur DEVISERA
         </h1>
         <p className="mt-2 text-[15px] leading-relaxed text-muted">
           Ces informations apparaîtront sur vos devis. Vous pourrez les modifier à tout moment —

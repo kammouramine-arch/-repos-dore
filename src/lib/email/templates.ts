@@ -1,5 +1,5 @@
 /**
- * Modèles d'emails DEVISIA — HTML responsive, tables compatibles Outlook,
+ * Modèles d'emails DEVISERA — HTML responsive, tables compatibles Outlook,
  * français par défaut. Tout contenu dynamique est échappé.
  */
 import { appUrl } from '../env';
@@ -34,7 +34,7 @@ const NEUTRAL = {
 
 export function layout(options: LayoutOptions): string {
   const brand = options.brandColor ?? '#0F62FE';
-  const company = esc(options.companyName ?? 'DEVISIA');
+  const company = esc(options.companyName ?? 'DEVISERA');
   return `<!doctype html>
 <html lang="${options.language === 'en' ? 'en' : 'fr'}">
 <head>
@@ -71,8 +71,8 @@ ${options.preview ? `<div style="display:none;max-height:0;overflow:hidden;opaci
       }
       <tr><td style="padding:28px 32px 26px 32px;">
         <div style="border-top:1px solid ${NEUTRAL.line};padding-top:16px;font-size:12px;line-height:1.6;color:${NEUTRAL.muted};">
-          ${options.language === 'en' ? 'Sent by' : 'Envoyé par'} <strong style="color:${NEUTRAL.ink};font-weight:600;">DEVISIA</strong> — ${options.language === 'en' ? 'AI-powered quotes for your business.' : "l'IA qui transforme votre travail en devis."}<br />
-          <a href="${appUrl()}" style="color:${NEUTRAL.muted};">devisia.fr</a>
+          ${options.language === 'en' ? 'Sent by' : 'Envoyé par'} <strong style="color:${NEUTRAL.ink};font-weight:600;">DEVISERA</strong> — ${options.language === 'en' ? 'AI-powered quotes for your business.' : "l'IA qui transforme votre travail en devis."}<br />
+          <a href="${appUrl()}" style="color:${NEUTRAL.muted};">devisera.fr</a>
         </div>
       </td></tr>
     </table>
@@ -93,18 +93,18 @@ const p = (content: string) => `<p style="margin:0 0 14px 0;">${content}</p>`;
 export function welcomeEmail(params: { firstName?: string | null }): RenderedEmail {
   const hello = params.firstName ? `Bonjour ${esc(params.firstName)},` : 'Bonjour,';
   return {
-    subject: 'Bienvenue sur DEVISIA',
+    subject: 'Bienvenue sur DEVISERA',
     html: layout({
-      title: 'Bienvenue sur DEVISIA',
+      title: 'Bienvenue sur DEVISERA',
       preview: 'Créez votre premier devis en moins d’une minute.',
       body:
         p(hello) +
-        p("Votre compte est prêt. DEVISIA prépare vos devis à partir de votre description du chantier : vous parlez ou vous écrivez, l'application s'occupe du reste.") +
+        p("Votre compte est prêt. DEVISERA prépare vos devis à partir de votre description du chantier : vous parlez ou vous écrivez, l'application s'occupe du reste.") +
         p('Vous gardez toujours la main : chaque devis est vérifié et validé par vous avant envoi.'),
       cta: { label: 'Créer mon premier devis', href: appUrl('/app/devis/nouveau') },
       footnote: 'Une question ? Répondez simplement à cet email.',
     }),
-    text: `${params.firstName ? `Bonjour ${params.firstName},` : 'Bonjour,'}\n\nVotre compte DEVISIA est prêt. Créez votre premier devis : ${appUrl('/app/devis/nouveau')}\n`,
+    text: `${params.firstName ? `Bonjour ${params.firstName},` : 'Bonjour,'}\n\nVotre compte DEVISERA est prêt. Créez votre premier devis : ${appUrl('/app/devis/nouveau')}\n`,
   };
 }
 
@@ -113,11 +113,11 @@ export function verifyEmailTemplate(params: { url: string }): RenderedEmail {
     subject: 'Confirmez votre adresse email',
     html: layout({
       title: 'Confirmez votre adresse email',
-      body: p('Pour sécuriser votre compte DEVISIA, confirmez votre adresse email en cliquant sur le bouton ci-dessous.'),
+      body: p('Pour sécuriser votre compte DEVISERA, confirmez votre adresse email en cliquant sur le bouton ci-dessous.'),
       cta: { label: 'Confirmer mon email', href: params.url },
       footnote: 'Ce lien expire dans 24 heures. Si vous n’êtes pas à l’origine de cette demande, ignorez cet email.',
     }),
-    text: `Confirmez votre adresse email DEVISIA : ${params.url}\nCe lien expire dans 24 heures.`,
+    text: `Confirmez votre adresse email DEVISERA : ${params.url}\nCe lien expire dans 24 heures.`,
   };
 }
 
@@ -126,11 +126,11 @@ export function resetPasswordEmail(params: { url: string }): RenderedEmail {
     subject: 'Réinitialisation de votre mot de passe',
     html: layout({
       title: 'Réinitialisation de votre mot de passe',
-      body: p('Vous avez demandé à réinitialiser votre mot de passe DEVISIA. Ce lien est valable une heure.'),
+      body: p('Vous avez demandé à réinitialiser votre mot de passe DEVISERA. Ce lien est valable une heure.'),
       cta: { label: 'Choisir un nouveau mot de passe', href: params.url },
       footnote: "Si vous n'êtes pas à l'origine de cette demande, aucune action n'est nécessaire : votre mot de passe reste inchangé.",
     }),
-    text: `Réinitialisez votre mot de passe DEVISIA : ${params.url}\nCe lien expire dans 1 heure.`,
+    text: `Réinitialisez votre mot de passe DEVISERA : ${params.url}\nCe lien expire dans 1 heure.`,
   };
 }
 
@@ -246,16 +246,16 @@ export function teamInvitationEmail(params: {
   roleLabel: string;
 }): RenderedEmail {
   return {
-    subject: `Rejoignez ${params.organizationName} sur DEVISIA`,
+    subject: `Rejoignez ${params.organizationName} sur DEVISERA`,
     html: layout({
       title: `Rejoignez ${esc(params.organizationName)}`,
       body:
-        p(`Vous êtes invité à rejoindre <strong>${esc(params.organizationName)}</strong> sur DEVISIA en tant que ${esc(params.roleLabel)}.`) +
-        p('DEVISIA permet à votre équipe de créer, envoyer et suivre les devis depuis le chantier.'),
+        p(`Vous êtes invité à rejoindre <strong>${esc(params.organizationName)}</strong> sur DEVISERA en tant que ${esc(params.roleLabel)}.`) +
+        p('DEVISERA permet à votre équipe de créer, envoyer et suivre les devis depuis le chantier.'),
       cta: { label: "Accepter l'invitation", href: params.url },
       footnote: 'Cette invitation expire dans 7 jours.',
     }),
-    text: `Rejoignez ${params.organizationName} sur DEVISIA : ${params.url}`,
+    text: `Rejoignez ${params.organizationName} sur DEVISERA : ${params.url}`,
   };
 }
 
@@ -265,7 +265,7 @@ export function paymentReceiptEmail(params: {
   periodEnd?: Date | null;
 }): RenderedEmail {
   return {
-    subject: 'Votre abonnement DEVISIA est actif',
+    subject: 'Votre abonnement DEVISERA est actif',
     html: layout({
       title: 'Abonnement confirmé',
       body:
@@ -274,8 +274,8 @@ export function paymentReceiptEmail(params: {
         (params.periodEnd
           ? p(`Prochaine échéance : ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(params.periodEnd)}`)
           : ''),
-      cta: { label: 'Ouvrir DEVISIA', href: appUrl('/app') },
+      cta: { label: 'Ouvrir DEVISERA', href: appUrl('/app') },
     }),
-    text: `Votre abonnement DEVISIA ${params.plan} est actif (${formatCents(params.amountCents)}).`,
+    text: `Votre abonnement DEVISERA ${params.plan} est actif (${formatCents(params.amountCents)}).`,
   };
 }

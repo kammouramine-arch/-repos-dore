@@ -5,14 +5,14 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
   return (
     <div className="grid min-h-dvh lg:grid-cols-2">
       <div className="flex flex-col px-5 py-8 sm:px-10">
-        <Link href="/" aria-label="DEVISIA, accueil">
+        <Link href="/" aria-label="DEVISERA, accueil">
           <Logo />
         </Link>
         <main id="contenu" className="flex flex-1 items-center justify-center py-10">
           <div className="w-full max-w-[400px]">{children}</div>
         </main>
         <p className="text-center text-[12.5px] text-subtle">
-          © {new Date().getFullYear()} DEVISIA ·{' '}
+          © {new Date().getFullYear()} DEVISERA ·{' '}
           <Link href="/conditions" className="hover:text-muted">
             Conditions
           </Link>{' '}

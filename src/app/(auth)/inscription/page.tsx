@@ -7,7 +7,7 @@ import { SignUpForm } from './form';
 
 export const metadata: Metadata = {
   title: 'Créer mon compte',
-  description: `Créez votre compte DEVISIA et testez gratuitement pendant ${TRIAL_DAYS} jours.`,
+  description: `Créez votre compte DEVISERA et testez gratuitement pendant ${TRIAL_DAYS} jours.`,
   robots: { index: false, follow: false },
 };
 

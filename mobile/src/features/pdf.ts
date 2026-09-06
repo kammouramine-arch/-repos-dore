@@ -25,7 +25,7 @@ export interface PdfOuvert {
 /** Nom de fichier lisible par un humain, sûr pour un système de fichiers. */
 export function nomFichierDevis(numero: string): string {
   const propre = numero.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
-  return `Devis-${propre || 'DEVISIA'}.pdf`;
+  return `Devis-${propre || 'DEVISERA'}.pdf`;
 }
 
 export async function telechargerPdf(quoteId: string, numero: string): Promise<PdfOuvert> {

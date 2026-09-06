@@ -34,7 +34,7 @@ export function MarketingNav() {
       )}
     >
       <div className="container-page flex h-16 items-center justify-between gap-6">
-        <Link href="/" className="shrink-0" aria-label="DEVISIA, accueil">
+        <Link href="/" className="shrink-0" aria-label="DEVISERA, accueil">
           <Logo />
         </Link>
 

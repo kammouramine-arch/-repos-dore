@@ -1,5 +1,5 @@
 /**
- * Design system DEVISIA — déclinaison mobile.
+ * Design system DEVISERA — déclinaison mobile.
  *
  * Les valeurs reprennent exactement celles du web (`src/app/globals.css`) afin
  * que l'identité soit identique sur les trois plateformes.

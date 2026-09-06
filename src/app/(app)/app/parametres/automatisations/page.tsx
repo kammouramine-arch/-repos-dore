@@ -31,7 +31,7 @@ export default async function AutomationsPage() {
           Automatisations et notifications
         </h1>
         <p className="mt-1.5 text-[14px] leading-relaxed text-muted">
-          DEVISIA prépare les relances à votre place. Vous gardez la main : par défaut, chaque
+          DEVISERA prépare les relances à votre place. Vous gardez la main : par défaut, chaque
           message attend votre validation avant d’être envoyé.
         </p>
       </header>

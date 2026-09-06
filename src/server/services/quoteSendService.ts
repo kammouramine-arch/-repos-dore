@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { AppError, notFound, validation } from '@/lib/errors';
-import { appUrl } from '@/lib/env';
+import { appUrl, env } from '@/lib/env';
 import { getEmailProvider, quoteSentEmail } from '@/lib/email';
 import { fullName } from '@/lib/utils';
 import { buildQuotePdf } from './quotePdfService';
@@ -76,7 +76,7 @@ export async function sendQuote(input: SendQuoteInput) {
   // remis et l'appelant doit pouvoir le dire plutôt que d'annoncer un envoi.
   const remise = await provider.send({
     to: recipient,
-    replyTo: profile?.email ?? undefined,
+    replyTo: profile?.email ?? env().EMAIL_REPLY_TO,
     ...email,
     attachments: [
       { filename: fileName, content: Buffer.from(bytes), contentType: 'application/pdf' },

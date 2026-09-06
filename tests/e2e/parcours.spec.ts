@@ -4,20 +4,20 @@ const prisma = new PrismaClient({ datasources: { db: { url: process.env.E2E_DATA
 test.afterAll(async () => { await prisma.$disconnect(); });
 
 /**
- * Parcours principal de DEVISIA, du compte vide au devis envoyé et consulté.
+ * Parcours principal de DEVISERA, du compte vide au devis envoyé et consulté.
  * Chaque exécution crée sa propre entreprise : les tests restent indépendants.
  */
 
 const stamp = () => Date.now().toString(36) + Math.random().toString(36).slice(2, 6);
 
 async function signUp(page: Page) {
-  const email = `e2e-${stamp()}@devisia.test`;
+  const email = `e2e-${stamp()}@devisera.test`;
   await page.goto('/inscription');
   await page.getByLabel(/Nom de votre entreprise/i).fill('Plomberie E2E');
   await page.getByLabel(/^Prénom/i).fill('Karim');
   await page.getByLabel(/^Nom$/i).fill('Benali');
   await page.getByLabel(/Adresse email/i).fill(email);
-  await page.getByLabel(/Mot de passe/i).fill('devisia-e2e-2026');
+  await page.getByLabel(/Mot de passe/i).fill('devisera-e2e-2026');
   await page.getByRole('button', { name: /Créer mon compte/i }).click();
   await page.waitForURL('**/app/bienvenue', { timeout: 30_000 });
   return email;
@@ -27,13 +27,13 @@ test.describe('parcours complet', () => {
   test('de l’inscription au devis envoyé et consulté', async ({ page, context }) => {
     // 1. Inscription -----------------------------------------------------------
     await signUp(page);
-    await expect(page.getByRole('heading', { name: /Bienvenue sur DEVISIA/i })).toBeVisible();
+    await expect(page.getByRole('heading', { name: /Bienvenue sur DEVISERA/i })).toBeVisible();
 
     // 2. Onboarding ------------------------------------------------------------
     await page.getByLabel(/Raison sociale/i).fill('Plomberie E2E');
     await page.getByLabel(/Taux horaire par défaut/i).fill('55');
     await page.getByRole('button', { name: /Terminer et créer mon premier devis/i }).click();
-    await expect(page.getByText(/Bienvenue sur DEVISIA\./i).first()).toBeVisible({ timeout: 20_000 });
+    await expect(page.getByText(/Bienvenue sur DEVISERA\./i).first()).toBeVisible({ timeout: 20_000 });
 
     // 3. Catalogue de prix -----------------------------------------------------
     await page.goto('/app/catalogue');
@@ -53,7 +53,7 @@ test.describe('parcours complet', () => {
     await page.getByRole('button', { name: /Nouveau client/i }).first().click();
     await page.getByLabel(/^Prénom/i).fill('Paul');
     await page.getByLabel(/^Nom$/i).fill('Roussel');
-    await page.getByLabel(/^Email/i).fill(`client-${stamp()}@devisia.test`);
+    await page.getByLabel(/^Email/i).fill(`client-${stamp()}@devisera.test`);
     await page.getByRole('button', { name: /Créer le client/i }).click();
     await expect(page.getByText('Paul Roussel').filter({ visible: true }).first()).toBeVisible({
       timeout: 20_000,
@@ -117,7 +117,7 @@ test.describe('parcours complet', () => {
     await expect(clientPage.getByText(/Total TTC/i).first()).toBeVisible();
 
     // La page sert à lire le devis et à contacter l'artisan, pas à accepter ou
-    // refuser dans DEVISIA.
+    // refuser dans DEVISERA.
     await expect(clientPage.getByText(/Votre devis est disponible/i)).toBeVisible();
     await expect(clientPage.getByRole('button', { name: /Accepter|Refuser/i })).toHaveCount(0);
     await clientPage.close();
@@ -129,7 +129,7 @@ test.describe('parcours complet', () => {
     });
 
     await page.goto('/app');
-    // Le tableau de bord mesure ce qui est chiffré et envoyé : DEVISIA ne
+    // Le tableau de bord mesure ce qui est chiffré et envoyé : DEVISERA ne
     // demande aucune acceptation au client.
     await expect(page.getByText(/Chiffre d’affaires devisé/i).first()).toBeVisible();
     await expect(page.getByText(/Taux d’acceptation/i)).toHaveCount(0);
@@ -138,7 +138,7 @@ test.describe('parcours complet', () => {
   });
 
   test('la page publique refuse un jeton inconnu', async ({ page }) => {
-    const response = await page.goto('/devis/jeton-inexistant-devisia');
+    const response = await page.goto('/devis/jeton-inexistant-devisera');
     expect(response?.status()).toBe(404);
   });
 

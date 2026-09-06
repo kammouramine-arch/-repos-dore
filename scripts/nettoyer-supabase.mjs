@@ -3,7 +3,7 @@
  * Suppression des organisations de test sur une base Supabase.
  *
  * Les sondages successifs de la production ont laissé des comptes « ZZ … »
- * qu'aucune route d'API ne sait supprimer — DEVISIA n'expose pas la suppression
+ * qu'aucune route d'API ne sait supprimer — DEVISERA n'expose pas la suppression
  * d'une organisation, et c'est voulu. Ce script passe par l'API de gestion,
  * donc sans mot de passe de base.
  *

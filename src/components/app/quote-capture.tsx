@@ -276,7 +276,7 @@ export function QuoteCapture({
           {t.ai.describeJob}
         </label>
         <p className="mt-1 text-[13.5px] text-muted">
-          Parlez comme vous le feriez à votre apprenti. DEVISIA s’occupe de la mise en forme.
+          Parlez comme vous le feriez à votre apprenti. DEVISERA s’occupe de la mise en forme.
         </p>
 
         <Textarea

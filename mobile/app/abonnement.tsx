@@ -160,7 +160,7 @@ function WebAbonnementScreen() {
   return (
     <Screen>
       <PageHeader
-        eyebrow="DEVISIA"
+        eyebrow="DEVISERA"
         title="Votre abonnement"
         subtitle={
           access?.inTrial
@@ -172,7 +172,7 @@ function WebAbonnementScreen() {
       {access?.trialExpired ? (
         <Banner
           tone="warning"
-          title="Votre essai DEVISIA est terminé."
+          title="Votre essai DEVISERA est terminé."
           description="Continuez à gagner du temps et à récupérer vos devis en attente."
         />
       ) : null}

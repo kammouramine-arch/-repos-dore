@@ -29,7 +29,7 @@ async function verified<T>(operation: (verifier: SignedDataVerifier) => Promise<
 export async function syncAppleTransaction(signedTransaction: string, organizationId: string) {
   const transaction = await verified((v) => v.verifyAndDecodeTransaction(signedTransaction));
   if (transaction.appAccountToken?.toLowerCase() !== organizationId.toLowerCase()) {
-    throw new AppError('CONFLICT', 'Cet abonnement appartient à un autre compte DEVISIA. Connectez-vous à ce compte.');
+    throw new AppError('CONFLICT', 'Cet abonnement appartient à un autre compte DEVISERA. Connectez-vous à ce compte.');
   }
   return applyTransaction(transaction, organizationId);
 }
@@ -37,7 +37,7 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
 async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId: string, renewal?: JWSRenewalInfoDecodedPayload, notificationDate?: number) {
   const plan = planForAppleProduct(t.productId ?? '');
   if (!plan || !t.originalTransactionId || !t.expiresDate || !t.signedDate || t.type !== 'Auto-Renewable Subscription') {
-    throw new AppError('VALIDATION', 'Cet achat ne correspond pas à un abonnement DEVISIA.');
+    throw new AppError('VALIDATION', 'Cet achat ne correspond pas à un abonnement DEVISERA.');
   }
   if (t.isUpgraded) return { synced: false };
   const signedAt = new Date(notificationDate ?? t.signedDate);
@@ -49,7 +49,7 @@ async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId:
     // never overwrite a renewal, refund or cancellation that arrived first.
     await tx.$executeRaw`SELECT pg_advisory_xact_lock(hashtext(${organizationId}))`;
     const current = await tx.subscription.findUnique({ where: { organizationId } });
-    if (!current) throw new AppError('NOT_FOUND', 'Compte DEVISIA introuvable.');
+    if (!current) throw new AppError('NOT_FOUND', 'Compte DEVISERA introuvable.');
     if (current.stripeSubscriptionId && ['active', 'past_due'].includes(current.status)) {
       throw new AppError('CONFLICT', 'Un abonnement web existe déjà. Gérez-le avant de souscrire avec Apple.');
     }

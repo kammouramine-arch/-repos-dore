@@ -1,5 +1,5 @@
 /**
- * Configuration centrale des formules DEVISIA.
+ * Configuration centrale des formules DEVISERA.
  * Aucun prix ni aucune limite ne doit être écrit ailleurs dans le code.
  */
 /** Identifiants de formule — mêmes littéraux que l'enum Prisma `PlanId`. */

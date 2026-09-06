@@ -25,7 +25,7 @@ This note records the work completed after the strict 66/100 acquisition checkpo
 ## Still incomplete or externally blocked
 
 - The mobile interface is not fully translated; a repository scan still finds several hundred French UI strings. The persisted selector is now present, but a complete English copy pass remains required.
-- Email delivery still requires the owner’s Resend sender verification and DNS records for `contact@amyn.agency`, followed by an inbox test.
+- Email delivery still requires the owner’s Resend sender verification and DNS records for `contact@devisera.fr`, followed by an inbox test.
 - Regional PDF rendering still needs quote-time snapshots and visual FR/UK/US PDF fixtures; the renderer now has regional behavior, but this is not a legal compliance claim.
 - Native StoreKit purchase/restore, Apple payment-sheet branding, TestFlight installation, and cold-start measurements require the owner’s physical iPhone and App Store sandbox.
 - The latest local commits must be pushed before a new EAS build can truthfully be described as containing this continuation.

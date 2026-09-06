@@ -237,7 +237,7 @@ describe('parcours complet prospect → devis → acceptation', () => {
     const metrics = await getDashboardMetrics(org.organization.id, 30);
     expect(metrics.quotesSent).toBeGreaterThan(0);
     // Le produit mesure ce qui est chiffré et envoyé, pas une acceptation que
-    // DEVISIA ne demande jamais au client.
+    // DEVISERA ne demande jamais au client.
     expect(metrics.quotedRevenueCents).toBeGreaterThan(0);
     expect(metrics.series.length).toBeGreaterThan(0);
     expect(metrics.funnel).toHaveLength(3);

@@ -80,7 +80,7 @@ describe('droits d’accès selon l’abonnement', () => {
 
 describe('appareils de notification', () => {
   it('enregistre puis désenregistre un appareil', async () => {
-    const token = 'ExponentPushToken[test-appareil-devisia]';
+    const token = 'ExponentPushToken[test-appareil-devisera]';
 
     await registerDevice({
       organizationId: org.organization.id,

@@ -3,7 +3,7 @@
  * Suppression des organisations de test laissées par les sondages.
  *
  * Les vérifications successives de la production ont créé des comptes nommés
- * « ZZ … » qu'aucune route d'API ne sait supprimer : DEVISIA n'expose pas la
+ * « ZZ … » qu'aucune route d'API ne sait supprimer : DEVISERA n'expose pas la
  * suppression d'une organisation, et c'est très bien ainsi. Ce script fait le
  * ménage en base, et refuse tout ce qui ne porte pas ce préfixe.
  *

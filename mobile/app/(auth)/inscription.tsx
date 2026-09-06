@@ -103,7 +103,7 @@ export default function InscriptionScreen() {
               <Muted style={{ fontSize: 12, textAlign: 'center' }}>
                 {Platform.OS === 'ios'
                   ? `Choisissez ensuite votre formule et confirmez votre essai de ${TRIAL_DAYS} jours avec Apple, si vous êtes éligible.`
-                  : `Découvrez DEVISIA pendant ${TRIAL_DAYS} jours, puis choisissez votre formule.`}
+                  : `Découvrez DEVISERA pendant ${TRIAL_DAYS} jours, puis choisissez votre formule.`}
               </Muted>
             </Card>
 

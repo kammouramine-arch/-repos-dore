@@ -37,7 +37,7 @@ const [{ present }] = await sql(
 if (!present) {
   stop(
     'La table `_prisma_migrations` est absente : cette base n’a jamais été migrée par Prisma.',
-    'Vérifiez que vous ciblez bien la base de production DEVISIA.',
+    'Vérifiez que vous ciblez bien la base de production DEVISERA.',
   );
 }
 

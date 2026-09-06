@@ -1,5 +1,5 @@
 /**
- * Code partagé entre DEVISIA web et DEVISIA mobile.
+ * Code partagé entre DEVISERA web et DEVISERA mobile.
  *
  * Ce paquet ne contient que du TypeScript pur : aucune dépendance à Next.js,
  * Prisma, React Native ou au DOM. Il est la source de vérité du moteur

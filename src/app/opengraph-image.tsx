@@ -2,7 +2,7 @@ import { ImageResponse } from 'next/og';
 
 export const size = { width: 1200, height: 630 };
 export const contentType = 'image/png';
-export const alt = "DEVISIA — L'IA qui transforme votre travail en devis";
+export const alt = "DEVISERA — L'IA qui transforme votre travail en devis";
 
 /** Image Open Graph par défaut, sobre et lisible en petit format. */
 export default function OpenGraphImage() {
@@ -37,7 +37,7 @@ export default function OpenGraphImage() {
             D
           </div>
           <div style={{ fontSize: 30, fontWeight: 600, color: '#0a0e14', letterSpacing: '-0.03em' }}>
-            DEVISIA
+            DEVISERA
           </div>
         </div>
 

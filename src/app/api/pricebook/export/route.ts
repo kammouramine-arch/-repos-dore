@@ -9,7 +9,7 @@ export async function GET() {
     return new Response(csv, {
       headers: {
         'Content-Type': 'text/csv; charset=utf-8',
-        'Content-Disposition': `attachment; filename="catalogue-devisia.csv"`,
+        'Content-Disposition': `attachment; filename="catalogue-devisera.csv"`,
       },
     });
   } catch (error) {

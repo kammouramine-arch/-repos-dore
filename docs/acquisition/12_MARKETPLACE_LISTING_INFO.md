@@ -2,7 +2,7 @@
 
 Status: **REQUIRES OWNER DECISION**. No marketplace listing created and no revenue verified.
 
-Safe description draft: “DEVISIA is a French artisan-focused quoting application with a web backend and native mobile interface. It includes AI-assisted quote preparation, customer/prospect management, PDF generation and subscription integrations. The mobile app is in internal testing; the acquisition package documents outstanding operational and compliance work.”
+Safe description draft: “DEVISERA is a French artisan-focused quoting application with a web backend and native mobile interface. It includes AI-assisted quote preparation, customer/prospect management, PDF generation and subscription integrations. The mobile app is in internal testing; the acquisition package documents outstanding operational and compliance work.”
 
 | Field | Required evidence / current answer |
 |---|---|

@@ -209,7 +209,7 @@ describe('client API — transport', () => {
       const api = createApiClient({
         baseUrl: 'https://exemple.test',
         getToken: () => 'jeton',
-        // Une passerelle qui rend du HTML, pas le JSON de DEVISIA.
+        // Une passerelle qui rend du HTML, pas le JSON de DEVISERA.
         fetchImpl: (async () =>
           new Response('<html>Bad Gateway</html>', { status })) as unknown as typeof fetch,
       });

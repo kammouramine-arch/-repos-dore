@@ -106,7 +106,7 @@ export function AppShell({
       {/* Barre latérale — desktop */}
       <aside className="fixed inset-y-0 left-0 z-40 hidden w-[232px] flex-col border-r border-line bg-canvas lg:flex">
         <div className="flex h-16 items-center px-5">
-          <Link href="/app" aria-label="DEVISIA, accueil">
+          <Link href="/app" aria-label="DEVISERA, accueil">
             <Logo />
           </Link>
         </div>
@@ -146,7 +146,7 @@ export function AppShell({
       <div className="lg:pl-[232px]">
         <header className="sticky top-0 z-30 border-b border-line bg-canvas/85 backdrop-blur-md">
           <div className="flex h-16 items-center gap-3 px-4 sm:px-6">
-            <Link href="/app" className="lg:hidden" aria-label="DEVISIA, accueil">
+            <Link href="/app" className="lg:hidden" aria-label="DEVISERA, accueil">
               <LogoMark className="h-7 w-7 text-accent" />
             </Link>
 

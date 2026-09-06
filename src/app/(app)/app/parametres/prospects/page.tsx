@@ -34,7 +34,7 @@ export default async function PublicFormPage() {
           Formulaire de demande de devis
         </h1>
         <p className="mt-1.5 text-[14px] leading-relaxed text-muted">
-          Partagez ce lien ou intégrez-le à votre site : chaque demande crée un prospect dans DEVISIA
+          Partagez ce lien ou intégrez-le à votre site : chaque demande crée un prospect dans DEVISERA
           et vous notifie immédiatement.
         </p>
       </header>

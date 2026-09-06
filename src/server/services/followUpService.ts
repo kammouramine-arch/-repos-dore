@@ -2,7 +2,7 @@ import 'server-only';
 import type { FollowUpStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { AppError, notFound } from '@/lib/errors';
-import { appUrl } from '@/lib/env';
+import { appUrl, env } from '@/lib/env';
 import { buildTemplateFollowUp, getAIProvider, wrapUntrusted, followUpDraftSchema } from '@/lib/ai';
 import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS, localizedSystemPrompt } from '@/lib/ai/prompts';
 import type { FollowUpTone } from '@devisia/shared';
@@ -200,7 +200,7 @@ export async function sendFollowUp(input: SendFollowUpInput) {
 
   await getEmailProvider().send({
     to: quote.customer.email,
-    replyTo: quote.organization.businessProfile?.email ?? undefined,
+    replyTo: quote.organization.businessProfile?.email ?? env().EMAIL_REPLY_TO,
     ...followUpEmail({
       subject,
       message: body,
@@ -406,7 +406,7 @@ export function suggestFollowUp(quote: {
   };
 }
 
-/** Chiffre d'affaires en attente de réponse — argument commercial central de DEVISIA. */
+/** Chiffre d'affaires en attente de réponse — argument commercial central de DEVISERA. */
 function daysWaitingFor(sentAt: Date | null): number {
   return sentAt ? Math.floor((Date.now() - sentAt.getTime()) / (1000 * 60 * 60 * 24)) : 0;
 }

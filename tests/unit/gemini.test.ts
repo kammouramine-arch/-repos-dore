@@ -6,7 +6,7 @@ import { quoteDraftSchema, imageAnalysisSchema } from '@/lib/ai/schemas';
 /**
  * Conversion du schéma Zod vers le sous-ensemble accepté par Gemini.
  *
- * Un mot-clé de trop et l'API répond 400 — c'est-à-dire, dans DEVISIA, une
+ * Un mot-clé de trop et l'API répond 400 — c'est-à-dire, dans DEVISERA, une
  * bascule silencieuse sur le moteur local : l'artisan reçoit un devis, mais
  * pas celui qu'on lui a promis. Ces cas portent sur les schémas réellement
  * envoyés en production, pas sur des exemples.
@@ -196,7 +196,7 @@ describe('erreurs Gemini distinguées', () => {
 /**
  * Repli automatique de modèle.
  *
- * Un nom de modèle a une durée de vie. Le jour où Google en retire un, DEVISIA
+ * Un nom de modèle a une durée de vie. Le jour où Google en retire un, DEVISERA
  * ne doit pas retomber en silence sur son moteur local : le fournisseur
  * demande à l'API quels modèles elle sert réellement, et rejoue une fois.
  */

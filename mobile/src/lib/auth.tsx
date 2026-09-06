@@ -181,8 +181,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const value = React.useMemo<AuthContextValue>(
     () => ({
       ...state,
-      signIn: (email, password) => handle(() => api.auth.signIn(email, password, 'DEVISIA mobile')),
-      signUp: (input) => handle(() => api.auth.signUp({ ...input, deviceName: 'DEVISIA mobile', ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}) })),
+      signIn: (email, password) => handle(() => api.auth.signIn(email, password, 'DEVISERA mobile')),
+      signUp: (input) => handle(() => api.auth.signUp({ ...input, deviceName: 'DEVISERA mobile', ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}) })),
       signOut: async () => {
         sessionGeneration.current += 1;
         clearQueryCache();

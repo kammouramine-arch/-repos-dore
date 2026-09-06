@@ -1,4 +1,4 @@
-# DEVISIA
+# DEVISERA
 
 ## Acquisition and operational status
 
@@ -7,7 +7,7 @@ Start with [the acquisition package](docs/acquisition/README.md) for verified sc
 **L'IA qui transforme votre travail en devis.**
 Ne perdez plus un client faute de temps.
 
-DEVISIA est une application SaaS destinée aux artisans et aux petites entreprises de services
+DEVISERA est une application SaaS destinée aux artisans et aux petites entreprises de services
 françaises. L'artisan décrit son chantier à l'oral, ajoute des photos, et l'application prépare un
 devis professionnel qu'il vérifie, envoie, suit et relance — depuis le chantier, en moins d'une
 minute.
@@ -52,9 +52,9 @@ minute.
 | **Assistant** | Questions en langage naturel répondues à partir des données réelles de l'entreprise. |
 | **Multi-tenant** | Organisations, rôles (propriétaire / administrateur / membre), isolation vérifiée côté serveur. |
 | **Abonnements** | Trois formules, période d'essai, quotas d'usage, Stripe Checkout + portail + webhooks. |
-| **Administration** | Espace interne DEVISIA : entreprises, abonnements, usage IA, erreurs. |
+| **Administration** | Espace interne DEVISERA : entreprises, abonnements, usage IA, erreurs. |
 
-### DEVISIA mobile
+### DEVISERA mobile
 
 L'application mobile n'est ni une WebView ni un site responsive : c'est une
 application React Native qui parle au même backend.
@@ -73,7 +73,7 @@ application React Native qui parle au même backend.
 ### Le parcours principal
 
 ```
-OUVRIR DEVISIA → NOUVEAU DEVIS → PARLER → IA → VÉRIFIER → ENVOYER
+OUVRIR DEVISERA → NOUVEAU DEVIS → PARLER → IA → VÉRIFIER → ENVOYER
    → CLIENT CONSULTE → CLIENT ACCEPTE → NOTIFICATION → RELANCE SI NÉCESSAIRE → CHIFFRE D'AFFAIRES
 ```
 
@@ -81,7 +81,7 @@ OUVRIR DEVISIA → NOUVEAU DEVIS → PARLER → IA → VÉRIFIER → ENVOYER
 
 ## Architecture
 
-DEVISIA est un dépôt à trois briques : une application web, une application
+DEVISERA est un dépôt à trois briques : une application web, une application
 mobile et un paquet de code partagé, tous adossés au même backend et à la même
 base PostgreSQL.
 
@@ -215,11 +215,11 @@ Après le seed, un compte de démonstration est créé :
 
 ```
 Entreprise : Plomberie Martin
-Email      : demo@devisia.fr
-Mot de passe : devisia-demo-2026
+Email      : demo@devisera.fr
+Mot de passe : devisera-demo-2026
 ```
 
-> Aucune clé d'API n'est nécessaire pour démarrer : sans fournisseur d'IA configuré, DEVISIA
+> Aucune clé d'API n'est nécessaire pour démarrer : sans fournisseur d'IA configuré, DEVISERA
 > utilise son moteur local (rapprochement catalogue, extraction des quantités et des durées) et
 > l'indique clairement dans l'interface.
 
@@ -445,10 +445,10 @@ en JSON, publiquement et durablement.
    redirection vers `vercel.com/sso-api`. Aucune connexion n'est possible depuis
    l'application. Vercel → Project → Settings → Deployment Protection →
    *Vercel Authentication* → **Disabled** (les routes restent protégées par
-   l'authentification de DEVISIA elle-même).
+   l'authentification de DEVISERA elle-même).
 2. **Utiliser l'alias stable**, pas l'URL d'un déploiement. Vercel attribue à
    chaque déploiement une URL portant son empreinte
-   (`devisia-<empreinte>-amyn1.vercel.app`) qui cesse de désigner la production
+   (`project-<empreinte>.vercel.app`) qui cesse de désigner la production
    au déploiement suivant ; un binaire publié sur les stores, lui, est figé.
    L'alias du projet se lit dans Vercel → Project → Domains.
 
@@ -562,7 +562,7 @@ query → Run**. Le fichier réunit toutes les migrations, crée la table
 `_prisma_migrations` et y inscrit chaque migration avec sa somme de contrôle
 réelle, si bien que `prisma migrate status` considère ensuite la base à jour et
 que les migrations suivantes s'appliquent normalement. Il est transactionnel, et
-refuse de s'exécuter si les tables DEVISIA existent déjà.
+refuse de s'exécuter si les tables DEVISERA existent déjà.
 
 `prisma/production-init.sql` est régénéré par `npm run db:sql:production` après
 toute nouvelle migration.

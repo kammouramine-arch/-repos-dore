@@ -35,7 +35,7 @@ export default async function VerifyEmailPage({
             Votre adresse email est vérifiée. Vous pouvez continuer.
           </p>
           <Button asChild size="lg" className="mt-7">
-            <Link href="/app">Ouvrir DEVISIA</Link>
+            <Link href="/app">Ouvrir DEVISERA</Link>
           </Button>
         </>
       ) : (

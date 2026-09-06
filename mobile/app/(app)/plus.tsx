@@ -14,7 +14,7 @@ import { colors, spacing } from '@/theme';
  * Trois entrées y renvoyaient vers le navigateur, avec la mention « Sur le web
  * · connexion demandée » — c'est-à-dire : sortez de l'application, puis
  * ressaisissez votre mot de passe pour consulter vos propres prix. Tout est
- * désormais natif, et l'artisan reste dans DEVISIA.
+ * désormais natif, et l'artisan reste dans DEVISERA.
  */
 interface Entry {
   icon: keyof typeof Ionicons.glyphMap;
@@ -30,7 +30,7 @@ export default function PlusScreen() {
 
   const entries: Entry[] = [
     { icon: 'person-outline', label: 'Mon compte', hint: 'Nom, email et vérification', href: '/compte' },
-    { icon: 'sparkles-outline', label: 'Découvrir DEVISIA', hint: 'Présentation et formules', href: '/presentation' },
+    { icon: 'sparkles-outline', label: 'Découvrir DEVISERA', hint: 'Présentation et formules', href: '/presentation' },
     {
       icon: 'card-outline',
       label: 'Abonnement',
@@ -62,7 +62,7 @@ export default function PlusScreen() {
       <Screen>
         <PageHeader
           eyebrow="Votre espace"
-          title={session?.organization.name ?? 'DEVISIA'}
+          title={session?.organization.name ?? 'DEVISERA'}
           subtitle={session?.user.email}
           action={
             <View
@@ -115,7 +115,7 @@ export default function PlusScreen() {
         />
 
         <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-          DEVISIA · version 1.0.0
+          DEVISERA · version 1.0.0
         </Caption>
         <View style={{ height: spacing.xl }} />
       </Screen>

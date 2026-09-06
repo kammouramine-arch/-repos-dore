@@ -22,7 +22,7 @@ async function loadRoute(secret: string | undefined) {
 }
 
 function request(token?: string) {
-  return new Request('https://devisia.test/api/cron/relances', {
+  return new Request('https://devisera.test/api/cron/relances', {
     headers: token ? { authorization: `Bearer ${token}` } : {},
   });
 }

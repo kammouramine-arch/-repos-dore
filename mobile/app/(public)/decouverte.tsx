@@ -25,7 +25,7 @@ import { colors, motion, radius, spacing } from '@/theme';
  * Découverte du produit, avant toute demande de compte.
  *
  * L'application envoyait l'artisan sur un formulaire de connexion sans lui
- * avoir dit ce que DEVISIA fait. On demandait un engagement avant d'avoir rien
+ * avoir dit ce que DEVISERA fait. On demandait un engagement avant d'avoir rien
  * promis. Quatre écrans suffisent à énoncer la valeur, puis un cinquième
  * présente l'essai et les formules — et l'essai ne démarre que sur un geste
  * explicite.
@@ -41,7 +41,7 @@ const PILLARS: Pillar[] = [
     icon: 'mic',
     benefit: 'Dictez, le devis s’écrit',
     detail:
-      'Décrivez le chantier à voix haute comme à votre apprenti. DEVISIA met en forme les lignes, les quantités et les prix.',
+      'Décrivez le chantier à voix haute comme à votre apprenti. DEVISERA met en forme les lignes, les quantités et les prix.',
   },
   {
     icon: 'camera',
@@ -59,7 +59,7 @@ const PILLARS: Pillar[] = [
     icon: 'notifications',
     benefit: 'Plus de devis oubliés',
     detail:
-      'DEVISIA suit les devis sans réponse et prépare la relance. Vous décidez de l’envoyer.',
+      'DEVISERA suit les devis sans réponse et prépare la relance. Vous décidez de l’envoyer.',
   },
 ];
 

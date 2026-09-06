@@ -1,5 +1,5 @@
 /**
- * Cœur financier de DEVISIA.
+ * Cœur financier de DEVISERA.
  *
  * Règle absolue : l'IA propose des données, le système calcule les montants.
  * Tous les montants sont manipulés en centimes entiers, toutes les

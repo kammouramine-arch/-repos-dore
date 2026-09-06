@@ -157,7 +157,7 @@ export default function CatalogueScreen() {
               description={
                 search
                   ? 'Essayez un autre mot, ou créez cette prestation.'
-                  : 'Ajoutez vos prestations courantes : DEVISIA les appliquera en priorité dans chaque devis, au lieu d’estimer.'
+                  : 'Ajoutez vos prestations courantes : DEVISERA les appliquera en priorité dans chaque devis, au lieu d’estimer.'
               }
               action={
                 <Button
@@ -195,7 +195,7 @@ export default function CatalogueScreen() {
               ))}
             </Card>
             <Caption style={{ color: colors.subtle }}>
-              Ces prix servent de référence à chaque devis préparé par DEVISIA.
+              Ces prix servent de référence à chaque devis préparé par DEVISERA.
             </Caption>
           </View>
         ) : null}

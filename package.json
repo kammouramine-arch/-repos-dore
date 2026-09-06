@@ -2,7 +2,7 @@
   "name": "devisia",
   "version": "1.0.0",
   "private": true,
-  "description": "DEVISIA — L'IA qui transforme votre travail en devis.",
+  "description": "DEVISERA — L'IA qui transforme votre travail en devis.",
   "scripts": {
     "dev": "next dev",
     "build": "prisma generate && next build",

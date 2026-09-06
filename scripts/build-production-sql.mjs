@@ -12,7 +12,7 @@
  * réelle. `prisma migrate status` considère ensuite la base à jour, et les
  * migrations suivantes s'appliqueront normalement.
  *
- *   node scripts/build-production-sql.mjs > devisia-production.sql
+ *   node scripts/build-production-sql.mjs > devisera-production.sql
  */
 import { createHash } from 'node:crypto';
 import { readFileSync, readdirSync } from 'node:fs';
@@ -37,14 +37,14 @@ const out = [];
 const w = (line = '') => out.push(line);
 
 w('-- =========================================================================');
-w('-- DEVISIA — initialisation de la base de production');
+w('-- DEVISERA — initialisation de la base de production');
 w('--');
 w(`-- Généré depuis ${migrations.length} migration(s) Prisma :`);
 for (const m of migrations) w(`--   ${m.name}`);
 w('--');
 w('-- À exécuter dans Supabase → SQL Editor → New query → Run.');
 w('-- Le script est transactionnel : en cas d\'erreur, rien n\'est appliqué.');
-w('-- Il refuse de s\'exécuter sur une base qui contient déjà les tables DEVISIA,');
+w('-- Il refuse de s\'exécuter sur une base qui contient déjà les tables DEVISERA,');
 w('-- afin de ne jamais écraser des données existantes.');
 w('-- =========================================================================');
 w();
@@ -60,7 +60,7 @@ w("     WHERE table_schema = 'public'");
 w("       AND table_name IN ('organizations', '_prisma_migrations')");
 w('  ) THEN');
 w('    RAISE EXCEPTION');
-w("      'La base contient déjà les tables DEVISIA. Script interrompu, aucune donnée touchée.';");
+w("      'La base contient déjà les tables DEVISERA. Script interrompu, aucune donnée touchée.';");
 w('  END IF;');
 w('END $$;');
 w();

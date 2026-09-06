@@ -17,7 +17,7 @@ export function AppPreview() {
         </div>
         <div className="mx-auto flex items-center gap-2 rounded-[7px] border border-line bg-canvas px-3 py-1 text-[11px] text-subtle">
           <Search className="h-3 w-3" aria-hidden />
-          app.devisia.fr
+          app.devisera.fr
         </div>
       </div>
 
@@ -25,7 +25,7 @@ export function AppPreview() {
         <aside className="hidden border-r border-line bg-surface/50 p-3.5 sm:block">
           <div className="flex items-center gap-2 px-1 pb-4">
             <LogoMark className="h-6 w-6 text-accent" />
-            <span className="text-[13px] font-semibold tracking-[-0.02em]">DEVISIA</span>
+            <span className="text-[13px] font-semibold tracking-[-0.02em]">DEVISERA</span>
           </div>
           {[
             ['Tableau de bord', true],

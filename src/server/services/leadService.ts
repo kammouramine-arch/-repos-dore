@@ -298,7 +298,7 @@ export async function receivePublicLead(
       postalCode: input.postalCode?.slice(0, 12) || null,
       addressLine1: input.addressLine1?.slice(0, 200) || null,
       source: 'FORMULAIRE_WEB',
-      sourceDetail: 'Formulaire public DEVISIA',
+      sourceDetail: 'Formulaire public DEVISERA',
     },
   });
 

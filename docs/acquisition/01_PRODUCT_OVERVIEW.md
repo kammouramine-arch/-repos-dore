@@ -1,6 +1,6 @@
 # 01 · Product and readiness register
 
-DEVISIA helps French artisans prepare quotes from a description, voice input and chantier photos, review prices/TVA, generate PDFs, manage clients/prospects and prepare follow-ups. Web and React Native mobile share a Next.js backend. AI prepares a draft; the artisan approves the commercial document. Online client acceptance is not required for the principal product journey.
+DEVISERA helps French artisans prepare quotes from a description, voice input and chantier photos, review prices/TVA, generate PDFs, manage clients/prospects and prepare follow-ups. Web and React Native mobile share a Next.js backend. AI prepares a draft; the artisan approves the commercial document. Online client acceptance is not required for the principal product journey.
 
 ## Evidence-backed coverage
 

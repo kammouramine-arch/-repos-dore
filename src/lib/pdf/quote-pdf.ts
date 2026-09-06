@@ -192,8 +192,8 @@ export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> 
   doc.setTitle(`Devis ${input.number} - ${input.company.name}`);
   doc.setAuthor(input.company.name);
   doc.setSubject(input.title);
-  doc.setProducer('DEVISIA');
-  doc.setCreator('DEVISIA');
+  doc.setProducer('DEVISERA');
+  doc.setCreator('DEVISERA');
 
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);

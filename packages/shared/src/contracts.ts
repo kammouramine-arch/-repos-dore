@@ -1,5 +1,5 @@
 /**
- * Contrats d'API DEVISIA.
+ * Contrats d'API DEVISERA.
  *
  * Ces types décrivent exactement ce que le serveur renvoie. Le web et le mobile
  * consomment les mêmes définitions : une évolution de l'API casse la

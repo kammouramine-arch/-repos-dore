@@ -395,7 +395,7 @@ export default function NouveauDevisScreen() {
         <View style={{ alignItems: 'center', gap: 6 }}>
           <Title style={{ color: colors.white, textAlign: 'center' }}>Votre devis prend forme</Title>
           <Muted style={{ color: 'rgba(255,255,255,0.68)', textAlign: 'center' }}>
-            DEVISIA analyse, chiffre et met en page.
+            DEVISERA analyse, chiffre et met en page.
           </Muted>
         </View>
         <View
@@ -438,7 +438,7 @@ export default function NouveauDevisScreen() {
             <Muted style={{ textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
               {attente >= 30
                 ? 'C’est plus long que d’habitude. Vous pouvez patienter encore, ou revenir à votre description — rien n’est perdu.'
-                : 'DEVISIA affine les quantités et les prix. Encore un instant.'}
+                : 'DEVISERA affine les quantités et les prix. Encore un instant.'}
             </Muted>
             {attente >= 30 ? (
               <Button
@@ -790,7 +790,7 @@ export default function NouveauDevisScreen() {
         <PageHeader
           eyebrow="Nouveau devis"
           title="Décrivez le chantier"
-          subtitle="Dictez naturellement. DEVISIA transforme vos mots en lignes chiffrées."
+          subtitle="Dictez naturellement. DEVISERA transforme vos mots en lignes chiffrées."
         />
 
         <ErrorBanner error={error} retry={retry} onDismiss={() => setError(null)} />

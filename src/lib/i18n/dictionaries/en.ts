@@ -97,7 +97,7 @@ export const en: Dictionary = {
     vsPrevious: 'vs previous period',
     toRecoverHint: '{count} quotes awaiting a reply',
     newLeadsHint: '{count} new leads',
-    welcomeTitle: 'Welcome to DEVISIA. Let’s start with your first quote.',
+    welcomeTitle: 'Welcome to DEVISERA. Let’s start with your first quote.',
     noActivity: 'No recent activity.',
     noServices: 'Services will appear after your first sent quotes.',
   },
@@ -162,7 +162,7 @@ export const en: Dictionary = {
     checkBeforeSend: 'Always review the quote before sending it.',
     tapToStop: 'Tap to stop',
     tapToDescribe: 'Tap and describe the job',
-    preparing: 'DEVISIA is preparing your quote',
+    preparing: 'DEVISERA is preparing your quote',
   },
   empty: {
     customers: 'No clients yet.',
@@ -191,12 +191,12 @@ export const en: Dictionary = {
       'Add a request received by phone, or turn on the public form to receive them automatically.',
     publicFormTitle: 'Receive your requests automatically',
     publicFormBody:
-      'Turn on the public form in settings and embed it on your website: every request creates a lead in DEVISIA and notifies you straight away.',
+      'Turn on the public form in settings and embed it on your website: every request creates a lead in DEVISERA and notifies you straight away.',
     publicFormCta: 'Set up the form',
   },
   priceBook: {
     title: 'Price book',
-    subtitle: 'Your items, your prices, your margins. DEVISIA applies them first in every quote.',
+    subtitle: 'Your items, your prices, your margins. DEVISERA applies them first in every quote.',
     new: 'New item',
     first: 'Add my first item',
     emptyTitle: 'Your price book is empty.',

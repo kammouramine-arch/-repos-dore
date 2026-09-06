@@ -60,7 +60,7 @@ export function ApplePaywall() {
       <Title>{appleActive ? 'Votre abonnement Apple' : 'Moins de devis à faire.\nPlus de temps pour vous.'}</Title>
       <Muted>Choisissez la formule qui accompagne votre activité. Les tarifs français sont en euros ; Apple confirme le prix et la devise de votre achat avant votre accord.</Muted>
       {!appleActive ? <Card style={{ backgroundColor: colors.accentSoft, gap: spacing.sm }}>
-        <Heading>3 jours pour essayer DEVISIA</Heading>
+        <Heading>3 jours pour essayer DEVISERA</Heading>
         <Body>Gratuit sur chaque formule pour les nouveaux abonnés éligibles. Ensuite, renouvellement mensuel automatique sauf annulation.</Body>
         <Caption>Apple confirme votre éligibilité et la durée exacte avant tout accord.</Caption>
       </Card> : null}
@@ -105,7 +105,7 @@ export function ApplePaywall() {
     {!loading && !product ? <Button title="Recharger les offres" variant="secondary" onPress={() => void load()} /> : null}
     <Button title="Restaurer mes achats" variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert('Aucun abonnement trouvé', 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.</Muted>
-    <Button title="Découvrir DEVISIA" variant="ghost" onPress={() => router.push('/presentation')} />
+    <Button title="Découvrir DEVISERA" variant="ghost" onPress={() => router.push('/presentation')} />
     <Button title="Corriger mon nom ou mon email" variant="ghost" onPress={() => router.push('/compte')} />
     <Button title="Me déconnecter / utiliser un autre compte" variant="ghost" disabled={busy} onPress={() => void action(signOut)} />
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.lg }}>

@@ -68,7 +68,7 @@ export const SEO_PAGES: SeoPage[] = [
     eyebrow: 'Logiciel de devis',
     h1: 'Le logiciel de devis pensé pour les artisans, pas pour les comptables',
     intro:
-      "La plupart des logiciels de devis ont été conçus pour un bureau. DEVISIA est conçu pour une camionnette, une main libre et cinq minutes entre deux interventions. Vous décrivez le chantier, l'application prépare le devis, vous vérifiez et vous envoyez.",
+      "La plupart des logiciels de devis ont été conçus pour un bureau. DEVISERA est conçu pour une camionnette, une main libre et cinq minutes entre deux interventions. Vous décrivez le chantier, l'application prépare le devis, vous vérifiez et vous envoyez.",
     sections: [
       {
         title: 'Le vrai problème n’est pas de faire un devis, c’est de le faire à temps',
@@ -76,7 +76,7 @@ export const SEO_PAGES: SeoPage[] = [
           "Un client qui demande trois devis retient très souvent celui qui arrive en premier. Or le devis se prépare le soir, après une journée de chantier, quand l'énergie manque. Résultat : des demandes qui restent en attente plusieurs jours, et des chantiers perdus sans jamais savoir pourquoi.",
       },
       {
-        title: 'Ce que DEVISIA change concrètement',
+        title: 'Ce que DEVISERA change concrètement',
         bullets: [
           'Le devis se prépare à l’oral, sur place, pendant que les informations sont fraîches',
           'Votre catalogue de prix est appliqué automatiquement : vos prix, pas des prix inventés',
@@ -89,19 +89,19 @@ export const SEO_PAGES: SeoPage[] = [
       {
         title: 'Combien de temps pour un devis',
         body:
-          "En pratique, un devis d'intervention simple (dépannage, remplacement d'un équipement, petite pose) se prépare en moins d'une minute avec une description parlée et une photo. Un devis de rénovation à plusieurs lots demande davantage de vérifications : DEVISIA prépare la structure, vous ajustez les quantités.",
+          "En pratique, un devis d'intervention simple (dépannage, remplacement d'un équipement, petite pose) se prépare en moins d'une minute avec une description parlée et une photo. Un devis de rénovation à plusieurs lots demande davantage de vérifications : DEVISERA prépare la structure, vous ajustez les quantités.",
       },
     ],
     faq: [
       {
         question: 'Faut-il être à l’aise avec l’informatique ?',
         answer:
-          "Non. L'écran principal comporte un bouton microphone et un bouton photo. Si vous savez envoyer un message vocal, vous savez utiliser DEVISIA.",
+          "Non. L'écran principal comporte un bouton microphone et un bouton photo. Si vous savez envoyer un message vocal, vous savez utiliser DEVISERA.",
       },
       {
         question: 'Mes prix sont-ils respectés ?',
         answer:
-          "Oui. Le catalogue de prix de votre entreprise est prioritaire sur toute suggestion. Quand aucun article ne correspond, DEVISIA vous pose la question au lieu d'inventer un prix.",
+          "Oui. Le catalogue de prix de votre entreprise est prioritaire sur toute suggestion. Quand aucun article ne correspond, DEVISERA vous pose la question au lieu d'inventer un prix.",
       },
       {
         question: 'Puis-je modifier le devis avant l’envoi ?',
@@ -120,7 +120,7 @@ export const SEO_PAGES: SeoPage[] = [
     eyebrow: 'Devis par IA',
     h1: 'Le devis par IA, sans la magie et sans les approximations',
     intro:
-      "Un devis engage votre entreprise. Une IA qui invente des prix serait un risque, pas un gain de temps. DEVISIA sépare donc strictement deux rôles : l'IA structure et rédige, le logiciel calcule et applique vos prix.",
+      "Un devis engage votre entreprise. Une IA qui invente des prix serait un risque, pas un gain de temps. DEVISERA sépare donc strictement deux rôles : l'IA structure et rédige, le logiciel calcule et applique vos prix.",
     sections: [
       {
         title: 'Les cinq étapes de la préparation',
@@ -144,7 +144,7 @@ export const SEO_PAGES: SeoPage[] = [
       {
         title: 'Que se passe-t-il quand une information manque',
         body:
-          "Si vous dites « installer une chaudière » sans préciser le modèle, DEVISIA n'invente pas une référence. Le devis affiche une question explicite : « Quelle est la marque, le modèle et la puissance de la chaudière ? ». Vous complétez, le chiffrage s'ajuste.",
+          "Si vous dites « installer une chaudière » sans préciser le modèle, DEVISERA n'invente pas une référence. Le devis affiche une question explicite : « Quelle est la marque, le modèle et la puissance de la chaudière ? ». Vous complétez, le chiffrage s'ajuste.",
       },
       {
         title: 'Et la confidentialité de vos données',
@@ -276,7 +276,7 @@ export const SEO_PAGES: SeoPage[] = [
       },
     ],
     ctaTitle: 'Vos points, vos prix, votre devis',
-    ctaBody: 'Chargez votre grille de prix au point : DEVISIA l’applique automatiquement.',
+    ctaBody: 'Chargez votre grille de prix au point : DEVISERA l’applique automatiquement.',
   },
   {
     slug: 'devis-chauffagiste',
@@ -381,7 +381,7 @@ export const SEO_PAGES: SeoPage[] = [
       },
     ],
     ctaTitle: 'Métrez, décrivez, envoyez',
-    ctaBody: 'Photographiez chaque pièce, dictez l’état du support et laissez DEVISIA structurer le devis.',
+    ctaBody: 'Photographiez chaque pièce, dictez l’état du support et laissez DEVISERA structurer le devis.',
   },
   {
     slug: 'devis-couvreur',

@@ -4,7 +4,7 @@ Not a legal conveyance. Owner and buyer must agree inclusions and prove title.
 
 | Candidate asset | Repository / custody evidence | Transfer qualification |
 |---|---|---|
-| DEVISIA name and visual identity | brand components, mobile theme, SVG/PNG icons | Trademark clearance/registration and ownership UNKNOWN |
+| DEVISERA name and visual identity | brand components, mobile theme, SVG/PNG icons | Trademark clearance/registration and ownership UNKNOWN |
 | Web frontend / backend | `src/`, configuration, migrations | Source deliverable; assignments and third-party licenses require review |
 | iOS / Android source | `mobile/` with Expo config and patches | iOS beta exists; Android store release not verified |
 | Shared financial / subscription logic | `packages/shared/` | Included source, subject to IP chain verification |
@@ -12,8 +12,8 @@ Not a legal conveyance. Owner and buyer must agree inclusions and prove title.
 | AI prompts, matching, validation | `src/lib/ai`, aiQuoteService | Included implementation; provider models/API accounts are not owned IP |
 | Follow-up / cron / admin / email templates | services, API, `src/lib/email/templates.ts` | Included implementation; configured delivery not yet complete |
 | Logos and app artwork | `mobile/assets/`, brand components, generated web icon routes | Source artwork present; authorship/provenance requires seller attestation |
-| Website and domains | hosted Vercel application; domain registration records not supplied | No claim of ownership of devisia.fr or amyn.agency; verify separately |
-| App Store record and subscriptions | existing DEVISIA App Store Connect record | Conditional on Apple eligibility, not equivalent to transfer of personal developer account |
+| Website and domains | hosted Vercel application; domain registration records not supplied | No claim of ownership of devisera.fr or devisera.fr; verify separately |
+| App Store record and subscriptions | existing DEVISERA App Store Connect record | Conditional on Apple eligibility, not equivalent to transfer of personal developer account |
 | Documentation / demo fixtures | README, docs, prisma seed | Included; demo records are synthetic, not traction |
 | Design files / social accounts | None established in repository | UNKNOWN; do not list as included without records |
 | Analytics and operating records | service code exists; live exports not reviewed | Separate redacted evidence, access and privacy review |

@@ -3,7 +3,7 @@
  *
  * Il fonctionne sans fournisseur d'IA externe : rapprochement avec le catalogue
  * de l'entreprise, extraction des quantités et de la durée, formulation des
- * questions manquantes. C'est le mode dégradé assumé de DEVISIA — l'interface
+ * questions manquantes. C'est le mode dégradé assumé de DEVISERA — l'interface
  * l'indique clairement à l'utilisateur.
  */
 import { centsToEuros } from '../money';

@@ -3,7 +3,7 @@ import { LegalPage, LegalSection } from '@/components/marketing/legal';
 
 export const metadata: Metadata = {
   title: 'Politique de confidentialité',
-  description: 'Comment DEVISIA collecte, utilise et protège les données de votre entreprise.',
+  description: 'Comment DEVISERA collecte, utilise et protège les données de votre entreprise.',
   alternates: { canonical: '/confidentialite' },
 };
 
@@ -12,12 +12,12 @@ export default function PrivacyPage() {
     <LegalPage
       title="Politique de confidentialité"
       updatedAt="18 août 2026"
-      intro="Cette page décrit les données traitées par DEVISIA, leur finalité et les droits dont vous disposez. Elle constitue une information générale et ne remplace pas l'analyse d'un conseil juridique pour votre situation particulière."
+      intro="Cette page décrit les données traitées par DEVISERA, leur finalité et les droits dont vous disposez. Elle constitue une information générale et ne remplace pas l'analyse d'un conseil juridique pour votre situation particulière."
     >
       <LegalSection title="Responsable de traitement">
         <p>
           Pour toute question relative à vos données ou pour exercer vos droits, contactez
-          contact@amyn.agency. L’identité juridique complète de l’éditeur et ses coordonnées
+          contact@devisera.fr. L’identité juridique complète de l’éditeur et ses coordonnées
           réglementaires doivent être finalisées avant la commercialisation publique.
         </p>
       </LegalSection>
@@ -70,7 +70,7 @@ export default function PrivacyPage() {
 
       <LegalSection title="Sous-traitants">
         <p>
-          DEVISIA s’appuie sur des prestataires techniques pour l’hébergement, la base de données,
+          DEVISERA s’appuie sur des prestataires techniques pour l’hébergement, la base de données,
           l’envoi d’emails, le paiement et l’intelligence artificielle. La liste à jour de ces
           prestataires et de leur localisation est disponible sur demande.
         </p>
@@ -88,7 +88,7 @@ export default function PrivacyPage() {
         <p>
           Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition
           et de portabilité. Le catalogue dispose d’un export ; pour une demande plus complète ou
-          un effacement, contactez contact@amyn.agency. Une vérification d’identité et un examen des
+          un effacement, contactez contact@devisera.fr. Une vérification d’identité et un examen des
           obligations de conservation sont nécessaires. Vous pouvez introduire une réclamation auprès de la CNIL.
         </p>
       </LegalSection>

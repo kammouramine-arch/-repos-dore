@@ -189,7 +189,7 @@ export async function requirePermission(permission: Permission): Promise<AuthCon
 
 export async function requirePlatformAdmin(): Promise<AuthContext> {
   const ctx = await requireAuth();
-  if (!ctx.user.isPlatformAdmin) throw forbidden('Espace réservé à l’équipe DEVISIA.');
+  if (!ctx.user.isPlatformAdmin) throw forbidden('Espace réservé à l’équipe DEVISERA.');
   return ctx;
 }
 

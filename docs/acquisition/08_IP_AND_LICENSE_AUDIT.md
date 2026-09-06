@@ -20,6 +20,6 @@ Generated `evidence/dependencies.json` lists resolved root/mobile lockfile packa
 | User-provided recordings / contact sheets | Diagnostic only, excluded from source build output and proposed sale |
 | Google/Apple/Stripe/provider branding | Third-party marks; no ownership conveyed |
 
-No unverified asset was replaced merely on suspicion. Replacing an asset requires knowing its source and the replacement's license; visual similarity is not legal clearance. No broad open-source license was added to DEVISIA's proprietary code, as only the rights-holder can choose licensing terms.
+No unverified asset was replaced merely on suspicion. Replacing an asset requires knowing its source and the replacement's license; visual similarity is not legal clearance. No broad open-source license was added to DEVISERA's proprietary code, as only the rights-holder can choose licensing terms.
 
 Before diligence closes: collect contributor agreements/invoices, original brand files, stock receipts, domain title and trademark search; inspect complete Git history for third-party material and secrets; audit native binary notices; preserve license texts for redistributed material; counsel signs off exceptions. Do not give a buyer an unqualified '100% owned IP' statement before this is complete.

@@ -2,8 +2,8 @@ import type { MetadataRoute } from 'next';
 
 export default function manifest(): MetadataRoute.Manifest {
   return {
-    name: 'DEVISIA — Devis par IA',
-    short_name: 'DEVISIA',
+    name: 'DEVISERA — Devis par IA',
+    short_name: 'DEVISERA',
     description:
       "Créez, envoyez et relancez vos devis depuis le chantier. L'IA qui transforme votre travail en devis.",
     start_url: '/app',

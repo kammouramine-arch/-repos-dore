@@ -20,7 +20,7 @@ import type { PlanId } from './plans';
 import type { FollowUpTone } from './labels';
 
 /**
- * Client d'API DEVISIA.
+ * Client d'API DEVISERA.
  *
  * Utilisé tel quel par l'application mobile ; le web s'appuie sur ses propres
  * routes serveur mais partage les mêmes types. L'authentification passe par un
@@ -72,7 +72,7 @@ function transportError(cause: unknown, timedOut = false): DevisiaApiError {
       code: aborted ? 'TIMEOUT' : 'NETWORK',
       message: aborted
         ? 'Le serveur met trop de temps à répondre. Réessayez dans un instant.'
-        : 'DEVISIA n’a pas pu joindre le serveur. Vérifiez votre connexion, puis réessayez.',
+        : 'DEVISERA n’a pas pu joindre le serveur. Vérifiez votre connexion, puis réessayez.',
       retryable: true,
     },
     0,

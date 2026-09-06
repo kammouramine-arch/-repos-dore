@@ -95,7 +95,7 @@ export const fr = {
     vsPrevious: 'vs période précédente',
     toRecoverHint: '{count} devis sans réponse',
     newLeadsHint: '{count} nouveaux prospects',
-    welcomeTitle: 'Bienvenue sur DEVISIA. Commençons par votre premier devis.',
+    welcomeTitle: 'Bienvenue sur DEVISERA. Commençons par votre premier devis.',
     noActivity: 'Aucune activité récente.',
     noServices: 'Les prestations apparaîtront après vos premiers devis envoyés.',
   },
@@ -160,7 +160,7 @@ export const fr = {
     checkBeforeSend: 'Vérifiez toujours le devis avant de l’envoyer.',
     tapToStop: 'Appuyez pour arrêter',
     tapToDescribe: 'Appuyez et décrivez le chantier',
-    preparing: 'DEVISIA prépare votre devis',
+    preparing: 'DEVISERA prépare votre devis',
   },
   empty: {
     customers: 'Aucun client pour le moment.',
@@ -189,12 +189,12 @@ export const fr = {
       'Ajoutez une demande reçue par téléphone, ou activez le formulaire public pour les recevoir automatiquement.',
     publicFormTitle: 'Recevoir vos demandes automatiquement',
     publicFormBody:
-      'Activez le formulaire public depuis les paramètres et intégrez-le à votre site : chaque demande crée un prospect dans DEVISIA et vous notifie immédiatement.',
+      'Activez le formulaire public depuis les paramètres et intégrez-le à votre site : chaque demande crée un prospect dans DEVISERA et vous notifie immédiatement.',
     publicFormCta: 'Configurer le formulaire',
   },
   priceBook: {
     title: 'Catalogue de prix',
-    subtitle: 'Vos articles, vos prix, vos marges. DEVISIA les applique en priorité dans chaque devis.',
+    subtitle: 'Vos articles, vos prix, vos marges. DEVISERA les applique en priorité dans chaque devis.',
     new: 'Nouvel article',
     first: 'Ajouter mon premier article',
     emptyTitle: 'Votre catalogue est vide.',

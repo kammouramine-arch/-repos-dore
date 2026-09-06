@@ -74,12 +74,12 @@ export default function CompteScreen() {
       </Card>
       <Card style={{ gap: spacing.lg }}>
         <Heading>Confidentialité et assistance</Heading>
-        <Button title="Partager le diagnostic technique" variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISIA', events: readDiagnostics() }, null, 2) }); })} />
+        <Button title="Partager le diagnostic technique" variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISERA', events: readDiagnostics() }, null, 2) }); })} />
         <Muted>Diagnostic local : durées et catégories d’erreurs, sans nom de client, description de chantier ni jeton de connexion.</Muted>
         <Button title="Exporter mes informations de compte" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
           if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
           const data = await api.auth.exportPersonal();
-          const file = new File(Paths.cache, `DEVISIA-compte-${Date.now()}.json`);
+          const file = new File(Paths.cache, `DEVISERA-compte-${Date.now()}.json`);
           try {
             file.write(JSON.stringify(data, null, 2));
             await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
@@ -89,7 +89,7 @@ export default function CompteScreen() {
         <Button title="Exporter mes données commerciales" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
           if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
           const data = await api.auth.exportBusiness();
-          const file = new File(Paths.cache, `DEVISIA-donnees-${Date.now()}.json`);
+          const file = new File(Paths.cache, `DEVISERA-donnees-${Date.now()}.json`);
           try { file.write(JSON.stringify(data, null, 2)); await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' }); }
           finally { if (file.exists) file.delete(); }
         })} />
@@ -106,7 +106,7 @@ export default function CompteScreen() {
         })} />
         <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
         <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
-        <Button title="Contacter l’assistance" variant="secondary" onPress={() => void perform(() => Linking.openURL('mailto:contact@amyn.agency'))} />
+        <Button title="Contacter l’assistance" variant="secondary" onPress={() => void perform(() => Linking.openURL('mailto:contact@devisera.fr'))} />
       </Card>
     </Screen>
   </KeyboardAvoidingView>;

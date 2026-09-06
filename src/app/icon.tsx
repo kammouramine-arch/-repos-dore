@@ -3,7 +3,7 @@ import { ImageResponse } from 'next/og';
 export const size = { width: 64, height: 64 };
 export const contentType = 'image/png';
 
-/** Favicon : monogramme DEVISIA sur fond de marque. */
+/** Favicon : monogramme DEVISERA sur fond de marque. */
 export default function Icon() {
   return new ImageResponse(
     (

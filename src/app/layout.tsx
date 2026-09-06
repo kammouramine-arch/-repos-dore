@@ -14,12 +14,12 @@ const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
 export const metadata: Metadata = {
   metadataBase: new URL(APP_URL),
   title: {
-    default: "DEVISIA — L'IA qui transforme votre travail en devis",
-    template: '%s — DEVISIA',
+    default: "DEVISERA — L'IA qui transforme votre travail en devis",
+    template: '%s — DEVISERA',
   },
   description:
-    "Parlez, ajoutez vos photos et laissez DEVISIA préparer votre devis professionnel en quelques secondes. Le logiciel de devis des artisans et petites entreprises de services.",
-  applicationName: 'DEVISIA',
+    "Parlez, ajoutez vos photos et laissez DEVISERA préparer votre devis professionnel en quelques secondes. Le logiciel de devis des artisans et petites entreprises de services.",
+  applicationName: 'DEVISERA',
   keywords: [
     'logiciel devis artisan',
     'devis IA',
@@ -29,19 +29,19 @@ export const metadata: Metadata = {
     'devis plombier',
     'devis électricien',
   ],
-  authors: [{ name: 'DEVISIA' }],
+  authors: [{ name: 'DEVISERA' }],
   openGraph: {
     type: 'website',
     locale: 'fr_FR',
     url: APP_URL,
-    siteName: 'DEVISIA',
-    title: "DEVISIA — L'IA qui transforme votre travail en devis",
+    siteName: 'DEVISERA',
+    title: "DEVISERA — L'IA qui transforme votre travail en devis",
     description:
       'Ne perdez plus un client faute de temps. Créez, envoyez et relancez vos devis depuis le chantier.',
   },
   twitter: {
     card: 'summary_large_image',
-    title: "DEVISIA — L'IA qui transforme votre travail en devis",
+    title: "DEVISERA — L'IA qui transforme votre travail en devis",
     description: 'Ne perdez plus un client faute de temps.',
   },
   robots: { index: true, follow: true },

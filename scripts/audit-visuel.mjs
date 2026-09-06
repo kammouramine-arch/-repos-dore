@@ -47,7 +47,7 @@ const seen = (rx, t=9000) => vis(rx).waitFor({ timeout: t }).then(()=>true).catc
 
 await page.goto('http://127.0.0.1:4600/', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1800);
-console.log('découverte affichée :', await seen(/Dictez, le devis s.écrit|DEVISIA/i));
+console.log('découverte affichée :', await seen(/Dictez, le devis s.écrit|DEVISERA/i));
 await shot('01-decouverte');
 
 // Parcourir les piliers
@@ -62,7 +62,7 @@ await vis(/Essayer gratuitement/i).click().catch(()=>{});
 await page.waitForTimeout(1600);
 await shot('03-inscription');
 
-const email = `zz-audit-${Date.now()}@devisia-verif.test`;
+const email = `zz-audit-${Date.now()}@devisera-verif.test`;
 const fill = async (l, v) => { const e = page.getByLabel(l).filter({visible:true}).first(); await e.waitFor({timeout:6000}); await e.fill(v); };
 await fill('Nom de votre entreprise', 'ZZ AUDIT (a supprimer)').catch(()=>{});
 await fill('Votre prénom', 'Audit').catch(()=>{});

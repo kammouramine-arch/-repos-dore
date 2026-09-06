@@ -2,7 +2,7 @@
   "name": "@devisia/mobile",
   "version": "1.0.0",
   "private": true,
-  "description": "DEVISIA pour iOS et Android — l'IA qui transforme votre travail en devis.",
+  "description": "DEVISERA pour iOS et Android — l'IA qui transforme votre travail en devis.",
   "main": "expo-router/entry",
   "scripts": {
     "start": "expo start",

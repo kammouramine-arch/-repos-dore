@@ -69,8 +69,8 @@ export async function requestEmailCode(userId: string, input: { email: string; p
   try {
     const sent = await provider.send({
       to: email,
-      subject: 'Votre code de confirmation DEVISIA',
-      text: `Votre code DEVISIA : ${code}. Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.`,
+      subject: 'Votre code de confirmation DEVISERA',
+      text: `Votre code DEVISERA : ${code}. Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.`,
       html: layout({ title: 'Confirmez votre adresse email', body: `<p>Votre code de confirmation :</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.</p>` }),
     });
     if (!sent.delivered) throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Réessayez plus tard.');

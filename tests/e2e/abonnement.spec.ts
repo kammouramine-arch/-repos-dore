@@ -21,13 +21,13 @@ test.afterAll(async () => {
 
 test.describe('abonnement', () => {
   test('essai de 3 jours puis conversion', async ({ page }) => {
-    const email = `essai-${Date.now().toString(36)}@devisia.test`;
+    const email = `essai-${Date.now().toString(36)}@devisera.test`;
 
     // Inscription : l'essai démarre automatiquement.
     await page.goto('/inscription');
     await page.getByLabel(/Nom de votre entreprise/i).fill('Plomberie Trois Jours');
     await page.getByLabel(/Adresse email/i).fill(email);
-    await page.getByLabel(/Mot de passe/i).fill('devisia-e2e-2026');
+    await page.getByLabel(/Mot de passe/i).fill('devisera-e2e-2026');
     await page.getByRole('button', { name: /Créer mon compte/i }).click();
     await page.waitForURL('**/app/bienvenue', { timeout: 30_000 });
 

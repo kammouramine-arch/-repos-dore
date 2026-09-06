@@ -11,7 +11,7 @@ No transfers authorized or performed. Do not sell personal account logins. Buyer
 | Apple | Individual developer account; app is still pre-release | **BLOCKED**: Apple requires at least one App Store-released version for app transfer. Recheck eligibility at transaction time. Do not promise current TestFlight-only record is directly transferable |
 | Stripe | Account-specific customer/subscription/price IDs | Contact Stripe Support before entity transfer; do not simply substitute another account's secret key |
 | AI providers | Owner's project/API billing | Buyer issues keys, quotas and billing in its own project; test models before revoking old keys |
-| Email/DNS | Proposed contact@amyn.agency ties to another brand | Owner decides dedicated product domain/mailbox; verify registrar title and sender DNS. Reverify sender on destination provider |
+| Email/DNS | Proposed contact@devisera.fr ties to another brand | Owner decides dedicated product domain/mailbox; verify registrar title and sender DNS. Reverify sender on destination provider |
 | Storage | Database default, optional S3 | Confirm actual provider. Copy/check blobs and update access policy without exposing objects |
 | Push | Expo credentials and Apple team | Validate entitlements/keys after transfer; old device tokens may need re-registration |
 | SMS / analytics / monitoring | Code paths exist; live accounts not established | Inventory actual usage first; do not include speculative accounts |

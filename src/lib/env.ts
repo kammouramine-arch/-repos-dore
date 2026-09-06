@@ -9,7 +9,7 @@ const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL est requis'),
   APP_URL: z.string().url().default('http://localhost:3000'),
-  AUTH_SECRET: z.string().min(16).default('devisia-development-secret-change-me'),
+  AUTH_SECRET: z.string().min(16).default('devisera-development-secret-change-me'),
 
   // IA — laissé vide, le fournisseur est déduit de la présence de la clé.
   AI_PROVIDER: z.preprocess(
@@ -50,7 +50,9 @@ const serverSchema = z.object({
   // Email
   EMAIL_PROVIDER: z.enum(['resend', 'console']).default('console'),
   RESEND_API_KEY: z.string().optional(),
-  EMAIL_FROM: z.string().default('DEVISIA <bonjour@devisia.fr>'),
+  EMAIL_FROM: z.string().default('DEVISERA <contact@devisera.fr>'),
+  /** Default platform reply address; business-profile email may override it. */
+  EMAIL_REPLY_TO: z.string().email().default('contact@devisera.fr'),
 
   // Stockage
   // `database` : le binaire vit dans PostgreSQL. Aucune configuration externe,

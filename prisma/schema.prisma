@@ -1,4 +1,4 @@
-// DEVISIA — schéma de base de données
+// DEVISERA — schéma de base de données
 // Toutes les données commerciales appartiennent à une Organization (multi-tenant strict).
 
 generator client {
@@ -908,7 +908,7 @@ model Payment {
 }
 
 // ---------------------------------------------------------------------------
-// Abonnement DEVISIA & usage
+// Abonnement DEVISERA & usage
 // ---------------------------------------------------------------------------
 
 model Subscription {

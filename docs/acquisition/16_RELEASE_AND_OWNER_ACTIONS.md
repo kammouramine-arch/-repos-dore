@@ -8,13 +8,13 @@ Latest code deployment: **`dpl_CRA832AVUJfKGNfoLEHZyQygGFbi`**, source **`a8c4a3
 
 - Production: `dpl_BpkqEKo4EgsSDo78QeKr3HGYvmiM`, alias `https://devisia-bice.vercel.app`, ready. Public home/pricing/terms/privacy returned 200. Personal export and client-profile endpoints returned 401 without authentication. These checks do not prove authenticated production flows or email delivery.
 - GitHub quality checks for `f4e036976001b3fa56dc877b3e041658661fb7f2`: runs `34038216875` and `34038213679` both succeeded, including the isolated PostgreSQL suite and mobile checks.
-- iOS 1.0.0 (14): Expo build `358ba49f-72a3-4209-94ea-215dbb5adc37` finished; Apple build `7540eb74-a2b8-4725-8fbf-dbf43df9ad84` upload complete and assigned to **DEVISIA Internal**, one invite. Verified in App Store Connect. “Ready to Submit” on the TestFlight list is not a public App Store release.
+- iOS 1.0.0 (14): Expo build `358ba49f-72a3-4209-94ea-215dbb5adc37` finished; Apple build `7540eb74-a2b8-4725-8fbf-dbf43df9ad84` upload complete and assigned to **DEVISERA Internal**, one invite. Verified in App Store Connect. “Ready to Submit” on the TestFlight list is not a public App Store release.
 - Build 14 contains the initial client profile, tap/creation recovery, export and diagnostics changes.
-- **Build 15 verified available**: Expo `6e6a6474-255a-4db3-a44c-296d6df7b45a`, successful submission `3c689215-f17d-4f80-99bb-ededec975f5b`, Apple `71eadcf2-ce20-4f19-86ea-8eb72725f93a`. Upload complete at 16:55 Paris and assigned to DEVISIA Internal with one invite. Contains client timeline/jobs and old-session 401 guards. No real-device installation/acceptance result recorded yet.
+- **Build 15 verified available**: Expo `6e6a6474-255a-4db3-a44c-296d6df7b45a`, successful submission `3c689215-f17d-4f80-99bb-ededec975f5b`, Apple `71eadcf2-ce20-4f19-86ea-8eb72725f93a`. Upload complete at 16:55 Paris and assigned to DEVISERA Internal with one invite. Contains client timeline/jobs and old-session 401 guards. No real-device installation/acceptance result recorded yet.
 
 ## Observed App Store production blockers
 
-App Store Connect → DEVISIA → Distribution → iOS 1.0, inspected 6 September:
+App Store Connect → DEVISERA → Distribution → iOS 1.0, inspected 6 September:
 
 1. Version remains **Prepare for Submission**; no released version verified. Build **11**, not the latest tested build, remains attached to the production draft.
 2. French listing has **0 screenshots**, blank description, keywords, support URL and copyright. Promotional text and marketing URL are also blank, but must not be represented as mandatory solely because the fields exist.
@@ -35,8 +35,8 @@ Apple references: [transfer criteria](https://developer.apple.com/help/app-store
 
 ### Email — BLOCKED BY EXTERNAL ACTION
 
-1. Sign in to the Resend account intended to operate DEVISIA; the browser is open at its login page. Do not send passwords or API keys in chat.
-2. Sign in to the DNS provider controlling `amyn.agency`. Confirm authority to send as `contact@amyn.agency` and whether the domain/sender will be included in a sale or replaced.
+1. Sign in to the Resend account intended to operate DEVISERA; the browser is open at its login page. Do not send passwords or API keys in chat.
+2. Sign in to the DNS provider controlling `devisera.fr`. Confirm authority to send as `contact@devisera.fr` and whether the domain/sender will be included in a sale or replaced.
 3. Once access is available, add only Resend's exact domain-verification records, preserving existing mail/MX records. Verify the domain; configure provider credentials privately in Vercel Production; redeploy.
 4. Send a controlled quote and confirmation code to an owner-approved test inbox. Verify Resend delivery status and actual inbox receipt; verify the application does not mark a failed send as delivered. Record message IDs, not private email contents, in restricted evidence.
 5. Enable mandatory signup verification only after successful delivery and a recovery procedure. Do not lock existing users out while delivery is unconfigured.

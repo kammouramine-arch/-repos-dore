@@ -253,7 +253,7 @@ export async function handleStripeEvent(event: Stripe.Event) {
         await notify({
           organizationId,
           type: 'ABONNEMENT',
-          title: 'Votre abonnement DEVISIA est actif.',
+          title: 'Votre abonnement DEVISERA est actif.',
           href: '/app/parametres/abonnement',
         });
         await recordAudit({ action: 'subscription.updated', organizationId, metadata: { event: event.type } });
@@ -341,7 +341,7 @@ export async function handleStripeEvent(event: Stripe.Event) {
           organizationId: record.organizationId,
           type: 'ABONNEMENT',
           title: 'Votre dernier paiement a échoué.',
-          body: 'Mettez à jour votre moyen de paiement pour continuer à utiliser DEVISIA.',
+          body: 'Mettez à jour votre moyen de paiement pour continuer à utiliser DEVISERA.',
           href: '/app/parametres/abonnement',
         });
       }

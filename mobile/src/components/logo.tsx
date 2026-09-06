@@ -3,7 +3,7 @@ import Svg, { Path, Rect } from 'react-native-svg';
 import { colors } from '@/theme';
 
 /**
- * Marque DEVISIA : monogramme et nom.
+ * Marque DEVISERA : monogramme et nom.
  *
  * La taille est un paramètre parce qu'un logo de 30 pixels au centre d'un
  * écran de lancement donne l'impression d'une application inachevée. Le trait
@@ -45,7 +45,7 @@ export function Logo({
             color: nameColor,
           }}
         >
-          DEVISIA
+          DEVISERA
         </Text>
       ) : null}
     </View>

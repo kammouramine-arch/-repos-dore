@@ -40,12 +40,12 @@ const FAQ = [
   {
     question: 'Dois-je vérifier les devis préparés par l’IA ?',
     answer:
-      "Oui, et c'est volontaire. DEVISIA prépare un projet de devis complet, signale les informations manquantes et affiche son niveau de confiance. Rien n'est envoyé sans votre validation explicite.",
+      "Oui, et c'est volontaire. DEVISERA prépare un projet de devis complet, signale les informations manquantes et affiche son niveau de confiance. Rien n'est envoyé sans votre validation explicite.",
   },
   {
-    question: 'Est-ce que DEVISIA utilise mes prix ?',
+    question: 'Est-ce que DEVISERA utilise mes prix ?',
     answer:
-      "Votre catalogue de prix est prioritaire sur toute suggestion. Si vous avez configuré « Installation chauffe-eau 200 L » à 950 € HT, c'est ce prix qui est appliqué. Sans article correspondant, DEVISIA vous demande le prix plutôt que d'en inventer un.",
+      "Votre catalogue de prix est prioritaire sur toute suggestion. Si vous avez configuré « Installation chauffe-eau 200 L » à 950 € HT, c'est ce prix qui est appliqué. Sans article correspondant, DEVISERA vous demande le prix plutôt que d'en inventer un.",
   },
   {
     question: 'Comment fonctionne la dictée ?',
@@ -86,7 +86,7 @@ export default function HomePage() {
             </h1>
 
             <p className="animate-in-up delay-2 mx-auto mt-5 max-w-xl text-[16.5px] leading-relaxed text-muted sm:text-[18px]">
-              Parlez, ajoutez vos photos et laissez DEVISIA préparer votre devis professionnel en
+              Parlez, ajoutez vos photos et laissez DEVISERA préparer votre devis professionnel en
               quelques secondes.
             </p>
 
@@ -162,7 +162,7 @@ export default function HomePage() {
 
             <div className="rounded-[18px] border border-line bg-surface/50 p-6 sm:p-8">
               <p className="text-[12px] font-semibold uppercase tracking-[0.14em] text-subtle">
-                Avec DEVISIA
+                Avec DEVISERA
               </p>
               <p className="mt-4 text-[22px] font-semibold leading-snug tracking-[-0.02em] text-ink">
                 {BRAND.promise}
@@ -170,7 +170,7 @@ export default function HomePage() {
               <div className="mt-7 space-y-3">
                 {[
                   { icon: Mic, label: 'Vous décrivez le chantier', time: '01' },
-                  { icon: Sparkles, label: 'DEVISIA prépare le devis', time: '02' },
+                  { icon: Sparkles, label: 'DEVISERA prépare le devis', time: '02' },
                   { icon: ListChecks, label: 'Vous vérifiez et ajustez', time: '03' },
                   { icon: Send, label: 'Vous partagez le devis avec le client', time: '04' },
                 ].map((step) => (
@@ -195,12 +195,12 @@ export default function HomePage() {
           <SectionHeading
             eyebrow="Fonctionnalités"
             title="Tout ce qu’il faut pour vendre, rien de ce qui vous ralentit."
-            description="DEVISIA couvre le parcours qui rapporte : la demande, le devis, la relance et l’encaissement du chantier."
+            description="DEVISERA couvre le parcours qui rapporte : la demande, le devis, la relance et l’encaissement du chantier."
           />
 
           <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
             <FeatureCard icon={Sparkles} title="Création de devis par IA">
-              Une description suffit. DEVISIA identifie l’intervention, les fournitures et la
+              Une description suffit. DEVISERA identifie l’intervention, les fournitures et la
               main-d’œuvre, puis construit un devis structuré.
             </FeatureCard>
             <FeatureCard icon={Mic} title="Devis vocal">
@@ -211,7 +211,7 @@ export default function HomePage() {
               l’existant sont pris en compte.
             </FeatureCard>
             <FeatureCard icon={Wallet} title="Catalogue de prix">
-              Vos articles, vos prix d’achat, vos prix de vente et vos marges. DEVISIA applique votre
+              Vos articles, vos prix d’achat, vos prix de vente et vos marges. DEVISERA applique votre
               catalogue avant toute suggestion.
             </FeatureCard>
             <FeatureCard icon={Clock3} title="Relances automatiques">
@@ -252,7 +252,7 @@ export default function HomePage() {
               },
               {
                 step: '02',
-                title: 'DEVISIA prépare',
+                title: 'DEVISERA prépare',
                 body: "Analyse du chantier, lecture des photos, recherche dans votre catalogue, calcul de la TVA et des totaux par le logiciel — jamais par le modèle.",
                 icon: Sparkles,
               },
@@ -288,7 +288,7 @@ export default function HomePage() {
                 {BRAND.recovery}
               </h2>
               <p className="mt-5 max-w-lg text-[15.5px] leading-relaxed text-white/70">
-                DEVISIA calcule en permanence le montant des devis envoyés qui n’ont pas encore reçu
+                DEVISERA calcule en permanence le montant des devis envoyés qui n’ont pas encore reçu
                 de réponse. Vous voyez exactement combien d’argent est en attente — et vous relancez
                 en un geste.
               </p>
@@ -373,7 +373,7 @@ export default function HomePage() {
               Préparez votre prochain devis depuis le chantier.
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-[15.5px] leading-relaxed text-muted">
-              Ouvrez DEVISIA, décrivez votre prochain chantier et voyez le devis se construire.
+              Ouvrez DEVISERA, décrivez votre prochain chantier et voyez le devis se construire.
             </p>
             <div className="mt-8 flex flex-col items-center justify-center gap-3 sm:flex-row">
               <Button asChild size="lg" className="w-full sm:w-auto">

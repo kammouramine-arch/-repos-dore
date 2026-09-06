@@ -19,6 +19,6 @@ export async function exportPersonalAccount(userId: string) {
     scope: 'personal-account',
     account,
     exclusions: ['Documents et données commerciales de l’entreprise', 'Journaux de sécurité soumis à examen', 'Données conservées par les prestataires externes'],
-    furtherRequests: 'contact@amyn.agency',
+    furtherRequests: 'contact@devisera.fr',
   };
 }

@@ -25,7 +25,7 @@ Notifications.setNotificationHandler({
 async function ensureAndroidChannel() {
   if (Platform.OS !== 'android') return;
   await Notifications.setNotificationChannelAsync('default', {
-    name: 'Activité DEVISIA',
+    name: 'Activité DEVISERA',
     importance: Notifications.AndroidImportance.HIGH,
     vibrationPattern: [0, 180, 90, 180],
     lightColor: '#2547E0',

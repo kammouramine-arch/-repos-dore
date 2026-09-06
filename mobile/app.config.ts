@@ -1,7 +1,7 @@
 import type { ExpoConfig } from 'expo/config';
 
 /**
- * Configuration DEVISIA mobile.
+ * Configuration DEVISERA mobile.
  *
  * L'URL de l'API est injectée à la construction : une même base de code sert
  * le développement local, les builds de préversion et la production.
@@ -71,7 +71,7 @@ function resolveApiUrl(): string {
 const API_URL = resolveApiUrl();
 
 const config: ExpoConfig = {
-  name: 'DEVISIA',
+  name: 'DEVISERA',
   slug: 'devisia',
   // Compte propriétaire du projet EAS : sans lui, un build lancé depuis un
   // autre compte Expo créerait un projet homonyme au lieu d'alimenter celui-ci.
@@ -90,15 +90,15 @@ const config: ExpoConfig = {
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       NSMicrophoneUsageDescription:
-        'DEVISIA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
+        'DEVISERA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
       NSCameraUsageDescription:
-        'DEVISIA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
+        'DEVISERA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
       NSPhotoLibraryUsageDescription:
-        'DEVISIA accède à vos photos pour joindre des images de chantier à vos devis.',
+        'DEVISERA accède à vos photos pour joindre des images de chantier à vos devis.',
       NSSpeechRecognitionUsageDescription:
-        'DEVISIA transcrit votre description de chantier pour préparer le devis à votre place.',
+        'DEVISERA transcrit votre description de chantier pour préparer le devis à votre place.',
       NSFaceIDUsageDescription:
-        'DEVISIA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
+        'DEVISERA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
     },
   },
 
@@ -115,7 +115,7 @@ const config: ExpoConfig = {
       'android.permission.POST_NOTIFICATIONS',
     ],
     // Ajoutées automatiquement par React Native et certaines dépendances, mais
-    // inutiles à DEVISIA : elles déclencheraient des questions de conformité
+    // inutiles à DEVISERA : elles déclencheraient des questions de conformité
     // lors de la revue Google Play.
     blockedPermissions: [
       'android.permission.SYSTEM_ALERT_WINDOW',
@@ -132,7 +132,7 @@ const config: ExpoConfig = {
   plugins: [
     'expo-iap',
     'expo-router',
-    // Applique `userInterfaceStyle` sur Android : l'interface DEVISIA est
+    // Applique `userInterfaceStyle` sur Android : l'interface DEVISERA est
     // dessinée en clair, elle ne doit pas suivre le thème sombre du système.
     'expo-system-ui',
     'expo-font',
@@ -150,7 +150,7 @@ const config: ExpoConfig = {
       'expo-secure-store',
       {
         faceIDPermission:
-          'DEVISIA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
+          'DEVISERA protège votre session par Face ID pour que vos devis et vos clients restent privés.',
       },
     ],
     'expo-sharing',
@@ -159,18 +159,18 @@ const config: ExpoConfig = {
       'expo-image-picker',
       {
         photosPermission:
-          'DEVISIA accède à vos photos pour joindre des images de chantier à vos devis.',
+          'DEVISERA accède à vos photos pour joindre des images de chantier à vos devis.',
         cameraPermission:
-          'DEVISIA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
+          'DEVISERA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
       },
     ],
     [
       '@jamsch/expo-speech-recognition',
       {
         microphonePermission:
-          'DEVISIA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
+          'DEVISERA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
         speechRecognitionPermission:
-          'DEVISIA transcrit votre description de chantier pour préparer le devis à votre place.',
+          'DEVISERA transcrit votre description de chantier pour préparer le devis à votre place.',
       },
     ],
     [
