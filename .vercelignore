@@ -1,6 +1,7 @@
 # Only application source belongs in hosted build uploads.
 node_modules/
 mobile/
+tests/
 .next/
 .git/
 .vercel/
