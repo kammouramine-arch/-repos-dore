@@ -1,5 +1,25 @@
 # Follow-up from build 8 device testing
 
+## September 6 — video-driven corrections, pending device QA
+- Inspected both attached recordings via local frame contact sheets. Instagram reference shows a bottom-bar thumb scrubbing continuously while content stays put; earlier full-page-pager interpretation was incorrect. Replaced the adjacent-tab swipe wrapper with a custom continuous thumb bar, direct destination selection on release, cancellation outside the bar, accessible tap alternatives, and protection against dragging into the create-quote action. Keyboard hides the custom bar. Reduce Motion disables settling springs. Native iPhone gesture QA remains required.
+- DEVISIA recording shows dashboard chrome promptly, followed by roughly five seconds of dashboard skeleton, rather than a five-second splash. Added an encrypted 24-hour dashboard display snapshot bound to the exact login token, restored without overwriting a fresh network response. Sign-out deletes it; labels distinguish last-known data from live refresh. This improves returning-user perceived loading, not proven server response latency. First uncached load still needs profiling.
+- 192 unit tests pass, including scrub destination and snapshot token/expiry tests. Mobile typecheck/lint and iOS export passed; no measured device improvement claimed yet.
+- Apple distribution draft had no attached build and displayed a placeholder icon. Attached existing validated build 11 and saved (no review/public submission). After reload, App Store Connect header visibly shows the blue DEVISIA D. Native TestFlight purchase-sheet icon propagation still needs device verification.
+
+## Build 11 — submitted for cloud build
+- Completion verified: EAS build FINISHED, submission FINISHED with error null. Apple upload Complete, build acec8d0c-9686-43d2-b84d-213cfe1384f8, assigned to DEVISIA Internal. Available for internal testing; not submitted for public release. Follow-up paused after verification.
+- User explicitly approved source upload to Expo and automatic Apple TestFlight submission. Uploaded successfully September 5, 2026. EAS build 90c5100b-1484-421e-885d-52d89edb07be, version 1.0.0 (11); automatic submission f10eddd3-0bb4-459e-aede-52d37b0495ce scheduled. Completion and Apple tester availability not yet verified.
+- Includes the navigation/touch polish and clearly labeled French reference pricing below. Purchase-sheet logo remains unresolved. Preflight rerun: 186 unit tests passed, mobile typecheck and lint passed.
+- Heartbeat follow-up scheduled to verify build, submission and availability; do not launch a duplicate build.
+
+## Native purchase-sheet icon investigation
+- User clarified the missing artwork is above the product name in Apple's Double Click to Subscribe sheet, not inside our paywall. A screenshot is not required to identify the affected surface.
+- Verified app.config.ts points to assets/icon.png and visually checked the blue/white DEVISIA D asset. PNG is 1024 x 1024, 8-bit RGB without alpha. No placeholder replacement is needed in this source asset.
+- App Store Connect build 10 metadata reports Validated and the expected fr.devisia.app bundle ID. This does not by itself verify the artwork rendered on the device purchase sheet.
+- Essentiel's empty optional subscription image is described by Apple's UI as artwork for win-back offers, offer-code redemption and App Store promotion. No evidence that uploading it fixes this standard purchase sheet; did not change it speculatively.
+- A developer report at https://developer.apple.com/forums/thread/702503 describes the same missing pre-release purchase-sheet icon and reports support saying it appears after release. This is a third-party report, not confirmation for DEVISIA. Suspected sandbox/pre-release behavior remains unverified; do not promise public release will fix it or launch publicly just to test it.
+- No code or Apple configuration change made for this investigation. Icon issue remains open for device/release verification or Apple Developer Support. Navigation polish below remains unreleased.
+
 ## Navigation polish after build 10 — local, not released
 - Continued polish: safe-area-aware bottom bar height/padding and rounded top corners; swipe bounds follow actual bar height instead of a hardcoded strip. Shared spring feedback now covers buttons, cards and settings rows, resets when Reduce Motion changes, and does not delay actions. Plan cards keep a constant border width to avoid selection layout jumps and are disabled during purchase processing.
 - Extracted navigation gesture rules with five new unit tests: skips quote action, no edge wrap, ignores hidden routes, small gestures and content/vertical drags. Full unit suite: 186 tests passed. Mobile typecheck, lint, iOS bundle export and diff checks passed. Physical-device appearance/gesture testing still pending; no new TestFlight build issued in this pass.

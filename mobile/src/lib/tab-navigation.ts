@@ -12,3 +12,9 @@ export function tabSwipeDestination(pathname: string, dx: number) {
 export function isTabBarSwipe(input: { startY: number; currentY: number; height: number; barHeight: number; dx: number; dy: number }) {
   return input.startY >= input.height - input.barHeight && input.currentY >= input.height - input.barHeight && Math.abs(input.dx) > 22 && Math.abs(input.dx) > Math.abs(input.dy) * 2;
 }
+/** Nearest content slot. The central create action must never fire on a drag. */
+export function scrubSlot(x: number, width: number): number | null {
+  if (!Number.isFinite(x) || !Number.isFinite(width) || width <= 0) return null;
+  const slot = Math.max(0, Math.min(4, Math.floor(x / (width / 5))));
+  return slot === 2 ? (x < width / 2 ? 1 : 3) : slot;
+}

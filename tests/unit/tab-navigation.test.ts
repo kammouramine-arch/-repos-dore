@@ -1,5 +1,24 @@
 import { describe, expect, it } from 'vitest';
-import { isTabBarSwipe, tabSwipeDestination } from '../../mobile/src/lib/tab-navigation';
+import { isTabBarSwipe, tabSwipeDestination, scrubSlot } from '../../mobile/src/lib/tab-navigation';
+
+describe('finger-following tab selection', () => {
+  it('selects the tab under the finger, including non-adjacent tabs', () => {
+    expect(scrubSlot(20, 400)).toBe(0);
+    expect(scrubSlot(100, 400)).toBe(1);
+    expect(scrubSlot(290, 400)).toBe(3);
+    expect(scrubSlot(399, 400)).toBe(4);
+  });
+  it('never invokes the central quote action while scrubbing', () => {
+    expect(scrubSlot(180, 400)).toBe(1);
+    expect(scrubSlot(220, 400)).toBe(3);
+  });
+  it('clamps edges and rejects invalid layout values', () => {
+    expect(scrubSlot(-20, 400)).toBe(0);
+    expect(scrubSlot(500, 400)).toBe(4);
+    expect(scrubSlot(NaN, 400)).toBeNull();
+    expect(scrubSlot(20, 0)).toBeNull();
+  });
+});
 
 describe('bottom navigation gestures', () => {
   it('moves through content tabs without opening the quote action', () => {

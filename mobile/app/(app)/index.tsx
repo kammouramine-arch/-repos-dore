@@ -27,6 +27,8 @@ import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
+import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
+import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 
 /**
@@ -104,7 +106,27 @@ function relativeDay(iso: string): string {
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const query = useQuery<DashboardDTO>(() => api.dashboard(30), [], 'dashboard:30');
+  const query = useQuery<DashboardDTO>(async () => {
+    const token = await readToken();
+    const data = await api.dashboard(30);
+    if (token) void writeDashboardSnapshot(token, data);
+    return data;
+  }, [], 'dashboard:30');
+  const setDashboard = query.setData;
+  React.useEffect(() => {
+    let disposed = false;
+    const epoch = cacheEpoch();
+    void (async () => {
+      const token = await readToken();
+      if (!token) return;
+      const snapshot = await readDashboardSnapshot<DashboardDTO>(token);
+      if (!disposed && epoch === cacheEpoch() && snapshot && !readQueryCache('dashboard:30')) {
+        // Never overwrite a network response which finished before disk restoration.
+        setDashboard(current => current ?? snapshot);
+      }
+    })().catch(() => undefined);
+    return () => { disposed = true; };
+  }, [setDashboard]);
 
   // Les montants changent pendant que l'artisan travaille : on recharge au retour.
   useFocusEffect(
@@ -213,6 +235,7 @@ export default function AccueilScreen() {
           }
         />
 
+        {(query.loading || query.refreshing || query.error) && <Caption>{query.error ? 'Dernières données disponibles — connexion à réessayer.' : 'Dernières données disponibles · actualisation en cours…'}</Caption>}
         <TrialBanner subscription={session?.subscription ?? null} />
 
         {!started ? (

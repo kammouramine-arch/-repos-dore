@@ -1,6 +1,7 @@
 import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import type { SessionDTO } from '@devisia/shared';
+import { decodeDashboardSnapshot } from './dashboard-snapshot';
 
 /**
  * Stockage du jeton de session.
@@ -10,6 +11,25 @@ import type { SessionDTO } from '@devisia/shared';
  */
 const KEY = 'devisia.session.token';
 const SNAPSHOT_KEY = 'devisia.session.snapshot';
+const DASHBOARD_KEY = 'devisia.dashboard.snapshot';
+
+/** Encrypted display-only data, bound to the exact login token. */
+export async function readDashboardSnapshot<T>(token: string): Promise<T | null> {
+  try {
+    const raw = Platform.OS === 'web' ? globalThis.localStorage?.getItem(DASHBOARD_KEY) : await SecureStore.getItemAsync(DASHBOARD_KEY);
+    return decodeDashboardSnapshot<T>(raw, token);
+  } catch { return null; }
+}
+
+export async function writeDashboardSnapshot<T>(token: string, data: T): Promise<void> {
+  try {
+    // A late response from a signed-out account must not become its successor's cache.
+    if (await readToken() !== token) return;
+    const raw = JSON.stringify({ token, data, at: Date.now() });
+    if (Platform.OS === 'web') globalThis.localStorage?.setItem(DASHBOARD_KEY, raw);
+    else await SecureStore.setItemAsync(DASHBOARD_KEY, raw, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
+  } catch { /* A display cache must never fail an otherwise successful request. */ }
+}
 
 /** Display snapshot only. Every API request still authenticates on the server. */
 export async function readSessionSnapshot(token: string): Promise<SessionDTO | null> {
@@ -60,6 +80,7 @@ export async function clearToken(): Promise<void> {
     try {
       globalThis.localStorage?.removeItem(KEY);
       globalThis.localStorage?.removeItem(SNAPSHOT_KEY);
+      globalThis.localStorage?.removeItem(DASHBOARD_KEY);
     } catch {
       // Rien à nettoyer.
     }
@@ -67,4 +88,5 @@ export async function clearToken(): Promise<void> {
   }
   await SecureStore.deleteItemAsync(KEY);
   await SecureStore.deleteItemAsync(SNAPSHOT_KEY);
+  await SecureStore.deleteItemAsync(DASHBOARD_KEY);
 }

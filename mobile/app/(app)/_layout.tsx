@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { Tabs, usePathname, useRouter } from 'expo-router';
-import { PanResponder, Pressable, View, useWindowDimensions } from 'react-native';
+import { Tabs, useRouter } from 'expo-router';
+import { Pressable, View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { Ionicons } from '@expo/vector-icons';
 import { colors, radius, shadows } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { useReducedMotion } from '@/components/motion';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { isTabBarSwipe, tabSwipeDestination } from '@/lib/tab-navigation';
+import { ScrubTabBar } from '@/components/scrub-tab-bar';
 
 /**
  * Navigation principale. Le bouton central « Nouveau devis » reste accessible
@@ -16,23 +16,14 @@ import { isTabBarSwipe, tabSwipeDestination } from '@/lib/tab-navigation';
 export default function AppTabsLayout() {
   const router = useRouter();
   const reduced = useReducedMotion();
-  const pathname = usePathname();
-  const { height } = useWindowDimensions();
   const insets = useSafeAreaInsets();
   const bottomPadding = Math.max(insets.bottom, 12);
   const barHeight = 64 + bottomPadding;
-  const swipe = React.useMemo(() => PanResponder.create({
-    // Only the bottom navigation owns this gesture, never lists or form fields.
-    onMoveShouldSetPanResponderCapture: (event, gesture) => isTabBarSwipe({ startY: gesture.y0, currentY: event.nativeEvent.pageY, height, barHeight, dx: gesture.dx, dy: gesture.dy }),
-    onPanResponderRelease: (_event, gesture) => {
-      const destination = tabSwipeDestination(pathname, gesture.dx);
-      if (destination) { void Haptics.selectionAsync().catch(() => undefined); router.navigate(destination); }
-    },
-  }), [height, barHeight, pathname, router]);
 
   return (
-    <View style={{ flex: 1 }} {...swipe.panHandlers}>
+    <View style={{ flex: 1 }}>
     <Tabs
+      tabBar={props => <ScrubTabBar {...props} />}
       screenListeners={{ tabPress: () => { void Haptics.selectionAsync().catch(() => undefined); } }}
       screenOptions={{
         animation: reduced ? 'none' : 'shift',
