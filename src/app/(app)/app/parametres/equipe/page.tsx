@@ -4,7 +4,6 @@ import { ArrowLeft } from 'lucide-react';
 import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions';
-import { PLANS } from '@/lib/billing/plans';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Alert } from '@/components/ui/feedback';
@@ -17,7 +16,7 @@ export default async function TeamPage() {
   const auth = await requirePermission('settings:read');
   const organizationId = auth.organization.organizationId;
 
-  const [members, invitations, subscription] = await Promise.all([
+  const [members, invitations] = await Promise.all([
     prisma.organizationMember.findMany({
       where: { organizationId, deletedAt: null },
       include: { user: true },
@@ -27,11 +26,7 @@ export default async function TeamPage() {
       where: { organizationId, status: 'PENDING' },
       orderBy: { createdAt: 'desc' },
     }),
-    prisma.subscription.findUnique({ where: { organizationId } }),
   ]);
-
-  const plan = subscription?.plan ?? 'ESSENTIEL';
-  const seats = PLANS[plan].limits.seats;
 
   return (
     <div className="mx-auto max-w-2xl space-y-6">
@@ -46,8 +41,8 @@ export default async function TeamPage() {
       <header>
         <h1 className="text-[22px] font-semibold tracking-[-0.025em] text-ink sm:text-[26px]">Équipe</h1>
         <p className="mt-1.5 text-[14px] text-muted">
-          {members.length} membre{members.length > 1 ? 's' : ''} sur {seats} inclus dans la formule{' '}
-          {PLANS[plan].name}.
+          {members.length} membre{members.length > 1 ? 's' : ''} actuellement associé
+          {members.length > 1 ? 's' : ''} à cette entreprise.
         </p>
       </header>
 
