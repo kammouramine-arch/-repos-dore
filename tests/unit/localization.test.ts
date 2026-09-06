@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { resolveBusinessLocale, businessDocumentLabels } from '@devisia/shared';
 import { localizedSystemPrompt } from '@/lib/ai/prompts';
 import { buildTemplateFollowUp } from '@/lib/ai/heuristic';
+import { quoteSentEmail } from '@/lib/email/templates';
 
 describe('language and business-country separation', () => {
   it('keeps English independent from the UK/US business country', () => {
@@ -26,5 +27,13 @@ describe('language and business-country separation', () => {
     expect(message.message).toContain('Hello Alex');
     expect(message.message).not.toContain('Bonjour');
     expect(message.message).toContain('$125.00');
+  });
+
+  it('renders customer quote email in the selected English region', () => {
+    const email = quoteSentEmail({ customerName: 'Alex', companyName: 'Trade Co', quoteNumber: 'Q-1', quoteTitle: 'Repair', totalCents: 12500, publicUrl: 'https://example.test/q', language: 'en', country: 'US', currency: 'USD' });
+    expect(email.subject).toContain('Your quote');
+    expect(email.text).toContain('$125.00');
+    expect(email.text).not.toContain('Bonjour');
+    expect(email.html).toContain('lang="en"');
   });
 });

@@ -31,13 +31,34 @@ function safeText(value: string | null | undefined): string {
     .replace(new RegExp('[^\\u0020-\\u00ff\\u0152\\u0153\\u20ac]', 'g'), '');
 }
 
-function money(cents: number): string {
-  return `${new Intl.NumberFormat('fr-FR', { minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(centsToEuros(cents)).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ')} EUR`;
+function money(cents: number, input: Pick<QuotePdfInput, 'language' | 'country' | 'currency'>): string {
+  const language = input.language === 'en';
+  const locale = language ? (input.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR';
+  const currency = input.currency ?? (input.country === 'GB' ? 'GBP' : input.country === 'US' ? 'USD' : 'EUR');
+  return new Intl.NumberFormat(locale, { style: 'currency', currency, minimumFractionDigits: 2, maximumFractionDigits: 2 }).format(centsToEuros(cents)).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
 }
 
-function formatDate(date: Date | null | undefined): string {
+function formatDate(date: Date | null | undefined, input: Pick<QuotePdfInput, 'language' | 'country'>): string {
   if (!date) return '-';
-  return new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(date).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
+  const locale = input.language === 'en' ? (input.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR';
+  return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
+}
+
+function copy(input: Pick<QuotePdfInput, 'language' | 'country'>) {
+  const english = input.language === 'en';
+  const us = input.country === 'US';
+  return english ? {
+    title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'DESCRIPTION',
+    designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: 'TAX', totalEx: 'TOTAL',
+    totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
+    deposit: 'Deposit due', duration: 'Estimated duration', payment: 'PAYMENT TERMS', conditions: 'TERMS', notes: 'NOTES',
+    acceptance: 'ACCEPTANCE', acceptanceText: 'Please sign and return this quote to confirm.', date: 'Date', signature: 'Customer name and signature',
+    validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
+  } : {
+    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: 'TVA', total: 'TOTAL HT',
+    totalExLabel: 'Total HT', netEx: 'Net HT', vat: 'TVA', notApplicable: 'Non applicable', totalEx: 'Total HT', deposit: 'Acompte à la commande', duration: 'Durée estimée', payment: 'MODALITÉS DE PAIEMENT', conditions: 'CONDITIONS', notes: 'NOTES',
+    acceptance: 'BON POUR ACCORD', acceptanceText: "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».", date: 'Date', signature: 'Nom et signature du client', validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
+  };
 }
 
 export interface QuotePdfCompany {
@@ -101,6 +122,9 @@ export interface QuotePdfInput {
   terms?: string | null;
   paymentTerms?: string | null;
   footer?: string | null;
+  language?: string;
+  country?: string;
+  currency?: string;
 }
 
 function hexToRgb(hex: string | null | undefined) {
@@ -228,7 +252,8 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
 
   // Bloc identité du devis, aligné à droite.
   const rightX = A4.width - MARGIN;
-  const label = 'DEVIS';
+  const labels = copy(input);
+  const label = labels.title;
   drawText(ctx, label, {
     x: rightX - ctx.bold.widthOfTextAtSize(label, 22),
     y: top - 18,
@@ -243,7 +268,7 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
     size: 10.5,
     color: MUTED,
   });
-  const dateText = `Émis le ${formatDate(input.createdAt)}`;
+  const dateText = `${labels.issued} ${formatDate(input.createdAt, input)}`;
   drawText(ctx, dateText, {
     x: rightX - ctx.regular.widthOfTextAtSize(safeText(dateText), 9),
     y: top - 48,
@@ -251,7 +276,7 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
     color: MUTED,
   });
   if (input.validUntil) {
-    const validity = `Valable jusqu'au ${formatDate(input.validUntil)}`;
+    const validity = `${labels.validUntil} ${formatDate(input.validUntil, input)}`;
     drawText(ctx, validity, {
       x: rightX - ctx.regular.widthOfTextAtSize(safeText(validity), 9),
       y: top - 60,
@@ -292,8 +317,9 @@ function drawParties(ctx: Ctx, input: QuotePdfInput) {
     input.customer.phone,
   ].filter(Boolean) as string[];
 
-  drawText(ctx, 'ENTREPRISE', { x: MARGIN, y: startY, size: 7.5, bold: true, color: MUTED });
-  drawText(ctx, 'CLIENT', { x: MARGIN + colWidth + 24, y: startY, size: 7.5, bold: true, color: MUTED });
+  const labels = copy(input);
+  drawText(ctx, labels.company, { x: MARGIN, y: startY, size: 7.5, bold: true, color: MUTED });
+  drawText(ctx, labels.customer, { x: MARGIN + colWidth + 24, y: startY, size: 7.5, bold: true, color: MUTED });
 
   let leftY = startY - 14;
   for (const [index, line] of companyLines.entries()) {
@@ -317,7 +343,7 @@ function drawParties(ctx: Ctx, input: QuotePdfInput) {
 
 function drawObject(ctx: Ctx, input: QuotePdfInput) {
   ensureSpace(ctx, 90);
-  drawText(ctx, 'OBJET', { x: MARGIN, y: ctx.y, size: 7.5, bold: true, color: MUTED });
+  drawText(ctx, copy(input).object, { x: MARGIN, y: ctx.y, size: 7.5, bold: true, color: MUTED });
   ctx.y -= 15;
   for (const line of wrap(input.title, ctx.bold, 12.5, CONTENT_WIDTH)) {
     drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 12.5, bold: true });
@@ -358,7 +384,7 @@ const COLUMNS = {
   total: A4.width - MARGIN - 8,
 };
 
-function drawTableHeader(ctx: Ctx) {
+function drawTableHeader(ctx: Ctx, input: QuotePdfInput) {
   ctx.page.drawRectangle({
     x: MARGIN,
     y: ctx.y - 6,
@@ -367,12 +393,13 @@ function drawTableHeader(ctx: Ctx) {
     color: SOFT,
   });
   const y = ctx.y + 1;
-  drawText(ctx, 'DÉSIGNATION', { x: COLUMNS.label, y, size: 7.5, bold: true, color: MUTED });
-  drawRight(ctx, 'QTÉ', COLUMNS.quantity + 26, y, 7.5, true, MUTED);
-  drawText(ctx, 'UNITÉ', { x: COLUMNS.unit, y, size: 7.5, bold: true, color: MUTED });
-  drawRight(ctx, 'P.U. HT', COLUMNS.unitPrice + 50, y, 7.5, true, MUTED);
-  drawRight(ctx, 'TVA', COLUMNS.vat + 30, y, 7.5, true, MUTED);
-  drawRight(ctx, 'TOTAL HT', COLUMNS.total, y, 7.5, true, MUTED);
+  const labels = copy(input);
+  drawText(ctx, labels.designation, { x: COLUMNS.label, y, size: 7.5, bold: true, color: MUTED });
+  drawRight(ctx, labels.quantity, COLUMNS.quantity + 26, y, 7.5, true, MUTED);
+  drawText(ctx, labels.unit, { x: COLUMNS.unit, y, size: 7.5, bold: true, color: MUTED });
+  drawRight(ctx, labels.unitPrice, COLUMNS.unitPrice + 50, y, 7.5, true, MUTED);
+  drawRight(ctx, labels.tax, COLUMNS.vat + 30, y, 7.5, true, MUTED);
+  drawRight(ctx, labels.total, COLUMNS.total, y, 7.5, true, MUTED);
   ctx.y -= 24;
 }
 
@@ -398,7 +425,7 @@ function drawRight(
 
 function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
   ensureSpace(ctx, 80);
-  drawTableHeader(ctx);
+  drawTableHeader(ctx, input);
 
   for (const line of input.lines) {
     const labelLines = wrap(line.label, ctx.bold, 9.5, 220);
@@ -407,7 +434,7 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
 
     if (ctx.y - height < MARGIN + 80) {
       newPage(ctx);
-      drawTableHeader(ctx);
+      drawTableHeader(ctx, input);
     }
 
     const rowTop = ctx.y;
@@ -422,9 +449,9 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
 
     drawRight(ctx, formatQuantity(line.quantity), COLUMNS.quantity + 26, rowTop);
     drawText(ctx, line.unit, { x: COLUMNS.unit, y: rowTop, size: 8, color: MUTED });
-    drawRight(ctx, money(line.unitPriceCents), COLUMNS.unitPrice + 50, rowTop, 8);
+    drawRight(ctx, money(line.unitPriceCents, input), COLUMNS.unitPrice + 50, rowTop, 8);
     drawRight(ctx, input.company.vatExempt ? '-' : formatPercent(line.vatRate), COLUMNS.vat + 30, rowTop, 8);
-    drawRight(ctx, money(line.lineTotalCents), COLUMNS.total, rowTop, 8, true);
+    drawRight(ctx, money(line.lineTotalCents, input), COLUMNS.total, rowTop, 8, true);
 
     if (line.discountRate > 0) {
       drawText(ctx, `Remise ${formatPercent(line.discountRate)}`, {
@@ -448,21 +475,22 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawTotals(ctx: Ctx, input: QuotePdfInput) {
+  const labels = copy(input);
   const rows: { label: string; value: string; strong?: boolean }[] = [
-    { label: 'Total HT', value: money(input.subtotalCents) },
+    { label: labels.totalExLabel, value: money(input.subtotalCents, input) },
   ];
   if (input.discountCents > 0) {
     rows.push({
       label: `Remise ${formatPercent(input.discountRate)}`,
-      value: `- ${money(input.discountCents)}`,
+      value: `- ${money(input.discountCents, input)}`,
     });
-    rows.push({ label: 'Net HT', value: money(input.netSubtotalCents) });
+    rows.push({ label: labels.netEx, value: money(input.netSubtotalCents, input) });
   }
   if (input.company.vatExempt) {
-    rows.push({ label: 'TVA', value: 'Non applicable' });
+    rows.push({ label: labels.vat, value: labels.notApplicable });
   } else {
     for (const bucket of input.vatBreakdown.filter((b) => b.baseCents !== 0)) {
-      rows.push({ label: `TVA ${formatPercent(bucket.rate)}`, value: money(bucket.vatCents) });
+      rows.push({ label: `${labels.vat} ${formatPercent(bucket.rate)}`, value: money(bucket.vatCents, input) });
     }
   }
 
@@ -487,19 +515,19 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
     height: 32,
     color: SOFT,
   });
-  drawText(ctx, 'TOTAL TTC', { x: boxX, y: y - 12, size: 10.5, bold: true });
-  drawRight(ctx, money(input.totalCents), A4.width - MARGIN, y - 13, 13, true, ctx.accent);
+  drawText(ctx, labels.total, { x: boxX, y: y - 12, size: 10.5, bold: true });
+  drawRight(ctx, money(input.totalCents, input), A4.width - MARGIN, y - 13, 13, true, ctx.accent);
   y -= 34;
 
   if (input.depositCents > 0) {
-    drawText(ctx, 'Acompte à la commande', { x: boxX, y: y - 8, size: 9, color: MUTED });
-    drawRight(ctx, money(input.depositCents), A4.width - MARGIN, y - 8, 9, true);
+    drawText(ctx, labels.deposit, { x: boxX, y: y - 8, size: 9, color: MUTED });
+    drawRight(ctx, money(input.depositCents, input), A4.width - MARGIN, y - 8, 9, true);
     y -= 18;
   }
 
   if (input.estimatedDurationMin) {
     const hours = Math.round((input.estimatedDurationMin / 60) * 10) / 10;
-    drawText(ctx, `Durée estimée : ${formatQuantity(hours)} h`, {
+    drawText(ctx, `${labels.duration}: ${formatQuantity(hours)} h`, {
       x: MARGIN,
       y: ctx.y - 6,
       size: 9,
@@ -511,10 +539,11 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawConditions(ctx: Ctx, input: QuotePdfInput) {
+  const labels = copy(input);
   const blocks: { title: string; body: string }[] = [];
-  if (input.paymentTerms) blocks.push({ title: 'MODALITÉS DE PAIEMENT', body: input.paymentTerms });
-  if (input.terms) blocks.push({ title: 'CONDITIONS', body: input.terms });
-  if (input.notes) blocks.push({ title: 'NOTES', body: input.notes });
+  if (input.paymentTerms) blocks.push({ title: labels.payment, body: input.paymentTerms });
+  if (input.terms) blocks.push({ title: labels.conditions, body: input.terms });
+  if (input.notes) blocks.push({ title: labels.notes, body: input.notes });
 
   for (const block of blocks) {
     const lines = wrap(block.body, ctx.regular, 8.5, CONTENT_WIDTH);
@@ -530,6 +559,7 @@ function drawConditions(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
+  const labels = copy(input);
   ensureSpace(ctx, 108);
   const boxY = ctx.y - 92;
   ctx.page.drawRectangle({
@@ -541,7 +571,7 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
     borderWidth: 0.8,
     color: rgb(1, 1, 1),
   });
-  drawText(ctx, 'BON POUR ACCORD', {
+  drawText(ctx, labels.acceptance, {
     x: MARGIN + 14,
     y: boxY + 74,
     size: 8,
@@ -550,11 +580,11 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
   });
   drawText(
     ctx,
-    "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».",
+    labels.acceptanceText,
     { x: MARGIN + 14, y: boxY + 58, size: 8.5, color: MUTED },
   );
-  drawText(ctx, 'Date : ..........................', { x: MARGIN + 14, y: boxY + 32, size: 9 });
-  drawText(ctx, 'Nom et signature du client :', { x: MARGIN + 250, y: boxY + 32, size: 9 });
+  drawText(ctx, `${labels.date} : ..........................`, { x: MARGIN + 14, y: boxY + 32, size: 9 });
+  drawText(ctx, `${labels.signature} :`, { x: MARGIN + 250, y: boxY + 32, size: 9 });
   ctx.page.drawLine({
     start: { x: MARGIN + 250, y: boxY + 16 },
     end: { x: A4.width - MARGIN - 14, y: boxY + 16 },
@@ -562,7 +592,7 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
     color: LINE,
   });
   if (input.validUntil) {
-    drawText(ctx, `Offre valable jusqu'au ${formatDate(input.validUntil)}.`, {
+    drawText(ctx, `${labels.offerValid} ${formatDate(input.validUntil, input)}.`, {
       x: MARGIN + 14,
       y: boxY + 12,
       size: 8,

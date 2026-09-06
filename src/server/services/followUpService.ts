@@ -207,6 +207,7 @@ export async function sendFollowUp(input: SendFollowUpInput) {
       publicUrl: appUrl(`/devis/${quote.publicToken}`),
       companyName,
       brandColor: quote.organization.businessProfile?.brandColor,
+      language: quote.organization.locale,
     }),
   });
 

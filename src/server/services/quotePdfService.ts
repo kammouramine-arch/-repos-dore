@@ -99,6 +99,9 @@ export async function buildQuotePdf(quoteId: string): Promise<{ bytes: Uint8Arra
     terms: quote.terms ?? profile?.quoteTerms ?? null,
     paymentTerms: quote.paymentTerms ?? profile?.paymentTerms ?? null,
     footer: profile?.quoteFooter ?? null,
+    language: quote.organization.locale,
+    country: quote.organization.country,
+    currency: quote.organization.currency,
   };
 
   const bytes = await renderQuotePdf(input);

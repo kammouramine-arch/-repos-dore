@@ -22,6 +22,7 @@ interface LayoutOptions {
   body: string;
   cta?: { label: string; href: string };
   footnote?: string;
+  language?: 'fr' | 'en';
 }
 
 const NEUTRAL = {
@@ -35,7 +36,7 @@ export function layout(options: LayoutOptions): string {
   const brand = options.brandColor ?? '#0F62FE';
   const company = esc(options.companyName ?? 'DEVISIA');
   return `<!doctype html>
-<html lang="fr">
+<html lang="${options.language === 'en' ? 'en' : 'fr'}">
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -70,7 +71,7 @@ ${options.preview ? `<div style="display:none;max-height:0;overflow:hidden;opaci
       }
       <tr><td style="padding:28px 32px 26px 32px;">
         <div style="border-top:1px solid ${NEUTRAL.line};padding-top:16px;font-size:12px;line-height:1.6;color:${NEUTRAL.muted};">
-          Envoyé par <strong style="color:${NEUTRAL.ink};font-weight:600;">DEVISIA</strong> — l'IA qui transforme votre travail en devis.<br />
+          ${options.language === 'en' ? 'Sent by' : 'Envoyé par'} <strong style="color:${NEUTRAL.ink};font-weight:600;">DEVISIA</strong> — ${options.language === 'en' ? 'AI-powered quotes for your business.' : "l'IA qui transforme votre travail en devis."}<br />
           <a href="${appUrl()}" style="color:${NEUTRAL.muted};">devisia.fr</a>
         </div>
       </td></tr>
@@ -143,26 +144,34 @@ export function quoteSentEmail(params: {
   publicUrl: string;
   brandColor?: string;
   message?: string | null;
+  language?: string;
+  country?: string;
+  currency?: string;
 }): RenderedEmail {
+  const english = params.language === 'en';
+  const locale = english ? (params.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR';
+  const currency = params.currency ?? (params.country === 'GB' ? 'GBP' : params.country === 'US' ? 'USD' : 'EUR');
+  const amount = new Intl.NumberFormat(locale, { style: 'currency', currency }).format(params.totalCents / 100);
   const validity = params.validUntil
-    ? `Ce devis est valable jusqu'au ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(params.validUntil)}.`
+    ? (english ? `This quote is valid until ${new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(params.validUntil)}.` : `Ce devis est valable jusqu'au ${new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(params.validUntil)}.`)
     : '';
   return {
-    subject: `Votre devis ${params.quoteNumber} — ${params.companyName}`,
+    subject: english ? `Your quote ${params.quoteNumber} — ${params.companyName}` : `Votre devis ${params.quoteNumber} — ${params.companyName}`,
     html: layout({
-      title: `Votre devis ${esc(params.quoteNumber)}`,
+      title: english ? `Your quote ${esc(params.quoteNumber)}` : `Votre devis ${esc(params.quoteNumber)}`,
       companyName: params.companyName,
       brandColor: params.brandColor,
-      preview: `${params.quoteTitle} — ${formatCents(params.totalCents)} TTC`,
+      preview: `${params.quoteTitle} — ${amount}`,
       body:
-        p(`Bonjour ${esc(params.customerName)},`) +
-        (params.message ? p(esc(params.message).replace(/\n/g, '<br />')) : p(`Vous trouverez ci-dessous votre devis pour : <strong>${esc(params.quoteTitle)}</strong>.`)) +
-        p(`<strong style="font-size:20px;">${formatCents(params.totalCents)} TTC</strong>`) +
+        p(english ? `Hello ${esc(params.customerName)},` : `Bonjour ${esc(params.customerName)},`) +
+        (params.message ? p(esc(params.message).replace(/\n/g, '<br />')) : p(english ? `Please find your quote for: <strong>${esc(params.quoteTitle)}</strong>.` : `Vous trouverez ci-dessous votre devis pour : <strong>${esc(params.quoteTitle)}</strong>.`)) +
+        p(`<strong style="font-size:20px;">${amount}${english ? '' : ' TTC'}</strong>`) +
         (validity ? p(esc(validity)) : ''),
-      cta: { label: 'Consulter et accepter le devis', href: params.publicUrl },
-      footnote: 'Le devis complet est également joint à cet email au format PDF.',
+      cta: { label: english ? 'View and respond to the quote' : 'Consulter et accepter le devis', href: params.publicUrl },
+      footnote: english ? 'The complete quote is also attached as a PDF.' : 'Le devis complet est également joint à cet email au format PDF.',
+      language: english ? 'en' : 'fr',
     }),
-    text: `Bonjour ${params.customerName},\n\nVotre devis ${params.quoteNumber} — ${params.quoteTitle}\nMontant : ${formatCents(params.totalCents)} TTC\n\nConsulter : ${params.publicUrl}\n\n${params.companyName}`,
+    text: english ? `Hello ${params.customerName},\n\nYour quote ${params.quoteNumber} — ${params.quoteTitle}\nAmount: ${amount}\n\nView: ${params.publicUrl}\n\n${params.companyName}` : `Bonjour ${params.customerName},\n\nVotre devis ${params.quoteNumber} — ${params.quoteTitle}\nMontant : ${amount} TTC\n\nConsulter : ${params.publicUrl}\n\n${params.companyName}`,
   };
 }
 
@@ -172,7 +181,9 @@ export function followUpEmail(params: {
   publicUrl: string;
   companyName: string;
   brandColor?: string;
+  language?: string;
 }): RenderedEmail {
+  const english = params.language === 'en';
   return {
     subject: params.subject,
     html: layout({
@@ -180,7 +191,8 @@ export function followUpEmail(params: {
       companyName: params.companyName,
       brandColor: params.brandColor,
       body: p(esc(params.message).replace(/\n/g, '<br />')),
-      cta: { label: 'Revoir le devis', href: params.publicUrl },
+      cta: { label: english ? 'Review the quote' : 'Revoir le devis', href: params.publicUrl },
+      language: english ? 'en' : 'fr',
     }),
     text: `${params.message}\n\nRevoir le devis : ${params.publicUrl}`,
   };

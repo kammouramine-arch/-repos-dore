@@ -67,6 +67,9 @@ export async function sendQuote(input: SendQuoteInput) {
     publicUrl,
     brandColor: profile?.brandColor,
     message: input.message,
+    language: quote.organization.locale,
+    country: quote.organization.country,
+    currency: quote.organization.currency,
   });
 
   // Le résultat n'est pas jeté : sans fournisseur configuré, l'email n'est pas
