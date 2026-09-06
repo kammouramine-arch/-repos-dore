@@ -20,6 +20,7 @@ export function normalizeEmail(email: string): string {
 
 export interface SignUpInput {
   billingProvider?: 'apple';
+  verificationMethod?: 'code';
   email: string;
   password: string;
   firstName?: string;
@@ -65,7 +66,7 @@ export async function signUp(input: SignUpInput) {
   });
   await trackEvent('signup', { organizationId: organization.id, userId: user.id });
 
-  await (input.billingProvider === 'apple' ? requestEmailCode(user.id, { email }) : sendVerificationEmail(user.id, email)).catch((error) =>
+  await (input.verificationMethod === 'code' || input.billingProvider === 'apple' ? requestEmailCode(user.id, { email }) : sendVerificationEmail(user.id, email)).catch((error) =>
     console.error('[auth] envoi de vérification impossible', error),
   );
   await getEmailProvider()

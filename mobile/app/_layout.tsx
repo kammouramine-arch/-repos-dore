@@ -27,7 +27,7 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 function RootNavigator() {
   const { status, session, offline, refresh } = useAuth();
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
-  const startupAt = React.useRef(Date.now());
+  const startupAt = React.useRef<number | null>(null);
   const startupRecorded = React.useRef(false);
 
   React.useEffect(() => {
@@ -37,9 +37,13 @@ function RootNavigator() {
   const decided = status !== 'chargement' && seenOnboarding !== null;
 
   React.useEffect(() => {
+    if (startupAt.current === null) startupAt.current = Date.now();
+  }, []);
+
+  React.useEffect(() => {
     if (decided && !startupRecorded.current) {
       startupRecorded.current = true;
-      recordDiagnostic({ area: 'startup', durationMs: Date.now() - startupAt.current, code: offline ? 'ROOT_DECIDED_OFFLINE' : 'ROOT_DECIDED' });
+      recordDiagnostic({ area: 'startup', durationMs: Date.now() - (startupAt.current ?? Date.now()), code: offline ? 'ROOT_DECIDED_OFFLINE' : 'ROOT_DECIDED' });
     }
   }, [decided, offline]);
 
@@ -108,6 +112,26 @@ function RootNavigator() {
 
   if (!decided) {
     return <LaunchScreen />;
+  }
+
+  // A session is not a verified identity. New mobile accounts receive a code
+  // before they can enter quotes, clients, or billing. Keeping this gate at
+  // the root also covers an unverified account that later signs in on another
+  // device; it cannot be bypassed by navigating directly to a tab.
+  if (connected && session && !session.user.emailVerified) {
+    return (
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: colors.surface },
+          animation: 'fade_from_bottom',
+          animationDuration: 220,
+        }}
+      >
+        <Stack.Screen name="verification" />
+        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
+      </Stack>
+    );
   }
 
   return (

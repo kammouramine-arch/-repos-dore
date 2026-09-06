@@ -40,7 +40,7 @@ export default function InscriptionScreen() {
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace('/abonnement');
+      router.replace({ pathname: '/verification' } as never);
     } catch {
       // Message affiché sous le champ mot de passe.
     } finally {

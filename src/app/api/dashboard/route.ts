@@ -13,7 +13,7 @@ const ALLOWED: DashboardPeriod[] = [7, 30, 90, 365];
 /** Indicateurs du tableau de bord, partagés par le web et le mobile. */
 export async function GET(request: Request) {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const { periode } = parseQuery(request, querySchema);
     const period = (ALLOWED.includes(periode as DashboardPeriod) ? periode : 30) as DashboardPeriod;
     const organizationId = auth.organization.organizationId;

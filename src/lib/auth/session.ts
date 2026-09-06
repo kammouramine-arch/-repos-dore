@@ -174,21 +174,24 @@ export async function getAuthContext(): Promise<AuthContext | null> {
 }
 
 /** Contexte obligatoire — lève une AppError 401 si absent. */
-export async function requireAuth(): Promise<AuthContext> {
+export async function requireAuth(options: { requireVerified?: boolean } = {}): Promise<AuthContext> {
   const ctx = await getAuthContext();
   if (!ctx) throw unauthenticated();
+  if (options.requireVerified && !ctx.user.emailVerified) {
+    throw forbidden('Confirmez votre adresse email pour accéder à cet espace.');
+  }
   return ctx;
 }
 
 /** Contexte + vérification de permission dans l'organisation active. */
 export async function requirePermission(permission: Permission): Promise<AuthContext> {
-  const ctx = await requireAuth();
+  const ctx = await requireAuth({ requireVerified: true });
   assertCan(ctx.organization.role, permission);
   return ctx;
 }
 
 export async function requirePlatformAdmin(): Promise<AuthContext> {
-  const ctx = await requireAuth();
+  const ctx = await requireAuth({ requireVerified: true });
   if (!ctx.user.isPlatformAdmin) throw forbidden('Espace réservé à l’équipe DEVISERA.');
   return ctx;
 }

@@ -20,7 +20,7 @@ type Kind = (typeof KINDS)[number];
 /** Téléversement d'un fichier, cloisonné par organisation. */
 export async function POST(request: Request) {
   try {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const organizationId = auth.organization.organizationId;
     await enforceRateLimit({ key: `upload:${organizationId}`, ...RATE_LIMITS.upload });
 

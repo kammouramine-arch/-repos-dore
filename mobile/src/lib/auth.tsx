@@ -182,7 +182,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     () => ({
       ...state,
       signIn: (email, password) => handle(() => api.auth.signIn(email, password, 'DEVISERA mobile')),
-      signUp: (input) => handle(() => api.auth.signUp({ ...input, deviceName: 'DEVISERA mobile', ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}) })),
+      signUp: (input) => handle(() => api.auth.signUp({
+        ...input,
+        deviceName: 'DEVISERA mobile',
+        verificationMethod: 'code',
+        ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}),
+      })),
       signOut: async () => {
         sessionGeneration.current += 1;
         clearQueryCache();

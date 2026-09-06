@@ -4,7 +4,7 @@ import { countUnread, listNotifications, markAllRead } from '@/server/services/n
 
 export async function GET() {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const organizationId = auth.organization.organizationId;
     const [items, unread] = await Promise.all([
       listNotifications(organizationId, 25),
@@ -27,7 +27,7 @@ export async function GET() {
 
 export async function POST() {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     await markAllRead(auth.organization.organizationId);
     return ok({ read: true });
   });

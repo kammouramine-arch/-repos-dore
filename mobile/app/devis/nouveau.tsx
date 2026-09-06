@@ -38,6 +38,7 @@ import { useDictation } from '@/features/voice';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
 import { api } from '@/lib/api';
+import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
@@ -334,6 +335,7 @@ export default function NouveauDevisScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       toast({ title: 'Devis enregistré', description: 'Vous pouvez le relire puis l’envoyer.' });
       router.replace(`/devis/${quote.id}`);
+      void recordSuccessfulQuoteAndMaybeAskForReview();
     } catch (cause) {
       setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(

@@ -8,6 +8,7 @@ import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
+import { Logo } from './logo';
 
 export function ApplePaywall() {
   const { session, refresh, signOut } = useAuth();
@@ -39,6 +40,7 @@ export function ApplePaywall() {
     ? Number(product.introductoryPriceNumberOfPeriodsIOS) * (product.introductoryPriceSubscriptionPeriodIOS === 'week' ? 7 : product.introductoryPriceSubscriptionPeriodIOS === 'day' ? 1 : 0)
     : 0;
   const euroStore = product?.currency === 'EUR';
+  const canPurchase = Boolean(product?.displayPrice && euroStore);
   const wasActive = React.useRef(session?.subscription?.provider === 'apple' && accessStateFor(session.subscription).canWrite);
   const acting = React.useRef(false);
   const appleActive = subscription?.provider === 'apple' && accessStateFor(subscription).canWrite;
@@ -55,6 +57,9 @@ export function ApplePaywall() {
     finally { acting.current = false; setBusy(false); }
   }
   return <Screen>
+    <View style={{ alignItems: 'center', paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
+      <Logo size={30} />
+    </View>
     <View style={{ gap: spacing.md }}>
       <Caption upper>Votre temps mérite mieux</Caption>
       <Title>{appleActive ? 'Votre abonnement Apple' : 'Moins de devis à faire.\nPlus de temps pour vous.'}</Title>
@@ -97,8 +102,8 @@ export function ApplePaywall() {
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
-      title={loading ? 'Chargement des offres Apple…' : trial ? 'Commencer mon essai gratuit' : 'Continuer avec Apple'}
-      loading={busy || loading} disabled={busy || loading || !product?.displayPrice || session?.organization.role !== 'OWNER'} haptic
+      title={loading ? 'Chargement des offres Apple…' : !canPurchase ? 'Offres françaises indisponibles' : trial ? 'Commencer mon essai gratuit' : 'Continuer avec Apple'}
+      loading={busy || loading} disabled={busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(() => purchaseApplePlan(selected, session!.organization.id))}
     />}
     {!loading && product && !euroStore ? <Banner title={`Prix transmis par Apple${product.currency ? ` (${product.currency})` : ''}`} description="Vous pouvez continuer. Le montant et la devise définitifs figurent sur la fenêtre de confirmation Apple : vérifiez-les avant de valider. Les tarifs français sont en euros ; l’environnement de test peut afficher une autre devise." action={<Button title="Recharger les offres" variant="secondary" onPress={() => void load()} />} /> : null}
