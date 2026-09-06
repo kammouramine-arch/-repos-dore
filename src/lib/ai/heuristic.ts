@@ -229,14 +229,22 @@ export function buildTemplateFollowUp(params: {
   viewed: boolean;
   companyName: string;
   signature?: string | null;
+  language?: string;
+  country?: string;
+  currency?: string;
 }): { objet: string; message: string } {
   const politeName = params.customerName.trim() || 'Madame, Monsieur';
-  const amount = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(
+  const english = params.language === 'en';
+  const amount = new Intl.NumberFormat(english ? (params.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR', { style: 'currency', currency: params.currency ?? (params.country === 'GB' ? 'GBP' : params.country === 'US' ? 'USD' : 'EUR') }).format(
     centsToEuros(params.totalCents),
   );
   const signature = params.signature?.trim() || params.companyName;
 
-  const bodies = [
+  const bodies = english ? [
+    `Hello ${politeName},\n\nI’m following up regarding quote ${params.quoteNumber}, “${params.quoteTitle}”, for ${amount}.\n\n${params.viewed ? 'Please let me know if you would like any point clarified or adjusted.' : 'I wanted to make sure it reached you.'}\n\nI remain available to discuss it.\n\nKind regards,\n${signature}`,
+    `Hello ${politeName},\n\nQuote ${params.quoteNumber}, “${params.quoteTitle}”, is still awaiting your reply.\n\nIf the schedule or budget needs adjusting, we can review the proposal together.\n\nKind regards,\n${signature}`,
+    `Hello ${politeName},\n\nI’m closing pending requests soon and wanted to check in about quote ${params.quoteNumber}, “${params.quoteTitle}”.\n\nIf the project is postponed, please contact me whenever convenient.\n\nKind regards,\n${signature}`,
+  ] : [
     `Bonjour ${politeName},
 
 Je me permets de revenir vers vous concernant le devis ${params.quoteNumber} « ${params.quoteTitle} », d'un montant de ${amount} TTC.
@@ -266,7 +274,11 @@ ${signature}`,
   ];
 
   const index = Math.min(Math.max(params.attempt, 1), bodies.length) - 1;
-  const subjects = [
+  const subjects = english ? [
+    `Your quote ${params.quoteNumber} — ${params.companyName}`,
+    `Quote ${params.quoteNumber}: do you have any questions?`,
+    `One last point about quote ${params.quoteNumber}`,
+  ] : [
     `Votre devis ${params.quoteNumber} — ${params.companyName}`,
     `Devis ${params.quoteNumber} : avez-vous des questions ?`,
     `Dernier point sur votre devis ${params.quoteNumber}`,

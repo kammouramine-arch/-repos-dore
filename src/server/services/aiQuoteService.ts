@@ -11,7 +11,7 @@ import {
   type CatalogEntry,
   type QuoteDraft,
 } from '@/lib/ai';
-import { QUOTE_DRAFT_SYSTEM } from '@/lib/ai/prompts';
+import { QUOTE_DRAFT_SYSTEM, localizedSystemPrompt } from '@/lib/ai/prompts';
 import { eurosToCents } from '@/lib/money';
 import { getStorageProvider } from '@/lib/storage';
 import { loadCatalog } from './priceBookService';
@@ -82,10 +82,11 @@ export interface GeneratedQuote {
  * Rien n'est enregistré : l'utilisateur valide dans l'éditeur.
  */
 export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<GeneratedQuote> {
-  const [profile, catalog, images] = await Promise.all([
+  const [profile, catalog, images, organization] = await Promise.all([
     prisma.businessProfile.findUnique({ where: { organizationId: input.organizationId } }),
     loadCatalog(input.organizationId),
     loadImages(input.organizationId, input.fileIds ?? []),
+    prisma.organization.findUnique({ where: { id: input.organizationId }, select: { locale: true, country: true, currency: true } }),
   ]);
 
   const hourlyRateCents = profile?.defaultHourlyCents ?? 4500;
@@ -104,7 +105,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   if (provider) {
     try {
       const result = await provider.generateStructuredOutput({
-        system: QUOTE_DRAFT_SYSTEM,
+        system: localizedSystemPrompt(QUOTE_DRAFT_SYSTEM, organization ?? {}),
         context: buildBusinessContext({
           catalog,
           trade: profile?.trade ?? 'AUTRE',

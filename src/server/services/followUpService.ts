@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 import { AppError, notFound } from '@/lib/errors';
 import { appUrl } from '@/lib/env';
 import { buildTemplateFollowUp, getAIProvider, wrapUntrusted, followUpDraftSchema } from '@/lib/ai';
-import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS } from '@/lib/ai/prompts';
+import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS, localizedSystemPrompt } from '@/lib/ai/prompts';
 import type { FollowUpTone } from '@devisia/shared';
 import { followUpEmail, getEmailProvider } from '@/lib/email';
 import { formatCents } from '@/lib/money';
@@ -59,6 +59,9 @@ export async function scheduleFollowUpsForQuote(organizationId: string, quoteId:
       viewed: quote.viewCount > 0,
       companyName: quote.organization.businessProfile?.legalName ?? quote.organization.name,
       signature: quote.organization.businessProfile?.ownerName,
+      language: quote.organization.locale,
+      country: quote.organization.country,
+      currency: quote.organization.currency,
     });
 
     created.push(
@@ -115,6 +118,9 @@ export async function draftFollowUpMessage(
     viewed: quote.viewCount > 0,
     companyName,
     signature: quote.organization.settings?.aiSignature ?? quote.organization.businessProfile?.ownerName,
+    language: quote.organization.locale,
+    country: quote.organization.country,
+    currency: quote.organization.currency,
   });
 
   const provider = getAIProvider();
@@ -122,7 +128,7 @@ export async function draftFollowUpMessage(
 
   try {
     const result = await provider.generateStructuredOutput({
-      system: FOLLOW_UP_SYSTEM,
+      system: localizedSystemPrompt(FOLLOW_UP_SYSTEM, quote.organization),
       context: [
         `Entreprise : ${companyName}`,
         `Client : ${customerName}`,

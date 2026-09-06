@@ -1,7 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { getAIProvider, wrapUntrusted, assistantAnswerSchema } from '@/lib/ai';
-import { ASSISTANT_SYSTEM } from '@/lib/ai/prompts';
+import { ASSISTANT_SYSTEM, localizedSystemPrompt } from '@/lib/ai/prompts';
 import { normalize } from '@/lib/ai/text';
 import { formatCents } from '@/lib/money';
 import { fullName } from '@/lib/utils';
@@ -37,7 +37,7 @@ export async function askAssistant(
 
   try {
     const result = await provider.generateStructuredOutput({
-      system: ASSISTANT_SYSTEM,
+      system: localizedSystemPrompt(ASSISTANT_SYSTEM, context.locale),
       context: context.facts.join('\n'),
       untrusted: wrapUntrusted(question, 'question_utilisateur'),
       schema: assistantAnswerSchema,
@@ -73,6 +73,7 @@ export async function askAssistant(
 }
 
 interface AssistantContext {
+  locale: { locale?: string; country?: string; currency?: string };
   closedQuotes: { number: string; title: string; clientMessage: string | null }[];
   facts: string[];
   metrics: Awaited<ReturnType<typeof getDashboardMetrics>>;
@@ -84,7 +85,7 @@ interface AssistantContext {
 
 async function collectContext(organizationId: string, question: string): Promise<AssistantContext> {
   const threshold = extractAmountCents(question);
-  const [metrics, toRecover, bigQuotesRaw, closedQuotes] = await Promise.all([
+  const [metrics, toRecover, bigQuotesRaw, closedQuotes, organization] = await Promise.all([
     getDashboardMetrics(organizationId, 30),
     revenueToRecover(organizationId),
     prisma.quote.findMany({
@@ -102,6 +103,7 @@ async function collectContext(organizationId: string, question: string): Promise
       select: { number: true, title: true, clientMessage: true },
       orderBy: { updatedAt: 'desc' }, take: 8,
     }),
+    prisma.organization.findUnique({ where: { id: organizationId }, select: { locale: true, country: true, currency: true } }),
   ]);
 
   const bigQuotes = bigQuotesRaw.map((quote) => ({
@@ -140,6 +142,7 @@ async function collectContext(organizationId: string, question: string): Promise
   ];
 
   return {
+    locale: organization ?? {},
     closedQuotes,
     facts,
     metrics,

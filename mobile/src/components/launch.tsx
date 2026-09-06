@@ -2,6 +2,7 @@ import * as React from 'react';
 import { Animated, Easing, View } from 'react-native';
 import { Logo } from '@/components/logo';
 import { colors, motion, spacing, typography } from '@/theme';
+import { recordDiagnostic } from '@/lib/diagnostics';
 
 /**
  * Écran de lancement.
@@ -13,6 +14,7 @@ import { colors, motion, spacing, typography } from '@/theme';
  * l'animation au lieu de la percevoir.
  */
 export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
+  const startedAt = React.useRef(Date.now());
   const opacity = React.useMemo(() => new Animated.Value(0), []);
   const rise = React.useMemo(() => new Animated.Value(14), []);
   const scale = React.useMemo(() => new Animated.Value(0.94), []);
@@ -40,7 +42,10 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
       }),
     ]);
     animation.start(({ finished }) => {
-      if (finished) onSettled?.();
+      if (finished) {
+        recordDiagnostic({ area: 'startup', durationMs: Date.now() - startedAt.current, code: 'LAUNCH_SETTLED' });
+        onSettled?.();
+      }
     });
     return () => animation.stop();
   }, [opacity, rise, scale, onSettled]);

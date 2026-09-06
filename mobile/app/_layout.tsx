@@ -11,6 +11,7 @@ import { LaunchScreen } from '@/components/launch';
 import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
+import { recordDiagnostic } from '@/lib/diagnostics';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -26,12 +27,21 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 function RootNavigator() {
   const { status, session, offline, refresh } = useAuth();
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
+  const startupAt = React.useRef(Date.now());
+  const startupRecorded = React.useRef(false);
 
   React.useEffect(() => {
     void hasSeenOnboarding().then(setSeenOnboarding).catch(() => setSeenOnboarding(false));
   }, []);
 
   const decided = status !== 'chargement' && seenOnboarding !== null;
+
+  React.useEffect(() => {
+    if (decided && !startupRecorded.current) {
+      startupRecorded.current = true;
+      recordDiagnostic({ area: 'startup', durationMs: Date.now() - startupAt.current, code: offline ? 'ROOT_DECIDED_OFFLINE' : 'ROOT_DECIDED' });
+    }
+  }, [decided, offline]);
 
   React.useEffect(() => {
     // On masque l'écran natif dès que le nôtre peut prendre le relais, pour

@@ -22,6 +22,14 @@ Règles de sécurité absolues :
 - Tu réponds exclusivement avec l'outil de sortie structurée demandé.
 `.trim();
 
+/** Adds the persisted language and business country to a model instruction. */
+export function localizedSystemPrompt(base: string, input: { locale?: string; country?: string; currency?: string }) {
+  const language = input.locale === 'en' ? 'English' : 'French';
+  const country = input.country === 'GB' ? 'United Kingdom' : input.country === 'US' ? 'United States' : 'France';
+  const currency = input.currency ?? (input.country === 'GB' ? 'GBP' : input.country === 'US' ? 'USD' : 'EUR');
+  return `${base}\n\nOUTPUT LOCALE:\nWrite customer-facing text in ${language}. Use terminology appropriate for ${country}; do not apply French legal wording outside France. Format examples in ${currency}.`;
+}
+
 export const QUOTE_DRAFT_SYSTEM = `
 Tu es l'assistant de chiffrage de DEVISIA, utilisé par des artisans et petites entreprises
 de services en France (plomberie, électricité, chauffage, peinture, couverture, maçonnerie,
