@@ -18,7 +18,7 @@ The score is deliberately below the 85–90 target because external delivery, re
 
 ## Exact blockers
 
-- Remote branch `codex/devisia-premium-fluidity` currently points to `d1438f6...`; local HEAD is `25e13e9`. Commits `a45204d` and `4847fc8` exist as GitHub objects, but the branch ref does not include the current local commits.
+- Remote branch `codex/devisia-premium-fluidity` currently points to `d1438f6...`; local HEAD is `105e5bd`. Commits `a45204d` and `4847fc8` exist as GitHub objects, but the branch ref does not include the current local commits.
 - Terminal network permission was denied in this session. The GitHub connector can read the repository but cannot safely reproduce the complete local commit history without creating a different squashed history, so no API rewrite was performed.
 - EAS `production` profile is configured in `mobile/eas.json`, but no build/submission was started. A clean checkout with the pushed branch and production `EXPO_PUBLIC_API_URL` is required.
 - PostgreSQL at `127.0.0.1:5432` is unavailable, so integration tests did not execute.
