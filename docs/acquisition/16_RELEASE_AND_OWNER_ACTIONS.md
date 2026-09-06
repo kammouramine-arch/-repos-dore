@@ -4,6 +4,8 @@ Verified 6 September 2026 against the authenticated App Store Connect and Vercel
 
 ## Deployment evidence
 
+Latest code deployment: **`dpl_CRA832AVUJfKGNfoLEHZyQygGFbi`**, source **`a8c4a3a57b194c705546d18d53322e5844b28231`**, alias `https://devisia-bice.vercel.app`, READY. Supersedes the earlier entries below. GitHub runs **34041078245 / 34041075516 both succeeded**. Final public home/pricing checks returned 200; personal export, customer detail and unauthenticated language PATCH returned 401. Final local suite: **305/305 tests, 10/10 browser E2E, root lint/typecheck passed**. Mobile lint/typecheck passed for the native changes included in build 15. No production email or physical-iPhone pass is implied by these checks.
+
 - Production: `dpl_BpkqEKo4EgsSDo78QeKr3HGYvmiM`, alias `https://devisia-bice.vercel.app`, ready. Public home/pricing/terms/privacy returned 200. Personal export and client-profile endpoints returned 401 without authentication. These checks do not prove authenticated production flows or email delivery.
 - GitHub quality checks for `f4e036976001b3fa56dc877b3e041658661fb7f2`: runs `34038216875` and `34038213679` both succeeded, including the isolated PostgreSQL suite and mobile checks.
 - iOS 1.0.0 (14): Expo build `358ba49f-72a3-4209-94ea-215dbb5adc37` finished; Apple build `7540eb74-a2b8-4725-8fbf-dbf43df9ad84` upload complete and assigned to **DEVISIA Internal**, one invite. Verified in App Store Connect. “Ready to Submit” on the TestFlight list is not a public App Store release.

@@ -234,6 +234,7 @@
   "src/lib/ai/text.ts",
   "src/lib/ai/transcription.ts",
   "src/lib/ai/types.ts",
+  "src/lib/auth/page-session.ts",
   "src/lib/auth/password.ts",
   "src/lib/auth/permissions.ts",
   "src/lib/auth/session.ts",
