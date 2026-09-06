@@ -169,68 +169,79 @@ function answerLocally(
 ): { answer: string; actions: { label: string; href?: string | null }[] } {
   const text = normalize(question);
   const { metrics, toRecover, bigQuotes, silentCustomers, topServices } = context;
+  const english = context.locale.locale === 'en';
+  const money = (cents: number) => new Intl.NumberFormat(english ? (context.locale.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR', { style: 'currency', currency: context.locale.currency ?? (context.locale.country === 'US' ? 'USD' : context.locale.country === 'GB' ? 'GBP' : 'EUR') }).format(cents / 100);
 
-  if (/refus|pas\s+(?:ete\s+)?accept|non\s+accept|perdu|sans\s+suite|expire/.test(text)) {
+  if (/refus|pas\s+(?:ete\s+)?accept|non\s+accept|perdu|sans\s+suite|expire|reject|declin|lost|expired/.test(text)) {
     return {
-      answer: context.closedQuotes.length ? `Voici les devis classés sans suite dans votre historique :\n${context.closedQuotes.map(quote => `${quote.number} — ${quote.title} : ${quote.clientMessage ?? 'motif non renseigné'}`).join('\n')}` : `Aucun devis classé sans suite. ${toRecover.quoteCount} devis sont actuellement sans réponse, pour ${formatCents(toRecover.totalCents)} à relancer.`,
-      actions: [{ label: 'Voir les relances', href: '/app/relances' }],
+      answer: context.closedQuotes.length
+        ? (english ? `Here are the closed quotes in your history:\n${context.closedQuotes.map(quote => `${quote.number} — ${quote.title}: ${quote.clientMessage ?? 'reason not provided'}`).join('\n')}` : `Voici les devis classés sans suite dans votre historique :\n${context.closedQuotes.map(quote => `${quote.number} — ${quote.title} : ${quote.clientMessage ?? 'motif non renseigné'}`).join('\n')}`)
+        : (english ? `No closed quotes. ${toRecover.quoteCount} quote(s) are awaiting a response, totalling ${money(toRecover.totalCents)}.` : `Aucun devis classé sans suite. ${toRecover.quoteCount} devis sont actuellement sans réponse, pour ${money(toRecover.totalCents)} à relancer.`),
+      actions: [{ label: english ? 'View follow-ups' : 'Voir les relances', href: '/app/relances' }],
     };
   }
 
-  if (/service|prestation|rapporte|rentab|vend/.test(text)) {
+  if (/service|prestation|rapporte|rentab|vend|profitable|earning|revenue/.test(text)) {
     if (topServices.length === 0) {
       return {
-        answer: 'Aucune prestation chiffrée sur la période : les données apparaîtront après vos premiers devis envoyés.',
+        answer: english ? 'No quoted service in this period yet. The data will appear after you send your first quotes.' : 'Aucune prestation chiffrée sur la période : les données apparaîtront après vos premiers devis envoyés.',
         actions: [],
       };
     }
     const best = topServices[0]!;
     return {
-      answer: `Votre prestation la plus chiffrée est « ${best.label} » : ${formatCents(best.revenueCents)} sur ${best.count} devis envoyés.\n${topServices
+      answer: english ? `Your highest-value service is “${best.label}”: ${money(best.revenueCents)} across ${best.count} sent quote(s).\n${topServices
         .slice(1)
-        .map((service) => `• ${service.label} — ${formatCents(service.revenueCents)}`)
+        .map((service) => `• ${service.label} — ${money(service.revenueCents)}`)
+        .join('\n')}` : `Votre prestation la plus chiffrée est « ${best.label} » : ${money(best.revenueCents)} sur ${best.count} devis envoyés.\n${topServices
+        .slice(1)
+        .map((service) => `• ${service.label} — ${money(service.revenueCents)}`)
         .join('\n')}`,
-      actions: [{ label: 'Voir l’analytique', href: '/app/analytique' }],
+      actions: [{ label: english ? 'View analytics' : 'Voir l’analytique', href: '/app/analytique' }],
     };
   }
 
-  if (/taux.*acceptation|combien.*accept/.test(text)) {
+  if (/taux.*acceptation|combien.*accept|acceptance rate|how many.*accept/.test(text)) {
     return {
-      answer: `Sur les 30 derniers jours, vous avez envoyé ${metrics.quotesSent} devis, pour ${formatCents(metrics.quotedRevenueCents)} chiffrés.`,
-      actions: [{ label: 'Voir les devis', href: '/app/devis' }],
+      answer: english ? `In the last 30 days, you sent ${metrics.quotesSent} quote(s), totalling ${money(metrics.quotedRevenueCents)}.` : `Sur les 30 derniers jours, vous avez envoyé ${metrics.quotesSent} devis, pour ${money(metrics.quotedRevenueCents)} chiffrés.`,
+      actions: [{ label: english ? 'View quotes' : 'Voir les devis', href: '/app/devis' }],
     };
   }
-  if (/gagne|chiffre|ca\b|revenu|mois/.test(text)) {
+  if (/gagne|chiffre|ca\b|revenu|mois|earn|revenue|turnover|month/.test(text)) {
     return {
-      answer: `Vous avez chiffré ${formatCents(metrics.quotedRevenueCents)} sur les 30 derniers jours, dont ${formatCents(toRecover.totalCents)} encore sans réponse sur ${toRecover.quoteCount} devis.`,
-      actions: [{ label: 'Relancer maintenant', href: '/app/relances' }],
+      answer: english ? `You quoted ${money(metrics.quotedRevenueCents)} in the last 30 days, including ${money(toRecover.totalCents)} awaiting a response across ${toRecover.quoteCount} quote(s).` : `Vous avez chiffré ${money(metrics.quotedRevenueCents)} sur les 30 derniers jours, dont ${money(toRecover.totalCents)} encore sans réponse sur ${toRecover.quoteCount} devis.`,
+      actions: [{ label: english ? 'Follow up now' : 'Relancer maintenant', href: '/app/relances' }],
     };
   }
-  if (/pas repondu|sans reponse|relance|attente/.test(text)) {
+  if (/pas repondu|sans reponse|relance|attente|no response|follow.?up|waiting/.test(text)) {
     if (silentCustomers.length === 0) {
-      return { answer: 'Aucun client en attente de réponse : tous vos devis ont été traités.', actions: [] };
+      return { answer: english ? 'No customers are waiting for a response: all your quotes have been handled.' : 'Aucun client en attente de réponse : tous vos devis ont été traités.', actions: [] };
     }
     return {
-      answer: `${silentCustomers.length} client(s) n'ont pas encore répondu :\n${silentCustomers
+      answer: english ? `${silentCustomers.length} customer(s) have not replied yet:\n${silentCustomers
+        .map((customer) => `• ${customer.name} — quote ${customer.number}, ${customer.days} day(s)`)
+        .join('\n')}` : `${silentCustomers.length} client(s) n'ont pas encore répondu :\n${silentCustomers
         .map((customer) => `• ${customer.name} — devis ${customer.number}, ${customer.days} jours`)
         .join('\n')}`,
-      actions: [{ label: 'Préparer les relances', href: '/app/relances' }],
+      actions: [{ label: english ? 'Prepare follow-ups' : 'Préparer les relances', href: '/app/relances' }],
     };
   }
   if (/devis/.test(text) && bigQuotes.length > 0) {
     return {
-      answer: `Voici les devis correspondants :\n${bigQuotes
-        .map((quote) => `• ${quote.number} — ${quote.customerName} — ${formatCents(quote.totalCents)}`)
+      answer: english ? `Here are the matching quotes:\n${bigQuotes
+        .map((quote) => `• ${quote.number} — ${quote.customerName} — ${money(quote.totalCents)}`)
+        .join('\n')}` : `Voici les devis correspondants :\n${bigQuotes
+        .map((quote) => `• ${quote.number} — ${quote.customerName} — ${money(quote.totalCents)}`)
         .join('\n')}`,
-      actions: [{ label: 'Ouvrir les devis', href: '/app/devis' }],
+      actions: [{ label: english ? 'Open quotes' : 'Ouvrir les devis', href: '/app/devis' }],
     };
   }
 
   return {
-    answer: `Sur 30 jours : ${metrics.quotesSent} devis envoyés pour ${formatCents(metrics.quotedRevenueCents)} chiffrés, dont ${formatCents(toRecover.totalCents)} sans réponse à ce jour.`,
+    answer: english ? `In the last 30 days: ${metrics.quotesSent} quote(s) sent for ${money(metrics.quotedRevenueCents)}, with ${money(toRecover.totalCents)} still awaiting a response.` : `Sur 30 jours : ${metrics.quotesSent} devis envoyés pour ${money(metrics.quotedRevenueCents)} chiffrés, dont ${money(toRecover.totalCents)} sans réponse à ce jour.`,
     actions: [
-      { label: 'Tableau de bord', href: '/app' },
-      { label: 'Relances', href: '/app/relances' },
+      { label: english ? 'Dashboard' : 'Tableau de bord', href: '/app' },
+      { label: english ? 'Follow-ups' : 'Relances', href: '/app/relances' },
     ],
   };
 }
