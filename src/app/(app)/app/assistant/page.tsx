@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { aiCapabilities } from '@/lib/ai';
 import { PageHeader } from '@/components/ui/page';
 import { getTranslations } from '@/lib/i18n';

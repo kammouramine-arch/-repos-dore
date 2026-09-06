@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Users } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { listCustomers } from '@/server/services/customerService';
 import { formatCents } from '@/lib/money';
 import { formatDate, format, getTranslations } from '@/lib/i18n';

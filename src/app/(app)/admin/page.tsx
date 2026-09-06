@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { requirePlatformAdmin } from '@/lib/auth/session';
+import { requirePlatformAdmin } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
 import { formatDate } from '@/lib/i18n';

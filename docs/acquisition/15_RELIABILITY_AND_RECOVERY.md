@@ -33,6 +33,8 @@
 
 ## Repeat local integration tests
 
+Web signed-out navigation: pages now use a page-specific authentication wrapper that redirects on expected missing sessions; API routes retain JSON 401 responses. Previously the page threw an AppError while its concurrently rendered layout redirected. The final browser E2E rerun passed **10/10 in 42.2 seconds**, with that runtime AppError absent. Build-tool deprecation/color warnings still remain; this is not a claim of zero warnings everywhere.
+
 Latest extension: **305 tests / 38 files passed**. The server now persists personal language separately from company country/currency/timezone and exposes it in session responses; the existing web language switch persists it too. Backward-compatible cached sessions default to French. This does not enable a completed English mobile UI. Photo loading now runs concurrently with profile/catalogue reads before AI generation; no physical-device speed percentage is claimed.
 
 Follow-on verification: **303 tests in 37 files passed**, root/mobile type checks and lint passed. Added regression cases for a late old-session 401 (JSON and photo upload) not disconnecting a new login. Client profiles now include the latest 30 recorded quote events and 30 jobs; events expose no IP hashes, actor identifiers or internal metadata. Additional profile history is not proof that an email reached an inbox. The internal dashboard no longer labels catalogue-price totals as MRR or truncates its company count at 50.

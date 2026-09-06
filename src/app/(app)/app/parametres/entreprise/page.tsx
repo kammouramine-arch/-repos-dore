@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { loadBusinessProfileValue } from '@/server/profile';
 import { BusinessProfileForm } from '@/components/app/business-form';
 import { saveBusinessProfile } from '../actions';

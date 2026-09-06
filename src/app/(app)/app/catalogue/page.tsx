@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { BookOpen } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { listPriceBook } from '@/server/services/priceBookService';
 import { can } from '@/lib/auth/permissions';
 import { PageHeader } from '@/components/ui/page';

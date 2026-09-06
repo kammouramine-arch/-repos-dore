@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { CheckCircle2, Clock3 } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { listFollowUps, revenueToRecover } from '@/server/services/followUpService';
 import { formatCents } from '@/lib/money';
 import { formatDate, getTranslations } from '@/lib/i18n';

@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { FileText, Plus } from 'lucide-react';
 import type { QuoteStatus } from '@prisma/client';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
 import { formatDate, getTranslations } from '@/lib/i18n';

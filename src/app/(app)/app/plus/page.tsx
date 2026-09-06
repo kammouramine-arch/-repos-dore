@@ -10,7 +10,7 @@ import {
   Sparkles,
   Wallet,
 } from 'lucide-react';
-import { requireAuth } from '@/lib/auth/session';
+import { requireAuth } from '@/lib/auth/page-session';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { PageHeader } from '@/components/ui/page';
 import { getTranslations } from '@/lib/i18n';

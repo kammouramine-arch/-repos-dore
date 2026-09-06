@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { redirect } from 'next/navigation';
-import { requireAuth } from '@/lib/auth/session';
+import { requireAuth } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { loadBusinessProfileValue } from '@/server/profile';
 import { BusinessProfileForm } from '@/components/app/business-form';

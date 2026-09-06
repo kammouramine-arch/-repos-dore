@@ -1,5 +1,5 @@
 import type { Metadata } from 'next';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { getDashboardMetrics } from '@/server/services/dashboardService';
 import { usageSummary } from '@/server/services/usageService';
 import { prisma } from '@/lib/prisma';

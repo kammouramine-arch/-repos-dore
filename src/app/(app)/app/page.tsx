@@ -8,7 +8,7 @@ import {
   Send,
   Sparkles,
 } from 'lucide-react';
-import { requireAuth } from '@/lib/auth/session';
+import { requireAuth } from '@/lib/auth/page-session';
 import { getDashboardMetrics, getRecentActivity, type DashboardPeriod } from '@/server/services/dashboardService';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';

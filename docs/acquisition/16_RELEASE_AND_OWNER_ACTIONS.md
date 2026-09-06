@@ -7,7 +7,8 @@ Verified 6 September 2026 against the authenticated App Store Connect and Vercel
 - Production: `dpl_BpkqEKo4EgsSDo78QeKr3HGYvmiM`, alias `https://devisia-bice.vercel.app`, ready. Public home/pricing/terms/privacy returned 200. Personal export and client-profile endpoints returned 401 without authentication. These checks do not prove authenticated production flows or email delivery.
 - GitHub quality checks for `f4e036976001b3fa56dc877b3e041658661fb7f2`: runs `34038216875` and `34038213679` both succeeded, including the isolated PostgreSQL suite and mobile checks.
 - iOS 1.0.0 (14): Expo build `358ba49f-72a3-4209-94ea-215dbb5adc37` finished; Apple build `7540eb74-a2b8-4725-8fbf-dbf43df9ad84` upload complete and assigned to **DEVISIA Internal**, one invite. Verified in App Store Connect. “Ready to Submit” on the TestFlight list is not a public App Store release.
-- Build 14 contains the initial client profile, tap/creation recovery, export and diagnostics changes. Later client timeline/session-race changes require a subsequent mobile build; do not infer inclusion from the backend deployment.
+- Build 14 contains the initial client profile, tap/creation recovery, export and diagnostics changes.
+- **Build 15 verified available**: Expo `6e6a6474-255a-4db3-a44c-296d6df7b45a`, successful submission `3c689215-f17d-4f80-99bb-ededec975f5b`, Apple `71eadcf2-ce20-4f19-86ea-8eb72725f93a`. Upload complete at 16:55 Paris and assigned to DEVISIA Internal with one invite. Contains client timeline/jobs and old-session 401 guards. No real-device installation/acceptance result recorded yet.
 
 ## Observed App Store production blockers
 

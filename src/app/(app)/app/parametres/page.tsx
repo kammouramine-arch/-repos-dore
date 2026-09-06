@@ -11,7 +11,7 @@ import {
   Wallet,
   Workflow,
 } from 'lucide-react';
-import { requireAuth } from '@/lib/auth/session';
+import { requireAuth } from '@/lib/auth/page-session';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { prisma } from '@/lib/prisma';
 import { PLANS } from '@/lib/billing/plans';

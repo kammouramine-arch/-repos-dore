@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { ROLE_DESCRIPTIONS, ROLE_LABELS } from '@/lib/auth/permissions';
 import { PLANS } from '@/lib/billing/plans';

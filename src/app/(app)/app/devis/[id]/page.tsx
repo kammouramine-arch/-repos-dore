@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
 import { ArrowLeft, Clock3, Eye, FileDown, Link2, Send } from 'lucide-react';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { getQuote } from '@/server/services/quoteService';
 import { appUrl } from '@/lib/env';

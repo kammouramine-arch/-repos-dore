@@ -2,7 +2,7 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { MessageSquareText } from 'lucide-react';
 import type { LeadStatus } from '@prisma/client';
-import { requirePermission } from '@/lib/auth/session';
+import { requirePermission } from '@/lib/auth/page-session';
 import { listLeads, LEAD_PIPELINE, LEAD_STATUS_LABELS, LEAD_SOURCE_LABELS } from '@/server/services/leadService';
 import { formatCents } from '@/lib/money';
 import { formatRelative, format, getTranslations } from '@/lib/i18n';
