@@ -23,6 +23,7 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
       firstName: auth.user.firstName,
       lastName: auth.user.lastName,
       emailVerified: auth.user.emailVerified,
+      locale: auth.user.locale,
     },
     organization: {
       id: organizationId,
@@ -59,6 +60,7 @@ export async function buildSessionDTOFor(
       firstName: membership.user.firstName,
       lastName: membership.user.lastName,
       emailVerified: membership.user.emailVerifiedAt != null,
+      locale: membership.user.locale,
     },
     organization: {
       id: organizationId,

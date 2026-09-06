@@ -3,7 +3,8 @@
 import { revalidatePath } from 'next/cache';
 import { z } from 'zod';
 import { prisma } from '@/lib/prisma';
-import { requirePermission } from '@/lib/auth/session';
+import { requireAuth, requirePermission } from '@/lib/auth/session';
+import { updatePreferredLanguage } from '@/server/services/languageService';
 import { businessProfileSchema } from '@/server/validation';
 import { toUserMessage } from '@/lib/errors';
 import { recordAudit } from '@/server/services/auditService';
@@ -182,6 +183,8 @@ const localeSchema = z.enum(['fr', 'en']);
 export async function setLocale(locale: string): Promise<void> {
   const parsed = localeSchema.safeParse(locale);
   if (!parsed.success) return;
+  const auth = await requireAuth();
+  await updatePreferredLanguage(auth.user.id, parsed.data);
   const { cookies } = await import('next/headers');
   const store = await cookies();
   store.set('devisia_locale', parsed.data, { path: '/', maxAge: 60 * 60 * 24 * 365 });

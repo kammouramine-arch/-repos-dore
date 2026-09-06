@@ -82,16 +82,16 @@ export interface GeneratedQuote {
  * Rien n'est enregistré : l'utilisateur valide dans l'éditeur.
  */
 export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<GeneratedQuote> {
-  const [profile, catalog] = await Promise.all([
+  const [profile, catalog, images] = await Promise.all([
     prisma.businessProfile.findUnique({ where: { organizationId: input.organizationId } }),
     loadCatalog(input.organizationId),
+    loadImages(input.organizationId, input.fileIds ?? []),
   ]);
 
   const hourlyRateCents = profile?.defaultHourlyCents ?? 4500;
   const defaultVatRate = profile ? Number(profile.defaultVatRate) : 20;
   const vatExempt = profile?.vatStatus === 'FRANCHISE_EN_BASE';
 
-  const images = await loadImages(input.organizationId, input.fileIds ?? []);
   const provider = getAIProvider();
 
   let draft: QuoteDraft;

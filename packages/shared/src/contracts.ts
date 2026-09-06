@@ -37,6 +37,8 @@ export interface ApiError {
 export type ApiResponse<T> = { data: T } | { error: ApiError };
 
 export interface SessionUserDTO {
+  /** Optional for older cached sessions; French is the compatible default. */
+  locale?: 'fr' | 'en';
   id: string;
   email: string;
   firstName: string | null;
