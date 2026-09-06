@@ -19,6 +19,7 @@ describe('permissions', () => {
     expect(can('MEMBER', 'member:invite')).toBe(false);
     expect(can('MEMBER', 'quote:delete')).toBe(false);
     expect(can('MEMBER', 'analytics:read')).toBe(false);
+    expect(can('MEMBER', 'organization:export')).toBe(false);
   });
 
   it('réserve la facturation et les rôles au propriétaire', () => {
@@ -26,6 +27,7 @@ describe('permissions', () => {
     expect(can('ADMIN', 'member:role')).toBe(false);
     expect(can('ADMIN', 'org:delete')).toBe(false);
     expect(can('ADMIN', 'pricebook:write')).toBe(true);
+    expect(can('ADMIN', 'organization:export')).toBe(true);
   });
 
   it('lève une erreur 403 explicite', () => {
