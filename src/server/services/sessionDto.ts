@@ -2,7 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { aiCapabilities } from '@/lib/ai';
 import type { AuthContext } from '@/lib/auth/session';
-import type { SessionDTO, SubscriptionDTO } from '@devisia/shared';
+import { accessStateFor, authNextStepFor, type SessionDTO, type SubscriptionDTO } from '@devisia/shared';
 
 /** Contexte de session tel que le consomment le web et le mobile. */
 export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
@@ -16,6 +16,8 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
       select: { trade: true, onboardingCompleted: true },
     }),
   ]);
+  const subscriptionDto = subscription ? toSubscriptionDTO(subscription) : null;
+  const access = accessStateFor(subscriptionDto);
   return {
     user: {
       id: auth.user.id,
@@ -32,7 +34,9 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
       trade: profile?.trade ?? null,
       onboardingCompleted: profile?.onboardingCompleted ?? false,
     },
-    subscription: subscription ? toSubscriptionDTO(subscription) : null,
+    subscription: subscriptionDto,
+    access,
+    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
     capabilities: aiCapabilities(),
   };
 }
@@ -77,6 +81,8 @@ export async function buildSessionDTOFor(
     }),
   ]);
 
+  const subscriptionDto = subscription ? toSubscriptionDTO(subscription) : null;
+  const access = accessStateFor(subscriptionDto);
   return {
     user: auth.user,
     organization: {
@@ -84,7 +90,9 @@ export async function buildSessionDTOFor(
       trade: profile?.trade ?? null,
       onboardingCompleted: profile?.onboardingCompleted ?? false,
     },
-    subscription: subscription ? toSubscriptionDTO(subscription) : null,
+    subscription: subscriptionDto,
+    access,
+    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
     capabilities: aiCapabilities(),
   };
 }

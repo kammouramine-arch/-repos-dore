@@ -7,7 +7,7 @@ const querySchema = z.object({ q: z.string().max(120).default('') });
 
 export async function GET(request: Request) {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const { q } = parseQuery(request, querySchema);
     const results = await globalSearch(auth.organization.organizationId, q);
     return ok(results);

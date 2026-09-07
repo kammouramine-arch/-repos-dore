@@ -62,14 +62,14 @@ async function restoreSession(): Promise<SessionDTO> {
 }
 
 interface AuthContextValue extends AuthState {
-  signIn: (email: string, password: string) => Promise<void>;
+  signIn: (email: string, password: string) => Promise<SessionDTO>;
   signUp: (input: {
     email: string;
     password: string;
     companyName: string;
     firstName?: string;
     lastName?: string;
-  }) => Promise<void>;
+  }) => Promise<SessionDTO>;
   signOut: () => Promise<void>;
   refresh: () => Promise<void>;
 }
@@ -85,7 +85,7 @@ const AuthContext = React.createContext<AuthContextValue | null>(null);
  * erreurs de champ sont donc reformulées, et le reste reçoit une phrase qui dit
  * quoi faire.
  */
-export function describeAuthError(error: unknown): string {
+export function describeAuthError(error: unknown, locale: MobileLocale = 'fr'): string {
   if (!(error instanceof DevisiaApiError)) {
     return 'Connexion impossible. Vérifiez votre réseau, puis réessayez.';
   }
@@ -102,6 +102,11 @@ export function describeAuthError(error: unknown): string {
     case 'UNAUTHENTICATED':
       return 'Adresse email ou mot de passe incorrect.';
     case 'CONFLICT':
+      if (error.details?.pendingVerification?.length) {
+        return locale === 'en'
+          ? 'This account already exists, but its email is not verified. Check your inbox or request a new code.'
+          : 'Ce compte existe déjà mais son adresse email n’est pas vérifiée. Vérifiez votre boîte mail ou renvoyez un code.';
+      }
       return 'Un compte existe déjà avec cette adresse. Connectez-vous.';
     case 'RATE_LIMITED':
       return 'Trop de tentatives. Patientez quelques minutes avant de réessayer.';
@@ -212,12 +217,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   // L'appareil ne s'enregistre pour les notifications qu'une fois connecté.
   React.useEffect(() => {
-    if (state.status !== 'connecte') return;
+    if (state.status !== 'connecte' || !state.session?.user.emailVerified) return;
     void registerForPush();
-  }, [state.status]);
+  }, [state.status, state.session?.user.emailVerified]);
 
   React.useEffect(() => {
-    if (state.status !== 'connecte' || Platform.OS !== 'ios' || state.session?.organization.role !== 'OWNER') return;
+    if (state.status !== 'connecte' || !state.session?.user.emailVerified || Platform.OS !== 'ios' || state.session.organization.role !== 'OWNER') return;
     let disposed = false;
     let cleanup: (() => void) | undefined;
     void listenForApplePurchases(() => { void refreshSession(); }, (error) => {
@@ -235,9 +240,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
     const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
     return () => { disposed = true; cleanup?.(); foreground.remove(); };
-  }, [state.status, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);
+  }, [state.status, state.session?.user.emailVerified, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);
 
-  const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>) => {
+  const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>): Promise<SessionDTO> => {
     setState((current) => ({ ...current, error: null, errorReference: null }));
     try {
       const result = await action();
@@ -247,15 +252,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await writeSessionSnapshot(result.token, result.session);
       rememberLocale(result.session);
       setState({ status: 'connecte', session: result.session, ...IDLE });
+      return result.session;
     } catch (error) {
       setState((current) => ({
         ...current,
-        error: describeAuthError(error),
+        error: describeAuthError(error, preferredLocale),
         errorReference: error instanceof DevisiaApiError ? error.requestId ?? null : null,
       }));
       throw error;
     }
-  }, [rememberLocale]);
+  }, [rememberLocale, preferredLocale]);
 
   const value = React.useMemo<AuthContextValue>(
     () => ({

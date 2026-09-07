@@ -3,6 +3,7 @@ import { z } from 'zod';
 import { ok, parseBody, route } from '@/server/api';
 import { requireAuth, requirePermission, clientIpFrom } from '@/lib/auth/session';
 import { teamOverview, inviteMember } from '@/server/services/teamService';
+import { assertCanWrite, assertPlanFeature } from '@/server/services/accessService';
 
 const roleSchema = z.enum(['ADMIN', 'MEMBER']);
 
@@ -24,6 +25,8 @@ export async function GET() {
 export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('member:invite');
+    await assertCanWrite(auth.organization.organizationId);
+    await assertPlanFeature(auth.organization.organizationId, 'team');
     const body = await parseBody(request, z.object({ email: z.string().trim().email().max(254), role: roleSchema.default('MEMBER') }).strict());
     const invitation = await inviteMember(auth, body.email, body.role, clientIpFrom(await headers()));
     return ok({ invitation: { id: invitation.id, email: invitation.email, role: invitation.role, expiresAt: invitation.expiresAt.toISOString() } }, { status: 201 });

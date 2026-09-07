@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Stack } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { Platform, Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/lib/auth';
@@ -91,7 +91,12 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
   const { status, session, outage, outageReference, refresh } = useAuth();
   const locale = useMobileLocale();
   const connected = status === 'connecte';
-  const needsPlan = Platform.OS === 'ios' && session?.organization.role === 'OWNER' && (!session.subscription || session.subscription.status === 'incomplete');
+  // Entitlement state is computed by the server. The fallback keeps cached
+  // sessions from older builds safe while the first refresh is in flight.
+  const needsPlan = connected && !!session && session.user.emailVerified && (
+    session.nextStep === 'subscription' ||
+    (!session.nextStep && !session.access?.canWrite)
+  );
   const back = locale === 'en' ? 'Back' : 'Retour';
 
   // Session existante mais serveur injoignable ou en panne : on ne déconnecte

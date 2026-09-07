@@ -7,6 +7,7 @@ import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { getAIProvider } from '@/lib/ai';
 import { getStorageProvider } from '@/lib/storage';
 import { assertWithinPlan, incrementUsage } from '@/server/services/usageService';
+import { assertCanWrite } from '@/server/services/accessService';
 
 const bodySchema = z.object({
   fileIds: z.array(z.string().uuid()).min(1).max(6),
@@ -17,6 +18,7 @@ export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('quote:write');
     const organizationId = auth.organization.organizationId;
+    await assertCanWrite(organizationId);
     const subscription = await prisma.subscription.findUnique({
       where: { organizationId },
       select: { plan: true },

@@ -7,7 +7,7 @@ DEVISERA helps French artisans prepare quotes from a description, voice input an
 | Area | Evidence | Status / remaining acceptance test |
 |---|---|---|
 | Authentication / tenant roles | `src/lib/auth`, authService, permissions and integration tests | NEEDS IMPROVEMENT: live recovery, concurrent-session and cross-tenant tests must pass against isolated PostgreSQL |
-| Name/email account editing | accountService, `/api/auth/compte`, `/api/auth/code-email`, mobile compte | Implemented; email delivery BLOCKED BY EXTERNAL ACTION. Verification not enforced; Apple sign-in missing |
+| Name/email account editing | accountService, `/api/auth/compte`, `/api/auth/code-email`, mobile compte | Implemented; pending-signup recovery and server-side verification gate are covered locally. Production email delivery remains BLOCKED BY EXTERNAL ACTION; Apple sign-in is not implemented |
 | Onboarding / pricing | mobile presentation, apple-paywall, shared plans | Three-day Apple offers previously configured. Device eligibility/renewal/restore still require test evidence |
 | Dashboard / navigation | mobile index, scrub-tab-bar, snapshot tests | Implemented improvements; no claim of measured iPhone frame rate. Build 13 device QA pending |
 | AI text / photo / voice | aiQuoteService, `src/lib/ai`, mobile capture | User reported photo/password working. Re-run paid-provider and permission-denial tests; model availability is external |

@@ -2,12 +2,14 @@ import { requirePermission } from '@/lib/auth/session';
 import { fail, ok, route } from '@/server/api';
 import { AppError } from '@/lib/errors';
 import { importPriceBookCsv } from '@/server/services/priceBookService';
+import { assertCanWrite } from '@/server/services/accessService';
 
 const MAX_CSV_BYTES = 2 * 1024 * 1024;
 
 export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('pricebook:write');
+    await assertCanWrite(auth.organization.organizationId);
     const form = await request.formData().catch(() => null);
     if (!form) throw new AppError('VALIDATION', 'Fichier CSV manquant.');
 

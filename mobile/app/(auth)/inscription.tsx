@@ -37,13 +37,19 @@ export default function InscriptionScreen() {
     submitting.current = true;
     setPending(true);
     try {
-      await signUp({
+      const session = await signUp({
         companyName: form.companyName.trim(),
         firstName: form.firstName.trim() || undefined,
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace({ pathname: '/verification' } as never);
+      router.replace((
+        session.nextStep === 'verify_email'
+          ? '/verification'
+          : session.nextStep === 'subscription'
+            ? '/abonnement'
+            : '/(app)'
+      ) as never);
     } catch {
       // Message affiché sous le champ mot de passe.
     } finally {

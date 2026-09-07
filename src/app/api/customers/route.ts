@@ -3,6 +3,7 @@ import { ok, parseBody, parseQuery, route } from '@/server/api';
 import { customerSchema } from '@/server/validation';
 import { createCustomer, listCustomers } from '@/server/services/customerService';
 import { z } from 'zod';
+import { assertCanWrite } from '@/server/services/accessService';
 
 const querySchema = z.object({
   q: z.string().max(120).optional(),
@@ -26,6 +27,7 @@ export async function GET(request: Request) {
 export async function POST(request: Request) {
   return route(async () => {
     const auth = await requirePermission('customer:write');
+    await assertCanWrite(auth.organization.organizationId);
     const body = await parseBody(request, customerSchema);
     const customer = await createCustomer(auth.organization.organizationId, auth.user.id, body);
     return ok(customer, { status: 201 });

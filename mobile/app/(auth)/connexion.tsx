@@ -22,8 +22,14 @@ export default function ConnexionScreen() {
     submitting.current = true;
     setPending(true);
     try {
-      await signIn(email.trim(), password);
-      router.replace('/(app)');
+      const session = await signIn(email.trim(), password);
+      router.replace((
+        session.nextStep === 'verify_email'
+          ? '/verification'
+          : session.nextStep === 'subscription'
+            ? '/abonnement'
+            : '/(app)'
+      ) as never);
     } catch {
       // Le message est porté par le contexte d'authentification.
     } finally {

@@ -2,6 +2,7 @@ import { z } from 'zod';
 import { requirePermission } from '@/lib/auth/session';
 import { idSchema, ok, parseBody, route } from '@/server/api';
 import { cancelFollowUp, sendFollowUp } from '@/server/services/followUpService';
+import { assertCanWrite } from '@/server/services/accessService';
 
 type Params = { params: Promise<{ id: string }> };
 
@@ -13,6 +14,7 @@ const bodySchema = z.object({
 export async function POST(request: Request, { params }: Params) {
   return route(async () => {
     const auth = await requirePermission('followup:send');
+    await assertCanWrite(auth.organization.organizationId);
     const id = idSchema.parse((await params).id);
     const payload = await parseBody(request, bodySchema);
     const record = await sendFollowUp({
@@ -29,6 +31,7 @@ export async function POST(request: Request, { params }: Params) {
 export async function DELETE(_request: Request, { params }: Params) {
   return route(async () => {
     const auth = await requirePermission('followup:send');
+    await assertCanWrite(auth.organization.organizationId);
     const id = idSchema.parse((await params).id);
     await cancelFollowUp(auth.organization.organizationId, id);
     return ok({ cancelled: true });

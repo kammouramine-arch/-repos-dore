@@ -36,8 +36,31 @@ export interface SignUpInput {
 /** Inscription : utilisateur + organisation + email de bienvenue. */
 export async function signUp(input: SignUpInput) {
   const email = normalizeEmail(input.email);
-  const existing = await prisma.user.findUnique({ where: { email }, select: { id: true } });
+  const existing = await prisma.user.findUnique({
+    where: { email },
+    include: {
+      memberships: {
+        where: { deletedAt: null },
+        include: { organization: true },
+        orderBy: { createdAt: 'asc' },
+      },
+    },
+  });
   if (existing) {
+    // A failed verification email must not strand the account. Retrying the
+    // same signup with the original password re-authenticates the pending
+    // account and sends a fresh challenge instead of creating a duplicate.
+    if (!existing.deletedAt && !existing.emailVerifiedAt) {
+      const validPassword = await verifyPassword(input.password, existing.passwordHash);
+      const membership = existing.memberships[0];
+      if (validPassword && membership && !membership.organization.deletedAt) {
+        await requestEmailCode(existing.id, { email, language: input.locale ?? existing.locale });
+        return { user: existing, organization: membership.organization, existingPending: true };
+      }
+      throw new AppError('CONFLICT', 'Un compte existe déjà mais votre adresse email n’est pas encore vérifiée.', {
+        details: { pendingVerification: ['true'] },
+      });
+    }
     throw conflict('Un compte existe déjà avec cette adresse email.');
   }
 

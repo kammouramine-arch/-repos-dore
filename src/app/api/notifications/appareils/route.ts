@@ -15,7 +15,7 @@ const registerSchema = z.object({
 /** Enregistrement du jeton push d'un appareil mobile. */
 export async function POST(request: Request) {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const body = await parseBody(request, registerSchema);
     if (!isExpoPushToken(body.token)) {
       throw validation("Jeton de notification invalide.");
@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
 export async function DELETE(request: Request) {
   return route(async () => {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const body = await parseBody(request, z.object({ token: z.string().trim().min(10).max(200) }));
     const removed = await unregisterDevice(auth.organization.organizationId, body.token);
     return ok({ removed });

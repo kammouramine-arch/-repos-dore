@@ -13,6 +13,7 @@ import {
   storageKey,
   validateUpload,
 } from '@/lib/storage';
+import { assertCanWrite } from '@/server/services/accessService';
 
 const KINDS = ['LOGO', 'PHOTO_CHANTIER', 'PIECE_JOINTE', 'DEVIS_IMPORTE', 'CATALOGUE_IMPORTE', 'AUTRE'] as const;
 type Kind = (typeof KINDS)[number];
@@ -22,6 +23,7 @@ export async function POST(request: Request) {
   try {
     const auth = await requireAuth({ requireVerified: true });
     const organizationId = auth.organization.organizationId;
+    await assertCanWrite(organizationId);
     await enforceRateLimit({ key: `upload:${organizationId}`, ...RATE_LIMITS.upload });
 
     const form = await request.formData().catch(() => null);

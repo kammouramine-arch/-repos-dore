@@ -12,7 +12,7 @@ type Params = { params: Promise<{ id: string }> };
  */
 export async function GET(_request: Request, { params }: Params) {
   try {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const id = idSchema.parse((await params).id);
 
     const file = await prisma.file.findFirst({
@@ -39,7 +39,7 @@ export async function GET(_request: Request, { params }: Params) {
 
 export async function DELETE(_request: Request, { params }: Params) {
   try {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const id = idSchema.parse((await params).id);
     const file = await prisma.file.findFirst({
       where: { id, organizationId: auth.organization.organizationId, deletedAt: null },

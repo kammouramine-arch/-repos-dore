@@ -24,6 +24,12 @@ function ecrans(dossier: string, trouves: string[] = []): string[] {
 }
 
 describe('navigation iOS', () => {
+  it('uses the server-authenticated verification and entitlement state', () => {
+    expect(LAYOUT).toMatch(/session\.nextStep === 'subscription'/);
+    expect(LAYOUT).toMatch(/session\.user\.emailVerified/);
+    expect(LAYOUT).not.toMatch(/Platform\.OS === 'ios'.*needsPlan/);
+  });
+
   it('pose un intitulé de retour par défaut pour toute la pile', () => {
     // Le libellé peut être posé en clair ou via une constante locale `back`,
     // pourvu que cette constante soit bien « Retour » / « Back ».

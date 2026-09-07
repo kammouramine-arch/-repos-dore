@@ -8,11 +8,13 @@ import { AUDIO_MIME_TYPES, MAX_AUDIO_BYTES } from '@/lib/storage/validation';
 import { incrementUsage } from '@/server/services/usageService';
 import { prisma } from '@/lib/prisma';
 import { assertWithinPlan } from '@/server/services/usageService';
+import { assertCanWrite } from '@/server/services/accessService';
 
 export async function POST(request: Request) {
   try {
     const auth = await requirePermission('quote:write');
     const organizationId = auth.organization.organizationId;
+    await assertCanWrite(organizationId);
     const subscription = await prisma.subscription.findUnique({
       where: { organizationId },
       select: { plan: true },

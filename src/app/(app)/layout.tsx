@@ -15,6 +15,10 @@ export const dynamic = 'force-dynamic';
 export default async function AppLayout({ children }: { children: React.ReactNode }) {
   const auth = await getAuthContext();
   if (!auth) redirect('/connexion');
+  // A valid session does not prove mailbox ownership. Keep browser sessions
+  // behind the same verification gate as mobile instead of rendering the
+  // workspace and relying on client-side hiding.
+  if (!auth.user.emailVerified) redirect('/verification?pending=1');
 
   const [unread, locale, subscription] = await Promise.all([
     countUnread(auth.organization.organizationId),

@@ -4,6 +4,7 @@ import { fail, ok, parseBody } from '@/server/api';
 import { AppError } from '@/lib/errors';
 import { businessProfileSchema } from '@/server/validation';
 import { recordAudit } from '@/server/services/auditService';
+import { assertCanWrite } from '@/server/services/accessService';
 
 /**
  * Profil d'entreprise.
@@ -41,7 +42,7 @@ const SELECTION = {
 
 export async function GET() {
   try {
-    const auth = await requireAuth();
+    const auth = await requireAuth({ requireVerified: true });
     const profile = await prisma.businessProfile.findUnique({
       where: { organizationId: auth.organization.organizationId },
       select: SELECTION,
@@ -56,6 +57,7 @@ export async function GET() {
 export async function PATCH(request: Request) {
   try {
     const auth = await requirePermission('settings:write');
+    await assertCanWrite(auth.organization.organizationId);
     const organizationId = auth.organization.organizationId;
     const body = await parseBody(request, businessProfileSchema);
 

@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     const ip = clientIpFrom(await headers());
     await enforceRateLimit({ key: `signup:${ip}`, ...RATE_LIMITS.signup });
 
-    const { user, organization } = await signUp({ ...body, ip });
+    const { user, organization, existingPending } = await signUp({ ...body, ip });
     const { token, expiresAt } = await issueSessionToken(user.id, { deviceName: body.deviceName });
 
     return ok(
@@ -30,7 +30,7 @@ export async function POST(request: Request) {
         expiresAt: expiresAt.toISOString(),
         session: await buildSessionDTOFor(user.id, organization.id),
       },
-      { status: 201 },
+      { status: existingPending ? 200 : 201 },
     );
   });
 }

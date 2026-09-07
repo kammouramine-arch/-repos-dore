@@ -6,6 +6,8 @@
  * compilation des deux clients plutôt que de passer inaperçue.
  */
 import type { PlanId, SubscriptionStatusId } from './plans';
+import type { AccessState } from './entitlements';
+import type { AuthNextStep } from './auth-flow';
 import type {
   FollowUpTone,
   LeadStatusId,
@@ -69,6 +71,10 @@ export interface SessionDTO {
   user: SessionUserDTO;
   organization: SessionOrganizationDTO;
   subscription: SubscriptionDTO | null;
+  /** Server-authoritative entitlement state used by clients for routing/UI. */
+  access: AccessState;
+  /** The only valid next destination for this authenticated session. */
+  nextStep: AuthNextStep;
   capabilities: {
     generation: boolean;
     vision: boolean;
