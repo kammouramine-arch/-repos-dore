@@ -85,7 +85,7 @@ export function ApplePaywall() {
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
       const chosen = plan === selected;
-      return <PressableCard key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={`Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
+      return <PressableCard haptic key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={`Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
         style={{ borderColor: chosen ? colors.accent : colors.line, borderWidth: 2, gap: spacing.md, backgroundColor: chosen ? colors.accentSoft : colors.canvas }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <View style={{ flex: 1, gap: 4 }}><Heading>{PLANS[plan].name}</Heading><Caption>{plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}</Caption></View>

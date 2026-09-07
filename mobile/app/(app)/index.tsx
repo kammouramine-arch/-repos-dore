@@ -2,7 +2,6 @@ import * as React from 'react';
 import { Pressable, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import * as Haptics from 'expo-haptics';
 import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
@@ -260,11 +259,9 @@ export default function AccueilScreen() {
              comment elle se passe plutôt que d'afficher des compteurs vides. */
           <>
             <PressableCard
+              haptic
               accessibilityLabel={en ? 'Create my first quote' : 'Créer mon premier devis'}
-              onPress={() => {
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-                router.push('/devis/nouveau');
-              }}
+              onPress={() => router.push('/devis/nouveau')}
               style={{
                 backgroundColor: colors.accentDeep,
                 borderColor: colors.accentDeep,

@@ -56,7 +56,7 @@ export default function ClientProfile() {
         <Muted>{formatCents(query.data.stats.pendingCents)} {en ? 'pending' : 'en attente'}</Muted>
       </Card>
       {query.data.quotes.length === 0 ? <Muted>{en ? 'No quotes for this client yet. Create the first one above.' : 'Aucun devis pour ce client. Préparez son premier devis ci-dessus.'}</Muted> : null}
-      {query.data.quotes.map(quote => <PressableCard key={quote.id} accessibilityLabel={en ? `Open quote ${quote.number}` : `Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
+      {query.data.quotes.map(quote => <PressableCard haptic key={quote.id} accessibilityLabel={en ? `Open quote ${quote.number}` : `Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
         <View style={{ gap: spacing.sm }}><Body>{quote.number} · {quote.title}</Body><Body>{formatCents(quote.totalCents)}</Body><Muted>{(en ? { BROUILLON: 'Draft', ENVOYE: 'Sent', CONSULTE: 'Viewed', ACCEPTE: 'Accepted', REFUSE: 'Declined', EXPIRE: 'Expired', ANNULE: 'Cancelled', MODIFICATION_DEMANDEE: 'Changes requested' } : { BROUILLON: 'Brouillon', ENVOYE: 'Envoyé', CONSULTE: 'Consulté', ACCEPTE: 'Accepté', REFUSE: 'Refusé', EXPIRE: 'Expiré', ANNULE: 'Annulé', MODIFICATION_DEMANDEE: 'Modification demandée' })[quote.status] ?? (en ? 'Needs review' : 'À vérifier')}</Muted><Muted>{quote.sentAt ? (en ? `Sent on ${new Date(quote.sentAt).toLocaleDateString('en-GB')}` : `Envoyé le ${new Date(quote.sentAt).toLocaleDateString('fr-FR')}`) : (en ? 'Not sent' : 'Non envoyé')}</Muted></View>
       </PressableCard>)}
       {query.data.jobs?.length ? <>
@@ -69,7 +69,7 @@ export default function ClientProfile() {
       </> : null}
       <Heading>{en ? 'Client activity' : 'Activité du client'}</Heading>
       <Muted>{en ? 'The 30 most recent quote events. A recorded view does not prove the email was read.' : 'Les 30 événements de devis les plus récents. Une consultation enregistrée ne prouve pas la lecture de l’email.'}</Muted>
-      {query.data.activity?.map(event => <PressableCard key={event.id} accessibilityLabel={en ? `View ${event.quoteNumber}` : `Voir ${event.quoteNumber}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: event.quoteId } })}>
+      {query.data.activity?.map(event => <PressableCard haptic key={event.id} accessibilityLabel={en ? `View ${event.quoteNumber}` : `Voir ${event.quoteNumber}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: event.quoteId } })}>
         <View style={{ gap: spacing.sm }}>
           <Body>{(en ? { CREE: 'Quote created', MODIFIE: 'Quote updated', ENVOYE: 'Quote marked sent', CONSULTE: 'Quote viewed', ACCEPTE: 'Quote accepted', REFUSE: 'Quote declined', MODIFICATION_DEMANDEE: 'Changes requested', RELANCE: 'Follow-up recorded', PDF_TELECHARGE: 'PDF downloaded', ANNULE: 'Quote cancelled' } : { CREE: 'Devis créé', MODIFIE: 'Devis modifié', ENVOYE: 'Devis marqué envoyé', CONSULTE: 'Devis consulté', ACCEPTE: 'Devis accepté', REFUSE: 'Devis refusé', MODIFICATION_DEMANDEE: 'Modification demandée', RELANCE: 'Relance enregistrée', PDF_TELECHARGE: 'PDF téléchargé', ANNULE: 'Devis annulé' })[event.type] ?? (en ? 'Activity recorded' : 'Activité enregistrée')} · {event.quoteNumber}</Body>
           <Muted>{new Date(event.at).toLocaleString(en ? 'en-GB' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</Muted>

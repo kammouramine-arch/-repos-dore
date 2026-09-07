@@ -1,10 +1,10 @@
 import * as React from 'react';
-import { FlatList, Pressable, RefreshControl, View } from 'react-native';
+import { FlatList, Platform, Pressable, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import { QUOTE_STATUS_LABELS, formatCents, type QuoteSummaryDTO } from '@devisia/shared';
-import { Badge, Body, Button, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton } from '@/components/ui';
+import { Badge, Body, Button, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton, Banner } from '@/components/ui';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
@@ -94,6 +94,13 @@ export default function DevisScreen() {
         />
       </View>
 
+      {query.error ? (
+        <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}>
+          <Banner tone="danger" title={query.error} />
+          <Button title="Réessayer" variant="secondary" icon="refresh" onPress={() => void query.reload()} />
+        </View>
+      ) : null}
+
       {query.loading && !query.data ? (
         <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2, 3].map((index) => (
@@ -105,6 +112,14 @@ export default function DevisScreen() {
           data={query.data?.items ?? []}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          updateCellsBatchingPeriod={16}
+          removeClippedSubviews={Platform.OS === 'android'}
+          keyboardDismissMode="on-drag"
+          scrollEventThrottle={16}
+          decelerationRate="fast"
           contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'], gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
@@ -123,6 +138,7 @@ export default function DevisScreen() {
           }
           renderItem={({ item }) => (
             <PressableCard
+              haptic
               accessibilityLabel={`Ouvrir le devis ${item.number}`}
               onPress={() => router.push(`/devis/${item.id}`)}
               style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}

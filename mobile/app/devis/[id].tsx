@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { ActivityIndicator, Alert, Modal, Pressable, ScrollView, Share, TextInput, View } from 'react-native';
+import { ActivityIndicator, Alert, Modal, Platform, Pressable, ScrollView, Share, TextInput, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import {
@@ -166,6 +166,11 @@ export default function DevisDetailScreen() {
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.surface }}
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing['4xl'] }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
       >
         <View style={{ gap: spacing.sm }}>
           <Badge label={QUOTE_STATUS_LABELS[quote.status]} tone={TONES[quote.status] ?? 'neutral'} />
@@ -381,6 +386,11 @@ function FollowUpSheet({
       <ScrollView
         style={{ flex: 1, backgroundColor: colors.surface }}
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
       >
         <View style={{ gap: 4 }}>
           <Title>{en ? `Follow up with ${customerName}` : `Relancer ${customerName}`}</Title>

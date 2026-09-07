@@ -165,6 +165,10 @@ export default function EntrepriseScreen() {
       <ScrollView
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing['4xl'] }}
         keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
       >
         <View style={{ gap: 4 }}>
           <Title>Mon entreprise</Title>

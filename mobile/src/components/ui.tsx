@@ -21,7 +21,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
-import { useTouchMotion } from '@/components/motion';
+import { useReducedMotion, useTouchMotion } from '@/components/motion';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 import { localizeNode, localizeText, useMobileLocale } from '@/lib/i18n';
 
@@ -130,6 +130,7 @@ export function PressableCard({
   accessibilityRole = 'button',
   accessibilityState,
   disabled = false,
+  haptic = false,
 }: {
   children: React.ReactNode;
   onPress: () => void;
@@ -138,9 +139,12 @@ export function PressableCard({
   accessibilityRole?: PressableProps['accessibilityRole'];
   accessibilityState?: PressableProps['accessibilityState'];
   disabled?: boolean;
+  /** Feedback réservé aux cartes qui déclenchent une navigation ou une action. */
+  haptic?: boolean;
 }) {
   const locale = useMobileLocale();
   const touch = useTouchMotion(0.982);
+  const lastPressAt = React.useRef(0);
 
   return (
     <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
@@ -149,7 +153,16 @@ export function PressableCard({
         accessibilityLabel={localizeText(locale, accessibilityLabel)}
         accessibilityState={{ ...accessibilityState, disabled }}
         disabled={disabled}
-        onPress={() => { touch.pressOut(); onPress(); }}
+        onPress={() => {
+          touch.pressOut();
+          // Navigation can take a frame on a real device. Ignore an accidental
+          // second tap in that hand-off window instead of pushing two routes.
+          const now = Date.now();
+          if (now - lastPressAt.current < 500) return;
+          lastPressAt.current = now;
+          if (haptic) void Haptics.selectionAsync().catch(() => undefined);
+          onPress();
+        }}
         onPressIn={touch.pressIn}
         onPressOut={touch.pressOut}
         style={({ pressed }) => [
@@ -371,8 +384,14 @@ export function Divider({ style }: { style?: ViewStyle }) {
 /** Squelette de chargement : jamais de spinner plein écran sur une liste. */
 export function Skeleton({ height = 16, width = '100%', style }: { height?: number; width?: number | string; style?: ViewStyle }) {
   const opacity = React.useMemo(() => new Animated.Value(0.5), []);
+  const reduced = useReducedMotion();
 
   React.useEffect(() => {
+    if (reduced) {
+      opacity.stopAnimation();
+      opacity.setValue(0.65);
+      return undefined;
+    }
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
@@ -381,7 +400,7 @@ export function Skeleton({ height = 16, width = '100%', style }: { height?: numb
     );
     loop.start();
     return () => loop.stop();
-  }, [opacity]);
+  }, [opacity, reduced]);
 
   return (
     <Animated.View
@@ -511,7 +530,10 @@ export function Screen({
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       showsVerticalScrollIndicator={false}
-      decelerationRate="normal"
+      scrollEventThrottle={16}
+      alwaysBounceVertical
+      decelerationRate="fast"
+      overScrollMode="never"
       refreshControl={refreshControl}
     >
       {content}
@@ -560,6 +582,7 @@ export function IconButton({
   tone = 'neutral',
   size = 20,
   disabled,
+  haptic = false,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   /** Lu par VoiceOver : une icône seule n'est jamais explicite. */
@@ -568,17 +591,26 @@ export function IconButton({
   tone?: 'neutral' | 'accent' | 'danger';
   size?: number;
   disabled?: boolean;
+  haptic?: boolean;
 }) {
   const locale = useMobileLocale();
+  const touch = useTouchMotion(0.92);
   const color =
     tone === 'accent' ? colors.accent : tone === 'danger' ? colors.danger : colors.muted;
   return (
+    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={localizeText(locale, label)}
       accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
-      onPress={onPress}
+      onPressIn={touch.pressIn}
+      onPressOut={touch.pressOut}
+      onPress={() => {
+        touch.pressOut();
+        if (haptic) void Haptics.selectionAsync().catch(() => undefined);
+        onPress();
+      }}
       hitSlop={8}
       style={({ pressed }) => ({
         minWidth: 44,
@@ -591,6 +623,7 @@ export function IconButton({
     >
       <Ionicons name={icon} size={size} color={color} />
     </Pressable>
+    </Animated.View>
   );
 }
 
@@ -689,6 +722,7 @@ export function ListRow({
   onPress,
   destructive,
   last,
+  haptic = true,
 }: {
   title: string;
   subtitle?: string | null;
@@ -697,9 +731,11 @@ export function ListRow({
   onPress?: () => void;
   destructive?: boolean;
   last?: boolean;
+  haptic?: boolean;
 }) {
   const locale = useMobileLocale();
   const touch = useTouchMotion(0.992);
+  const lastPressAt = React.useRef(0);
   const content = (
     <View
       style={{
@@ -755,9 +791,16 @@ export function ListRow({
     <Pressable
       accessibilityRole="button"
       accessibilityLabel={localizeText(locale, title)}
-      onPress={onPress}
       onPressIn={touch.pressIn}
       onPressOut={touch.pressOut}
+      onPress={() => {
+        touch.pressOut();
+        const now = Date.now();
+        if (now - lastPressAt.current < 500) return;
+        lastPressAt.current = now;
+        if (haptic) void Haptics.selectionAsync().catch(() => undefined);
+        onPress();
+      }}
       style={({ pressed }) => ({ backgroundColor: pressed ? colors.surface2 : 'transparent' })}
     >
       {content}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FlatList, Linking, Pressable, RefreshControl, View } from 'react-native';
+import { FlatList, Linking, Platform, Pressable, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatCents, type CustomerDTO } from '@devisia/shared';
@@ -74,6 +74,14 @@ export default function ClientsScreen() {
           data={query.data?.items ?? []}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          updateCellsBatchingPeriod={16}
+          removeClippedSubviews={Platform.OS === 'android'}
+          keyboardDismissMode="on-drag"
+          scrollEventThrottle={16}
+          decelerationRate="fast"
           contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: 120, gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
@@ -98,7 +106,7 @@ export default function ClientsScreen() {
             />
           }
           renderItem={({ item }) => (
-            <PressableCard accessibilityLabel={`Ouvrir la fiche de ${item.displayName}`} onPress={() => router.push({ pathname: '/clients/[id]', params: { id: item.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+            <PressableCard haptic accessibilityLabel={`Ouvrir la fiche de ${item.displayName}`} onPress={() => router.push({ pathname: '/clients/[id]', params: { id: item.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <View
                 style={{
                   width: 44,

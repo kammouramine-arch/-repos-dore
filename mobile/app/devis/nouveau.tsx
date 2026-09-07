@@ -485,6 +485,10 @@ export default function NouveauDevisScreen() {
         <ScrollView
           contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing['4xl'] }}
           keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
         >
           <View style={{ gap: spacing.sm }}>
             <ProgressDots total={questions.length} current={Math.min(answered, questions.length - 1)} />
@@ -568,6 +572,8 @@ export default function NouveauDevisScreen() {
           keyboardShouldPersistTaps="handled"
           keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
           showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
         >
           <PageHeader
             eyebrow="Votre devis"
@@ -806,6 +812,8 @@ export default function NouveauDevisScreen() {
         keyboardShouldPersistTaps="handled"
         keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
         showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
       >
         <PageHeader
           eyebrow="Nouveau devis"

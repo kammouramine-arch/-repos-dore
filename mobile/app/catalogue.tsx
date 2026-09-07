@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Modal, Platform, Pressable, ScrollView, View } from 'react-native';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import {
@@ -77,6 +77,7 @@ export default function CatalogueScreen() {
   const [error, setError] = React.useState<string | null>(null);
   const [draft, setDraft] = React.useState<Draft | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
 
   const load = React.useCallback(async (term: string) => {
     setError(null);
@@ -94,6 +95,15 @@ export default function CatalogueScreen() {
     const timer = setTimeout(() => void load(search), search ? 260 : 0);
     return () => clearTimeout(timer);
   }, [search, load]);
+
+  const refresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load(search);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load, search]);
 
   async function save() {
     if (!draft) return;
@@ -150,7 +160,15 @@ export default function CatalogueScreen() {
         {error ? <Banner tone="danger" title={error} onDismiss={() => setError(null)} /> : null}
       </View>
 
-      <ScrollView contentContainerStyle={{ paddingBottom: 120 }} keyboardShouldPersistTaps="handled">
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.accent} />}
+      >
         {items === null ? <LoadingState label="Chargement de votre catalogue…" /> : null}
 
         {items?.length === 0 ? (
@@ -261,6 +279,8 @@ export default function CatalogueScreen() {
             <ScrollView
               contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
               keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+              showsVerticalScrollIndicator={false}
             >
               {error ? <Banner tone="danger" title={error} /> : null}
               <Field

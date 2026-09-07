@@ -1,9 +1,9 @@
 import * as React from 'react';
-import { Alert, FlatList, RefreshControl, View } from 'react-native';
+import { Alert, FlatList, Platform, RefreshControl, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LEAD_STATUS_LABELS, formatCents, type LeadDTO } from '@devisia/shared';
-import { Badge, Body, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton } from '@/components/ui';
+import { Badge, Body, Banner, Button, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
@@ -60,6 +60,13 @@ export default function ProspectsScreen() {
         />
       </View>
 
+      {query.error ? (
+        <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}>
+          <Banner tone="danger" title={query.error} />
+          <Button title={en ? 'Retry' : 'Réessayer'} variant="secondary" icon="refresh" onPress={() => void query.reload()} />
+        </View>
+      ) : null}
+
       {query.loading && !query.data ? (
         <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
           {[0, 1, 2].map((index) => (
@@ -71,6 +78,14 @@ export default function ProspectsScreen() {
           data={query.data ?? []}
           keyExtractor={(item) => item.id}
           showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          updateCellsBatchingPeriod={16}
+          removeClippedSubviews={Platform.OS === 'android'}
+          keyboardDismissMode="on-drag"
+          scrollEventThrottle={16}
+          decelerationRate="fast"
           contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'], gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
@@ -84,6 +99,7 @@ export default function ProspectsScreen() {
           }
           renderItem={({ item }) => (
             <PressableCard
+              haptic
               accessibilityLabel={`Ouvrir la demande de ${item.contactName}`}
               onPress={() =>
                 Alert.alert(item.contactName, item.description ?? item.title, [
