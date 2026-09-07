@@ -32,6 +32,8 @@ export interface ApiError {
   message: string;
   details?: Record<string, string[]>;
   retryable?: boolean;
+  /** Référence courte d'une erreur serveur, pour retrouver la ligne de journal. */
+  requestId?: string;
 }
 
 export type ApiResponse<T> = { data: T } | { error: ApiError };

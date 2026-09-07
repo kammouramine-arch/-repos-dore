@@ -1,7 +1,8 @@
 import * as React from 'react';
-import { Pressable, RefreshControl, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View, useWindowDimensions } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
+import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
+import { setStatusBarStyle } from 'expo-status-bar';
 import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
@@ -14,7 +15,6 @@ import {
   ErrorState,
   Ionicons,
   Muted,
-  PageHeader,
   PressableCard,
   Screen,
   SectionHeader,
@@ -31,6 +31,7 @@ import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
 import { PremiumGradient } from '@/components/premium-gradient';
+import { GRADIENT_SPAN } from '@/theme/gradient';
 
 /**
  * Accueil.
@@ -110,10 +111,55 @@ function relativeDay(iso: string, en: boolean): string {
   return date.toLocaleDateString('fr-FR', { day: 'numeric', month: 'short' });
 }
 
+/**
+ * En-tête de l'accueil, posé directement sur la surface de marque.
+ *
+ * L'ancien en-tête était une carte bleue aux coins arrondis sur un fond gris :
+ * on lisait « un rectangle bleu, puis du blanc ». Le texte est maintenant
+ * écrit en blanc sur le bleu saturé, et c'est l'arrière-plan de l'écran qui
+ * se dissout vers le blanc sous les cartes.
+ */
+function HomeHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+  return (
+    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, paddingBottom: spacing.sm }}>
+      <View style={{ flex: 1, gap: 6 }}>
+        <Caption upper style={{ color: 'rgba(255,255,255,0.78)' }}>{eyebrow}</Caption>
+        <Text style={[typography.title, { color: colors.white, fontSize: 30, lineHeight: 36 }]} accessibilityRole="header">{title}</Text>
+        <Text style={[typography.body, { color: 'rgba(255,255,255,0.86)' }]}>{subtitle}</Text>
+      </View>
+      <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
+        <Logo size={26} showName={false} tone="inverse" />
+      </View>
+    </View>
+  );
+}
+
+/** Fond de marque et barre d'état claire tant que l'accueil est à l'écran. */
+function useBrandSurface() {
+  const { height } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  useFocusEffect(
+    React.useCallback(() => {
+      setStatusBarStyle('light');
+      return () => setStatusBarStyle('dark');
+    }, []),
+  );
+  return { gradientHeight: Math.round(height * GRADIENT_SPAN.home), paddingTop: insets.top + spacing.lg };
+}
+
+function BrandBackdrop({ height }: { height: number }) {
+  return (
+    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height }}>
+      <PremiumGradient />
+    </View>
+  );
+}
+
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const en = mobileLocale(session) === 'en';
+  const surface = useBrandSurface();
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();
     const data = await api.dashboard(30);
@@ -159,22 +205,14 @@ export default function AccueilScreen() {
      * saute quand les données arrivent.
      */
     return (
-      <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
-        <Screen>
-          <View style={{ marginHorizontal: -spacing.xl, marginTop: -spacing.xl, overflow: 'hidden', borderBottomLeftRadius: radius.xl, borderBottomRightRadius: radius.xl }}>
-            <PremiumGradient style={{ flex: 0, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing['2xl'] }}>
-              <PageHeader
-                eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-                title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-                subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
-                action={
-                  <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                    <Logo size={26} showName={false} />
-                  </View>
-                }
-              />
-            </PremiumGradient>
-          </View>
+      <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+        <BrandBackdrop height={surface.gradientHeight} />
+        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
+          <HomeHeader
+            eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+            title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+            subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
+          />
 
           <Card style={{ gap: spacing.md }}>
             <Skeleton height={13} width="45%" />
@@ -193,7 +231,7 @@ export default function AccueilScreen() {
             </Card>
           </View>
         </Screen>
-      </SafeAreaView>
+      </View>
     );
   }
 
@@ -211,47 +249,30 @@ export default function AccueilScreen() {
   const started = data.quotesSent > 0 || data.recentActivity.length > 0 || data.newLeads > 0;
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
+    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      <BrandBackdrop height={surface.gradientHeight} />
       <Screen
+        transparent
+        contentStyle={{ paddingTop: surface.paddingTop }}
         refreshControl={
           <RefreshControl
             refreshing={query.refreshing}
             onRefresh={() => void query.refresh({ force: true })}
-            tintColor={colors.accent}
+            tintColor={colors.white}
           />
         }
       >
-        <View style={{ marginHorizontal: -spacing.xl, marginTop: -spacing.xl, overflow: 'hidden', borderBottomLeftRadius: radius.xl, borderBottomRightRadius: radius.xl }}>
-          <PremiumGradient style={{ flex: 0, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing['2xl'] }}>
-            <PageHeader
-              eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-              title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-              subtitle={
-                started
-                  ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
-                  : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
-              }
-              action={
-                <View
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 15,
-                    backgroundColor: colors.canvas,
-                    borderWidth: 1,
-                    borderColor: colors.line,
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Logo size={27} showName={false} />
-                </View>
-              }
-            />
-          </PremiumGradient>
-        </View>
+        <HomeHeader
+          eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+          title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+          subtitle={
+            started
+              ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
+              : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
+          }
+        />
 
-        {(query.loading || query.refreshing || query.error) && <Caption>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
+        {(query.loading || query.refreshing || query.error) && <Caption style={{ color: 'rgba(255,255,255,0.85)' }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
         <TrialBanner subscription={session?.subscription ?? null} />
 
         {!started ? (
@@ -450,6 +471,6 @@ export default function AccueilScreen() {
 
         <View style={{ height: spacing.xl }} />
       </Screen>
-    </SafeAreaView>
+    </View>
   );
 }

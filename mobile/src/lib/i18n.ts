@@ -18,6 +18,7 @@ const DICTIONARY = {
     support: 'Contacter DEVISERA', retry: 'Réessayer', save: 'Enregistrer', signOut: 'Se déconnecter',
     login: 'Se connecter', createAccount: 'Créer un compte', email: 'Adresse email', password: 'Mot de passe',
     verify: 'Vérifiez votre adresse', verifySent: 'Un code vient d’être envoyé', confirm: 'Confirmer mon adresse', resend: 'Renvoyer un code',
+    reference: 'Référence',
   },
   en: {
     home: 'Home', clients: 'Clients', activity: 'Activity', space: 'My space', create: 'Create',
@@ -28,6 +29,7 @@ const DICTIONARY = {
     support: 'Contact DEVISERA', retry: 'Try again', save: 'Save', signOut: 'Sign out',
     login: 'Sign in', createAccount: 'Create an account', email: 'Email address', password: 'Password',
     verify: 'Verify your email', verifySent: 'A verification code was sent', confirm: 'Confirm my email', resend: 'Send a new code',
+    reference: 'Reference',
   },
 } as const;
 
@@ -104,6 +106,11 @@ const TEXT_TRANSLATIONS: Record<string, string> = {
   'Essentiel': 'Essential', 'Entreprise': 'Enterprise', 'essai actif': 'trial active', 'Votre essai se termine demain.': 'Your trial ends tomorrow.',
   'Abonnement': 'Subscription', 'Mon compte': 'My account', 'Connexion indisponible': 'Connection unavailable',
   'Vos devis et vos clients sont en sécurité. Vérifiez votre réseau, puis réessayez.': 'Your quotes and clients are safe. Check your connection and try again.',
+  'Service indisponible': 'Service unavailable',
+  'Le service ne répond pas correctement. Vos devis et vos clients sont en sécurité. Réessayez dans un instant.': 'The service is not responding correctly. Your quotes and clients are safe. Try again in a moment.',
+  'Chargement de votre atelier…': 'Loading your workspace…',
+  'Votre atelier': 'Your workspace',
+  'Référence': 'Reference',
   'Chargement impossible': 'Loading failed', 'Aucun résultat': 'No results', 'Effacer la recherche': 'Clear search',
   'Étape': 'Step', 'sur': 'of', 'Nouvelle demande': 'New request', 'En attente': 'Pending', 'Gagné': 'Won', 'Perdu': 'Lost',
   'Une précision de votre part vaut mieux qu’une estimation de ma part.': 'One detail from you is better than an estimate from me.',

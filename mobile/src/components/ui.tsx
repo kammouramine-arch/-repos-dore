@@ -505,11 +505,18 @@ export function Screen({
   scroll = true,
   refreshControl,
   contentStyle,
+  transparent = false,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
   refreshControl?: React.ReactElement<RefreshControlProps>;
   contentStyle?: ViewStyle;
+  /**
+   * Laisse voir la surface de marque placée derrière (accueil) : le défilement
+   * ne repeint pas de fond, et les marges de zone sûre sont à la charge de
+   * l'écran, qui les connaît.
+   */
+  transparent?: boolean;
 }) {
   const content = (
     <View
@@ -518,15 +525,16 @@ export function Screen({
       {children}
     </View>
   );
+  const background = transparent ? 'transparent' : colors.surface;
 
   if (!scroll) {
-    return <View style={{ flex: 1, backgroundColor: colors.surface }}>{content}</View>;
+    return <View style={{ flex: 1, backgroundColor: background }}>{content}</View>;
   }
 
   return (
     <ScrollView
-      style={{ flex: 1, backgroundColor: colors.surface }}
-      contentInsetAdjustmentBehavior="automatic"
+      style={{ flex: 1, backgroundColor: background }}
+      contentInsetAdjustmentBehavior={transparent ? 'never' : 'automatic'}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       showsVerticalScrollIndicator={false}

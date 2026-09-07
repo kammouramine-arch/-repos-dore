@@ -8,7 +8,15 @@ import { z } from 'zod';
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL est requis'),
-  APP_URL: z.string().url().default('http://localhost:3000'),
+  // Une URL saisie sans schéma (« devisera.fr ») est complétée en https plutôt
+  // que rejetée : un lien d'email légèrement faux vaut mieux qu'une API à terre.
+  APP_URL: z.preprocess(
+    (value) =>
+      typeof value === 'string' && value.trim() !== '' && !/^https?:\/\//i.test(value.trim())
+        ? `https://${value.trim()}`
+        : value,
+    z.string().url().default('http://localhost:3000'),
+  ),
   AUTH_SECRET: z.string().min(16).default('devisera-development-secret-change-me'),
 
   // IA — laissé vide, le fournisseur est déduit de la présence de la clé.
@@ -99,15 +107,92 @@ type ServerEnv = z.infer<typeof serverSchema>;
 
 let cached: ServerEnv | null = null;
 
+/**
+ * Variables sans lesquelles rien ne peut fonctionner. Tout le reste décrit un
+ * service optionnel — email, IA, stockage objet, messagerie, paiements — et
+ * une valeur mal saisie pour l'un d'eux ne doit jamais rendre la connexion,
+ * les clients ou les devis indisponibles.
+ */
+const CRITICAL_KEYS = ['DATABASE_URL'] as const;
+
+export interface ConfigurationReport {
+  /** Variables critiques absentes ou invalides : le service ne peut pas démarrer. */
+  missing: string[];
+  /** Variables optionnelles ignorées (valeur invalide, défaut appliqué). Noms seuls. */
+  ignored: string[];
+}
+
+let report: ConfigurationReport = { missing: [], ignored: [] };
+let reported = false;
+
+/**
+ * Lit la configuration variable par variable.
+ *
+ * Auparavant, le schéma était validé d'un bloc : une seule valeur invalide —
+ * un fournisseur d'email mal orthographié, une adresse de réponse au mauvais
+ * format — faisait lever `env()` sur toutes les routes qui le consultent, et
+ * l'application entière répondait 500 alors que la base et l'authentification
+ * étaient saines. Désormais, seule une variable critique bloque ; une variable
+ * optionnelle invalide est remplacée par sa valeur par défaut et signalée par
+ * son nom, jamais par sa valeur.
+ */
+function readEnvironment(source: NodeJS.ProcessEnv): { value: ServerEnv; report: ConfigurationReport } {
+  const shape = serverSchema.shape;
+  const value: Record<string, unknown> = {};
+  const missing: string[] = [];
+  const ignored: string[] = [];
+  for (const key of Object.keys(shape) as (keyof typeof shape)[]) {
+    const field = shape[key];
+    const parsed = field.safeParse(source[key]);
+    if (parsed.success) {
+      value[key] = parsed.data;
+      continue;
+    }
+    if ((CRITICAL_KEYS as readonly string[]).includes(key)) {
+      missing.push(key);
+      continue;
+    }
+    // Une valeur présente mais invalide : on repart de la valeur par défaut du
+    // champ, comme si la variable n'était pas définie.
+    const fallback = field.safeParse(undefined);
+    value[key] = fallback.success ? fallback.data : undefined;
+    if (source[key] !== undefined) ignored.push(key);
+  }
+  return { value: value as ServerEnv, report: { missing, ignored } };
+}
+
 export function env(): ServerEnv {
   if (cached) return cached;
-  const parsed = serverSchema.safeParse(process.env);
-  if (!parsed.success) {
-    const details = parsed.error.issues.map((i) => `${i.path.join('.')}: ${i.message}`).join(', ');
-    throw new Error(`Configuration d'environnement invalide — ${details}`);
+  const read = readEnvironment(process.env);
+  report = read.report;
+  if (read.report.missing.length > 0) {
+    throw new Error(`Configuration d'environnement invalide — variables critiques : ${read.report.missing.join(', ')}`);
   }
-  cached = parsed.data;
+  if (read.report.ignored.length > 0 && !reported) {
+    reported = true;
+    console.warn(`[config] variables ignorées (valeur invalide, défaut appliqué) : ${read.report.ignored.join(', ')}`);
+  }
+  cached = read.value;
   return cached;
+}
+
+/** État de la configuration, noms de variables seulement — jamais de valeur. */
+export function configurationReport(): ConfigurationReport {
+  if (!cached) {
+    try {
+      env();
+    } catch {
+      // `report` porte déjà les variables manquantes.
+    }
+  }
+  return { missing: [...report.missing], ignored: [...report.ignored] };
+}
+
+/** Réinitialise le cache (tests). */
+export function resetEnv() {
+  cached = null;
+  reported = false;
+  report = { missing: [], ignored: [] };
 }
 
 /**

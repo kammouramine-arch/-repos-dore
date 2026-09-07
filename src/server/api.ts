@@ -1,6 +1,7 @@
 import 'server-only';
 import { NextResponse } from 'next/server';
 import { z } from 'zod';
+import { randomUUID } from 'node:crypto';
 import { AppError, isAppError } from '@/lib/errors';
 
 /** Réponse JSON standardisée pour toute l'API. */
@@ -41,17 +42,22 @@ export function fail(error: unknown) {
     );
   }
 
-  // Aucune stack trace n'est exposée : le détail reste dans les journaux serveur.
-  console.error('[api] erreur non gérée', error);
+  // Aucune stack trace n'est exposée : le détail reste dans les journaux
+  // serveur. La référence courte relie ce que voit l'artisan à la ligne de
+  // journal correspondante — sans elle, un « problème temporaire » signalé
+  // depuis un iPhone est introuvable parmi les requêtes du jour.
+  const requestId = randomUUID().slice(0, 8);
+  console.error(`[api] erreur non gérée ref=${requestId}`, error);
   return NextResponse.json(
     {
       error: {
         code: 'INTERNAL',
         message: "Une erreur inattendue s'est produite. Merci de réessayer.",
         retryable: true,
+        requestId,
       },
     },
-    { status: 500 },
+    { status: 500, headers: { 'x-request-id': requestId } },
   );
 }
 

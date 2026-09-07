@@ -25,7 +25,10 @@ function ecrans(dossier: string, trouves: string[] = []): string[] {
 
 describe('navigation iOS', () => {
   it('pose un intitulé de retour par défaut pour toute la pile', () => {
-    expect(LAYOUT).toMatch(/screenOptions=\{\{[\s\S]*headerBackTitle:\s*(?:'Retour'|locale === 'en' \? 'Back' : 'Retour')/);
+    // Le libellé peut être posé en clair ou via une constante locale `back`,
+    // pourvu que cette constante soit bien « Retour » / « Back ».
+    expect(LAYOUT).toMatch(/const back = locale === 'en' \? 'Back' : 'Retour'/);
+    expect(LAYOUT).toMatch(/screenOptions=\{\{[\s\S]*headerBackTitle:\s*(?:'Retour'|locale === 'en' \? 'Back' : 'Retour'|back)/);
   });
 
   it('donne un titre à chaque écran dont l’en-tête est visible', () => {

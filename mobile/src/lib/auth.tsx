@@ -6,6 +6,7 @@ import { api, setUnauthenticatedHandler } from './api';
 import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, persistPreferredLocale, readPreferredLocale } from './storage';
 import { clearQueryCache } from './query-cache';
 import { registerForPush, unregisterPush } from './push';
+import { recordDiagnostic } from './diagnostics';
 import { MobileLocaleProvider, deviceLocale, localizeText, mobileLocale, type MobileLocale } from './i18n';
 
 /**
@@ -14,12 +15,50 @@ import { MobileLocaleProvider, deviceLocale, localizeText, mobileLocale, type Mo
  * Le jeton vit dans le trousseau sécurisé ; la session est revalidée à chaque
  * démarrage pour refléter immédiatement un changement d'abonnement ou de rôle.
  */
+/** Famille de la panne qui empêche de revalider la session. */
+export type Outage = 'network' | 'server';
+
 interface AuthState {
   status: 'chargement' | 'connecte' | 'deconnecte';
   session: SessionDTO | null;
   error: string | null;
-  /** Vrai lorsque la session n'a pas pu être revalidée faute de réseau. */
+  /** Référence serveur de la dernière erreur d'authentification, à citer au support. */
+  errorReference: string | null;
+  /** Vrai lorsque la session n'a pas pu être revalidée (réseau ou serveur). */
   offline: boolean;
+  /** Ce qui a empêché la revalidation : le réseau, ou le serveur lui-même. */
+  outage: Outage | null;
+  outageReference: string | null;
+}
+
+const IDLE = { error: null, errorReference: null, offline: false, outage: null, outageReference: null } as const;
+
+/** Classe une panne : le serveur n'a pas répondu, ou il a répondu qu'il échouait. */
+export function classifyOutage(error: unknown): { outage: Outage; reference: string | null } {
+  if (error instanceof DevisiaApiError) {
+    if (error.code === 'NETWORK' || error.code === 'TIMEOUT') return { outage: 'network', reference: null };
+    return { outage: 'server', reference: error.requestId ?? null };
+  }
+  return { outage: 'network', reference: null };
+}
+
+/**
+ * Revalide la session avec un second essai.
+ *
+ * Une coupure d'une seconde au démarrage — bascule Wi-Fi/4G, réveil du
+ * serveur — ne doit pas aboutir à l'écran de panne. Un refus explicite (401)
+ * n'est jamais réessayé ; une erreur serveur l'est une fois, après une courte
+ * pause, puis remontée telle quelle.
+ */
+async function restoreSession(): Promise<SessionDTO> {
+  try {
+    return await api.request<SessionDTO>('/api/auth/session', { timeoutMs: 8_000 });
+  } catch (cause) {
+    const refused = cause instanceof DevisiaApiError && cause.status === 401;
+    if (refused) throw cause;
+    await new Promise((resolve) => setTimeout(resolve, 1_200));
+    return api.request<SessionDTO>('/api/auth/session', { timeoutMs: 8_000 });
+  }
 }
 
 interface AuthContextValue extends AuthState {
@@ -85,8 +124,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [state, setState] = React.useState<AuthState>({
     status: 'chargement',
     session: null,
-    error: null,
-    offline: false,
+    ...IDLE,
   });
   const authLocale = state.session ? mobileLocale(state.session) : preferredLocale;
 
@@ -108,7 +146,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const token = await readToken();
     if (generation !== sessionGeneration.current) return;
     if (!token) {
-      setState({ status: 'deconnecte', session: null, error: null, offline: false });
+      setState({ status: 'deconnecte', session: null, ...IDLE });
       return;
     }
     const cached = await readSessionSnapshot(token);
@@ -116,17 +154,17 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (cached) {
       rememberLocale(cached);
       setState((current) => current.status === 'chargement'
-        ? { status: 'connecte', session: cached, error: null, offline: false }
+        ? { status: 'connecte', session: cached, ...IDLE }
         : current);
     }
     try {
       // Session restore should never hold the native launch screen for the
       // full request budget. Cached data remains usable while a slow job-site
       // connection is reported as offline and can be retried from the shell.
-      const session = await api.request<SessionDTO>('/api/auth/session', { timeoutMs: 8_000 });
+      const session = await restoreSession();
       if (generation !== sessionGeneration.current) return;
       rememberLocale(session);
-      setState({ status: 'connecte', session, error: null, offline: false });
+      setState({ status: 'connecte', session, ...IDLE });
       await writeSessionSnapshot(token, session);
     } catch (cause) {
       if (generation !== sessionGeneration.current) return;
@@ -135,18 +173,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // de connexion. Le jeton n'est effacé que si le serveur l'a refusé.
       const refused = cause instanceof DevisiaApiError && cause.status === 401;
       if (!refused) {
-        setState((current) => ({ ...current, status: current.session ? 'connecte' : 'chargement', offline: true }));
+        const { outage, reference } = classifyOutage(cause);
+        recordDiagnostic({ area: 'startup', durationMs: 0, code: outage === 'network' ? 'SESSION_RESTORE_NETWORK' : 'SESSION_RESTORE_SERVER', category: outage, ...(reference ? { requestId: reference } : {}) });
+        setState((current) => ({ ...current, status: current.session ? 'connecte' : 'chargement', offline: true, outage, outageReference: reference }));
         return;
       }
       await clearToken();
-      setState({ status: 'deconnecte', session: null, error: null, offline: false });
+      setState({ status: 'deconnecte', session: null, ...IDLE });
     }
     })();
     restoring.current = pending;
     try { await pending; } catch {
       // Secure storage can fail before the network try/catch. Always leave
       // startup in a recoverable state instead of an unhandled rejection.
-      if (generation === sessionGeneration.current) setState(current => ({ ...current, offline: true }));
+      if (generation === sessionGeneration.current) setState(current => ({ ...current, offline: true, outage: current.outage ?? 'network' }));
     } finally { if (restoring.current === pending) restoring.current = null; }
   }, [rememberLocale]);
 
@@ -161,7 +201,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setUnauthenticatedHandler(() => {
       sessionGeneration.current += 1;
       clearQueryCache();
-      setState({ status: 'deconnecte', session: null, error: null, offline: false });
+      setState({ status: 'deconnecte', session: null, ...IDLE });
     });
     // Restauration de session au démarrage : c'est précisément le rôle de cet
     // effet, et l'état n'est posé qu'après lecture du trousseau sécurisé.
@@ -198,7 +238,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [state.status, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);
 
   const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>) => {
-    setState((current) => ({ ...current, error: null }));
+    setState((current) => ({ ...current, error: null, errorReference: null }));
     try {
       const result = await action();
       sessionGeneration.current += 1;
@@ -206,9 +246,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       await writeToken(result.token);
       await writeSessionSnapshot(result.token, result.session);
       rememberLocale(result.session);
-      setState({ status: 'connecte', session: result.session, error: null, offline: false });
+      setState({ status: 'connecte', session: result.session, ...IDLE });
     } catch (error) {
-      setState((current) => ({ ...current, error: describeAuthError(error) }));
+      setState((current) => ({
+        ...current,
+        error: describeAuthError(error),
+        errorReference: error instanceof DevisiaApiError ? error.requestId ?? null : null,
+      }));
       throw error;
     }
   }, [rememberLocale]);
@@ -230,7 +274,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         await unregisterPush().catch(() => undefined);
         await api.auth.signOut().catch(() => undefined);
         await clearToken();
-        setState({ status: 'deconnecte', session: null, error: null, offline: false });
+        setState({ status: 'deconnecte', session: null, ...IDLE });
       },
       refresh: refreshSession,
     }),

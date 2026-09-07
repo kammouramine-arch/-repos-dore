@@ -1,5 +1,12 @@
 # Follow-up from build 8 device testing
 
+## September 7 — startup incident, launch sequence, gradient (local pass, not yet deployed)
+- Production reproduced: `/api/health` 503 in 1 ms, sign-up and correct-password sign-in 500 while a wrong password returns 401 — the database answers; `env()` threw on the whole schema for one invalid optional variable. See `docs/acquisition/34_STARTUP_INCIDENT_LAUNCH_AND_GRADIENT_PASS_2026-09-07.md`.
+- `env()` now degrades optional settings and names them; `/api/health` reports configuration, database, email and AI separately; unhandled errors carry a `requestId` in body, header and log.
+- Mobile: launch overlay held over the mounted app (native splash now blue with the same mark), circular reveal into the home whose top is the same blue; outage screens distinguish network from server with the reference; diagnostics carry path/status/category/reference.
+- Gradient rebuilt as a ten-stop atmospheric fade covering ~64 % of the screen; home header no longer a card.
+- Owner actions: deploy, read `checks.configuration.ignored`, fix the named variable, delete probe account `zz-sonde-devisera-1788795345@example.com`, then one EAS build and physical iPhone check.
+
 ## September 6 — video-driven corrections, pending device QA
 - Build 13 completion verified September 6: EAS FINISHED, submission FINISHED with error null, Apple upload Complete and DEVISERA Internal assigned. Apple build e1ed04ff-8a9c-4810-b724-7b8cf3f3af06. Follow-up paused. Acquisition-pass changes after build 13 are not included in this binary.
 - Build 13 uploaded (5 MB), EAS 72d0fa5d-7364-4341-baad-3e60a6067352, automatic submission 05424e78-2d2c-4362-a938-2c0ce5426e25 scheduled. Heartbeat updated to monitor completion. Not yet available on device.

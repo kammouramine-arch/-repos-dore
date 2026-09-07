@@ -52,7 +52,7 @@ describe('client API — transport', () => {
     const onDiagnostic = vi.fn();
     const api = createApiClient({ baseUrl: 'https://exemple.test', onDiagnostic, fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ data: { items: [], total: 0 } })) });
     await api.customers.list('private-client-email@example.test');
-    expect(onDiagnostic).toHaveBeenCalledWith({ area: 'customers', code: 'OK', durationMs: expect.any(Number) });
+    expect(onDiagnostic).toHaveBeenCalledWith(expect.objectContaining({ area: 'customers', code: 'OK', durationMs: expect.any(Number), category: 'ok', status: 200, path: '/api/customers' }));
     expect(JSON.stringify(onDiagnostic.mock.calls)).not.toContain('private-client');
   });
   it('does not let a failing diagnostic observer break successful actions', async () => {

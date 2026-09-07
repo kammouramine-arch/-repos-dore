@@ -32,6 +32,8 @@ export class DevisiaApiError extends Error {
   readonly status: number;
   readonly details?: Record<string, string[]>;
   readonly retryable: boolean;
+  /** Référence courte d'une erreur serveur, à citer au support. */
+  readonly requestId?: string;
 
   constructor(error: ApiError, status: number) {
     super(error.message);
@@ -40,6 +42,7 @@ export class DevisiaApiError extends Error {
     this.status = status;
     this.details = error.details;
     this.retryable = error.retryable ?? false;
+    this.requestId = error.requestId;
   }
 }
 
@@ -113,9 +116,48 @@ function fromStatus(status: number): ApiError {
   return { code: 'INTERNAL', message: "Une erreur inattendue s'est produite.", retryable: false };
 }
 
+/**
+ * Famille d'une panne, du point de vue de l'application.
+ *
+ * `network` : le serveur n'a jamais répondu ; `timeout` : abandon côté client ;
+ * `auth` : session refusée ; `client` : requête rejetée (validation, quota) ;
+ * `server` : le serveur a échoué (5xx) — c'est le cas à remonter au support.
+ */
+export type DiagnosticCategory = 'ok' | 'network' | 'timeout' | 'auth' | 'client' | 'server';
+
+export interface DiagnosticEvent {
+  area: string;
+  durationMs: number;
+  code: ApiError['code'] | 'OK';
+  category: DiagnosticCategory;
+  /** Chemin sans identifiant (`/api/quotes/:id`) : jamais de paramètre de requête. */
+  path: string;
+  /** Statut HTTP, 0 si la requête n'a pas atteint le serveur. */
+  status: number;
+  /** Référence courte renvoyée par le serveur pour une erreur 5xx. */
+  requestId?: string;
+}
+
+/** Remplace identifiants et paramètres pour qu'un chemin ne porte aucune donnée. */
+export function anonymizePath(path: string): string {
+  return path
+    .split('?')[0]!
+    .replace(/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}/gi, ':id')
+    .replace(/\/[0-9]+(?=\/|$)/g, '/:id');
+}
+
+export function categorize(code: ApiError['code'] | 'OK', status: number): DiagnosticCategory {
+  if (code === 'OK') return 'ok';
+  if (code === 'NETWORK') return 'network';
+  if (code === 'TIMEOUT') return 'timeout';
+  if (code === 'UNAUTHENTICATED' || code === 'FORBIDDEN') return 'auth';
+  if (status >= 500 || code === 'INTERNAL' || code === 'PROVIDER_UNAVAILABLE') return 'server';
+  return 'client';
+}
+
 export interface ApiClientOptions {
   /** No URLs, request bodies, tokens or exception messages in diagnostics. */
-  onDiagnostic?: (event: { area: string; durationMs: number; code: ApiError['code'] | 'OK' }) => void;
+  onDiagnostic?: (event: DiagnosticEvent) => void;
   baseUrl: string;
   /** Délai maximal par requête, en millisecondes. */
   timeoutMs?: number;
@@ -207,6 +249,10 @@ export function createApiClient(options: ApiClientOptions) {
       // d'une passerelle — que l'on déduit un code du statut HTTP.
       const error: ApiError =
         payload && 'error' in payload ? payload.error : fromStatus(response.status);
+      // La référence de journal peut aussi voyager en en-tête (passerelle,
+      // page d'erreur sans corps JSON) : on la conserve, elle n'a rien de secret.
+      const reference = error.requestId ?? response.headers?.get?.('x-request-id') ?? response.headers?.get?.('x-vercel-id') ?? undefined;
+      if (reference && !error.requestId) error.requestId = reference;
       if (error.code === 'UNAUTHENTICATED' && options.onUnauthenticated) {
         // A response belongs to the session that sent it, not whichever user
         // has signed in while the request was in flight. Never log tokens.
@@ -227,6 +273,8 @@ export function createApiClient(options: ApiClientOptions) {
   ): Promise<T> {
     const started = Date.now();
     let code: ApiError['code'] | 'OK' = 'OK';
+    let status = 0;
+    let requestId: string | undefined;
     try {
     const { json, headers, timeoutMs: requestTimeout, ...rest } = init;
     const authentication = await authHeaders();
@@ -240,16 +288,23 @@ export function createApiClient(options: ApiClientOptions) {
       body: json !== undefined ? JSON.stringify(json) : rest.body,
       credentials: options.getToken ? 'omit' : 'include',
     }, requestTimeout);
+    status = response.status;
     const data = await unwrap<T>(response, authentication.Authorization);
     if ((rest.method ?? 'GET') !== 'GET') options.onMutation?.();
     return data;
     } catch (error) {
       code = error instanceof DevisiaApiError ? error.code : 'INTERNAL';
+      if (error instanceof DevisiaApiError) {
+        status = error.status;
+        requestId = error.requestId;
+      }
       throw error;
     } finally {
       const candidate = path.split('/')[2]?.split('?')[0];
       const area = ['auth', 'customers', 'quotes', 'leads', 'dashboard', 'ai', 'billing', 'pricebook'].includes(candidate) ? candidate : 'other';
-      try { options.onDiagnostic?.({ area, durationMs: Date.now() - started, code }); } catch { /* diagnostics must never break a request */ }
+      try {
+        options.onDiagnostic?.({ area, durationMs: Date.now() - started, code, status, path: anonymizePath(path), category: categorize(code, status), ...(requestId ? { requestId } : {}) });
+      } catch { /* diagnostics must never break a request */ }
     }
   }
 

@@ -135,9 +135,13 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/splash-devisera.png',
+        // Première image affichée par iOS : le même bleu et le même monogramme,
+        // à la même taille (96 pt), que la séquence de lancement JavaScript.
+        // L'écran natif blanc laissait un éclair blanc avant le bleu.
+        image: './assets/splash-mark.png',
+        imageWidth: 96,
         resizeMode: 'contain',
-        backgroundColor: '#FFFFFF',
+        backgroundColor: '#2F52E8',
       },
     ],
     'expo-status-bar',

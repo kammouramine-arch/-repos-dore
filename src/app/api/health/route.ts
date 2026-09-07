@@ -1,29 +1,75 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { env } from '@/lib/env';
+import { configurationReport, env } from '@/lib/env';
 import { getEmailProvider } from '@/lib/email';
+import { aiCapabilities } from '@/lib/ai';
 
 /**
- * Small, secret-free deployment probe used by release and support checks.
- * It distinguishes an unreachable database/email configuration from an
- * authentication failure without returning connection strings or provider
- * credentials.
+ * Sonde de déploiement, sans secret, pour les vérifications de mise en ligne
+ * et le support.
+ *
+ * La version précédente enveloppait configuration, base et email dans un seul
+ * `try` et répondait « database: unavailable » quelle que soit la cause : une
+ * variable d'environnement mal saisie s'affichait comme une panne de base de
+ * données, ce qui a coûté une journée de diagnostic. Chaque composant est
+ * désormais mesuré séparément et nommé. Seule la base est critique : sans
+ * elle, 503 ; un service optionnel dégradé laisse le statut à 200 avec son
+ * détail visible.
  */
 export async function GET() {
   const started = Date.now();
+  const checks: Record<string, unknown> = {};
+  let critical = false;
+
+  const configuration = configurationReport();
+  checks.configuration = {
+    status: configuration.missing.length > 0 ? 'invalid' : configuration.ignored.length > 0 ? 'degraded' : 'ok',
+    missing: configuration.missing,
+    ignored: configuration.ignored,
+  };
+  if (configuration.missing.length > 0) critical = true;
+
+  const databaseStarted = Date.now();
   try {
-    const config = env();
     await prisma.$queryRaw`SELECT 1`;
-    const email = getEmailProvider();
-    return NextResponse.json({
-      status: 'ok',
-      database: 'ok',
-      email: { provider: email.name, configured: email.name === 'resend' && email.available },
-      environment: config.NODE_ENV,
-      durationMs: Date.now() - started,
-    }, { headers: { 'Cache-Control': 'no-store' } });
+    checks.database = { status: 'ok', durationMs: Date.now() - databaseStarted };
   } catch (error) {
-    console.error('[health] probe failed', error);
-    return NextResponse.json({ status: 'degraded', database: 'unavailable', durationMs: Date.now() - started }, { status: 503, headers: { 'Cache-Control': 'no-store' } });
+    critical = true;
+    console.error('[health] base de données injoignable', error);
+    checks.database = { status: 'unavailable', durationMs: Date.now() - databaseStarted };
   }
+
+  try {
+    const email = getEmailProvider();
+    checks.email = { provider: email.name, configured: email.name === 'resend' && email.available };
+  } catch (error) {
+    console.error('[health] fournisseur email indisponible', error);
+    checks.email = { provider: 'unavailable', configured: false };
+  }
+
+  try {
+    const ai = aiCapabilities();
+    checks.ai = { provider: ai.provider, generation: ai.generation, transcription: ai.transcription };
+  } catch (error) {
+    console.error('[health] fournisseur IA indisponible', error);
+    checks.ai = { provider: 'unavailable', generation: false, transcription: false };
+  }
+
+  let environment: string | null = null;
+  try {
+    environment = env().NODE_ENV;
+  } catch {
+    environment = null;
+  }
+
+  const degraded = critical || (checks.configuration as { status: string }).status !== 'ok';
+  return NextResponse.json(
+    {
+      status: critical ? 'unavailable' : degraded ? 'degraded' : 'ok',
+      environment,
+      durationMs: Date.now() - started,
+      checks,
+    },
+    { status: critical ? 503 : 200, headers: { 'Cache-Control': 'no-store' } },
+  );
 }
