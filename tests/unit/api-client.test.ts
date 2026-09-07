@@ -250,3 +250,23 @@ describe('client API — transport', () => {
     expect(api.quotes.pdfUrl('abc')).toBe('https://exemple.test/api/quotes/abc/pdf');
   });
 });
+
+describe('refus par la protection de l’hébergeur', () => {
+  it('traduit une mitigation Vercel en panne passagère avec son identifiant', async () => {
+    const response = new Response(JSON.stringify({ error: { code: '403', message: 'Forbidden', id: 'iad1::abc123' } }), {
+      status: 403,
+      headers: { 'content-type': 'application/json', 'x-vercel-mitigated': 'deny' },
+    });
+    const onDiagnostic = vi.fn();
+    const api = createApiClient({ baseUrl: 'https://exemple.test', onDiagnostic, fetchImpl: vi.fn().mockResolvedValue(response) });
+    const error = await api.customers.create({ lastName: 'Test' }).catch((cause: unknown) => cause);
+    expect(error).toMatchObject({ code: 'PROVIDER_UNAVAILABLE', retryable: true, requestId: 'iad1::abc123', status: 403 });
+    expect(onDiagnostic).toHaveBeenCalledWith(expect.objectContaining({ category: 'server', status: 403, requestId: 'iad1::abc123', path: '/api/customers' }));
+  });
+
+  it('ne confond pas un vrai refus de droits de l’API avec une mitigation', async () => {
+    const api = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl: vi.fn().mockResolvedValue(jsonResponse({ error: { code: 'FORBIDDEN', message: 'Non' } }, 403)) });
+    const error = await api.customers.create({ lastName: 'Test' }).catch((cause: unknown) => cause);
+    expect(error).toMatchObject({ code: 'FORBIDDEN', status: 403 });
+  });
+});

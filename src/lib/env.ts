@@ -5,6 +5,25 @@
  */
 import { z } from 'zod';
 
+/** `Nom <adresse@domaine>` ou `adresse@domaine`, après normalisation. */
+const ADDRESS_PATTERN = /^(?:[^<>\n]+ )?<?[^\s<>@]+@[^\s<>@]+\.[^\s<>@]+>?$/;
+
+/**
+ * Normalise une adresse d'expédition ou de réponse.
+ *
+ * Retire espaces et guillemets périphériques, un éventuel préfixe `mailto:`,
+ * et ramène `<adresse>` seul à l'adresse nue. Une valeur vide vaut absence.
+ */
+export function normalizeAddress(value: unknown): unknown {
+  if (typeof value !== 'string') return value;
+  let address = value.trim().replace(/^["']+|["']+$/g, '').trim();
+  if (address === '') return undefined;
+  address = address.replace(/^mailto:/i, '');
+  const bare = /^<([^<>]+)>$/.exec(address);
+  if (bare) address = bare[1]!.trim();
+  return address;
+}
+
 const serverSchema = z.object({
   NODE_ENV: z.enum(['development', 'test', 'production']).default('development'),
   DATABASE_URL: z.string().min(1, 'DATABASE_URL est requis'),
@@ -59,8 +78,17 @@ const serverSchema = z.object({
   EMAIL_PROVIDER: z.enum(['resend', 'console']).default('console'),
   RESEND_API_KEY: z.string().optional(),
   EMAIL_FROM: z.string().default('DEVISERA <contact@devisera.fr>'),
-  /** Default platform reply address; business-profile email may override it. */
-  EMAIL_REPLY_TO: z.string().email().default('contact@devisera.fr'),
+  /**
+   * Adresse de réponse par défaut ; l'email du profil d'entreprise la remplace.
+   *
+   * Resend accepte aussi bien `contact@devisera.fr` que
+   * `DEVISERA <contact@devisera.fr>`. Le schéma n'admettait que la forme nue :
+   * la valeur avec nom d'affichage posée en production était rejetée, ce qui
+   * a d'abord fait tomber toutes les routes (validation en bloc), puis, une
+   * fois la lecture rendue tolérante, l'a classée « ignorée » alors qu'elle
+   * est voulue. La forme est normalisée et l'adresse qu'elle contient validée.
+   */
+  EMAIL_REPLY_TO: z.preprocess(normalizeAddress, z.string().regex(ADDRESS_PATTERN).default('contact@devisera.fr')),
 
   // Stockage
   // `database` : le binaire vit dans PostgreSQL. Aucune configuration externe,

@@ -54,6 +54,58 @@ class ConsoleProvider implements EmailProvider {
   }
 }
 
+/**
+ * État du domaine d'expédition chez Resend, pour la sonde de santé.
+ *
+ * « Clé présente » ne veut pas dire « envoi possible » : Resend refuse tout
+ * message tant que le domaine de `EMAIL_FROM` n'est pas vérifié, et
+ * l'inscription mobile répond alors 503 sans qu'on sache pourquoi. Le résultat
+ * est gardé cinq minutes ; une clé sans droit de lecture donne `unknown`.
+ */
+export interface SendingDomainStatus {
+  domain: string | null;
+  status: 'verified' | 'unverified' | 'missing' | 'unknown' | 'not_applicable';
+  detail?: string;
+}
+
+let domainCache: { at: number; value: SendingDomainStatus } | null = null;
+const DOMAIN_CACHE_MS = 5 * 60_000;
+
+export function senderDomain(from: string): string | null {
+  const match = /@([^\s<>@]+?)>?\s*$/.exec(from.trim());
+  return match ? match[1]!.toLowerCase() : null;
+}
+
+export async function describeSendingDomain(): Promise<SendingDomainStatus> {
+  const config = env();
+  if (config.EMAIL_PROVIDER !== 'resend' || !config.RESEND_API_KEY) {
+    return { domain: senderDomain(config.EMAIL_FROM), status: 'not_applicable' };
+  }
+  if (domainCache && Date.now() - domainCache.at < DOMAIN_CACHE_MS) return domainCache.value;
+  const domain = senderDomain(config.EMAIL_FROM);
+  let value: SendingDomainStatus;
+  try {
+    const { data, error } = await new Resend(config.RESEND_API_KEY).domains.list();
+    if (error || !data) {
+      value = { domain, status: 'unknown', detail: error?.name ?? 'list_failed' };
+    } else {
+      const found = data.data.find((entry) => entry.name.toLowerCase() === domain);
+      value = !found
+        ? { domain, status: 'missing', detail: 'domaine absent du compte Resend' }
+        : { domain, status: found.status === 'verified' ? 'verified' : 'unverified', detail: found.status };
+    }
+  } catch (error) {
+    value = { domain, status: 'unknown', detail: error instanceof Error ? error.name : 'error' };
+  }
+  domainCache = { at: Date.now(), value };
+  return value;
+}
+
+/** Tests uniquement. */
+export function resetSendingDomainCache() {
+  domainCache = null;
+}
+
 let cached: EmailProvider | null = null;
 
 export function getEmailProvider(): EmailProvider {
