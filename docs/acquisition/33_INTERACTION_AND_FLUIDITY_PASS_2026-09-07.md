@@ -45,3 +45,22 @@ lint, followed by the root unit/type/lint/build checks and an iOS export. A
 physical iPhone still needs the focused TestFlight checklist: cold start,
 rapid repeated taps, list scrolling, pull-to-refresh, keyboard dismissal,
 Reduce Motion, and navigation while a request is in flight.
+
+## Results for this commit
+
+- `npm run typecheck`: passed.
+- `npm run typecheck --prefix mobile`: passed.
+- `npm run lint`: passed.
+- `npm run lint --prefix mobile`: passed.
+- `npm run test:unit`: **23 files / 219 tests passed**.
+- `npm run build`: passed; 65 production routes generated.
+- `npx expo export --platform ios`: passed; iOS bundle emitted successfully.
+- `npm test`: blocked during global Prisma setup because the configured
+  isolated URL (`127.0.0.1:5432`) has no listener. PostgreSQL 17 is installed
+  locally on port 5433 with credentials that are not the test credentials.
+  A disposable cluster was initialized in `%TEMP%`, but the sandbox denied
+  starting a second process; no production database was contacted.
+
+The next EAS/TestFlight build is therefore ready to create from commit
+`caabca5`, subject to the normal external EAS credentials and physical-device
+verification gates.
