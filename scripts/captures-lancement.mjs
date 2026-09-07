@@ -168,6 +168,26 @@ for (const [name, viewport] of [['home-375x667', { width: 375, height: 667 }], [
   await page.screenshot({ path: `${OUT}/startup-offline.png` });
   await ctx.close();
 }
+// 8. Espace, compte, paiements, suppression — écrans de réglages.
+for (const [name, route] of [['espace', '/plus'], ['compte', '/compte'], ['paiements', '/paiements'], ['suppression', '/suppression'], ['clients', '/clients']]) {
+  const ctx = await contexte({ token, launched: true });
+  const page = await ctx.newPage();
+  await page.goto(url(route), { waitUntil: 'commit' });
+  await page.waitForTimeout(3600);
+  await page.screenshot({ path: `${OUT}/settings-${name}.png` });
+  await page.screenshot({ path: `${OUT}/settings-${name}-full.png`, fullPage: true });
+  await ctx.close();
+}
+// 9. Mon compte atteint depuis Mon espace : l'en-tête porte le bouton retour.
+{
+  const ctx = await contexte({ token, launched: true });
+  const page = await ctx.newPage();
+  await page.goto(url('/plus'), { waitUntil: 'commit' });
+  await page.getByText(/Informations personnelles|Personal information/).first().click({ timeout: 15000 }).catch(() => {});
+  await page.waitForTimeout(1800);
+  await page.screenshot({ path: `${OUT}/settings-compte-pushed.png` });
+  await ctx.close();
+}
 await browser.close();
 srv.close();
 console.info('captures dans', OUT);

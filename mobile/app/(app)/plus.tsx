@@ -1,126 +1,102 @@
 import * as React from 'react';
-import { Alert, View } from 'react-native';
+import { Alert, Linking, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { SafeAreaView } from 'react-native-safe-area-context';
-import { PLANS, accessStateFor, trialMessage } from '@devisia/shared';
-import { Body, Button, Caption, Card, Heading, Ionicons, ListRow, Muted, PageHeader, Screen, SectionHeader } from '@/components/ui';
+import * as WebBrowser from 'expo-web-browser';
+import { PLANS, accessStateFor } from '@devisia/shared';
+import { Button, Caption, Screen } from '@/components/ui';
+import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
+import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
+import { API_URL } from '@/lib/api';
+import { openReviewPage } from '@/lib/review';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
 
-/**
- * Écran « Plus ».
- *
- * Trois entrées y renvoyaient vers le navigateur, avec la mention « Sur le web
- * · connexion demandée » — c'est-à-dire : sortez de l'application, puis
- * ressaisissez votre mot de passe pour consulter vos propres prix. Tout est
- * désormais natif, et l'artisan reste dans DEVISERA.
- */
-interface Entry {
-  icon: keyof typeof Ionicons.glyphMap;
-  label: string;
-  hint: string;
-  href: '/abonnement' | '/catalogue' | '/entreprise' | '/analytique' | '/presentation' | '/compte';
-}
+export const SUPPORT_EMAIL = 'contact@devisera.fr';
 
+/**
+ * « Mon espace » : le centre de contrôle de l'artisan.
+ *
+ * L'écran précédent renvoyait tout ce qui compte — abonnement, paiements,
+ * avis, contact, suppression du compte — au fond de « Mon compte », derrière
+ * des formulaires. Ici, chaque zone est visible d'un coup d'œil, groupée par
+ * intention : compte, abonnement, outils, assistance, légal, puis la zone
+ * sensible. Les lignes portent l'action ; l'identité tient sur la surface de
+ * marque, comme l'accueil.
+ */
 export default function PlusScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
   const locale = mobileLocale(session);
+  const en = locale === 'en';
+  const surface = useBrandSurface('settings');
   const access = accessStateFor(session?.subscription ?? null);
+  const subscription = session?.subscription ?? null;
 
-  const entries: Entry[] = [
-    { icon: 'person-outline', label: copy(locale, 'account'), hint: locale === 'en' ? 'Name, email and verification' : 'Nom, email et vérification', href: '/compte' },
-    { icon: 'sparkles-outline', label: copy(locale, 'discover'), hint: locale === 'en' ? 'Overview and plans' : 'Présentation et formules', href: '/presentation' },
-    {
-      icon: 'card-outline',
-      label: copy(locale, 'subscription'),
-      hint: session?.subscription ? PLANS[session.subscription.plan].name : (locale === 'en' ? 'Plan and billing' : 'Formule et facturation'),
-      href: '/abonnement',
-    },
-    {
-      icon: 'book-outline',
-      label: copy(locale, 'pricing'),
-      hint: locale === 'en' ? 'Your services and prices' : 'Vos prestations et vos tarifs',
-      href: '/catalogue',
-    },
-    {
-      icon: 'business-outline',
-      label: copy(locale, 'business'),
-      hint: locale === 'en' ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis',
-      href: '/entreprise',
-    },
-    {
-      icon: 'bar-chart-outline',
-      label: copy(locale, 'analytics'),
-      hint: locale === 'en' ? 'Revenue and quote tracking' : 'Chiffre d’affaires et suivi des devis',
-      href: '/analytique',
-    },
-  ];
+  const fullName = [session?.user.firstName, session?.user.lastName].filter(Boolean).join(' ').trim();
+  const business = session?.organization.name ?? '';
+  const name = fullName || business || (en ? 'Your workspace' : 'Votre atelier');
+  const initial = (fullName || business || session?.user.email || 'D').trim().charAt(0).toUpperCase();
+
+  const planLabel = subscription
+    ? `${PLANS[subscription.plan].name}${access.inTrial ? ` · ${en ? 'trial' : 'essai'}` : subscription.status === 'active' ? '' : subscription.status === 'incomplete' ? ` · ${en ? 'to activate' : 'à activer'}` : ''}`
+    : (en ? 'No plan yet' : 'Aucune formule');
+
+  const contact = () => {
+    const subject = encodeURIComponent('DEVISERA');
+    const body = encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\n\n\n—\nDEVISERA 1.0.0 · ${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`);
+    void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => undefined);
+  };
+  const openPage = (path: string) => void WebBrowser.openBrowserAsync(`${API_URL}${path}`).catch(() => Linking.openURL(`${API_URL}${path}`));
 
   return (
-    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
-      <Screen>
-        <PageHeader
-          eyebrow={copy(locale, 'space')}
-          title={session?.user.firstName ? (locale === 'en' ? `Hello ${session.user.firstName}` : `Bonjour ${session.user.firstName}`) : (locale === 'en' ? 'Your workspace' : 'Votre atelier')}
-          subtitle={session?.organization.name ?? session?.user.email}
-          action={
-            <View
-              style={{
-                width: 48,
-                height: 48,
-                borderRadius: 16,
-                backgroundColor: colors.accentDeep,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Body style={{ color: colors.white, fontWeight: '700', fontSize: 18, lineHeight: 24 }}>
-                {(session?.organization.name ?? 'D').trim().charAt(0).toUpperCase()}
-              </Body>
-            </View>
+    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
+      <BrandBackdrop height={surface.gradientHeight} />
+      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
+        <IdentityHeader
+          initial={initial}
+          name={name}
+          subtitle={fullName ? business || session?.user.email : session?.user.email}
+          chips={
+            <>
+              <StatusChip onLight icon="card-outline" label={planLabel} />
+              <StatusChip onLight icon={session?.user.emailVerified ? 'checkmark-circle' : 'alert-circle'} label={copy(locale, session?.user.emailVerified ? 'verifiedEmail' : 'unverifiedEmail')} />
+            </>
           }
         />
-        {access.inTrial ? <Muted>{locale === 'en' ? `${access.trialDaysLeft} day${access.trialDaysLeft === 1 ? '' : 's'} left in your trial` : trialMessage(access.trialDaysLeft)}</Muted> : null}
 
-        <TrialBanner subscription={session?.subscription ?? null} />
+        <TrialBanner subscription={subscription} />
 
-        <Card style={{ gap: spacing.md, backgroundColor: colors.accentDeep, borderColor: colors.accentDeep, padding: spacing.xl }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{ width: 48, height: 48, borderRadius: 16, backgroundColor: 'rgba(255,255,255,0.16)', alignItems: 'center', justifyContent: 'center' }}>
-              <Body style={{ color: colors.white, fontWeight: '700', fontSize: 20, lineHeight: 26 }}>
-                {(session?.organization.name ?? session?.user.email ?? 'D').trim().charAt(0).toUpperCase()}
-              </Body>
-            </View>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Heading style={{ color: colors.white }}>{session?.organization.name ?? (locale === 'en' ? 'Your business' : 'Votre entreprise')}</Heading>
-              <Muted style={{ color: '#DDE5FF' }}>{session?.user.email}</Muted>
-            </View>
-            <Ionicons name="checkmark-circle" size={22} color={colors.accentBright} />
-          </View>
-          <Muted style={{ color: '#DDE5FF', lineHeight: 20 }}>
-            {locale === 'en' ? 'Your DEVISERA workspace brings together your personal details, business and quoting tools.' : 'Votre espace DEVISERA rassemble vos informations personnelles, votre entreprise et vos outils de devis.'}
-          </Muted>
-          <Button title={copy(locale, 'manageProfile')} variant="secondary" onPress={() => router.push('/compte')} style={{ backgroundColor: colors.canvas, borderColor: colors.canvas }} />
-        </Card>
+        <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
+          <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
+          <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
+        </SettingsGroup>
 
-        <SectionHeader title={locale === 'en' ? 'Account and business' : 'Compte et entreprise'} />
-        <Card style={{ padding: 0, overflow: 'hidden' }}>
-          {entries.map((entry, index) => (
-            <ListRow
-              key={entry.label}
-              icon={entry.icon}
-              title={entry.label}
-              subtitle={entry.hint}
-              last={index === entries.length - 1}
-              onPress={() => router.push(entry.href)}
-            />
-          ))}
-        </Card>
+        <SettingsGroup title={en ? 'Subscription & payments' : 'Abonnement et paiements'}>
+          <SettingsRow icon="card-outline" title={copy(locale, 'manageSubscription')} subtitle={en ? 'Plan, trial and renewal' : 'Formule, essai et renouvellement'} value={subscription ? PLANS[subscription.plan].name : null} onPress={() => router.push('/abonnement')} />
+          <SettingsRow icon="receipt-outline" title={copy(locale, 'invoices')} subtitle={en ? 'History and receipts' : 'Historique et reçus'} onPress={() => router.push('/paiements')} />
+        </SettingsGroup>
 
-        <SectionHeader title={locale === 'en' ? 'DEVISERA tools' : 'Outils DEVISERA'} />
+        <SettingsGroup title={copy(locale, 'tools')}>
+          <SettingsRow icon="book-outline" title={copy(locale, 'pricing')} subtitle={en ? 'Your services and prices' : 'Vos prestations et vos tarifs'} onPress={() => router.push('/catalogue')} />
+          <SettingsRow icon="bar-chart-outline" title={copy(locale, 'analytics')} subtitle={en ? 'Revenue and quote tracking' : 'Chiffre d’affaires et suivi des devis'} onPress={() => router.push('/analytique')} />
+          <SettingsRow icon="sparkles-outline" title={copy(locale, 'discover')} subtitle={en ? 'Overview and plans' : 'Présentation et formules'} onPress={() => router.push('/presentation')} />
+        </SettingsGroup>
+
+        <SettingsGroup title={copy(locale, 'assistance')}>
+          <SettingsRow icon="mail-outline" title={copy(locale, 'contact')} subtitle={SUPPORT_EMAIL} onPress={contact} />
+          <SettingsRow icon="star-outline" title={copy(locale, 'rate')} subtitle={en ? 'Two minutes that really help us' : 'Deux minutes qui nous aident vraiment'} onPress={() => void openReviewPage()} />
+        </SettingsGroup>
+
+        <SettingsGroup title={copy(locale, 'legal')}>
+          <SettingsRow icon="shield-checkmark-outline" title={copy(locale, 'privacy')} onPress={() => openPage('/confidentialite')} />
+          <SettingsRow icon="document-text-outline" title={copy(locale, 'terms')} onPress={() => openPage('/conditions')} />
+        </SettingsGroup>
+
+        <SettingsGroup title={copy(locale, 'dangerZone')} footer={en ? 'Deleting your account is permanent. Business records may be kept where the law or another team member requires it.' : 'La suppression est définitive. Les données commerciales peuvent être conservées lorsqu’une obligation légale ou un autre membre de l’entreprise l’exige.'}>
+          <SettingsRow icon="trash-outline" title={copy(locale, 'deleteAccount')} destructive onPress={() => router.push('/suppression')} />
+        </SettingsGroup>
 
         <Button
           title={copy(locale, 'signOut')}
@@ -128,21 +104,19 @@ export default function PlusScreen() {
           icon="log-out-outline"
           onPress={() =>
             Alert.alert(
-              locale === 'en' ? 'Sign out?' : 'Se déconnecter ?',
-              locale === 'en' ? 'You will need your password next time.' : 'Vous devrez saisir votre mot de passe à la prochaine ouverture.',
+              en ? 'Sign out?' : 'Se déconnecter ?',
+              en ? 'You will need your password next time.' : 'Vous devrez saisir votre mot de passe à la prochaine ouverture.',
               [
-                { text: locale === 'en' ? 'Cancel' : 'Annuler', style: 'cancel' },
+                { text: en ? 'Cancel' : 'Annuler', style: 'cancel' },
                 { text: copy(locale, 'signOut'), style: 'destructive', onPress: () => void signOut() },
               ],
             )
           }
         />
 
-        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-          DEVISERA · version 1.0.0
-        </Caption>
+        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>DEVISERA · version 1.0.0</Caption>
         <View style={{ height: spacing.xl }} />
       </Screen>
-    </SafeAreaView>
+    </View>
   );
 }

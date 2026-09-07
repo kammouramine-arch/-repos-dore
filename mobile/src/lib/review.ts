@@ -26,7 +26,8 @@ async function writeState(state: ReviewState) {
   } catch { /* A review prompt must never affect quote creation. */ }
 }
 
-async function openReviewPage() {
+/** Ouvre la fiche de l'application pour laisser un avis. */
+export async function openReviewPage() {
   const url = Platform.OS === 'ios' ? `itms-apps://itunes.apple.com/app/id${IOS_APP_ID}?action=write-review` : 'https://play.google.com/store/apps/details?id=fr.devisia.app';
   try { if (await Linking.canOpenURL(url)) await Linking.openURL(url); } catch { /* Store availability is outside the app's control. */ }
 }

@@ -833,12 +833,21 @@ export function ErrorState({
   title = 'Chargement impossible',
   description,
   onRetry,
+  icon = 'cloud-offline-outline',
+  tone = 'danger',
+  action,
 }: {
   title?: string;
   description: string;
   onRetry: () => void;
+  icon?: keyof typeof Ionicons.glyphMap;
+  /** `warning` pour un état attendu (adresse à confirmer), `danger` pour une panne. */
+  tone?: 'danger' | 'warning' | 'info';
+  /** Action principale complémentaire, avant « Réessayer ». */
+  action?: React.ReactNode;
 }) {
   const locale = useMobileLocale();
+  const palette = { danger: { bg: colors.dangerSoft, fg: colors.danger }, warning: { bg: colors.warningSoft, fg: colors.warning }, info: { bg: colors.accentSoft, fg: colors.accent } }[tone];
   return (
     /* Centré dans la hauteur disponible : collé en haut, l'écran d'erreur
        ressemblait à un contenu qui n'a pas fini de charger. */
@@ -853,21 +862,24 @@ export function ErrorState({
     >
       <View
         style={{
-          width: 46,
-          height: 46,
-          borderRadius: radius.full,
-          backgroundColor: colors.dangerSoft,
+          width: 56,
+          height: 56,
+          borderRadius: radius.lg,
+          backgroundColor: palette.bg,
           alignItems: 'center',
           justifyContent: 'center',
         }}
       >
-        <Ionicons name="cloud-offline-outline" size={22} color={colors.danger} />
+        <Ionicons name={icon} size={24} color={palette.fg} />
       </View>
       <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>{localizeText(locale, title)}</Text>
-      <Text style={[typography.small, { color: colors.muted, textAlign: 'center', paddingHorizontal: spacing.xl }]}>
+      <Text style={[typography.body, { color: colors.muted, textAlign: 'center', paddingHorizontal: spacing.xl, maxWidth: 320 }]}>
         {localizeText(locale, description)}
       </Text>
-      <Button title={localizeText(locale, 'Réessayer')} variant="secondary" icon="refresh" onPress={onRetry} />
+      <View style={{ gap: spacing.sm, alignItems: 'center', marginTop: spacing.xs }}>
+        {action}
+        <Button title={localizeText(locale, 'Réessayer')} variant={action ? 'ghost' : 'secondary'} icon="refresh" onPress={onRetry} />
+      </View>
     </View>
   );
 }
