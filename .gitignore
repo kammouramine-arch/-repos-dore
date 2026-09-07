@@ -52,3 +52,4 @@ mobile/google-play-service-account.json
 mobile/*.p8
 mobile/*.p12
 mobile/*.mobileprovision
+.env*
