@@ -12,7 +12,7 @@ vi.mock('@/lib/prisma', () => ({ prisma: {
 } }));
 vi.mock('@/lib/auth/password', () => ({ verifyPassword: mocks.password }));
 vi.mock('@/lib/email', () => ({ getEmailProvider: () => ({ ...mocks.provider, send: mocks.send }), layout: () => 'email', esc: (s: string) => s }));
-import { confirmEmailCode, requestEmailCode, updateAccountName } from '@/server/services/accountService';
+import { confirmEmailCode, normalizeEmailCode, requestEmailCode, updateAccountName } from '@/server/services/accountService';
 
 const user = { id: 'user', email: 'old@example.com', passwordHash: 'hash', deletedAt: null };
 const code = '123456';
@@ -29,6 +29,10 @@ beforeEach(() => {
 });
 
 describe('account email codes', () => {
+  it('normalizes whitespace and full-width digits without losing leading zeroes', () => {
+    expect(normalizeEmailCode(' ０ ０１ ２０４ ')).toBe('001204');
+  });
+
   it('does not create a challenge when sending is unconfigured', async () => {
     mocks.provider.name = 'console';
     await expect(requestEmailCode('user', { email: user.email })).rejects.toMatchObject({ code: 'PROVIDER_UNAVAILABLE' });
@@ -81,6 +85,16 @@ describe('account email codes', () => {
     expect(mocks.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: { email: 'new@example.com', emailVerifiedAt: expect.any(Date) } }));
     expect(mocks.session.updateMany).toHaveBeenCalledWith(expect.objectContaining({ where: { userId: 'user', id: { not: 'keep-session' }, revokedAt: null } }));
     expect(mocks.authToken.updateMany).toHaveBeenCalled();
+  });
+
+  it('accepts a valid leading-zero code exactly once after normalization', async () => {
+    const leadingZeroCode = '001204';
+    mocks.emailChallenge.findUnique.mockResolvedValue({
+      ...challenge(),
+      tokenHash: hashToken(`challenge:user:new@example.com:${leadingZeroCode}`),
+    });
+    await expect(confirmEmailCode('user', 'session', ' 001204 ')).resolves.toEqual({ verified: true });
+    expect(mocks.user.update).toHaveBeenCalledWith(expect.objectContaining({ data: { email: 'new@example.com', emailVerifiedAt: expect.any(Date) } }));
   });
   it('does not take over another account with the same email', async () => {
     mocks.emailChallenge.findUnique.mockResolvedValue(challenge());

@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { requireAuth } from '@/lib/auth/session';
 import { ok, parseBody, route } from '@/server/api';
-import { confirmEmailCode, requestEmailCode } from '@/server/services/accountService';
+import { confirmEmailCode, normalizeEmailCode, requestEmailCode } from '@/server/services/accountService';
+import { buildSessionDTO } from '@/server/services/sessionDto';
 
 export async function POST(request: Request) {
   return route(async () => {
@@ -16,7 +17,14 @@ export async function POST(request: Request) {
 export async function PATCH(request: Request) {
   return route(async () => {
     const auth = await requireAuth();
-    const body = await parseBody(request, z.object({ code: z.string().regex(/^\d{6}$/) }).strict());
-    return ok(await confirmEmailCode(auth.user.id, auth.sessionId, body.code));
+    const body = await parseBody(request, z.object({
+      code: z.string().transform(normalizeEmailCode).refine((value) => /^\d{6}$/.test(value), 'Code à six chiffres requis.'),
+    }).strict());
+    const result = await confirmEmailCode(auth.user.id, auth.sessionId, body.code);
+    // Re-read the authenticated context after the transaction. Returning the
+    // pre-confirmation context here was a subtle source of screens remaining
+    // stuck on verification until a full app restart.
+    const refreshed = await requireAuth();
+    return ok({ ...result, session: await buildSessionDTO(refreshed) });
   });
 }

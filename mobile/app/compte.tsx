@@ -25,14 +25,18 @@ export default function CompteScreen() {
   const [notice, setNotice] = React.useState<string | null>(null);
   const [deletePassword, setDeletePassword] = React.useState('');
   const acting = React.useRef(false);
+  const mounted = React.useRef(true);
   const changingEmail = email.trim().toLowerCase() !== session.user.email;
+
+  React.useEffect(() => () => { mounted.current = false; }, []);
 
   async function perform(fn: () => Promise<void>) {
     if (acting.current) return;
-    acting.current = true; setBusy(true); setError(null); setNotice(null);
+    acting.current = true;
+    if (mounted.current) { setBusy(true); setError(null); setNotice(null); }
     try { await fn(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Réessayez dans un instant. Vos saisies sont conservées.'); }
-    finally { acting.current = false; setBusy(false); }
+    catch (cause) { if (mounted.current) setError(cause instanceof Error ? cause.message : 'Réessayez dans un instant. Vos saisies sont conservées.'); }
+    finally { acting.current = false; if (mounted.current) setBusy(false); }
   }
 
   return <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
@@ -61,7 +65,7 @@ export default function CompteScreen() {
           setNotice(en ? `Code sent to ${result.email}. Check your spam folder too.` : `Code envoyé à ${result.email}. Vérifiez aussi vos courriers indésirables.`);
         })} />
         <Muted>{en ? 'Code valid for 10 minutes. Wait at least one minute between requests.' : 'Code valable 10 minutes. Patientez au moins une minute entre deux demandes.'}</Muted>
-        <Field label={en ? 'Email code' : 'Code reçu par email'} value={code} onChangeText={(value) => setCode(value.replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" maxLength={6} editable={!busy} />
+        <Field label={en ? 'Email code' : 'Code reçu par email'} value={code} onChangeText={(value) => setCode(value.normalize('NFKC').replace(/\D/g, '').slice(0, 6))} keyboardType="number-pad" textContentType="oneTimeCode" autoComplete="one-time-code" maxLength={6} editable={!busy} />
         <Button title={en ? 'Confirm my email' : 'Confirmer mon email'} disabled={busy || code.length !== 6} onPress={() => void perform(async () => {
           await api.auth.confirmEmailCode(code); await refresh();
           if (destination) setEmail(destination);

@@ -71,7 +71,10 @@ interface AuthContextValue extends AuthState {
     lastName?: string;
   }) => Promise<SessionDTO>;
   signOut: () => Promise<void>;
-  refresh: () => Promise<void>;
+  /** Revalidate and return the fresh server session for immediate routing. */
+  refresh: () => Promise<SessionDTO | null>;
+  /** Adopt a server-returned session without another round trip. */
+  adoptSession: (session: SessionDTO) => void;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -196,10 +199,40 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, [rememberLocale]);
 
   // A mutation (purchase/profile update) must not reuse a read started before it.
-  const refreshSession = React.useCallback(async () => {
+  // This deliberately bypasses the display snapshot: after email confirmation
+  // the very next route decision must observe `emailVerifiedAt` from the
+  // server, not the pre-confirmation cached session.
+  const refreshSession = React.useCallback(async (): Promise<SessionDTO | null> => {
     if (restoring.current) await restoring.current;
-    await loadSession();
-  }, [loadSession]);
+    const generation = sessionGeneration.current;
+    const token = await readToken();
+    if (!token) return null;
+    try {
+      const session = await api.auth.me();
+      if (generation !== sessionGeneration.current) return null;
+      rememberLocale(session);
+      setState({ status: 'connecte', session, ...IDLE });
+      await writeSessionSnapshot(token, session);
+      return session;
+    } catch (error) {
+      if (generation === sessionGeneration.current) {
+        const refused = error instanceof DevisiaApiError && error.status === 401;
+        if (refused) {
+          await clearToken();
+          setState({ status: 'deconnecte', session: null, ...IDLE });
+        }
+      }
+      throw error;
+    }
+  }, [rememberLocale]);
+
+  const adoptSession = React.useCallback((session: SessionDTO) => {
+    sessionGeneration.current += 1;
+    clearQueryCache();
+    rememberLocale(session);
+    setState({ status: 'connecte', session, ...IDLE });
+    void readToken().then((token) => { if (token) return writeSessionSnapshot(token, session); }).catch(() => undefined);
+  }, [rememberLocale]);
 
   React.useEffect(() => {
     // Rappel différé : déclenché par une réponse 401 de l'API, jamais au rendu.
@@ -277,14 +310,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       signOut: async () => {
         sessionGeneration.current += 1;
         clearQueryCache();
-        await unregisterPush().catch(() => undefined);
-        await api.auth.signOut().catch(() => undefined);
+        // Leave the auth screens immediately. Network revocation is best
+        // effort and must never make Back/change-email feel frozen on a poor
+        // job-site connection.
+        const token = await readToken();
+        const revocation = api.auth.signOut(token ?? undefined).catch(() => undefined);
+        void unregisterPush().catch(() => undefined);
         await clearToken();
         setState({ status: 'deconnecte', session: null, ...IDLE });
+        void revocation;
       },
       refresh: refreshSession,
+      adoptSession,
     }),
-    [state, handle, preferredLocale, refreshSession],
+    [state, handle, preferredLocale, refreshSession, adoptSession],
   );
 
   return (

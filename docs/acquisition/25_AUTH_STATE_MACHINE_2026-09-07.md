@@ -20,6 +20,10 @@ Retrying signup with the same email and password now reuses the existing unverif
 
 The challenge is persisted with a ten-minute expiry, five-attempt maximum and one-minute/five-per-hour resend limits. Delivery failure consumes that challenge so an unknown code can never be accepted later. Confirmation marks the user verified, consumes the challenge, revokes stale verification/reset tokens and, when changing address, revokes other sessions.
 
+The mobile confirmation endpoint now returns a freshly rebuilt `SessionDTO` after the verification transaction. The client adopts that DTO immediately and routes to `subscription` or `app`; it does not wait for a stale cached session or require an app restart. Codes are canonicalized with Unicode compatibility normalization and whitespace removal, preserving leading zeroes.
+
+The verification screen's “Change my email” action performs a local-first sign-out and replaces the route with the originating sign-in/sign-up form. This explicitly starts a new authentication attempt; the original pending account remains recoverable by retrying its original email/password, and no verified account is altered.
+
 ## Enforcement boundaries
 
 - `/api/auth/session` and `/api/auth/code-email` intentionally accept an authenticated but unverified session so the person can recover verification.

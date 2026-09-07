@@ -7,6 +7,7 @@ import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
+import { authDestination, verificationPath } from '@/lib/auth-navigation';
 
 export default function InscriptionScreen() {
   const locale = useMobileLocale();
@@ -43,13 +44,7 @@ export default function InscriptionScreen() {
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace((
-        session.nextStep === 'verify_email'
-          ? '/verification'
-          : session.nextStep === 'subscription'
-            ? '/abonnement'
-            : '/(app)'
-      ) as never);
+      router.replace((session.nextStep === 'verify_email' ? verificationPath('signup') : authDestination(session)) as never);
     } catch {
       // Message affiché sous le champ mot de passe.
     } finally {

@@ -11,6 +11,11 @@ const TTL = 10 * 60_000;
 const HOUR = 60 * 60_000;
 const digest = (id: string, userId: string, email: string, code: string) => hashToken(`${id}:${userId}:${email}:${code}`);
 
+/** Canonical representation used by both the email and the confirmation API. */
+export function normalizeEmailCode(value: string): string {
+  return value.normalize('NFKC').replace(/\s+/g, '').trim();
+}
+
 export async function updateAccountName(userId: string, firstName: string, lastName: string) {
   await prisma.user.update({ where: { id: userId }, data: { firstName: firstName.trim() || null, lastName: lastName.trim() || null } });
 }
@@ -99,6 +104,7 @@ export async function requestEmailCode(userId: string, input: { email: string; p
 }
 
 export async function confirmEmailCode(userId: string, sessionId: string, code: string) {
+  const canonicalCode = normalizeEmailCode(code);
   let outcome: string;
   try {
     outcome = await prisma.$transaction(async (tx) => {
@@ -107,7 +113,7 @@ export async function confirmEmailCode(userId: string, sessionId: string, code: 
       const now = new Date();
       if (!challenge || challenge.usedAt || challenge.expiresAt <= now || challenge.attempts >= 5) return 'invalid';
       const expected = Buffer.from(challenge.tokenHash, 'hex');
-      const actual = Buffer.from(digest(challenge.id, userId, challenge.email, code), 'hex');
+      const actual = Buffer.from(digest(challenge.id, userId, challenge.email, canonicalCode), 'hex');
       if (expected.length !== actual.length || !timingSafeEqual(expected, actual)) {
         // Return instead of throwing: commit the failed attempt, don't roll it back.
         await tx.emailChallenge.update({ where: { userId }, data: { attempts: { increment: 1 } } });

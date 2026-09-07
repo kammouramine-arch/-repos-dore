@@ -383,12 +383,18 @@ export function createApiClient(options: ApiClientOptions) {
         invitationToken?: string;
         locale?: 'fr' | 'en';
       }) => request<AuthTokenDTO>('/api/auth/inscription', { method: 'POST', json: input }),
-      signOut: () => request<{ signedOut: boolean }>('/api/auth/session', { method: 'DELETE' }),
+      signOut: (token?: string) => request<{ signedOut: boolean }>('/api/auth/session', {
+        method: 'DELETE',
+        // Mobile logout clears secure storage immediately. Carry the captured
+        // token explicitly so best-effort server revocation still works even
+        // if the local clear wins the race.
+        ...(token ? { headers: { Authorization: `Bearer ${token}` } } : {}),
+      }),
       me: () => request<SessionDTO>('/api/auth/session'),
       updateName: (firstName: string, lastName: string) => request<{ saved: boolean }>('/api/auth/compte', { method: 'PATCH', json: { firstName, lastName } }),
       updateLanguage: (language: 'fr' | 'en') => request<{ language: 'fr' | 'en' }>('/api/auth/langue', { method: 'PATCH', json: { language } }),
       requestEmailCode: (email: string, password?: string) => request<{ requested: boolean; email: string; expiresInSeconds: number }>('/api/auth/code-email', { method: 'POST', json: { email, password } }),
-      confirmEmailCode: (code: string) => request<{ verified: boolean }>('/api/auth/code-email', { method: 'PATCH', json: { code } }),
+      confirmEmailCode: (code: string) => request<{ verified: boolean; session: SessionDTO }>('/api/auth/code-email', { method: 'PATCH', json: { code } }),
       requestPasswordReset: (email: string) =>
         request<{ requested: boolean }>('/api/auth/mot-de-passe', { method: 'POST', json: { email } }),
     },

@@ -6,6 +6,7 @@ import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
+import { authDestination, verificationPath } from '@/lib/auth-navigation';
 
 export default function ConnexionScreen() {
   const locale = useMobileLocale();
@@ -23,13 +24,7 @@ export default function ConnexionScreen() {
     setPending(true);
     try {
       const session = await signIn(email.trim(), password);
-      router.replace((
-        session.nextStep === 'verify_email'
-          ? '/verification'
-          : session.nextStep === 'subscription'
-            ? '/abonnement'
-            : '/(app)'
-      ) as never);
+      router.replace((session.nextStep === 'verify_email' ? verificationPath('signin') : authDestination(session)) as never);
     } catch {
       // Le message est porté par le contexte d'authentification.
     } finally {
