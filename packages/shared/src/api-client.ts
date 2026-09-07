@@ -3,6 +3,7 @@ import type {
   ApiResponse,
   AuthTokenDTO,
   BillingOverviewDTO,
+  BillingHistoryDTO,
   BusinessProfileDTO,
   CustomerDTO,
   CustomerProfileDTO,
@@ -518,6 +519,7 @@ export function createApiClient(options: ApiClientOptions) {
 
     billing: {
       overview: () => request<BillingOverviewDTO>('/api/billing'),
+      history: () => request<BillingHistoryDTO>('/api/billing/history'),
       checkout: (plan: PlanId) => request<{ url: string }>('/api/billing/checkout', { method: 'POST', json: { plan } }),
       portal: () => request<{ url: string }>('/api/billing/portail', { method: 'POST' }),
       changePlan: (plan: PlanId) =>

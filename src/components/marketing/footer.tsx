@@ -31,6 +31,7 @@ const COLUMNS = [
     links: [
       { href: '/confidentialite', label: 'Confidentialité' },
       { href: '/conditions', label: "Conditions d'utilisation" },
+      { href: '/mentions-legales', label: 'Mentions légales' },
       { href: '/cookies', label: 'Cookies' },
       { href: 'mailto:contact@devisera.fr', label: 'Nous contacter' },
     ],

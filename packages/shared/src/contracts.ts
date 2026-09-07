@@ -356,3 +356,27 @@ export interface BillingOverviewDTO {
   billingReady: boolean;
   canManage: boolean;
 }
+
+export interface BillingHistoryEntryDTO {
+  id: string;
+  date: string;
+  amountCents: number;
+  currency: string;
+  status: 'paid' | 'open' | 'failed' | 'void' | 'uncollectible' | 'unknown';
+  description: string;
+  receiptUrl: string | null;
+}
+
+/**
+ * Billing history is deliberately provider-aware. Apple does not expose
+ * subscription invoices to the app API, so the mobile client receives links
+ * to Apple's own management/history surfaces instead of fabricated records.
+ */
+export interface BillingHistoryDTO {
+  provider: 'apple' | 'stripe' | 'trial';
+  entries: BillingHistoryEntryDTO[];
+  manageUrl: string | null;
+  receiptsUrl: string | null;
+  manageAction: 'apple_subscriptions' | 'stripe_portal' | null;
+  note: string;
+}

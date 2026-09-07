@@ -8,6 +8,7 @@ import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
 import { readDiagnostics } from '@/lib/diagnostics';
 import { copy, mobileLocale } from '@/lib/i18n';
+import type { BillingHistoryDTO } from '@devisia/shared';
 
 export default function CompteScreen() {
   const session = useSession();
@@ -24,6 +25,7 @@ export default function CompteScreen() {
   const [error, setError] = React.useState<string | null>(null);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [deletePassword, setDeletePassword] = React.useState('');
+  const [billingHistory, setBillingHistory] = React.useState<BillingHistoryDTO | null>(null);
   const acting = React.useRef(false);
   const mounted = React.useRef(true);
   const changingEmail = email.trim().toLowerCase() !== session.user.email;
@@ -80,10 +82,10 @@ export default function CompteScreen() {
         <Button title={session.user.locale === 'en' ? `✓ ${copy(locale, 'english')}` : copy(locale, 'english')} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); setNotice('English language saved.'); })} />
       </Card>
       <Card style={{ gap: spacing.lg }}>
-        <Heading>Confidentialité et assistance</Heading>
-        <Button title="Partager le diagnostic technique" variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISERA', events: readDiagnostics() }, null, 2) }); })} />
-        <Muted>Diagnostic local : durées et catégories d’erreurs, sans nom de client, description de chantier ni jeton de connexion.</Muted>
-        <Button title="Exporter mes informations de compte" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
+        <Heading>{en ? 'Privacy and support' : 'Confidentialité et assistance'}</Heading>
+        <Button title={en ? 'Share technical diagnostics' : 'Partager le diagnostic technique'} variant="ghost" onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISERA', events: readDiagnostics() }, null, 2) }); })} />
+        <Muted>{en ? 'Local diagnostics: durations and error categories, without client names, job descriptions or login tokens.' : 'Diagnostic local : durées et catégories d’erreurs, sans nom de client, description de chantier ni jeton de connexion.'}</Muted>
+        <Button title={en ? 'Export my account data' : 'Exporter mes informations de compte'} disabled={busy} variant="secondary" onPress={() => void perform(async () => {
           if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
           const data = await api.auth.exportPersonal();
           const file = new File(Paths.cache, `DEVISERA-compte-${Date.now()}.json`);
@@ -92,37 +94,53 @@ export default function CompteScreen() {
             await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' });
           } finally { if (file.exists) file.delete(); }
         })} />
-        <Muted>Cet export contient votre identité et vos rattachements à une entreprise, pas les devis ni le dossier commercial complet.</Muted>
-        <Button title="Exporter mes données commerciales" disabled={busy} variant="secondary" onPress={() => void perform(async () => {
+        <Muted>{en ? 'This export contains your identity and business memberships, not quotes or the full commercial file.' : 'Cet export contient votre identité et vos rattachements à une entreprise, pas les devis ni le dossier commercial complet.'}</Muted>
+        <Button title={en ? 'Export my business data' : 'Exporter mes données commerciales'} disabled={busy} variant="secondary" onPress={() => void perform(async () => {
           if (!(await Sharing.isAvailableAsync())) throw new Error('Le partage de fichiers n’est pas disponible sur cet appareil.');
           const data = await api.auth.exportBusiness();
           const file = new File(Paths.cache, `DEVISERA-donnees-${Date.now()}.json`);
           try { file.write(JSON.stringify(data, null, 2)); await Sharing.shareAsync(file.uri, { mimeType: 'application/json', UTI: 'public.json' }); }
           finally { if (file.exists) file.delete(); }
         })} />
-        <Muted>Clients, prospects, chantiers, devis, lignes et factures. Aucun secret ou jeton n’est inclus.</Muted>
-        <Muted>Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.</Muted>
+        <Muted>{en ? 'Clients, leads, jobs, quotes, line items and invoices. No secrets or tokens are included.' : 'Clients, prospects, chantiers, devis, lignes et factures. Aucun secret ou jeton n’est inclus.'}</Muted>
+        <Muted>{en ? 'To request a copy of your data or deletion, contact us. Identity verification and a review of retention obligations are required.' : 'Pour demander une copie de vos données ou leur effacement, contactez-nous. Une vérification d’identité et un examen des obligations de conservation sont nécessaires.'}</Muted>
         <Heading>{copy(locale, 'payments')}</Heading>
         <Muted>{en ? 'Apple subscriptions are managed by Apple. Open your Apple account to view purchase history, receipts and renewals.' : 'Les abonnements Apple sont gérés par Apple. Ouvrez votre compte Apple pour consulter l’historique des achats, les reçus et les renouvellements.'}</Muted>
         <Button title={copy(locale, 'manageApple')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL('https://apps.apple.com/account/subscriptions'))} />
         <Button title={en ? 'View Apple purchases' : 'Voir mes achats Apple'} variant="ghost" disabled={busy} onPress={() => void perform(() => Linking.openURL('https://reportaproblem.apple.com/'))} />
+        <Button title={en ? 'Refresh billing history' : 'Actualiser l’historique de facturation'} variant="ghost" disabled={busy} onPress={() => void perform(async () => {
+          const result = await api.billing.history();
+          setBillingHistory(result);
+          if (result.provider === 'stripe') {
+            const portal = await api.billing.portal();
+            await Linking.openURL(portal.url);
+          } else if (result.provider === 'apple' && result.receiptsUrl) {
+            await Linking.openURL(result.receiptsUrl);
+          } else {
+            setNotice(en ? result.note : result.note);
+          }
+        })} />
+        {billingHistory ? <Muted>{billingHistory.note}</Muted> : null}
         <Heading>{en ? 'Your feedback' : 'Votre avis'}</Heading>
         <Muted>{en ? 'Your feedback helps DEVISERA improve.' : 'Votre retour aide DEVISERA à progresser.'}</Muted>
         <Button title={copy(locale, 'rate')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL('itms-apps://itunes.apple.com/app/id6806865251?action=write-review'))} />
         <Heading>{copy(locale, 'contact')}</Heading>
         <Muted>{en ? 'Questions or a problem? Write to us from your usual mail app.' : 'Une question ou un problème ? Écrivez-nous depuis votre messagerie habituelle.'}</Muted>
         <Button title={copy(locale, 'support')} variant="secondary" disabled={busy} onPress={() => void perform(() => Linking.openURL(`mailto:contact@devisera.fr?subject=${encodeURIComponent('DEVISERA support')}&body=${encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\nDEVISERA version: 1.0.0\nLanguage: ${session.user.locale}\nAccount: ${session.user.id}\n\n${en ? 'My request:' : 'Ma demande :'}`)}`))} />
-        <Heading>Supprimer mon compte</Heading>
-        <Muted>Cette action désactive votre accès, révoque vos sessions et anonymise vos informations personnelles. Les données commerciales peuvent être conservées lorsqu’une obligation légale ou un autre membre de l’entreprise l’exige.</Muted>
-        <Field label="Mot de passe actuel" value={deletePassword} onChangeText={setDeletePassword} secureTextEntry editable={!busy} />
-        <Button title="Supprimer définitivement mon accès" variant="danger" disabled={busy || !deletePassword} onPress={() => void perform(async () => {
+        <Heading>{en ? 'Delete my account' : 'Supprimer mon compte'}</Heading>
+        <Muted>{en ? 'This disables your access, revokes sessions and anonymises personal information. Business data may be retained when a legal obligation or another business member requires it.' : 'Cette action désactive votre accès, révoque vos sessions et anonymise vos informations personnelles. Les données commerciales peuvent être conservées lorsqu’une obligation légale ou un autre membre de l’entreprise l’exige.'}</Muted>
+        <Field label={en ? 'Current password' : 'Mot de passe actuel'} value={deletePassword} onChangeText={setDeletePassword} secureTextEntry editable={!busy} />
+        <Button title={en ? 'Permanently delete my access' : 'Supprimer définitivement mon accès'} variant="danger" disabled={busy || !deletePassword} onPress={() => void perform(async () => {
           const result = await api.auth.deleteAccount(deletePassword);
           setDeletePassword('');
-          setNotice(result.businessRecordsRetained ? 'Votre accès a été supprimé. Les données commerciales restent conservées selon les obligations applicables.' : 'Votre compte a été supprimé.');
+          setNotice(result.businessRecordsRetained
+            ? (en ? 'Your access was deleted. Business data is retained where applicable.' : 'Votre accès a été supprimé. Les données commerciales restent conservées selon les obligations applicables.')
+            : (en ? 'Your account was deleted.' : 'Votre compte a été supprimé.'));
           await signOut();
         })} />
-        <Button title="Politique de confidentialité" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
-        <Button title="Conditions d’utilisation" variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
+        <Button title={en ? 'Privacy policy' : 'Politique de confidentialité'} variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/confidentialite`))} />
+        <Button title={en ? 'Terms of use' : 'Conditions d’utilisation'} variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/conditions`))} />
+        <Button title={en ? 'Legal notices' : 'Mentions légales'} variant="ghost" onPress={() => void perform(() => Linking.openURL(`${API_URL}/mentions-legales`))} />
       </Card>
     </Screen>
   </KeyboardAvoidingView>;

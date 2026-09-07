@@ -270,7 +270,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
               : 'La confirmation Apple n’a pas abouti. Restaurez vos achats.',
         );
       }
-    }).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
+    }, authLocale).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
     const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
     return () => { disposed = true; cleanup?.(); foreground.remove(); };
   }, [state.status, state.session?.user.emailVerified, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);

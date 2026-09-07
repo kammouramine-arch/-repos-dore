@@ -18,16 +18,28 @@ function getVerifiers() {
   return verifiers;
 }
 
-async function verified<T>(operation: (verifier: SignedDataVerifier) => Promise<T>): Promise<T> {
+async function verified<T>(operationName: string, operation: (verifier: SignedDataVerifier) => Promise<T>): Promise<T> {
+  let lastError: { name?: string; message?: string } | undefined;
   for (const verifier of getVerifiers()) {
-    try { return await operation(verifier); } catch { /* Try only explicitly enabled environments. */ }
+    try { return await operation(verifier); }
+    catch (error) {
+      // Apple verification failures are otherwise indistinguishable from a
+      // generic purchase error in TestFlight. Keep only bounded provider
+      // metadata; signed transactions, receipts and account identifiers are
+      // deliberately never logged.
+      const name = error instanceof Error ? error.name : undefined;
+      const message = error instanceof Error ? error.message : String(error);
+      lastError = { name: name?.slice(0, 80), message: message.slice(0, 240) };
+      console.warn('[billing/apple] verification failed', { operation: operationName, ...lastError });
+      /* Try only explicitly enabled environments. */
+    }
   }
   throw new AppError('VALIDATION', 'Apple n’a pas pu confirmer cet achat. Restaurez vos achats ou réessayez.');
 }
 
 /** Only accepts data after Apple's signature, bundle and environment checks. */
 export async function syncAppleTransaction(signedTransaction: string, organizationId: string) {
-  const transaction = await verified((v) => v.verifyAndDecodeTransaction(signedTransaction));
+  const transaction = await verified('transaction', (v) => v.verifyAndDecodeTransaction(signedTransaction));
   if (transaction.appAccountToken?.toLowerCase() !== organizationId.toLowerCase()) {
     throw new AppError('CONFLICT', 'Cet abonnement appartient à un autre compte DEVISERA. Connectez-vous à ce compte.');
   }
@@ -73,13 +85,13 @@ async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId:
 }
 
 export async function handleAppleNotification(signedPayload: string) {
-  const notification = await verified((v) => v.verifyAndDecodeNotification(signedPayload));
+  const notification = await verified('notification', (v) => v.verifyAndDecodeNotification(signedPayload));
   if (notification.notificationType === 'TEST') return { received: true };
   const signedTransaction = notification.data?.signedTransactionInfo;
   if (!signedTransaction) return { received: true };
-  const transaction = await verified((v) => v.verifyAndDecodeTransaction(signedTransaction));
+  const transaction = await verified('notification-transaction', (v) => v.verifyAndDecodeTransaction(signedTransaction));
   const renewal = notification.data?.signedRenewalInfo
-    ? await verified((v) => v.verifyAndDecodeRenewalInfo(notification.data!.signedRenewalInfo!)) : undefined;
+    ? await verified('renewal', (v) => v.verifyAndDecodeRenewalInfo(notification.data!.signedRenewalInfo!)) : undefined;
   if (renewal && renewal.originalTransactionId !== transaction.originalTransactionId) throw new AppError('VALIDATION');
   const organizationId = transaction.appAccountToken;
   if (!organizationId || !/^[0-9a-f-]{36}$/i.test(organizationId)) return { received: true };

@@ -5,15 +5,16 @@ import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, PressableCard, Screen, Title } from './ui';
 import { useAuth } from '@/lib/auth';
-import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, restoreApplePurchases } from '@/lib/apple-purchases';
+import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 import { Logo } from './logo';
-import { mobileLocale } from '@/lib/i18n';
+import { localizeText, mobileLocale } from '@/lib/i18n';
 
 export function ApplePaywall() {
   const { session, refresh, signOut } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
   const router = useRouter();
   const { plan } = useLocalSearchParams<{ plan?: string }>();
   const [selected, setSelected] = React.useState<PlanId>(() => PLAN_ORDER.find((id) => id === plan) ?? 'PRO');
@@ -25,13 +26,13 @@ export function ApplePaywall() {
   const load = React.useCallback(async () => {
     setLoading(true); setError(null);
     try { setStore(await appleProducts()); }
-    catch { setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
+    catch (cause) { recordApplePurchaseFailure(cause); setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
     finally { setLoading(false); }
   }, [en]);
   React.useEffect(() => {
     let disposed = false;
     void appleProducts().then((value) => { if (!disposed) setStore(value); })
-      .catch(() => { if (!disposed) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); })
+      .catch((cause) => { recordApplePurchaseFailure(cause); if (!disposed) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); })
       .finally(() => { if (!disposed) setLoading(false); });
     const stop = observeApplePurchase(setBusy);
     return () => { disposed = true; stop(); };
@@ -85,7 +86,7 @@ export function ApplePaywall() {
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
       const chosen = plan === selected;
-      return <PressableCard haptic key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={`Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
+      return <PressableCard haptic key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={en ? `Plan ${PLANS[plan].name}` : `Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
         style={{ borderColor: chosen ? colors.accent : colors.line, borderWidth: 2, gap: spacing.md, backgroundColor: chosen ? colors.accentSoft : colors.canvas }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
             <View style={{ flex: 1, gap: 4 }}><Heading>{PLANS[plan].name}</Heading><Caption>{plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}</Caption></View>
@@ -96,7 +97,7 @@ export function ApplePaywall() {
           </View>
           {!p ? <Caption>{en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement'}</Caption> : null}
           {!appleActive ? <Caption>{en ? '3 days free for eligible new subscribers' : '3 jours gratuits pour les nouveaux abonnés éligibles'}</Caption> : null}
-          {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{h}</Muted></View>)}
+          {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{localizeText(locale, h)}</Muted></View>)}
       </PressableCard>;
     })}
     {trial ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
@@ -111,7 +112,7 @@ export function ApplePaywall() {
       loading={busy || loading} disabled={busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(() => purchaseApplePlan(selected, session!.organization.id))}
     />}
-    {!loading && product && product.currency !== 'EUR' ? <Banner title={`Devise du storefront Apple : ${product.currency ?? 'inconnue'}`} description="Le montant affiché vient directement d’Apple. En France, le storefront de production doit retourner EUR ; un environnement sandbox peut afficher une autre devise. Vérifiez le montant final avant de valider." action={<Button title="Recharger les offres" variant="secondary" onPress={() => void load()} />} /> : null}
+    {!loading && product && product.currency !== 'EUR' ? <Banner title={`${en ? 'Apple storefront currency: ' : 'Devise du storefront Apple : '}${product.currency ?? (en ? 'unknown' : 'inconnue')}`} description={en ? 'The amount comes directly from Apple. Production in France should return EUR; a sandbox storefront may show another currency. Check the final amount before confirming.' : 'Le montant affiché vient directement d’Apple. En France, le storefront de production doit retourner EUR ; un environnement sandbox peut afficher une autre devise. Vérifiez le montant final avant de valider.'} action={<Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="secondary" onPress={() => void load()} />} /> : null}
     {!loading && !product ? <Button title="Recharger les offres" variant="secondary" onPress={() => void load()} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>
@@ -119,8 +120,8 @@ export function ApplePaywall() {
     <Button title={en ? 'Correct my name or email' : 'Corriger mon nom ou mon email'} variant="ghost" onPress={() => router.push('/compte')} />
     <Button title={en ? 'Sign out / use another account' : 'Me déconnecter / utiliser un autre compte'} variant="ghost" disabled={busy} onPress={() => void action(signOut)} />
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: spacing.lg }}>
-      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`${API_URL}/confidentialite`)}><Caption>Confidentialité</Caption></Pressable>
-      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}><Caption>Conditions</Caption></Pressable>
+      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL(`${API_URL}/confidentialite`)}><Caption>{en ? 'Privacy' : 'Confidentialité'}</Caption></Pressable>
+      <Pressable accessibilityRole="link" onPress={() => void Linking.openURL('https://www.apple.com/legal/internet-services/itunes/dev/stdeula/')}><Caption>{en ? 'Terms' : 'Conditions'}</Caption></Pressable>
     </View>
   </Screen>;
 }
