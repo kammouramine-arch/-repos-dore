@@ -120,7 +120,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         : current);
     }
     try {
-      const session = await api.auth.me();
+      // Session restore should never hold the native launch screen for the
+      // full request budget. Cached data remains usable while a slow job-site
+      // connection is reported as offline and can be retried from the shell.
+      const session = await api.request<SessionDTO>('/api/auth/session', { timeoutMs: 8_000 });
       if (generation !== sessionGeneration.current) return;
       rememberLocale(session);
       setState({ status: 'connecte', session, error: null, offline: false });

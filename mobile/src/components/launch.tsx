@@ -4,6 +4,7 @@ import { Logo } from '@/components/logo';
 import { colors, motion, spacing, typography } from '@/theme';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { useMobileLocale } from '@/lib/i18n';
+import { PremiumGradient } from '@/components/premium-gradient';
 
 /**
  * Écran de lancement.
@@ -18,6 +19,8 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
   const locale = useMobileLocale();
   const startedAt = React.useRef<number | null>(null);
   const opacity = React.useMemo(() => new Animated.Value(0), []);
+  const haloOpacity = React.useMemo(() => new Animated.Value(0), []);
+  const haloScale = React.useMemo(() => new Animated.Value(0.72), []);
   const rise = React.useMemo(() => new Animated.Value(14), []);
   const scale = React.useMemo(() => new Animated.Value(0.94), []);
 
@@ -43,6 +46,19 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
         mass: 0.7,
         useNativeDriver: true,
       }),
+      Animated.timing(haloOpacity, {
+        toValue: 1,
+        duration: motion.slow,
+        easing: Easing.out(Easing.cubic),
+        useNativeDriver: true,
+      }),
+      Animated.spring(haloScale, {
+        toValue: 1,
+        damping: 17,
+        stiffness: 190,
+        mass: 0.8,
+        useNativeDriver: true,
+      }),
     ]);
     animation.start(({ finished }) => {
       if (finished) {
@@ -51,56 +67,54 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
       }
     });
     return () => animation.stop();
-  }, [opacity, rise, scale, onSettled]);
+  }, [haloOpacity, haloScale, opacity, rise, scale, onSettled]);
 
   return (
-    <View
-      style={{
-        flex: 1,
-        backgroundColor: colors.surface,
-        alignItems: 'center',
-        justifyContent: 'center',
-        gap: spacing.lg,
-      }}
-    >
-      <View
-        style={{
-          position: 'absolute',
-          width: 280,
-          height: 280,
-          borderRadius: 140,
-          backgroundColor: colors.accentGlow,
-          opacity: 0.55,
-        }}
-      />
-      <Animated.View style={{ opacity, transform: [{ translateY: rise }, { scale }] }}>
-        <Logo size={70} />
-      </Animated.View>
-      <Animated.Text
-        style={[
-          typography.small,
-          {
-            color: colors.muted,
+    <PremiumGradient dark>
+      <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', gap: spacing.lg }}>
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            width: 270,
+            height: 270,
+            borderRadius: 135,
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.38)',
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            opacity: haloOpacity,
+            transform: [{ scale: haloScale }],
+          }}
+        />
+        <Animated.View style={{ opacity, transform: [{ translateY: rise }, { scale }] }}>
+          <Logo size={70} tone="white" />
+        </Animated.View>
+        <Animated.Text
+          style={[
+            typography.small,
+            {
+              color: 'rgba(255,255,255,0.86)',
+              opacity,
+              transform: [{ translateY: rise }],
+              letterSpacing: 0.1,
+            },
+          ]}
+        >
+          {locale === 'en' ? 'AI-powered quotes for your business' : 'L’IA qui transforme votre travail en devis'}
+        </Animated.Text>
+        <Animated.View
+          style={{
+            position: 'absolute',
+            bottom: 54,
+            width: 42,
+            height: 3,
+            borderRadius: 2,
+            backgroundColor: colors.white,
             opacity,
-            transform: [{ translateY: rise }],
-            letterSpacing: 0.1,
-          },
-        ]}
-      >
-        {locale === 'en' ? 'AI-powered quotes for your business' : 'L’IA qui transforme votre travail en devis'}
-      </Animated.Text>
-      <Animated.View
-        style={{
-          position: 'absolute',
-          bottom: 54,
-          width: 42,
-          height: 3,
-          borderRadius: 2,
-          backgroundColor: colors.accent,
-          opacity,
-          transform: [{ scaleX: scale }],
-        }}
-      />
-    </View>
+            transform: [{ scaleX: scale }],
+          }}
+        />
+      </View>
+    </PremiumGradient>
   );
 }

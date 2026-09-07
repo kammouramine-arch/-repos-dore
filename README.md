@@ -452,12 +452,12 @@ en JSON, publiquement et durablement.
    au déploiement suivant ; un binaire publié sur les stores, lui, est figé.
    L'alias du projet se lit dans Vercel → Project → Domains.
 
-**`EXPO_PUBLIC_API_URL` n'est pas versionnée.** Un build EAS échoue
-volontairement si elle est absente, vaut `localhost`, n'est pas en HTTPS ou
-désigne un déploiement précis plutôt que l'alias :
+**`EXPO_PUBLIC_API_URL` n'est pas versionnée.** Un build EAS reprend l'alias
+de production si elle est absente, et refuse une valeur `localhost`, non HTTPS
+ou un déploiement précis plutôt que l'alias :
 une application distribuée qui ne joint pas son backend s'installe sans erreur
-et ne se voit qu'à l'usage. La contrepartie est qu'il faut la définir une fois,
-avec la commande ci-dessus.
+et ne se voit qu'à l'usage. Définissez-la explicitement avec la commande
+ci-dessus lorsque l'origine officielle `devisera.fr` sera active.
 
 **Liens universels.** Ils sont volontairement absents : ils exigent un domaine
 dont le projet est propriétaire, pour y publier les fichiers de vérification

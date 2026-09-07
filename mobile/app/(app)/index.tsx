@@ -31,6 +31,7 @@ import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
+import { PremiumGradient } from '@/components/premium-gradient';
 
 /**
  * Accueil.
@@ -161,16 +162,20 @@ export default function AccueilScreen() {
     return (
       <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
         <Screen>
-          <PageHeader
-            eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-            title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-            subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
-            action={
-              <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
-                <Logo size={26} showName={false} />
-              </View>
-            }
-          />
+          <View style={{ marginHorizontal: -spacing.xl, marginTop: -spacing.xl, overflow: 'hidden', borderBottomLeftRadius: radius.xl, borderBottomRightRadius: radius.xl }}>
+            <PremiumGradient style={{ flex: 0, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing['2xl'] }}>
+              <PageHeader
+                eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+                title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+                subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
+                action={
+                  <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center' }}>
+                    <Logo size={26} showName={false} />
+                  </View>
+                }
+              />
+            </PremiumGradient>
+          </View>
 
           <Card style={{ gap: spacing.md }}>
             <Skeleton height={13} width="45%" />
@@ -217,31 +222,35 @@ export default function AccueilScreen() {
           />
         }
       >
-        <PageHeader
-          eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-          title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-          subtitle={
-            started
-              ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
-              : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
-          }
-          action={
-            <View
-              style={{
-                width: 44,
-                height: 44,
-                borderRadius: 15,
-                backgroundColor: colors.canvas,
-                borderWidth: 1,
-                borderColor: colors.line,
-                alignItems: 'center',
-                justifyContent: 'center',
-              }}
-            >
-              <Logo size={27} showName={false} />
-            </View>
-          }
-        />
+        <View style={{ marginHorizontal: -spacing.xl, marginTop: -spacing.xl, overflow: 'hidden', borderBottomLeftRadius: radius.xl, borderBottomRightRadius: radius.xl }}>
+          <PremiumGradient style={{ flex: 0, paddingHorizontal: spacing.xl, paddingTop: spacing.xl, paddingBottom: spacing['2xl'] }}>
+            <PageHeader
+              eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+              title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+              subtitle={
+                started
+                  ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
+                  : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
+              }
+              action={
+                <View
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 15,
+                    backgroundColor: colors.canvas,
+                    borderWidth: 1,
+                    borderColor: colors.line,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Logo size={27} showName={false} />
+                </View>
+              }
+            />
+          </PremiumGradient>
+        </View>
 
         {(query.loading || query.refreshing || query.error) && <Caption>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
         <TrialBanner subscription={session?.subscription ?? null} />

@@ -25,23 +25,18 @@ const EAS_ACCOUNT = 'aminekms-team';
  * URL de l'API, injectée à la construction.
  *
  * En développement, l'API locale sert de valeur par défaut. Pour un build
- * distribuable, l'URL doit être fournie explicitement : un binaire pointant vers
- * `localhost` s'installerait sans erreur et serait inutilisable sur le terrain,
- * la construction échoue donc plutôt que de livrer une application muette.
+ * distribuable, on utilise l'alias de production connu si la variable EAS n'est
+ * pas injectée : un binaire ne doit jamais embarquer `localhost` par accident.
+ * Le profil EAS versionné répète cette valeur pour rendre le build lisible et
+ * reproductible, tandis que l'URL peut ensuite être remplacée par l'origine
+ * officielle `devisera.fr` après son déploiement.
  */
 function resolveApiUrl(): string {
   const provided = process.env.EXPO_PUBLIC_API_URL?.trim();
   const distributable = process.env.EAS_BUILD === 'true';
 
   if (!provided) {
-    if (distributable) {
-      throw new Error(
-        'EXPO_PUBLIC_API_URL est absente. Définissez-la avant de construire :\n' +
-          '  eas env:create --name EXPO_PUBLIC_API_URL --value https://<votre-projet>.vercel.app ' +
-          '--environment production --visibility plaintext',
-      );
-    }
-    return 'http://localhost:3000';
+    return distributable ? 'https://devisia-bice.vercel.app' : 'http://localhost:3000';
   }
 
   if (distributable) {
@@ -140,7 +135,7 @@ const config: ExpoConfig = {
     [
       'expo-splash-screen',
       {
-        image: './assets/splash.png',
+        image: './assets/splash-devisera.png',
         resizeMode: 'contain',
         backgroundColor: '#FFFFFF',
       },

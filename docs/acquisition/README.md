@@ -31,6 +31,7 @@ Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedu
 | [29 Strict audit after regression pass](29_STRICT_AUDIT_AFTER_REGRESSION_PASS_2026-09-07.md) | Truthful score after the latest local fixes and external blockers |
 | [30 Localization and code quality pass](30_LOCALIZATION_AND_CODE_QUALITY_PASS_2026-09-07.md) | Mobile English coverage, regional document localization and verification evidence |
 | [31 Strict audit after localization pass](31_STRICT_AUDIT_AFTER_LOCALIZATION_PASS_2026-09-07.md) | Current normalized readiness score and remaining external gates |
+| [32 Premium finish pass](32_PREMIUM_FINISH_PASS_2026-09-07.md) | Service recovery, startup motion, gradient surfaces and splash-brand verification |
 
 Status vocabulary: **COMPLETE** means the stated bounded deliverable is verified; **NEEDS IMPROVEMENT** means technical work remains; **BLOCKED BY EXTERNAL ACTION** means a provider/account/device prerequisite; **REQUIRES OWNER DECISION** means commercial scope is undecided; **REQUIRES LEGAL/ACCOUNTING REVIEW** means specialist sign-off is outstanding. Multiple statuses can apply.
 

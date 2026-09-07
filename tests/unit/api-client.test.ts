@@ -99,6 +99,19 @@ describe('client API — transport', () => {
     await expect(api.quotes.list()).rejects.toMatchObject({ status: 502 });
     expect(fetchImpl).toHaveBeenCalledTimes(2);
   });
+  it('retries a transient application 500 on reads but never on writes', async () => {
+    const readFetch = vi.fn()
+      .mockResolvedValueOnce(new Response('temporary', { status: 500 }))
+      .mockResolvedValueOnce(jsonResponse({ data: { total: 0, items: [] } }));
+    const readApi = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl: readFetch });
+    await expect(readApi.quotes.list()).resolves.toEqual({ total: 0, items: [] });
+    expect(readFetch).toHaveBeenCalledTimes(2);
+
+    const writeFetch = vi.fn().mockResolvedValue(new Response('temporary', { status: 500 }));
+    const writeApi = createApiClient({ baseUrl: 'https://exemple.test', fetchImpl: writeFetch });
+    await expectFailure(writeApi.quotes.create({ title: 'Chantier' }));
+    expect(writeFetch).toHaveBeenCalledTimes(1);
+  });
   it('joint le jeton porteur et omet les cookies', async () => {
     const fetchImpl = vi.fn(async () => jsonResponse({ data: { unread: 0, items: [] } }));
     const api = createApiClient({

@@ -6,10 +6,10 @@ import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
 import { AuthSurface } from '@/components/auth-surface';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
-import { copy, deviceLocale } from '@/lib/i18n';
+import { copy, useMobileLocale } from '@/lib/i18n';
 
 export default function InscriptionScreen() {
-  const locale = deviceLocale();
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();
   const { signUp, error } = useAuth();

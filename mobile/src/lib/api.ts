@@ -7,10 +7,24 @@ import { clearQueryCache, invalidateQueryCache } from './query-cache';
 import { recordDiagnostic } from './diagnostics';
 
 /** URL de l'API, injectée à la construction (voir eas.json). */
-export const API_URL: string =
-  (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl ??
-  process.env.EXPO_PUBLIC_API_URL ??
-  'http://localhost:3000';
+const PRODUCTION_API_URL = 'https://devisia-bice.vercel.app';
+const configuredApiUrl =
+  (Constants.expoConfig?.extra as { apiUrl?: string } | undefined)?.apiUrl?.trim() ??
+  process.env.EXPO_PUBLIC_API_URL?.trim() ??
+  '';
+
+/**
+ * A standalone build must never quietly point at the developer's machine.
+ * Older TestFlight binaries were able to embed localhost when an EAS variable
+ * was missing, which surfaced as the vague temporary-service error. New builds
+ * are still guarded by `app.config.ts`; this last-resort production fallback
+ * keeps a malformed legacy binary recoverable while preserving local dev.
+ */
+const productionRuntime = process.env.NODE_ENV === 'production';
+const pointsAtDeveloperMachine = /^(https?:\/\/)?(localhost|127\.0\.0\.1)(:\d+)?(?:\/|$)/i.test(configuredApiUrl);
+export const API_URL = productionRuntime && (!configuredApiUrl || pointsAtDeveloperMachine)
+  ? PRODUCTION_API_URL
+  : configuredApiUrl || 'http://localhost:3000';
 
 let onUnauthenticated: (() => void) | null = null;
 

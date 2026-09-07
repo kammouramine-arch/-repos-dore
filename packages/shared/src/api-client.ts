@@ -164,7 +164,7 @@ export function createApiClient(options: ApiClientOptions) {
     const timer = setTimeout(() => controller.abort(), delaiMax);
     try {
       const response = await doFetch(url, { ...init, signal: controller.signal });
-      if (retry && (init.method ?? 'GET') === 'GET' && [502, 503, 504].includes(response.status)) {
+      if (retry && (init.method ?? 'GET') === 'GET' && [500, 502, 503, 504].includes(response.status)) {
         clearTimeout(timer);
         await new Promise((resolve) => setTimeout(resolve, 300));
         return send(url, init, delaiMax, false);
