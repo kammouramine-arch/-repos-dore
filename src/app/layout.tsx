@@ -1,13 +1,6 @@
 import type { Metadata, Viewport } from 'next';
-import { Inter } from 'next/font/google';
 import { ToastProvider } from '@/components/ui/toast';
 import './globals.css';
-
-const inter = Inter({
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-inter',
-});
 
 const APP_URL = process.env.APP_URL ?? 'http://localhost:3000';
 
@@ -61,7 +54,7 @@ export const viewport: Viewport = {
  */
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={inter.variable}>
+    <html lang="fr">
       <body className="min-h-dvh bg-canvas antialiased">
         <a
           href="#contenu"
