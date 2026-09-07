@@ -48,8 +48,38 @@ describe('configuration résiliente', () => {
     }
   });
 
-  it('ignore une adresse de réponse invalide et conserve les autres valeurs', async () => {
+  it('accepte une adresse de réponse avec nom d’affichage, telle que Resend l’attend', async () => {
+    // Constaté en production le 7 septembre 2026 : cette forme voulue était
+    // rejetée par le schéma, puis classée « ignorée ».
     const loaded = await charger({ EMAIL_REPLY_TO: 'DEVISERA <contact@devisera.fr>', EMAIL_PROVIDER: 'console' });
+    try {
+      expect(loaded.env().EMAIL_REPLY_TO).toBe('DEVISERA <contact@devisera.fr>');
+      expect(loaded.configurationReport().ignored).toEqual([]);
+    } finally {
+      loaded.restore();
+    }
+  });
+
+  it('normalise les formes voisines d’une adresse de réponse', async () => {
+    for (const [raw, expected] of [
+      ['  contact@devisera.fr ', 'contact@devisera.fr'],
+      ['"contact@devisera.fr"', 'contact@devisera.fr'],
+      ['<contact@devisera.fr>', 'contact@devisera.fr'],
+      ['mailto:contact@devisera.fr', 'contact@devisera.fr'],
+      ['"DEVISERA <contact@devisera.fr>"', 'DEVISERA <contact@devisera.fr>'],
+    ] as const) {
+      const loaded = await charger({ EMAIL_REPLY_TO: raw });
+      try {
+        expect(loaded.env().EMAIL_REPLY_TO, raw).toBe(expected);
+        expect(loaded.configurationReport().ignored, raw).toEqual([]);
+      } finally {
+        loaded.restore();
+      }
+    }
+  });
+
+  it('ignore une adresse de réponse réellement invalide et conserve les autres valeurs', async () => {
+    const loaded = await charger({ EMAIL_REPLY_TO: 'contact devisera', EMAIL_PROVIDER: 'console' });
     try {
       expect(loaded.env().EMAIL_REPLY_TO).toBe('contact@devisera.fr');
       expect(loaded.env().EMAIL_PROVIDER).toBe('console');
@@ -98,5 +128,15 @@ describe('configuration résiliente', () => {
     } finally {
       loaded.restore();
     }
+  });
+});
+
+describe('domaine d’expédition', () => {
+  it('extrait le domaine d’une adresse nue ou avec nom d’affichage', async () => {
+    const { senderDomain } = await import('@/lib/email');
+    expect(senderDomain('DEVISERA <contact@devisera.fr>')).toBe('devisera.fr');
+    expect(senderDomain('contact@devisera.fr')).toBe('devisera.fr');
+    expect(senderDomain('  <Contact@Devisera.FR> ')).toBe('devisera.fr');
+    expect(senderDomain('pas une adresse')).toBeNull();
   });
 });

@@ -155,6 +155,30 @@ export function categorize(code: ApiError['code'] | 'OK', status: number): Diagn
   return 'client';
 }
 
+const KNOWN_CODES = new Set<string>([
+  'UNAUTHENTICATED', 'FORBIDDEN', 'NOT_FOUND', 'VALIDATION', 'CONFLICT', 'RATE_LIMITED',
+  'PLAN_LIMIT', 'PROVIDER_UNAVAILABLE', 'NETWORK', 'TIMEOUT', 'INTERNAL',
+]);
+
+/**
+ * Refus par la protection de l'hébergeur, avant même l'application.
+ *
+ * Constaté en production (`x-vercel-mitigated: deny`, corps
+ * `{"error":{"code":"403","message":"Forbidden","id":"iad1::…"}}`) sur des
+ * écritures pourtant légitimes. Traduit en « accès refusé », l'artisan croyait
+ * à un problème de droits ; c'est une panne passagère, à réessayer, et
+ * l'identifiant de mitigation est ce que le support doit chercher.
+ */
+function edgeDenial(raw: unknown): ApiError {
+  const id = raw && typeof raw === 'object' && typeof (raw as { id?: unknown }).id === 'string' ? (raw as { id: string }).id : undefined;
+  return {
+    code: 'PROVIDER_UNAVAILABLE',
+    message: 'La requête a été bloquée par la protection du service. Réessayez dans un instant.',
+    retryable: true,
+    ...(id ? { requestId: id } : {}),
+  };
+}
+
 export interface ApiClientOptions {
   /** No URLs, request bodies, tokens or exception messages in diagnostics. */
   onDiagnostic?: (event: DiagnosticEvent) => void;
@@ -247,8 +271,14 @@ export function createApiClient(options: ApiClientOptions) {
       // Le serveur a répondu : son diagnostic prime toujours sur le nôtre. Ce
       // n'est que faute de corps exploitable — page d'erreur d'un proxy, 502
       // d'une passerelle — que l'on déduit un code du statut HTTP.
-      const error: ApiError =
-        payload && 'error' in payload ? payload.error : fromStatus(response.status);
+      const mitigated = response.headers?.get?.('x-vercel-mitigated');
+      const raw = payload && 'error' in payload ? payload.error : null;
+      const recognized = raw && KNOWN_CODES.has(raw.code as string);
+      const error: ApiError = mitigated
+        ? edgeDenial(raw)
+        : recognized
+          ? (raw as ApiError)
+          : { ...fromStatus(response.status), ...(raw && typeof (raw as { id?: unknown }).id === 'string' ? { requestId: (raw as unknown as { id: string }).id } : {}) };
       // La référence de journal peut aussi voyager en en-tête (passerelle,
       // page d'erreur sans corps JSON) : on la conserve, elle n'a rien de secret.
       const reference = error.requestId ?? response.headers?.get?.('x-request-id') ?? response.headers?.get?.('x-vercel-id') ?? undefined;

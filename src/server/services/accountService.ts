@@ -85,7 +85,13 @@ export async function requestEmailCode(userId: string, input: { email: string; p
       html: layout({ language: english ? 'en' : 'fr', title: english ? 'Verify your email address' : 'Confirmez votre adresse email', body: english ? `<p>Your verification code:</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valid for 10 minutes. Never share it. If you did not request it, ignore this email.</p>` : `<p>Votre code de confirmation :</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.</p>` }),
     });
     if (!sent.delivered) throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Réessayez plus tard.');
-  } catch {
+  } catch (error) {
+    // Le refus du fournisseur était perdu ici : en production, on voyait un
+    // 503 sans savoir si Resend refusait le domaine, le destinataire ou la
+    // clé. On journalise sa raison — jamais le code ni l'adresse.
+    const cause = error instanceof Error && error.cause instanceof Object ? error.cause : error;
+    const detail = cause && typeof cause === 'object' ? { name: (cause as { name?: string }).name, message: (cause as { message?: string }).message, statusCode: (cause as { statusCode?: number }).statusCode } : { message: String(cause) };
+    console.error('[auth] envoi du code de vérification refusé', detail);
     await prisma.emailChallenge.updateMany({ where: { userId, id }, data: { usedAt: new Date() } });
     throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Votre adresse actuelle reste inchangée.');
   }

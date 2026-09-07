@@ -34,7 +34,7 @@ describe('sonde de santé', () => {
   });
 
   it('reste 200 et nomme la variable ignorée quand un réglage optionnel est invalide', async () => {
-    process.env.EMAIL_REPLY_TO = 'DEVISERA <contact@devisera.fr>';
+    process.env.EMAIL_REPLY_TO = 'contact devisera';
     resetEnv();
     resetEmailProvider();
     const { status, body } = await probe();
@@ -44,6 +44,6 @@ describe('sonde de santé', () => {
     expect(body.checks.configuration?.ignored).toEqual(['EMAIL_REPLY_TO']);
     expect(body.checks.database?.status).toBe('ok');
     // La valeur fautive n'apparaît nulle part.
-    expect(JSON.stringify(body)).not.toContain('contact@devisera.fr');
+    expect(JSON.stringify(body)).not.toContain('contact devisera');
   });
 });

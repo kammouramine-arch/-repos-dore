@@ -63,3 +63,34 @@ Preuves : `evidence/2026-09-07-lancement-sequence.jpg` (export web, 393 × 852, 
 1. Déployer cette version en production (le déploiement se fait depuis la CLI Vercel authentifiée), puis lire `GET https://devisia-bice.vercel.app/api/health` : `checks.configuration.ignored` nomme la variable à corriger dans Vercel → Settings → Environment Variables. Corriger la valeur, redéployer.
 2. Vérifier ensuite `POST /api/auth/session` avec un vrai compte (200 attendu) et supprimer le compte sonde `zz-sonde-devisera-1788795345@example.com` (créé par cette passe, sans données).
 3. Lancer **un** build EAS iOS et vérifier sur iPhone : écran natif bleu sans éclair blanc, séquence visible à froid, plus vive au second lancement, absente au retour d'arrière-plan, dégradé continu de l'accueil, barre d'état claire sur l'accueil et l'authentification.
+
+## 7. Après déploiement de `d99e6d2` — vérification en production
+
+`GET /api/health` : `database: ok`, `email: resend, configured: true`, `ai: gemini, generation: true, transcription: false`, `configuration: degraded, ignored: ["EMAIL_REPLY_TO"]`.
+
+### La variable fautive : `EMAIL_REPLY_TO`
+
+Le schéma n'admettait qu'une adresse nue (`z.string().email()`) ; la valeur voulue en production porte un nom d'affichage (`DEVISERA <contact@devisera.fr>`), forme que Resend accepte pour `replyTo` comme pour `from`. Avant `d99e6d2`, cette seule valeur faisait lever `env()` sur toutes les routes (les 500) ; après, elle était classée « ignorée » et remplacée par le défaut. Elle est maintenant normalisée (espaces, guillemets, `mailto:`, `<adresse>`) et l'adresse qu'elle contient est validée. La variable est conservée telle quelle en production : elle est bien utilisée comme Reply-To transactionnel. Tests : `tests/unit/env-resilience.test.ts` (9).
+
+### Transcription `false` : attendu
+
+La dictée iPhone est transcrite sur l'appareil (`@jamsch/expo-speech-recognition`, voir `mobile/src/features/voice.ts`) ; la capacité serveur ne s'active qu'avec `TRANSCRIPTION_PROVIDER=openai` et `TRANSCRIPTION_API_KEY`, et ne sert qu'à `/api/ai/transcribe`. Aucune fonction mobile n'en dépend. La sonde le précise désormais (`transcriptionNote`).
+
+### Les 500 ont disparu
+
+| Requête (alias de production) | Avant | Après |
+| --- | --- | --- |
+| `POST /api/auth/session`, mot de passe correct | 500 | **200** (4,3 s, jeton + session) |
+| `GET /api/auth/session` avec jeton | — | **200** |
+| `PATCH /api/auth/compte`, `PATCH /api/auth/langue` | — | **200** |
+| `POST /api/auth/inscription`, charge iPhone | 500 | **503 PROVIDER_UNAVAILABLE** « Le code n’a pas pu être envoyé » (compte créé, code refusé par Resend) |
+| `GET /api/dashboard`, `/api/customers`, `/api/quotes`, `/api/team`, `/api/leads` avec un compte non vérifié | — | 403 FORBIDDEN de l'API : porte de vérification d'email voulue |
+
+### Deux points restants, hors code applicatif
+
+1. **Resend refuse l'envoi du code** (503 à l'inscription et à `POST /api/auth/code-email`). La raison était perdue : `requestEmailCode` la journalise désormais (`[auth] envoi du code de vérification refusé`, nom/message/statut du fournisseur, jamais le code ni l'adresse) et la sonde publie l'état du domaine d'expédition chez Resend (`checks.email.sendingDomain`). Vérifier dans Resend que `devisera.fr` est **verified** ; sans cela l'inscription mobile reste bloquée à l'étape du code.
+2. **Le pare-feu Vercel refuse par intermittence des écritures légitimes** : `x-vercel-mitigated: deny`, corps `{"error":{"code":"403","message":"Forbidden","id":"iad1::…"}}`, sans `x-matched-path` — donc avant l'application. Observé sur `DELETE /api/auth/account`, `DELETE /api/auth/session`, `PATCH /api/auth/code-email` (User-Agent iPhone), `POST /api/customers` (User-Agent CFNetwork), alors que les mêmes requêtes passent quelques secondes plus tard. Le client traduit maintenant ce refus en panne passagère à réessayer, avec l'identifiant de mitigation. À examiner : Vercel → Projet → Firewall (règles personnalisées, jeux de règles gérés, mode défi).
+
+### Comptes sonde
+
+`zz-sonde-devisera-1788795345@example.com` et `zz-sonde-devisera-1788799341@example.com` (organisations « ZZ Sonde Devisera », sans donnée commerciale) ne peuvent pas être supprimés par l'API : un propriétaire doit d'abord transférer son espace (422). Ce refus vaut aussi pour un artisan seul dans son espace — à rapprocher de l'exigence Apple de suppression de compte (point 7 de `16_RELEASE_AND_OWNER_ACTIONS.md`). Suppression à faire côté base : `npm run db:clean:supabase` (préfixe d'organisation « ZZ »).

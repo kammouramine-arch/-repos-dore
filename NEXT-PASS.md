@@ -1,6 +1,7 @@
 # Follow-up from build 8 device testing
 
-## September 7 — startup incident, launch sequence, gradient (local pass, not yet deployed)
+## September 7 — startup incident, launch sequence, gradient (deployed as d99e6d2)
+- Deployed and verified: correct-password sign-in 200 (was 500); the ignored variable was `EMAIL_REPLY_TO` in display-name form, now accepted and used. Transcription `false` is expected (on-device iPhone dictation). Remaining, outside app code: Resend refuses verification-code sends (reason now logged, domain status in health) and the Vercel Firewall intermittently denies writes (`x-vercel-mitigated: deny`). Probe accounts cannot self-delete (owner transfer rule) — clean with `db:clean:supabase`.
 - Production reproduced: `/api/health` 503 in 1 ms, sign-up and correct-password sign-in 500 while a wrong password returns 401 — the database answers; `env()` threw on the whole schema for one invalid optional variable. See `docs/acquisition/34_STARTUP_INCIDENT_LAUNCH_AND_GRADIENT_PASS_2026-09-07.md`.
 - `env()` now degrades optional settings and names them; `/api/health` reports configuration, database, email and AI separately; unhandled errors carry a `requestId` in body, header and log.
 - Mobile: launch overlay held over the mounted app (native splash now blue with the same mark), circular reveal into the home whose top is the same blue; outage screens distinguish network from server with the reference; diagnostics carry path/status/category/reference.

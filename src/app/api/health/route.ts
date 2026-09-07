@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { configurationReport, env } from '@/lib/env';
-import { getEmailProvider } from '@/lib/email';
+import { describeSendingDomain, getEmailProvider } from '@/lib/email';
 import { aiCapabilities } from '@/lib/ai';
 
 /**
@@ -41,7 +41,14 @@ export async function GET() {
 
   try {
     const email = getEmailProvider();
-    checks.email = { provider: email.name, configured: email.name === 'resend' && email.available };
+    // Une clé présente ne suffit pas : le domaine d'expédition doit être
+    // vérifié chez le fournisseur, sinon chaque code de confirmation est refusé.
+    const sending = await describeSendingDomain();
+    checks.email = {
+      provider: email.name,
+      configured: email.name === 'resend' && email.available,
+      sendingDomain: sending,
+    };
   } catch (error) {
     console.error('[health] fournisseur email indisponible', error);
     checks.email = { provider: 'unavailable', configured: false };
@@ -49,7 +56,15 @@ export async function GET() {
 
   try {
     const ai = aiCapabilities();
-    checks.ai = { provider: ai.provider, generation: ai.generation, transcription: ai.transcription };
+    checks.ai = {
+      provider: ai.provider,
+      generation: ai.generation,
+      // La dictée iPhone est transcrite sur l'appareil (reconnaissance vocale
+      // native) : `false` ici ne concerne que la transcription côté serveur,
+      // activée par TRANSCRIPTION_PROVIDER=openai + TRANSCRIPTION_API_KEY.
+      transcription: ai.transcription,
+      transcriptionNote: ai.transcription ? undefined : 'iOS dictation runs on-device; server transcription is optional',
+    };
   } catch (error) {
     console.error('[health] fournisseur IA indisponible', error);
     checks.ai = { provider: 'unavailable', generation: false, transcription: false };
