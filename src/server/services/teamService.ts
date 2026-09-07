@@ -177,7 +177,9 @@ export async function invitationPreview(token: string) {
 export async function acceptInvitation(auth: AuthContext, token: string, ip?: string | null) {
   const normalized = normalizeEmail(auth.user.email);
   const invitation = await prisma.teamInvitation.findUnique({ where: { tokenHash: hashToken(token) }, include: { organization: { select: { id: true, name: true } } } });
-  if (!invitation || invitation.status !== 'PENDING' || invitation.expiresAt <= new Date()) throw validation('Cette invitation est invalide ou expirée.');
+  if (!invitation || invitation.status === 'REVOKED' || invitation.expiresAt <= new Date()) throw validation('Cette invitation est invalide ou expirée.');
+  if (invitation.status === 'ACCEPTED') throw conflict('Cette invitation a déjà été utilisée.');
+  if (invitation.status !== 'PENDING') throw validation('Cette invitation est invalide ou expirée.');
   if (invitation.email !== normalized) throw forbidden('Cette invitation a été envoyée à une autre adresse email.');
   const existingMembership = await prisma.organizationMember.findUnique({ where: { organizationId_userId: { organizationId: invitation.organizationId, userId: auth.user.id } }, select: { deletedAt: true } });
   if (!existingMembership || existingMembership.deletedAt) await ensureAcceptanceSeat(invitation.organizationId);
@@ -198,7 +200,9 @@ export async function acceptInvitation(auth: AuthContext, token: string, ip?: st
 
 export async function acceptInvitationForNewUser(userId: string, token: string) {
   const invitation = await prisma.teamInvitation.findUnique({ where: { tokenHash: hashToken(token) }, include: { organization: true } });
-  if (!invitation || invitation.status !== 'PENDING' || invitation.expiresAt <= new Date()) throw validation('Cette invitation est invalide ou expirée.');
+  if (!invitation || invitation.status === 'REVOKED' || invitation.expiresAt <= new Date()) throw validation('Cette invitation est invalide ou expirée.');
+  if (invitation.status === 'ACCEPTED') throw conflict('Cette invitation a déjà été utilisée.');
+  if (invitation.status !== 'PENDING') throw validation('Cette invitation est invalide ou expirée.');
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId }, select: { email: true } });
   if (normalizeEmail(user.email) !== invitation.email) throw forbidden('Cette invitation a été envoyée à une autre adresse email.');
   await ensureAcceptanceSeat(invitation.organizationId);
