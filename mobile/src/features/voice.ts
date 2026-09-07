@@ -6,6 +6,7 @@ import {
   useSpeechRecognitionEvent,
   supportsOnDeviceRecognition,
 } from '@jamsch/expo-speech-recognition';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Dictée du chantier, transcrite par l'iPhone lui-même.
@@ -37,10 +38,23 @@ export interface Dictation {
   dismissError: () => void;
 }
 
-const LOCALE = 'fr-FR';
-
 /** Traduit les codes du moteur en phrases utiles à un artisan. */
-function describe(code: string): string {
+function describe(code: string, locale: 'fr' | 'en'): string {
+  if (locale === 'en') {
+    switch (code) {
+      case 'not-allowed':
+      case 'service-not-allowed': return 'Microphone access is not allowed. Enable it in Settings, or type the description.';
+      case 'no-speech': return 'I could not hear anything. Move closer to the phone and try again.';
+      case 'audio-capture': return 'The microphone is being used by another app.';
+      case 'network': return 'Speech recognition needs a network connection on this device.';
+      case 'language-not-supported': return 'English dictation is not installed on this device.';
+      default: return 'Dictation stopped unexpectedly. Try again, or type the description.';
+    }
+  }
+  return describeFr(code);
+}
+
+function describeFr(code: string): string {
   switch (code) {
     case 'not-allowed':
     case 'service-not-allowed':
@@ -59,6 +73,7 @@ function describe(code: string): string {
 }
 
 export function useDictation(onTranscript: (text: string) => void): Dictation {
+  const locale = useMobileLocale();
   const [status, setStatus] = useState<DictationStatus>('inactif');
   const [partial, setPartial] = useState('');
   const [error, setError] = useState<string | null>(null);
@@ -87,7 +102,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
   useSpeechRecognitionEvent('error', (event) => {
     // `no-speech` après un arrêt volontaire n'est pas une erreur à montrer.
     if (cancelled.current || (event.error === 'no-speech' && latest.current.trim())) return;
-    setError(describe(String(event.error)));
+    setError(describe(String(event.error), locale));
     setStatus('inactif');
   });
 
@@ -115,7 +130,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
 
   const start = useCallback(async () => {
     if (!supported) {
-      setError('La dictée n’est pas disponible ici. Écrivez la description.');
+      setError(locale === 'en' ? 'Dictation is not available here. Type the description.' : 'La dictée n’est pas disponible ici. Écrivez la description.');
       return;
     }
     setError(null);
@@ -125,7 +140,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
       const permission = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
       if (!permission.granted) {
         setStatus('inactif');
-        setError('Le micro n’est pas autorisé. Activez-le dans Réglages, ou écrivez la description.');
+        setError(locale === 'en' ? 'Microphone access is not allowed. Enable it in Settings, or type the description.' : 'Le micro n’est pas autorisé. Activez-le dans Réglages, ou écrivez la description.');
         return;
       }
 
@@ -136,7 +151,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
       setPartial('');
 
       ExpoSpeechRecognitionModule.start({
-        lang: LOCALE,
+        lang: locale === 'en' ? 'en-US' : 'fr-FR',
         // Le texte s'affiche pendant que l'artisan parle : c'est ce qui donne
         // la certitude d'être entendu.
         interimResults: true,
@@ -151,9 +166,9 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
       void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
     } catch {
       setStatus('inactif');
-      setError('La dictée n’a pas pu démarrer. Réessayez, ou écrivez la description.');
+      setError(locale === 'en' ? 'Dictation could not start. Try again, or type the description.' : 'La dictée n’a pas pu démarrer. Réessayez, ou écrivez la description.');
     }
-  }, [supported]);
+  }, [locale, supported]);
 
   const stop = useCallback(() => {
     if (status !== 'ecoute') return;

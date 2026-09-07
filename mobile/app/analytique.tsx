@@ -18,6 +18,7 @@ import {
 } from '@/components/ui';
 import { api } from '@/lib/api';
 import { colors, radius, spacing, typography } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Activité de l'entreprise, native.
@@ -46,7 +47,7 @@ function Metric({
 }) {
   return (
     <View style={{ flex: 1, gap: 2 }}>
-      <Caption style={{ color: colors.subtle }}>{label.toUpperCase()}</Caption>
+      <Caption upper style={{ color: colors.subtle }}>{label}</Caption>
       {children}
       {hint ? <Caption style={{ color: colors.subtle, letterSpacing: 0 }}>{hint}</Caption> : null}
     </View>
@@ -54,6 +55,7 @@ function Metric({
 }
 
 export default function AnalytiqueScreen() {
+  const en = useMobileLocale() === 'en';
   const [period, setPeriod] = React.useState<Period>('90');
   const [data, setData] = React.useState<DashboardDTO | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -65,10 +67,10 @@ export default function AnalytiqueScreen() {
       setData(await api.dashboard(Number(days)));
     } catch (cause) {
       setError(
-        cause instanceof DevisiaApiError ? cause.message : 'Votre activité n’a pas pu être chargée.',
+        cause instanceof DevisiaApiError ? cause.message : (en ? 'Your activity could not be loaded.' : 'Votre activité n’a pas pu être chargée.'),
       );
     }
-  }, []);
+  }, [en]);
 
   React.useEffect(() => {
     // Chargement initial et rechargement au changement de période : poser
@@ -88,7 +90,7 @@ export default function AnalytiqueScreen() {
   if (!data) {
     return (
       <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.surface }}>
-        <LoadingState label="Calcul de votre activité…" />
+        <LoadingState label={en ? 'Calculating your activity…' : 'Calcul de votre activité…'} />
       </SafeAreaView>
     );
   }
@@ -166,9 +168,9 @@ export default function AnalytiqueScreen() {
                 </View>
                 <Amount cents={data.toRecover.totalCents} size="metric" tone="accent" />
                 <Muted>
-                  {data.toRecover.quoteCount} devis sans réponse, chez{' '}
-                  {data.toRecover.customerCount} client
-                  {data.toRecover.customerCount > 1 ? 's' : ''}.
+                  {en
+                    ? `${data.toRecover.quoteCount} quote${data.toRecover.quoteCount === 1 ? '' : 's'} without a reply from ${data.toRecover.customerCount} customer${data.toRecover.customerCount === 1 ? '' : 's'}.`
+                    : `${data.toRecover.quoteCount} devis sans réponse, chez ${data.toRecover.customerCount} client${data.toRecover.customerCount > 1 ? 's' : ''}.`}
                 </Muted>
               </Card>
             ) : null}
@@ -201,7 +203,9 @@ export default function AnalytiqueScreen() {
                         {/* Deux évènements du même devis sont indiscernables
                             sans dire ce qui s'est passé. */}
                         <Muted style={{ fontSize: 13 }} numberOfLines={1}>
-                          {QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour'} · {event.quoteNumber}
+                          {en
+                            ? ({ CREE: 'Created', MODIFIE: 'Updated', ENVOYE: 'Sent to client', CONSULTE: 'Opened by client', ACCEPTE: 'Opened by client', REFUSE: 'Opened by client', MODIFICATION_DEMANDEE: 'Opened by client', RELANCE: 'Followed up', PDF_TELECHARGE: 'PDF downloaded', ANNULE: 'Cancelled' } as Record<string, string>)[event.type] ?? 'Updated'
+                            : QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour'} · {event.quoteNumber}
                         </Muted>
                       </View>
                       <Amount cents={event.totalCents} tone="muted" />
@@ -214,7 +218,7 @@ export default function AnalytiqueScreen() {
         )}
 
         <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-          Calculé sur vos devis réels, sur {PERIODS.find((p) => p.value === period)?.label}.
+          {en ? `Calculated from your real quotes over ${period === '365' ? '12 months' : `${period} days`}.` : `Calculé sur vos devis réels, sur ${PERIODS.find((p) => p.value === period)?.label}.`}
         </Caption>
       </ScrollView>
     </SafeAreaView>

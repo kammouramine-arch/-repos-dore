@@ -226,7 +226,7 @@ function answerLocally(
       actions: [{ label: english ? 'Prepare follow-ups' : 'Préparer les relances', href: '/app/relances' }],
     };
   }
-  if (/devis/.test(text) && bigQuotes.length > 0) {
+  if (/(?:devis|quote|estimate)/.test(text) && bigQuotes.length > 0) {
     return {
       answer: english ? `Here are the matching quotes:\n${bigQuotes
         .map((quote) => `• ${quote.number} — ${quote.customerName} — ${money(quote.totalCents)}`)

@@ -8,6 +8,8 @@ import { Badge, Body, Button, EmptyState, Ionicons, Muted, PageHeader, Pressable
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
+import { mobileLocale, localizeText } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 const FILTERS = [
   { value: '', label: 'Tous' },
@@ -29,6 +31,8 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'dang
 
 export default function DevisScreen() {
   const router = useRouter();
+  const { session } = useAuth();
+  const locale = mobileLocale(session);
   const params = useLocalSearchParams<{ statut?: string }>();
   const [filter, setFilter] = React.useState<string>(params.statut ?? '');
 
@@ -142,7 +146,7 @@ export default function DevisScreen() {
                 <Muted numberOfLines={1}>{item.title}</Muted>
                 <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
                   <Muted style={{ fontSize: 12 }}>{item.number}</Muted>
-                  <Badge label={QUOTE_STATUS_LABELS[item.status]} tone={TONES[item.status] ?? 'neutral'} />
+                  <Badge label={localizeText(locale, QUOTE_STATUS_LABELS[item.status])} tone={TONES[item.status] ?? 'neutral'} />
                 </View>
               </View>
               <View style={{ alignItems: 'flex-end', gap: spacing.sm }}>

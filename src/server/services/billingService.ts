@@ -328,6 +328,9 @@ export async function handleStripeEvent(event: Stripe.Event) {
               plan: PLANS[record.plan].name,
               amountCents: invoice.amount_paid ?? 0,
               periodEnd: record.currentPeriodEnd,
+              language: record.organization.locale === 'en' ? 'en' : 'fr',
+              country: record.organization.country,
+              currency: record.organization.currency,
             }),
           })
           .catch(() => undefined);

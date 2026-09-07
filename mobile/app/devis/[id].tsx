@@ -30,6 +30,7 @@ import { ouvrirPdfDevis } from '@/features/pdf';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info'> = {
   BROUILLON: 'neutral',
@@ -51,6 +52,9 @@ export default function DevisDetailScreen() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();
+  const locale = useMobileLocale();
+  const en = locale === 'en';
+  const t = React.useCallback((value: string) => localizeText(locale, value), [locale]);
 
   const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id], `quote:${id}`);
   const quote = query.data;
@@ -68,7 +72,7 @@ export default function DevisDetailScreen() {
     if (!quote || pdfEnCours) return;
     setPdfEnCours(true);
     try {
-      await ouvrirPdfDevis(quote.id, quote.number);
+      await ouvrirPdfDevis(quote.id, quote.number, locale);
     } catch (cause) {
       toast({
         title:
@@ -88,27 +92,27 @@ export default function DevisDetailScreen() {
       // Un brouillon n'a pas de page publique : partager son lien enverrait le
       // client sur un 404. On partage alors le document lui-même.
       if (!LIEN_PUBLIC_VISIBLE.includes(quote.status)) {
-        await ouvrirPdfDevis(quote.id, quote.number);
+        await ouvrirPdfDevis(quote.id, quote.number, locale);
         return;
       }
       await Share.share({
-        message: `Votre devis ${quote.number} — ${formatCents(quote.totalCents)} TTC\n${quote.publicUrl}`,
+        message: en ? `Your quote ${quote.number} — ${formatCents(quote.totalCents)} incl. VAT\n${quote.publicUrl}` : `Votre devis ${quote.number} — ${formatCents(quote.totalCents)} TTC\n${quote.publicUrl}`,
         url: quote.publicUrl,
-        title: `Devis ${quote.number}`,
+        title: en ? `Quote ${quote.number}` : `Devis ${quote.number}`,
       });
     } catch {
-      toast({ title: 'Partage impossible', tone: 'error' });
+      toast({ title: t('Partage impossible'), tone: 'error' });
     }
   }
 
   function confirmSend() {
     if (!quote) return;
     Alert.alert(
-      `Envoyer le devis ${quote.number} ?`,
-      `Le client recevra le devis par email, avec le PDF et un lien pour le consulter.`,
+      en ? `Send quote ${quote.number}?` : `Envoyer le devis ${quote.number} ?`,
+      en ? 'The client will receive the quote by email, with the PDF and a link to view it.' : 'Le client recevra le devis par email, avec le PDF et un lien pour le consulter.',
       [
-        { text: 'Annuler', style: 'cancel' },
-        { text: 'Envoyer', style: 'default', onPress: () => void send() },
+        { text: en ? 'Cancel' : 'Annuler', style: 'cancel' },
+        { text: en ? 'Send' : 'Envoyer', style: 'default', onPress: () => void send() },
       ],
     );
   }
@@ -125,17 +129,14 @@ export default function DevisDetailScreen() {
         result.delivered
           ? { title: 'Devis envoyé', description: `Envoyé à ${result.recipient}.` }
           : {
-              title: 'Devis marqué comme envoyé',
-              description: `L’email n’a pas pu être remis à ${result.recipient} : l’envoi d’emails n’est pas configuré.`,
+              title: t('Devis marqué comme envoyé'),
+              description: en ? `The email could not be delivered to ${result.recipient}: email delivery is not configured.` : `L’email n’a pas pu être remis à ${result.recipient} : l’envoi d’emails n’est pas configuré.`,
               tone: 'error',
             },
       );
       await query.reload();
     } catch (cause) {
-      Alert.alert(
-        'Envoi impossible',
-        cause instanceof DevisiaApiError ? cause.message : 'Réessayez dans un instant.',
-      );
+      Alert.alert(en ? 'Sending failed' : 'Envoi impossible', cause instanceof DevisiaApiError ? cause.message : (en ? 'Try again in a moment.' : 'Réessayez dans un instant.'));
     } finally {
       setSending(false);
     }
@@ -182,8 +183,8 @@ export default function DevisDetailScreen() {
           </Card>
           <Card style={{ flex: 1, gap: 4, padding: spacing.md }}>
             <Caption>Envoyé</Caption>
-            <Body style={{ fontWeight: '600' }}>
-              {quote.sentAt ? new Date(quote.sentAt).toLocaleDateString('fr-FR') : 'Pas encore'}
+              <Body style={{ fontWeight: '600' }}>
+                {quote.sentAt ? new Date(quote.sentAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR') : (en ? 'Not yet' : 'Pas encore')}
             </Body>
           </Card>
         </View>
@@ -244,7 +245,7 @@ export default function DevisDetailScreen() {
                   <Body style={{ fontWeight: '600' }}>{item.label}</Body>
                   {item.description ? <Muted style={{ fontSize: 12 }}>{item.description}</Muted> : null}
                   <Muted style={{ fontSize: 12 }}>
-                    {item.quantity} {item.unit} × {formatCents(item.unitPriceCents)} HT
+                    {item.quantity} {item.unit} × {formatCents(item.unitPriceCents)} {en ? 'excl. VAT' : 'HT'}
                   </Muted>
                 </View>
                 <Body style={{ fontWeight: '600' }}>{formatCents(item.lineTotalCents)}</Body>
@@ -267,7 +268,7 @@ export default function DevisDetailScreen() {
         {LIEN_PUBLIC_VISIBLE.includes(quote.status) ? (
           <Pressable
             accessibilityRole="link"
-            accessibilityLabel="Ouvrir le lien client"
+            accessibilityLabel={en ? 'Open client link' : 'Ouvrir le lien client'}
             onPress={() => void WebBrowser.openBrowserAsync(quote.publicUrl)}
             style={({ pressed }) => ({
               flexDirection: 'row',
@@ -288,9 +289,7 @@ export default function DevisDetailScreen() {
             <Muted style={{ fontSize: 12 }}>Lien client</Muted>
           </Pressable>
         ) : (
-          <Muted style={{ fontSize: 13 }}>
-            Le lien client sera disponible une fois le devis envoyé.
-          </Muted>
+          <Muted style={{ fontSize: 13 }}>{en ? 'The client link will be available once the quote is sent.' : 'Le lien client sera disponible une fois le devis envoyé.'}</Muted>
         )}
       </ScrollView>
 
@@ -332,6 +331,8 @@ function FollowUpSheet({
   onClose: () => void;
   onSent: () => void;
 }) {
+  const locale = useMobileLocale();
+  const en = locale === 'en';
   const [tone, setTone] = React.useState<FollowUpTone>('professionnel');
   const [subject, setSubject] = React.useState('');
   const [message, setMessage] = React.useState('');
@@ -382,8 +383,8 @@ function FollowUpSheet({
         contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
       >
         <View style={{ gap: 4 }}>
-          <Title>Relancer {customerName}</Title>
-          <Muted>Message préparé pour vous. Modifiez-le avant l’envoi.</Muted>
+          <Title>{en ? `Follow up with ${customerName}` : `Relancer ${customerName}`}</Title>
+          <Muted>{en ? 'A message is ready for you. Edit it before sending.' : 'Message préparé pour vous. Modifiez-le avant l’envoi.'}</Muted>
         </View>
 
         {error ? <Banner tone="danger" title={error} /> : null}
@@ -419,21 +420,21 @@ function FollowUpSheet({
         ) : (
           <Card style={{ gap: spacing.md }}>
             <TextInput
-              accessibilityLabel="Objet"
+              accessibilityLabel={en ? 'Subject' : 'Objet'}
               value={subject}
               onChangeText={setSubject}
               style={{ fontSize: 16, fontWeight: '600', color: colors.ink }}
-              placeholder="Objet"
+              placeholder={en ? 'Subject' : 'Objet'}
               placeholderTextColor={colors.subtle}
             />
             <Divider />
             <TextInput
-              accessibilityLabel="Message"
+              accessibilityLabel={en ? 'Message' : 'Message'}
               value={message}
               onChangeText={setMessage}
               multiline
               style={{ minHeight: 220, fontSize: 15, lineHeight: 22, color: colors.ink, textAlignVertical: 'top' }}
-              placeholder="Message"
+              placeholder={en ? 'Message' : 'Message'}
               placeholderTextColor={colors.subtle}
             />
           </Card>

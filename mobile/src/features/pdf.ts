@@ -3,6 +3,7 @@ import * as Sharing from 'expo-sharing';
 import { DevisiaApiError } from '@devisia/shared';
 import { API_URL } from '@/lib/api';
 import { readToken } from '@/lib/storage';
+import type { MobileLocale } from '@/lib/i18n';
 
 /**
  * Ouverture du PDF d'un devis.
@@ -23,12 +24,12 @@ export interface PdfOuvert {
 }
 
 /** Nom de fichier lisible par un humain, sûr pour un système de fichiers. */
-export function nomFichierDevis(numero: string): string {
+export function nomFichierDevis(numero: string, language: MobileLocale = 'fr'): string {
   const propre = numero.replace(/[^A-Za-z0-9._-]+/g, '-').replace(/^-+|-+$/g, '');
-  return `Devis-${propre || 'DEVISERA'}.pdf`;
+  return `${language === 'en' ? 'Quote' : 'Devis'}-${propre || 'DEVISERA'}.pdf`;
 }
 
-export async function telechargerPdf(quoteId: string, numero: string): Promise<PdfOuvert> {
+export async function telechargerPdf(quoteId: string, numero: string, language: MobileLocale = 'fr'): Promise<PdfOuvert> {
   const token = await readToken();
   if (!token) {
     throw new DevisiaApiError(
@@ -37,7 +38,7 @@ export async function telechargerPdf(quoteId: string, numero: string): Promise<P
     );
   }
 
-  const nomFichier = nomFichierDevis(numero);
+  const nomFichier = nomFichierDevis(numero, language);
   // Le cache, pas le dossier de documents : un PDF régénéré à chaque ouverture
   // n'a pas à survivre à une purge système.
   const destination = new File(Paths.cache, nomFichier);
@@ -59,8 +60,8 @@ export async function telechargerPdf(quoteId: string, numero: string): Promise<P
  * enregistrement dans Fichiers, impression. C'est le comportement qu'un
  * artisan attend d'un document sur iPhone — et rien n'imite un lecteur PDF.
  */
-export async function ouvrirPdfDevis(quoteId: string, numero: string): Promise<void> {
-  const { uri, nomFichier } = await telechargerPdf(quoteId, numero);
+export async function ouvrirPdfDevis(quoteId: string, numero: string, language: MobileLocale = 'fr'): Promise<void> {
+  const { uri, nomFichier } = await telechargerPdf(quoteId, numero, language);
 
   if (!(await Sharing.isAvailableAsync())) {
     throw new DevisiaApiError(

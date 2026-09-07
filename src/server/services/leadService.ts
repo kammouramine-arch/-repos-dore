@@ -327,6 +327,7 @@ export async function receivePublicLead(
           phone: lead.phone,
           email: lead.email,
           description: lead.description,
+          language: settings.organization.locale === 'en' ? 'en' : 'fr',
         }),
       })
       .catch((error) => console.error('[lead] notification email impossible', error));

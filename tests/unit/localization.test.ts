@@ -1,8 +1,8 @@
 import { describe, expect, it } from 'vitest';
-import { resolveBusinessLocale, businessDocumentLabels } from '@devisia/shared';
+import { resolveBusinessLocale, businessDocumentLabels, formatBusinessMoney } from '@devisia/shared';
 import { localizedSystemPrompt } from '@/lib/ai/prompts';
-import { buildTemplateFollowUp } from '@/lib/ai/heuristic';
-import { quoteSentEmail } from '@/lib/email/templates';
+import { buildHeuristicQuoteDraft, buildTemplateFollowUp } from '@/lib/ai/heuristic';
+import { newLeadEmail, paymentReceiptEmail, quoteSentEmail, resetPasswordEmail, verifyEmailTemplate, welcomeEmail } from '@/lib/email/templates';
 import { quotePdfLabels } from '@/lib/pdf/quote-pdf';
 
 describe('language and business-country separation', () => {
@@ -30,6 +30,13 @@ describe('language and business-country separation', () => {
     expect(message.message).toContain('$125.00');
   });
 
+  it('keeps the local AI quote fallback in English', () => {
+    const draft = buildHeuristicQuoteDraft({ description: 'Replace a leaking kitchen sink trap', catalog: [], hourlyRateCents: 4500, defaultVatRate: 20, language: 'en' });
+    expect(draft.alertes.join(' ')).toContain('Quote prepared automatically');
+    expect(draft.questions.join(' ')).toContain('How long');
+    expect(draft.alertes.join(' ')).not.toContain('Devis préparé');
+  });
+
   it('renders customer quote email in the selected English region', () => {
     const email = quoteSentEmail({ customerName: 'Alex', companyName: 'Trade Co', quoteNumber: 'Q-1', quoteTitle: 'Repair', totalCents: 12500, publicUrl: 'https://example.test/q', language: 'en', country: 'US', currency: 'USD' });
     expect(email.subject).toContain('Your quote');
@@ -38,10 +45,35 @@ describe('language and business-country separation', () => {
     expect(email.html).toContain('lang="en"');
   });
 
+  it('renders authentication and billing emails in English when selected', () => {
+    expect(welcomeEmail({ firstName: 'Alex', language: 'en' }).subject).toBe('Welcome to DEVISERA');
+    expect(verifyEmailTemplate({ url: 'https://example.test/verify', language: 'en' }).text).toContain('Confirm your DEVISERA email address');
+    expect(resetPasswordEmail({ url: 'https://example.test/reset', language: 'en' }).subject).toBe('Reset your password');
+    expect(paymentReceiptEmail({ plan: 'Pro', amountCents: 7900, language: 'en', country: 'GB', currency: 'GBP' }).text).toContain('£79.00');
+    expect(newLeadEmail({ contactName: 'Alex', title: 'Bathroom repair', language: 'en' }).subject).toContain('New quote request');
+  });
+
   it('selects regional document terminology without conflating language and country', () => {
-    expect(quotePdfLabels({ language: 'fr', country: 'FR' }).title).toBe('DEVIS');
-    expect(quotePdfLabels({ language: 'en', country: 'GB' }).title).toBe('QUOTE');
-    expect(quotePdfLabels({ language: 'en', country: 'US' }).title).toBe('ESTIMATE');
-    expect(quotePdfLabels({ language: 'en', country: 'US' }).tax).toBe('Sales tax');
+    const fr = quotePdfLabels({ language: 'fr', country: 'FR' });
+    const gb = quotePdfLabels({ language: 'en', country: 'GB' });
+    const us = quotePdfLabels({ language: 'en', country: 'US' });
+    expect(fr.title).toBe('DEVIS');
+    expect(fr.tax).toBe('TVA');
+    expect(fr.validUntil).toBe("Valable jusqu'au");
+    expect(gb.title).toBe('QUOTE');
+    expect(gb.tax).toBe('VAT');
+    expect(gb.validUntil).toBe('Valid until');
+    expect(us.title).toBe('ESTIMATE');
+    expect(us.tax).toBe('Sales tax');
+    expect(us.quantity).toBe('QTY');
+    expect(quotePdfLabels({ language: 'en', country: 'GB' }).companyIdentifier).toBe('Company number');
+    expect(quotePdfLabels({ language: 'fr', country: 'US' }).companyIdentifier).toBe('IDENTIFIANT ENTREPRISE');
+    expect(quotePdfLabels({ language: 'fr', country: 'US' }).vatExemption).not.toContain('293 B');
+  });
+
+  it('formats document money with the business country currency', () => {
+    expect(formatBusinessMoney(3900, resolveBusinessLocale({ language: 'fr', country: 'FR' }))).toContain('39');
+    expect(formatBusinessMoney(3900, resolveBusinessLocale({ language: 'en', country: 'GB' }))).toContain('£');
+    expect(formatBusinessMoney(3900, resolveBusinessLocale({ language: 'en', country: 'US' }))).toContain('$');
   });
 });

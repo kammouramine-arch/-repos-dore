@@ -40,6 +40,7 @@ import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@
 import { api } from '@/lib/api';
 import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
 /**
@@ -122,6 +123,7 @@ function ErrorBanner({
 
 export default function NouveauDevisScreen() {
   const router = useRouter();
+  const locale = useMobileLocale();
   const { customerId } = useLocalSearchParams<{ customerId?: string }>();
   const { toast } = useToast();
 
@@ -272,7 +274,7 @@ export default function NouveauDevisScreen() {
         fileIds: photos.fileIds,
       });
       if (version !== requestVersion.current) return;
-      const missing = toQuestions(first);
+      const missing = toQuestions(first, locale);
       if (missing.length > 0) {
         setDraft(first);
         setQuestions(missing);
@@ -335,7 +337,7 @@ export default function NouveauDevisScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
       toast({ title: 'Devis enregistré', description: 'Vous pouvez le relire puis l’envoyer.' });
       router.replace(`/devis/${quote.id}`);
-      void recordSuccessfulQuoteAndMaybeAskForReview();
+      void recordSuccessfulQuoteAndMaybeAskForReview(locale);
     } catch (cause) {
       setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(
@@ -488,7 +490,7 @@ export default function NouveauDevisScreen() {
             <ProgressDots total={questions.length} current={Math.min(answered, questions.length - 1)} />
             <PageHeader
               eyebrow="Derniers détails"
-              title={missingLabel(questions.length)}
+              title={missingLabel(questions.length, locale)}
               subtitle="Une précision de votre part vaut mieux qu’une estimation de ma part."
             />
           </View>
@@ -507,9 +509,9 @@ export default function NouveauDevisScreen() {
               <TextInput
                 value={answers[question.id] ?? ''}
                 onChangeText={(value) => setAnswers((a) => ({ ...a, [question.id]: value }))}
-                placeholder={question.placeholder ?? 'Précisez si besoin'}
+                placeholder={localizeText(locale, question.placeholder ?? 'Précisez si besoin')}
                 placeholderTextColor={colors.subtle}
-                accessibilityLabel={question.prompt}
+                accessibilityLabel={localizeText(locale, question.prompt)}
                 multiline={question.kind !== 'duree'}
                 style={[
                   typography.body,
@@ -540,7 +542,7 @@ export default function NouveauDevisScreen() {
               title="Préparer le devis"
               icon="sparkles"
               haptic
-              onPress={() => void generate(applyAnswers(composed, questions, answers))}
+              onPress={() => void generate(applyAnswers(composed, questions, answers, locale))}
             />
             <Button
               title="Préparer sans ces précisions"
@@ -582,8 +584,8 @@ export default function NouveauDevisScreen() {
             <GrowingInput
               value={title}
               onChangeText={setTitle}
-              accessibilityLabel="Objet du devis"
-              placeholder="Remplacement du siphon"
+              accessibilityLabel={localizeText(locale, 'Objet du devis')}
+              placeholder={localizeText(locale, 'Remplacement du siphon')}
               placeholderTextColor={colors.subtle}
               minHeight={30}
               style={[typography.heading, { color: colors.ink, width: '100%' }]}
@@ -595,7 +597,7 @@ export default function NouveauDevisScreen() {
             <SectionHeader title="Client" />
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={customer ? 'Changer de client' : 'Choisir le client'}
+              accessibilityLabel={localizeText(locale, customer ? 'Changer de client' : 'Choisir le client')}
               onPress={() => setPickerOpen(true)}
               style={({ pressed }) => ({
                 flexDirection: 'row',
@@ -669,7 +671,7 @@ export default function NouveauDevisScreen() {
                   <GrowingInput
                     value={line.label}
                     onChangeText={(label) => patchLine(index, { label })}
-                    accessibilityLabel={`Libellé de la ligne ${index + 1}`}
+                    accessibilityLabel={localizeText(locale, `Libellé de la ligne ${index + 1}`)}
                     minHeight={22}
                     style={[
                       typography.body,
@@ -697,7 +699,7 @@ export default function NouveauDevisScreen() {
                         patchLine(index, { quantity: Number(value.replace(',', '.')) || 0 })
                       }
                       keyboardType="decimal-pad"
-                      accessibilityLabel={`Quantité de la ligne ${index + 1}`}
+                      accessibilityLabel={localizeText(locale, `Quantité de la ligne ${index + 1}`)}
                       style={[typography.body, cellInput]}
                     />
                   </View>
@@ -713,7 +715,7 @@ export default function NouveauDevisScreen() {
                         })
                       }
                       keyboardType="decimal-pad"
-                      accessibilityLabel={`Prix unitaire de la ligne ${index + 1}`}
+                      accessibilityLabel={localizeText(locale, `Prix unitaire de la ligne ${index + 1}`)}
                       style={[typography.body, cellInput]}
                     />
                   </View>
@@ -841,8 +843,8 @@ export default function NouveauDevisScreen() {
             editable={!listening}
             multiline
             maxLength={8000}
-            accessibilityLabel="Description du chantier"
-            placeholder="Le client a une fuite sous l’évier. Remplacer le siphon, vérifier les raccordements, environ une heure sur place."
+            accessibilityLabel={localizeText(locale, 'Description du chantier')}
+            placeholder={localizeText(locale, 'Le client a une fuite sous l’évier. Remplacer le siphon, vérifier les raccordements, environ une heure sur place.')}
             placeholderTextColor={colors.subtle}
             style={[
               typography.body,
@@ -877,7 +879,7 @@ export default function NouveauDevisScreen() {
           <Animated.View style={{ transform: [{ scale: pulse }] }}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={listening ? 'Arrêter la dictée' : 'Dicter la description'}
+              accessibilityLabel={localizeText(locale, listening ? 'Arrêter la dictée' : 'Dicter la description')}
               accessibilityState={{ disabled: !dictation.supported || busy }}
               disabled={!dictation.supported || busy}
               onPress={() => (listening ? dictation.stop() : void dictation.start())}

@@ -36,6 +36,7 @@ export async function POST(request: Request) {
       description: body.description,
       fileIds: body.fileIds,
       leadId: body.leadId,
+      language: auth.user.locale === 'en' ? 'en' : 'fr',
     });
 
     return ok(draft);

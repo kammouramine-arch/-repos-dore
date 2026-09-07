@@ -46,17 +46,20 @@ function formatDate(date: Date | null | undefined, input: Pick<QuotePdfInput, 'l
 
 export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'>) {
   const english = input.language === 'en';
-  const us = input.country === 'US';
+  const country = (input.country ?? 'FR').toUpperCase();
+  const us = country === 'US';
+  const gb = country === 'GB';
   return english ? {
     title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'DESCRIPTION',
     designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: us ? 'Sales tax' : 'VAT', totalEx: 'TOTAL',
-    totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
+    totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: us ? 'Sales tax' : 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
+    discount: 'Discount', companyIdentifier: us ? 'Business ID' : 'Company number', vatExemption: us ? 'Sales tax exempt' : 'VAT exempt',
     deposit: 'Deposit due', duration: 'Estimated duration', payment: 'PAYMENT TERMS', conditions: 'TERMS', notes: 'NOTES',
     acceptance: 'ACCEPTANCE', acceptanceText: 'Please sign and return this quote to confirm.', date: 'Date', signature: 'Customer name and signature',
     validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
   } : {
-    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: 'TVA', total: 'TOTAL HT',
-    totalExLabel: 'Total HT', netEx: 'Net HT', vat: 'TVA', notApplicable: 'Non applicable', totalEx: 'Total HT', deposit: 'Acompte à la commande', duration: 'Durée estimée', payment: 'MODALITÉS DE PAIEMENT', conditions: 'CONDITIONS', notes: 'NOTES',
+    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: us ? 'TAXE' : 'TVA', total: 'TOTAL HT',
+    totalExLabel: 'Total HT', netEx: 'Net HT', vat: us ? 'TAXE' : 'TVA', notApplicable: 'Non applicable', discount: 'Remise', companyIdentifier: us ? 'IDENTIFIANT ENTREPRISE' : gb ? 'NUMÉRO D’ENTREPRISE' : 'SIRET', vatExemption: country === 'FR' ? 'TVA non applicable, art. 293 B du CGI' : us ? 'Taxe non applicable' : 'TVA exonérée', deposit: 'Acompte à la commande', duration: 'Durée estimée', payment: 'MODALITÉS DE PAIEMENT', conditions: 'CONDITIONS', notes: 'NOTES',
     acceptance: 'BON POUR ACCORD', acceptanceText: "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».", date: 'Date', signature: 'Nom et signature du client', validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
   };
 }
@@ -454,7 +457,7 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
     drawRight(ctx, money(line.lineTotalCents, input), COLUMNS.total, rowTop, 8, true);
 
     if (line.discountRate > 0) {
-      drawText(ctx, `Remise ${formatPercent(line.discountRate)}`, {
+      drawText(ctx, `${quotePdfLabels(input).discount} ${formatPercent(line.discountRate)}`, {
         x: COLUMNS.label,
         y: descY,
         size: 8.5,
@@ -481,7 +484,7 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
   ];
   if (input.discountCents > 0) {
     rows.push({
-      label: `Remise ${formatPercent(input.discountRate)}`,
+      label: `${labels.discount} ${formatPercent(input.discountRate)}`,
       value: `- ${money(input.discountCents, input)}`,
     });
     rows.push({ label: labels.netEx, value: money(input.netSubtotalCents, input) });
@@ -603,10 +606,11 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
 }
 
 function drawFooters(ctx: Ctx, input: QuotePdfInput) {
+  const labels = quotePdfLabels(input);
   const legal = [
-    input.company.siret ? `SIRET ${input.company.siret}` : null,
-    input.company.vatNumber ? `TVA ${input.company.vatNumber}` : null,
-    input.company.vatExempt ? 'TVA non applicable, art. 293 B du CGI' : null,
+    input.company.siret ? `${labels.companyIdentifier} ${input.company.siret}` : null,
+    input.company.vatNumber ? `${labels.vat} ${input.company.vatNumber}` : null,
+    input.company.vatExempt ? labels.vatExemption : null,
     input.company.insurance,
     input.footer,
   ]

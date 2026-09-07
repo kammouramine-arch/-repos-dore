@@ -29,6 +29,7 @@ export interface SignUpInput {
   companyName: string;
   phone?: string;
   invitationToken?: string;
+  locale?: 'fr' | 'en';
   ip?: string | null;
 }
 
@@ -53,6 +54,7 @@ export async function signUp(input: SignUpInput) {
       firstName: input.firstName?.trim() || null,
       lastName: input.lastName?.trim() || null,
       phone: input.phone?.trim() || null,
+      locale: input.locale ?? 'fr',
     },
   });
 
@@ -62,6 +64,7 @@ export async function signUp(input: SignUpInput) {
       ? await acceptInvitationForNewUser(user.id, input.invitationToken!)
       : await createOrganization({
           requireApplePurchase: input.billingProvider === 'apple',
+          locale: input.locale,
           name: input.companyName.trim(),
           ownerUserId: user.id,
           ownerName: [input.firstName, input.lastName].filter(Boolean).join(' ') || null,
@@ -88,12 +91,12 @@ export async function signUp(input: SignUpInput) {
   // screen for a code that cannot exist. The account is kept so the user can
   // sign in and retry the verification request after the provider is fixed.
   if (input.verificationMethod === 'code' || input.billingProvider === 'apple') {
-    await requestEmailCode(user.id, { email });
+    await requestEmailCode(user.id, { email, language: input.locale });
   } else {
-    await sendVerificationEmail(user.id, email);
+    await sendVerificationEmail(user.id, email, input.locale);
   }
   await getEmailProvider()
-    .send({ to: email, ...welcomeEmail({ firstName: user.firstName }) })
+    .send({ to: email, ...welcomeEmail({ firstName: user.firstName, language: input.locale }) })
     .catch((error) => console.error('[auth] email de bienvenue impossible', error));
 
   return { user, organization };
@@ -157,10 +160,10 @@ async function issueToken(userId: string, kind: AuthTokenKind, ttlMs: number, em
   return token;
 }
 
-export async function sendVerificationEmail(userId: string, email: string) {
+export async function sendVerificationEmail(userId: string, email: string, language?: 'fr' | 'en') {
   const token = await issueToken(userId, 'EMAIL_VERIFICATION', VERIFICATION_TTL_MS, email);
   const url = appUrl(`/verification?token=${encodeURIComponent(token)}`);
-  const sent = await getEmailProvider().send({ to: email, ...verifyEmailTemplate({ url }) });
+  const sent = await getEmailProvider().send({ to: email, ...verifyEmailTemplate({ url, language }) });
   if (!sent.delivered) {
     throw new AppError('PROVIDER_UNAVAILABLE', 'Le lien de vérification n’a pas pu être envoyé. Réessayez plus tard.');
   }
@@ -185,11 +188,11 @@ export async function verifyEmail(token: string) {
 
 /** Toujours silencieuse : ne révèle pas si l'adresse existe. */
 export async function requestPasswordReset(email: string) {
-  const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) } });
+  const user = await prisma.user.findUnique({ where: { email: normalizeEmail(email) }, select: { id: true, email: true, deletedAt: true, locale: true } });
   if (!user || user.deletedAt) return;
   const token = await issueToken(user.id, 'PASSWORD_RESET', RESET_TTL_MS, user.email);
   const url = appUrl(`/mot-de-passe/nouveau?token=${encodeURIComponent(token)}`);
-  await getEmailProvider().send({ to: user.email, ...resetPasswordEmail({ url }) });
+  await getEmailProvider().send({ to: user.email, ...resetPasswordEmail({ url, language: user.locale === 'en' ? 'en' : 'fr' }) });
 }
 
 export async function resetPassword(token: string, password: string, ip?: string | null) {

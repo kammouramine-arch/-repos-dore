@@ -2,6 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import type { SessionDTO } from '@devisia/shared';
 import { decodeDashboardSnapshot } from './dashboard-snapshot';
+import type { MobileLocale } from './i18n';
 
 /**
  * Stockage du jeton de session.
@@ -12,6 +13,27 @@ import { decodeDashboardSnapshot } from './dashboard-snapshot';
 const KEY = 'devisia.session.token';
 const SNAPSHOT_KEY = 'devisia.session.snapshot';
 const DASHBOARD_KEY = 'devisia.dashboard.snapshot';
+const PREFERRED_LOCALE_KEY = 'devisera.locale';
+
+export async function readPreferredLocale(): Promise<MobileLocale | null> {
+  try {
+    const raw = Platform.OS === 'web'
+      ? globalThis.localStorage?.getItem(PREFERRED_LOCALE_KEY)
+      : await SecureStore.getItemAsync(PREFERRED_LOCALE_KEY);
+    return raw === 'en' || raw === 'fr' ? raw : null;
+  } catch {
+    return null;
+  }
+}
+
+export async function persistPreferredLocale(locale: MobileLocale): Promise<void> {
+  try {
+    if (Platform.OS === 'web') globalThis.localStorage?.setItem(PREFERRED_LOCALE_KEY, locale);
+    else await SecureStore.setItemAsync(PREFERRED_LOCALE_KEY, locale, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
+  } catch {
+    // Locale persistence is best effort and must never block authentication.
+  }
+}
 
 /** Encrypted display-only data, bound to the exact login token. */
 export async function readDashboardSnapshot<T>(token: string): Promise<T | null> {

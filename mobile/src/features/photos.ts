@@ -4,6 +4,7 @@ import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError } from '@devisia/shared';
 import { api } from '@/lib/api';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Photos de chantier.
@@ -62,7 +63,7 @@ const QUALITE_ENVOI = 0.7;
  * vision. Si la conversion échoue, la photo reste visible et renvoyable ;
  * aucun original potentiellement trop lourd n'est envoyé silencieusement.
  */
-async function preparerPourEnvoi(photo: Attachment): Promise<{
+async function preparerPourEnvoi(photo: Attachment, locale: 'fr' | 'en'): Promise<{
   uri: string;
   name: string;
   mimeType: string;
@@ -93,7 +94,7 @@ async function preparerPourEnvoi(photo: Attachment): Promise<{
   } catch {
     throw new DevisiaApiError({
       code: 'VALIDATION',
-      message: 'La photo n’a pas pu être préparée. Ouvrez-la dans Photos puis sélectionnez-la à nouveau.',
+      message: locale === 'en' ? 'The photo could not be prepared. Open it in Photos and select it again.' : 'La photo n’a pas pu être préparée. Ouvrez-la dans Photos puis sélectionnez-la à nouveau.',
     }, 0);
   } finally {
     rendu?.release();
@@ -101,7 +102,21 @@ async function preparerPourEnvoi(photo: Attachment): Promise<{
   }
 }
 
-function labelFor(cause: unknown): string {
+function labelFor(cause: unknown, locale: 'fr' | 'en'): string {
+  if (locale === 'en') {
+    if (cause instanceof DevisiaApiError) {
+      switch (cause.code) {
+        case 'VALIDATION': return cause.message;
+        case 'UNAUTHENTICATED': return 'Your session expired. Sign in again to attach the photo.';
+        case 'RATE_LIMITED': return 'Too many uploads in a row. Wait a few seconds.';
+        case 'PLAN_LIMIT':
+        case 'NETWORK':
+        case 'TIMEOUT': return cause.message;
+        default: return 'The server did not accept this photo. Try again in a moment.';
+      }
+    }
+    return 'This photo could not be uploaded. Try again.';
+  }
   if (cause instanceof DevisiaApiError) {
     switch (cause.code) {
       case 'VALIDATION':
@@ -123,6 +138,7 @@ function labelFor(cause: unknown): string {
 }
 
 export function usePhotoCapture() {
+  const locale = useMobileLocale();
   const [photos, setPhotos] = useState<Attachment[]>([]);
   const [permissionNotice, setPermissionNotice] = useState<string | null>(null);
   const counter = useRef(0);
@@ -140,7 +156,7 @@ export function usePhotoCapture() {
       activeUploads.current.add(photo.localId);
       patch(photo.localId, { status: 'envoi', error: null });
       try {
-        const pret = await preparerPourEnvoi(photo);
+        const pret = await preparerPourEnvoi(photo, locale);
         // La vignette bascule tout de suite sur le JPEG réduit. Une nouvelle
         // tentative réutilise ce fichier léger au lieu de reconvertir l'HEIC
         // de plusieurs mégaoctets.
@@ -160,12 +176,12 @@ export function usePhotoCapture() {
       } catch (cause) {
         // La pièce jointe reste dans la liste : elle est renvoyable, et la
         // vignette prouve à l'artisan que sa photo n'est pas perdue.
-        patch(photo.localId, { status: 'echec', error: labelFor(cause) });
+        patch(photo.localId, { status: 'echec', error: labelFor(cause, locale) });
       } finally {
         activeUploads.current.delete(photo.localId);
       }
     },
-    [patch],
+    [locale, patch],
   );
 
   const attach = useCallback(
@@ -198,19 +214,19 @@ export function usePhotoCapture() {
     const permission = await ImagePicker.requestCameraPermissionsAsync();
     if (!permission.granted) {
       setPermissionNotice(
-        'L’appareil photo n’est pas autorisé. Activez-le dans Réglages pour joindre des photos.',
+        locale === 'en' ? 'Camera access is not allowed. Enable it in Settings to attach photos.' : 'L’appareil photo n’est pas autorisé. Activez-le dans Réglages pour joindre des photos.',
       );
       return;
     }
     const result = await ImagePicker.launchCameraAsync({ quality: QUALITY, mediaTypes: ['images'] });
     if (!result.canceled) await attach(result.assets);
-  }, [attach]);
+  }, [attach, locale]);
 
   const pickPhotos = useCallback(async () => {
     setPermissionNotice(null);
     const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
     if (!permission.granted) {
-      setPermissionNotice('La photothèque n’est pas autorisée. Activez-la dans Réglages.');
+      setPermissionNotice(locale === 'en' ? 'Photo library access is not allowed. Enable it in Settings.' : 'La photothèque n’est pas autorisée. Activez-la dans Réglages.');
       return;
     }
     const result = await ImagePicker.launchImageLibraryAsync({
@@ -220,7 +236,7 @@ export function usePhotoCapture() {
       selectionLimit: MAX_PHOTOS - photos.length,
     });
     if (!result.canceled) await attach(result.assets);
-  }, [attach, photos.length]);
+  }, [attach, locale, photos.length]);
 
   const retry = useCallback(
     (localId: string) => {

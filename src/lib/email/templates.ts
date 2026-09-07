@@ -90,7 +90,15 @@ export interface RenderedEmail {
 
 const p = (content: string) => `<p style="margin:0 0 14px 0;">${content}</p>`;
 
-export function welcomeEmail(params: { firstName?: string | null }): RenderedEmail {
+export function welcomeEmail(params: { firstName?: string | null; language?: 'fr' | 'en' }): RenderedEmail {
+  if (params.language === 'en') {
+    const hello = params.firstName ? `Hello ${esc(params.firstName)},` : 'Hello,';
+    return {
+      subject: 'Welcome to DEVISERA',
+      html: layout({ title: 'Welcome to DEVISERA', preview: 'Create your first quote in under a minute.', body: p(hello) + p('Your account is ready. DEVISERA prepares quotes from your job description: speak or type and the rest is taken care of.') + p('You always stay in control: every quote is checked and approved by you before sending.'), cta: { label: 'Create my first quote', href: appUrl('/app/devis/nouveau') }, footnote: 'Have a question? Simply reply to this email.', language: 'en' }),
+      text: `${hello}\n\nYour DEVISERA account is ready. Create your first quote: ${appUrl('/app/devis/nouveau')}\n`,
+    };
+  }
   const hello = params.firstName ? `Bonjour ${esc(params.firstName)},` : 'Bonjour,';
   return {
     subject: 'Bienvenue sur DEVISERA',
@@ -108,7 +116,10 @@ export function welcomeEmail(params: { firstName?: string | null }): RenderedEma
   };
 }
 
-export function verifyEmailTemplate(params: { url: string }): RenderedEmail {
+export function verifyEmailTemplate(params: { url: string; language?: 'fr' | 'en' }): RenderedEmail {
+  if (params.language === 'en') {
+    return { subject: 'Confirm your email address', html: layout({ title: 'Confirm your email address', body: p('To secure your DEVISERA account, confirm your email address by clicking the button below.'), cta: { label: 'Confirm my email', href: params.url }, footnote: 'This link expires in 24 hours. If you did not request it, ignore this email.', language: 'en' }), text: `Confirm your DEVISERA email address: ${params.url}\nThis link expires in 24 hours.` };
+  }
   return {
     subject: 'Confirmez votre adresse email',
     html: layout({
@@ -121,7 +132,10 @@ export function verifyEmailTemplate(params: { url: string }): RenderedEmail {
   };
 }
 
-export function resetPasswordEmail(params: { url: string }): RenderedEmail {
+export function resetPasswordEmail(params: { url: string; language?: 'fr' | 'en' }): RenderedEmail {
+  if (params.language === 'en') {
+    return { subject: 'Reset your password', html: layout({ title: 'Reset your password', body: p('You requested a new password for your DEVISERA account. This link is valid for one hour.'), cta: { label: 'Choose a new password', href: params.url }, footnote: 'If you did not request this, no action is needed: your password remains unchanged.', language: 'en' }), text: `Reset your DEVISERA password: ${params.url}\nThis link expires in 1 hour.` };
+  }
   return {
     subject: 'Réinitialisation de votre mot de passe',
     html: layout({
@@ -194,7 +208,7 @@ export function followUpEmail(params: {
       cta: { label: english ? 'Review the quote' : 'Revoir le devis', href: params.publicUrl },
       language: english ? 'en' : 'fr',
     }),
-    text: `${params.message}\n\nRevoir le devis : ${params.publicUrl}`,
+    text: `${params.message}\n\n${english ? 'Review the quote' : 'Revoir le devis'} : ${params.publicUrl}`,
   };
 }
 
@@ -202,7 +216,15 @@ export function quoteAcceptedInternalEmail(params: {
   customerName: string;
   quoteNumber: string;
   totalCents: number;
+  language?: 'fr' | 'en';
 }): RenderedEmail {
+  if (params.language === 'en') {
+    return {
+      subject: `Quote ${params.quoteNumber} accepted`,
+      html: layout({ title: 'A quote was accepted', body: p(`<strong>${esc(params.customerName)}</strong> accepted quote ${esc(params.quoteNumber)}.`) + p(`Amount: <strong>${formatCents(params.totalCents)}</strong>`), cta: { label: 'View the quote', href: appUrl('/app/devis') }, language: 'en' }),
+      text: `${params.customerName} accepted quote ${params.quoteNumber} (${formatCents(params.totalCents)}).`,
+    };
+  }
   return {
     subject: `Devis ${params.quoteNumber} accepté — ${formatCents(params.totalCents)}`,
     html: layout({
@@ -222,7 +244,15 @@ export function newLeadEmail(params: {
   phone?: string | null;
   email?: string | null;
   description?: string | null;
+  language?: 'fr' | 'en';
 }): RenderedEmail {
+  if (params.language === 'en') {
+    return {
+      subject: `New quote request — ${params.contactName}`,
+      html: layout({ title: 'New quote request', body: p(`<strong>${esc(params.contactName)}</strong> sent you a request.`) + p(`Subject: ${esc(params.title)}`) + (params.phone ? p(`Phone: ${esc(params.phone)}`) : '') + (params.email ? p(`Email: ${esc(params.email)}`) : '') + (params.description ? p(esc(params.description).replace(/\n/g, '<br />')) : ''), cta: { label: 'Open the lead', href: appUrl('/app/prospects') }, footnote: 'Replying within an hour improves your chance of winning the job.', language: 'en' }),
+      text: `New request from ${params.contactName} — ${params.title}\n${params.phone ?? ''} ${params.email ?? ''}\n\n${params.description ?? ''}`,
+    };
+  }
   return {
     subject: `Nouvelle demande de devis — ${params.contactName}`,
     html: layout({
@@ -256,6 +286,7 @@ export function teamInvitationEmail(params: {
           p('DEVISERA helps your team create, send and track quotes from the field.'),
         cta: { label: 'Accept invitation', href: params.url },
         footnote: 'This invitation expires in 7 days.',
+        language: 'en',
       }),
       text: `Join ${params.organizationName} on DEVISERA: ${params.url}`,
     };
@@ -278,19 +309,29 @@ export function paymentReceiptEmail(params: {
   plan: string;
   amountCents: number;
   periodEnd?: Date | null;
+  language?: 'fr' | 'en';
+  country?: string;
+  currency?: string;
 }): RenderedEmail {
+  const english = params.language === 'en';
+  const locale = english ? (params.country === 'US' ? 'en-US' : 'en-GB') : 'fr-FR';
+  const currency = params.currency ?? (params.country === 'GB' ? 'GBP' : params.country === 'US' ? 'USD' : 'EUR');
+  const amount = new Intl.NumberFormat(locale, { style: 'currency', currency }).format(params.amountCents / 100);
+  if (english) {
+    return { subject: 'Your DEVISERA subscription is active', html: layout({ title: 'Subscription confirmed', body: p(`Your <strong>${esc(params.plan)}</strong> plan is active.`) + p(`Amount: ${amount}`) + (params.periodEnd ? p(`Next billing date: ${new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(params.periodEnd)}`) : ''), cta: { label: 'Open DEVISERA', href: appUrl('/app') }, language: 'en' }), text: `Your DEVISERA ${params.plan} subscription is active (${amount}).` };
+  }
   return {
     subject: 'Votre abonnement DEVISERA est actif',
     html: layout({
       title: 'Abonnement confirmé',
       body:
         p(`Votre formule <strong>${esc(params.plan)}</strong> est active.`) +
-        p(`Montant : ${formatCents(params.amountCents)}`) +
+        p(`Montant : ${amount}`) +
         (params.periodEnd
-          ? p(`Prochaine échéance : ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'long' }).format(params.periodEnd)}`)
+          ? p(`Prochaine échéance : ${new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(params.periodEnd)}`)
           : ''),
       cta: { label: 'Ouvrir DEVISERA', href: appUrl('/app') },
     }),
-    text: `Votre abonnement DEVISERA ${params.plan} est actif (${formatCents(params.amountCents)}).`,
+    text: `Votre abonnement DEVISERA ${params.plan} est actif (${amount}).`,
   };
 }

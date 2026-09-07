@@ -80,6 +80,8 @@ export async function uniqueSlug(
 
 export interface CreateOrganizationInput {
   requireApplePurchase?: boolean;
+  /** Language used for business documents and automated customer emails. */
+  locale?: 'fr' | 'en';
   name: string;
   ownerUserId: string;
   ownerName?: string | null;
@@ -109,6 +111,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
       data: {
         name: input.name,
         slug,
+        locale: input.locale ?? 'fr',
         members: { create: { userId: input.ownerUserId, role: 'OWNER' } },
         businessProfile: {
           create: {

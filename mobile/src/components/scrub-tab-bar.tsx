@@ -123,7 +123,7 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
   const [barWidth, setBarWidth] = React.useState(0);
-  const indicatorX = React.useRef(new Animated.Value(0)).current;
+  const indicatorX = React.useMemo(() => new Animated.Value(0), []);
 
   React.useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));

@@ -23,6 +23,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
 import { useTouchMotion } from '@/components/motion';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { localizeNode, localizeText, useMobileLocale } from '@/lib/i18n';
 
 /**
  * Composants de base DEVISERA mobile.
@@ -31,11 +32,13 @@ import { colors, radius, shadows, spacing, typography } from '@/theme';
  */
 
 export function Title({ style, ...props }: TextProps) {
-  return <Text style={[typography.title, { color: colors.ink }, style]} {...props} />;
+  const locale = useMobileLocale();
+  return <Text style={[typography.title, { color: colors.ink }, style]} {...props}>{localizeNode(locale, props.children)}</Text>;
 }
 
 export function Heading({ style, ...props }: TextProps) {
-  return <Text style={[typography.heading, { color: colors.ink }, style]} {...props} />;
+  const locale = useMobileLocale();
+  return <Text style={[typography.heading, { color: colors.ink }, style]} {...props}>{localizeNode(locale, props.children)}</Text>;
 }
 
 /**
@@ -61,20 +64,22 @@ function sansRognage(base: { fontSize: number; lineHeight: number }, style: Styl
 }
 
 export function Body({ style, ...props }: TextProps) {
+  const locale = useMobileLocale();
   return (
     <Text
       style={[{ color: colors.inkSoft }, sansRognage(typography.body, style), style]}
       {...props}
-    />
+    >{localizeNode(locale, props.children)}</Text>
   );
 }
 
 export function Muted({ style, ...props }: TextProps) {
+  const locale = useMobileLocale();
   return (
     <Text
       style={[{ color: colors.muted }, sansRognage(typography.small, style), style]}
       {...props}
-    />
+    >{localizeNode(locale, props.children)}</Text>
   );
 }
 
@@ -83,6 +88,7 @@ export function Caption({
   style,
   ...props
 }: TextProps & { /** Majuscules : réservé aux étiquettes courtes, jamais aux phrases. */ upper?: boolean }) {
+  const locale = useMobileLocale();
   return (
     <Text
       style={[
@@ -92,7 +98,7 @@ export function Caption({
         style,
       ]}
       {...props}
-    />
+    >{localizeNode(locale, props.children)}</Text>
   );
 }
 
@@ -133,13 +139,14 @@ export function PressableCard({
   accessibilityState?: PressableProps['accessibilityState'];
   disabled?: boolean;
 }) {
+  const locale = useMobileLocale();
   const touch = useTouchMotion(0.982);
 
   return (
     <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
       <Pressable
         accessibilityRole={accessibilityRole}
-        accessibilityLabel={accessibilityLabel}
+        accessibilityLabel={localizeText(locale, accessibilityLabel)}
         accessibilityState={{ ...accessibilityState, disabled }}
         disabled={disabled}
         onPress={() => { touch.pressOut(); onPress(); }}
@@ -199,6 +206,7 @@ export function Button({
   onPressOut,
   ...props
 }: ButtonProps) {
+  const locale = useMobileLocale();
   const palette = BUTTON_COLORS[variant];
   const height = size === 'lg' ? 56 : 48;
   const touch = useTouchMotion(0.975);
@@ -260,7 +268,7 @@ export function Button({
             letterSpacing: -0.15,
           }}
         >
-          {title}
+          {localizeText(locale, title)}
         </Text>
       </Pressable>
     </Animated.View>
@@ -282,16 +290,18 @@ const sansContourNatif =
   Platform.OS === 'web' ? ({ outlineStyle: 'none' } as unknown as TextStyle) : null;
 
 export function Field({ label, hint, error, style, ...props }: FieldProps) {
+  const locale = useMobileLocale();
   const [focused, setFocused] = React.useState(false);
 
   return (
     <View style={{ gap: 6 }}>
       <View style={{ gap: 4 }}>
-        <Text style={[typography.small, { color: colors.inkSoft, fontWeight: '600' }]}>{label}</Text>
-        {hint ? <Text style={[typography.small, { color: colors.muted, flexShrink: 1 }]}>{hint}</Text> : null}
+        <Text style={[typography.small, { color: colors.inkSoft, fontWeight: '600' }]}>{localizeText(locale, label)}</Text>
+        {hint ? <Text style={[typography.small, { color: colors.muted, flexShrink: 1 }]}>{localizeText(locale, hint)}</Text> : null}
       </View>
       <TextInput
-        accessibilityLabel={label}
+        accessibilityLabel={localizeText(locale, label)}
+        placeholder={props.placeholder ? localizeText(locale, props.placeholder) : props.placeholder}
         placeholderTextColor={colors.subtle}
         onFocus={(event) => {
           setFocused(true);
@@ -318,7 +328,7 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
         ]}
         {...props}
       />
-      {error ? <Text style={[typography.small, { color: colors.danger }]}>{error}</Text> : null}
+      {error ? <Text style={[typography.small, { color: colors.danger }]}>{localizeText(locale, error)}</Text> : null}
     </View>
   );
 }
@@ -335,6 +345,7 @@ const BADGE_TONES: Record<BadgeTone, { bg: string; fg: string }> = {
 };
 
 export function Badge({ label, tone = 'neutral' }: { label: string; tone?: BadgeTone }) {
+  const locale = useMobileLocale();
   const palette = BADGE_TONES[tone];
   return (
     <View
@@ -346,7 +357,7 @@ export function Badge({ label, tone = 'neutral' }: { label: string; tone?: Badge
         alignSelf: 'flex-start',
       }}
     >
-      <Text style={{ color: palette.fg, fontSize: 12, fontWeight: '600' }}>{label}</Text>
+      <Text style={{ color: palette.fg, fontSize: 12, fontWeight: '600' }}>{localizeText(locale, label)}</Text>
     </View>
   );
 }
@@ -393,6 +404,7 @@ export function EmptyState({
   description?: string;
   action?: React.ReactNode;
 }) {
+  const locale = useMobileLocale();
   return (
     <View style={{ alignItems: 'center', paddingVertical: spacing['4xl'], paddingHorizontal: spacing.xl, gap: spacing.md }}>
       <View
@@ -409,9 +421,9 @@ export function EmptyState({
       >
         <Ionicons name={icon} size={22} color={colors.subtle} />
       </View>
-      <Heading style={{ textAlign: 'center' }}>{title}</Heading>
+      <Heading style={{ textAlign: 'center' }}>{localizeText(locale, title)}</Heading>
       {description ? (
-        <Muted style={{ textAlign: 'center', maxWidth: 300 }}>{description}</Muted>
+        <Muted style={{ textAlign: 'center', maxWidth: 300 }}>{localizeText(locale, description)}</Muted>
       ) : null}
       {action ? <View style={{ marginTop: spacing.sm }}>{action}</View> : null}
     </View>
@@ -432,6 +444,7 @@ export function Banner({
   /** Croix de fermeture : un avertissement traité ne doit pas rester à l'écran. */
   onDismiss?: () => void;
 }) {
+  const locale = useMobileLocale();
   const palette = {
     info: { bg: colors.accentSoft, fg: colors.accentHover, border: colors.accentBorder },
     warning: { bg: colors.warningSoft, fg: colors.warning, border: colors.warning },
@@ -451,16 +464,16 @@ export function Banner({
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
-        <Text style={{ flex: 1, color: palette.fg, fontSize: 14, fontWeight: '600' }}>{title}</Text>
+        <Text style={{ flex: 1, color: palette.fg, fontSize: 14, fontWeight: '600' }}>{localizeText(locale, title)}</Text>
         {onDismiss ? (
-          <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onDismiss} hitSlop={10}>
+          <Pressable accessibilityRole="button" accessibilityLabel={locale === 'en' ? 'Close' : 'Fermer'} onPress={onDismiss} hitSlop={10}>
             <Ionicons name="close" size={16} color={palette.fg} />
           </Pressable>
         ) : null}
       </View>
       {description ? (
         <Text style={{ color: palette.fg, fontSize: 13, lineHeight: 18, opacity: 0.9 }}>
-          {description}
+          {localizeText(locale, description)}
         </Text>
       ) : null}
       {action ? <View style={{ marginTop: spacing.xs }}>{action}</View> : null}
@@ -517,12 +530,13 @@ export function PageHeader({
   eyebrow?: string;
   action?: React.ReactNode;
 }) {
+  const locale = useMobileLocale();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg }}>
       <View style={{ flex: 1, gap: 5 }}>
-        {eyebrow ? <Caption upper style={{ color: colors.accent }}>{eyebrow}</Caption> : null}
-        <Title>{title}</Title>
-        {subtitle ? <Muted>{subtitle}</Muted> : null}
+        {eyebrow ? <Caption upper style={{ color: colors.accent }}>{localizeText(locale, eyebrow)}</Caption> : null}
+        <Title>{localizeText(locale, title)}</Title>
+        {subtitle ? <Muted>{localizeText(locale, subtitle)}</Muted> : null}
       </View>
       {action ? <View style={{ paddingTop: eyebrow ? 14 : 0 }}>{action}</View> : null}
     </View>
@@ -555,12 +569,13 @@ export function IconButton({
   size?: number;
   disabled?: boolean;
 }) {
+  const locale = useMobileLocale();
   const color =
     tone === 'accent' ? colors.accent : tone === 'danger' ? colors.danger : colors.muted;
   return (
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={label}
+      accessibilityLabel={localizeText(locale, label)}
       accessibilityState={{ disabled: Boolean(disabled) }}
       disabled={disabled}
       onPress={onPress}
@@ -593,6 +608,7 @@ export function SearchField({
   autoFocus?: boolean;
   onSubmit?: () => void;
 }) {
+  const locale = useMobileLocale();
   return (
     <View
       style={{
@@ -611,9 +627,9 @@ export function SearchField({
       <TextInput
         value={value}
         onChangeText={onChangeText}
-        placeholder={placeholder}
+        placeholder={localizeText(locale, placeholder)}
         placeholderTextColor={colors.subtle}
-        accessibilityLabel={placeholder}
+        accessibilityLabel={localizeText(locale, placeholder)}
         autoFocus={autoFocus}
         autoCorrect={false}
         returnKeyType="search"
@@ -626,7 +642,7 @@ export function SearchField({
         ]}
       />
       {value.length > 0 ? (
-        <IconButton icon="close-circle" label="Effacer la recherche" size={18} onPress={() => onChangeText('')} />
+        <IconButton icon="close-circle" label={localizeText(locale, 'Effacer la recherche')} size={18} onPress={() => onChangeText('')} />
       ) : null}
     </View>
   );
@@ -640,6 +656,7 @@ export function SectionHeader({
   title: string;
   action?: { label: string; onPress: () => void };
 }) {
+  const locale = useMobileLocale();
   return (
     <View
       style={{
@@ -650,12 +667,12 @@ export function SectionHeader({
       }}
     >
       <Text style={[typography.caption, { color: colors.subtle, textTransform: 'uppercase' }]}>
-        {title}
+        {localizeText(locale, title)}
       </Text>
       {action ? (
         <Pressable accessibilityRole="button" onPress={action.onPress} hitSlop={8}>
           <Text style={[typography.small, { color: colors.accent, fontWeight: '600' }]}>
-            {action.label}
+            {localizeText(locale, action.label)}
           </Text>
         </Pressable>
       ) : null}
@@ -681,6 +698,7 @@ export function ListRow({
   destructive?: boolean;
   last?: boolean;
 }) {
+  const locale = useMobileLocale();
   const touch = useTouchMotion(0.992);
   const content = (
     <View
@@ -714,11 +732,11 @@ export function ListRow({
           numberOfLines={1}
           style={[typography.body, { fontWeight: '600', color: destructive ? colors.danger : colors.ink }]}
         >
-          {title}
+          {localizeText(locale, title)}
         </Text>
         {subtitle ? (
           <Text numberOfLines={1} style={[typography.small, { color: colors.muted }]}>
-            {subtitle}
+            {localizeText(locale, subtitle)}
           </Text>
         ) : null}
       </View>
@@ -736,7 +754,7 @@ export function ListRow({
     <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
     <Pressable
       accessibilityRole="button"
-      accessibilityLabel={title}
+      accessibilityLabel={localizeText(locale, title)}
       onPress={onPress}
       onPressIn={touch.pressIn}
       onPressOut={touch.pressOut}
@@ -750,10 +768,11 @@ export function ListRow({
 
 /** État de chargement nommé : l'utilisateur sait ce que l'application attend. */
 export function LoadingState({ label }: { label: string }) {
+  const locale = useMobileLocale();
   return (
     <View style={{ alignItems: 'center', justifyContent: 'center', paddingVertical: spacing['4xl'], gap: spacing.md }}>
       <ActivityIndicator color={colors.accent} />
-      <Text style={[typography.small, { color: colors.muted }]}>{label}</Text>
+      <Text style={[typography.small, { color: colors.muted }]}>{localizeText(locale, label)}</Text>
     </View>
   );
 }
@@ -768,6 +787,7 @@ export function ErrorState({
   description: string;
   onRetry: () => void;
 }) {
+  const locale = useMobileLocale();
   return (
     /* Centré dans la hauteur disponible : collé en haut, l'écran d'erreur
        ressemblait à un contenu qui n'a pas fini de charger. */
@@ -792,21 +812,22 @@ export function ErrorState({
       >
         <Ionicons name="cloud-offline-outline" size={22} color={colors.danger} />
       </View>
-      <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>{title}</Text>
+      <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>{localizeText(locale, title)}</Text>
       <Text style={[typography.small, { color: colors.muted, textAlign: 'center', paddingHorizontal: spacing.xl }]}>
-        {description}
+        {localizeText(locale, description)}
       </Text>
-      <Button title="Réessayer" variant="secondary" icon="refresh" onPress={onRetry} />
+      <Button title={localizeText(locale, 'Réessayer')} variant="secondary" icon="refresh" onPress={onRetry} />
     </View>
   );
 }
 
 /** Progression d'un parcours en étapes. */
 export function ProgressDots({ total, current }: { total: number; current: number }) {
+  const locale = useMobileLocale();
   return (
     <View
       accessibilityRole="progressbar"
-      accessibilityLabel={`Étape ${current + 1} sur ${total}`}
+      accessibilityLabel={localizeText(locale, `Étape ${current + 1} sur ${total}`)}
       style={{ flexDirection: 'row', gap: 6, alignItems: 'center', justifyContent: 'center' }}
     >
       {Array.from({ length: total }, (_, index) => (
@@ -834,6 +855,7 @@ export function ChoiceRow<T extends string>({
   value: T | null;
   onChange: (next: T) => void;
 }) {
+  const locale = useMobileLocale();
   return (
     <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
       {options.map((option) => {
@@ -865,7 +887,7 @@ export function ChoiceRow<T extends string>({
                 { fontWeight: '600', color: selected ? colors.accent : colors.inkSoft },
               ]}
             >
-              {option.label}
+              {localizeText(locale, option.label)}
             </Text>
           </Pressable>
         );
@@ -934,6 +956,7 @@ export function Price({
   suffix?: string;
   size?: number;
 }) {
+  const locale = useMobileLocale();
   return (
     <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap' }}>
       <Text
@@ -949,7 +972,7 @@ export function Price({
       </Text>
       {suffix ? (
         <Text style={{ fontSize: 13, fontWeight: '400', color: colors.muted, marginLeft: 4 }}>
-          {suffix}
+          {localizeText(locale, suffix)}
         </Text>
       ) : null}
     </View>

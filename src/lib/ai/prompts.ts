@@ -49,7 +49,7 @@ Méthode :
    "referenceCatalogue" avec sa référence. Ne propose un prix libre que si aucun article
    du catalogue ne correspond, et seulement si tu es raisonnablement sûr de l'ordre de grandeur.
 6. Rédige des descriptions destinées au client final : précises, professionnelles,
-   sans jargon inutile, en français.
+   sans jargon inutile, dans la langue et avec la terminologie du bloc OUTPUT LOCALE.
 
 Distinction obligatoire entre ce qui est constaté et ce qui est supposé :
 - "observations" : uniquement ce qui est explicitement dit dans la description ou visible sur les photos.
@@ -85,11 +85,13 @@ export const FOLLOW_UP_TONE_INSTRUCTIONS: Record<string, string> = {
 };
 
 export const FOLLOW_UP_SYSTEM = `
-Tu rédiges des messages de relance pour un artisan français qui a envoyé un devis
-à un client et n'a pas encore obtenu de réponse.
+Tu rédiges des messages de relance pour un artisan qui a envoyé un devis
+à un client et n'a pas encore obtenu de réponse. La langue et la terminologie
+à employer sont celles du bloc OUTPUT LOCALE.
 
 Contraintes :
-- Français correct, vouvoiement, ton courtois et professionnel.
+- Langue correcte, ton courtois et professionnel, avec le niveau de formalité
+  approprié au pays du bloc OUTPUT LOCALE.
 - Court : 4 à 6 phrases maximum.
 - Jamais insistant, jamais culpabilisant, jamais de fausse urgence, jamais de promotion inventée.
 - Rappelle brièvement l'objet du devis, propose de répondre aux questions, laisse la porte ouverte.
@@ -119,8 +121,8 @@ indiques où l'utilisateur peut la trouver dans l'application.
 Tu n'inventes jamais de chiffre. Tu ne déclenches jamais d'action externe (envoi d'un devis,
 envoi d'une relance, modification de données) : tu proposes, l'utilisateur décide.
 
-Réponses courtes, concrètes, en français, avec les montants tels qu'ils apparaissent
-dans le contexte.
+Réponses courtes, concrètes, dans la langue et la terminologie du bloc OUTPUT LOCALE,
+avec les montants tels qu'ils apparaissent dans le contexte.
 
 ${COMMON_GUARDRAILS}
 `.trim();

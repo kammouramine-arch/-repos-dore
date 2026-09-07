@@ -8,14 +8,16 @@ import { useQuery } from '@/lib/query';
 import { spacing } from '@/theme';
 import { ClientForm } from '@/components/client-sheet';
 import { useAuth } from '@/lib/auth';
-import { mobileLocale } from '@/lib/i18n';
+import { localizeText, mobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
 export default function ClientProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { session } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
+  const t = React.useCallback((value: string) => localizeText(locale, value), [locale]);
   const query = useQuery(() => api.customers.get(id), [id], `customer:${id}`);
   useFocusEffect(React.useCallback(() => { void query.refresh();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -24,11 +26,11 @@ export default function ClientProfile() {
   const [editing, setEditing] = React.useState(false);
   const customer = query.data?.customer;
   async function contact(url: string) {
-    try { await Linking.openURL(url); } catch { setActionError('Cette action n’est pas disponible sur cet appareil.'); }
+    try { await Linking.openURL(url); } catch { setActionError(t('Cette action n’est pas disponible sur cet appareil.')); }
   }
-  if (editing && customer) return <ClientForm initialCustomer={customer} submitLabel="Enregistrer les modifications" onCancel={() => setEditing(false)} onCreated={() => { setEditing(false); void query.reload(); }} />;
+  if (editing && customer) return <ClientForm initialCustomer={customer} submitLabel={t('Enregistrer les modifications')} onCancel={() => setEditing(false)} onCreated={() => { setEditing(false); void query.reload(); }} />;
   return <Screen>
-    {query.error ? <><Banner tone="danger" title={query.error} /><Button title="Réessayer" onPress={() => void query.reload()} /></> : null}
+    {query.error ? <><Banner tone="danger" title={query.error} /><Button title={t('Réessayer')} onPress={() => void query.reload()} /></> : null}
     {actionError ? <Banner tone="danger" title={actionError} onDismiss={() => setActionError(null)} /> : null}
     {!customer && query.loading ? <><Skeleton height={100} /><Skeleton height={180} /></> : null}
     {customer && query.data ? <>
@@ -54,26 +56,26 @@ export default function ClientProfile() {
         <Muted>{formatCents(query.data.stats.pendingCents)} {en ? 'pending' : 'en attente'}</Muted>
       </Card>
       {query.data.quotes.length === 0 ? <Muted>{en ? 'No quotes for this client yet. Create the first one above.' : 'Aucun devis pour ce client. Préparez son premier devis ci-dessus.'}</Muted> : null}
-      {query.data.quotes.map(quote => <PressableCard key={quote.id} accessibilityLabel={`Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
-        <View style={{ gap: spacing.sm }}><Body>{quote.number} · {quote.title}</Body><Body>{formatCents(quote.totalCents)}</Body><Muted>{({ BROUILLON: 'Brouillon', ENVOYE: 'Envoyé', CONSULTE: 'Consulté', ACCEPTE: 'Accepté', REFUSE: 'Refusé', EXPIRE: 'Expiré', ANNULE: 'Annulé', MODIFICATION_DEMANDEE: 'Modification demandée' } as Record<string, string>)[quote.status] ?? 'À vérifier'}</Muted><Muted>{quote.sentAt ? `Envoyé le ${new Date(quote.sentAt).toLocaleDateString('fr-FR')}` : 'Non envoyé'}</Muted></View>
+      {query.data.quotes.map(quote => <PressableCard key={quote.id} accessibilityLabel={en ? `Open quote ${quote.number}` : `Ouvrir le devis ${quote.number}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: quote.id } })}>
+        <View style={{ gap: spacing.sm }}><Body>{quote.number} · {quote.title}</Body><Body>{formatCents(quote.totalCents)}</Body><Muted>{(en ? { BROUILLON: 'Draft', ENVOYE: 'Sent', CONSULTE: 'Viewed', ACCEPTE: 'Accepted', REFUSE: 'Declined', EXPIRE: 'Expired', ANNULE: 'Cancelled', MODIFICATION_DEMANDEE: 'Changes requested' } : { BROUILLON: 'Brouillon', ENVOYE: 'Envoyé', CONSULTE: 'Consulté', ACCEPTE: 'Accepté', REFUSE: 'Refusé', EXPIRE: 'Expiré', ANNULE: 'Annulé', MODIFICATION_DEMANDEE: 'Modification demandée' })[quote.status] ?? (en ? 'Needs review' : 'À vérifier')}</Muted><Muted>{quote.sentAt ? (en ? `Sent on ${new Date(quote.sentAt).toLocaleDateString('en-GB')}` : `Envoyé le ${new Date(quote.sentAt).toLocaleDateString('fr-FR')}`) : (en ? 'Not sent' : 'Non envoyé')}</Muted></View>
       </PressableCard>)}
       {query.data.jobs?.length ? <>
-        <Heading>Chantiers</Heading>
-        <Muted>Les 30 chantiers les plus récents.</Muted>
+        <Heading>{en ? 'Jobs' : 'Chantiers'}</Heading>
+        <Muted>{en ? 'The 30 most recent jobs.' : 'Les 30 chantiers les plus récents.'}</Muted>
         {query.data.jobs.map(job => <Card key={job.id} style={{ gap: spacing.sm }}>
           <Body>{job.title}</Body>
-          <Muted>{job.completedAt ? `Terminé le ${new Date(job.completedAt).toLocaleDateString('fr-FR')}` : job.scheduledAt ? `Prévu le ${new Date(job.scheduledAt).toLocaleDateString('fr-FR')}` : 'Date non renseignée'}</Muted>
+          <Muted>{job.completedAt ? (en ? `Completed on ${new Date(job.completedAt).toLocaleDateString('en-GB')}` : `Terminé le ${new Date(job.completedAt).toLocaleDateString('fr-FR')}`) : job.scheduledAt ? (en ? `Scheduled for ${new Date(job.scheduledAt).toLocaleDateString('en-GB')}` : `Prévu le ${new Date(job.scheduledAt).toLocaleDateString('fr-FR')}`) : (en ? 'Date not provided' : 'Date non renseignée')}</Muted>
         </Card>)}
       </> : null}
-      <Heading>Activité du client</Heading>
-      <Muted>Les 30 événements de devis les plus récents. Une consultation enregistrée ne prouve pas la lecture de l’email.</Muted>
-      {query.data.activity?.map(event => <PressableCard key={event.id} accessibilityLabel={`Voir ${event.quoteNumber}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: event.quoteId } })}>
+      <Heading>{en ? 'Client activity' : 'Activité du client'}</Heading>
+      <Muted>{en ? 'The 30 most recent quote events. A recorded view does not prove the email was read.' : 'Les 30 événements de devis les plus récents. Une consultation enregistrée ne prouve pas la lecture de l’email.'}</Muted>
+      {query.data.activity?.map(event => <PressableCard key={event.id} accessibilityLabel={en ? `View ${event.quoteNumber}` : `Voir ${event.quoteNumber}`} onPress={() => router.push({ pathname: '/devis/[id]', params: { id: event.quoteId } })}>
         <View style={{ gap: spacing.sm }}>
-          <Body>{({ CREE: 'Devis créé', MODIFIE: 'Devis modifié', ENVOYE: 'Devis marqué envoyé', CONSULTE: 'Devis consulté', ACCEPTE: 'Devis accepté', REFUSE: 'Devis refusé', MODIFICATION_DEMANDEE: 'Modification demandée', RELANCE: 'Relance enregistrée', PDF_TELECHARGE: 'PDF téléchargé', ANNULE: 'Devis annulé' } as Record<string, string>)[event.type] ?? 'Activité enregistrée'} · {event.quoteNumber}</Body>
-          <Muted>{new Date(event.at).toLocaleString('fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</Muted>
+          <Body>{(en ? { CREE: 'Quote created', MODIFIE: 'Quote updated', ENVOYE: 'Quote marked sent', CONSULTE: 'Quote viewed', ACCEPTE: 'Quote accepted', REFUSE: 'Quote declined', MODIFICATION_DEMANDEE: 'Changes requested', RELANCE: 'Follow-up recorded', PDF_TELECHARGE: 'PDF downloaded', ANNULE: 'Quote cancelled' } : { CREE: 'Devis créé', MODIFIE: 'Devis modifié', ENVOYE: 'Devis marqué envoyé', CONSULTE: 'Devis consulté', ACCEPTE: 'Devis accepté', REFUSE: 'Devis refusé', MODIFICATION_DEMANDEE: 'Modification demandée', RELANCE: 'Relance enregistrée', PDF_TELECHARGE: 'PDF téléchargé', ANNULE: 'Devis annulé' })[event.type] ?? (en ? 'Activity recorded' : 'Activité enregistrée')} · {event.quoteNumber}</Body>
+          <Muted>{new Date(event.at).toLocaleString(en ? 'en-GB' : 'fr-FR', { dateStyle: 'medium', timeStyle: 'short' })}</Muted>
         </View>
       </PressableCard>)}
-      <Muted>Client créé le {new Date(customer.createdAt).toLocaleDateString('fr-FR')}</Muted>
+      <Muted>{en ? 'Client created on ' : 'Client créé le '}{new Date(customer.createdAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}</Muted>
     </> : null}
   </Screen>;
 }

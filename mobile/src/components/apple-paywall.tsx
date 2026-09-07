@@ -3,7 +3,7 @@ import { Alert, Linking, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
-import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, PressableCard, Price, Screen, Title } from './ui';
+import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, PressableCard, Screen, Title } from './ui';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -92,9 +92,9 @@ export function ApplePaywall() {
             <Ionicons name={chosen ? 'radio-button-on' : 'radio-button-off'} color={chosen ? colors.accent : colors.subtle} size={23} />
           </View>
           <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
-            {p?.displayPrice ? <><Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p.displayPrice}</Body><Muted>/ mois</Muted></> : <Price cents={PLANS[plan].monthlyPriceCents} suffix="/ mois" size={30} />}
+            {p?.displayPrice ? <><Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p.displayPrice}</Body><Muted>{en ? '/ month' : '/ mois'}</Muted></> : <Muted>{en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.'}</Muted>}
           </View>
-          {!p ? <Caption>Prix Apple en cours de chargement</Caption> : null}
+          {!p ? <Caption>{en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement'}</Caption> : null}
           {!appleActive ? <Caption>{en ? '3 days free for eligible new subscribers' : '3 jours gratuits pour les nouveaux abonnés éligibles'}</Caption> : null}
           {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{h}</Muted></View>)}
       </PressableCard>;

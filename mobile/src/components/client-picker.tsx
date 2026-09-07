@@ -18,6 +18,7 @@ import {
 import { ClientForm } from '@/components/client-sheet';
 import { api } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Choix du client, avec création sur place.
@@ -39,6 +40,7 @@ export function ClientPicker({
   onClose: () => void;
   onSelect: (customer: CustomerDTO) => void;
 }) {
+  const en = useMobileLocale() === 'en';
   const [search, setSearch] = React.useState('');
   const [items, setItems] = React.useState<CustomerDTO[] | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -138,8 +140,7 @@ export function ClientPicker({
                       {trimmed ? 'Aucun client à ce nom' : 'Aucun client enregistré'}
                     </Heading>
                     <Muted style={{ textAlign: 'center' }}>
-                      C’est souvent le cas d’un nouveau chantier. Créez la fiche en quelques
-                      secondes.
+                      {en ? 'That is common for a new job. Create the profile in seconds.' : 'C’est souvent le cas d’un nouveau chantier. Créez la fiche en quelques secondes.'}
                     </Muted>
                   </View>
                   <Button
@@ -185,7 +186,7 @@ export function ClientPicker({
 
               <View style={{ paddingHorizontal: spacing.lg }}>
                 <Caption style={{ color: colors.subtle }}>
-                  Le client est rattaché au devis dès sa création.
+                  {en ? 'The client is linked to the quote as soon as it is created.' : 'Le client est rattaché au devis dès sa création.'}
                 </Caption>
               </View>
             </ScrollView>

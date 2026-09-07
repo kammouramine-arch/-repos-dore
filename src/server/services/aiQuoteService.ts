@@ -26,6 +26,8 @@ export interface GenerateQuoteInput {
   /** Identifiants de fichiers déjà téléversés (photos de chantier). */
   fileIds?: string[];
   leadId?: string | null;
+  /** Mobile/account language; falls back to the organisation locale. */
+  language?: 'fr' | 'en';
 }
 
 export interface GeneratedLine extends QuoteLineInput {
@@ -94,6 +96,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   const vatExempt = profile?.vatStatus === 'FRANCHISE_EN_BASE';
 
   const provider = getAIProvider();
+  const language: 'fr' | 'en' = input.language ?? (organization?.locale === 'en' ? 'en' : 'fr');
 
   let draft: QuoteDraft;
   let degraded = true;
@@ -105,13 +108,16 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
   if (provider) {
     try {
       const result = await provider.generateStructuredOutput({
-        system: localizedSystemPrompt(QUOTE_DRAFT_SYSTEM, organization ?? {}),
+        system: localizedSystemPrompt(QUOTE_DRAFT_SYSTEM, { ...(organization ?? {}), locale: language }),
         context: buildBusinessContext({
           catalog,
           trade: profile?.trade ?? 'AUTRE',
           hourlyRateCents,
           defaultVatRate,
           terms: profile?.quoteTerms ?? null,
+          currency: organization?.currency ?? 'EUR',
+          country: organization?.country ?? 'FR',
+          language,
         }),
         untrusted: wrapUntrusted(input.description, 'description_chantier'),
         images,
@@ -152,6 +158,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
         hourlyRateCents,
         defaultVatRate,
         trade: profile?.trade,
+        language,
       });
       await logAIRequest(input, 'QUOTE_DRAFT', 'local', null, null, 'fallback');
     }
@@ -162,6 +169,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
       hourlyRateCents,
       defaultVatRate,
       trade: profile?.trade,
+      language,
     });
     await logAIRequest(input, 'QUOTE_DRAFT', 'local', null, null);
   }
@@ -172,6 +180,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
     hourlyRateCents,
     defaultVatRate,
     vatExempt,
+    language,
   });
 
   const totals = totalsFor({ items: lines, vatExempt });
@@ -213,8 +222,9 @@ function resolveLines(params: {
   hourlyRateCents: number;
   defaultVatRate: number;
   vatExempt: boolean;
+  language: 'fr' | 'en';
 }): { lines: GeneratedLine[]; extraQuestions: string[] } {
-  const { draft, catalog, hourlyRateCents, defaultVatRate, vatExempt } = params;
+  const { draft, catalog, hourlyRateCents, defaultVatRate, vatExempt, language } = params;
   const lines: GeneratedLine[] = [];
   const extraQuestions: string[] = [];
 
@@ -224,7 +234,7 @@ function resolveLines(params: {
     const unitPriceCents = entry ? entry.salePriceCents : (suggested ?? 0);
 
     if (!entry && suggested == null) {
-      extraQuestions.push(`Quel prix appliquer pour « ${material.designation} » ?`);
+      extraQuestions.push(language === 'en' ? `What price should be applied to “${material.designation}”?` : `Quel prix appliquer pour « ${material.designation} » ?`);
     }
 
     lines.push({
@@ -272,23 +282,30 @@ function buildBusinessContext(params: {
   hourlyRateCents: number;
   defaultVatRate: number;
   terms: string | null;
+  currency: string;
+  country: string;
+  language: 'fr' | 'en';
 }): string {
+  const taxLabel = params.country === 'FR' ? 'TVA' : params.country === 'US' ? 'sales tax' : 'VAT';
+  const english = params.language === 'en';
   const catalogLines = params.catalog
     .slice(0, 120)
     .map(
       (entry) =>
-        `- ${escapeForPrompt(entry.name)} | ref: ${entry.reference ?? '—'} | ${entry.category} | ${entry.unit} | ${(entry.salePriceCents / 100).toFixed(2)} EUR HT | TVA ${entry.vatRate} %`,
+        `- ${escapeForPrompt(entry.name)} | ref: ${entry.reference ?? '—'} | ${entry.category} | ${entry.unit} | ${(entry.salePriceCents / 100).toFixed(2)} ${params.currency} excl. tax | ${taxLabel} ${entry.vatRate} %`,
     )
     .join('\n');
 
   return [
-    `Métier principal : ${params.trade}.`,
-    `Taux horaire par défaut : ${(params.hourlyRateCents / 100).toFixed(2)} EUR HT.`,
-    `Taux de TVA par défaut : ${params.defaultVatRate} %.`,
-    params.terms ? `Conditions habituelles : ${escapeForPrompt(params.terms)}` : null,
+    `${english ? 'Main trade' : 'Métier principal'} : ${params.trade}.`,
+    english
+      ? `Default hourly rate: ${(params.hourlyRateCents / 100).toFixed(2)} ${params.currency} excl. tax.`
+      : `Taux horaire par défaut : ${(params.hourlyRateCents / 100).toFixed(2)} ${params.currency} HT.`,
+    english ? `Default ${taxLabel} rate: ${params.defaultVatRate} %.` : `Taux de ${taxLabel} par défaut : ${params.defaultVatRate} %.`,
+    params.terms ? `${english ? 'Usual terms' : 'Conditions habituelles'} : ${escapeForPrompt(params.terms)}` : null,
     params.catalog.length > 0
-      ? `Catalogue de prix de l'entreprise (à utiliser en priorité) :\n${catalogLines}`
-      : "L'entreprise n'a pas encore de catalogue de prix.",
+      ? (english ? `Company price book (use it first):\n${catalogLines}` : `Catalogue de prix de l'entreprise (à utiliser en priorité) :\n${catalogLines}`)
+      : (english ? 'The company has no price book yet.' : "L'entreprise n'a pas encore de catalogue de prix."),
   ]
     .filter(Boolean)
     .join('\n\n');

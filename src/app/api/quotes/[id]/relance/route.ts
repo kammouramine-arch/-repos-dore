@@ -21,7 +21,13 @@ export async function GET(request: Request, { params }: Params) {
     )
       ? (requested as FollowUpTone)
       : 'professionnel';
-    const draft = await draftFollowUpMessage(auth.organization.organizationId, id, attempt, tone);
+    const draft = await draftFollowUpMessage(
+      auth.organization.organizationId,
+      id,
+      attempt,
+      tone,
+      auth.user.locale === 'en' ? 'en' : 'fr',
+    );
     return ok(draft);
   });
 }

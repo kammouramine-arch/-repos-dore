@@ -105,5 +105,8 @@ export async function buildQuotePdf(quoteId: string): Promise<{ bytes: Uint8Arra
   };
 
   const bytes = await renderQuotePdf(input);
-  return { bytes, fileName: `Devis-${quote.number}.pdf` };
+  const documentPrefix = quote.organization.locale === 'en'
+    ? (quote.organization.country === 'US' ? 'Estimate' : 'Quote')
+    : 'Devis';
+  return { bytes, fileName: `${documentPrefix}-${quote.number}.pdf` };
 }

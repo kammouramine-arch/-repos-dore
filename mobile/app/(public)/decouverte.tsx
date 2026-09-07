@@ -19,6 +19,7 @@ import {
 } from '@/components/ui';
 import { Logo } from '@/components/logo';
 import { markOnboardingSeen } from '@/lib/onboarding';
+import { useMobileLocale } from '@/lib/i18n';
 import { colors, motion, radius, spacing } from '@/theme';
 
 /**
@@ -63,9 +64,18 @@ const PILLARS: Pillar[] = [
   },
 ];
 
+const PILLARS_EN: Pillar[] = [
+  { icon: 'mic', benefit: 'Speak it, the quote writes itself', detail: 'Describe the job out loud as if talking to your apprentice. DEVISERA turns your words into clear line items, quantities and prices.' },
+  { icon: 'camera', benefit: 'Your photos add context', detail: 'Add job-site photos: they help describe the work and stay attached to the quote.' },
+  { icon: 'document-text', benefit: 'A clean quote, sent in two taps', detail: 'A professional PDF in your brand, ready to review and send directly to your customer.' },
+  { icon: 'notifications', benefit: 'Fewer forgotten quotes', detail: 'DEVISERA follows quotes without a reply and prepares the follow-up. You decide when to send it.' },
+];
+
 export default function DecouverteScreen() {
   const router = useRouter();
   const { status } = useAuth();
+  const locale = useMobileLocale();
+  const en = locale === 'en';
   const { width } = useWindowDimensions();
   const [index, setIndex] = React.useState(0);
   const scroller = React.useRef<ScrollView>(null);
@@ -80,7 +90,8 @@ export default function DecouverteScreen() {
     }).start();
   }, [fade]);
 
-  const total = PILLARS.length + 1;
+  const pillars = en ? PILLARS_EN : PILLARS;
+  const total = pillars.length + 1;
   const last = index === total - 1;
 
   function goTo(next: number) {
@@ -110,12 +121,12 @@ export default function DecouverteScreen() {
         {!last ? (
           <Pressable
             accessibilityRole="button"
-            accessibilityLabel="Passer la présentation"
+            accessibilityLabel={en ? 'Skip introduction' : 'Passer la présentation'}
             onPress={() => goTo(total - 1)}
             hitSlop={10}
           >
             <View style={{ backgroundColor: colors.canvas, borderRadius: radius.full, paddingHorizontal: 14, paddingVertical: 8 }}>
-              <Body style={{ color: colors.muted, fontSize: 13 }}>Passer</Body>
+              <Body style={{ color: colors.muted, fontSize: 13 }}>{en ? 'Skip' : 'Passer'}</Body>
             </View>
           </Pressable>
         ) : (
@@ -134,7 +145,7 @@ export default function DecouverteScreen() {
             setIndex(Math.round(event.nativeEvent.contentOffset.x / width))
           }
         >
-          {PILLARS.map((pillar, pillarIndex) => (
+          {pillars.map((pillar, pillarIndex) => (
             <View
               key={pillar.benefit}
               style={{
@@ -198,36 +209,39 @@ export default function DecouverteScreen() {
             <View style={{ gap: spacing.sm, alignItems: 'center', paddingTop: spacing.md }}>
               {/* Badge est aligné à gauche par défaut : on le recentre ici. */}
               <View>
-                <Badge label={`${TRIAL_DAYS} jours d’essai gratuit`} tone="accent" />
+                <Badge label={en ? `${TRIAL_DAYS}-day free trial` : `${TRIAL_DAYS} jours d’essai gratuit`} tone="accent" />
               </View>
-              <Title style={{ textAlign: 'center' }}>Essayez sans engagement</Title>
+              <Title style={{ textAlign: 'center' }}>{en ? 'Try it with no commitment' : 'Essayez sans engagement'}</Title>
               <Muted style={{ textAlign: 'center' }}>
-                Choisissez votre formule, puis confirmez avec Apple. Après les {TRIAL_DAYS} jours gratuits,
-                l’abonnement se renouvelle automatiquement sauf annulation. Offre réservée aux comptes éligibles.
+                {en
+                  ? `Choose your plan and confirm with Apple. After the ${TRIAL_DAYS} free days, your subscription renews automatically unless cancelled. For eligible accounts.`
+                  : `Choisissez votre formule, puis confirmez avec Apple. Après les ${TRIAL_DAYS} jours gratuits, l’abonnement se renouvelle automatiquement sauf annulation. Offre réservée aux comptes éligibles.`}
               </Muted>
             </View>
 
             <Card style={{ gap: spacing.lg }}>
-              <Heading>Votre premier devis commence ici</Heading>
-              <Body>Décrivez un vrai chantier, retrouvez vos clients et préparez votre premier PDF.</Body>
-              <Muted>Vous choisirez une seule fois votre formule sur l’écran suivant, avec son prix et les conditions Apple avant de confirmer.</Muted>
+              <Heading>{en ? 'Your first quote starts here' : 'Votre premier devis commence ici'}</Heading>
+              <Body>{en ? 'Describe a real job, find your customers and prepare your first PDF.' : 'Décrivez un vrai chantier, retrouvez vos clients et préparez votre premier PDF.'}</Body>
+              <Muted>{en ? 'Choose your plan once on the next screen. Apple shows the final price and terms before you confirm.' : 'Vous choisirez une seule fois votre formule sur l’écran suivant, avec son prix et les conditions Apple avant de confirmer.'}</Muted>
             </Card>
 
             <View style={{ gap: spacing.sm }}>
               <Button
-                title={status === 'connecte' ? 'Voir les formules' : 'Créer mon compte'}
+                title={status === 'connecte' ? (en ? 'View plans' : 'Voir les formules') : (en ? 'Create my account' : 'Créer mon compte')}
                 icon="arrow-forward"
                 haptic
                 onPress={() => void leave('/inscription')}
               />
               {status !== 'connecte' ? <Button
-                title="J’ai déjà un compte"
+                title={en ? 'I already have an account' : 'J’ai déjà un compte'}
                 variant="ghost"
                 onPress={() => void leave('/connexion')}
               /> : null}
             </View>
             <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-              Tarifs de référence en France. Le prix final, la devise et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.
+              {en
+                ? 'Reference prices for France. Apple confirms the final price, currency and trial eligibility before you agree.'
+                : 'Tarifs de référence en France. Le prix final, la devise et votre éligibilité à l’essai sont confirmés par Apple avant votre accord.'}
             </Caption>
           </ScrollView>
         </ScrollView>
@@ -239,11 +253,11 @@ export default function DecouverteScreen() {
           <View style={{ flexDirection: 'row', gap: spacing.md }}>
             {index > 0 ? (
               <View style={{ flex: 1 }}>
-                <Button title="Retour" variant="secondary" onPress={() => goTo(index - 1)} />
+                <Button title={en ? 'Back' : 'Retour'} variant="secondary" onPress={() => goTo(index - 1)} />
               </View>
             ) : null}
             <View style={{ flex: 2 }}>
-              <Button title="Suivant" icon="arrow-forward" onPress={() => goTo(index + 1)} />
+              <Button title={en ? 'Next' : 'Suivant'} icon="arrow-forward" onPress={() => goTo(index + 1)} />
             </View>
           </View>
         ) : null}

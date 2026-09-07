@@ -6,6 +6,7 @@ import { DevisiaApiError, type CustomerDTO } from '@devisia/shared';
 import { Banner, Button, Field, Ionicons, Muted, Title } from '@/components/ui';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Création d'une fiche client.
@@ -130,6 +131,7 @@ export function ClientSheet({
   onClose: () => void;
   onCreated: (customer: CustomerDTO) => void;
 }) {
+  const locale = useMobileLocale();
   return (
     <Modal visible={visible} animationType="slide" presentationStyle="pageSheet" onRequestClose={onClose}>
       <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.canvas }}>
@@ -147,7 +149,7 @@ export function ClientSheet({
             }}
           >
             <Title>Nouveau client</Title>
-            <Pressable accessibilityRole="button" accessibilityLabel="Fermer" onPress={onClose} hitSlop={10}>
+            <Pressable accessibilityRole="button" accessibilityLabel={locale === 'en' ? 'Close' : 'Fermer'} onPress={onClose} hitSlop={10}>
               <Ionicons name="close" size={24} color={colors.muted} />
             </Pressable>
           </View>

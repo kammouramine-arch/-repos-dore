@@ -12,6 +12,7 @@ import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 import { recordDiagnostic } from '@/lib/diagnostics';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 
 void SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -26,6 +27,7 @@ void SplashScreen.preventAutoHideAsync().catch(() => undefined);
  */
 function RootNavigator() {
   const { status, session, offline, refresh } = useAuth();
+  const locale = useMobileLocale();
   const [seenOnboarding, setSeenOnboarding] = React.useState<boolean | null>(null);
   const startupAt = React.useRef<number | null>(null);
   const startupRecorded = React.useRef(false);
@@ -84,10 +86,10 @@ function RootNavigator() {
           <Ionicons name="cloud-offline-outline" size={26} color={colors.warning} />
         </View>
         <Text style={[typography.heading, { color: colors.ink, textAlign: 'center' }]}>
-          Connexion indisponible
+          {localizeText(locale, 'Connexion indisponible')}
         </Text>
         <Text style={[typography.body, { color: colors.muted, textAlign: 'center' }]}>
-          Vos devis et vos clients sont en sécurité. Vérifiez votre réseau, puis réessayez.
+          {localizeText(locale, 'Vos devis et vos clients sont en sécurité. Vérifiez votre réseau, puis réessayez.')}
         </Text>
         <Pressable
           accessibilityRole="button"
@@ -101,7 +103,7 @@ function RootNavigator() {
             opacity: pressed ? 0.85 : 1,
           })}
         >
-          <Text style={[typography.bodyStrong, { color: colors.white }]}>Réessayer</Text>
+          <Text style={[typography.bodyStrong, { color: colors.white }]}>{localizeText(locale, 'Réessayer')}</Text>
         </Pressable>
         <View style={{ position: 'absolute', bottom: spacing['4xl'] }}>
           <Logo size={22} />
@@ -129,7 +131,7 @@ function RootNavigator() {
         }}
       >
         <Stack.Screen name="verification" />
-        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
+        <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }} />
       </Stack>
     );
   }
@@ -151,7 +153,7 @@ function RootNavigator() {
          * ici, une fois, plutôt qu'écran par écran : un écran ajouté demain
          * hérite du bon libellé sans qu'on y pense.
          */
-        headerBackTitle: 'Retour',
+        headerBackTitle: locale === 'en' ? 'Back' : 'Retour',
         headerBackButtonDisplayMode: 'generic',
         headerTintColor: colors.accent,
         headerTitleStyle: { color: colors.ink },
@@ -172,28 +174,28 @@ function RootNavigator() {
         <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
         <Stack.Screen
           name="devis/nouveau"
-          options={{ presentation: 'modal', headerShown: true, title: 'Nouveau devis', headerBackTitle: 'Retour' }}
+          options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'New quote' : 'Nouveau devis', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }}
         />
-        <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: 'Devis', headerBackTitle: 'Retour' }} />
-        <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: 'Fiche client', headerBackTitle: 'Retour' }} />
+        <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Quote' : 'Devis', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }} />
+        <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Client profile' : 'Fiche client', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }} />
         </Stack.Protected>
         <Stack.Screen
           name="abonnement"
-          options={{ headerShown: true, title: 'Abonnement' }}
+          options={{ headerShown: true, title: locale === 'en' ? 'Subscription' : 'Abonnement', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }}
         />
         <Stack.Screen name="presentation" options={{ headerShown: false }} />
-        <Stack.Screen name="compte" options={{ headerShown: true, title: 'Mon compte' }} />
+        <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }} />
         <Stack.Screen
           name="catalogue"
-          options={{ headerShown: true, title: 'Catalogue de prix' }}
+          options={{ headerShown: true, title: locale === 'en' ? 'Price book' : 'Catalogue de prix', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }}
         />
         <Stack.Screen
           name="entreprise"
-          options={{ headerShown: true, title: 'Mon entreprise' }}
+          options={{ headerShown: true, title: locale === 'en' ? 'My business' : 'Mon entreprise', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }}
         />
         <Stack.Screen
           name="analytique"
-          options={{ headerShown: true, title: 'Activité' }}
+          options={{ headerShown: true, title: locale === 'en' ? 'Activity' : 'Activité', headerBackTitle: locale === 'en' ? 'Back' : 'Retour' }}
         />
       </Stack.Protected>
     </Stack>

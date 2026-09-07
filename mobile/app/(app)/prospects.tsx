@@ -8,6 +8,8 @@ import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { mobileLocale } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'info'> = {
   NOUVEAU: 'accent',
@@ -23,6 +25,8 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'info
 export default function ProspectsScreen() {
   const router = useRouter();
   const { toast } = useToast();
+  const { session } = useAuth();
+  const en = mobileLocale(session) === 'en';
   const query = useQuery<LeadDTO[]>(() => api.leads.list(), [], 'leads');
 
   useFocusEffect(
@@ -35,10 +39,10 @@ export default function ProspectsScreen() {
   async function convert(lead: LeadDTO) {
     try {
       await api.leads.convert(lead.id);
-      toast({ title: 'Prospect converti', description: 'Client et chantier créés.' });
+      toast({ title: en ? 'Lead converted' : 'Prospect converti', description: en ? 'Client and job created.' : 'Client et chantier créés.' });
       await query.reload();
     } catch {
-      toast({ title: 'Conversion impossible', tone: 'error' });
+      toast({ title: en ? 'Conversion failed' : 'Conversion impossible', tone: 'error' });
     }
   }
 
@@ -83,10 +87,10 @@ export default function ProspectsScreen() {
               accessibilityLabel={`Ouvrir la demande de ${item.contactName}`}
               onPress={() =>
                 Alert.alert(item.contactName, item.description ?? item.title, [
-                  { text: 'Fermer', style: 'cancel' },
+                  { text: en ? 'Close' : 'Fermer', style: 'cancel' },
                   ...(item.customerId
-                    ? [{ text: 'Créer un devis', onPress: () => router.push('/devis/nouveau') }]
-                    : [{ text: 'Convertir en client', onPress: () => void convert(item) }]),
+                    ? [{ text: en ? 'Create a quote' : 'Créer un devis', onPress: () => router.push('/devis/nouveau') }]
+                    : [{ text: en ? 'Convert to client' : 'Convertir en client', onPress: () => void convert(item) }]),
                 ])
               }
               style={{ gap: spacing.sm }}

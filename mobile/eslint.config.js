@@ -10,6 +10,11 @@ module.exports = defineConfig([
   {
     rules: {
       'no-console': ['warn', { allow: ['warn', 'error', 'info'] }],
+      // eslint-plugin-import resolves the workspace alias by walking all of
+      // C:\\Users on Windows, which is denied in the sandbox and makes lint
+      // fail before it can inspect a source file. TypeScript remains the
+      // authoritative resolver for these aliases.
+      'import/no-unresolved': 'off',
     },
   },
 ]);

@@ -8,6 +8,7 @@ import {
   Button,
   Caption,
   Card,
+  ChoiceRow,
   ErrorState,
   Field,
   LoadingState,
@@ -18,6 +19,7 @@ import {
 import { useToast } from '@/components/toast';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Réglages de l'entreprise, natifs.
@@ -48,10 +50,12 @@ function toForm(profile: BusinessProfileDTO): Form {
     paymentTerms: profile.paymentTerms ?? '',
     quoteTerms: profile.quoteTerms ?? '',
     quoteFooter: profile.quoteFooter ?? '',
+    country: profile.country ?? 'FR',
   };
 }
 
 export default function EntrepriseScreen() {
+  const en = useMobileLocale() === 'en';
   const { toast } = useToast();
   const [profile, setProfile] = React.useState<BusinessProfileDTO | null>(null);
   const [form, setForm] = React.useState<Form | null>(null);
@@ -95,6 +99,7 @@ export default function EntrepriseScreen() {
       const next = await api.organisation.save({
         ...profile,
         legalName: form.legalName.trim(),
+        country,
         ownerName: form.ownerName.trim() || null,
         email: form.email.trim() || null,
         phone: form.phone.trim() || null,
@@ -142,6 +147,16 @@ export default function EntrepriseScreen() {
     );
   }
 
+  const country = form.country === 'GB' || form.country === 'US' ? form.country : 'FR';
+  const countryOptions = [
+    { value: 'FR' as const, label: en ? 'France' : 'France' },
+    { value: 'GB' as const, label: en ? 'United Kingdom' : 'Royaume-Uni' },
+    { value: 'US' as const, label: en ? 'United States' : 'États-Unis' },
+  ];
+  const identifierLabel = country === 'FR' ? 'SIRET' : country === 'GB' ? (en ? 'Company number' : 'Numéro d’entreprise') : (en ? 'Business ID' : 'Identifiant d’entreprise');
+  const taxLabel = country === 'US' ? (en ? 'Sales tax ID' : 'Identifiant de taxe') : (en ? 'VAT number' : 'N° de TVA');
+  const postalLabel = country === 'US' ? 'ZIP code' : en ? 'Postcode' : 'Code postal';
+
   return (
     <KeyboardAvoidingView
       style={{ flex: 1, backgroundColor: colors.surface }}
@@ -160,15 +175,15 @@ export default function EntrepriseScreen() {
 
         <Card style={{ gap: spacing.lg }}>
           <SectionHeader title="Identité" />
-          <Field label="Nom de l’entreprise" value={form.legalName} onChangeText={set('legalName')} />
+          <Field label={en ? 'Business name' : 'Nom de l’entreprise'} value={form.legalName} onChangeText={set('legalName')} />
           <Field
             label="Responsable"
             hint="facultatif"
             value={form.ownerName}
             onChangeText={set('ownerName')}
           />
-          <Field label="SIRET" hint="facultatif" value={form.siret} onChangeText={set('siret')} keyboardType="number-pad" />
-          <Field label="N° de TVA" hint="facultatif" value={form.vatNumber} onChangeText={set('vatNumber')} />
+          <Field label={identifierLabel} hint={en ? 'optional' : 'facultatif'} value={form.siret} onChangeText={set('siret')} keyboardType="number-pad" />
+          <Field label={taxLabel} hint={en ? 'optional' : 'facultatif'} value={form.vatNumber} onChangeText={set('vatNumber')} />
           <Field
             label="Assurance décennale"
             hint="mentionnée sur le devis"
@@ -186,14 +201,14 @@ export default function EntrepriseScreen() {
             keyboardType="email-address"
             autoCapitalize="none"
           />
-          <Field label="Téléphone" value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" />
-          <Field label="Adresse" value={form.addressLine1} onChangeText={set('addressLine1')} />
+          <Field label={en ? 'Phone' : 'Téléphone'} value={form.phone} onChangeText={set('phone')} keyboardType="phone-pad" />
+          <Field label={en ? 'Address' : 'Adresse'} value={form.addressLine1} onChangeText={set('addressLine1')} />
           <View style={{ flexDirection: 'row', gap: spacing.md }}>
             <View style={{ flex: 1 }}>
-              <Field label="Code postal" value={form.postalCode} onChangeText={set('postalCode')} keyboardType="number-pad" />
+              <Field label={postalLabel} value={form.postalCode} onChangeText={set('postalCode')} keyboardType="number-pad" />
             </View>
             <View style={{ flex: 2 }}>
-              <Field label="Ville" value={form.city} onChangeText={set('city')} />
+              <Field label={en ? 'City' : 'Ville'} value={form.city} onChangeText={set('city')} />
             </View>
           </View>
           <Field
@@ -203,6 +218,12 @@ export default function EntrepriseScreen() {
             onChangeText={set('website')}
             autoCapitalize="none"
           />
+        </Card>
+
+        <Card style={{ gap: spacing.lg }}>
+          <SectionHeader title={en ? 'Business region' : 'Pays de l’entreprise'} />
+          <Muted>{en ? 'Language and business country are separate. This choice controls document terminology, currency and regional fields.' : 'La langue et le pays de l’entreprise sont indépendants. Ce choix adapte les termes, la devise et les champs des documents.'}</Muted>
+          <ChoiceRow options={countryOptions} value={country} onChange={(next) => setForm((current) => (current ? { ...current, country: next } : current))} />
         </Card>
 
         <Card style={{ gap: spacing.lg }}>

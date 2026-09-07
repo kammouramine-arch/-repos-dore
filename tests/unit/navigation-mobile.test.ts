@@ -25,14 +25,14 @@ function ecrans(dossier: string, trouves: string[] = []): string[] {
 
 describe('navigation iOS', () => {
   it('pose un intitulé de retour par défaut pour toute la pile', () => {
-    expect(LAYOUT).toMatch(/screenOptions=\{\{[\s\S]*headerBackTitle:\s*'Retour'/);
+    expect(LAYOUT).toMatch(/screenOptions=\{\{[\s\S]*headerBackTitle:\s*(?:'Retour'|locale === 'en' \? 'Back' : 'Retour')/);
   });
 
   it('donne un titre à chaque écran dont l’en-tête est visible', () => {
     const declarations = LAYOUT.match(/<Stack\.Screen[\s\S]*?\/>/g) ?? [];
     const avecEntete = declarations.filter((d) => d.includes('headerShown: true'));
     expect(avecEntete.length).toBeGreaterThan(0);
-    for (const d of avecEntete) expect(d, d.slice(0, 90)).toMatch(/title:\s*'/);
+    for (const d of avecEntete) expect(d, d.slice(0, 90)).toMatch(/title:\s*[^,}]+/);
   });
 
   it('n’affiche jamais un nom de groupe comme texte d’interface', () => {
@@ -45,7 +45,7 @@ describe('navigation iOS', () => {
 
   it('nomme les écrans atteints depuis « Plus »', () => {
     for (const titre of ['Catalogue de prix', 'Mon entreprise', 'Activité', 'Abonnement', 'Devis']) {
-      expect(LAYOUT).toContain(`title: '${titre}'`);
+      expect(LAYOUT).toContain(`'${titre}'`);
     }
   });
 });

@@ -41,7 +41,7 @@ export async function POST(request: Request) {
     const buffer = Buffer.from(await file.arrayBuffer());
     const result = await provider.transcribeAudio({
       audio: { base64: buffer.toString('base64'), mimeType: file.type, fileName: file.name },
-      language: 'fr',
+      language: auth.user.locale === 'en' ? 'en' : 'fr',
       hints: TRADE_VOCABULARY,
     });
 

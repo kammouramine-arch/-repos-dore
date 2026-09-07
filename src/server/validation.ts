@@ -33,6 +33,7 @@ export const signUpSchema = z.object({
   companyName: z.string().trim().min(2, "Nom de l'entreprise requis.").max(160),
   phone: phoneSchema,
   invitationToken: z.string().trim().min(20).max(200).optional(),
+  locale: z.enum(['fr', 'en']).optional(),
 });
 
 export const signInSchema = z.object({

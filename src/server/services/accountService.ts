@@ -49,7 +49,7 @@ export async function deletePersonalAccount(userId: string, password: string, co
 }
 
 /** Serialized on the user row: limits survive serverless instances and concurrent requests. */
-export async function requestEmailCode(userId: string, input: { email: string; password?: string }) {
+export async function requestEmailCode(userId: string, input: { email: string; password?: string; language?: 'fr' | 'en' }) {
   const email = input.email.trim().toLowerCase();
   const provider = getEmailProvider();
   if (provider.name === 'console' || !provider.available) {
@@ -77,11 +77,12 @@ export async function requestEmailCode(userId: string, input: { email: string; p
     await tx.emailChallenge.upsert({ where: { userId }, create: { userId, ...data }, update: data });
   });
   try {
+    const english = input.language === 'en';
     const sent = await provider.send({
       to: email,
-      subject: 'Votre code de confirmation DEVISERA',
-      text: `Votre code DEVISERA : ${code}. Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.`,
-      html: layout({ title: 'Confirmez votre adresse email', body: `<p>Votre code de confirmation :</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.</p>` }),
+      subject: english ? 'Your DEVISERA verification code' : 'Votre code de confirmation DEVISERA',
+      text: english ? `Your DEVISERA code: ${code}. Valid for 10 minutes. Never share it. If you did not request it, ignore this email.` : `Votre code DEVISERA : ${code}. Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.`,
+      html: layout({ language: english ? 'en' : 'fr', title: english ? 'Verify your email address' : 'Confirmez votre adresse email', body: english ? `<p>Your verification code:</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valid for 10 minutes. Never share it. If you did not request it, ignore this email.</p>` : `<p>Votre code de confirmation :</p><p style="font-size:32px;letter-spacing:8px;font-weight:700">${esc(code)}</p><p>Valable 10 minutes. Ne le communiquez à personne. Si vous n’avez pas demandé ce code, ignorez cet email.</p>` }),
     });
     if (!sent.delivered) throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Réessayez plus tard.');
   } catch {

@@ -6,6 +6,7 @@ import { colors } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { ScrubTabBar } from '@/components/scrub-tab-bar';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Navigation principale. Le bouton central « Nouveau devis » reste accessible
@@ -13,6 +14,7 @@ import { ScrubTabBar } from '@/components/scrub-tab-bar';
  */
 export default function AppTabsLayout() {
   const insets = useSafeAreaInsets();
+  const locale = useMobileLocale();
   const bottomPadding = Math.max(insets.bottom, 12);
   const barHeight = 64 + bottomPadding;
 
@@ -54,7 +56,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Accueil',
+          title: locale === 'en' ? 'Home' : 'Accueil',
           tabBarIcon: ({ color, size, focused }) => (
             <TabIcon focused={focused} name={focused ? 'home' : 'home-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
@@ -63,7 +65,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="prospects"
         options={{
-          title: 'Prospects',
+          title: locale === 'en' ? 'Leads' : 'Prospects',
           tabBarIcon: ({ color, size, focused }) => (
             <TabIcon focused={focused} name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
@@ -72,13 +74,13 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="nouveau"
         options={{
-          title: 'Créer',
+          title: locale === 'en' ? 'Create' : 'Créer',
         }}
       />
       <Tabs.Screen
         name="clients"
         options={{
-          title: 'Clients',
+          title: locale === 'en' ? 'Clients' : 'Clients',
           tabBarIcon: ({ color, size, focused }) => (
             <TabIcon focused={focused} name={focused ? 'people' : 'people-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
@@ -87,7 +89,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="plus"
         options={{
-          title: 'Plus',
+          title: locale === 'en' ? 'More' : 'Plus',
           tabBarIcon: ({ color, size, focused }) => (
             <TabIcon focused={focused} name={focused ? 'grid' : 'grid-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),

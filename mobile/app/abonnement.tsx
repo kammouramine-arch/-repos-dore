@@ -34,6 +34,7 @@ import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 const STATUS_LABELS: Record<string, string> = {
   trialing: 'Essai en cours',
@@ -42,6 +43,9 @@ const STATUS_LABELS: Record<string, string> = {
   canceled: 'Résilié',
   incomplete: 'Incomplet',
 };
+const STATUS_LABELS_EN: Record<string, string> = {
+  trialing: 'Trial active', active: 'Active', past_due: 'Payment past due', canceled: 'Cancelled', incomplete: 'Incomplete',
+};
 
 /** Abonnement : conversion, changement de formule et résiliation. */
 export default function AbonnementScreen() {
@@ -49,6 +53,8 @@ export default function AbonnementScreen() {
 }
 
 function WebAbonnementScreen() {
+  const locale = useMobileLocale();
+  const en = locale === 'en';
   const { toast } = useToast();
   const { refresh } = useAuth();
   const query = useQuery<BillingOverviewDTO>(() => api.billing.overview(), [], 'billing');
@@ -65,10 +71,10 @@ function WebAbonnementScreen() {
       if (data.subscription.status === 'active' || data.subscription.status === 'past_due') {
         const result = await api.billing.changePlan(plan);
         toast({
-          title: `Formule ${PLANS[plan].name}`,
+          title: `${en ? 'Plan' : 'Formule'} ${PLANS[plan].name}`,
           description: result.effectiveAt
-            ? `Effective le ${new Date(result.effectiveAt).toLocaleDateString('fr-FR')}.`
-            : 'Appliquée immédiatement.',
+            ? `${en ? 'Effective' : 'Effective le'} ${new Date(result.effectiveAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}.`
+            : (en ? 'Applied immediately.' : 'Appliquée immédiatement.'),
         });
       } else {
         const { url } = await api.billing.checkout(plan);
@@ -78,8 +84,8 @@ function WebAbonnementScreen() {
       await refresh();
     } catch (cause) {
       Alert.alert(
-        'Action impossible',
-        cause instanceof DevisiaApiError ? cause.message : 'Réessayez dans un instant.',
+        en ? 'Action failed' : 'Action impossible',
+        cause instanceof DevisiaApiError ? cause.message : (en ? 'Try again in a moment.' : 'Réessayez dans un instant.'),
       );
     } finally {
       setPending(null);
@@ -94,8 +100,8 @@ function WebAbonnementScreen() {
       await query.reload();
     } catch (cause) {
       Alert.alert(
-        'Portail indisponible',
-        cause instanceof DevisiaApiError ? cause.message : 'Réessayez dans un instant.',
+        en ? 'Billing portal unavailable' : 'Portail indisponible',
+        cause instanceof DevisiaApiError ? cause.message : (en ? 'Try again in a moment.' : 'Réessayez dans un instant.'),
       );
     } finally {
       setPending(null);
@@ -104,29 +110,29 @@ function WebAbonnementScreen() {
 
   function confirmCancel() {
     Alert.alert(
-      'Résilier votre abonnement ?',
-      'Votre accès reste ouvert jusqu’à la fin de la période déjà payée. Vos données sont conservées.',
+      en ? 'Cancel your subscription?' : 'Résilier votre abonnement ?',
+      en ? 'Your access stays open until the end of the paid period. Your data is kept.' : 'Votre accès reste ouvert jusqu’à la fin de la période déjà payée. Vos données sont conservées.',
       [
-        { text: 'Garder mon abonnement', style: 'cancel' },
+        { text: en ? 'Keep my subscription' : 'Garder mon abonnement', style: 'cancel' },
         {
-          text: 'Résilier',
+          text: en ? 'Cancel' : 'Résilier',
           style: 'destructive',
           onPress: async () => {
             setPending('cancel');
             try {
               const result = await api.billing.cancel(false);
               toast({
-                title: 'Résiliation programmée',
+                title: en ? 'Cancellation scheduled' : 'Résiliation programmée',
                 description: result.endsAt
-                  ? `Accès conservé jusqu’au ${new Date(result.endsAt).toLocaleDateString('fr-FR')}.`
+                  ? `${en ? 'Access kept until' : 'Accès conservé jusqu’au'} ${new Date(result.endsAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}.`
                   : undefined,
               });
               await query.reload();
               await refresh();
             } catch (cause) {
               Alert.alert(
-                'Résiliation impossible',
-                cause instanceof DevisiaApiError ? cause.message : 'Réessayez dans un instant.',
+                en ? 'Cancellation failed' : 'Résiliation impossible',
+                cause instanceof DevisiaApiError ? cause.message : (en ? 'Try again in a moment.' : 'Réessayez dans un instant.'),
               );
             } finally {
               setPending(null);
@@ -149,7 +155,7 @@ function WebAbonnementScreen() {
   if (!data) {
     return (
       <Screen>
-        <Banner tone="danger" title={query.error ?? 'Abonnement indisponible.'} />
+        <Banner tone="danger" title={query.error ?? (en ? 'Subscription unavailable.' : 'Abonnement indisponible.')} />
         <Button title="Réessayer" variant="secondary" onPress={() => void query.reload()} />
       </Screen>
     );
@@ -162,33 +168,33 @@ function WebAbonnementScreen() {
       <PageHeader
         eyebrow="DEVISERA"
         title="Votre abonnement"
-        subtitle={
+          subtitle={
           access?.inTrial
-            ? trialMessage(access.trialDaysLeft)
-            : `Formule ${PLANS[currentPlan].name} · ${STATUS_LABELS[data.subscription.status]}`
+            ? (en ? `${access.trialDaysLeft} day${access.trialDaysLeft === 1 ? '' : 's'} left in your trial` : trialMessage(access.trialDaysLeft))
+            : `${en ? 'Plan' : 'Formule'} ${PLANS[currentPlan].name} · ${(en ? STATUS_LABELS_EN : STATUS_LABELS)[data.subscription.status] ?? data.subscription.status}`
         }
       />
 
       {access?.trialExpired ? (
         <Banner
           tone="warning"
-          title="Votre essai DEVISERA est terminé."
-          description="Continuez à gagner du temps et à récupérer vos devis en attente."
+          title={en ? 'Your DEVISERA trial has ended.' : 'Votre essai DEVISERA est terminé.'}
+          description={en ? 'Keep saving time and recovering your pending quotes.' : 'Continuez à gagner du temps et à récupérer vos devis en attente.'}
         />
       ) : null}
 
       {data.subscription.cancelAtPeriodEnd ? (
         <Banner
           tone="info"
-          title="Résiliation programmée"
+          title={en ? 'Cancellation scheduled' : 'Résiliation programmée'}
           description={
             data.subscription.currentPeriodEnd
-              ? `Votre accès reste ouvert jusqu’au ${new Date(data.subscription.currentPeriodEnd).toLocaleDateString('fr-FR')}.`
+              ? `${en ? 'Your access stays open until' : 'Votre accès reste ouvert jusqu’au'} ${new Date(data.subscription.currentPeriodEnd).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}.`
               : undefined
           }
           action={
             <Button
-              title="Reprendre mon abonnement"
+              title={en ? 'Resume my subscription' : 'Reprendre mon abonnement'}
               variant="secondary"
               onPress={async () => {
                 await api.billing.resume().catch(() => undefined);
@@ -206,23 +212,23 @@ function WebAbonnementScreen() {
             <Ionicons name="pulse-outline" size={17} color={colors.accent} />
           </View>
           <View>
-            <Heading style={{ fontSize: 16 }}>Votre utilisation</Heading>
-            <Caption>Ce mois-ci</Caption>
+            <Heading style={{ fontSize: 16 }}>{en ? 'Your usage' : 'Votre utilisation'}</Heading>
+            <Caption>{en ? 'This month' : 'Ce mois-ci'}</Caption>
           </View>
         </View>
         {[
-          { label: 'Générations IA', ...data.usage.aiGenerations },
-          { label: 'Transcriptions audio', ...data.usage.aiTranscriptions },
-          { label: 'Analyses photo IA', ...data.usage.aiImageAnalyses },
-          { label: 'Relances envoyées', ...data.usage.followUps },
-          { label: 'Devis envoyés', ...data.usage.quotesSent },
+          { label: en ? 'AI generations' : 'Générations IA', ...data.usage.aiGenerations },
+          { label: en ? 'Audio transcriptions' : 'Transcriptions audio', ...data.usage.aiTranscriptions },
+          { label: en ? 'AI photo analyses' : 'Analyses photo IA', ...data.usage.aiImageAnalyses },
+          { label: en ? 'Follow-ups sent' : 'Relances envoyées', ...data.usage.followUps },
+          { label: en ? 'Quotes sent' : 'Devis envoyés', ...data.usage.quotesSent },
         ].map((quota) => (
           <View key={quota.label} style={{ gap: 6 }}>
             <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
               <Muted>{quota.label}</Muted>
               <Body style={{ fontSize: 13 }}>
                 {quota.used}
-                {quota.limit == null ? ' · illimité' : ` / ${quota.limit}`}
+                {quota.limit == null ? (en ? ' · unlimited' : ' · illimité') : ` / ${quota.limit}`}
               </Body>
             </View>
             {quota.limit == null ? null : (
@@ -246,8 +252,8 @@ function WebAbonnementScreen() {
            serveur : « cette instance » ne veut rien dire pour lui. */
         <Banner
           tone="info"
-          title="Rien ne vous sera prélevé pour l’instant"
-          description="Profitez de votre essai. Nous vous préviendrons avant qu’il se termine, et vous choisirez alors votre formule."
+          title={en ? 'You will not be charged yet' : 'Rien ne vous sera prélevé pour l’instant'}
+          description={en ? 'Enjoy your trial. We will remind you before it ends, then you can choose your plan.' : 'Profitez de votre essai. Nous vous préviendrons avant qu’il se termine, et vous choisirez alors votre formule.'}
         />
       ) : null}
 
@@ -269,11 +275,11 @@ function WebAbonnementScreen() {
             >
               <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                 <Heading>{plan.name}</Heading>
-                {isCurrent ? <Badge label="Formule actuelle" tone="accent" /> : null}
-                {!isCurrent && plan.recommended ? <Badge label="Recommandé" tone="success" /> : null}
+                {isCurrent ? <Badge label={en ? 'Current plan' : 'Formule actuelle'} tone="accent" /> : null}
+                {!isCurrent && plan.recommended ? <Badge label={en ? 'Recommended' : 'Recommandé'} tone="success" /> : null}
               </View>
 
-              <Price cents={plan.monthlyPriceCents} suffix="/ mois HT" />
+              <Price cents={plan.monthlyPriceCents} suffix={en ? '/ month excl. VAT' : '/ mois HT'} />
 
               <Divider />
 
@@ -288,10 +294,10 @@ function WebAbonnementScreen() {
                 <Button
                   title={
                     data.subscription.status === 'trialing'
-                      ? `Choisir ${plan.name}`
+                      ? `${en ? 'Choose' : 'Choisir'} ${plan.name}`
                       : direction === 'downgrade'
-                        ? `Passer en ${plan.name} à l’échéance`
-                        : `Passer en ${plan.name}`
+                        ? `${en ? 'Switch to' : 'Passer en'} ${plan.name}${en ? ' at renewal' : ' à l’échéance'}`
+                        : `${en ? 'Switch to' : 'Passer en'} ${plan.name}`
                   }
                   variant={plan.recommended ? 'primary' : 'secondary'}
                   loading={pending === planId}
@@ -308,17 +314,17 @@ function WebAbonnementScreen() {
 
       {data.canManage && data.subscription.status !== 'trialing' ? (
         <View style={{ gap: spacing.md }}>
-          <Button title="Gérer ma facturation" variant="secondary" loading={pending === 'portal'} onPress={() => void openPortal()} />
+          <Button title={en ? 'Manage billing' : 'Gérer ma facturation'} variant="secondary" loading={pending === 'portal'} onPress={() => void openPortal()} />
           {!data.subscription.cancelAtPeriodEnd ? (
             <Pressable accessibilityRole="button" onPress={confirmCancel} style={{ alignItems: 'center', padding: spacing.md }}>
-              <Muted style={{ color: colors.danger }}>Résilier mon abonnement</Muted>
+              <Muted style={{ color: colors.danger }}>{en ? 'Cancel my subscription' : 'Résilier mon abonnement'}</Muted>
             </Pressable>
           ) : null}
         </View>
       ) : null}
 
       <Muted style={{ textAlign: 'center', fontSize: 12 }}>
-        {TRIAL_DAYS} jours d’essai gratuit · Sans engagement · Résiliable à tout moment
+        {en ? `${TRIAL_DAYS} free trial days · No commitment · Cancel anytime` : `${TRIAL_DAYS} jours d’essai gratuit · Sans engagement · Résiliable à tout moment`}
       </Muted>
     </Screen>
   );

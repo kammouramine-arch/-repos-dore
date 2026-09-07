@@ -3,6 +3,7 @@ import { Animated, Easing, View } from 'react-native';
 import { Logo } from '@/components/logo';
 import { colors, motion, spacing, typography } from '@/theme';
 import { recordDiagnostic } from '@/lib/diagnostics';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Écran de lancement.
@@ -14,12 +15,14 @@ import { recordDiagnostic } from '@/lib/diagnostics';
  * l'animation au lieu de la percevoir.
  */
 export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
-  const startedAt = React.useRef(Date.now());
+  const locale = useMobileLocale();
+  const startedAt = React.useRef<number | null>(null);
   const opacity = React.useMemo(() => new Animated.Value(0), []);
   const rise = React.useMemo(() => new Animated.Value(14), []);
   const scale = React.useMemo(() => new Animated.Value(0.94), []);
 
   React.useEffect(() => {
+    startedAt.current = Date.now();
     const animation = Animated.parallel([
       Animated.timing(opacity, {
         toValue: 1,
@@ -43,7 +46,7 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
     ]);
     animation.start(({ finished }) => {
       if (finished) {
-        recordDiagnostic({ area: 'startup', durationMs: Date.now() - startedAt.current, code: 'LAUNCH_SETTLED' });
+        recordDiagnostic({ area: 'startup', durationMs: Date.now() - (startedAt.current ?? Date.now()), code: 'LAUNCH_SETTLED' });
         onSettled?.();
       }
     });
@@ -84,7 +87,7 @@ export function LaunchScreen({ onSettled }: { onSettled?: () => void }) {
           },
         ]}
       >
-        L’IA qui transforme votre travail en devis
+        {locale === 'en' ? 'AI-powered quotes for your business' : 'L’IA qui transforme votre travail en devis'}
       </Animated.Text>
       <Animated.View
         style={{

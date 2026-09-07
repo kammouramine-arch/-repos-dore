@@ -103,6 +103,7 @@ export async function draftFollowUpMessage(
   quoteId: string,
   attempt = 1,
   tone: FollowUpTone = 'professionnel',
+  language?: 'fr' | 'en',
 ) {
   const quote = await prisma.quote.findFirst({
     where: { id: quoteId, organizationId, deletedAt: null },
@@ -116,6 +117,7 @@ export async function draftFollowUpMessage(
     quote.customer.companyName,
   );
   const companyName = quote.organization.businessProfile?.legalName ?? quote.organization.name;
+  const outputLanguage: 'fr' | 'en' = language ?? (quote.organization.locale === 'en' ? 'en' : 'fr');
 
   const fallback = buildTemplateFollowUp({
     customerName,
@@ -126,7 +128,7 @@ export async function draftFollowUpMessage(
     viewed: quote.viewCount > 0,
     companyName,
     signature: quote.organization.settings?.aiSignature ?? quote.organization.businessProfile?.ownerName,
-    language: quote.organization.locale,
+    language: outputLanguage,
     country: quote.organization.country,
     currency: quote.organization.currency,
   });
@@ -136,7 +138,7 @@ export async function draftFollowUpMessage(
 
   try {
     const result = await provider.generateStructuredOutput({
-      system: localizedSystemPrompt(FOLLOW_UP_SYSTEM, quote.organization),
+      system: localizedSystemPrompt(FOLLOW_UP_SYSTEM, { ...quote.organization, locale: outputLanguage }),
       context: [
         `Entreprise : ${companyName}`,
         `Client : ${customerName}`,

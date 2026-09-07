@@ -4,6 +4,7 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, shadows, spacing } from '@/theme';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 
 type Tone = 'success' | 'error' | 'info';
 
@@ -27,6 +28,7 @@ const TONE_COLORS: Record<Tone, string> = {
 
 /** Notifications éphémères, avec retour haptique cohérent avec le ton. */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  const locale = useMobileLocale();
   const insets = useSafeAreaInsets();
   const [current, setCurrent] = React.useState<{ title: string; description?: string; tone: Tone } | null>(
     null,
@@ -87,10 +89,10 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
         >
           <Ionicons name={ICONS[current.tone]} size={20} color={TONE_COLORS[current.tone]} />
           <View style={{ flex: 1 }}>
-            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.ink }}>{current.title}</Text>
+            <Text style={{ fontSize: 14, fontWeight: '600', color: colors.ink }}>{localizeText(locale, current.title)}</Text>
             {current.description ? (
               <Text style={{ fontSize: 13, color: colors.muted, marginTop: 2 }}>
-                {current.description}
+                {localizeText(locale, current.description)}
               </Text>
             ) : null}
           </View>

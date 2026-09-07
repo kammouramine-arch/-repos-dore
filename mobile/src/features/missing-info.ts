@@ -1,4 +1,5 @@
 import type { GeneratedQuoteDTO } from '@devisia/shared';
+import type { MobileLocale } from '@/lib/i18n';
 
 /**
  * Traduction des manques de l'IA en questions auxquelles on peut répondre.
@@ -41,6 +42,26 @@ const FOURNITURES: MissingQuestion = {
   placeholder: 'Siphon laiton, joints, mitigeur…',
 };
 
+const DUREE_EN: MissingQuestion = {
+  id: 'duree',
+  kind: 'duree',
+  prompt: 'How long do you expect to be on site?',
+  choices: [
+    { value: '30 minutes', label: '30 min' },
+    { value: '1 hour', label: '1 hr' },
+    { value: '2 hours', label: '2 hrs' },
+    { value: 'half a day', label: '½ day' },
+    { value: 'one day', label: '1 day' },
+  ],
+};
+
+const FOURNITURES_EN: MissingQuestion = {
+  id: 'fournitures',
+  kind: 'fournitures',
+  prompt: 'Which materials should be included?',
+  placeholder: 'Brass trap, seals, mixer tap…',
+};
+
 /**
  * Transforme les questions rendues par le moteur en formulaire.
  *
@@ -48,24 +69,26 @@ const FOURNITURES: MissingQuestion = {
  * fréquents pour proposer des réponses en un geste, et on conserve les autres
  * en saisie libre plutôt que de les perdre.
  */
-export function toQuestions(draft: GeneratedQuoteDTO): MissingQuestion[] {
+export function toQuestions(draft: GeneratedQuoteDTO, locale: MobileLocale = 'fr'): MissingQuestion[] {
+  const duration = locale === 'en' ? DUREE_EN : DUREE;
+  const materials = locale === 'en' ? FOURNITURES_EN : FOURNITURES;
   const questions: MissingQuestion[] = [];
   const seen = new Set<string>();
 
   for (const raw of draft.questions) {
     const text = raw.toLowerCase();
     if (/(temps|durée|duree|heure)/.test(text) && !seen.has('duree')) {
-      questions.push(DUREE);
+      questions.push(duration);
       seen.add('duree');
     } else if (/(fourniture|matériel|materiel|pièce|piece)/.test(text) && !seen.has('fournitures')) {
-      questions.push(FOURNITURES);
+      questions.push(materials);
       seen.add('fournitures');
     } else if (!seen.has(raw)) {
       questions.push({
         id: raw,
         kind: 'libre',
         prompt: raw,
-        placeholder: 'Votre réponse',
+        placeholder: locale === 'en' ? 'Your answer' : 'Votre réponse',
       });
       seen.add(raw);
     }
@@ -74,7 +97,7 @@ export function toQuestions(draft: GeneratedQuoteDTO): MissingQuestion[] {
   // Une confiance basse sans question explicite signale un manque que le
   // moteur n'a pas su nommer : la durée est, de loin, le plus fréquent.
   if (questions.length === 0 && draft.confidence < 55 && draft.estimatedDurationMin == null) {
-    questions.push(DUREE);
+    questions.push(duration);
   }
 
   return questions;
@@ -88,13 +111,14 @@ export function applyAnswers(
   description: string,
   questions: MissingQuestion[],
   answers: Record<string, string>,
+  locale: MobileLocale = 'fr',
 ): string {
   const additions = questions
     .map((question) => {
       const answer = answers[question.id]?.trim();
       if (!answer) return null;
-      if (question.kind === 'duree') return `Durée d'intervention : ${answer}.`;
-      if (question.kind === 'fournitures') return `Fournitures à prévoir : ${answer}.`;
+      if (question.kind === 'duree') return locale === 'en' ? `On-site duration: ${answer}.` : `Durée d'intervention : ${answer}.`;
+      if (question.kind === 'fournitures') return locale === 'en' ? `Materials to include: ${answer}.` : `Fournitures à prévoir : ${answer}.`;
       return `${question.prompt} ${answer}`;
     })
     .filter((line): line is string => Boolean(line));
@@ -104,7 +128,9 @@ export function applyAnswers(
 }
 
 /** Phrase affichée à la place d'un pourcentage de confiance. */
-export function missingLabel(count: number): string {
+export function missingLabel(count: number, locale: MobileLocale = 'fr'): string {
   if (count === 0) return '';
-  return count === 1 ? 'Il me manque une information' : `Il me manque ${count} informations`;
+  return locale === 'en'
+    ? count === 1 ? 'One detail is still missing' : `${count} details are still missing`
+    : count === 1 ? 'Il me manque une information' : `Il me manque ${count} informations`;
 }

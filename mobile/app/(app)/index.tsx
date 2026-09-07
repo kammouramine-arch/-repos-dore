@@ -93,11 +93,17 @@ function Stat({
 }
 
 /** « aujourd'hui », « hier », puis une date : un artisan ne compte pas en ISO. */
-function relativeDay(iso: string): string {
+function relativeDay(iso: string, en: boolean): string {
   const date = new Date(iso);
   const jour = 24 * 60 * 60 * 1000;
   const minuit = (d: Date) => new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
   const ecart = Math.round((minuit(new Date()) - minuit(date)) / jour);
+  if (en) {
+    if (ecart <= 0) return 'today';
+    if (ecart === 1) return 'yesterday';
+    if (ecart < 7) return `${ecart} days ago`;
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'short' });
+  }
   if (ecart <= 0) return 'aujourd’hui';
   if (ecart === 1) return 'hier';
   if (ecart < 7) return `il y a ${ecart} jours`;
@@ -345,13 +351,15 @@ export default function AccueilScreen() {
             {data.toRecover.quoteCount > 0 ? (
               <Pressable
                 accessibilityRole="button"
-                accessibilityLabel="Voir les devis à relancer"
+                accessibilityLabel={en ? 'View quotes to follow up' : 'Voir les devis à relancer'}
                 onPress={() => router.push('/devis')}
               >
                 <Stat label="Chiffre d’affaires à récupérer" tone="accent" icon="arrow-redo-outline">
                   <Amount cents={data.toRecover.totalCents} size="metric" tone="accent" />
                   <Body style={{ color: colors.accentHover, marginTop: 2 }}>
-                    {data.toRecover.quoteCount} devis sans réponse · relancez-les
+                    {en
+                      ? `${data.toRecover.quoteCount} quote${data.toRecover.quoteCount === 1 ? '' : 's'} without a reply · follow up`
+                      : `${data.toRecover.quoteCount} devis sans réponse · relancez-les`}
                   </Body>
                 </Stat>
               </Pressable>
@@ -361,18 +369,18 @@ export default function AccueilScreen() {
                 devis sont partis. DEVISERA ne demande aucune acceptation au
                 client, il n'y a donc pas de taux à afficher. */}
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
-              <Stat label="CA devisé" hint="sur 30 jours" icon="trending-up-outline">
+              <Stat label={en ? 'Quoted revenue' : 'CA devisé'} hint={en ? 'over 30 days' : 'sur 30 jours'} icon="trending-up-outline">
                 <Amount cents={data.quotedRevenueCents} size="metric" />
               </Stat>
-              <Stat label="Devis envoyés" hint={`${data.pendingQuotes} sans réponse`} icon="paper-plane-outline">
+              <Stat label={en ? 'Quotes sent' : 'Devis envoyés'} hint={en ? `${data.pendingQuotes} without a reply` : `${data.pendingQuotes} sans réponse`} icon="paper-plane-outline">
                 <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
               </Stat>
             </View>
 
             <Card style={{ gap: spacing.md }}>
               <SectionHeader
-                title="Activité récente"
-                action={{ label: 'Tout voir', onPress: () => router.push('/devis') }}
+                title={en ? 'Recent activity' : 'Activité récente'}
+                action={{ label: en ? 'See all' : 'Tout voir', onPress: () => router.push('/devis') }}
               />
               {data.recentActivity.length === 0 ? (
                 <Muted>Aucune activité sur les 30 derniers jours.</Muted>
@@ -398,8 +406,10 @@ export default function AccueilScreen() {
                         {/* Sans ce qui est arrivé au devis, deux évènements du
                             même devis se ressemblaient à s'y méprendre. */}
                         <Muted style={{ fontSize: 13 }} numberOfLines={1}>
-                          {QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour'} ·{' '}
-                          {relativeDay(event.createdAt)} · {event.quoteNumber}
+                        {(en
+                          ? ({ CREE: 'Created', MODIFIE: 'Updated', ENVOYE: 'Sent to client', CONSULTE: 'Opened by client', ACCEPTE: 'Opened by client', REFUSE: 'Opened by client', MODIFICATION_DEMANDEE: 'Opened by client', RELANCE: 'Followed up', PDF_TELECHARGE: 'PDF downloaded', ANNULE: 'Cancelled' } as Record<string, string>)[event.type] ?? 'Updated'
+                          : QUOTE_EVENT_LABELS[event.type] ?? 'Mis à jour')} ·{' '}
+                        {relativeDay(event.createdAt, en)} · {event.quoteNumber}
                         </Muted>
                       </View>
                       <Amount cents={event.totalCents} tone="muted" />
@@ -414,8 +424,9 @@ export default function AccueilScreen() {
                 <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
                   <Badge label={String(data.newLeads)} tone="accent" />
                   <Body style={{ flex: 1, fontWeight: '600' }}>
-                    {data.newLeads} nouvelle{data.newLeads > 1 ? 's' : ''} demande
-                    {data.newLeads > 1 ? 's' : ''}
+                    {en
+                      ? `${data.newLeads} new quote request${data.newLeads > 1 ? 's' : ''}`
+                      : `${data.newLeads} nouvelle${data.newLeads > 1 ? 's' : ''} demande${data.newLeads > 1 ? 's' : ''}`}
                   </Body>
                   <Ionicons name="chevron-forward" size={17} color={colors.subtle} />
                 </Card>
@@ -423,7 +434,7 @@ export default function AccueilScreen() {
             ) : null}
 
             <Button
-              title="Nouveau devis"
+              title={en ? 'New quote' : 'Nouveau devis'}
               icon="add"
               haptic
               onPress={() => router.push('/devis/nouveau')}

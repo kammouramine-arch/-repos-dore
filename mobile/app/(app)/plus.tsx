@@ -83,7 +83,7 @@ export default function PlusScreen() {
             </View>
           }
         />
-        {access.inTrial ? <Muted>{trialMessage(access.trialDaysLeft)}</Muted> : null}
+        {access.inTrial ? <Muted>{locale === 'en' ? `${access.trialDaysLeft} day${access.trialDaysLeft === 1 ? '' : 's'} left in your trial` : trialMessage(access.trialDaysLeft)}</Muted> : null}
 
         <TrialBanner subscription={session?.subscription ?? null} />
 

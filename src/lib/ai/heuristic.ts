@@ -18,25 +18,29 @@ export interface HeuristicInput {
   defaultVatRate: number;
   trade?: string | null;
   imageObservations?: string[];
+  /** Preferred output language for generated customer-facing copy. */
+  language?: 'fr' | 'en';
 }
 
 /** Équipements dont le chiffrage exige une caractéristique précise. */
-const EQUIPMENT_REQUIREMENTS: { pattern: RegExp; question: string }[] = [
-  { pattern: /chaudiere/, question: "Quelle est la marque, le modèle et la puissance de la chaudière ?" },
-  { pattern: /pompe a chaleur|\bpac\b/, question: 'Quelle puissance et quel type de pompe à chaleur (air/eau, air/air) ?' },
-  { pattern: /chauffe[- ]eau|ballon/, question: "Quelle capacité de chauffe-eau (en litres) et quelle énergie ?" },
-  { pattern: /climatisation|clim\b|split/, question: 'Combien de splits et quelle surface à climatiser ?' },
-  { pattern: /tableau electrique|disjoncteur/, question: 'Quel est le nombre de circuits à reprendre sur le tableau ?' },
-  { pattern: /velux|fenetre|porte/, question: 'Quelles sont les dimensions et le matériau des menuiseries ?' },
-  { pattern: /toiture|couverture|tuile/, question: 'Quelle surface de toiture et quel type de tuiles ?' },
-  { pattern: /peinture|peindre/, question: 'Quelle surface à peindre et combien de couches prévues ?' },
-  { pattern: /carrelage|parquet|sol/, question: 'Quelle surface au sol en m² ?' },
-  { pattern: /isolation|isoler/, question: "Quelle surface à isoler et quel type d'isolant ?" },
+const EQUIPMENT_REQUIREMENTS: { pattern: RegExp; fr: string; en: string }[] = [
+  { pattern: /chaudiere/, fr: "Quelle est la marque, le modèle et la puissance de la chaudière ?", en: 'What are the boiler brand, model and power rating?' },
+  { pattern: /pompe a chaleur|\bpac\b/, fr: 'Quelle puissance et quel type de pompe à chaleur (air/eau, air/air) ?', en: 'What power rating and type of heat pump (air-to-water or air-to-air)?' },
+  { pattern: /chauffe[- ]eau|ballon/, fr: "Quelle capacité de chauffe-eau (en litres) et quelle énergie ?", en: 'What water-heater capacity (litres) and energy source?' },
+  { pattern: /climatisation|clim\b|split/, fr: 'Combien de splits et quelle surface à climatiser ?', en: 'How many split units and what area needs cooling?' },
+  { pattern: /tableau electrique|disjoncteur/, fr: 'Quel est le nombre de circuits à reprendre sur le tableau ?', en: 'How many circuits need work in the electrical panel?' },
+  { pattern: /velux|fenetre|porte/, fr: 'Quelles sont les dimensions et le matériau des menuiseries ?', en: 'What are the dimensions and material of the windows or doors?' },
+  { pattern: /toiture|couverture|tuile/, fr: 'Quelle surface de toiture et quel type de tuiles ?', en: 'What roof area and tile type are involved?' },
+  { pattern: /peinture|peindre/, fr: 'Quelle surface à peindre et combien de couches prévues ?', en: 'What area will be painted and how many coats are planned?' },
+  { pattern: /carrelage|parquet|sol/, fr: 'Quelle surface au sol en m² ?', en: 'What floor area in square metres?' },
+  { pattern: /isolation|isoler/, fr: "Quelle surface à isoler et quel type d'isolant ?", en: 'What area needs insulation and which insulation type?' },
 ];
 
 const NON_INCLUS = "Les éventuels travaux non décrits (reprise de maçonnerie, peinture, raccordements complémentaires) ne sont pas inclus.";
+const NON_INCLUDED_EN = 'Work not described (masonry repairs, painting or additional connections) is not included.';
 
 export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
+  const english = input.language === 'en';
   const source = [input.description, ...(input.imageObservations ?? [])].filter(Boolean).join('. ');
   const normalized = normalize(source);
   const matches = matchCatalog(source, input.catalog, { limit: 8 });
@@ -71,8 +75,8 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
   if (mainOeuvre.length === 0) {
     const hours = durationMinutes ? Math.round((durationMinutes / 60) * 100) / 100 : 1;
     mainOeuvre.push({
-      designation: "Main-d'œuvre",
-      description: "Intervention sur site, temps estimé d'après votre description.",
+      designation: english ? 'Labour' : "Main-d'œuvre",
+      description: english ? 'On-site work; time estimated from your description.' : "Intervention sur site, temps estimé d'après votre description.",
       heures: hours,
       tauxHoraire: centsToEuros(input.hourlyRateCents),
       referenceCatalogue: null,
@@ -81,29 +85,29 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
 
   const questions: string[] = [];
   for (const requirement of EQUIPMENT_REQUIREMENTS) {
-    if (requirement.pattern.test(normalized)) questions.push(requirement.question);
+    if (requirement.pattern.test(normalized)) questions.push(english ? requirement.en : requirement.fr);
   }
   if (!durationMinutes) {
-    questions.push("Combien de temps d'intervention faut-il prévoir ?");
+    questions.push(english ? 'How long should the intervention take?' : "Combien de temps d'intervention faut-il prévoir ?");
   }
   if (materiaux.length === 0) {
-    questions.push('Quelles fournitures faut-il prévoir pour ce chantier ?');
+    questions.push(english ? 'Which materials should be included for this job?' : 'Quelles fournitures faut-il prévoir pour ce chantier ?');
   }
 
   const alertes: string[] = [
-    'Devis préparé automatiquement : vérifiez les quantités et les prix avant envoi.',
-    NON_INCLUS,
+    english ? 'Quote prepared automatically: check quantities and prices before sending.' : 'Devis préparé automatiquement : vérifiez les quantités et les prix avant envoi.',
+    english ? NON_INCLUDED_EN : NON_INCLUS,
   ];
   if (matches.length === 0) {
     alertes.unshift(
-      "Aucun article de votre catalogue n'a été reconnu dans cette description : les lignes sont à compléter manuellement.",
+      english ? 'No catalogue item matched this description: complete the lines manually.' : "Aucun article de votre catalogue n'a été reconnu dans cette description : les lignes sont à compléter manuellement.",
     );
   }
 
   const descriptionTravaux = splitTasks(input.description);
 
   return {
-    titre: buildTitle(input.description, input.trade),
+    titre: buildTitle(input.description, input.trade, input.language),
     resume: buildSummary(input.description),
     descriptionTravaux,
     materiaux,
@@ -114,9 +118,9 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
     hypotheses: dedupe([
       durationMinutes
         ? null
-        : "Durée d'intervention estimée à défaut d'indication : à confirmer.",
+        : (english ? 'Intervention duration was estimated because none was provided: please confirm.' : "Durée d'intervention estimée à défaut d'indication : à confirmer."),
       matches.length > 0
-        ? 'Quantités déduites de votre description : vérifiez-les avant envoi.'
+        ? (english ? 'Quantities inferred from your description: check them before sending.' : 'Quantités déduites de votre description : vérifiez-les avant envoi.')
         : null,
     ].filter((item): item is string => item != null)).slice(0, 5),
     dureeEstimeeMinutes: durationMinutes,
@@ -136,12 +140,14 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
  * trait, il recopiait toute la description et l'écran affichait deux fois le
  * même texte. On s'arrête donc à la première proposition, coupée sur un mot.
  */
-function buildTitle(description: string, trade?: string | null): string {
+function buildTitle(description: string, trade?: string | null, language: 'fr' | 'en' = 'fr'): string {
   const first = description
     .split(/[.\n!?;]|,\s*(?:puis|ensuite|et)\s+/i)
     .map((part) => part.trim())
     .find((part) => part.length > 8);
-  if (!first) return trade ? `Intervention ${tradeLabel(trade)}` : 'Intervention';
+  if (!first) return trade
+    ? (language === 'en' ? `${tradeLabel(trade, language)} service` : `Intervention ${tradeLabel(trade, language)}`)
+    : (language === 'en' ? 'Service' : 'Intervention');
   const cleaned = first
     .replace(/^(le client|la cliente|il faut|je dois)\s+/i, '')
     .replace(/\s+/g, ' ')
@@ -212,8 +218,14 @@ const TRADE_LABELS: Record<string, string> = {
   AUTRE: '',
 };
 
-export function tradeLabel(trade: string): string {
-  return TRADE_LABELS[trade] ?? '';
+const TRADE_LABELS_EN: Record<string, string> = {
+  PLOMBIER: 'plumbing', ELECTRICIEN: 'electrical', CHAUFFAGISTE: 'heating', CLIMATICIEN: 'air conditioning',
+  PEINTRE: 'painting', COUVREUR: 'roofing', MENUISIER: 'joinery', MACON: 'masonry', PAYSAGISTE: 'landscaping',
+  RENOVATION: 'renovation', NETTOYAGE: 'cleaning', DEPANNAGE: 'repairs', AUTRE: '',
+};
+
+export function tradeLabel(trade: string, language: 'fr' | 'en' = 'fr'): string {
+  return (language === 'en' ? TRADE_LABELS_EN : TRADE_LABELS)[trade] ?? '';
 }
 
 /**

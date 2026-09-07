@@ -1,5 +1,6 @@
 import { Alert, Linking, Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
+import type { MobileLocale } from './i18n';
 
 const KEY = 'devisera.review.prompt.v1';
 const MIN_SUCCESSFUL_QUOTES = 2;
@@ -31,15 +32,16 @@ async function openReviewPage() {
 }
 
 /** Counts successful quote workflows and asks only after the second one. */
-export async function recordSuccessfulQuoteAndMaybeAskForReview() {
+export async function recordSuccessfulQuoteAndMaybeAskForReview(locale: MobileLocale = 'fr') {
   const state = await readState();
   const next = { ...state, successfulQuotes: state.successfulQuotes + 1 };
   const eligible = next.successfulQuotes >= MIN_SUCCESSFUL_QUOTES && (!next.promptedAt || Date.now() - next.promptedAt >= PROMPT_COOLDOWN_MS);
   if (!eligible) { await writeState(next); return; }
   next.promptedAt = Date.now();
   await writeState(next);
-  Alert.alert('Votre avis compte', 'Vous venez de préparer plusieurs devis avec DEVISERA. L’application vous aide-t-elle au quotidien ?', [
-    { text: 'Plus tard', style: 'cancel' },
-    { text: 'Donner mon avis', onPress: () => { void openReviewPage(); } },
+  const en = locale === 'en';
+  Alert.alert(en ? 'Your feedback matters' : 'Votre avis compte', en ? 'You have just prepared several quotes with DEVISERA. Is the app helping you day to day?' : 'Vous venez de préparer plusieurs devis avec DEVISERA. L’application vous aide-t-elle au quotidien ?', [
+    { text: en ? 'Later' : 'Plus tard', style: 'cancel' },
+    { text: en ? 'Rate the app' : 'Donner mon avis', onPress: () => { void openReviewPage(); } },
   ]);
 }

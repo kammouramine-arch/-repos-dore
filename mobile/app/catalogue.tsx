@@ -29,6 +29,8 @@ import {
 } from '@/components/ui';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
+import { mobileLocale } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
 
 /**
  * Catalogue de prix, natif.
@@ -68,6 +70,8 @@ const BLANK: Draft = {
 };
 
 export default function CatalogueScreen() {
+  const { session } = useAuth();
+  const en = mobileLocale(session) === 'en';
   const [items, setItems] = React.useState<PriceBookItemDTO[] | null>(null);
   const [search, setSearch] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);
@@ -178,7 +182,9 @@ export default function CatalogueScreen() {
                 <ListRow
                   key={item.id}
                   title={item.name}
-                  subtitle={`${PRICE_BOOK_CATEGORY_LABELS[item.category] ?? item.category} · par ${item.unit}`}
+                  subtitle={en
+                    ? `${({ MAIN_OEUVRE: 'Labour', MATERIAU: 'Material', SERVICE: 'Service', PACK: 'Package' } as const)[item.category] ?? item.category} · per ${item.unit}`
+                    : `${PRICE_BOOK_CATEGORY_LABELS[item.category] ?? item.category} · par ${item.unit}`}
                   value={formatCents(item.salePriceCents)}
                   last={index === items.length - 1}
                   onPress={() =>
@@ -195,7 +201,7 @@ export default function CatalogueScreen() {
               ))}
             </Card>
             <Caption style={{ color: colors.subtle }}>
-              Ces prix servent de référence à chaque devis préparé par DEVISERA.
+              {en ? 'These prices are used as a reference in every quote prepared by DEVISERA.' : 'Ces prix servent de référence à chaque devis préparé par DEVISERA.'}
             </Caption>
           </View>
         ) : null}

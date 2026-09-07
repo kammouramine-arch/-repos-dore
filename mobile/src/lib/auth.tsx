@@ -3,9 +3,10 @@ import { Alert, AppState, Platform } from 'react-native';
 import { listenForApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
-import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot } from './storage';
+import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, persistPreferredLocale, readPreferredLocale } from './storage';
 import { clearQueryCache } from './query-cache';
 import { registerForPush, unregisterPush } from './push';
+import { MobileLocaleProvider, deviceLocale, localizeText, mobileLocale, type MobileLocale } from './i18n';
 
 /**
  * Contexte d'authentification mobile.
@@ -80,12 +81,24 @@ export function describeAuthError(error: unknown): string {
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sessionGeneration = React.useRef(0);
   const restoring = React.useRef<Promise<void> | null>(null);
+  const [preferredLocale, setPreferredLocale] = React.useState<MobileLocale>(deviceLocale);
   const [state, setState] = React.useState<AuthState>({
     status: 'chargement',
     session: null,
     error: null,
     offline: false,
   });
+  const authLocale = state.session ? mobileLocale(state.session) : preferredLocale;
+
+  React.useEffect(() => {
+    void readPreferredLocale().then((stored) => { if (stored) setPreferredLocale(stored); });
+  }, []);
+
+  const rememberLocale = React.useCallback((session: SessionDTO) => {
+    const locale = mobileLocale(session);
+    setPreferredLocale(locale);
+    void persistPreferredLocale(locale);
+  }, []);
 
   const loadSession = React.useCallback(async () => {
     if (restoring.current) return restoring.current;
@@ -100,12 +113,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
     const cached = await readSessionSnapshot(token);
     if (generation !== sessionGeneration.current) return;
-    if (cached) setState((current) => current.status === 'chargement'
-      ? { status: 'connecte', session: cached, error: null, offline: false }
-      : current);
+    if (cached) {
+      rememberLocale(cached);
+      setState((current) => current.status === 'chargement'
+        ? { status: 'connecte', session: cached, error: null, offline: false }
+        : current);
+    }
     try {
       const session = await api.auth.me();
       if (generation !== sessionGeneration.current) return;
+      rememberLocale(session);
       setState({ status: 'connecte', session, error: null, offline: false });
       await writeSessionSnapshot(token, session);
     } catch (cause) {
@@ -128,7 +145,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       // startup in a recoverable state instead of an unhandled rejection.
       if (generation === sessionGeneration.current) setState(current => ({ ...current, offline: true }));
     } finally { if (restoring.current === pending) restoring.current = null; }
-  }, []);
+  }, [rememberLocale]);
 
   // A mutation (purchase/profile update) must not reuse a read started before it.
   const refreshSession = React.useCallback(async () => {
@@ -161,11 +178,21 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     let disposed = false;
     let cleanup: (() => void) | undefined;
     void listenForApplePurchases(() => { void refreshSession(); }, (error) => {
-      if (!disposed) Alert.alert('Abonnement', error instanceof Error ? error.message : 'La confirmation Apple n’a pas abouti. Restaurez vos achats.');
+      if (!disposed) {
+        const english = authLocale === 'en';
+        Alert.alert(
+          english ? 'Subscription' : 'Abonnement',
+          error instanceof Error
+            ? localizeText(english ? 'en' : 'fr', error.message)
+            : english
+              ? 'Apple confirmation failed. Restore your purchases.'
+              : 'La confirmation Apple n’a pas abouti. Restaurez vos achats.',
+        );
+      }
     }).then((stop) => { if (disposed) stop(); else cleanup = stop; }).catch(() => undefined);
     const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
     return () => { disposed = true; cleanup?.(); foreground.remove(); };
-  }, [state.status, state.session?.organization.id, state.session?.organization.role, loadSession, refreshSession]);
+  }, [state.status, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);
 
   const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>) => {
     setState((current) => ({ ...current, error: null }));
@@ -175,12 +202,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       clearQueryCache();
       await writeToken(result.token);
       await writeSessionSnapshot(result.token, result.session);
+      rememberLocale(result.session);
       setState({ status: 'connecte', session: result.session, error: null, offline: false });
     } catch (error) {
       setState((current) => ({ ...current, error: describeAuthError(error) }));
       throw error;
     }
-  }, []);
+  }, [rememberLocale]);
 
   const value = React.useMemo<AuthContextValue>(
     () => ({
@@ -191,6 +219,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         deviceName: 'DEVISERA mobile',
         verificationMethod: 'code',
         ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}),
+        locale: preferredLocale,
       })),
       signOut: async () => {
         sessionGeneration.current += 1;
@@ -202,10 +231,14 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       refresh: refreshSession,
     }),
-    [state, handle, refreshSession],
+    [state, handle, preferredLocale, refreshSession],
   );
 
-  return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;
+  return (
+    <AuthContext.Provider value={value}>
+      <MobileLocaleProvider locale={authLocale}>{children}</MobileLocaleProvider>
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthContextValue {

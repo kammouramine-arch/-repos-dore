@@ -45,6 +45,7 @@ yarn-error.log*
 mobile/node_modules/
 mobile/.expo/
 mobile/dist/
+mobile/dist-ios-check-final/
 mobile/web-build/
 mobile/google-play-service-account.json
 mobile/*.p8
