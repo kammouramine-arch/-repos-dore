@@ -8,7 +8,7 @@ Build 27 completed and reached internal TestFlight, but the owner reports catalo
 
 Production source `1e17fe57ab311c3151f192a15de233f3e7001059` is Ready on Vercel deployment `2inWrYXeA66U8nomorggY33zfzRU`. Dublin execution now gives warm health totals 258–284 ms, DB checks 5–11 ms, versus 838–965 ms before: approximately 70% improvement in this probe, not an iPhone benchmark.
 
-OVH apex A changed from parking to Vercel's requested `216.198.79.1`; email records retained. Vercel reports Valid Configuration. Certificate-validated HTTPS checks against that target return 200 for home, health, confidentialite, conditions and mentions-legales. Local caches may lag. The www alias is attached to Vercel but its OVH parking record still needs replacement with Vercel's displayed CNAME. Apex remains direct Production.
+OVH apex A changed from parking to Vercel's requested `216.198.79.1`; email records retained. Vercel reports Valid Configuration. Certificate-validated HTTPS checks against that target return 200 for home, health, confidentialite, conditions and mentions-legales. Local caches may lag. The www alias is also attached to Production; its existing A record now uses Vercel's explicitly supported `76.76.21.21` target (authoritative DNS and HTTPS 200 verified), avoiding deletion/recreation of DNS records. Apex remains direct Production. Vercel recommends its newer CNAME target for www, but explicitly supports the A target used here.
 
 Live website signup code: Resend Delivered, incorrect code rejected, correct code accepted, logout/verified login succeeded without verification. This does not prove inbox placement or every email type.
 
