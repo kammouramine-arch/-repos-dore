@@ -13,6 +13,8 @@ This record supersedes earlier optimistic completion statements. A passing autom
 
 ## Evidence obtained
 
+- Latency probe before region correction: Vercel execution header identified iad1 (US), while the production database is eu-west-1 (Ireland). A warm health probe spent 924 ms on SELECT 1; repeated total responses were 838–965 ms with a 4,333 ms cold response. Configured one Dublin function region (`dub1`) to colocate server execution with the existing database, without migrating any data. Post-deployment measurements still required; health also checks Resend and is not a pure navigation benchmark. See https://vercel.com/docs/regions and https://vercel.com/docs/functions/configuring-functions/region.
+
 - Full automated suite: 418 tests / 61 files, including isolated PostgreSQL on localhost:55432, auth, Apple reconciliation/ownership, entitlements, workspace isolation, deletion/export, localization and billing. Apple signature decoding/native StoreKit are mocked where required: this is not a real-device purchase acceptance.
 - Root and mobile TypeScript/lint passed; production web build generated 68 routes; iOS Expo export succeeded, 1,435 modules, approximately 3.4 MB.
 - Backup/restore rehearsal: custom archive/checksum created from isolated test DB, restored to a separate empty local `readiness_restore_test`, 35 public tables restored. This does not prove production RPO/RTO or a scheduled production backup.
