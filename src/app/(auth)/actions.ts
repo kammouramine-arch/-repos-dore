@@ -48,7 +48,7 @@ export async function signUpAction(_prev: FormState, formData: FormData): Promis
   const ip = await requestIp();
   try {
     await enforceRateLimit({ key: `signup:${ip}`, ...RATE_LIMITS.signup });
-    const { user } = await signUpService({ ...parsed.data, ip });
+    const { user } = await signUpService({ ...parsed.data, ip, verificationMethod: 'code' });
     await createSession(user.id);
   } catch (error) {
     return { error: toUserMessage(error) };

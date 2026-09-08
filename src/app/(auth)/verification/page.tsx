@@ -1,10 +1,11 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { CheckCircle2, XCircle } from 'lucide-react';
-import { verifyEmail } from '@/server/services/authService';
+import { XCircle } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { getAuthContext } from '@/lib/auth/session';
 import { VerificationForm } from './form';
+import { LegacyVerificationForm } from './legacy-form';
+import { redirect } from 'next/navigation';
 
 export const metadata: Metadata = {
   title: 'Vérification de votre email',
@@ -17,15 +18,9 @@ export default async function VerifyEmailPage({
   searchParams: Promise<{ token?: string }>;
 }) {
   const { token } = await searchParams;
-  let verified = false;
   const pendingAuth = !token ? await getAuthContext() : null;
   const pending = !token && !!pendingAuth && !pendingAuth.user.emailVerified;
-
-  if (token) {
-    verified = await verifyEmail(token)
-      .then(() => true)
-      .catch(() => false);
-  }
+  if (pendingAuth?.user.emailVerified) redirect('/app');
 
   return (
     <div className="text-center">
@@ -42,18 +37,15 @@ export default async function VerifyEmailPage({
             <Link href="/connexion">Retour à la connexion</Link>
           </Button>
         </>
-      ) : verified ? (
+      ) : token ? (
         <>
-          <CheckCircle2 className="mx-auto h-10 w-10 text-success" aria-hidden />
           <h1 className="mt-5 text-[24px] font-semibold tracking-[-0.025em] text-ink">
-            Adresse confirmée
+            Confirmez votre adresse
           </h1>
           <p className="mt-2 text-[14.5px] text-muted">
-            Votre adresse email est vérifiée. Vous pouvez continuer.
+            Appuyez sur le bouton pour confirmer votre adresse et continuer.
           </p>
-          <Button asChild size="lg" className="mt-7">
-            <Link href="/app">Ouvrir DEVISERA</Link>
-          </Button>
+          <LegacyVerificationForm token={token} />
         </>
       ) : (
         <>
