@@ -54,6 +54,14 @@ export async function signUp(input: SignUpInput) {
       const validPassword = await verifyPassword(input.password, existing.passwordHash);
       const membership = existing.memberships[0];
       if (validPassword && membership && !membership.organization.deletedAt) {
+        // Retried native signup must not inherit a pre-Apple promotional trial.
+        // Never replace a provider binding or an invited team's entitlement.
+        if (input.billingProvider === 'apple' && membership.role === 'OWNER') {
+          await prisma.subscription.updateMany({
+            where: { organizationId: membership.organization.id, status: 'trialing', appleOriginalTransactionId: null, appleProductId: null, stripeSubscriptionId: null },
+            data: { status: 'incomplete', trialStartedAt: null, trialEndsAt: null },
+          });
+        }
         await requestEmailCode(existing.id, { email, language: input.locale ?? existing.locale });
         return { user: existing, organization: membership.organization, existingPending: true };
       }

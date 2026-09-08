@@ -67,7 +67,7 @@ export function accessStateFor(
   }
 
   const trialDaysLeft = daysUntil(subscription.trialEndsAt, now);
-  if (subscription.provider === 'apple' && (!subscription.currentPeriodEnd || new Date(subscription.currentPeriodEnd).getTime() <= now.getTime())) {
+  if (subscription.provider === 'apple' && (!subscription.currentPeriodEnd || !Number.isFinite(new Date(subscription.currentPeriodEnd).getTime()) || new Date(subscription.currentPeriodEnd).getTime() <= now.getTime())) {
     return { canWrite: false, inTrial: false, trialDaysLeft: 0, trialExpired: subscription.status === 'trialing', paymentIssue: false, reason: 'Votre abonnement Apple doit être renouvelé ou restauré pour continuer.' };
   }
   const trialing = subscription.status === 'trialing';

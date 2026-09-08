@@ -9,7 +9,9 @@ import { buildSessionDTOFor } from '@/server/services/sessionDto';
 
 const bodySchema = signUpSchema.extend({
   deviceName: z.string().trim().max(80).optional(),
-  billingProvider: z.literal('apple').optional(),
+  // Native registration must not mint a local trial when an older binary
+  // omits the provider. The web signup action has its own explicit policy.
+  billingProvider: z.literal('apple').default('apple'),
   verificationMethod: z.literal('code').optional(),
   invitationToken: z.string().trim().min(20).max(200).optional(),
 });

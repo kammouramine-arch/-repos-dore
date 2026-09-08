@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, AppState, Linking, Pressable, View } from 'react-native';
-import { useLocalSearchParams, useRouter } from 'expo-router';
+import { useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Muted, Screen, Title } from './ui';
@@ -20,8 +20,7 @@ export function ApplePaywall() {
   const locale = mobileLocale(session);
   const en = locale === 'en';
   const router = useRouter();
-  const { plan } = useLocalSearchParams<{ plan?: string }>();
-  const [selected, setSelected] = React.useState<PlanId>(() => PLAN_ORDER.find((id) => id === plan) ?? 'PRO');
+  const [selected, setSelected] = React.useState<PlanId | null>(null);
   const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -32,7 +31,7 @@ export function ApplePaywall() {
   const load = React.useCallback(async (preserveError = false) => {
     const generation = ++loadGeneration.current;
     setLoading(true); if (!preserveError) setError(null); setStore(null);
-    try { const offers = await appleProducts(); if (generation === loadGeneration.current) setStore(offers); }
+    try { const offers = await appleProducts(true); if (generation === loadGeneration.current) setStore(offers); }
     catch (cause) { recordApplePurchaseFailure(cause); if (generation === loadGeneration.current) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
     finally { if (generation === loadGeneration.current) setLoading(false); }
   }, [en]);
@@ -51,7 +50,7 @@ export function ApplePaywall() {
     });
     return () => { disposed = true; invalidateRequests(); stop(); resume.remove(); };
   }, [load, en]);
-  const product = store?.products.find((p) => p.id === APPLE_PRODUCTS[selected]);
+  const product = selected ? store?.products.find((p) => p.id === APPLE_PRODUCTS[selected]) : undefined;
   const offer = appleOffer(product, store?.eligible === true, en);
   const trial = offer.trial;
   const trialDays = offer.days;
@@ -99,7 +98,8 @@ export function ApplePaywall() {
     </View>
     {appleActive ? <Card style={{ backgroundColor: colors.accentDeep, gap: spacing.md }}>
       <Heading style={{ color: colors.white }}>{PLANS[subscription.plan].name} · {subscription.status === 'trialing' ? (en ? 'Trial active' : 'Essai actif') : (en ? 'Active' : 'Actif')}</Heading>
-      <Body style={{ color: colors.white }}>{en ? 'Renews: ' : 'Échéance : '}{new Date(subscription.currentPeriodEnd!).toLocaleDateString(en ? 'en-GB' : 'fr-FR')}.</Body>
+      {subscription.currentPeriodEnd ? <Body style={{ color: colors.white }}>{en ? 'Current access ends: ' : 'Fin de la période d’accès : '}{new Date(subscription.currentPeriodEnd).toLocaleString(en ? 'en-GB' : 'fr-FR')}.</Body> : null}
+      {subscription.appleEnvironment === 'Sandbox' ? <Caption style={{ color: colors.white }}>{en ? 'TestFlight testing: Apple may accelerate subscription periods.' : 'Test TestFlight : Apple peut accélérer les périodes d’abonnement.'}</Caption> : null}
       <Button title={en ? 'Manage or cancel with Apple' : 'Gérer ou annuler avec Apple'} variant="secondary" disabled={busy} onPress={() => void action(manageAppleSubscriptions)} />
       <Button title={en ? 'Back to workspace' : 'Retour à mon atelier'} variant="secondary" onPress={() => router.replace('/(app)')} />
     </Card> : null}
@@ -122,7 +122,7 @@ export function ApplePaywall() {
         labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.' }}
       />;
     })}
-    {trial ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
+    {trial && selected ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
       <Heading>{en ? 'Your trial, clearly explained' : 'Votre essai, en toute clarté'}</Heading>
       <Body>{en ? 'Today: ' : 'Aujourd’hui : '}{trialDays || 'quelques'} {en ? 'free days on ' : 'jours gratuits sur '}{PLANS[selected].name}, {en ? 'confirmed by Apple.' : 'confirmés par Apple.'}</Body>
       <Body>{en ? 'Then: ' : 'Ensuite : '}{product?.displayPrice} {en ? 'per month, automatically unless cancelled.' : 'par mois, automatiquement, sauf annulation.'}</Body>
@@ -130,12 +130,13 @@ export function ApplePaywall() {
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
-      title={loading ? (en ? 'Loading Apple offers…' : 'Chargement des offres Apple…') : !canPurchase ? (en ? 'Apple offers unavailable' : 'Offres Apple indisponibles') : trial ? (en ? 'Start my free trial' : 'Commencer mon essai gratuit') : (en ? 'Continue with Apple' : 'Continuer avec Apple')}
+      title={loading ? (en ? 'Loading Apple offers…' : 'Chargement des offres Apple…') : !selected ? (en ? 'Choose a plan' : 'Choisissez une formule') : !canPurchase ? (en ? 'Apple offers unavailable' : 'Offres Apple indisponibles') : trial ? (en ? 'Start my free trial' : 'Commencer mon essai gratuit') : (en ? 'Continue with Apple' : 'Continuer avec Apple')}
       loading={busy || loading} disabled={busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(async () => {
+        if (!selected) return 'not_selected';
         // requestPurchase itself fetches again natively. Refresh the displayed
         // snapshot immediately before it, not only when the paywall mounted.
-        const fresh = await appleProducts();
+        const fresh = await appleProducts(true);
         setStore(fresh);
         const current = fresh.products.find(item => item.id === APPLE_PRODUCTS[selected]);
         if (!current?.displayPrice) throw Object.assign(new Error('Product unavailable'), { code: 'PRODUCT_UNAVAILABLE' });

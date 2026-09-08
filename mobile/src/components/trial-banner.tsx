@@ -1,5 +1,5 @@
 import { useRouter } from 'expo-router';
-import { accessStateFor, trialMessage, type SubscriptionDTO } from '@devisia/shared';
+import { accessStateFor, type SubscriptionDTO } from '@devisia/shared';
 import { Banner, Button } from './ui';
 import { useMobileLocale } from '@/lib/i18n';
 
@@ -33,17 +33,6 @@ export function TrialBanner({ subscription }: { subscription: SubscriptionDTO | 
         title={en ? 'Your latest payment failed.' : 'Votre dernier paiement n’a pas abouti.'}
         description={en ? 'Update your payment method to avoid an interruption.' : 'Mettez à jour votre moyen de paiement pour éviter l’interruption.'}
         action={<Button title={en ? 'Update' : 'Mettre à jour'} variant="secondary" onPress={() => router.push('/abonnement')} />}
-      />
-    );
-  }
-
-  if (state.inTrial && state.trialDaysLeft <= 3) {
-    return (
-      <Banner
-        tone="info"
-        title={en ? `${state.trialDaysLeft} day${state.trialDaysLeft === 1 ? '' : 's'} left in your trial` : trialMessage(state.trialDaysLeft)}
-        description={en ? 'Keep your automatic follow-ups and revenue tracking.' : 'Conservez vos relances automatiques et votre suivi de chiffre d’affaires.'}
-        action={<Button title={en ? 'Choose a plan' : 'Choisir ma formule'} onPress={() => router.push('/abonnement')} />}
       />
     );
   }

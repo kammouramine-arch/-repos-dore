@@ -11,11 +11,13 @@ const mocks = vi.hoisted(() => ({
   requestEmailCode: vi.fn(),
   createOrganization: vi.fn(),
   getEmailProvider: vi.fn(),
+  updateSubscription: vi.fn(),
 }));
 
 vi.mock('@/lib/prisma', () => ({ prisma: {
   user: { findUnique: mocks.findUnique, findUniqueOrThrow: mocks.findUniqueOrThrow, create: mocks.create, update: mocks.update },
   organizationMember: { findFirst: mocks.membership },
+  subscription: { updateMany: mocks.updateSubscription },
 } }));
 vi.mock('@/lib/auth/password', () => ({ hashPassword: mocks.hashPassword, verifyPassword: mocks.verifyPassword }));
 vi.mock('@/server/services/accountService', () => ({ requestEmailCode: mocks.requestEmailCode }));
@@ -49,6 +51,24 @@ beforeEach(() => {
 });
 
 describe('signup state machine', () => {
+  it('requires Apple activation for a new native signup', async () => {
+    mocks.findUnique.mockResolvedValue(null);
+    await signUp({ ...input, billingProvider: 'apple' });
+    expect(mocks.createOrganization).toHaveBeenCalledWith(expect.objectContaining({ requireApplePurchase: true }));
+  });
+  it('repairs only an unverified owner local trial on native signup retry', async () => {
+    mocks.findUnique.mockResolvedValue({ id: 'user-1', passwordHash: 'hash', emailVerifiedAt: null, deletedAt: null, memberships: [{ role: 'OWNER', organization: { id: 'org-1', deletedAt: null } }] });
+    await signUp({ ...input, billingProvider: 'apple' });
+    expect(mocks.updateSubscription).toHaveBeenCalledWith({
+      where: { organizationId: 'org-1', status: 'trialing', appleOriginalTransactionId: null, appleProductId: null, stripeSubscriptionId: null },
+      data: { status: 'incomplete', trialStartedAt: null, trialEndsAt: null },
+    });
+  });
+  it('does not reset an invited member workspace entitlement', async () => {
+    mocks.findUnique.mockResolvedValue({ id: 'user-1', passwordHash: 'hash', emailVerifiedAt: null, deletedAt: null, memberships: [{ role: 'MEMBER', organization: { id: 'org-1', deletedAt: null } }] });
+    await signUp({ ...input, billingProvider: 'apple' });
+    expect(mocks.updateSubscription).not.toHaveBeenCalled();
+  });
   it('creates a new account and requests a verification code exactly once', async () => {
     mocks.findUnique.mockResolvedValue(null);
     await expect(signUp(input)).resolves.toMatchObject({ user: expect.objectContaining({ email: input.email }), organization: { id: 'org-1' } });

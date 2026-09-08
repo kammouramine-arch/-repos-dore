@@ -21,7 +21,6 @@ import {
   Title,
 } from '@/components/ui';
 import { Logo } from '@/components/logo';
-import { TrialBanner } from '@/components/trial-banner';
 import { useAuth } from '@/lib/auth';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
@@ -250,7 +249,6 @@ export default function AccueilScreen() {
         />
 
         {(query.loading || query.refreshing || query.error) && <Caption style={{ color: 'rgba(255,255,255,0.85)' }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
-        <TrialBanner subscription={session?.subscription ?? null} />
 
         {!started ? (
           /* Première utilisation : une seule chose à faire, et on explique

@@ -34,7 +34,12 @@ async function store() {
 }
 
 let catalogueFlight: Promise<{ products: ProductSubscription[]; eligible: boolean }> | undefined;
-export function appleProducts() {
+export function appleProducts(freshAfterPending = false): Promise<{ products: ProductSubscription[]; eligible: boolean }> {
+  // A foreground/account change or pre-purchase refresh must not adopt an
+  // in-flight snapshot requested before that transition.
+  if (freshAfterPending && catalogueFlight) {
+    return catalogueFlight.catch(() => undefined).then(() => appleProducts());
+  }
   // Mount, foreground and Retry can overlap. Share only the in-flight query,
   // never cache prices across requests or Apple account/storefront changes.
   if (!catalogueFlight) catalogueFlight = loadAppleProducts().finally(() => { catalogueFlight = undefined; });

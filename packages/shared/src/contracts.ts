@@ -60,6 +60,7 @@ export interface SessionOrganizationDTO {
 
 export interface SubscriptionDTO {
   provider?: 'apple' | 'stripe' | 'trial';
+  appleEnvironment?: string | null;
   plan: PlanId;
   status: SubscriptionStatusId;
   trialEndsAt: string | null;

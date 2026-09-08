@@ -26,6 +26,18 @@ const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreAppleP
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
 beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
+  it('foreground refresh cannot reuse a pre-transition USD request', async () => {
+    let release!: (value: unknown[]) => void;
+    m.products.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
+    m.storefront.mockResolvedValue('USA');
+    const older = appleProducts();
+    await vi.waitFor(() => expect(m.products).toHaveBeenCalledOnce());
+    const fresh = appleProducts(true);
+    release([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
+    await older;
+    expect((await fresh).products[0].displayPrice).toBe('39,00 €');
+    expect(m.products.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
   it('reconciles an existing active purchase without an interactive Apple restore', async () => {
     expect(await restoreApplePurchases(false)).toBe(1);
     expect(m.available).toHaveBeenCalledWith({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false });
