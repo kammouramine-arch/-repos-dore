@@ -25,6 +25,20 @@ const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreAppleP
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
 beforeEach(() => { vi.clearAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
+  it('reconciles an existing active purchase without an interactive Apple restore', async () => {
+    expect(await restoreApplePurchases(false)).toBe(1);
+    expect(m.available).toHaveBeenCalledWith({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false });
+    expect(m.request).toHaveBeenCalledOnce();
+  });
+  it('does not withhold verified access while native finish stays pending', async () => {
+    m.finish.mockReturnValue(new Promise(() => {}));
+    m.dispatch.mockResolvedValue(purchase);
+    vi.useFakeTimers();
+    try {
+      await expect(purchaseApplePlan('ESSENTIEL', 'org')).resolves.toBe('purchased');
+      await vi.advanceTimersByTimeAsync(30_001);
+    } finally { vi.useRealTimers(); }
+  });
   it('unlocks retry and restore after a missing native result times out', async () => {
     vi.useFakeTimers();
     const busy: boolean[] = [];

@@ -11,7 +11,7 @@ vi.mock('@apple/app-store-server-library', () => ({
     verifyAndDecodeRenewalInfo = mocks.renewal;
   },
 }));
-vi.mock('@/lib/prisma', () => ({ prisma: { $transaction: async (fn: (tx: unknown) => unknown) => fn({
+vi.mock('@/lib/prisma', () => ({ prisma: { subscription: { findUnique: mocks.find }, $transaction: async (fn: (tx: unknown) => unknown) => fn({
   $executeRaw: mocks.lock,
   subscription: { findUnique: mocks.find, update: mocks.update },
 }) } }));
@@ -27,21 +27,33 @@ const transaction = {
 beforeEach(() => {
   vi.clearAllMocks();
   mocks.decode.mockResolvedValue({ ...transaction });
-  mocks.find.mockResolvedValue({ status: 'incomplete', appleSignedAt: null, stripeSubscriptionId: null });
+  mocks.find.mockImplementation(async ({ where }) => where.appleOriginalTransactionId ? null : { status: 'incomplete', appleSignedAt: null, stripeSubscriptionId: null });
   mocks.update.mockResolvedValue({});
 });
 describe('verified Apple billing persistence', () => {
-  it('rejects a receipt tied to a different organization before any database access', async () => {
+  it('routes signed renewal notifications to the established owner rather than a newer account token', async () => {
+    mocks.notification.mockResolvedValue({ data: { signedTransactionInfo: 'signed' } });
+    mocks.decode.mockResolvedValue({ ...transaction, appAccountToken: '22222222-2222-4222-8222-222222222222' });
+    mocks.find.mockImplementation(async ({ where }) => where.appleOriginalTransactionId ? { organizationId } : { status: 'canceled' });
+    await handleAppleNotification('notification');
+    expect(mocks.update).toHaveBeenCalledWith(expect.objectContaining({ where: { organizationId } }));
+  });
+  it('returns a safe conflict instead of a unique-index crash for an already bound chain', async () => {
+    mocks.find.mockResolvedValue({ organizationId: 'other-workspace' });
+    await expect(syncAppleTransaction('signed', organizationId)).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(mocks.update).not.toHaveBeenCalled();
+  });
+  it('rejects an unbound receipt tied to a different organization without mutation', async () => {
     await expect(syncAppleTransaction('signed', '22222222-2222-4222-8222-222222222222')).rejects.toMatchObject({ code: 'CONFLICT' });
-    expect(mocks.find).not.toHaveBeenCalled();
+    expect(mocks.update).not.toHaveBeenCalled();
   });
   it('ignores older receipts after a newer notification', async () => {
-    mocks.find.mockResolvedValue({ appleSignedAt: new Date(signedDate + 1), status: 'active' });
+    mocks.find.mockImplementation(async ({ where }) => where.appleOriginalTransactionId ? null : { appleSignedAt: new Date(signedDate + 1), status: 'active' });
     await expect(syncAppleTransaction('signed', organizationId)).resolves.toEqual({ synced: false });
     expect(mocks.update).not.toHaveBeenCalled();
   });
   it('does not replace an active web subscription', async () => {
-    mocks.find.mockResolvedValue({ stripeSubscriptionId: 'sub_existing', status: 'active' });
+    mocks.find.mockImplementation(async ({ where }) => where.appleOriginalTransactionId ? null : { stripeSubscriptionId: 'sub_existing', status: 'active' });
     await expect(syncAppleTransaction('signed', organizationId)).rejects.toMatchObject({ code: 'CONFLICT' });
     expect(mocks.update).not.toHaveBeenCalled();
   });

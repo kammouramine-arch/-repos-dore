@@ -22,6 +22,7 @@ export type Diagnostic = {
   productId?: string;
   storefront?: string;
   transactionState?: string;
+  transactionReference?: string;
 };
 
 const events: Diagnostic[] = [];

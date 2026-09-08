@@ -65,6 +65,9 @@ export function normalizeApplePurchaseError(
 /** Stable customer copy; the native code remains available to diagnostics. */
 export function applePurchaseUserMessage(diagnostic: ApplePurchaseDiagnostic, language: 'fr' | 'en' = 'fr'): string | null {
   if (diagnostic.category === 'cancelled') return null;
+  if (diagnostic.code === 'CONFLICT') return language === 'en'
+    ? 'This subscription is linked to another DEVISERA workspace or billing account. Sign in to the account used for the original purchase, or contact support. Do not purchase again.'
+    : 'Cet abonnement est lié à un autre espace ou compte de facturation DEVISERA. Connectez-vous au compte du premier achat ou contactez le support. Ne payez pas à nouveau.';
   if (diagnostic.category === 'verification') return language === 'en'
     ? 'Your purchase could not be verified. Restore purchases to retry. Do not purchase again if Apple already confirmed payment.'
     : 'Votre achat n’a pas pu être vérifié. Restaurez vos achats pour réessayer. Ne payez pas à nouveau si Apple a déjà confirmé le paiement.';

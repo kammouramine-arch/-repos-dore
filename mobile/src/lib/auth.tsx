@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, AppState, Platform } from 'react-native';
-import { listenForApplePurchases } from './apple-purchases';
+import { listenForApplePurchases, restoreApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
 import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, persistPreferredLocale, readPreferredLocale } from './storage';
@@ -274,6 +274,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const foreground = AppState.addEventListener('change', (next) => { if (next === 'active') void loadSession(); });
     return () => { disposed = true; cleanup?.(); foreground.remove(); };
   }, [state.status, state.session?.user.emailVerified, state.session?.organization.id, state.session?.organization.role, authLocale, loadSession, refreshSession]);
+
+  // A finished StoreKit transaction is not replayed by a listener at login.
+  // Query current entitlements without opening Apple's authentication sheet.
+  // Never unlock locally: only the subsequent authoritative session can do so.
+  React.useEffect(() => {
+    if (Platform.OS !== 'ios' || state.status !== 'connecte' || !state.session?.user.emailVerified || state.session.organization.role !== 'OWNER' || state.session.access?.canWrite) return;
+    let disposed = false;
+    let running = false;
+    async function reconcile() {
+      if (running || disposed) return;
+      running = true;
+      try {
+        const count = await restoreApplePurchases(false);
+        if (!disposed && count) await refreshSession();
+      } catch (error) {
+        recordDiagnostic({ area: 'billing', durationMs: 0, code: 'RECONCILIATION_FAILED', category: 'client' });
+        // The purchase module records the exact safe provider/API category.
+        // Manual Restore remains available for a recoverable error display.
+        void error;
+      } finally { running = false; }
+    }
+    void reconcile();
+    const foreground = AppState.addEventListener('change', value => { if (value === 'active') void reconcile(); });
+    return () => { disposed = true; foreground.remove(); };
+  }, [state.status, state.session?.user.emailVerified, state.session?.organization.id, state.session?.organization.role, state.session?.access?.canWrite, refreshSession]);
 
   const handle = React.useCallback(async (action: () => Promise<{ token: string; session: SessionDTO }>): Promise<SessionDTO> => {
     setState((current) => ({ ...current, error: null, errorReference: null }));

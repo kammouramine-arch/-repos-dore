@@ -3,6 +3,7 @@ import { APPLE_PRODUCTS, APPLE_SUBSCRIPTION_GROUP, applePurchaseUserMessage, nor
 import type { Purchase, ProductSubscription } from 'expo-iap';
 import { api } from './api';
 import { recordDiagnostic } from './diagnostics';
+import { consistentAppleCurrency } from './apple-offer';
 
 type Iap = typeof import('expo-iap');
 const observers = new Set<(busy: boolean) => void>();
@@ -30,11 +31,19 @@ async function store() {
 
 export async function appleProducts() {
   const iap = await store();
-  const [products, eligible] = await Promise.all([
+  const before = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  let [products, eligible] = await Promise.all([
     bounded(iap.fetchProducts({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' }), 'PRODUCTS_TIMEOUT'),
     bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false),
   ]);
   const storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  if (before !== storefront || !consistentAppleCurrency(products ?? [], storefront)) {
+    products = await bounded(iap.fetchProducts({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' }), 'PRODUCTS_TIMEOUT');
+    eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false);
+    if (!consistentAppleCurrency(products ?? [], storefront)) {
+      throw Object.assign(new Error('Apple product metadata is not current. Reload offers.'), { code: 'STOREFRONT_METADATA_MISMATCH' });
+    }
+  }
   for (const product of products ?? []) {
     recordDiagnostic({ area: 'billing', durationMs: 0, code: `PRODUCT_${product.currency ?? 'UNKNOWN'}`, category: 'ok', productId: product.id, storefront });
   }
@@ -91,8 +100,15 @@ function resolvePending(productId: string | null | undefined, error?: Error) {
   if (error) pending.reject(error); else pending.resolve();
 }
 
+const transactionReferences = new Map<string, string>();
+let transactionSequence = 0;
 function stage(code: string, purchase: Purchase) {
-  recordDiagnostic({ area: 'billing', durationMs: 0, code, category: 'ok', productId: purchase.productId, ...iosContext(purchase) });
+  // Opaque process-local reference: never emit Apple's raw transaction ID.
+  if (!transactionReferences.has(purchase.id)) {
+    if (transactionReferences.size >= 120) transactionReferences.delete(transactionReferences.keys().next().value!);
+    transactionReferences.set(purchase.id, `purchase-${++transactionSequence}`);
+  }
+  recordDiagnostic({ area: 'billing', durationMs: 0, code, category: 'ok', productId: purchase.productId, transactionReference: transactionReferences.get(purchase.id), ...iosContext(purchase) });
 }
 
 function iosContext(purchase: Purchase) {
@@ -116,8 +132,11 @@ async function sync(purchase: Purchase) {
     await api.request('/api/billing/apple', { method: 'POST', json: { signedTransaction: purchase.purchaseToken } });
     stage('ENTITLEMENT_VERIFIED', purchase);
     const iap = await store();
-    await bounded(iap.finishTransaction({ purchase, isConsumable: false }), 'FINISH_TIMEOUT');
-    stage('TRANSACTION_FINISHED', purchase);
+    // Server access is already persisted. A delayed finish must not prevent
+    // session refresh/unlock; the unfinished transaction can be retried later.
+    void bounded(iap.finishTransaction({ purchase, isConsumable: false }), 'FINISH_TIMEOUT')
+      .then(() => stage('TRANSACTION_FINISHED', purchase))
+      .catch(error => logPurchaseFailure(error, { productId: purchase.productId, ...iosContext(purchase) }));
   })();
   syncing.set(key, task);
   try { await task; }
@@ -218,13 +237,13 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
   } finally { active = false; removeAttempt?.(); setBusy(false); }
 }
 
-export async function restoreApplePurchases() {
+export async function restoreApplePurchases(interactive = true) {
   if (purchaseBusy) throw new Error('Un achat Apple est déjà en cours.');
   setBusy(true);
   try {
     const iap = await store();
-    await bounded(iap.restorePurchases(), 'RESTORE_TIMEOUT');
-    const purchases = await bounded(iap.getAvailablePurchases(), 'RESTORE_PRODUCTS_TIMEOUT');
+    if (interactive) await bounded(iap.restorePurchases(), 'RESTORE_TIMEOUT');
+    const purchases = await bounded(iap.getAvailablePurchases({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false }), 'RESTORE_PRODUCTS_TIMEOUT');
     const relevant = purchases.filter((p) => planForAppleProduct(p.productId));
     for (const purchase of relevant) {
       try { await sync(purchase); }
