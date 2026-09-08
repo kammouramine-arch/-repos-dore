@@ -78,6 +78,11 @@
     "typescript": "^5.9.3",
     "vitest": "^4.1.10"
   },
+  "overrides": {
+    "@prisma/config": {
+      "deepmerge-ts": "8.0.0"
+    }
+  },
   "engines": {
     "node": ">=20.9.0"
   }

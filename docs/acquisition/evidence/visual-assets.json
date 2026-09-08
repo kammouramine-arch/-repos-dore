@@ -49,6 +49,55 @@
     "creatorAndLicense": "UNVERIFIED"
   },
   {
+    "path": "docs/acquisition/evidence/2026-09-07-accueil-degrade-393x852.png",
+    "sha256": "27c9ab251cfddfa327b5f6d6f9fb43e2be5ebee6a35ba809ea54603b5c694df2",
+    "bytes": 254400,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-connexion-degrade-393x852.png",
+    "sha256": "6d7b157ac7973df7616e739fd4f44e4752a3eda341c69c3276dc1318cc5d5453",
+    "bytes": 202645,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-etats-demarrage.jpg",
+    "sha256": "cf60e0db98ecba098815ee05ebb8fd32ae6e8456e9bdda0a45bd7feab63ee41b",
+    "bytes": 63635,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-lancement-sequence.jpg",
+    "sha256": "5cdad16f171d6dca28ec99eeeab640a0c90de59d8dba2d860c26c730542d7b87",
+    "bytes": 542007,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-mon-compte-retour-393x852.png",
+    "sha256": "5511f679685ee25684a81b98c25e63390e94dd121eb1a1afcc996e07c65dc2b7",
+    "bytes": 122619,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-mon-espace-393x852.png",
+    "sha256": "59aa8f0edf9d323242737f3b5f85eeb3966d8b8c3ce8612af189b5f077f06cf0",
+    "bytes": 247212,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-07-paiements-393x852.png",
+    "sha256": "f02729c6d9fa3099b7f8c1b879203fbd38ea0ffecd79a75ea00599f4a329329f",
+    "bytes": 141156,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
     "path": "mobile/assets/adaptive-icon.png",
     "sha256": "f5190a7a75739da40bc54f3d9ba7d10dfcc9be6ca766cc592ee86efe6c30f35f",
     "bytes": 11793,
@@ -73,6 +122,13 @@
     "path": "mobile/assets/notification-icon.png",
     "sha256": "b8677a44789e7d7c671e367f7233b364c5796943a0fa6cc13927aefc2808de16",
     "bytes": 1033,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "mobile/assets/splash-mark.png",
+    "sha256": "6c70802a404596915535cbf325e96f7164231cc1dcaa6c123e32c8b0a8987cec",
+    "bytes": 25782,
     "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
     "creatorAndLicense": "UNVERIFIED"
   },

@@ -4,6 +4,7 @@ import { CheckCircle2, XCircle } from 'lucide-react';
 import { verifyEmail } from '@/server/services/authService';
 import { Button } from '@/components/ui/button';
 import { getAuthContext } from '@/lib/auth/session';
+import { VerificationForm } from './form';
 
 export const metadata: Metadata = {
   title: 'Vérification de votre email',
@@ -34,8 +35,9 @@ export default async function VerifyEmailPage({
             Vérifiez votre boîte mail
           </h1>
           <p className="mt-2 text-[14.5px] text-muted">
-            Votre compte est bien enregistré, mais votre adresse email doit être confirmée avant d’ouvrir DEVISERA. Ouvrez le dernier message reçu puis revenez ici.
+            Saisissez le code à six chiffres du dernier message reçu pour confirmer votre adresse email.
           </p>
+          <VerificationForm email={pendingAuth!.user.email} />
           <Button asChild variant="secondary" size="lg" className="mt-7">
             <Link href="/connexion">Retour à la connexion</Link>
           </Button>

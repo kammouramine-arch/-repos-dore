@@ -39,7 +39,7 @@ mobile type/lint checks completed successfully.
 The full `npm test` run reaches the integration global setup but cannot migrate the isolated test database because the repository’s safe default is:
 
 ```text
-postgresql://devisia:devisia@127.0.0.1:5432/devisia_test
+Local test database: 127.0.0.1:5432/devisia_test (credentials supplied privately through TEST_DATABASE_URL)
 ```
 
 Read-only checks found:

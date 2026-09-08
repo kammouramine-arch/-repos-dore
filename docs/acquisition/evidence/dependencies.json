@@ -2978,7 +2978,7 @@
   {
     "workspace": "web",
     "package": "deepmerge-ts",
-    "version": "7.1.5",
+    "version": "8.0.0",
     "license": "BSD-3-Clause",
     "developmentOnly": false,
     "location": "node_modules/deepmerge-ts"
@@ -12658,7 +12658,7 @@
   {
     "workspace": "mobile",
     "package": "uuid",
-    "version": "7.0.3",
+    "version": "11.1.1",
     "license": "MIT",
     "developmentOnly": false,
     "location": "node_modules/uuid"

@@ -32,7 +32,7 @@ SplashScreen.setOptions({ duration: 180, fade: true });
  * support de retrouver la ligne de journal. Les données locales restent en
  * place dans les deux cas.
  */
-function StartupFailure({ outage, reference, onRetry }: { outage: 'network' | 'server'; reference: string | null; onRetry: () => void }) {
+function StartupFailure({ outage, reference, onRetry }: { outage: 'network' | 'server'; reference: string | null; onRetry: () => Promise<unknown> }) {
   const locale = useMobileLocale();
   const [retrying, setRetrying] = React.useState(false);
   const server = outage === 'server';
@@ -60,7 +60,10 @@ function StartupFailure({ outage, reference, onRetry }: { outage: 'network' | 's
         disabled={retrying}
         onPress={() => {
           setRetrying(true);
-          Promise.resolve(onRetry()).finally(() => setRetrying(false));
+          void Promise.resolve().then(onRetry).catch(() => {
+            // Auth refresh owns the recoverable outage state; never leak a rejection.
+            recordDiagnostic({ area: 'startup', code: 'startup_retry_failed', category: 'auth', durationMs: 0 });
+          }).finally(() => setRetrying(false));
         }}
         style={({ pressed }) => ({
           marginTop: spacing.lg,
@@ -120,7 +123,7 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
   // Session existante mais serveur injoignable ou en panne : on ne déconnecte
   // pas l'artisan, son jeton reste dans le trousseau.
   if (outage && !connected) {
-    return <StartupFailure outage={outage} reference={outageReference} onRetry={() => void refresh()} />;
+    return <StartupFailure outage={outage} reference={outageReference} onRetry={refresh} />;
   }
 
   return (

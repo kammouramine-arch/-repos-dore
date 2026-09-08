@@ -51,6 +51,12 @@
     ]
   },
   {
+    "name": "CAPTURE_EMAIL",
+    "sourceFiles": [
+      "scripts/captures-lancement.mjs"
+    ]
+  },
+  {
     "name": "CRON_SECRET",
     "sourceFiles": [
       "src/lib/env.ts"
@@ -77,6 +83,12 @@
   },
   {
     "name": "EMAIL_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "EMAIL_REPLY_TO",
     "sourceFiles": [
       "src/lib/env.ts"
     ]
@@ -135,12 +147,14 @@
     "sourceFiles": [
       "src/lib/env.ts",
       "src/lib/prisma.ts",
+      "mobile/src/lib/api.ts",
       "prisma/seed.ts"
     ]
   },
   {
     "name": "OUT",
     "sourceFiles": [
+      "scripts/captures-lancement.mjs",
       "scripts/captures-mobile.mjs"
     ]
   },
