@@ -106,11 +106,13 @@ export function StatusChip({
 /** Identité de l'artisan sur la surface de marque : initiale, nom, entreprise, états. */
 export function IdentityHeader({
   initial,
+  avatar,
   name,
   subtitle,
   chips,
 }: {
   initial: string;
+  avatar?: React.ReactNode;
   name: string;
   subtitle?: string | null;
   chips?: React.ReactNode;
@@ -118,7 +120,7 @@ export function IdentityHeader({
   return (
     <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
-        <View
+        {avatar ?? <View
           style={{
             width: 60,
             height: 60,
@@ -131,7 +133,7 @@ export function IdentityHeader({
           }}
         >
           <Text style={{ color: colors.white, fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>{initial}</Text>
-        </View>
+        </View>}
         <View style={{ flex: 1, gap: 3 }}>
           <Text numberOfLines={1} style={[typography.title, { color: colors.white, fontSize: 26, lineHeight: 32 }]}>{name}</Text>
           {subtitle ? <Text numberOfLines={1} style={[typography.body, { color: 'rgba(255,255,255,0.84)' }]}>{subtitle}</Text> : null}

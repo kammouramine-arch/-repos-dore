@@ -6,6 +6,7 @@ const db = vi.hoisted(() => ({
   followUp: { updateMany: vi.fn() }, teamInvitation: { updateMany: vi.fn() },
   session: { updateMany: vi.fn() }, authToken: { updateMany: vi.fn() },
   emailChallenge: { updateMany: vi.fn() },
+  fileBlob: { deleteMany: vi.fn() },
 }));
 vi.mock('@/lib/prisma', () => ({ prisma: { ...db, $transaction: (fn: (tx: unknown) => unknown) => fn(db) } }));
 vi.mock('@/lib/auth/password', () => ({ verifyPassword: async (p: string) => p === 'correct' }));
@@ -23,6 +24,7 @@ describe('integrated account deletion', () => {
     expect(db.teamInvitation.updateMany).toHaveBeenCalled();
     expect(db.session.updateMany).toHaveBeenCalled();
     expect(db.user.update).toHaveBeenCalled();
+    expect(db.fileBlob.deleteMany).toHaveBeenCalledWith({ where: { storageKey: 'private-avatar/user' } });
   });
   it('does not archive a workspace with another owner', async () => {
     db.organizationMember.findMany.mockReset().mockResolvedValueOnce([{ organizationId: 'team' }]).mockResolvedValue([{ role: 'OWNER' }]);

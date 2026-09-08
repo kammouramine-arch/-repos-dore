@@ -7,6 +7,7 @@ import { Button, Caption, Screen } from '@/components/ui';
 import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
+import { ProfileAvatar } from '@/components/profile-avatar';
 import { useAuth } from '@/lib/auth';
 import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
@@ -56,6 +57,7 @@ export default function PlusScreen() {
       <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
         <IdentityHeader
           initial={initial}
+          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} />}
           name={name}
           subtitle={fullName ? business || session?.user.email : session?.user.email}
           chips={

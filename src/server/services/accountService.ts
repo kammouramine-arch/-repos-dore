@@ -55,6 +55,7 @@ export async function deletePersonalAccount(userId: string, password: string, co
       await tx.teamInvitation.updateMany({ where: { organizationId, status: 'PENDING' }, data: { status: 'REVOKED' } });
     }
     await tx.user.update({ where: { id: userId }, data: { email: replacementEmail, firstName: null, lastName: null, phone: null, emailVerifiedAt: null, deletedAt: now } });
+    await tx.fileBlob.deleteMany({ where: { storageKey: `private-avatar/${userId}` } });
     await tx.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: now } });
     await tx.authToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
     await tx.emailChallenge.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });

@@ -48,6 +48,13 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
   // account with a new appAccountToken cannot move the subscription; the
   // original workspace can still reconcile its signed renewal.
   if (binding ? binding.organizationId !== organizationId : transaction.appAccountToken?.toLowerCase() !== organizationId.toLowerCase()) {
+    console.warn('[billing/apple] ownership rejected', {
+      category: binding ? 'ORIGINAL_TRANSACTION_ALREADY_BOUND' : 'APP_ACCOUNT_TOKEN_MISMATCH',
+      reference: createHash('sha256').update(transaction.originalTransactionId ?? 'missing').digest('hex').slice(0, 12),
+      workspaceReference: createHash('sha256').update(organizationId).digest('hex').slice(0, 12),
+      environment: transaction.environment,
+      productId: transaction.productId,
+    });
     throw new AppError('CONFLICT', 'Cet abonnement appartient à un autre compte DEVISERA. Connectez-vous à ce compte.');
   }
   return applyTransaction(transaction, organizationId);

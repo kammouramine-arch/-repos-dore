@@ -87,9 +87,9 @@ const config: ExpoConfig = {
       NSMicrophoneUsageDescription:
         'DEVISERA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
       NSCameraUsageDescription:
-        'DEVISERA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
+        'DEVISERA utilise l’appareil photo pour votre photo de profil et les photos de chantier.',
       NSPhotoLibraryUsageDescription:
-        'DEVISERA accède à vos photos pour joindre des images de chantier à vos devis.',
+        'DEVISERA accède aux photos choisies pour votre profil et vos devis.',
       NSSpeechRecognitionUsageDescription:
         'DEVISERA transcrit votre description de chantier pour préparer le devis à votre place.',
       NSFaceIDUsageDescription:
@@ -158,9 +158,9 @@ const config: ExpoConfig = {
       'expo-image-picker',
       {
         photosPermission:
-          'DEVISERA accède à vos photos pour joindre des images de chantier à vos devis.',
+          'DEVISERA accède aux photos choisies pour votre profil et vos devis.',
         cameraPermission:
-          'DEVISERA utilise l’appareil photo pour joindre des photos de chantier à vos devis.',
+          'DEVISERA utilise l’appareil photo pour votre photo de profil et les photos de chantier.',
       },
     ],
     [

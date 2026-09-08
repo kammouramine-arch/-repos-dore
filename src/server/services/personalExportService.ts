@@ -1,6 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { notFound } from '@/lib/errors';
+import { readAvatar } from './avatarService';
 
 /** Allowlisted personal account data: never export authentication material. */
 export async function exportPersonalAccount(userId: string) {
@@ -18,6 +19,7 @@ export async function exportPersonalAccount(userId: string) {
     exportedAt: new Date().toISOString(),
     scope: 'personal-account',
     account,
+    profilePhoto: await readAvatar(userId),
     exclusions: ['Documents et données commerciales de l’entreprise', 'Journaux de sécurité soumis à examen', 'Données conservées par les prestataires externes'],
     furtherRequests: 'contact@devisera.fr',
   };

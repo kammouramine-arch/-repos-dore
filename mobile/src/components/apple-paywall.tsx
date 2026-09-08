@@ -16,6 +16,11 @@ import { recordDiagnostic } from '@/lib/diagnostics';
 import { DiagnosticReport } from './diagnostic-report';
 
 export function ApplePaywall() {
+  const { session } = useAuth();
+  return <ApplePaywallContent key={`${session?.user.id}:${session?.organization.id}`} />;
+}
+
+function ApplePaywallContent() {
   const { session, refresh, signOut } = useAuth();
   const locale = mobileLocale(session);
   const en = locale === 'en';
@@ -23,6 +28,7 @@ export function ApplePaywall() {
   const [selected, setSelected] = React.useState<PlanId | null>(null);
   const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
+  const [ownershipConflict, setOwnershipConflict] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const loadGeneration = React.useRef(0);
@@ -79,7 +85,7 @@ export function ApplePaywall() {
         }
       }
     }
-    catch (cause) { recordApplePurchaseFailure(cause, { productId: product?.id }); setError(applePurchaseUserMessage(normalizeApplePurchaseError(cause), locale)); }
+    catch (cause) { recordApplePurchaseFailure(cause, { productId: product?.id }); const diagnostic = normalizeApplePurchaseError(cause); if (diagnostic.code === 'CONFLICT') setOwnershipConflict(true); setError(applePurchaseUserMessage(diagnostic, locale)); }
     finally { acting.current = false; setBusy(false); void load(true); }
   }
   return <Screen>
@@ -131,7 +137,7 @@ export function ApplePaywall() {
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
       title={loading ? (en ? 'Loading Apple offers…' : 'Chargement des offres Apple…') : !selected ? (en ? 'Choose a plan' : 'Choisissez une formule') : !canPurchase ? (en ? 'Apple offers unavailable' : 'Offres Apple indisponibles') : trial ? (en ? 'Start my free trial' : 'Commencer mon essai gratuit') : (en ? 'Continue with Apple' : 'Continuer avec Apple')}
-      loading={busy || loading} disabled={busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
+      loading={busy || loading} disabled={ownershipConflict || busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(async () => {
         if (!selected) return 'not_selected';
         // requestPurchase itself fetches again natively. Refresh the displayed
@@ -147,8 +153,9 @@ export function ApplePaywall() {
         return purchaseApplePlan(selected, session!.organization.id);
       })}
     />}
-    {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load()} /> : null}
+    {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load(ownershipConflict)} /> : null}
     {error ? <DiagnosticReport en={en} /> : null}
+    {ownershipConflict ? <Button title={en ? 'Recover my subscription with support' : 'Retrouver mon abonnement avec le support'} variant="ghost" onPress={() => void Linking.openURL('mailto:contact@devisera.fr?subject=DEVISERA%20subscription%20recovery').catch(() => Alert.alert(en ? 'Contact support' : 'Contacter le support', 'contact@devisera.fr'))} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>
     <Button title={en ? 'Discover DEVISERA' : 'Découvrir DEVISERA'} variant="ghost" onPress={() => router.push('/presentation')} />
