@@ -57,7 +57,7 @@ export function PlanCard({
       }}
     >
       <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.md }}>
-        <View style={{ flex: 1, gap: 4 }}>
+        <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm, flexWrap: 'wrap' }}>
             <Text style={[typography.heading, { color: colors.ink, fontSize: 20 }]}>{name}</Text>
             {recommended ? <Badge label={labels.recommended} tone="accent" /> : null}
@@ -68,6 +68,7 @@ export function PlanCard({
           style={{
             width: 26,
             height: 26,
+            flexShrink: 0,
             borderRadius: 13,
             alignItems: 'center',
             justifyContent: 'center',
@@ -95,10 +96,10 @@ export function PlanCard({
       <View style={{ gap: spacing.sm, paddingTop: spacing.xs }}>
         {highlights.map((highlight) => (
           <View key={highlight} style={{ flexDirection: 'row', alignItems: 'flex-start', gap: 8 }}>
-            <View style={{ width: 18, height: 18, borderRadius: 9, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
+            <View style={{ width: 18, height: 18, flexShrink: 0, borderRadius: 9, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center', marginTop: 2 }}>
               <Ionicons name="checkmark" size={12} color={colors.accent} />
             </View>
-            <Text style={[typography.small, { flex: 1, color: colors.inkSoft, lineHeight: 19 }]}>{highlight}</Text>
+            <Text style={[typography.small, { flex: 1, minWidth: 0, color: colors.inkSoft, lineHeight: 19 }]}>{highlight}</Text>
           </View>
         ))}
       </View>

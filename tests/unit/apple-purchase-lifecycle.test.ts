@@ -9,6 +9,7 @@ vi.mock('../../mobile/src/lib/api', () => ({ api: { request: m.request } }));
 vi.mock('../../mobile/src/lib/diagnostics', () => ({ recordDiagnostic: vi.fn() }));
 vi.mock('../../mobile/node_modules/expo-iap/build/index.js', () => ({
   initConnection: async () => true,
+  getStorefront: async () => 'FRA',
   purchaseUpdatedListener: (fn: (p: unknown) => void) => { m.update = fn; return { remove() {} }; },
   purchaseErrorListener: (fn: (p: unknown) => void) => { m.error = fn; return { remove() {} }; },
   requestPurchase: m.dispatch, finishTransaction: m.finish,
@@ -20,10 +21,47 @@ import { APPLE_PRODUCTS } from '@devisia/shared';
 // Keep React Native's global FormData declarations out of the web TS program.
 // Vitest still imports and executes the real mobile module at runtime.
 const mobileModule = '../../mobile/src/lib/apple-purchases';
-const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases } = await import(mobileModule);
+const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases, observeApplePurchase } = await import(mobileModule);
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
 beforeEach(() => { vi.clearAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
+  it('unlocks retry and restore after a missing native result times out', async () => {
+    vi.useFakeTimers();
+    const busy: boolean[] = [];
+    const stop = observeApplePurchase((value: boolean) => busy.push(value));
+    try {
+      const pending = purchaseApplePlan('ESSENTIEL', 'org');
+      const rejected = expect(pending).rejects.toMatchObject({ code: 'TRANSACTION_TIMEOUT' });
+      await vi.advanceTimersByTimeAsync(60_001);
+      await rejected;
+      expect(busy.at(-1)).toBe(false);
+      expect(await restoreApplePurchases()).toBe(1);
+      m.dispatch.mockResolvedValue(purchase);
+      await purchaseApplePlan('ESSENTIEL', 'org');
+    } finally { stop(); vi.useRealTimers(); }
+  });
+  it('processes the iOS return value without needing a root observer', async () => {
+    m.dispatch.mockResolvedValue(purchase);
+    await purchaseApplePlan('ESSENTIEL', 'org');
+    expect(m.request).toHaveBeenCalledOnce();
+    expect(m.finish).toHaveBeenCalledOnce();
+  });
+  it('resolves an event even when native dispatch never resolves', async () => {
+    m.dispatch.mockReturnValue(new Promise(() => {}));
+    const pending = purchaseApplePlan('ESSENTIEL', 'org');
+    await vi.waitFor(() => expect(m.dispatch).toHaveBeenCalled());
+    m.update!(purchase);
+    await pending;
+    expect(m.finish).toHaveBeenCalledOnce();
+  });
+  it('does not cancel the purchase when the root observer unmounts', async () => {
+    const stop = await listenForApplePurchases(vi.fn(), vi.fn());
+    const pending = purchaseApplePlan('ESSENTIEL', 'org');
+    await vi.waitFor(() => expect(m.dispatch).toHaveBeenCalled());
+    stop();
+    m.update!(purchase);
+    await pending;
+  });
   it('keeps localized products when introductory eligibility cannot load', async () => {
     expect(await appleProducts()).toMatchObject({ eligible: false, products: [{ displayPrice: '39,00 €', currency: 'EUR' }] });
   });
@@ -46,7 +84,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     const pending = purchaseApplePlan('ESSENTIEL', 'org');
     await vi.waitFor(() => expect(m.dispatch).toHaveBeenCalled());
     m.error!({ code: 'user-cancelled' });
-    await expect(pending).resolves.toBeUndefined();
+    await expect(pending).resolves.toBe('cancelled');
     expect(m.request).not.toHaveBeenCalled();
     stop();
   });

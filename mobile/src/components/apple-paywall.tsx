@@ -1,8 +1,8 @@
 import * as React from 'react';
-import { Alert, Linking, Pressable, View } from 'react-native';
+import { Alert, AppState, Linking, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
-import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
+import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Muted, Screen, Title } from './ui';
 import { PlanCard } from './plan-card';
 import { useAuth } from '@/lib/auth';
@@ -23,21 +23,30 @@ export function ApplePaywall() {
   const [error, setError] = React.useState<string | null>(null);
   const [busy, setBusy] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const loadGeneration = React.useRef(0);
+  const acting = React.useRef(false);
   const subscription = session?.subscription;
   const load = React.useCallback(async () => {
-    setLoading(true); setError(null);
-    try { setStore(await appleProducts()); }
-    catch (cause) { recordApplePurchaseFailure(cause); setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
-    finally { setLoading(false); }
+    const generation = ++loadGeneration.current;
+    setLoading(true); setError(null); setStore(null);
+    try { const offers = await appleProducts(); if (generation === loadGeneration.current) setStore(offers); }
+    catch (cause) { recordApplePurchaseFailure(cause); if (generation === loadGeneration.current) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
+    finally { if (generation === loadGeneration.current) setLoading(false); }
   }, [en]);
   React.useEffect(() => {
     let disposed = false;
-    void appleProducts().then((value) => { if (!disposed) setStore(value); })
-      .catch((cause) => { recordApplePurchaseFailure(cause); if (!disposed) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); })
-      .finally(() => { if (!disposed) setLoading(false); });
+    const generation = ++loadGeneration.current;
+    void appleProducts().then((offers) => { if (!disposed && generation === loadGeneration.current) setStore(offers); })
+      .catch((cause) => { recordApplePurchaseFailure(cause); if (!disposed && generation === loadGeneration.current) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); })
+      .finally(() => { if (!disposed && generation === loadGeneration.current) setLoading(false); });
     const stop = observeApplePurchase(setBusy);
-    return () => { disposed = true; stop(); };
-  }, [en]);
+    const resume = AppState.addEventListener('change', (state) => {
+      // Refetch after changing the Apple account/storefront in Settings, but
+      // never tear down an active purchase when its native sheet closes.
+      if (state === 'active' && !acting.current) void load();
+    });
+    return () => { disposed = true; stop(); resume.remove(); };
+  }, [load, en]);
   const product = store?.products.find((p) => p.id === APPLE_PRODUCTS[selected]);
   const trial = store?.eligible && product?.platform === 'ios' && product.introductoryPricePaymentModeIOS === 'free-trial';
   const trialDays = product?.platform === 'ios'
@@ -50,7 +59,6 @@ export function ApplePaywall() {
   // source of truth for the customer.
   const canPurchase = Boolean(product?.displayPrice);
   const wasActive = React.useRef(session?.subscription?.provider === 'apple' && accessStateFor(session.subscription).canWrite);
-  const acting = React.useRef(false);
   const appleActive = subscription?.provider === 'apple' && accessStateFor(subscription).canWrite;
   React.useEffect(() => {
     if (appleActive && !wasActive.current) router.replace('/(app)');
@@ -60,8 +68,8 @@ export function ApplePaywall() {
     if (acting.current) return;
     acting.current = true;
     setBusy(true); setError(null);
-    try { await fn(); await refresh(); }
-    catch (cause) { setError(cause instanceof Error ? cause.message : 'Réessayez dans un instant.'); }
+    try { const outcome = await fn(); if (outcome !== 'cancelled') await refresh(); }
+    catch (cause) { recordApplePurchaseFailure(cause, { productId: product?.id }); setError(applePurchaseUserMessage(normalizeApplePurchaseError(cause), locale)); }
     finally { acting.current = false; setBusy(false); }
   }
   return <Screen>
@@ -71,8 +79,8 @@ export function ApplePaywall() {
     <View style={{ gap: spacing.md }}>
       <Caption upper>{en ? 'Your time deserves better' : 'Votre temps mérite mieux'}</Caption>
       <Title>{appleActive ? (en ? 'Your Apple subscription' : 'Votre abonnement Apple') : (en ? 'Less quoting.\nMore time for you.' : 'Moins de devis à faire.\nPlus de temps pour vous.')}</Title>
-      <Muted>{en ? 'Choose the plan that fits your business. Apple confirms the final price and currency before you agree.' : 'Choisissez la formule qui accompagne votre activité. Les tarifs français sont en euros ; Apple confirme le prix et la devise de votre achat avant votre accord.'}</Muted>
-      {!appleActive ? <Card style={{ backgroundColor: colors.accentSoft, gap: spacing.sm }}>
+      <Muted>{en ? 'Choose the plan that fits your business. Apple confirms the price before you agree.' : 'Choisissez la formule qui accompagne votre activité. Apple confirme le tarif avant votre accord.'}</Muted>
+      {!appleActive ? <Card style={{ backgroundColor: colors.canvas, gap: spacing.sm }}>
         <Heading>{en ? 'Try DEVISERA free for 3 days' : '3 jours pour essayer DEVISERA'}</Heading>
         <Body>{en ? 'Free on every plan for eligible new subscribers. Then monthly renewal unless cancelled.' : 'Gratuit sur chaque formule pour les nouveaux abonnés éligibles. Ensuite, renouvellement mensuel automatique sauf annulation.'}</Body>
         <Caption>{en ? 'Apple confirms your eligibility and exact duration before you agree.' : 'Apple confirme votre éligibilité et la durée exacte avant tout accord.'}</Caption>
@@ -114,8 +122,7 @@ export function ApplePaywall() {
       loading={busy || loading} disabled={busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
       onPress={() => void action(() => purchaseApplePlan(selected, session!.organization.id))}
     />}
-    {!loading && product && product.currency !== 'EUR' ? <Banner title={`${en ? 'Apple storefront currency: ' : 'Devise du storefront Apple : '}${product.currency ?? (en ? 'unknown' : 'inconnue')}`} description={en ? 'The amount comes directly from Apple. Production in France should return EUR; a sandbox storefront may show another currency. Check the final amount before confirming.' : 'Le montant affiché vient directement d’Apple. En France, le storefront de production doit retourner EUR ; un environnement sandbox peut afficher une autre devise. Vérifiez le montant final avant de valider.'} action={<Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="secondary" onPress={() => void load()} />} /> : null}
-    {!loading && !product ? <Button title="Recharger les offres" variant="secondary" onPress={() => void load()} /> : null}
+    {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load()} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>
     <Button title={en ? 'Discover DEVISERA' : 'Découvrir DEVISERA'} variant="ghost" onPress={() => router.push('/presentation')} />

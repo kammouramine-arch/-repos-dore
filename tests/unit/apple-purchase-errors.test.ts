@@ -2,6 +2,18 @@ import { describe, expect, it } from 'vitest';
 import { applePurchaseUserMessage, normalizeApplePurchaseError } from '@devisia/shared';
 
 describe('Apple purchase diagnostics', () => {
+  it.each([
+    [{ code: 'TRANSACTION_TIMEOUT' }, 'timeout'],
+    [{ code: 'VALIDATION', status: 422 }, 'verification'],
+    [{ code: 'FORBIDDEN', status: 403 }, 'verification'],
+    [{ code: 'PAYMENT_PENDING' }, 'pending'],
+    [{ code: 'product-unavailable' }, 'product'],
+    [{ code: 'storefront-unavailable' }, 'storefront'],
+  ])('distinguishes failure families without exposing provider messages', (error, category) => {
+    const diagnostic = normalizeApplePurchaseError(error);
+    expect(diagnostic.category).toBe(category);
+    expect(applePurchaseUserMessage(diagnostic, 'en')).toBeTruthy();
+  });
   it('keeps the native code and safe product/storefront context', () => {
     expect(normalizeApplePurchaseError({
       code: 'E_STOREKIT_PAYMENT_NOT_ALLOWED',
