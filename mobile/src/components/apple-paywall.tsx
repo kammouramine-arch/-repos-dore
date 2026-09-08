@@ -3,7 +3,8 @@ import { Alert, Linking, Pressable, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
 import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, type PlanId } from '@devisia/shared';
-import { Banner, Body, Button, Caption, Card, Heading, Ionicons, Muted, PressableCard, Screen, Title } from './ui';
+import { Banner, Body, Button, Caption, Card, Heading, Muted, Screen, Title } from './ui';
+import { PlanCard } from './plan-card';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -86,19 +87,20 @@ export function ApplePaywall() {
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
       const chosen = plan === selected;
-      return <PressableCard haptic key={plan} disabled={busy} accessibilityRole="radio" accessibilityState={{ selected: chosen }} accessibilityLabel={en ? `Plan ${PLANS[plan].name}` : `Formule ${PLANS[plan].name}`} onPress={() => setSelected(plan)}
-        style={{ borderColor: chosen ? colors.accent : colors.line, borderWidth: 2, gap: spacing.md, backgroundColor: chosen ? colors.accentSoft : colors.canvas }}>
-          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-            <View style={{ flex: 1, gap: 4 }}><Heading>{PLANS[plan].name}</Heading><Caption>{plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}</Caption></View>
-            <Ionicons name={chosen ? 'radio-button-on' : 'radio-button-off'} color={chosen ? colors.accent : colors.subtle} size={23} />
-          </View>
-          <View style={{ flexDirection: 'row', alignItems: 'baseline', flexWrap: 'wrap', gap: 6 }}>
-            {p?.displayPrice ? <><Body style={{ fontSize: 30, lineHeight: 38, fontWeight: '700', color: colors.ink }}>{p.displayPrice}</Body><Muted>{en ? '/ month' : '/ mois'}</Muted></> : <Muted>{en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.'}</Muted>}
-          </View>
-          {!p ? <Caption>{en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement'}</Caption> : null}
-          {!appleActive ? <Caption>{en ? '3 days free for eligible new subscribers' : '3 jours gratuits pour les nouveaux abonnés éligibles'}</Caption> : null}
-          {PLANS[plan].highlights.slice(0, 3).map((h) => <View key={h} style={{ flexDirection: 'row', gap: 8 }}><Ionicons name="checkmark" size={17} color={colors.accent} /><Muted style={{ flex: 1 }}>{localizeText(locale, h)}</Muted></View>)}
-      </PressableCard>;
+      return <PlanCard
+        key={plan}
+        name={PLANS[plan].name}
+        tagline={plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}
+        price={p?.displayPrice ?? null}
+        priceSuffix={en ? '/ month' : '/ mois'}
+        note={!p ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : !appleActive ? (en ? '3 days free for eligible new subscribers' : '3 jours gratuits pour les nouveaux abonnés éligibles') : null}
+        highlights={PLANS[plan].highlights.slice(0, 3).map((text) => localizeText(locale, text))}
+        selected={chosen}
+        recommended={plan === 'PRO'}
+        disabled={busy}
+        onPress={() => setSelected(plan)}
+        labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.' }}
+      />;
     })}
     {trial ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
       <Heading>{en ? 'Your trial, clearly explained' : 'Votre essai, en toute clarté'}</Heading>

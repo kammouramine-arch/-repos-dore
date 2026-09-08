@@ -25,6 +25,8 @@ function ecrans(dossier: string, trouves: string[] = []): string[] {
 
 describe('navigation iOS', () => {
   it('uses the server-authenticated verification and entitlement state', () => {
+    expect(LAYOUT).toContain('guard={connected && !session?.user.emailVerified}');
+    expect(LAYOUT).toContain('guard={connected && !!session?.user.emailVerified}');
     expect(LAYOUT).toMatch(/session\.nextStep === 'subscription'/);
     expect(LAYOUT).toMatch(/session\.user\.emailVerified/);
     expect(LAYOUT).not.toMatch(/Platform\.OS === 'ios'.*needsPlan/);

@@ -22,7 +22,7 @@ export async function appleProducts() {
   const iap = await store();
   const [products, eligible] = await Promise.all([
     iap.fetchProducts({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' }),
-    iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP),
+    iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP).catch(() => false),
   ]);
   return { products: products as ProductSubscription[], eligible };
 }
@@ -53,6 +53,9 @@ function logPurchaseFailure(error: unknown, context: { productId?: string | null
     category: networkFailure ? 'network' : serverFailure ? 'server' : 'client',
     path: 'apple-purchase',
     status: 0,
+    productId: diagnostic.productId,
+    storefront: diagnostic.storefront,
+    transactionState: diagnostic.transactionState,
   });
   return diagnostic;
 }
@@ -63,8 +66,8 @@ export function recordApplePurchaseFailure(error: unknown, context: { productId?
 }
 
 function resolvePending(productId: string | null | undefined, error?: Error) {
-  const key = purchaseKey(productId);
-  const pending = pendingPurchases.get(key) ?? pendingPurchases.get('__unknown__');
+  const key = productId ? purchaseKey(productId) : pendingPurchases.size === 1 ? pendingPurchases.keys().next().value! : '__unknown__';
+  const pending = pendingPurchases.get(key);
   if (!pending) return;
   clearTimeout(pending.timer);
   pendingPurchases.delete(key);
@@ -143,7 +146,7 @@ export async function listenForApplePurchases(onSynced: () => void, onError: (er
 
 export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
   const productId = APPLE_PRODUCTS[plan];
-  if (pendingPurchases.has(productId)) return;
+  if (pendingPurchases.size) throw new Error('Un achat Apple est déjà en cours.');
   setBusy(true);
   try {
     const iap = await store();
@@ -157,8 +160,12 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
     // requestPurchase only dispatches the native sheet. The promise above is
     // settled by purchaseUpdatedListener after server verification and
     // finishTransaction, so the paywall never reports success prematurely.
-    await iap.requestPurchase({ type: 'subs', request: { apple: { sku: productId, appAccountToken: organizationId, andDangerouslyFinishTransactionAutomatically: false } } });
-    await result;
+    // Attach a rejection handler immediately: native errors can arrive before
+    // requestPurchase resolves (or the dispatch itself can reject).
+    await Promise.all([
+      result,
+      iap.requestPurchase({ type: 'subs', request: { apple: { sku: productId, appAccountToken: organizationId, andDangerouslyFinishTransactionAutomatically: false } } }),
+    ]);
   } catch (error) {
     const diagnostic = logPurchaseFailure(error, { productId });
     if (diagnostic.category === 'cancelled') {

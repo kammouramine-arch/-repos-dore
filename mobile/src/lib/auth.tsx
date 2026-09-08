@@ -258,7 +258,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (state.status !== 'connecte' || !state.session?.user.emailVerified || Platform.OS !== 'ios' || state.session.organization.role !== 'OWNER') return;
     let disposed = false;
     let cleanup: (() => void) | undefined;
-    void listenForApplePurchases(() => { void refreshSession(); }, (error) => {
+    void listenForApplePurchases(() => { void refreshSession().catch(() => undefined); }, (error) => {
       if (!disposed) {
         const english = authLocale === 'en';
         Alert.alert(

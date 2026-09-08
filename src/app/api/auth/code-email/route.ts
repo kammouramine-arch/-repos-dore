@@ -10,7 +10,7 @@ export async function POST(request: Request) {
     const auth = await requireAuth();
     await enforceRateLimit({ key: `email-change:${auth.user.id}`, ...RATE_LIMITS.login });
     const body = await parseBody(request, z.object({ email: z.string().trim().email().max(254), password: z.string().max(128).optional() }).strict());
-    return ok(await requestEmailCode(auth.user.id, body));
+    return ok(await requestEmailCode(auth.user.id, { ...body, language: auth.user.locale }));
   });
 }
 

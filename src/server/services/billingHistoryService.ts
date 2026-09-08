@@ -20,12 +20,12 @@ function stripeInvoiceStatus(invoice: Stripe.Invoice): BillingHistoryEntryDTO['s
 export function mapStripeInvoice(invoice: Stripe.Invoice, language: 'fr' | 'en' = 'fr'): BillingHistoryEntryDTO {
   const paidAt = invoice.status_transitions?.paid_at;
   const timestamp = paidAt ?? invoice.created;
-  const amount = Number.isFinite(invoice.amount_paid) ? invoice.amount_paid : invoice.amount_due;
+  const amount = invoice.status === 'paid' ? invoice.amount_paid : invoice.amount_due;
   const currency = typeof invoice.currency === 'string' ? invoice.currency.toUpperCase() : 'EUR';
   return {
     id: invoice.id,
     date: new Date(timestamp * 1000).toISOString(),
-    amountCents: Math.max(0, Math.round(amount ?? 0)),
+    amountCents: Math.round(amount ?? 0),
     currency,
     status: stripeInvoiceStatus(invoice),
     description: invoice.number

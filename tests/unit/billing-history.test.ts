@@ -2,6 +2,9 @@ import { describe, expect, it } from 'vitest';
 import { mapStripeInvoice } from '@/server/services/billingHistoryService';
 
 describe('billing history provider mapping', () => {
+  it('shows the amount due rather than zero paid on an open invoice', () => {
+    expect(mapStripeInvoice({ id: 'open', created: 1757000000, amount_paid: 0, amount_due: 7900, currency: 'gbp', status: 'open' } as never)).toMatchObject({ amountCents: 7900, currency: 'GBP', status: 'open' });
+  });
   it('maps only real Stripe invoice data and keeps the receipt link', () => {
     const entry = mapStripeInvoice({
       id: 'in_test',

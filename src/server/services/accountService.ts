@@ -31,25 +31,35 @@ export async function deletePersonalAccount(userId: string, password: string, co
   if (!user || user.deletedAt || !await verifyPassword(password, user.passwordHash)) {
     throw validation('Mot de passe incorrect. Votre compte reste inchangé.');
   }
-  const ownedOrganizations = await prisma.organizationMember.findMany({
-    where: { userId, role: 'OWNER', deletedAt: null },
-    select: { organizationId: true },
-  });
-  if (ownedOrganizations.length) {
-    const ownerCounts = await Promise.all(ownedOrganizations.map(({ organizationId }) => prisma.organizationMember.count({ where: { organizationId, role: 'OWNER', deletedAt: null } })));
-    if (ownerCounts.some((count) => count < 2)) {
-      throw validation('Transférez la propriété de votre espace avant de supprimer ce compte. Les données commerciales restent rattachées à leur entreprise.');
-    }
-  }
   const now = new Date();
   const replacementEmail = `deleted+${userId}@invalid.devisia.local`;
   await prisma.$transaction(async (tx) => {
+    const current = await tx.user.findUnique({ where: { id: userId } });
+    if (!current || current.deletedAt || current.passwordHash !== user.passwordHash) throw conflict('Votre compte a changé. Réessayez.');
+    const owned = await tx.organizationMember.findMany({
+      where: { userId, role: 'OWNER', deletedAt: null },
+      select: { organizationId: true },
+    });
+    for (const { organizationId } of owned) {
+      const others = await tx.organizationMember.findMany({
+        where: { organizationId, userId: { not: userId }, deletedAt: null },
+        select: { role: true },
+      });
+      if (others.some((member) => member.role === 'OWNER')) continue;
+      if (others.length) throw validation('Transférez la propriété de votre espace à un membre actif avant de supprimer ce compte.');
+      // Solo artisans have nobody to transfer to. Archive, do not purge their
+      // commercial records; stop future automation and outstanding invitations.
+      await tx.organization.update({ where: { id: organizationId }, data: { deletedAt: now } });
+      await tx.automation.updateMany({ where: { organizationId }, data: { isActive: false } });
+      await tx.followUp.updateMany({ where: { organizationId, status: { in: ['PLANIFIEE', 'SUGGEREE'] } }, data: { status: 'ANNULEE' } });
+      await tx.teamInvitation.updateMany({ where: { organizationId, status: 'PENDING' }, data: { status: 'REVOKED' } });
+    }
     await tx.user.update({ where: { id: userId }, data: { email: replacementEmail, firstName: null, lastName: null, phone: null, emailVerifiedAt: null, deletedAt: now } });
     await tx.session.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: now } });
     await tx.authToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
     await tx.emailChallenge.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
     await tx.organizationMember.updateMany({ where: { userId, deletedAt: null }, data: { deletedAt: now } });
-  });
+  }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   return { deleted: true, businessRecordsRetained: true };
 }
 

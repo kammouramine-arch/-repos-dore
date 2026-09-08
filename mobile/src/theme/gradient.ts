@@ -38,6 +38,8 @@ export const BRAND_GRADIENT: readonly GradientStop[] = [
 export const GRADIENT_SPAN = {
   home: 0.64,
   auth: 0.68,
+  /** Réglages : l'identité respire sur le bleu, les groupes reposent sur le fondu. */
+  settings: 0.5,
 } as const;
 
 export function hexToRgb(hex: string): { r: number; g: number; b: number } {

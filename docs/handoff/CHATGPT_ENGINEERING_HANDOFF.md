@@ -1,5 +1,30 @@
 # DEVISERA engineering handoff
 
+## Final integration update — 2026-09-08
+
+The integration branch is `integration/devisera-final`, based on engineering
+`ccb0094` and UI `2ad5445`. See `FINAL_INTEGRATION.md` for verification.
+
+- Claude's payment screen now consumes `GET /api/billing/payments`, an alias of
+  the existing `/api/billing/history` handler, returning `BillingHistoryDTO`.
+  It uses `entries`, `description` and provider-level metadata. The older UI
+  handoff's `/paiements` and `PaymentHistoryDTO.items` proposal is superseded.
+- Apple history has no invented rows; actual Stripe invoice rows retain their
+  status/currency/amount. Open invoices show amount due, not zero amount paid.
+- Solo account deletion archives the empty workspace, disables automation,
+  cancels planned follow-ups, revokes invitations and all personal sessions.
+  Another active teammate without another OWNER still requires transfer.
+  Commercial records are retained, not purged. Retention policy needs legal review.
+- Account deletion does not cancel Apple billing; the deletion screen warns
+  users to cancel provider billing first. No live subscription is changed here.
+- Account confirmation adopts the server-returned verified session immediately.
+  Codes retain Unicode normalization and leading zeros; email requests use the
+  persisted account language.
+- The single root stack explicitly protects verification and verified routes;
+  visually hiding screens is not used as authorization.
+- The legal notices route exists and is linked, but publisher identity remains
+  incomplete. A successful HTTP response is not legal readiness.
+
 This document is the contract between the reliability/backend work and the
 mobile presentation work. It describes observable behavior and data shapes;
 it does not grant access to production secrets.
@@ -115,4 +140,3 @@ The following cannot be completed safely from source code alone:
    introductory offers, agreements, pricing and the production app icon.
 4. Complete publisher identity, hosting details and legal review on the legal
    pages before public sale.
-

@@ -19,6 +19,9 @@ export type Diagnostic = {
   path?: string;
   status?: number;
   requestId?: string;
+  productId?: string;
+  storefront?: string;
+  transactionState?: string;
 };
 
 const events: Diagnostic[] = [];

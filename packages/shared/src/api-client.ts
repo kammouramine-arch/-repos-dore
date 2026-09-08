@@ -520,6 +520,8 @@ export function createApiClient(options: ApiClientOptions) {
     billing: {
       overview: () => request<BillingOverviewDTO>('/api/billing'),
       history: () => request<BillingHistoryDTO>('/api/billing/history'),
+      /** Same provider-owned contract as history; no fabricated Apple invoices. */
+      payments: () => request<BillingHistoryDTO>('/api/billing/payments'),
       checkout: (plan: PlanId) => request<{ url: string }>('/api/billing/checkout', { method: 'POST', json: { plan } }),
       portal: () => request<{ url: string }>('/api/billing/portail', { method: 'POST' }),
       changePlan: (plan: PlanId) =>

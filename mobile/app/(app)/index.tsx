@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { Pressable, RefreshControl, Text, View, useWindowDimensions } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { SafeAreaView, useSafeAreaInsets } from 'react-native-safe-area-context';
-import { setStatusBarStyle } from 'expo-status-bar';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
@@ -30,8 +29,7 @@ import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
-import { PremiumGradient } from '@/components/premium-gradient';
-import { GRADIENT_SPAN } from '@/theme/gradient';
+import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 
 /**
  * Accueil.
@@ -130,27 +128,6 @@ function HomeHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: stri
       <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
         <Logo size={26} showName={false} tone="inverse" />
       </View>
-    </View>
-  );
-}
-
-/** Fond de marque et barre d'état claire tant que l'accueil est à l'écran. */
-function useBrandSurface() {
-  const { height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
-  useFocusEffect(
-    React.useCallback(() => {
-      setStatusBarStyle('light');
-      return () => setStatusBarStyle('dark');
-    }, []),
-  );
-  return { gradientHeight: Math.round(height * GRADIENT_SPAN.home), paddingTop: insets.top + spacing.lg };
-}
-
-function BrandBackdrop({ height }: { height: number }) {
-  return (
-    <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height }}>
-      <PremiumGradient />
     </View>
   );
 }

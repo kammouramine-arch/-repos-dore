@@ -1,5 +1,6 @@
 import { expect, test, type Page } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
+import { continueWithVerifiedFixture } from './verified-fixture';
 const prisma = new PrismaClient({ datasources: { db: { url: process.env.E2E_DATABASE_URL ?? 'postgresql://devisia:devisia@127.0.0.1:5432/devisia_test?schema=public' } } });
 test.afterAll(async () => { await prisma.$disconnect(); });
 
@@ -19,7 +20,7 @@ async function signUp(page: Page) {
   await page.getByLabel(/Adresse email/i).fill(email);
   await page.getByLabel(/Mot de passe/i).fill('devisera-e2e-2026');
   await page.getByRole('button', { name: /Créer mon compte/i }).click();
-  await page.waitForURL('**/app/bienvenue', { timeout: 30_000 });
+  await continueWithVerifiedFixture(page, prisma, email);
   return email;
 }
 

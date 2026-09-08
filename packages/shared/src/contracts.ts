@@ -350,6 +350,29 @@ export interface UsageDTO {
   seats: number;
 }
 
+/**
+ * Un paiement tel que l'application le présente. Source et statut viennent du
+ * serveur (Apple ou web) ; l'application n'invente ni devise ni montant.
+ */
+export interface PaymentDTO {
+  id: string;
+  /** Date ISO du paiement. */
+  date: string;
+  amountCents: number;
+  /** Code ISO 4217 tel que renvoyé par le fournisseur (EUR, USD…). */
+  currency: string;
+  source: 'apple' | 'web';
+  status: 'paid' | 'pending' | 'failed' | 'refunded';
+  /** Libellé court : formule et période. */
+  label: string;
+  /** Reçu ou facture consultable, s'il existe. */
+  receiptUrl: string | null;
+}
+
+export interface PaymentHistoryDTO {
+  items: PaymentDTO[];
+}
+
 export interface BillingOverviewDTO {
   subscription: SubscriptionDTO;
   usage: UsageDTO;

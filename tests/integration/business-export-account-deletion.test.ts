@@ -24,6 +24,16 @@ afterAll(async () => {
 });
 
 describe('business export and account deletion', () => {
+  it('allows a solo artisan to delete without requiring a nonexistent successor', async () => {
+    const solo = await createTestOrganization('Solo deletion');
+    try {
+      await prisma.user.update({ where: { id: solo.user.id }, data: { passwordHash: await hashPassword(password) } });
+      await deletePersonalAccount(solo.user.id, password, 'SUPPRIMER');
+      expect((await prisma.organization.findUniqueOrThrow({ where: { id: solo.organization.id } })).deletedAt).toBeInstanceOf(Date);
+      expect(await prisma.automation.count({ where: { organizationId: solo.organization.id, isActive: true } })).toBe(0);
+      expect((await prisma.user.findUniqueOrThrow({ where: { id: solo.user.id } })).deletedAt).toBeInstanceOf(Date);
+    } finally { await cleanupOrganization(solo.organization.id, solo.user.id); }
+  });
   it('exports business records without credentials or provider secrets', async () => {
     const data = await exportBusinessData(org.organization.id);
     expect(data.scope).toBe('business');

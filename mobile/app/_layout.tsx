@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Stack } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { Pressable, Text, View } from 'react-native';
+import { Pressable, Text, View, type ColorValue } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/lib/auth';
@@ -10,6 +10,7 @@ import { hasLaunchedBefore, markLaunched } from '@/lib/launch-memory';
 import { claimLaunch } from '@/lib/launch-timing';
 import { ToastProvider } from '@/components/toast';
 import { LaunchOverlay } from '@/components/launch';
+import { HeaderBack } from '@/components/header-back';
 import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
@@ -99,23 +100,27 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
   );
   const back = locale === 'en' ? 'Back' : 'Retour';
 
+  /*
+   * En-tête commun. Constaté sur iPhone : le bouton retour natif se dessinait
+   * vide (une capsule sans chevron ni texte) sur « Mon compte » et
+   * « Abonnement ». Le contrôle est donc fourni par l'application, avec un
+   * libellé qui n'est jamais le nom d'une route.
+   */
+  const headerChrome = {
+    headerTintColor: colors.accent,
+    headerTitleAlign: 'center' as const,
+    headerTitleStyle: { color: colors.ink, fontWeight: '600' as const, fontSize: 17 },
+    headerStyle: { backgroundColor: colors.canvas },
+    headerShadowVisible: false,
+    headerBackVisible: false,
+    headerLeft: ({ canGoBack, tintColor }: { canGoBack?: boolean; tintColor?: ColorValue }) =>
+      canGoBack ? <HeaderBack tint={tintColor ?? colors.accent} /> : null,
+  };
+
   // Session existante mais serveur injoignable ou en panne : on ne déconnecte
   // pas l'artisan, son jeton reste dans le trousseau.
   if (outage && !connected) {
     return <StartupFailure outage={outage} reference={outageReference} onRetry={() => void refresh()} />;
-  }
-
-  // A session is not a verified identity. New mobile accounts receive a code
-  // before they can enter quotes, clients, or billing. Keeping this gate at
-  // the root also covers an unverified account that later signs in on another
-  // device; it cannot be bypassed by navigating directly to a tab.
-  if (connected && session && !session.user.emailVerified) {
-    return (
-      <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: colors.surface }, animation: 'fade_from_bottom', animationDuration: 220 }}>
-        <Stack.Screen name="verification" />
-        <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
-      </Stack>
-    );
   }
 
   return (
@@ -135,11 +140,7 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
          * ici, une fois, plutôt qu'écran par écran.
          */
         headerBackTitle: back,
-        headerBackButtonDisplayMode: 'generic',
-        headerTintColor: colors.accent,
-        headerTitleStyle: { color: colors.ink },
-        headerStyle: { backgroundColor: colors.canvas },
-        headerShadowVisible: false,
+        ...headerChrome,
       }}
     >
       <Stack.Protected guard={!connected && !seenOnboarding}>
@@ -150,7 +151,10 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="(auth)" />
       </Stack.Protected>
 
-      <Stack.Protected guard={connected}>
+      <Stack.Protected guard={connected && !session?.user.emailVerified}>
+        <Stack.Screen name="verification" />
+      </Stack.Protected>
+      <Stack.Protected guard={connected && !!session?.user.emailVerified}>
         <Stack.Protected guard={!needsPlan}>
           <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
           <Stack.Screen name="devis/nouveau" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'New quote' : 'Nouveau devis', headerBackTitle: back }} />
@@ -159,10 +163,14 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         </Stack.Protected>
         <Stack.Screen name="abonnement" options={{ headerShown: true, title: locale === 'en' ? 'Subscription' : 'Abonnement', headerBackTitle: back }} />
         <Stack.Screen name="presentation" options={{ headerShown: false }} />
-        <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
+        <Stack.Screen name="paiements" options={{ headerShown: true, title: copy(locale, 'invoices'), headerBackTitle: back }} />
         <Stack.Screen name="catalogue" options={{ headerShown: true, title: locale === 'en' ? 'Price book' : 'Catalogue de prix', headerBackTitle: back }} />
         <Stack.Screen name="entreprise" options={{ headerShown: true, title: locale === 'en' ? 'My business' : 'Mon entreprise', headerBackTitle: back }} />
         <Stack.Screen name="analytique" options={{ headerShown: true, title: locale === 'en' ? 'Activity' : 'Activité', headerBackTitle: back }} />
+      </Stack.Protected>
+      <Stack.Protected guard={connected}>
+        <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
+        <Stack.Screen name="suppression" options={{ headerShown: true, title: copy(locale, 'deleteAccount'), headerBackTitle: back }} />
       </Stack.Protected>
     </Stack>
   );

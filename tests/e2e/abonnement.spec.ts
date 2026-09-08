@@ -1,5 +1,6 @@
 import { expect, test } from '@playwright/test';
 import { PrismaClient } from '@prisma/client';
+import { continueWithVerifiedFixture } from './verified-fixture';
 
 /**
  * Parcours commercial : essai de 3 jours, expiration, page d'abonnement.
@@ -29,7 +30,7 @@ test.describe('abonnement', () => {
     await page.getByLabel(/Adresse email/i).fill(email);
     await page.getByLabel(/Mot de passe/i).fill('devisera-e2e-2026');
     await page.getByRole('button', { name: /Créer mon compte/i }).click();
-    await page.waitForURL('**/app/bienvenue', { timeout: 30_000 });
+    await continueWithVerifiedFixture(page, prisma, email);
 
     const user = await prisma.user.findUnique({
       where: { email },
