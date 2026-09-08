@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, Share, View } from 'react-native';
+import { KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import { File, Paths } from 'expo-file-system';
 import * as Sharing from 'expo-sharing';
@@ -7,7 +7,7 @@ import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/component
 import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { readDiagnostics } from '@/lib/diagnostics';
+import { DiagnosticReport } from '@/components/diagnostic-report';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
 
@@ -131,7 +131,7 @@ export default function CompteScreen() {
         >
           <SettingsRow icon="download-outline" title={copy(locale, 'exportPersonal')} onPress={() => void perform(() => exportJson('DEVISERA-compte', () => api.auth.exportPersonal()))} />
           <SettingsRow icon="briefcase-outline" title={copy(locale, 'exportBusiness')} onPress={() => void perform(() => exportJson('DEVISERA-donnees', () => api.auth.exportBusiness()))} />
-          <SettingsRow icon="pulse-outline" title={copy(locale, 'shareDiagnostics')} onPress={() => void perform(async () => { await Share.share({ message: JSON.stringify({ app: 'DEVISERA', events: readDiagnostics() }, null, 2) }); })} />
+          <DiagnosticReport en={en} />
           <SettingsRow icon="log-out-outline" title={copy(locale, 'signOut')} onPress={() => void perform(signOut)} />
         </SettingsGroup>
 

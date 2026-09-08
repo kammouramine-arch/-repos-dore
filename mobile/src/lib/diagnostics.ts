@@ -23,6 +23,14 @@ export type Diagnostic = {
   storefront?: string;
   transactionState?: string;
   transactionReference?: string;
+  requestedProductIds?: string[];
+  returnedProductIds?: string[];
+  /** Missing from Apple's result, not proof Apple declared an ID invalid. */
+  missingProductIds?: string[];
+  productCount?: number;
+  nativeCode?: string;
+  currency?: string;
+  displayPrice?: string;
 };
 
 const events: Diagnostic[] = [];

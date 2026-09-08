@@ -3,18 +3,19 @@ const m = vi.hoisted(() => ({
   update: undefined as undefined | ((p: unknown) => void),
   error: undefined as undefined | ((p: unknown) => void),
   request: vi.fn(), finish: vi.fn(), dispatch: vi.fn(), available: vi.fn(),
+  products: vi.fn(), storefront: vi.fn(), diagnostic: vi.fn(),
 }));
 vi.mock('../../mobile/node_modules/react-native/index.js', () => ({ Platform: { OS: 'ios' } }));
 vi.mock('../../mobile/src/lib/api', () => ({ api: { request: m.request } }));
-vi.mock('../../mobile/src/lib/diagnostics', () => ({ recordDiagnostic: vi.fn() }));
+vi.mock('../../mobile/src/lib/diagnostics', () => ({ recordDiagnostic: m.diagnostic }));
 vi.mock('../../mobile/node_modules/expo-iap/build/index.js', () => ({
   initConnection: async () => true,
-  getStorefront: async () => 'FRA',
+  getStorefront: m.storefront,
   purchaseUpdatedListener: (fn: (p: unknown) => void) => { m.update = fn; return { remove() {} }; },
   purchaseErrorListener: (fn: (p: unknown) => void) => { m.error = fn; return { remove() {} }; },
   requestPurchase: m.dispatch, finishTransaction: m.finish,
   restorePurchases: async () => {}, getAvailablePurchases: m.available,
-  fetchProducts: async () => [{ id: 'test', displayPrice: '39,00 €', currency: 'EUR' }],
+  fetchProducts: m.products,
   isEligibleForIntroOfferIOS: async () => { throw new Error('eligibility unavailable'); },
 }));
 import { APPLE_PRODUCTS } from '@devisia/shared';
@@ -23,7 +24,7 @@ import { APPLE_PRODUCTS } from '@devisia/shared';
 const mobileModule = '../../mobile/src/lib/apple-purchases';
 const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases, observeApplePurchase } = await import(mobileModule);
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
-beforeEach(() => { vi.clearAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); });
+beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
   it('reconciles an existing active purchase without an interactive Apple restore', async () => {
     expect(await restoreApplePurchases(false)).toBe(1);
@@ -78,6 +79,40 @@ describe('native purchase event lifecycle (mock SDK)', () => {
   });
   it('keeps localized products when introductory eligibility cannot load', async () => {
     expect(await appleProducts()).toMatchObject({ eligible: false, products: [{ displayPrice: '39,00 €', currency: 'EUR' }] });
+  });
+  it('requests the exact production IDs and records missing IDs without claiming they are invalid', async () => {
+    await appleProducts();
+    expect(m.products).toHaveBeenCalledWith({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' });
+    expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'PRODUCTS_RETURNED', productCount: 1, missingProductIds: [APPLE_PRODUCTS.PRO, APPLE_PRODUCTS.ENTREPRISE] }));
+  });
+  it('does not convert a successful native catalogue into unavailable on a separate storefront mismatch', async () => {
+    m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
+    expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '$35.00' }] });
+    expect(m.products).toHaveBeenCalledTimes(2);
+    expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'STOREFRONT_METADATA_MISMATCH' }));
+  });
+  it('uses the fresh EUR product after a bounded metadata refetch, never the earlier USD result', async () => {
+    m.products.mockResolvedValueOnce([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
+    expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '39,00 €' }] });
+  });
+  it('distinguishes zero products from a native request error and allows retry', async () => {
+    m.products.mockResolvedValueOnce([]);
+    await expect(appleProducts()).rejects.toMatchObject({ code: 'PRODUCTS_EMPTY' });
+    await expect(appleProducts()).resolves.toMatchObject({ products: [{ currency: 'EUR' }] });
+    m.products.mockRejectedValueOnce(Object.assign(new Error('native'), { code: 'network-error' }));
+    await expect(appleProducts()).rejects.toMatchObject({ code: 'network-error' });
+  });
+  it('shares concurrent catalogue loads, but never caches a completed price snapshot', async () => {
+    await Promise.all([appleProducts(), appleProducts(), appleProducts()]);
+    expect(m.products).toHaveBeenCalledTimes(1);
+    await appleProducts();
+    expect(m.products).toHaveBeenCalledTimes(2);
+  });
+  it('restores independently after catalogue failure', async () => {
+    m.products.mockRejectedValueOnce(new Error('catalogue offline'));
+    await expect(appleProducts()).rejects.toThrow('catalogue offline');
+    expect(await restoreApplePurchases(false)).toBe(1);
+    expect(m.request).toHaveBeenCalledOnce();
   });
   it('waits for server verification before finishing and resolving', async () => {
     const stop = await listenForApplePurchases(vi.fn(), vi.fn());

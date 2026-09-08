@@ -2,6 +2,16 @@
 
 This record supersedes earlier optimistic completion statements. A passing automated test is not proof of a physical StoreKit purchase or legal compliance.
 
+## Latest device evidence overrides readiness
+
+Build 27 completed and reached internal TestFlight, but the owner reports catalogue failure. See `../handoff/STOREKIT_CATALOGUE_2026-09-08.md`. Further mobile corrections are not in Build 27; no replacement build has been started. Current suite: 426 tests / 62 files pass.
+
+Production source `1e17fe57ab311c3151f192a15de233f3e7001059` is Ready on Vercel deployment `2inWrYXeA66U8nomorggY33zfzRU`. Dublin execution now gives warm health totals 258–284 ms, DB checks 5–11 ms, versus 838–965 ms before: approximately 70% improvement in this probe, not an iPhone benchmark.
+
+OVH apex A changed from parking to Vercel's requested `216.198.79.1`; email records retained. Vercel reports Valid Configuration. Certificate-validated HTTPS checks against that target return 200 for home, health, confidentialite, conditions and mentions-legales. Local caches may lag. The www alias is attached to Vercel but its OVH parking record still needs replacement with Vercel's displayed CNAME. Apex remains direct Production.
+
+Live website signup code: Resend Delivered, incorrect code rejected, correct code accepted, logout/verified login succeeded without verification. This does not prove inbox placement or every email type.
+
 ## Changes in this pass
 
 - Live inspection found `email_challenges` and `file_blobs` readable by Supabase public roles without RLS. Enabled RLS on both, without policies or data deletion, matching the server-only Prisma architecture. Added a repeatable migration and PostgreSQL regression test. All other public tables already had RLS; no public policies were present. Historical exposure requires professional security/privacy assessment; absence of observed abuse is not proof none occurred.

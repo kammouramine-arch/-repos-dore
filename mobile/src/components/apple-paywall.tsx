@@ -13,6 +13,7 @@ import { Logo } from './logo';
 import { localizeText, mobileLocale } from '@/lib/i18n';
 import { appleOffer } from '@/lib/apple-offer';
 import { recordDiagnostic } from '@/lib/diagnostics';
+import { DiagnosticReport } from './diagnostic-report';
 
 export function ApplePaywall() {
   const { session, refresh, signOut } = useAuth();
@@ -112,7 +113,7 @@ export function ApplePaywall() {
         tagline={plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}
         price={cardOffer.price}
         priceSuffix={cardOffer.period}
-        note={!p ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : !appleActive ? cardOffer.note : null}
+        note={!p ? (loading ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : (en ? 'Reload offers to see the price' : 'Rechargez les offres pour afficher le prix')) : !appleActive ? cardOffer.note : null}
         highlights={PLANS[plan].highlights.slice(0, 3).map((text) => localizeText(locale, text))}
         selected={chosen}
         recommended={plan === 'PRO'}
@@ -146,6 +147,7 @@ export function ApplePaywall() {
       })}
     />}
     {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load()} /> : null}
+    {error ? <DiagnosticReport en={en} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>
     <Button title={en ? 'Discover DEVISERA' : 'Découvrir DEVISERA'} variant="ghost" onPress={() => router.push('/presentation')} />

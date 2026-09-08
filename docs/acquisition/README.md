@@ -4,6 +4,8 @@ Prepared 6 September 2026. Confidential working material; not a sale offer, lega
 
 ## Start here
 
+Latest evidence: [38 Production evidence](38_PRODUCTION_READINESS_EVIDENCE_2026-09-08.md) and [Build 27 StoreKit incident](../handoff/STOREKIT_CATALOGUE_2026-09-08.md) supersede older release/readiness claims. Build 27 has not passed real-device purchase acceptance.
+
 Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedule](02_ASSET_INVENTORY.md) and [closing checklist](11_TRANSFER_CHECKLIST.md) first. Each claim must be backed by source, a current account record, a test, or an owner-supplied document. Unknown traction is **unknown**, not zero.
 
 | Document | Purpose |

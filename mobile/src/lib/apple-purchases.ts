@@ -25,29 +25,62 @@ async function bounded<T>(operation: Promise<T>, code: string, ms = 30_000): Pro
 }
 async function store() {
   if (Platform.OS !== 'ios') throw new Error('Les abonnements Apple sont disponibles sur iPhone et iPad.');
-  if (!sdk) sdk = import('expo-iap').then(async (iap) => { await bounded(iap.initConnection(), 'CONNECTION_TIMEOUT'); return iap; }).catch((e) => { sdk = undefined; throw e; });
+  if (!sdk) sdk = import('expo-iap').then(async (iap) => {
+    const connected = await bounded(iap.initConnection(), 'CONNECTION_TIMEOUT');
+    if (!connected) throw Object.assign(new Error('Apple connection was not established.'), { code: 'CONNECTION_NOT_READY' });
+    return iap;
+  }).catch((e) => { sdk = undefined; throw e; });
   return sdk;
 }
 
-export async function appleProducts() {
+let catalogueFlight: Promise<{ products: ProductSubscription[]; eligible: boolean }> | undefined;
+export function appleProducts() {
+  // Mount, foreground and Retry can overlap. Share only the in-flight query,
+  // never cache prices across requests or Apple account/storefront changes.
+  if (!catalogueFlight) catalogueFlight = loadAppleProducts().finally(() => { catalogueFlight = undefined; });
+  return catalogueFlight;
+}
+
+async function loadAppleProducts() {
+  const started = Date.now();
+  const requested = Object.values(APPLE_PRODUCTS);
+  let storefront = 'unknown';
+  const log = (code: string, extra: Partial<Parameters<typeof recordDiagnostic>[0]> = {}) => recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: Date.now() - started, code, category: 'ok', storefront, ...extra });
+  log('PRODUCTS_REQUESTED', { requestedProductIds: requested });
+  try {
   const iap = await store();
   const before = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
   let [products, eligible] = await Promise.all([
-    bounded(iap.fetchProducts({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' }), 'PRODUCTS_TIMEOUT'),
+    bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT'),
     bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false),
   ]);
-  const storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  const returned = () => log('PRODUCTS_RETURNED', { returnedProductIds: (products ?? []).map(p => p.id), missingProductIds: requested.filter(id => !products?.some(p => p.id === id)), productCount: products?.length ?? 0 });
+  returned();
   if (before !== storefront || !consistentAppleCurrency(products ?? [], storefront)) {
-    products = await bounded(iap.fetchProducts({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' }), 'PRODUCTS_TIMEOUT');
+    log('PRODUCTS_METADATA_REFRESH', { category: 'client' });
+    products = await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT');
     eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false);
+    returned();
     if (!consistentAppleCurrency(products ?? [], storefront)) {
-      throw Object.assign(new Error('Apple product metadata is not current. Reload offers.'), { code: 'STOREFRONT_METADATA_MISMATCH' });
+      // A separate Storefront.current snapshot is not a price authority. It can
+      // disagree in TestFlight. Do not turn a successful native catalogue into
+      // "products unavailable", nor fabricate/conversion-map a replacement.
+      log('STOREFRONT_METADATA_MISMATCH', { category: 'client' });
     }
   }
+  const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
+  if (!usable.length) throw Object.assign(new Error('Apple returned no usable subscription products.'), { code: products?.length ? 'PRODUCT_METADATA_INCOMPLETE' : 'PRODUCTS_EMPTY' });
   for (const product of products ?? []) {
-    recordDiagnostic({ area: 'billing', durationMs: 0, code: `PRODUCT_${product.currency ?? 'UNKNOWN'}`, category: 'ok', productId: product.id, storefront });
+    log('PRODUCT_METADATA', { productId: product.id, currency: product.currency, displayPrice: product.displayPrice });
   }
-  return { products: products as ProductSubscription[], eligible };
+  log('PRODUCTS_READY', { productCount: usable.length });
+  return { products: usable as ProductSubscription[], eligible };
+  } catch (error) {
+    const native = normalizeApplePurchaseError(error);
+    log('PRODUCTS_FAILED', { category: native.category === 'network' ? 'network' : 'client', nativeCode: native.code });
+    throw error;
+  }
 }
 
 const syncing = new Map<string, Promise<void>>();
