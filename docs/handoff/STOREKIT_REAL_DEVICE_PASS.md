@@ -93,9 +93,32 @@ these samples. This is not proof that authenticated POST traffic never meets
 the firewall. The production POST probe was rejected by the safety reviewer;
 no billing write was sent. No security rule was disabled.
 
-Owner completed Vercel authentication. The production overview confirms the
-baseline f14458e on integration/devisera-final is Ready at
-devisia-mv3v5y3la-amyn1.vercel.app, aliased by devisia-bice.vercel.app.
+Owner completed Vercel authentication. Code commit
+`815b1383cdc76563964bbd8be08bf8f0037ec095` was pushed and deployed with the
+existing Production environment. Deployment `6qbknD67yca5zeWb2DQkF8SgMcyx`
+is Ready at `devisia-hc9a40tx9-amyn1.vercel.app`, aliased by
+`devisia-bice.vercel.app`. Post-deployment GET checks returned health 200,
+billing/payments 401 without authentication, and all three legal pages 200.
+The automatic Preview failed because DIRECT_URL was absent in Preview;
+production credentials were not copied there. Production deployment succeeded.
+
+The live firewall has no custom rules and Bot Protection is inactive; system
+DDoS mitigation remains active. The past-day view showed 231 allowed and 10
+denied requests. Denials were system mitigations on account, email-code,
+session and customer paths, not billing/apple. Some used mobile-looking user
+agents from Google-hosted addresses; that alone does not establish legitimate
+iPhone traffic. No security rule was weakened without a proven narrow cause.
+Hobby runtime logs retain only the last hour: no billing/apple request was
+available there, and the earlier screenshot incident could not be recovered.
+
+APPLE_ALLOW_SANDBOX exists for Production but is saved as write-only Secret;
+its boolean value cannot be read in the dashboard. It was not overwritten.
+Sandbox acceptance must therefore be established by the real purchase test,
+or an authorized operator must confirm its intended value through configuration.
+All three French product names and the French group/custom app name were
+verified persisted after reloading App Store Connect. Products remain Prepare
+for Submission; no public review was initiated and full payment-sheet artwork
+was not verified on an iPhone.
 The new mobile changes still require a new native build; a backend deploy cannot
 modify an already installed TestFlight binary.
 
@@ -143,3 +166,4 @@ and the French storefront displays EUR**. No EAS build is requested in this pass
 - Existing Prisma configuration and Next middleware deprecation warnings remain;
   no unrelated dependency migration was attempted.
 - No production data or secrets were included in the new documentation/tests.
+- The isolated PostgreSQL test server was stopped after verification.
