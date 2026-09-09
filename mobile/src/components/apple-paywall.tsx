@@ -62,7 +62,7 @@ function ApplePaywallContent() {
   const trial = offer.trial;
   const trialDays = offer.days;
   // Only current native metadata. Never mix website prices into iOS offers.
-  const canPurchase = Boolean(product?.displayPrice) && (!offer.mismatch || Constants.expoConfig?.extra?.storekitDiagnostics === true);
+  const canPurchase = Boolean(product?.displayPrice);
   const wasActive = React.useRef(session?.subscription?.provider === 'apple' && accessStateFor(session.subscription).canWrite);
   const appleActive = subscription?.provider === 'apple' && accessStateFor(subscription).canWrite;
   React.useEffect(() => {
@@ -126,7 +126,7 @@ function ApplePaywallContent() {
         recommended={plan === 'PRO'}
         disabled={busy}
         onPress={() => setSelected(plan)}
-        labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: cardOffer.mismatch ? (Constants.expoConfig?.extra?.storekitDiagnostics === true ? (en ? 'Apple will confirm the price during purchase.' : 'Le prix sera confirmé par Apple lors de l’achat.') : (en ? 'Apple pricing is temporarily unavailable. Reload offers.' : 'Les tarifs Apple sont temporairement indisponibles. Rechargez les offres.')) : (en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.') }}
+        labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: cardOffer.mismatch ? (en ? 'Price confirmed by Apple during purchase.' : 'Prix confirmé par Apple lors de l’achat.') : (en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.') }}
       />;
     })}
     {trial && selected ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
@@ -147,9 +147,6 @@ function ApplePaywallContent() {
         setStore(fresh);
         const current = fresh.products.find(item => item.id === APPLE_PRODUCTS[selected]);
         if (!current?.displayPrice) throw Object.assign(new Error('Product unavailable'), { code: 'PRODUCT_UNAVAILABLE' });
-        if (appleOffer(current, fresh.eligible, en, fresh.storefront).mismatch && Constants.expoConfig?.extra?.storekitDiagnostics !== true) {
-          throw Object.assign(new Error('Apple product currency disagrees with storefront'), { code: 'STOREKIT_METADATA_MISMATCH' });
-        }
         if (current.displayPrice !== product?.displayPrice || current.currency !== product?.currency) {
           setError(en ? 'Apple updated the price. Review the updated offer, then continue.' : 'Apple a actualisé le prix. Vérifiez l’offre actualisée, puis continuez.');
           return 'price_updated';

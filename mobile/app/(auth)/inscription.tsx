@@ -13,7 +13,7 @@ export default function InscriptionScreen() {
   const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();
-  const { signUp, error, errorReference } = useAuth();
+  const { signUp, error } = useAuth();
   const [form, setForm] = React.useState({
     companyName: '',
     firstName: '',
@@ -57,7 +57,7 @@ export default function InscriptionScreen() {
     <AuthSurface title={en ? 'Create your workspace' : 'Créez votre atelier'} subtitle={en ? 'Clients, jobs and quotes. Everything starts here.' : 'Vos clients, vos chantiers et vos devis. Tout commence ici.'}>
 
             <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-              {validationError || error ? <Banner tone="danger" title={validationError ?? error!} description={!validationError && errorReference ? `${copy(locale, 'reference')} : ${errorReference}` : undefined} /> : null}
+              {validationError || error ? <Banner tone="danger" title={validationError ?? error!} /> : null}
               <Field
                 label={en ? 'Business name' : 'Nom de votre entreprise'}
                 value={form.companyName}

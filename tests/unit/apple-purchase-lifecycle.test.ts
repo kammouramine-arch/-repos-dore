@@ -15,6 +15,7 @@ vi.mock('../../mobile/node_modules/expo-iap/build/index.js', () => ({
   purchaseErrorListener: (fn: (p: unknown) => void) => { m.error = fn; return { remove() {} }; },
   requestPurchase: m.dispatch, finishTransaction: m.finish,
   restorePurchases: async () => {}, getAvailablePurchases: m.available,
+  getPendingTransactionsIOS: async () => [],
   fetchProducts: m.products,
   isEligibleForIntroOfferIOS: async () => { throw new Error('eligibility unavailable'); },
 }));
@@ -24,8 +25,36 @@ import { APPLE_PRODUCTS } from '@devisia/shared';
 const mobileModule = '../../mobile/src/lib/apple-purchases';
 const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases, observeApplePurchase } = await import(mobileModule);
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
-beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([purchase]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
+beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
+  it('reconciles any active plan in the group before dispatching a new purchase', async () => {
+    m.available.mockResolvedValue([purchase]);
+    await expect(purchaseApplePlan('PRO', 'org')).resolves.toBe('purchased');
+    expect(m.dispatch).not.toHaveBeenCalled();
+    expect(m.products).not.toHaveBeenCalled();
+    expect(m.request).toHaveBeenCalledOnce();
+  });
+  it('blocks another workspace binding before charging and releases busy state', async () => {
+    m.available.mockResolvedValue([purchase]);
+    m.request.mockRejectedValue(Object.assign(new Error('owned elsewhere'), { code: 'CONFLICT', status: 409 }));
+    const states: boolean[] = [];
+    const stop = observeApplePurchase((value: boolean) => states.push(value));
+    await expect(purchaseApplePlan('ENTREPRISE', 'another')).rejects.toMatchObject({ code: 'CONFLICT' });
+    expect(m.dispatch).not.toHaveBeenCalled();
+    expect(m.finish).not.toHaveBeenCalled();
+    expect(states.at(-1)).toBe(false);
+    stop();
+  });
+  it('does not buy when the entitlement preflight fails', async () => {
+    m.available.mockRejectedValue(new Error('offline'));
+    await expect(purchaseApplePlan('ESSENTIEL', 'org')).rejects.toThrow('offline');
+    expect(m.dispatch).not.toHaveBeenCalled();
+  });
+  it('reports a genuine pending transaction without waiting for the watchdog', async () => {
+    m.dispatch.mockResolvedValue({ ...purchase, purchaseState: 'pending' });
+    await expect(purchaseApplePlan('ESSENTIEL', 'org')).rejects.toMatchObject({ code: 'PAYMENT_PENDING' });
+    expect(m.request).not.toHaveBeenCalled();
+  });
   it('foreground refresh cannot reuse a pre-transition USD request', async () => {
     let release!: (value: unknown[]) => void;
     m.products.mockReturnValueOnce(new Promise(resolve => { release = resolve; }));
@@ -39,6 +68,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     expect(m.products.mock.calls.length).toBeGreaterThanOrEqual(2);
   });
   it('reconciles an existing active purchase without an interactive Apple restore', async () => {
+    m.available.mockResolvedValue([purchase]);
     expect(await restoreApplePurchases(false)).toBe(1);
     expect(m.available).toHaveBeenCalledWith({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false });
     expect(m.request).toHaveBeenCalledOnce();
@@ -58,10 +88,11 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     const stop = observeApplePurchase((value: boolean) => busy.push(value));
     try {
       const pending = purchaseApplePlan('ESSENTIEL', 'org');
-      const rejected = expect(pending).rejects.toMatchObject({ code: 'TRANSACTION_TIMEOUT' });
+      const rejected = expect(pending).rejects.toMatchObject({ code: 'NATIVE_RESPONSE_MISSING' });
       await vi.advanceTimersByTimeAsync(60_001);
       await rejected;
       expect(busy.at(-1)).toBe(false);
+      m.available.mockResolvedValue([purchase]);
       expect(await restoreApplePurchases()).toBe(1);
       m.dispatch.mockResolvedValue(purchase);
       await purchaseApplePlan('ESSENTIEL', 'org');
@@ -121,6 +152,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     expect(m.products).toHaveBeenCalledTimes(2);
   });
   it('restores independently after catalogue failure', async () => {
+    m.available.mockResolvedValue([purchase]);
     m.products.mockRejectedValueOnce(new Error('catalogue offline'));
     await expect(appleProducts()).rejects.toThrow('catalogue offline');
     expect(await restoreApplePurchases(false)).toBe(1);
@@ -167,6 +199,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     stop();
   });
   it('restores through the same verification path', async () => {
+    m.available.mockResolvedValue([purchase]);
     expect(await restoreApplePurchases()).toBe(1);
     expect(m.request).toHaveBeenCalled();
     expect(m.finish).toHaveBeenCalled();

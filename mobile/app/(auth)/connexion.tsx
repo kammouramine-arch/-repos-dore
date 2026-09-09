@@ -12,7 +12,7 @@ export default function ConnexionScreen() {
   const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();
-  const { signIn, error, errorReference } = useAuth();
+  const { signIn, error } = useAuth();
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [pending, setPending] = React.useState(false);
@@ -37,7 +37,7 @@ export default function ConnexionScreen() {
     <AuthSurface title={en ? 'Welcome back' : 'Content de vous revoir'} subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}>
 
           <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-            {error ? <Banner tone="danger" title={error} description={errorReference ? `${copy(locale, 'reference')} : ${errorReference}` : undefined} /> : null}
+            {error ? <Banner tone="danger" title={error} /> : null}
             <Field
               label={copy(locale, 'email')}
               value={email}

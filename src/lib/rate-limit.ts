@@ -58,6 +58,7 @@ export async function enforceRateLimit(options: RateLimitOptions) {
     throw new AppError(
       'RATE_LIMITED',
       `Trop de tentatives. Réessayez dans ${seconds} seconde${seconds > 1 ? 's' : ''}.`,
+      { retryAfterSeconds: seconds },
     );
   }
   return result;

@@ -32,7 +32,7 @@ SplashScreen.setOptions({ duration: 180, fade: true });
  * support de retrouver la ligne de journal. Les données locales restent en
  * place dans les deux cas.
  */
-function StartupFailure({ outage, reference, onRetry }: { outage: 'network' | 'server'; reference: string | null; onRetry: () => Promise<unknown> }) {
+function StartupFailure({ outage, onRetry }: { outage: 'network' | 'server'; reference: string | null; onRetry: () => Promise<unknown> }) {
   const locale = useMobileLocale();
   const [retrying, setRetrying] = React.useState(false);
   const server = outage === 'server';
@@ -52,9 +52,6 @@ function StartupFailure({ outage, reference, onRetry }: { outage: 'network' | 's
             : 'Vos devis et vos clients sont en sécurité. Vérifiez votre réseau, puis réessayez.',
         )}
       </Text>
-      {server && reference ? (
-        <Text style={[typography.caption, { color: colors.subtle, textAlign: 'center' }]}>{`${copy(locale, 'reference')} : ${reference}`}</Text>
-      ) : null}
       <Pressable
         accessibilityRole="button"
         disabled={retrying}

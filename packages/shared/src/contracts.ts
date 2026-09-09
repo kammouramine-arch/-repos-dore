@@ -34,6 +34,7 @@ export interface ApiError {
   message: string;
   details?: Record<string, string[]>;
   retryable?: boolean;
+  retryAfterSeconds?: number;
   /** Référence courte d'une erreur serveur, pour retrouver la ligne de journal. */
   requestId?: string;
 }

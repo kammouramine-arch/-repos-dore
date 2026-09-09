@@ -51,8 +51,9 @@ This request is prepared, not sent.
 ## Release gate
 
 No fake conversion. The client suppresses mismatched price/intro presentation.
-Only an explicitly diagnostic build permits controlled purchase with mismatched
-metadata; normal production refuses that purchase and offers reload/restore.
+The latest preflight release permits native Apple price confirmation for a fetched
+product while suppressing inconsistent amounts; restore stays independent. This
+is explicit containment requested by the owner, not proof of resolved metadata.
 Do not call this public-ready while the discrepancy persists. First review needs
 current clean screenshots/build, review account/contact information and explicit
 owner authorization for public review. Do not submit old Build 11 or the diagnostic

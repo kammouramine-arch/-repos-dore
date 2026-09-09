@@ -40,17 +40,19 @@ export class AppError extends Error {
   readonly status: number;
   readonly details?: Record<string, string[]>;
   readonly retryable: boolean;
+  readonly retryAfterSeconds?: number;
 
   constructor(
     code: AppErrorCode,
     message?: string,
-    options: { details?: Record<string, string[]>; retryable?: boolean; cause?: unknown } = {},
+    options: { details?: Record<string, string[]>; retryable?: boolean; retryAfterSeconds?: number; cause?: unknown } = {},
   ) {
     super(message ?? DEFAULT_MESSAGE[code], { cause: options.cause });
     this.name = 'AppError';
     this.code = code;
     this.status = STATUS[code];
     this.details = options.details;
+    this.retryAfterSeconds = options.retryAfterSeconds;
     this.retryable = options.retryable ?? ['RATE_LIMITED', 'PROVIDER_UNAVAILABLE', 'INTERNAL'].includes(code);
   }
 }

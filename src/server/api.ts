@@ -18,9 +18,10 @@ export function fail(error: unknown) {
           message: error.message,
           details: error.details,
           retryable: error.retryable,
+          retryAfterSeconds: error.retryAfterSeconds,
         },
       },
-      { status: error.status },
+      { status: error.status, headers: error.retryAfterSeconds !== undefined ? { 'Retry-After': String(error.retryAfterSeconds) } : undefined },
     );
   }
 

@@ -4,6 +4,7 @@ const mocks = vi.hoisted(() => ({
   requireAuth: vi.fn(),
   confirmEmailCode: vi.fn(),
   requestEmailCode: vi.fn(),
+  emailCodeStatus: vi.fn(),
   buildSessionDTO: vi.fn(),
 }));
 
@@ -12,12 +13,21 @@ vi.mock('@/server/services/accountService', () => ({
   confirmEmailCode: mocks.confirmEmailCode,
   normalizeEmailCode: (value: string) => value.normalize('NFKC').replace(/\s+/g, '').trim(),
   requestEmailCode: mocks.requestEmailCode,
+  emailCodeStatus: mocks.emailCodeStatus,
 }));
 vi.mock('@/server/services/sessionDto', () => ({ buildSessionDTO: mocks.buildSessionDTO }));
 
-import { PATCH } from '@/app/api/auth/code-email/route';
+import { GET, PATCH } from '@/app/api/auth/code-email/route';
 
 describe('email-code confirmation route', () => {
+  it('returns only the authenticated user cooldown without caching', async () => {
+    mocks.requireAuth.mockResolvedValue({ user: { id: 'current-user' } });
+    mocks.emailCodeStatus.mockResolvedValue({ retryAfterSeconds: 42 });
+    const response = await GET();
+    expect(mocks.emailCodeStatus).toHaveBeenCalledWith('current-user');
+    expect(response.headers.get('Cache-Control')).toBe('no-store');
+    expect(await response.json()).toEqual({ data: { retryAfterSeconds: 42 } });
+  });
   beforeEach(() => {
     vi.clearAllMocks();
     const auth = { user: { id: 'user-1' }, sessionId: 'session-1' };

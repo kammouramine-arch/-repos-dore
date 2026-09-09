@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, View } from 'react-native';
+import { AppState, KeyboardAvoidingView, Platform, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import { AuthSurface } from '@/components/auth-surface';
 import { Banner, Body, Button, Card, Field, Heading, Muted } from '@/components/ui';
@@ -16,41 +16,56 @@ export default function VerificationScreen() {
   const router = useRouter();
   const params = useLocalSearchParams<{ source?: string }>();
   const session = useSession();
-  const { adoptSession, errorReference, refresh, signOut } = useAuth();
+  const { adoptSession, refresh, signOut } = useAuth();
   const locale = mobileLocale(session);
   const en = locale === 'en';
   const [code, setCode] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [notice, setNotice] = React.useState<string | null>(null);
   const [error, setError] = React.useState<string | null>(null);
-  const [localErrorReference, setLocalErrorReference] = React.useState<string | null>(null);
+  const deadline = React.useRef(0);
+  const cooldownRevision = React.useRef(0);
   const [resendIn, setResendIn] = React.useState(0);
   const acting = React.useRef(false);
   const mounted = React.useRef(true);
   const source = params.source === 'signup' ? 'signup' : 'signin';
   const resendCoolingDown = resendIn > 0;
 
-  React.useEffect(() => () => { mounted.current = false; }, []);
+  function applyCooldown(seconds: number) {
+    cooldownRevision.current += 1;
+    deadline.current = Date.now() + Math.max(0, seconds) * 1000;
+    setResendIn(Math.max(0, Math.ceil(seconds)));
+  }
+  React.useEffect(() => {
+    mounted.current = true;
+    const tick = () => { if (mounted.current) setResendIn(Math.max(0, Math.ceil((deadline.current - Date.now()) / 1000))); };
+    const status = async () => {
+      const revision = cooldownRevision.current;
+      try {
+        const result = await api.request<{ retryAfterSeconds: number }>('/api/auth/code-email');
+        if (mounted.current && revision === cooldownRevision.current) applyCooldown(result.retryAfterSeconds);
+      } catch { /* Server still enforces every resend; do not replace the form with a status-query error. */ }
+    };
+    void status();
+    const timer = setInterval(tick, 1000);
+    const resume = AppState.addEventListener('change', state => { if (state === 'active') { tick(); void status(); } });
+    return () => { mounted.current = false; clearInterval(timer); resume.remove(); };
+  }, [session.user.id]);
 
   async function run(action: () => Promise<void>) {
     if (acting.current) return;
     acting.current = true;
-    if (mounted.current) { setBusy(true); setError(null); setLocalErrorReference(null); setNotice(null); }
+    if (mounted.current) { setBusy(true); setError(null); setNotice(null); }
     try { await action(); }
     catch (cause) {
       if (mounted.current) {
-        setError(cause instanceof Error ? cause.message : 'Réessayez dans un instant.');
-        setLocalErrorReference(cause instanceof DevisiaApiError ? cause.requestId ?? null : null);
+        if (cause instanceof DevisiaApiError && cause.retryAfterSeconds) {
+          applyCooldown(cause.retryAfterSeconds);
+        } else setError(cause instanceof Error ? cause.message : (en ? 'Please try again shortly.' : 'Réessayez dans un instant.'));
       }
     }
     finally { acting.current = false; if (mounted.current) setBusy(false); }
   }
-
-  React.useEffect(() => {
-    if (!resendCoolingDown) return;
-    const timer = setInterval(() => setResendIn((value) => Math.max(0, value - 1)), 1000);
-    return () => clearInterval(timer);
-  }, [resendCoolingDown]);
 
   async function changeEmail() {
     recordDiagnostic({ area: 'navigation', durationMs: 0, code: 'VERIFY_CHANGE_EMAIL', category: 'ok', path: '/verification', status: 0 });
@@ -67,7 +82,7 @@ export default function VerificationScreen() {
           </View>
           <Heading>{copy(locale, 'verifySent')}</Heading>
           <Muted>{en ? `Enter the six-digit code sent to ${session.user.email}. It is valid for 10 minutes. Check your spam folder too.` : `Entrez le code à six chiffres reçu sur ${session.user.email}. Il est valable 10 minutes. Vérifiez aussi vos courriers indésirables.`}</Muted>
-          {error ? <Banner tone="danger" title={error} description={(localErrorReference ?? errorReference) ? `${copy(locale, 'reference')} : ${localErrorReference ?? errorReference}` : undefined} /> : null}
+          {error ? <Banner tone="danger" title={error} /> : null}
           {notice ? <Banner title={notice} /> : null}
           <Field
             label={en ? 'Confirmation code' : 'Code de confirmation'}
@@ -104,12 +119,12 @@ export default function VerificationScreen() {
               const result = await api.auth.requestEmailCode(session.user.email);
               if (mounted.current) {
                 setCode('');
-                setResendIn(60);
+                applyCooldown(result.retryAfterSeconds);
                 setNotice(en ? `New code sent to ${result.email}.` : `Nouveau code envoyé à ${result.email}.`);
               }
             })}
           />
-          {resendIn > 0 ? <Muted>{en ? `You can request another code in ${resendIn}s.` : `Vous pourrez demander un nouveau code dans ${resendIn}s.`}</Muted> : null}
+          {resendIn > 0 ? <Muted>{en ? `You can request another code in ${resendIn} s.` : `Vous pourrez demander un nouveau code dans ${resendIn} s.`}</Muted> : null}
           <Button title={en ? 'Change my email' : 'Modifier mon adresse'} variant="ghost" disabled={busy} onPress={() => void run(changeEmail)} />
           <Button title={en ? 'Use another account' : 'Utiliser un autre compte'} variant="ghost" disabled={busy} onPress={() => void run(signOut)} />
         </Card>

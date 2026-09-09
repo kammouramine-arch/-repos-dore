@@ -65,6 +65,9 @@ export function normalizeApplePurchaseError(
 /** Stable customer copy; the native code remains available to diagnostics. */
 export function applePurchaseUserMessage(diagnostic: ApplePurchaseDiagnostic, language: 'fr' | 'en' = 'fr'): string | null {
   if (diagnostic.category === 'cancelled') return null;
+  if (diagnostic.code === 'NATIVE_RESPONSE_MISSING') return language === 'en'
+    ? 'Apple did not return a purchase result. No active subscription was found. You can retry or restore purchases.'
+    : 'Apple n’a pas renvoyé de résultat d’achat. Aucun abonnement actif n’a été trouvé. Vous pouvez réessayer ou restaurer vos achats.';
   if (diagnostic.code === 'CONFLICT') return language === 'en'
     ? 'This purchase conflicts with an existing DEVISERA subscription or billing account. Creating a new DEVISERA login does not reset Apple purchases. Restore from the original workspace or contact support. Do not purchase again.'
     : 'Cet achat entre en conflit avec un abonnement ou compte de facturation DEVISERA existant. Créer un nouveau compte DEVISERA ne réinitialise pas les achats Apple. Restaurez depuis l’espace du premier achat ou contactez le support. Ne payez pas à nouveau.';
@@ -72,8 +75,8 @@ export function applePurchaseUserMessage(diagnostic: ApplePurchaseDiagnostic, la
     ? 'Your purchase could not be verified. Restore purchases to retry. Do not purchase again if Apple already confirmed payment.'
     : 'Votre achat n’a pas pu être vérifié. Restaurez vos achats pour réessayer. Ne payez pas à nouveau si Apple a déjà confirmé le paiement.';
   if (diagnostic.category === 'timeout') return language === 'en'
-    ? 'Confirmation is taking longer than expected. Check your Apple subscriptions, then restore purchases.'
-    : 'La confirmation prend plus de temps que prévu. Vérifiez vos abonnements Apple, puis restaurez vos achats.';
+    ? 'The subscription check could not finish. Check your connection, then retry or restore purchases.'
+    : 'La vérification de l’abonnement n’a pas abouti. Vérifiez votre connexion, puis réessayez ou restaurez vos achats.';
   if (diagnostic.category === 'pending') return language === 'en'
     ? 'This purchase is awaiting approval from Apple. You can return here once it is approved.'
     : 'Cet achat attend une autorisation Apple. Vous pourrez revenir ici après son approbation.';

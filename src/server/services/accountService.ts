@@ -9,6 +9,15 @@ import { getEmailProvider, layout, esc } from '@/lib/email';
 
 const TTL = 10 * 60_000;
 const HOUR = 60 * 60_000;
+export function emailRetrySeconds(previous: { sentAt: Date; windowStart: Date; sendCount: number } | null, now = new Date()) {
+  if (!previous) return 0;
+  const until = Math.max(previous.sentAt.getTime() + 60_000, previous.sendCount >= 5 ? previous.windowStart.getTime() + HOUR : 0);
+  return Math.max(0, Math.ceil((until - now.getTime()) / 1000));
+}
+export async function emailCodeStatus(userId: string) {
+  const previous = await prisma.emailChallenge.findUnique({ where: { userId } });
+  return { retryAfterSeconds: emailRetrySeconds(previous) };
+}
 const digest = (id: string, userId: string, email: string, code: string) => hashToken(`${id}:${userId}:${email}:${code}`);
 
 /** Canonical representation used by both the email and the confirmation API. */
@@ -86,8 +95,9 @@ export async function requestEmailCode(userId: string, input: { email: string; p
     if (current.email !== user.email || current.passwordHash !== user.passwordHash || current.deletedAt) throw conflict('Votre compte a changé. Rechargez vos informations.');
     const previous = await tx.emailChallenge.findUnique({ where: { userId } });
     const sameWindow = previous && now.getTime() - previous.windowStart.getTime() < HOUR;
-    if (previous && (now.getTime() - previous.sentAt.getTime() < 60_000 || (sameWindow && previous.sendCount >= 5))) {
-      throw new AppError('RATE_LIMITED', 'Patientez avant de demander un nouveau code. Maximum : cinq envois par heure.');
+    const retryAfterSeconds = emailRetrySeconds(previous, now);
+    if (retryAfterSeconds > 0) {
+      throw new AppError('RATE_LIMITED', 'Vous pourrez bientôt demander un nouveau code.', { retryAfterSeconds });
     }
     const data = { id, email, tokenHash: digest(id, userId, email, code), expiresAt: new Date(now.getTime() + TTL), sentAt: now, attempts: 0, usedAt: null, windowStart: sameWindow ? previous.windowStart : now, sendCount: sameWindow ? previous.sendCount + 1 : 1 };
     await tx.emailChallenge.upsert({ where: { userId }, create: { userId, ...data }, update: data });
@@ -111,7 +121,7 @@ export async function requestEmailCode(userId: string, input: { email: string; p
     await prisma.emailChallenge.updateMany({ where: { userId, id }, data: { usedAt: new Date() } });
     throw new AppError('PROVIDER_UNAVAILABLE', 'Le code n’a pas pu être envoyé. Votre adresse actuelle reste inchangée.');
   }
-  return { requested: true, email, expiresInSeconds: TTL / 1000 };
+  return { requested: true, email, expiresInSeconds: TTL / 1000, ...(await emailCodeStatus(userId)) };
 }
 
 export async function confirmEmailCode(userId: string, sessionId: string, code: string) {

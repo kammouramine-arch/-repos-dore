@@ -234,10 +234,26 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
   let cancelled = false;
   try {
     const iap = await store();
+    // All three plans share one Apple subscription group. An existing active
+    // item must be verified for this workspace BEFORE requesting any purchase.
+    // Never compare Apple-ID and DEVISERA email addresses or transfer ownership.
+    const existing = await activeGroupPurchases(iap);
+    if (existing.length) {
+      for (const purchase of existing) { stage('PREFLIGHT_ACTIVE_SUBSCRIPTION', purchase); await sync(purchase); }
+      return 'purchased' as const;
+    }
     const result = new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
-        const error = Object.assign(new Error('Apple met trop de temps à confirmer cet achat. Ouvrez vos abonnements Apple ou restaurez vos achats.'), { code: 'TRANSACTION_TIMEOUT' });
-        resolvePending(productId, error);
+        // A silent bridge is NOT proof of a pending Apple approval. Recheck
+        // current entitlements once before reporting a native-response failure.
+        void activeGroupPurchases(iap).then(async purchases => {
+          if (!active) return;
+          for (const purchase of purchases) await sync(purchase);
+          if (purchases.length) { resolvePending(productId); return; }
+          const pending = await bounded(iap.getPendingTransactionsIOS(), 'PENDING_QUERY_TIMEOUT', 5_000);
+          const approval = pending.some(p => planForAppleProduct(p.productId) && p.purchaseState === 'pending');
+          resolvePending(productId, Object.assign(new Error('Apple returned no completed purchase.'), { code: approval ? 'PAYMENT_PENDING' : 'NATIVE_RESPONSE_MISSING' }));
+        }).catch(error => { if (active) resolvePending(productId, error); });
       }, 60_000);
       pendingPurchases.set(productId, { resolve, reject, timer });
     });
@@ -281,14 +297,18 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
   } finally { active = false; removeAttempt?.(); setBusy(false); }
 }
 
+async function activeGroupPurchases(iap: Iap) {
+  const purchases = await bounded(iap.getAvailablePurchases({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false }), 'ENTITLEMENT_QUERY_TIMEOUT');
+  return purchases.filter(p => planForAppleProduct(p.productId));
+}
+
 export async function restoreApplePurchases(interactive = true) {
   if (purchaseBusy) throw new Error('Un achat Apple est déjà en cours.');
   setBusy(true);
   try {
     const iap = await store();
     if (interactive) await bounded(iap.restorePurchases(), 'RESTORE_TIMEOUT');
-    const purchases = await bounded(iap.getAvailablePurchases({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false }), 'RESTORE_PRODUCTS_TIMEOUT');
-    const relevant = purchases.filter((p) => planForAppleProduct(p.productId));
+    const relevant = await activeGroupPurchases(iap);
     for (const purchase of relevant) {
       try { await sync(purchase); }
       catch (error) {

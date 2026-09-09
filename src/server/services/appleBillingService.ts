@@ -52,6 +52,7 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
       category: binding ? 'ORIGINAL_TRANSACTION_ALREADY_BOUND' : 'APP_ACCOUNT_TOKEN_MISMATCH',
       reference: createHash('sha256').update(transaction.originalTransactionId ?? 'missing').digest('hex').slice(0, 12),
       workspaceReference: createHash('sha256').update(organizationId).digest('hex').slice(0, 12),
+      ownerWorkspaceReference: binding ? createHash('sha256').update(binding.organizationId).digest('hex').slice(0, 12) : undefined,
       environment: transaction.environment,
       productId: transaction.productId,
     });

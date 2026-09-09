@@ -2,8 +2,15 @@ import { z } from 'zod';
 import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { requireAuth } from '@/lib/auth/session';
 import { ok, parseBody, route } from '@/server/api';
-import { confirmEmailCode, normalizeEmailCode, requestEmailCode } from '@/server/services/accountService';
+import { confirmEmailCode, normalizeEmailCode, requestEmailCode, emailCodeStatus } from '@/server/services/accountService';
 import { buildSessionDTO } from '@/server/services/sessionDto';
+
+export async function GET() {
+  return route(async () => {
+    const auth = await requireAuth();
+    return ok(await emailCodeStatus(auth.user.id), { headers: { 'Cache-Control': 'no-store' } });
+  });
+}
 
 export async function POST(request: Request) {
   return route(async () => {

@@ -33,6 +33,7 @@ export class DevisiaApiError extends Error {
   readonly status: number;
   readonly details?: Record<string, string[]>;
   readonly retryable: boolean;
+  readonly retryAfterSeconds?: number;
   /** Référence courte d'une erreur serveur, à citer au support. */
   readonly requestId?: string;
 
@@ -43,6 +44,7 @@ export class DevisiaApiError extends Error {
     this.status = status;
     this.details = error.details;
     this.retryable = error.retryable ?? false;
+    this.retryAfterSeconds = error.retryAfterSeconds;
     this.requestId = error.requestId;
   }
 }
@@ -394,7 +396,7 @@ export function createApiClient(options: ApiClientOptions) {
       me: () => request<SessionDTO>('/api/auth/session'),
       updateName: (firstName: string, lastName: string) => request<{ saved: boolean }>('/api/auth/compte', { method: 'PATCH', json: { firstName, lastName } }),
       updateLanguage: (language: 'fr' | 'en') => request<{ language: 'fr' | 'en' }>('/api/auth/langue', { method: 'PATCH', json: { language } }),
-      requestEmailCode: (email: string, password?: string) => request<{ requested: boolean; email: string; expiresInSeconds: number }>('/api/auth/code-email', { method: 'POST', json: { email, password } }),
+      requestEmailCode: (email: string, password?: string) => request<{ requested: boolean; email: string; expiresInSeconds: number; retryAfterSeconds: number }>('/api/auth/code-email', { method: 'POST', json: { email, password } }),
       confirmEmailCode: (code: string) => request<{ verified: boolean; session: SessionDTO }>('/api/auth/code-email', { method: 'PATCH', json: { code } }),
       requestPasswordReset: (email: string) =>
         request<{ requested: boolean }>('/api/auth/mot-de-passe', { method: 'POST', json: { email } }),
