@@ -14,6 +14,7 @@ import {
 } from '@/components/app/quote-editor';
 import { Alert } from '@/components/ui/feedback';
 import { centsToEuros } from '@/lib/money';
+import { Button } from '@/components/ui/button';
 
 interface GeneratedLine {
   kind: EditorLine['kind'];
@@ -52,7 +53,7 @@ export function NewQuoteFlow({
   const router = useRouter();
   const [draft, setDraft] = React.useState<{
     value: QuoteEditorValue;
-    meta: { confidence: number; questions: string[]; warnings: string[]; degraded: boolean };
+    meta?: { confidence: number; questions: string[]; warnings: string[]; degraded: boolean };
   } | null>(null);
 
   const validUntil = React.useMemo(() => {
@@ -144,9 +145,7 @@ export function NewQuoteFlow({
         {!capabilities.generation ? (
           <div className="mx-auto max-w-2xl">
             <Alert tone="info">
-              Mode local actif : le devis est préparé à partir de votre catalogue de prix, sans
-              fournisseur d’IA externe. Renseignez <code>ANTHROPIC_API_KEY</code> pour activer
-              l’analyse enrichie et la lecture des photos.
+              Le devis peut être préparé à partir de votre catalogue ou saisi manuellement.
             </Alert>
           </div>
         ) : null}
@@ -156,6 +155,14 @@ export function NewQuoteFlow({
           transcriptionAvailable={capabilities.transcription}
           visionAvailable={capabilities.vision}
         />
+        <div className="text-center">
+          <Button variant="secondary" type="button" onClick={() => setDraft({ value: {
+            customerId: customers.length === 1 ? customers[0]!.id : '',
+            title: '', summary: '', notes: '', terms: defaults.terms,
+            paymentTerms: defaults.paymentTerms, validUntil, discountRate: 0,
+            depositRate: 0, estimatedDurationMin: null, lines: [newLine()],
+          } })}>Créer manuellement, sans IA</Button>
+        </div>
       </div>
     );
   }

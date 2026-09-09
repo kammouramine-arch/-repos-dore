@@ -136,6 +136,12 @@ test.describe('parcours complet', () => {
     await expect(page.getByText(/Taux d’acceptation/i)).toHaveCount(0);
 
     await expect(page.getByText(/Devis acceptés/i)).toHaveCount(0);
+    let aiRequests = 0;
+    await page.route('**/api/ai/quote', async route => { aiRequests++; await route.abort(); });
+    await page.goto('/app/devis/nouveau');
+    await page.getByRole('button', { name: 'Créer manuellement, sans IA' }).click();
+    await expect(page.getByRole('heading', { name: 'Vérifiez votre devis' })).toBeVisible();
+    expect(aiRequests).toBe(0);
   });
 
   test('la page publique refuse un jeton inconnu', async ({ page }) => {
