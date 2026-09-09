@@ -68,3 +68,13 @@ Mon compte → Identité · Adresse de connexion (status chip; code flow shown o
 - **Owner self-deletion**: `DELETE /api/auth/account` answers 422 « Transférez la propriété de votre espace » for a sole owner; the deletion screen surfaces that message as-is. A solo artisan therefore cannot delete their account — App Review gate.
 - **Payments history endpoint** (above) is the only missing data source for the new screen.
 - **Paywall error alert**: the unexpected-error alert seen on iPhone (« Une erreur inattendue s’est produite ») comes from the purchase/entitlement path, untouched here; when fixed, the `Banner tone="danger"` already renders `error` inline — prefer that over `Alert`.
+
+## Polish pass — 9 September 2026 (branch `claude/devisera-ui`, no logic change)
+
+Motion system (`mobile/src/components/motion.tsx`): `Enter` (fade + 10 pt rise, 260 ms), `Stagger` (children enter 45–70 ms apart), `useCountUp` (numbers count to their value, JS driver, no replay when unchanged), `SuccessCheck` (spring check), `Breathe` (slow scale loop). All respect Reduce Motion.
+
+Applied: home cards and metrics (`(app)/index.tsx`), activity metrics + empty CTA (`analytique.tsx`), Mon espace groups (`(app)/plus.tsx`), client/quote list rows (`clients.tsx`, `devis.tsx`), client profile rebuilt as identity card + contact actions + metrics + quote rows (`clients/[id].tsx`, same API calls), quote creation: listening rings + waveform + brand glow, breathing sparkles during AI processing, spring checks per step, « Votre devis est prêt » reveal (`devis/nouveau.tsx`, `voice-visuals.tsx`).
+
+States: `Skeleton` now shimmers (native-driven gradient band), `EmptyState` is branded (accent disc + halo, entrance), `AnimatedAmount`/`AnimatedCount` primitives, toast success icon springs in, success toasts added for client added, catalogue saved/removed, name/email/language saved. Tab-bar indicator hides on hidden routes. Card shadow tightened (`shadows.card`), new `shadows.glow` brand shadow. Profile avatar: image fade-in, light ring, camera edit badge, busy veil, press feedback.
+
+No dependency added. No API change. Engineering note: the dictation waveform is a listening *state*, not a level meter — the native recogniser exposes no audio level; if one is exposed later, `Waveform` can take an `level` prop.

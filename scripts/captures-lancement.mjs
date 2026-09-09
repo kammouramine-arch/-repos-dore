@@ -169,7 +169,8 @@ for (const [name, viewport] of [['home-375x667', { width: 375, height: 667 }], [
   await ctx.close();
 }
 // 8. Espace, compte, paiements, suppression — écrans de réglages.
-for (const [name, route] of [['espace', '/plus'], ['compte', '/compte'], ['paiements', '/paiements'], ['suppression', '/suppression'], ['clients', '/clients']]) {
+const firstCustomer = (await call('/api/customers', { token })).items?.[0]?.id;
+for (const [name, route] of [['espace', '/plus'], ['compte', '/compte'], ['paiements', '/paiements'], ['suppression', '/suppression'], ['clients', '/clients'], ['devis', '/devis'], ['nouveau', '/devis/nouveau'], ['activite', '/analytique'], ['prospects', '/prospects'], ['abonnement', '/abonnement'], ...(firstCustomer ? [['client-profil', `/clients/${firstCustomer}`]] : [])]) {
   const ctx = await contexte({ token, launched: true });
   const page = await ctx.newPage();
   await page.goto(url(route), { waitUntil: 'commit' });

@@ -56,6 +56,11 @@ export type MobileCopyKey = keyof typeof DICTIONARY.fr;
  * labels and status/category names.
  */
 const TEXT_TRANSLATIONS: Record<string, string> = {
+  'Votre devis est prêt': 'Your quote is ready',
+  'Je vous écoute — appuyez pour arrêter': 'Listening — tap to stop',
+  'Prestation mise à jour': 'Service updated',
+  'Prestation ajoutée': 'Service added',
+  'Prestation supprimée': 'Service removed',
   'Accueil': 'Home', 'Clients': 'Clients', 'Activité': 'Activity', 'Mon espace': 'My space', 'Créer': 'Create',
   'Opportunités': 'Opportunities', 'Prospects': 'Leads', 'Documents': 'Documents', 'Vos devis': 'Your quotes',
   'Nouveau devis': 'New quote', 'Décrivez le chantier': 'Describe the job', 'Derniers détails': 'Last details',

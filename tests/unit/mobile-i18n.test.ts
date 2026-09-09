@@ -1,6 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { localizeText } from '../../mobile/src/lib/i18n';
 
+it.each([
+  ['Votre devis est prêt', 'Your quote is ready'],
+  ['Je vous écoute — appuyez pour arrêter', 'Listening — tap to stop'],
+  ['Prestation mise à jour', 'Service updated'],
+  ['Prestation ajoutée', 'Service added'],
+  ['Prestation supprimée', 'Service removed'],
+])('localizes premium polish copy: %s', (fr, en) => {
+  expect(localizeText('en', fr)).toBe(en);
+  expect(localizeText('fr', fr)).toBe(fr);
+});
+
 describe('mobile English compatibility localization', () => {
   it('translates shared navigation and status labels', () => {
     expect(localizeText('en', 'Catalogue de prix')).toBe('Price book');

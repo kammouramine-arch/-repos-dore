@@ -1,10 +1,15 @@
 import * as React from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
+import { useRouter } from 'expo-router';
+import { Stagger } from '@/components/motion';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DevisiaApiError, QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
+  AnimatedAmount,
+  AnimatedCount,
   Badge,
+  Button,
   Body,
   Caption,
   Card,
@@ -17,7 +22,7 @@ import {
   SectionHeader,
 } from '@/components/ui';
 import { api } from '@/lib/api';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 
 /**
@@ -56,6 +61,7 @@ function Metric({
 
 export default function AnalytiqueScreen() {
   const en = useMobileLocale() === 'en';
+  const router = useRouter();
   const [period, setPeriod] = React.useState<Period>('90');
   const [data, setData] = React.useState<DashboardDTO | null>(null);
   const [error, setError] = React.useState<string | null>(null);
@@ -119,17 +125,18 @@ export default function AnalytiqueScreen() {
             icon="bar-chart-outline"
             title="Vos chiffres arrivent"
             description="Dès votre premier devis envoyé, vous verrez ici ce que vous avez chiffré, ce qui est en attente, et ce qu’il reste à relancer."
+            action={<Button title={en ? 'Create a quote' : 'Créer un devis'} icon="add" haptic onPress={() => router.push('/devis/nouveau')} />}
           />
         ) : (
-          <>
+          <Stagger step={60}>
             <Card style={{ gap: spacing.lg }}>
               <SectionHeader title="Chiffre d’affaires" />
               <View style={{ flexDirection: 'row', gap: spacing.lg }}>
                 <Metric label="Devisé" hint="devis envoyés">
-                  <Amount cents={data.quotedRevenueCents} size="metric" />
+                  <AnimatedAmount cents={data.quotedRevenueCents} size="metric" />
                 </Metric>
                 <Metric label="En jeu" hint="devis en attente">
-                  <Amount cents={data.revenuePotentialCents} size="metric" tone="muted" />
+                  <AnimatedAmount cents={data.revenuePotentialCents} size="metric" tone="muted" />
                 </Metric>
               </View>
             </Card>
@@ -138,18 +145,16 @@ export default function AnalytiqueScreen() {
               <SectionHeader title="Devis" />
               <View style={{ flexDirection: 'row', gap: spacing.lg }}>
                 <Metric label="Envoyés">
-                  <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
+                  <AnimatedCount value={data.quotesSent} />
                 </Metric>
                 {/* Le nouveau parcours mesure l'envoi et la consultation.
                     Ce qui compte, c'est ce qui attend une réponse et mérite
                     une relance. */}
                 <Metric label="Sans réponse">
-                  <Body style={[typography.metric, { color: colors.ink }]}>
-                    {data.toRecover.quoteCount}
-                  </Body>
+                  <AnimatedCount value={data.toRecover.quoteCount} />
                 </Metric>
                 <Metric label="Prospects">
-                  <Body style={[typography.metric, { color: colors.ink }]}>{data.newLeads}</Body>
+                  <AnimatedCount value={data.newLeads} />
                 </Metric>
               </View>
               <Divider />
@@ -214,7 +219,7 @@ export default function AnalytiqueScreen() {
                 ))}
               </Card>
             ) : null}
-          </>
+          </Stagger>
         )}
 
         <Caption style={{ color: colors.subtle, textAlign: 'center' }}>

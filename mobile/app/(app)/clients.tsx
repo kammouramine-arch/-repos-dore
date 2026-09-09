@@ -10,6 +10,8 @@ import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
+import { useToast } from '@/components/toast';
+import { Enter } from '@/components/motion';
 
 /**
  * Répertoire client.
@@ -27,6 +29,7 @@ export default function ClientsScreen() {
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
   const [creating, setCreating] = React.useState(false);
+  const { toast } = useToast();
 
   React.useEffect(() => {
     const timer = setTimeout(() => setDebounced(search.trim()), 260);
@@ -105,7 +108,8 @@ export default function ClientsScreen() {
               }
             />
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
+            <Enter delay={Math.min(index, 6) * 40} distance={8}>
             <PressableCard haptic accessibilityLabel={`Ouvrir la fiche de ${item.displayName}`} onPress={() => router.push({ pathname: '/clients/[id]', params: { id: item.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               <View
                 style={{
@@ -151,6 +155,7 @@ export default function ClientsScreen() {
                 </Pressable>
               ) : null}
             </PressableCard>
+            </Enter>
           )}
         />
       )}
@@ -183,8 +188,9 @@ export default function ClientsScreen() {
       <ClientSheet
         visible={creating}
         onClose={() => setCreating(false)}
-        onCreated={() => {
+        onCreated={(customer) => {
           setCreating(false);
+          toast({ title: en ? 'Client added' : 'Client ajouté', description: customer.displayName });
           void query.reload();
         }}
       />
