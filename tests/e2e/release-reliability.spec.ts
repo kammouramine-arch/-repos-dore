@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
 test('legal destinations and repeated protected requests remain available', async ({ request }) => {
-  for (const path of ['/confidentialite', '/conditions', '/mentions-legales', '/cookies']) {
+  for (const path of ['/confidentialite', '/conditions', '/mentions-legales', '/cookies', '/assistance', '/assistance?lang=en']) {
     const response = await request.get(path);
     expect(response.status()).toBe(200);
     expect(await response.text()).toContain('DEVISERA');

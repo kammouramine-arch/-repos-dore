@@ -98,6 +98,20 @@
     "creatorAndLicense": "UNVERIFIED"
   },
   {
+    "path": "docs/acquisition/evidence/2026-09-09-polish-qa-1.jpg",
+    "sha256": "7ba2e33f083d53d9c86cb3cbb637bf6c1e461bc7af7eec1e8d7e010b2f5ca6ce",
+    "bytes": 137287,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
+    "path": "docs/acquisition/evidence/2026-09-09-polish-qa-2.jpg",
+    "sha256": "fee87eedefbd77a4677d19001ff92fe3a13414ff42f93bdadd1a70b9a84c3d92",
+    "bytes": 151750,
+    "proposedInclusion": "SUBJECT_TO_PROVENANCE_PROOF",
+    "creatorAndLicense": "UNVERIFIED"
+  },
+  {
     "path": "mobile/assets/adaptive-icon.png",
     "sha256": "f5190a7a75739da40bc54f3d9ba7d10dfcc9be6ca766cc592ee86efe6c30f35f",
     "bytes": 11793,

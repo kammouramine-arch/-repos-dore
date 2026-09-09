@@ -21,6 +21,22 @@ Authenticated Vercel showed Production at `de699d3`, while the integrated branch
 Changed tracking to `integration/devisera-final`; Vercel confirmed “Branch tracking saved”. Existing Production environment secrets and automatic custom-domain assignment were preserved.
 The new source is not considered deployed until the resulting Production deployment and alias health commit are checked.
 
+Follow-up: commit `d057608f849f791ccde3aa269c11a632a28631fc` was pushed and the live `https://devisera.fr/api/health` returned that exact commit, HTTP 200, database OK, Resend configured. Legal pages returned 200 and unauthenticated session/payments returned 401 with no mitigation header. Subsequent dependency/support edits require another deployment verification.
+
+## Fresh dependency advisory audit
+
+- Found installed sharp 0.35.3 affected by [GHSA-rgj7-g3m4-5g8c](https://github.com/advisories/GHSA-rgj7-g3m4-5g8c). Updated to **0.35.4**, runtime confirms **libheif 1.23.2**.
+- Updated root/mobile js-yaml **4.3.1 → 4.3.2**, addressing [GHSA-2883-xcg3-v3hh](https://github.com/advisories/GHSA-2883-xcg3-v3hh).
+- Root dependency installation audit now reports zero advisories. Mobile still reports decode-uri-component's version advisory chain (three moderate entries); the committed patch already bypasses the vulnerable recursive malformed-input decoder and is installed. Regression covers 60,000 malformed characters and valid localized decoding. Do not claim the npm advisory count is zero or downgrade Expo Router to satisfy it. Upstream 0.5.0 is ESM whereas the current query-string consumer uses CommonJS; preserve tested compatibility until a compatible upstream migration.
+- Full unit/database rerun after patches: **478/478 passed**, 70 files, exit 0.
+- Added `/assistance` with French/English account, subscription, recovery and privacy assistance using the confirmed support email. No app redesign.
+
+## App Store and hosting quote
+
+- App Store Connect's Privacy Policy URL was empty; saved `https://devisera.fr/confidentialite` and verified it persisted. Privacy categories are being prepared as an unpublished draft; no public submission or completed compliance claim.
+- Public-release draft has zero screenshots and an empty support URL; these are not satisfied by TestFlight upload.
+- Vercel checkout quoted **USD 20 immediately, USD 20/month**, applicable tax and usage additional; 1M CDN requests included, next tier +USD20/month. Scope is the **whole AMYN team**, not one project. Owner excluded unrelated upgrades, so scope confirmation was requested. No purchase/card entry/add-on was made. The alert upgrade first opened Observability Plus (USD1.20/million events); dismissed without purchase.
+
 ## Firewall and monitoring
 
 Authenticated settings: no custom rules, no IP blocks, no system bypasses, Bot Protection Off, AI Bots Allow, Attack Mode not enabled. Vercel system mitigations remain active. Overview had denied/challenged traffic; this is not proof those were legitimate mobile requests. No broad security reduction was made.

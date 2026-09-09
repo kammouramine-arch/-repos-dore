@@ -76,6 +76,12 @@
     ]
   },
   {
+    "name": "E2E_PORT",
+    "sourceFiles": [
+      "scripts/e2e-server.mjs"
+    ]
+  },
+  {
     "name": "EMAIL_FROM",
     "sourceFiles": [
       "src/lib/env.ts"
@@ -168,6 +174,36 @@
     "name": "RESEND_API_KEY",
     "sourceFiles": [
       "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_APPROVAL",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_EXECUTE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_PROVENANCE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_TRANSACTION",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_WORKSPACE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
     ]
   },
   {
