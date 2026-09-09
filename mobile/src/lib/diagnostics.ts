@@ -1,4 +1,5 @@
 import type { DiagnosticCategory } from '@devisia/shared';
+declare const __DEV__: boolean;
 
 /**
  * Journal technique embarqué.
@@ -31,6 +32,14 @@ export type Diagnostic = {
   nativeCode?: string;
   currency?: string;
   displayPrice?: string;
+  subscriptionPeriodUnit?: string | null;
+  subscriptionPeriodCount?: string | number | null;
+  introPaymentMode?: string | null;
+  introPeriod?: string | null;
+  introPeriodCount?: string | number | null;
+  introPrice?: string | number | null;
+  introEligible?: boolean;
+  cachePolicy?: string;
 };
 
 const events: Diagnostic[] = [];

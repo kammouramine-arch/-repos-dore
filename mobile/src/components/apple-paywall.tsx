@@ -14,6 +14,7 @@ import { localizeText, mobileLocale } from '@/lib/i18n';
 import { appleOffer } from '@/lib/apple-offer';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { DiagnosticReport } from './diagnostic-report';
+import Constants from 'expo-constants';
 
 export function ApplePaywall() {
   const { session } = useAuth();
@@ -90,7 +91,7 @@ function ApplePaywallContent() {
   }
   return <Screen>
     <View style={{ alignItems: 'center', paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
-      <Logo size={30} />
+      {Constants.expoConfig?.extra?.storekitDiagnostics ? <DiagnosticReport en={en} /> : <Logo size={30} />}
     </View>
     <View style={{ gap: spacing.md }}>
       <Caption upper>{en ? 'Your time deserves better' : 'Votre temps mérite mieux'}</Caption>
@@ -154,7 +155,6 @@ function ApplePaywallContent() {
       })}
     />}
     {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load(ownershipConflict)} /> : null}
-    {error ? <DiagnosticReport en={en} /> : null}
     {ownershipConflict ? <Button title={en ? 'Recover my subscription with support' : 'Retrouver mon abonnement avec le support'} variant="ghost" onPress={() => void Linking.openURL('mailto:contact@devisera.fr?subject=DEVISERA%20subscription%20recovery').catch(() => Alert.alert(en ? 'Contact support' : 'Contacter le support', 'contact@devisera.fr'))} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>

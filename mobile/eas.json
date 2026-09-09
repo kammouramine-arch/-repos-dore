@@ -4,6 +4,10 @@
     "appVersionSource": "remote"
   },
   "build": {
+    "testflight-diagnostics": {
+      "extends": "production",
+      "environment": "production"
+    },
     "development": {
       "developmentClient": true,
       "distribution": "internal",

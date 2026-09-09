@@ -38,11 +38,13 @@ export function appleProducts(freshAfterPending = false): Promise<{ products: Pr
   // A foreground/account change or pre-purchase refresh must not adopt an
   // in-flight snapshot requested before that transition.
   if (freshAfterPending && catalogueFlight) {
+    recordDiagnostic({ area: 'billing', path: 'apple-products', code: 'WAIT_THEN_REFETCH', durationMs: 0, cachePolicy: 'wait-for-inflight-then-native-fetch' });
     return catalogueFlight.catch(() => undefined).then(() => appleProducts());
   }
   // Mount, foreground and Retry can overlap. Share only the in-flight query,
   // never cache prices across requests or Apple account/storefront changes.
   if (!catalogueFlight) catalogueFlight = loadAppleProducts().finally(() => { catalogueFlight = undefined; });
+  else recordDiagnostic({ area: 'billing', path: 'apple-products', code: 'SHARED_INFLIGHT', durationMs: 0, cachePolicy: 'shared-current-request-not-persisted-cache' });
   return catalogueFlight;
 }
 
@@ -51,13 +53,13 @@ async function loadAppleProducts() {
   const requested = Object.values(APPLE_PRODUCTS);
   let storefront = 'unknown';
   const log = (code: string, extra: Partial<Parameters<typeof recordDiagnostic>[0]> = {}) => recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: Date.now() - started, code, category: 'ok', storefront, ...extra });
-  log('PRODUCTS_REQUESTED', { requestedProductIds: requested });
+  log('PRODUCTS_REQUESTED', { requestedProductIds: requested, cachePolicy: 'native-fetch; no-app-persisted-cache; native-cache-unknown' });
   try {
   const iap = await store();
   const before = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
   let [products, eligible] = await Promise.all([
     bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT'),
-    bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false),
+    bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; }),
   ]);
   storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
   const returned = () => log('PRODUCTS_RETURNED', { returnedProductIds: (products ?? []).map(p => p.id), missingProductIds: requested.filter(id => !products?.some(p => p.id === id)), productCount: products?.length ?? 0 });
@@ -65,7 +67,7 @@ async function loadAppleProducts() {
   if (before !== storefront || !consistentAppleCurrency(products ?? [], storefront)) {
     log('PRODUCTS_METADATA_REFRESH', { category: 'client' });
     products = await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT');
-    eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => false);
+    eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; });
     returned();
     if (!consistentAppleCurrency(products ?? [], storefront)) {
       // A separate Storefront.current snapshot is not a price authority. It can
@@ -77,7 +79,11 @@ async function loadAppleProducts() {
   const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
   if (!usable.length) throw Object.assign(new Error('Apple returned no usable subscription products.'), { code: products?.length ? 'PRODUCT_METADATA_INCOMPLETE' : 'PRODUCTS_EMPTY' });
   for (const product of products ?? []) {
-    log('PRODUCT_METADATA', { productId: product.id, currency: product.currency, displayPrice: product.displayPrice });
+    const p = product as ProductSubscription & { subscriptionPeriodUnitIOS?: string; subscriptionPeriodNumberIOS?: string; introductoryPricePaymentModeIOS?: string; introductoryPriceSubscriptionPeriodIOS?: string; introductoryPriceNumberOfPeriodsIOS?: string; introductoryPriceIOS?: string };
+    log('PRODUCT_METADATA', { productId: p.id, currency: p.currency, displayPrice: p.displayPrice,
+      subscriptionPeriodUnit: p.subscriptionPeriodUnitIOS ?? null, subscriptionPeriodCount: p.subscriptionPeriodNumberIOS ?? null,
+      introPaymentMode: p.introductoryPricePaymentModeIOS ?? null, introPeriod: p.introductoryPriceSubscriptionPeriodIOS ?? null,
+      introPeriodCount: p.introductoryPriceNumberOfPeriodsIOS ?? null, introPrice: p.introductoryPriceIOS ?? null, introEligible: eligible });
   }
   log('PRODUCTS_READY', { productCount: usable.length });
   return { products: usable as ProductSubscription[], eligible };

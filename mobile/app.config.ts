@@ -190,6 +190,7 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: true },
 
   extra: {
+    storekitDiagnostics: process.env.EAS_BUILD_PROFILE === 'testflight-diagnostics',
     apiUrl: API_URL,
     eas: {
       projectId: EAS_PROJECT_ID,
