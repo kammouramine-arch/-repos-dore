@@ -101,7 +101,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
     expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '$35.00' }] });
     expect(m.products).toHaveBeenCalledTimes(2);
-    expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'STOREFRONT_METADATA_MISMATCH' }));
+    expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'STOREKIT_METADATA_MISMATCH' }));
   });
   it('uses the fresh EUR product after a bounded metadata refetch, never the earlier USD result', async () => {
     m.products.mockResolvedValueOnce([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);

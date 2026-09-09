@@ -33,8 +33,8 @@ async function store() {
   return sdk;
 }
 
-let catalogueFlight: Promise<{ products: ProductSubscription[]; eligible: boolean }> | undefined;
-export function appleProducts(freshAfterPending = false): Promise<{ products: ProductSubscription[]; eligible: boolean }> {
+let catalogueFlight: Promise<{ products: ProductSubscription[]; eligible: boolean; storefront: string }> | undefined;
+export function appleProducts(freshAfterPending = false): Promise<{ products: ProductSubscription[]; eligible: boolean; storefront: string }> {
   // A foreground/account change or pre-purchase refresh must not adopt an
   // in-flight snapshot requested before that transition.
   if (freshAfterPending && catalogueFlight) {
@@ -73,7 +73,7 @@ async function loadAppleProducts() {
       // A separate Storefront.current snapshot is not a price authority. It can
       // disagree in TestFlight. Do not turn a successful native catalogue into
       // "products unavailable", nor fabricate/conversion-map a replacement.
-      log('STOREFRONT_METADATA_MISMATCH', { category: 'client' });
+      log('STOREKIT_METADATA_MISMATCH', { category: 'client' });
     }
   }
   const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
@@ -86,7 +86,7 @@ async function loadAppleProducts() {
       introPeriodCount: p.introductoryPriceNumberOfPeriodsIOS ?? null, introPrice: p.introductoryPriceIOS ?? null, introEligible: eligible });
   }
   log('PRODUCTS_READY', { productCount: usable.length });
-  return { products: usable as ProductSubscription[], eligible };
+  return { products: usable as ProductSubscription[], eligible, storefront };
   } catch (error) {
     const native = normalizeApplePurchaseError(error);
     log('PRODUCTS_FAILED', { category: native.category === 'network' ? 'network' : 'client', nativeCode: native.code });

@@ -3,6 +3,10 @@ const modulePath = '../../mobile/src/lib/apple-offer';
 const { appleOffer, consistentAppleCurrency } = await import(modulePath);
 const eur = { platform: 'ios', displayPrice: '39,00 €', currency: 'EUR', subscriptionPeriodNumberIOS: '1', subscriptionPeriodUnitIOS: 'month', introductoryPricePaymentModeIOS: 'free-trial', introductoryPriceNumberOfPeriodsIOS: '3', introductoryPriceSubscriptionPeriodIOS: 'day' };
 describe('Apple-only offer presentation', () => {
+  it('suppresses FRA/USD amounts and trials without inventing EUR', () => {
+    expect(appleOffer({ ...eur, currency: 'USD', displayPrice: '$35.00' }, true, false, 'FRA')).toMatchObject({ price: null, mismatch: true, trial: false, period: '' });
+    expect(appleOffer(eur, true, false, 'FRA')).toMatchObject({ price: '39,00 €', mismatch: false, trial: true });
+  });
   it.each([['$35.00', '39,00 €'], ['$69.00', '79,00 €'], ['$129.00', '149,00 €']])('replaces %s with current Apple %s', (oldPrice, currentPrice) => {
     const stale = { ...eur, displayPrice: oldPrice, currency: 'USD' };
     expect(appleOffer(stale, false, false).price).toBe(oldPrice);

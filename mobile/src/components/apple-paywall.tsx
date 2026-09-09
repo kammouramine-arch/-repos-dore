@@ -27,7 +27,7 @@ function ApplePaywallContent() {
   const en = locale === 'en';
   const router = useRouter();
   const [selected, setSelected] = React.useState<PlanId | null>(null);
-  const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean } | null>(null);
+  const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean; storefront: string } | null>(null);
   const [error, setError] = React.useState<string | null>(null);
   const [ownershipConflict, setOwnershipConflict] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
@@ -58,11 +58,11 @@ function ApplePaywallContent() {
     return () => { disposed = true; invalidateRequests(); stop(); resume.remove(); };
   }, [load, en]);
   const product = selected ? store?.products.find((p) => p.id === APPLE_PRODUCTS[selected]) : undefined;
-  const offer = appleOffer(product, store?.eligible === true, en);
+  const offer = appleOffer(product, store?.eligible === true, en, store?.storefront);
   const trial = offer.trial;
   const trialDays = offer.days;
   // Only current native metadata. Never mix website prices into iOS offers.
-  const canPurchase = Boolean(product?.displayPrice);
+  const canPurchase = Boolean(product?.displayPrice) && (!offer.mismatch || Constants.expoConfig?.extra?.storekitDiagnostics === true);
   const wasActive = React.useRef(session?.subscription?.provider === 'apple' && accessStateFor(session.subscription).canWrite);
   const appleActive = subscription?.provider === 'apple' && accessStateFor(subscription).canWrite;
   React.useEffect(() => {
@@ -112,7 +112,7 @@ function ApplePaywallContent() {
     </Card> : null}
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
-      const cardOffer = appleOffer(p, store?.eligible === true, en);
+      const cardOffer = appleOffer(p, store?.eligible === true, en, store?.storefront);
       const chosen = plan === selected;
       return <PlanCard
         key={plan}
@@ -126,7 +126,7 @@ function ApplePaywallContent() {
         recommended={plan === 'PRO'}
         disabled={busy}
         onPress={() => setSelected(plan)}
-        labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.' }}
+        labels={{ selected: en ? 'Selected' : 'Sélectionné', recommended: en ? 'Recommended' : 'Recommandé', pricePending: cardOffer.mismatch ? (Constants.expoConfig?.extra?.storekitDiagnostics === true ? (en ? 'Apple will confirm the price during purchase.' : 'Le prix sera confirmé par Apple lors de l’achat.') : (en ? 'Apple pricing is temporarily unavailable. Reload offers.' : 'Les tarifs Apple sont temporairement indisponibles. Rechargez les offres.')) : (en ? 'Price will appear when Apple offers load.' : 'Le prix apparaîtra lorsque les offres Apple seront chargées.') }}
       />;
     })}
     {trial && selected ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
@@ -147,6 +147,9 @@ function ApplePaywallContent() {
         setStore(fresh);
         const current = fresh.products.find(item => item.id === APPLE_PRODUCTS[selected]);
         if (!current?.displayPrice) throw Object.assign(new Error('Product unavailable'), { code: 'PRODUCT_UNAVAILABLE' });
+        if (appleOffer(current, fresh.eligible, en, fresh.storefront).mismatch && Constants.expoConfig?.extra?.storekitDiagnostics !== true) {
+          throw Object.assign(new Error('Apple product currency disagrees with storefront'), { code: 'STOREKIT_METADATA_MISMATCH' });
+        }
         if (current.displayPrice !== product?.displayPrice || current.currency !== product?.currency) {
           setError(en ? 'Apple updated the price. Review the updated offer, then continue.' : 'Apple a actualisé le prix. Vérifiez l’offre actualisée, puis continuez.');
           return 'price_updated';

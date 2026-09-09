@@ -3,6 +3,12 @@ import { readFileSync } from 'node:fs';
 import { storekitReportEvents } from '../../mobile/src/lib/storekit-report';
 
 describe('developer StoreKit report', () => {
+  it('does not insert diagnostic rows in account settings or colored overlays', () => {
+    expect(readFileSync('mobile/app/compte.tsx', 'utf8')).not.toContain('DiagnosticReport');
+    const panel = readFileSync('mobile/src/components/diagnostic-report.tsx', 'utf8');
+    expect(panel).not.toMatch(/cyan|magenta|pink|#00ffff|#ff00ff/i);
+    expect(panel).toContain('visible={report !== null}');
+  });
   it('retains native price/period/cache evidence and excludes sensitive payloads', () => {
     const report = JSON.stringify(storekitReportEvents([
       { area: 'billing', path: 'apple-products', at: '2026-09-09T00:00:00Z', durationMs: 100, code: 'PRODUCT_METADATA',

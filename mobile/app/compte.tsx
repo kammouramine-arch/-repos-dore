@@ -7,7 +7,6 @@ import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/component
 import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { DiagnosticReport } from '@/components/diagnostic-report';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
 
@@ -127,11 +126,10 @@ export default function CompteScreen() {
 
         <SettingsGroup
           title={copy(locale, 'security')}
-          footer={en ? 'Exports contain your identity and business records, never secrets or tokens. Diagnostics hold timings and error categories only.' : 'Les exports contiennent votre identité et vos données commerciales, jamais de secret ni de jeton. Le diagnostic ne contient que des durées et des catégories d’erreur.'}
+          footer={en ? 'Exports contain your identity and business records, never secrets or tokens.' : 'Les exports contiennent votre identité et vos données commerciales, jamais de secret ni de jeton.'}
         >
           <SettingsRow icon="download-outline" title={copy(locale, 'exportPersonal')} onPress={() => void perform(() => exportJson('DEVISERA-compte', () => api.auth.exportPersonal()))} />
           <SettingsRow icon="briefcase-outline" title={copy(locale, 'exportBusiness')} onPress={() => void perform(() => exportJson('DEVISERA-donnees', () => api.auth.exportBusiness()))} />
-          <DiagnosticReport en={en} />
           <SettingsRow icon="log-out-outline" title={copy(locale, 'signOut')} onPress={() => void perform(signOut)} />
         </SettingsGroup>
 
