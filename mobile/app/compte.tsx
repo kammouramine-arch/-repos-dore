@@ -6,6 +6,7 @@ import * as Sharing from 'expo-sharing';
 import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/components/ui';
 import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useAuth, useSession } from '@/lib/auth';
+import { useToast } from '@/components/toast';
 import { api } from '@/lib/api';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
@@ -23,6 +24,7 @@ export default function CompteScreen() {
   const session = useSession();
   const router = useRouter();
   const { refresh, signOut, adoptSession } = useAuth();
+  const { toast } = useToast();
   const locale = mobileLocale(session);
   const en = locale === 'en';
   const [firstName, setFirstName] = React.useState(session.user.firstName ?? '');
@@ -73,7 +75,7 @@ export default function CompteScreen() {
           <Heading>{en ? 'Identity' : 'Identité'}</Heading>
           <Field label={en ? 'First name' : 'Prénom'} value={firstName} onChangeText={setFirstName} autoComplete="given-name" maxLength={80} editable={!busy} />
           <Field label={en ? 'Last name' : 'Nom'} value={lastName} onChangeText={setLastName} autoComplete="family-name" maxLength={80} editable={!busy} />
-          <Button title={en ? 'Save my name' : 'Enregistrer mon nom'} disabled={busy} onPress={() => void perform(async () => { await api.auth.updateName(firstName, lastName); await refresh(); setNotice(en ? 'Your name was saved.' : 'Votre nom a été enregistré.'); })} />
+          <Button title={en ? 'Save my name' : 'Enregistrer mon nom'} disabled={busy} onPress={() => void perform(async () => { await api.auth.updateName(firstName, lastName); await refresh(); toast({ title: en ? 'Name saved' : 'Nom enregistré' }); })} />
         </Card>
 
         <Card style={{ gap: spacing.lg }}>
@@ -107,7 +109,7 @@ export default function CompteScreen() {
                 const result = await api.auth.confirmEmailCode(code);
                 adoptSession(result.session);
                 if (destination) setEmail(destination);
-                setDestination(null); setCode(''); setNotice(en ? 'Your email address is confirmed.' : 'Votre adresse email est confirmée.');
+                setDestination(null); setCode(''); toast({ title: en ? 'Email confirmed' : 'Adresse confirmée' });
               })} />
             </>
           ) : (
@@ -119,8 +121,8 @@ export default function CompteScreen() {
           <Heading>{copy(locale, 'language')}</Heading>
           <Muted>{en ? 'Saved to your account; guides generated answers and documents.' : 'Conservée sur votre compte ; guide les réponses et documents générés.'}</Muted>
           <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            <Button style={{ flex: 1 }} title={copy(locale, 'french')} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); setNotice('Langue française enregistrée.'); })} />
-            <Button style={{ flex: 1 }} title={copy(locale, 'english')} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); setNotice('English language saved.'); })} />
+            <Button style={{ flex: 1 }} title={copy(locale, 'french')} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); toast({ title: 'Langue française enregistrée' }); })} />
+            <Button style={{ flex: 1 }} title={copy(locale, 'english')} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); toast({ title: 'English language saved' }); })} />
           </View>
         </Card>
 

@@ -70,14 +70,30 @@ export const typography = {
 
 /** Ombres discrètes, jamais décoratives. */
 export const shadows = {
+  /*
+   * Ombre de carte : courte et proche de la surface. Une ombre large et
+   * lointaine fait flotter les cartes comme des vignettes ; une ombre serrée
+   * les pose sur la page.
+   */
   card: Platform.select({
     ios: {
-      shadowColor: '#0A0E14',
-      shadowOpacity: 0.065,
-      shadowRadius: 18,
-      shadowOffset: { width: 0, height: 7 },
+      shadowColor: '#0A1A4A',
+      shadowOpacity: 0.06,
+      shadowRadius: 12,
+      shadowOffset: { width: 0, height: 4 },
     },
     android: { elevation: 1 },
+    default: {},
+  }),
+  /** Ombre de marque, pour un élément bleu qui doit rayonner (micro, bouton +). */
+  glow: Platform.select({
+    ios: {
+      shadowColor: '#2F52E8',
+      shadowOpacity: 0.42,
+      shadowRadius: 22,
+      shadowOffset: { width: 0, height: 10 },
+    },
+    android: { elevation: 10 },
     default: {},
   }),
   floating: Platform.select({

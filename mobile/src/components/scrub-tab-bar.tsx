@@ -147,8 +147,11 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
 
   const slot = barWidth / items.length;
   const activeName = state.routes[state.index]?.name;
-  const activeSlot = Math.max(0, items.findIndex((item) => item.name === activeName));
-  const onCreate = activeName === 'nouveau';
+  const activeIndex = items.findIndex((item) => item.name === activeName);
+  const activeSlot = Math.max(0, activeIndex);
+  // Route masquée (liste des devis) ou onglet de création : aucun onglet
+  // n'est « sélectionné », l'indicateur s'efface au lieu de retomber sur Accueil.
+  const onCreate = activeName === 'nouveau' || activeIndex < 0;
 
   React.useEffect(() => {
     if (!barWidth) return;

@@ -7,6 +7,7 @@ import { QUOTE_STATUS_LABELS, formatCents, type QuoteSummaryDTO } from '@devisia
 import { Badge, Body, Button, EmptyState, Ionicons, Muted, PageHeader, PressableCard, Skeleton, Banner } from '@/components/ui';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
+import { Enter } from '@/components/motion';
 import { colors, radius, spacing } from '@/theme';
 import { mobileLocale, localizeText } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
@@ -136,7 +137,8 @@ export default function DevisScreen() {
               }
             />
           }
-          renderItem={({ item }) => (
+          renderItem={({ item, index }) => (
+            <Enter delay={Math.min(index, 6) * 40} distance={8}>
             <PressableCard
               haptic
               accessibilityLabel={`Ouvrir le devis ${item.number}`}
@@ -172,6 +174,7 @@ export default function DevisScreen() {
                 <Ionicons name="chevron-forward" size={16} color={colors.subtle} />
               </View>
             </PressableCard>
+            </Enter>
           )}
         />
       )}

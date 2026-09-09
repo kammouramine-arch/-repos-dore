@@ -7,6 +7,7 @@ import { Button, Caption, Screen } from '@/components/ui';
 import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
+import { Stagger } from '@/components/motion';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useAuth } from '@/lib/auth';
 import { API_URL } from '@/lib/api';
@@ -70,6 +71,7 @@ export default function PlusScreen() {
 
         <TrialBanner subscription={subscription} />
 
+        <Stagger step={45} initial={30} distance={8}>
         <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
@@ -117,6 +119,7 @@ export default function PlusScreen() {
           }
         />
 
+        </Stagger>
         <Caption style={{ color: colors.subtle, textAlign: 'center' }}>DEVISERA · version 1.0.0</Caption>
         <View style={{ height: spacing.xl }} />
       </Screen>

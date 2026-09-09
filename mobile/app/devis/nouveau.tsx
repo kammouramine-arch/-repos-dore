@@ -34,6 +34,8 @@ import {
 } from '@/components/ui';
 import { ClientPicker } from '@/components/client-picker';
 import { useToast } from '@/components/toast';
+import { Breathe, Enter, SuccessCheck } from '@/components/motion';
+import { ListeningRings, Waveform } from '@/components/voice-visuals';
 import { useDictation } from '@/features/voice';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
@@ -200,8 +202,8 @@ export default function NouveauDevisScreen() {
     }
     const loop = Animated.loop(
       Animated.sequence([
-        Animated.timing(pulse, { toValue: 1.12, duration: 620, useNativeDriver: true }),
-        Animated.timing(pulse, { toValue: 1, duration: 620, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1.05, duration: 720, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 720, useNativeDriver: true }),
       ]),
     );
     loop.start();
@@ -405,14 +407,18 @@ export default function NouveauDevisScreen() {
             justifyContent: 'center',
           }}
         >
-          <Ionicons name="sparkles" size={32} color={colors.white} />
+          <Breathe min={1} max={1.08} duration={1300}>
+            <Ionicons name="sparkles" size={32} color={colors.white} />
+          </Breathe>
         </View>
+        <Enter distance={8}>
         <View style={{ alignItems: 'center', gap: 6 }}>
           <Title style={{ color: colors.white, textAlign: 'center' }}>Votre devis prend forme</Title>
           <Muted style={{ color: 'rgba(255,255,255,0.68)', textAlign: 'center' }}>
             DEVISERA analyse, chiffre et met en page.
           </Muted>
         </View>
+        </Enter>
         <View
           style={{
             gap: spacing.md,
@@ -428,7 +434,7 @@ export default function NouveauDevisScreen() {
           {etapes.map((label, index) => (
             <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
               {index < step ? (
-                <Ionicons name="checkmark-circle" size={20} color="#78E4B6" />
+                <SuccessCheck size={20} color="#78E4B6" />
               ) : index === step ? (
                 <ActivityIndicator size="small" color={colors.white} />
               ) : (
@@ -575,11 +581,17 @@ export default function NouveauDevisScreen() {
           scrollEventThrottle={16}
           decelerationRate="fast"
         >
-          <PageHeader
-            eyebrow="Votre devis"
-            title="Vérifiez les détails"
-            subtitle="Relisez, ajustez puis enregistrez. Rien n’est envoyé automatiquement."
-          />
+          <Enter distance={12}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.sm }}>
+              <SuccessCheck size={22} color={colors.success} delay={120} />
+              <Body style={{ color: colors.success, fontWeight: '600' }}>{localizeText(locale, 'Votre devis est prêt')}</Body>
+            </View>
+            <PageHeader
+              eyebrow="Votre devis"
+              title="Vérifiez les détails"
+              subtitle="Relisez, ajustez puis enregistrez. Rien n’est envoyé automatiquement."
+            />
+          </Enter>
 
           {error ? <Banner tone="danger" title={error} /> : null}
 
@@ -883,42 +895,51 @@ export default function NouveauDevisScreen() {
           </View>
         </Card>
 
-        <View style={{ alignItems: 'center', gap: spacing.sm }}>
-          <Animated.View style={{ transform: [{ scale: pulse }] }}>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={localizeText(locale, listening ? 'Arrêter la dictée' : 'Dicter la description')}
-              accessibilityState={{ disabled: !dictation.supported || busy }}
-              disabled={!dictation.supported || busy}
-              onPress={() => (listening ? dictation.stop() : void dictation.start())}
-              style={({ pressed }) => [
-                {
-                  width: 86,
-                  height: 86,
-                  borderRadius: radius.full,
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  backgroundColor: listening ? colors.danger : colors.accent,
-                  borderWidth: 6,
-                  borderColor: colors.canvas,
-                  opacity: !dictation.supported ? 0.4 : pressed ? 0.85 : 1,
-                  transform: [{ scale: pressed ? 0.96 : 1 }],
-                },
-                shadows.floating as object,
-              ]}
-            >
-              {busy ? (
-                <ActivityIndicator color={colors.white} />
-              ) : (
-                <Ionicons name={listening ? 'stop' : 'mic'} size={34} color={colors.white} />
-              )}
-            </Pressable>
-          </Animated.View>
-          <Body style={{ color: colors.muted }}>
+        <View style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm }}>
+          <View style={{ width: 120, height: 120, alignItems: 'center', justifyContent: 'center' }}>
+            <ListeningRings size={86} active={listening} />
+            <Animated.View style={{ transform: [{ scale: pulse }] }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={localizeText(locale, listening ? 'Arrêter la dictée' : 'Dicter la description')}
+                accessibilityState={{ disabled: !dictation.supported || busy }}
+                disabled={!dictation.supported || busy}
+                onPress={() => {
+                  void Haptics.impactAsync(listening ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+                  if (listening) dictation.stop(); else void dictation.start();
+                }}
+                style={({ pressed }) => [
+                  {
+                    width: 86,
+                    height: 86,
+                    borderRadius: radius.full,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: listening ? colors.accentHover : colors.accent,
+                    borderWidth: 6,
+                    borderColor: colors.canvas,
+                    opacity: !dictation.supported ? 0.4 : pressed ? 0.9 : 1,
+                    transform: [{ scale: pressed ? 0.95 : 1 }],
+                  },
+                  (listening ? shadows.glow : shadows.floating) as object,
+                ]}
+              >
+                {busy ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : listening ? (
+                  <View style={{ width: 26, height: 26, borderRadius: 7, backgroundColor: colors.white }} />
+                ) : (
+                  <Ionicons name="mic" size={34} color={colors.white} />
+                )}
+              </Pressable>
+            </Animated.View>
+          </View>
+          <Waveform active={listening} />
+          <Body style={{ color: listening ? colors.accent : colors.muted, fontWeight: listening ? '600' : '400' }}>
             {!dictation.supported
               ? 'Dictée indisponible ici — écrivez la description'
               : listening
-                ? 'Appuyez pour arrêter'
+                ? 'Je vous écoute — appuyez pour arrêter'
                 : busy
                   ? 'Un instant…'
                   : 'Appuyez et décrivez le chantier'}

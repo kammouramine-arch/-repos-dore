@@ -5,6 +5,7 @@ import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { colors, radius, shadows, spacing } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
+import { SuccessCheck } from './motion';
 
 type Tone = 'success' | 'error' | 'info';
 
@@ -55,7 +56,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             : Haptics.NotificationFeedbackType.Success,
       );
 
-      Animated.spring(translate, { toValue: 0, useNativeDriver: true, damping: 18 }).start();
+      Animated.spring(translate, { toValue: 0, useNativeDriver: true, damping: 16, stiffness: 260, mass: 0.7 }).start();
       timer.current = setTimeout(hide, tone === 'error' ? 5000 : 3200);
     },
     [hide, translate],
@@ -76,7 +77,7 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
               left: spacing.lg,
               right: spacing.lg,
               backgroundColor: colors.canvas,
-              borderRadius: radius.md,
+              borderRadius: radius.lg,
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: colors.line,
               padding: spacing.md,
@@ -87,7 +88,11 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
             shadows.floating as object,
           ]}
         >
-          <Ionicons name={ICONS[current.tone]} size={20} color={TONE_COLORS[current.tone]} />
+          {current.tone === 'success' ? (
+            <SuccessCheck size={20} color={TONE_COLORS.success} />
+          ) : (
+            <Ionicons name={ICONS[current.tone]} size={20} color={TONE_COLORS[current.tone]} />
+          )}
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '600', color: colors.ink }}>{localizeText(locale, current.title)}</Text>
             {current.description ? (

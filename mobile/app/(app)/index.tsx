@@ -5,6 +5,8 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
   Amount,
+  AnimatedAmount,
+  AnimatedCount,
   Badge,
   Body,
   Button,
@@ -29,6 +31,7 @@ import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
+import { Stagger } from '@/components/motion';
 
 /**
  * Accueil.
@@ -253,7 +256,7 @@ export default function AccueilScreen() {
         {!started ? (
           /* Première utilisation : une seule chose à faire, et on explique
              comment elle se passe plutôt que d'afficher des compteurs vides. */
-          <>
+          <Stagger step={70} initial={40}>
             <PressableCard
               haptic
               accessibilityLabel={en ? 'Create my first quote' : 'Créer mon premier devis'}
@@ -347,9 +350,9 @@ export default function AccueilScreen() {
                 </View>
               ))}
             </Card>
-          </>
+          </Stagger>
         ) : (
-          <>
+          <Stagger step={60} initial={40}>
             {data.toRecover.quoteCount > 0 ? (
               <Pressable
                 accessibilityRole="button"
@@ -357,7 +360,7 @@ export default function AccueilScreen() {
                 onPress={() => router.push('/devis')}
               >
                 <Stat label="Chiffre d’affaires à récupérer" tone="accent" icon="arrow-redo-outline">
-                  <Amount cents={data.toRecover.totalCents} size="metric" tone="accent" />
+                  <AnimatedAmount cents={data.toRecover.totalCents} size="metric" tone="accent" />
                   <Body style={{ color: colors.accentHover, marginTop: 2 }}>
                     {en
                       ? `${data.toRecover.quoteCount} quote${data.toRecover.quoteCount === 1 ? '' : 's'} without a reply · follow up`
@@ -372,10 +375,10 @@ export default function AccueilScreen() {
                 client, il n'y a donc pas de taux à afficher. */}
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <Stat label={en ? 'Quoted revenue' : 'CA devisé'} hint={en ? 'over 30 days' : 'sur 30 jours'} icon="trending-up-outline">
-                <Amount cents={data.quotedRevenueCents} size="metric" />
+                <AnimatedAmount cents={data.quotedRevenueCents} size="metric" />
               </Stat>
               <Stat label={en ? 'Quotes sent' : 'Devis envoyés'} hint={en ? `${data.pendingQuotes} without a reply` : `${data.pendingQuotes} sans réponse`} icon="paper-plane-outline">
-                <Body style={[typography.metric, { color: colors.ink }]}>{data.quotesSent}</Body>
+                <AnimatedCount value={data.quotesSent} />
               </Stat>
             </View>
 
@@ -441,7 +444,7 @@ export default function AccueilScreen() {
               haptic
               onPress={() => router.push('/devis/nouveau')}
             />
-          </>
+          </Stagger>
         )}
 
         <View style={{ height: spacing.xl }} />

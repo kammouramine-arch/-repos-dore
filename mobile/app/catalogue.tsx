@@ -28,6 +28,7 @@ import {
   Title,
 } from '@/components/ui';
 import { api } from '@/lib/api';
+import { useToast } from '@/components/toast';
 import { colors, spacing } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
@@ -70,6 +71,7 @@ const BLANK: Draft = {
 };
 
 export default function CatalogueScreen() {
+  const { toast } = useToast();
   const { session } = useAuth();
   const en = mobileLocale(session) === 'en';
   const [items, setItems] = React.useState<PriceBookItemDTO[] | null>(null);
@@ -121,9 +123,11 @@ export default function CatalogueScreen() {
       vatRate: Number(draft.vatRate.replace(',', '.')) || 20,
     };
     try {
+      const existing = Boolean(draft.id);
       if (draft.id) await api.priceBook.update(draft.id, payload);
       else await api.priceBook.create(payload);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: existing ? 'Prestation mise à jour' : 'Prestation ajoutée', description: payload.name });
       setDraft(null);
       await load(search);
     } catch (cause) {
@@ -140,6 +144,7 @@ export default function CatalogueScreen() {
     try {
       await api.priceBook.remove(id);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: 'Prestation supprimée', tone: 'info' });
       setDraft(null);
       await load(search);
     } catch (cause) {

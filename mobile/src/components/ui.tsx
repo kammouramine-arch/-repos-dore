@@ -1,7 +1,9 @@
 import * as React from 'react';
+import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from 'react-native-svg';
 import {
   ActivityIndicator,
   Animated,
+  Easing,
   Platform,
   Pressable,
   ScrollView,
@@ -21,7 +23,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
-import { useReducedMotion, useTouchMotion } from '@/components/motion';
+import { useReducedMotion, useTouchMotion, Enter, useCountUp } from '@/components/motion';
 import { colors, radius, shadows, spacing, typography } from '@/theme';
 import { localizeNode, localizeText, useMobileLocale } from '@/lib/i18n';
 
@@ -383,32 +385,58 @@ export function Divider({ style }: { style?: ViewStyle }) {
 
 /** Squelette de chargement : jamais de spinner plein écran sur une liste. */
 export function Skeleton({ height = 16, width = '100%', style }: { height?: number; width?: number | string; style?: ViewStyle }) {
-  const opacity = React.useMemo(() => new Animated.Value(0.5), []);
+  /*
+   * Miroitement : une bande claire traverse le bloc de gauche à droite.
+   * Une opacité qui pulse dit « figé » ; un reflet qui passe dit « en
+   * route ». La bande est un dégradé natif, animé par transformation.
+   */
+  const [progress] = React.useState(() => new Animated.Value(0));
+  const [measured, setMeasured] = React.useState(0);
   const reduced = useReducedMotion();
 
   React.useEffect(() => {
     if (reduced) {
-      opacity.stopAnimation();
-      opacity.setValue(0.65);
+      progress.stopAnimation();
+      progress.setValue(0.5);
       return undefined;
     }
     const loop = Animated.loop(
-      Animated.sequence([
-        Animated.timing(opacity, { toValue: 1, duration: 700, useNativeDriver: true }),
-        Animated.timing(opacity, { toValue: 0.5, duration: 700, useNativeDriver: true }),
-      ]),
+      Animated.timing(progress, { toValue: 1, duration: 1300, easing: Easing.inOut(Easing.quad), useNativeDriver: true }),
     );
     loop.start();
     return () => loop.stop();
-  }, [opacity, reduced]);
+  }, [progress, reduced]);
 
+  const band = Math.max(80, measured * 0.45);
   return (
-    <Animated.View
-      style={[
-        { height, width: width as ViewStyle['width'], borderRadius: radius.sm, backgroundColor: colors.surface2, opacity },
-        style,
-      ]}
-    />
+    <View
+      onLayout={(event) => setMeasured(event.nativeEvent.layout.width)}
+      style={[{ height, width: width as ViewStyle['width'], borderRadius: radius.sm, backgroundColor: colors.surface2, overflow: 'hidden' }, style]}
+    >
+      {measured > 0 && !reduced ? (
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            bottom: 0,
+            width: band,
+            transform: [{ translateX: progress.interpolate({ inputRange: [0, 1], outputRange: [-band, measured] }) }],
+          }}
+        >
+          <Svg width="100%" height="100%" preserveAspectRatio="none">
+            <Defs>
+              <SvgLinearGradient id="devisera-shimmer" x1="0" y1="0" x2="1" y2="0">
+                <Stop offset="0" stopColor="#FFFFFF" stopOpacity="0" />
+                <Stop offset="0.5" stopColor="#FFFFFF" stopOpacity="0.75" />
+                <Stop offset="1" stopColor="#FFFFFF" stopOpacity="0" />
+              </SvgLinearGradient>
+            </Defs>
+            <Rect x="0" y="0" width="100%" height="100%" fill="url(#devisera-shimmer)" />
+          </Svg>
+        </Animated.View>
+      ) : null}
+    </View>
   );
 }
 
@@ -424,28 +452,38 @@ export function EmptyState({
   action?: React.ReactNode;
 }) {
   const locale = useMobileLocale();
+  /*
+   * Un écran vide reste un écran DEVISERA : l'icône se pose dans un disque
+   * de la couleur de marque, entouré d'un halo, et l'ensemble entre
+   * doucement. Le bouton dit la seule chose à faire.
+   */
   return (
-    <View style={{ alignItems: 'center', paddingVertical: spacing['4xl'], paddingHorizontal: spacing.xl, gap: spacing.md }}>
-      <View
-        style={{
-          width: 52,
-          height: 52,
-          borderRadius: radius.lg,
-          backgroundColor: colors.surface,
-          borderWidth: StyleSheet.hairlineWidth,
-          borderColor: colors.line,
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}
-      >
-        <Ionicons name={icon} size={22} color={colors.subtle} />
+    <Enter distance={8}>
+      <View style={{ alignItems: 'center', paddingVertical: spacing['4xl'], paddingHorizontal: spacing.xl, gap: spacing.md }}>
+        <View style={{ width: 96, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs }}>
+          <View style={{ position: 'absolute', width: 96, height: 96, borderRadius: 48, backgroundColor: colors.accentSoft, opacity: 0.55 }} />
+          <View
+            style={{
+              width: 66,
+              height: 66,
+              borderRadius: 22,
+              backgroundColor: colors.accentSoft,
+              borderWidth: StyleSheet.hairlineWidth,
+              borderColor: colors.accentBorder,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name={icon} size={28} color={colors.accent} />
+          </View>
+        </View>
+        <Heading style={{ textAlign: 'center', fontSize: 19, lineHeight: 25 }}>{localizeText(locale, title)}</Heading>
+        {description ? (
+          <Text style={[typography.body, { color: colors.muted, textAlign: 'center', maxWidth: 300 }]}>{localizeText(locale, description)}</Text>
+        ) : null}
+        {action ? <View style={{ marginTop: spacing.sm, alignSelf: 'stretch', alignItems: 'center' }}>{action}</View> : null}
       </View>
-      <Heading style={{ textAlign: 'center' }}>{localizeText(locale, title)}</Heading>
-      {description ? (
-        <Muted style={{ textAlign: 'center', maxWidth: 300 }}>{localizeText(locale, description)}</Muted>
-      ) : null}
-      {action ? <View style={{ marginTop: spacing.sm }}>{action}</View> : null}
-    </View>
+    </Enter>
   );
 }
 
@@ -975,6 +1013,26 @@ export function Amount({
       {formatCents(cents)}
     </Text>
   );
+}
+
+/** Montant qui compte jusqu'à sa valeur quand il vient d'être calculé. */
+export function AnimatedAmount({
+  cents,
+  size = 'body',
+  tone = 'ink',
+}: {
+  cents: number;
+  size?: 'body' | 'metric';
+  tone?: 'ink' | 'muted' | 'accent';
+}) {
+  const value = useCountUp(cents);
+  return <Amount cents={value} size={size} tone={tone} />;
+}
+
+/** Compteur entier animé (devis envoyés, prospects…). */
+export function AnimatedCount({ value, style }: { value: number; style?: TextStyle }) {
+  const shown = useCountUp(value);
+  return <Text style={[typography.metric, { color: colors.ink, fontVariant: ['tabular-nums'] }, style]}>{shown}</Text>;
 }
 
 /**
