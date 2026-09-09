@@ -39,6 +39,35 @@ async function verified<T>(operationName: string, operation: (verifier: SignedDa
   throw new AppError('VALIDATION', 'Apple n’a pas pu confirmer cet achat. Restaurez vos achats ou réessayez.');
 }
 
+/**
+ * Autorisation de réconciliation Sandbox, créée hors ligne par un opérateur.
+ *
+ * Apple scelle l'`appAccountToken` de l'espace acheteur dans la transaction :
+ * une transaction Sandbox contaminée pendant les essais TestFlight ne peut
+ * donc jamais être restaurée sur l'espace de test courant, même une fois le
+ * lien libéré. Trois verrous indépendants gardent l'exception, et chacun
+ * suffit à la refuser : le fournisseur doit accepter le bac à sable, Apple
+ * doit attester l'environnement Sandbox, et une autorisation nominative,
+ * datée et à usage unique doit exister pour ce couple transaction/espace.
+ * Aucune route de l'API client n'écrit dans cette table : une transaction de
+ * Production ne peut atteindre ce chemin.
+ */
+async function sandboxRebindGrant(t: JWSTransactionDecodedPayload, organizationId: string) {
+  if (process.env.APPLE_ALLOW_SANDBOX !== 'true') return null;
+  if (t.environment !== Environment.SANDBOX) return null;
+  if (!t.originalTransactionId) return null;
+  const grant = await prisma.appleSandboxRebindGrant.findUnique({
+    where: {
+      appleOriginalTransactionId_targetOrganizationId: {
+        appleOriginalTransactionId: t.originalTransactionId,
+        targetOrganizationId: organizationId,
+      },
+    },
+  });
+  if (!grant || grant.usedAt || grant.expiresAt.getTime() <= Date.now()) return null;
+  return grant;
+}
+
 /** Only accepts data after Apple's signature, bundle and environment checks. */
 export async function syncAppleTransaction(signedTransaction: string, organizationId: string) {
   const transaction = await verified('transaction', (v) => v.verifyAndDecodeTransaction(signedTransaction));
@@ -47,10 +76,19 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
   // An established original-transaction binding is immutable. Reusing an Apple
   // account with a new appAccountToken cannot move the subscription; the
   // original workspace can still reconcile its signed renewal.
-  if (binding ? binding.organizationId !== organizationId : transaction.appAccountToken?.toLowerCase() !== organizationId.toLowerCase()) {
+  const mismatched = binding
+    ? binding.organizationId !== organizationId
+    : transaction.appAccountToken?.toLowerCase() !== organizationId.toLowerCase();
+  // Une autorisation Sandbox ne déplace jamais un lien vivant : elle ne lève
+  // que la vérification de l'`appAccountToken`, et seulement après qu'un
+  // opérateur a archivé le lien précédent. Un abonnement rattaché reste donc
+  // immuable dans tous les environnements.
+  const grant = mismatched && !binding ? await sandboxRebindGrant(transaction, organizationId) : null;
+  const reference = createHash('sha256').update(transaction.originalTransactionId ?? 'missing').digest('hex').slice(0, 12);
+  if (mismatched && !grant) {
     console.warn('[billing/apple] ownership rejected', {
       category: binding ? 'ORIGINAL_TRANSACTION_ALREADY_BOUND' : 'APP_ACCOUNT_TOKEN_MISMATCH',
-      reference: createHash('sha256').update(transaction.originalTransactionId ?? 'missing').digest('hex').slice(0, 12),
+      reference,
       workspaceReference: createHash('sha256').update(organizationId).digest('hex').slice(0, 12),
       ownerWorkspaceReference: binding ? createHash('sha256').update(binding.organizationId).digest('hex').slice(0, 12) : undefined,
       environment: transaction.environment,
@@ -58,7 +96,41 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
     });
     throw new AppError('CONFLICT', 'Cet abonnement appartient à un autre compte DEVISERA. Connectez-vous à ce compte.');
   }
-  return applyTransaction(transaction, organizationId);
+  if (grant) {
+    console.warn('[billing/apple] sandbox reconciliation authorised', {
+      category: 'SANDBOX_REBIND_GRANT',
+      reference,
+      workspaceReference: createHash('sha256').update(organizationId).digest('hex').slice(0, 12),
+      environment: transaction.environment,
+      productId: transaction.productId,
+    });
+  }
+  const result = await applyTransaction(transaction, organizationId);
+  if (grant) {
+    // Usage unique : la condition `usedAt: null` empêche deux restaurations
+    // simultanées de consommer la même autorisation.
+    const consumed = await prisma.appleSandboxRebindGrant.updateMany({
+      where: { id: grant.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+    if (consumed.count === 1) {
+      await prisma.auditLog.create({ data: {
+        organizationId,
+        action: 'billing.apple.sandbox_rebind_consumed',
+        entityType: 'AppleSandboxRebindGrant',
+        entityId: grant.id,
+        metadata: {
+          reference,
+          environment: transaction.environment,
+          productId: transaction.productId,
+          previousOrganizationId: grant.previousOrganizationId,
+          approval: grant.approval,
+          provenance: grant.provenance,
+        },
+      } }).catch((error) => console.error('[billing/apple] audit write failed', error));
+    }
+  }
+  return result;
 }
 
 async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId: string, renewal?: JWSRenewalInfoDecodedPayload, notificationDate?: number) {

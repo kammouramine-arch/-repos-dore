@@ -6,7 +6,7 @@ generator client {
 }
 
 datasource db {
-  provider = "postgresql"
+  provider  = "postgresql"
   // Connexion applicative. Derrière un pooler (Supabase Supavisor, PgBouncer),
   // c'est l'URL en mode transaction : elle encaisse les connexions courtes et
   // nombreuses des fonctions serverless.
@@ -285,13 +285,13 @@ model User {
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
 
-  memberships   OrganizationMember[]
-  sessions      Session[]
-  tokens        AuthToken[]
-  notifications Notification[]
-  auditLogs     AuditLog[]
-  aiRequests    AIRequest[]
-  deviceTokens  DeviceToken[]
+  memberships    OrganizationMember[]
+  sessions       Session[]
+  tokens         AuthToken[]
+  notifications  Notification[]
+  auditLogs      AuditLog[]
+  aiRequests     AIRequest[]
+  deviceTokens   DeviceToken[]
   emailChallenge EmailChallenge?
 
   @@index([deletedAt])
@@ -299,17 +299,17 @@ model User {
 }
 
 model EmailChallenge {
-  userId      String @id @db.Uuid
-  id          String @unique @db.Uuid
+  userId      String    @id @db.Uuid
+  id          String    @unique @db.Uuid
   email       String
   tokenHash   String
   expiresAt   DateTime
   sentAt      DateTime
-  attempts    Int @default(0)
+  attempts    Int       @default(0)
   windowStart DateTime
-  sendCount   Int @default(1)
+  sendCount   Int       @default(1)
   usedAt      DateTime?
-  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  user        User      @relation(fields: [userId], references: [id], onDelete: Cascade)
 
   @@map("email_challenges")
 }
@@ -912,25 +912,25 @@ model Payment {
 // ---------------------------------------------------------------------------
 
 model Subscription {
-  id                   String             @id @default(uuid()) @db.Uuid
-  organizationId       String             @unique @db.Uuid
-  plan                 SubscriptionPlan   @default(ESSENTIEL)
-  status               SubscriptionStatus @default(trialing)
-  stripeCustomerId     String?            @unique
-    stripeSubscriptionId String?            @unique
-    appleOriginalTransactionId String?      @unique
-    appleProductId       String?
-    appleEnvironment     String?
-    appleSignedAt        DateTime?
-  billingPeriod        BillingPeriod      @default(MENSUEL)
-  currentPeriodEnd     DateTime?
-  trialStartedAt       DateTime?
-  trialEndsAt          DateTime?
-  cancelAtPeriodEnd    Boolean            @default(false)
-  canceledAt           DateTime?
-  seats                Int                @default(1)
-  createdAt            DateTime           @default(now())
-  updatedAt            DateTime           @updatedAt
+  id                         String             @id @default(uuid()) @db.Uuid
+  organizationId             String             @unique @db.Uuid
+  plan                       SubscriptionPlan   @default(ESSENTIEL)
+  status                     SubscriptionStatus @default(trialing)
+  stripeCustomerId           String?            @unique
+  stripeSubscriptionId       String?            @unique
+  appleOriginalTransactionId String?            @unique
+  appleProductId             String?
+  appleEnvironment           String?
+  appleSignedAt              DateTime?
+  billingPeriod              BillingPeriod      @default(MENSUEL)
+  currentPeriodEnd           DateTime?
+  trialStartedAt             DateTime?
+  trialEndsAt                DateTime?
+  cancelAtPeriodEnd          Boolean            @default(false)
+  canceledAt                 DateTime?
+  seats                      Int                @default(1)
+  createdAt                  DateTime           @default(now())
+  updatedAt                  DateTime           @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
@@ -1020,6 +1020,44 @@ model AIRequest {
   @@index([organizationId, createdAt])
   @@index([kind, createdAt])
   @@map("ai_requests")
+}
+
+/**
+ * Réconciliation Sandbox autorisée par un opérateur.
+ * Une transaction Apple porte définitivement l'`appAccountToken` de l'espace
+ * qui a acheté. Une transaction Sandbox contaminée pendant les essais
+ * TestFlight ne peut donc jamais être restaurée sur l'espace de test courant,
+ * même après avoir libéré le lien : la vérification retomberait simplement de
+ * ORIGINAL_TRANSACTION_ALREADY_BOUND sur APP_ACCOUNT_TOKEN_MISMATCH.
+ * Cette table porte des autorisations nominatives, créées hors ligne par un
+ * opérateur, à usage unique et datées. Le serveur ne les consulte que pour une
+ * transaction dont Apple atteste l'environnement Sandbox. Aucune route de
+ * l'API client ne peut en créer : la protection de propriété en Production
+ * reste strictement inchangée.
+ */
+model AppleSandboxRebindGrant {
+  id                         String    @id @default(uuid()) @db.Uuid
+  appleOriginalTransactionId String
+  targetOrganizationId       String    @db.Uuid
+  /**
+   * Espace détenteur au moment de l'autorisation, pour la reprise.
+   */
+  previousOrganizationId     String?   @db.Uuid
+  /**
+   * Référence d'approbation explicite du propriétaire.
+   */
+  approval                   String
+  /**
+   * Origine de la demande : incident, ticket, session.
+   */
+  provenance                 String
+  expiresAt                  DateTime
+  usedAt                     DateTime?
+  createdAt                  DateTime  @default(now())
+
+  @@unique([appleOriginalTransactionId, targetOrganizationId])
+  @@index([expiresAt])
+  @@map("apple_sandbox_rebind_grants")
 }
 
 model AuditLog {
