@@ -40,6 +40,17 @@ export type Diagnostic = {
   introPrice?: string | number | null;
   introEligible?: boolean;
   cachePolicy?: string;
+  /* Lecture StoreKit 2 directe, comparée à la bibliothèque d'achat. */
+  storefrontId?: string;
+  nativeDisplayPrice?: string | null;
+  nativeCurrency?: string | null;
+  nativePriceLocale?: string | null;
+  catalogCurrency?: string | null;
+  catalogPriceFormatted?: string | null;
+  catalogPath?: string | null;
+  catalogIntroOffer?: boolean | null;
+  nativeIntroOffer?: boolean | null;
+  expectedCurrency?: string | null;
 };
 
 const events: Diagnostic[] = [];

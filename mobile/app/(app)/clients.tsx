@@ -3,11 +3,11 @@ import { FlatList, Linking, Platform, Pressable, RefreshControl, View } from 're
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { formatCents, type CustomerDTO } from '@devisia/shared';
-import { Banner, Body, Button, PressableCard, EmptyState, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
+import { AnimatedCount, Banner, Body, Button, PressableCard, EmptyState, HeaderAction, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
 import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, typography } from '@/theme';
 import { copy, mobileLocale } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
 import { useToast } from '@/components/toast';
@@ -41,6 +41,7 @@ export default function ClientsScreen() {
     [debounced],
     `customers:${debounced}`,
   );
+  const total = query.data?.total ?? 0;
 
   useFocusEffect(
     React.useCallback(() => {
@@ -52,16 +53,27 @@ export default function ClientsScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.lg }}>
-        <PageHeader
-          eyebrow={copy(locale, 'directory')}
-          title={copy(locale, 'yourClients')}
-          subtitle={query.data ? (en ? `${query.data.total} client${query.data.total === 1 ? '' : 's'} in your workspace` : `${query.data.total} client${query.data.total > 1 ? 's' : ''} dans votre atelier`) : (en ? 'Details, quotes and revenue.' : 'Coordonnées, devis et chiffre d’affaires.')}
-        />
-        <SearchField
-          value={search}
-          onChangeText={setSearch}
-          placeholder={en ? 'Name, city, phone…' : 'Nom, ville, téléphone…'}
-        />
+        {/* Entrée en deux temps, une seule fois : l'onglet reste monté ensuite. */}
+        <Enter distance={8}>
+          <PageHeader
+            eyebrow={copy(locale, 'directory')}
+            title={copy(locale, 'yourClients')}
+            subtitle={query.data ? (
+              <Muted accessibilityLabel={en ? `${total} client${total === 1 ? '' : 's'} in your workspace` : `${total} client${total > 1 ? 's' : ''} dans votre atelier`}>
+                <AnimatedCount value={total} style={{ ...typography.small, color: colors.ink, fontWeight: '600' }} />
+                {en ? ` client${total === 1 ? '' : 's'} in your workspace` : ` client${total > 1 ? 's' : ''} dans votre atelier`}
+              </Muted>
+            ) : (en ? 'Details, quotes and revenue.' : 'Coordonnées, devis et chiffre d’affaires.')}
+            action={<HeaderAction icon="person-add" label={en ? 'New client' : 'Nouveau client'} onPress={() => setCreating(true)} />}
+          />
+        </Enter>
+        <Enter delay={80} distance={8}>
+          <SearchField
+            value={search}
+            onChangeText={setSearch}
+            placeholder={en ? 'Name, city, phone…' : 'Nom, ville, téléphone…'}
+          />
+        </Enter>
       </View>
 
       {query.error ? <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}><Banner tone="danger" title={query.error} /><Button title={copy(locale, 'retry')} onPress={() => void query.reload()} /></View> : null}
@@ -85,7 +97,7 @@ export default function ClientsScreen() {
           keyboardDismissMode="on-drag"
           scrollEventThrottle={16}
           decelerationRate="fast"
-          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: 120, gap: spacing.md }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'] * 2, gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }
@@ -99,12 +111,14 @@ export default function ClientsScreen() {
                   : (en ? 'Clients can also be created from a quote.' : 'Vos clients arrivent aussi tout seuls : chaque devis crée la fiche correspondante.')
               }
               action={
-                <Button
-                  title={en ? 'New client' : 'Nouveau client'}
-                  icon="person-add-outline"
-                  haptic
-                  onPress={() => setCreating(true)}
-                />
+                debounced ? null : (
+                  <Button
+                    title={en ? 'Add my first client' : 'Ajouter mon premier client'}
+                    icon="person-add-outline"
+                    haptic
+                    onPress={() => setCreating(true)}
+                  />
+                )
               }
             />
           }
@@ -160,30 +174,8 @@ export default function ClientsScreen() {
         />
       )}
 
-      {/* L'état vide porte déjà son action : on n'affiche la barre du bas que
-          lorsqu'il y a une liste au-dessus d'elle. */}
-      {(query.data?.items.length ?? 0) > 0 ? (
-        <View
-          style={{
-            position: 'absolute',
-            left: 0,
-            right: 0,
-            bottom: 0,
-            padding: spacing.lg,
-            paddingBottom: spacing['2xl'],
-            backgroundColor: colors.canvas,
-            borderTopWidth: 1,
-            borderTopColor: colors.line,
-          }}
-        >
-          <Button
-            title="Nouveau client"
-            icon="person-add-outline"
-            haptic
-            onPress={() => setCreating(true)}
-          />
-        </View>
-      ) : null}
+      {/* L'action de création vit dans l'en-tête : une barre absolue en bas
+          finissait sous la barre d'onglets flottante. */}
 
       <ClientSheet
         visible={creating}

@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Animated, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
+import { Animated, Easing, Keyboard, Pressable, StyleSheet, Text, View } from 'react-native';
 import { Tabs } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
@@ -93,16 +93,45 @@ function TabItem({
   );
 }
 
+/**
+ * Le bouton « + » : l'interaction signature.
+ *
+ * À l'appui, le disque se comprime et un halo de marque s'ouvre autour de
+ * lui ; au relâchement, une impulsion haptique moyenne, puis l'écran de
+ * création se pose élément par élément. Le halo est purement décoratif et
+ * disparaît avec « Réduire les animations ».
+ */
 function CreateButton({ label, onPress }: { label: string; onPress: () => void }) {
   const touch = useTouchMotion(0.88);
+  const reduced = useReducedMotion();
+  const [bloom] = React.useState(() => new Animated.Value(0));
+  const pulse = React.useCallback(() => {
+    if (reduced) return;
+    bloom.setValue(0);
+    Animated.timing(bloom, { toValue: 1, duration: 520, easing: Easing.out(Easing.cubic), useNativeDriver: true }).start();
+  }, [bloom, reduced]);
   return (
     <View style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: BAR_HEIGHT }}>
       <Animated.View style={{ transform: [{ scale: touch.scale }], marginTop: -26 }}>
+        <Animated.View
+          pointerEvents="none"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: CREATE_SIZE,
+            height: CREATE_SIZE,
+            borderRadius: CREATE_SIZE / 2,
+            backgroundColor: colors.accentBright,
+            opacity: bloom.interpolate({ inputRange: [0, 0.2, 1], outputRange: [0, 0.45, 0] }),
+            transform: [{ scale: bloom.interpolate({ inputRange: [0, 1], outputRange: [1, 2.1] }) }],
+          }}
+        />
         <Pressable
           accessibilityRole="button"
           accessibilityLabel={label}
           hitSlop={6}
-          onPressIn={touch.pressIn}
+          onPressIn={() => { touch.pressIn(); pulse(); }}
           onPressOut={touch.pressOut}
           onPress={() => {
             touch.pressOut();

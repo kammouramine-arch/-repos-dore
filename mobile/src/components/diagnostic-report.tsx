@@ -7,15 +7,28 @@ import { readDiagnostics } from '@/lib/diagnostics';
 import { appleProducts } from '@/lib/apple-purchases';
 import { Logo } from './logo';
 import { storekitReportEvents } from '@/lib/storekit-report';
+import { inspectAndCompareStorekit } from '@/lib/native-storekit';
+import { describeStorekitComparison } from '@/lib/storekit-compare';
+import { nativeStorekitAvailable } from '../../modules/devisera-storekit';
 
 /** Explicit support view, never debug text embedded in the sales cards. */
 export function DiagnosticReport({ en }: { en: boolean }) {
   const [report, setReport] = React.useState<string | null>(null);
   const [failed, setFailed] = React.useState(false);
   const [loading, setLoading] = React.useState(false);
-  const capture = () => JSON.stringify({ app: 'DEVISERA', version: Constants.expoConfig?.version,
+  const [comparing, setComparing] = React.useState(false);
+  const [summary, setSummary] = React.useState<string[]>([]);
+  const [nativeModule, setNativeModule] = React.useState<'unknown' | 'embedded' | 'absent'>('unknown');
+  React.useEffect(() => {
+    let disposed = false;
+    void nativeStorekitAvailable().then((available) => { if (!disposed) setNativeModule(available ? 'embedded' : 'absent'); });
+    return () => { disposed = true; };
+  }, []);
+  const capture = (lines: string[] = summary) => JSON.stringify({ app: 'DEVISERA', version: Constants.expoConfig?.version,
     build: Constants.nativeBuildVersion, capturedAt: new Date().toISOString(),
+    directStorekitModule: nativeModule,
     note: 'Native cache internals are unknown. No receipts, transactions or account data are included.',
+    comparison: lines,
     events: storekitReportEvents(readDiagnostics()) }, null, 2);
   if (!Constants.expoConfig?.extra?.storekitDiagnostics) return null;
   return <>
@@ -31,6 +44,14 @@ export function DiagnosticReport({ en }: { en: boolean }) {
         <Button title={en ? 'Fetch current Apple products' : 'Charger les produits Apple actuels'} loading={loading} disabled={loading} onPress={() => {
           setLoading(true);
           void appleProducts(true).catch(() => {}).finally(() => { setReport(capture()); setLoading(false); });
+        }} />
+        <Button title={en ? 'Compare with StoreKit directly' : 'Comparer avec StoreKit en direct'} variant="secondary" loading={comparing} disabled={comparing || nativeModule !== 'embedded'} onPress={() => {
+          setComparing(true);
+          void appleProducts(true).catch(() => null).then(async (offers) => {
+            const result = await inspectAndCompareStorekit(offers?.products ?? []);
+            const lines = result ? result.comparisons.map((c) => describeStorekitComparison(c, en)) : [en ? 'Direct StoreKit inspection failed or is not embedded in this build.' : 'La lecture StoreKit directe a échoué ou n’est pas embarquée dans cette version.'];
+            setSummary(lines); setReport(capture(lines));
+          }).finally(() => setComparing(false));
         }} />
         <Button title={en ? 'Copy diagnostic report' : 'Copier le rapport de diagnostic'} onPress={() => { void Clipboard.setStringAsync(report ?? '').then(() => Alert.alert(en ? 'Report copied' : 'Rapport copié')).catch(() => setFailed(true)); }} />
         <Button variant="secondary" title={en ? 'Close' : 'Fermer'} onPress={() => setReport(null)} />

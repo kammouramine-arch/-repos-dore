@@ -3,7 +3,7 @@ import { readFileSync } from 'node:fs';
 import path from 'node:path';
 import { createHash } from 'node:crypto';
 import { Environment, SignedDataVerifier, type JWSTransactionDecodedPayload, type JWSRenewalInfoDecodedPayload } from '@apple/app-store-server-library';
-import { planForAppleProduct, PLANS } from '@devisia/shared';
+import { planChange, planForAppleProduct, PLANS } from '@devisia/shared';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 
@@ -133,6 +133,23 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
   return result;
 }
 
+/**
+ * Produit que Apple appliquera au prochain renouvellement.
+ *
+ * Seul le `renewalInfo` signé par Apple (notification DID_CHANGE_RENEWAL_PREF,
+ * renouvellement, etc.) fait foi. Sans lui, une préférence déjà connue sur la
+ * même chaîne est conservée jusqu'à ce que la transaction de renouvellement
+ * la confirme (même produit) ou la remplace. Rien n'est jamais déduit.
+ */
+export function pendingRenewalProduct(t: JWSTransactionDecodedPayload, renewal: JWSRenewalInfoDecodedPayload | undefined, known: string | null) {
+  if (renewal) {
+    const next = renewal.autoRenewProductId ?? null;
+    if (!next || renewal.autoRenewStatus === 0 || next === t.productId || !planForAppleProduct(next)) return null;
+    return next;
+  }
+  return known && known !== t.productId ? known : null;
+}
+
 async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId: string, renewal?: JWSRenewalInfoDecodedPayload, notificationDate?: number) {
   const plan = planForAppleProduct(t.productId ?? '');
   if (!plan || !t.originalTransactionId || !t.expiresDate || !t.signedDate || t.type !== 'Auto-Renewable Subscription') {
@@ -164,6 +181,27 @@ async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId:
       console.info('[billing/apple] entitlement unchanged', { reference, product: t.productId, category: 'ALREADY_APPLIED' });
       return { synced: false };
     }
+    const sameChain = current.appleOriginalTransactionId === t.originalTransactionId;
+    /*
+     * Rétrogradation avant l'échéance. Apple garde la formule payée jusqu'à la
+     * fin de la période en cours et n'applique la formule inférieure qu'au
+     * renouvellement. Une transaction de rang inférieur qui ne prolonge pas la
+     * période déjà accordée n'est donc pas un renouvellement : on l'enregistre
+     * comme préférence, sans toucher au droit actuel ni en inventer un.
+     */
+    const paidUntil = current.currentPeriodEnd?.getTime() ?? 0;
+    const earlyDowngrade = sameChain && !expired && !t.revocationDate
+      && planChange(current.plan, plan) === 'downgrade' && ['active', 'trialing'].includes(current.status)
+      && paidUntil > Date.now() && expiresAt.getTime() <= paidUntil;
+    if (earlyDowngrade) {
+      await tx.subscription.update({ where: { organizationId }, data: {
+        appleSignedAt: signedAt, applePendingProductId: t.productId, applePendingAt: current.currentPeriodEnd,
+        cancelAtPeriodEnd: renewal ? renewal.autoRenewStatus === 0 : current.cancelAtPeriodEnd,
+      } });
+      console.info('[billing/apple] renewal preference recorded', { reference, product: t.productId, category: 'PENDING_DOWNGRADE', current: current.plan });
+      return { synced: true, pending: true };
+    }
+    const pendingProductId = pendingRenewalProduct(t, renewal, sameChain ? current.applePendingProductId : null);
     await tx.subscription.update({ where: { organizationId }, data: {
       appleOriginalTransactionId: t.originalTransactionId,
       appleProductId: t.productId,
@@ -175,8 +213,10 @@ async function applyTransaction(t: JWSTransactionDecodedPayload, organizationId:
       trialStartedAt: trial && t.purchaseDate ? new Date(t.purchaseDate) : null,
       trialEndsAt: trial ? expiresAt : null,
       currentPeriodEnd: expiresAt,
-      cancelAtPeriodEnd: renewal ? renewal.autoRenewStatus === 0 : current.appleOriginalTransactionId === t.originalTransactionId ? current.cancelAtPeriodEnd : false,
+      cancelAtPeriodEnd: renewal ? renewal.autoRenewStatus === 0 : sameChain ? current.cancelAtPeriodEnd : false,
       canceledAt: t.revocationDate ? new Date(t.revocationDate) : null,
+      applePendingProductId: pendingProductId,
+      applePendingAt: pendingProductId ? expiresAt : null,
     } });
     console.info('[billing/apple] entitlement persisted', { reference, product: t.productId, environment: t.environment, status: expired ? 'canceled' : trial ? 'trialing' : 'active' });
     return { synced: true };

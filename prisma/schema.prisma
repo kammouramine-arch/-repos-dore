@@ -922,6 +922,10 @@ model Subscription {
   appleProductId             String?
   appleEnvironment           String?
   appleSignedAt              DateTime?
+  /// Produit Apple qui prendra effet au prochain renouvellement (rétrogradation
+  /// enregistrée par Apple). Jamais un droit : l'accès reste `plan` jusque-là.
+  applePendingProductId      String?
+  applePendingAt             DateTime?
   billingPeriod              BillingPeriod      @default(MENSUEL)
   currentPeriodEnd           DateTime?
   trialStartedAt             DateTime?

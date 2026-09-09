@@ -34,14 +34,15 @@ import {
 } from '@/components/ui';
 import { ClientPicker } from '@/components/client-picker';
 import { useToast } from '@/components/toast';
-import { Breathe, Enter, SuccessCheck } from '@/components/motion';
+import { Breathe, Enter, Stagger, SuccessCheck } from '@/components/motion';
+import { Logo } from '@/components/logo';
 import { ListeningRings, Waveform } from '@/components/voice-visuals';
 import { useDictation } from '@/features/voice';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
 import { api } from '@/lib/api';
 import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { colors, motion, radius, shadows, spacing, typography } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
@@ -211,6 +212,13 @@ export default function NouveauDevisScreen() {
   }, [dictation.status, pulse]);
 
   const listening = dictation.status === 'ecoute';
+  // Halo de marque derrière le micro : s'allume à l'écoute, s'éteint à l'arrêt.
+  const glow = React.useMemo(() => new Animated.Value(0), []);
+  React.useEffect(() => {
+    const animation = Animated.timing(glow, { toValue: listening ? 1 : 0, duration: listening ? 320 : 220, useNativeDriver: true });
+    animation.start();
+    return () => animation.stop();
+  }, [glow, listening]);
   const busy = dictation.status === 'demande' || dictation.status === 'traitement';
   const composed = `${description}${dictation.partial ? ` ${dictation.partial}` : ''}`.trim();
 
@@ -827,11 +835,20 @@ export default function NouveauDevisScreen() {
         scrollEventThrottle={16}
         decelerationRate="fast"
       >
+        {/* Arrivée en cascade après le « + » : marque, titre, consigne, puis les
+            moyens de saisie. Environ 600 ms au total, une seule fois. */}
+        <Stagger step={85} initial={30} distance={10}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Logo size={20} showName={false} />
+          </View>
+          <Caption upper style={{ color: colors.accent }}>Nouveau devis</Caption>
+        </View>
         <PageHeader
-          eyebrow="Nouveau devis"
           title="Décrivez le chantier"
           subtitle="Dictez naturellement. DEVISERA transforme vos mots en lignes chiffrées."
         />
+        </Stagger>
 
         <ErrorBanner
           error={error}
@@ -854,6 +871,7 @@ export default function NouveauDevisScreen() {
           />
         ) : null}
 
+        <Enter delay={200} distance={10}>
         <Card style={{ padding: 0, overflow: 'hidden', borderColor: colors.accentBorder }}>
           <TextInput
             value={composed}
@@ -894,9 +912,23 @@ export default function NouveauDevisScreen() {
             <Caption style={{ color: colors.subtle }}>{composed.length} / 8000</Caption>
           </View>
         </Card>
+        </Enter>
 
+        <Enter delay={300} distance={12}>
         <View style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm }}>
           <View style={{ width: 120, height: 120, alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: colors.accentGlow,
+                opacity: glow,
+                transform: [{ scale: glow.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
+              }}
+            />
             <ListeningRings size={86} active={listening} />
             <Animated.View style={{ transform: [{ scale: pulse }] }}>
               <Pressable
@@ -935,6 +967,7 @@ export default function NouveauDevisScreen() {
             </Animated.View>
           </View>
           <Waveform active={listening} />
+          <Enter key={listening ? 'on' : busy ? 'busy' : 'off'} distance={4} duration={motion.quick}>
           <Body style={{ color: listening ? colors.accent : colors.muted, fontWeight: listening ? '600' : '400' }}>
             {!dictation.supported
               ? 'Dictée indisponible ici — écrivez la description'
@@ -944,7 +977,9 @@ export default function NouveauDevisScreen() {
                   ? 'Un instant…'
                   : 'Appuyez et décrivez le chantier'}
           </Body>
+          </Enter>
         </View>
+        </Enter>
 
         {photos.photos.length > 0 ? (
           <View style={{ gap: spacing.sm }}>
@@ -1005,6 +1040,7 @@ export default function NouveauDevisScreen() {
           </View>
         ) : null}
 
+        <Enter delay={390} distance={12}>
         <View style={{ flexDirection: 'row', gap: spacing.md }}>
           <View style={{ flex: 1 }}>
             <Button
@@ -1025,7 +1061,9 @@ export default function NouveauDevisScreen() {
             />
           </View>
         </View>
+        </Enter>
 
+        <Enter delay={470} distance={12}>
         <Button
           title="Préparer le devis"
           icon="sparkles"
@@ -1033,9 +1071,10 @@ export default function NouveauDevisScreen() {
           loading={photos.uploading}
           onPress={() => void prepare()}
         />
-        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+        <Caption style={{ color: colors.subtle, textAlign: 'center', marginTop: spacing.md }}>
           Vous vérifierez et modifierez le devis avant tout envoi.
         </Caption>
+        </Enter>
       </ScrollView>
     </KeyboardAvoidingView>
   );

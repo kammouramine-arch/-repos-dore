@@ -4,6 +4,7 @@ import type { Purchase, ProductSubscription } from 'expo-iap';
 import { api } from './api';
 import { recordDiagnostic } from './diagnostics';
 import { consistentAppleCurrency } from './apple-offer';
+import { inspectAndCompareStorekit } from './native-storekit';
 
 type Iap = typeof import('expo-iap');
 const observers = new Set<(busy: boolean) => void>();
@@ -74,6 +75,9 @@ async function loadAppleProducts() {
       // disagree in TestFlight. Do not turn a successful native catalogue into
       // "products unavailable", nor fabricate/conversion-map a replacement.
       log('STOREKIT_METADATA_MISMATCH', { category: 'client' });
+      // Evidence, not a source: ask StoreKit 2 directly and journal where the
+      // two answers diverge. Never awaited by the paywall's price display.
+      void bounded(inspectAndCompareStorekit(products ?? []), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => undefined);
     }
   }
   const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());

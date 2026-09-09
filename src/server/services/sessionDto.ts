@@ -2,7 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { aiCapabilities } from '@/lib/ai';
 import type { AuthContext } from '@/lib/auth/session';
-import { accessStateFor, authNextStepFor, type SessionDTO, type SubscriptionDTO } from '@devisia/shared';
+import { accessStateFor, authNextStepFor, planForAppleProduct, type SessionDTO, type SubscriptionDTO } from '@devisia/shared';
 
 /** Contexte de session tel que le consomment le web et le mobile. */
 export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
@@ -105,8 +105,12 @@ export function toSubscriptionDTO(subscription: {
   cancelAtPeriodEnd: boolean;
   appleProductId?: string | null;
   appleEnvironment?: string | null;
+  applePendingProductId?: string | null;
+  applePendingAt?: Date | null;
   stripeSubscriptionId?: string | null;
 }): SubscriptionDTO {
+  const pendingPlan = subscription.appleProductId && subscription.applePendingProductId
+    ? planForAppleProduct(subscription.applePendingProductId) ?? null : null;
   return {
     provider: subscription.appleProductId ? 'apple' : subscription.stripeSubscriptionId ? 'stripe' : 'trial',
     appleEnvironment: subscription.appleProductId ? subscription.appleEnvironment ?? null : null,
@@ -115,5 +119,7 @@ export function toSubscriptionDTO(subscription: {
     trialEndsAt: subscription.trialEndsAt?.toISOString() ?? null,
     currentPeriodEnd: subscription.currentPeriodEnd?.toISOString() ?? null,
     cancelAtPeriodEnd: subscription.cancelAtPeriodEnd,
+    pendingPlan,
+    pendingAt: pendingPlan ? subscription.applePendingAt?.toISOString() ?? subscription.currentPeriodEnd?.toISOString() ?? null : null,
   };
 }

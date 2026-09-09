@@ -23,8 +23,8 @@ import {
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
-import { useReducedMotion, useTouchMotion, Enter, useCountUp } from '@/components/motion';
-import { colors, radius, shadows, spacing, typography } from '@/theme';
+import { useReducedMotion, useTouchMotion, Breathe, Enter, useCountUp } from '@/components/motion';
+import { colors, motion, radius, shadows, spacing, typography, TOUCH_MIN } from '@/theme';
 import { localizeNode, localizeText, useMobileLocale } from '@/lib/i18n';
 
 /**
@@ -235,7 +235,7 @@ export function Button({
   const dernierAppui = React.useRef(0);
 
   return (
-    <Animated.View style={[style, { transform: [{ scale: touch.scale }] }]}>
+    <Animated.View style={[{ alignSelf: 'stretch' }, style, { transform: [{ scale: touch.scale }] }]}>
       <Pressable
         accessibilityRole="button"
         accessibilityState={{ disabled: Boolean(disabled) || loading, busy: loading }}
@@ -274,13 +274,16 @@ export function Button({
         {...props}
       >
         {loading ? <ActivityIndicator color={palette.fg} size="small" /> : null}
-        {!loading && icon ? <Ionicons name={icon} size={19} color={palette.fg} /> : null}
+        {!loading && icon ? <View style={{ width: 20, height: 20, alignItems: 'center', justifyContent: 'center' }}><Ionicons name={icon} size={19} color={palette.fg} /></View> : null}
         <Text
+          numberOfLines={1}
           style={{
             color: palette.fg,
             fontSize: size === 'lg' ? 16 : 15,
+            lineHeight: 20,
             fontWeight: '600',
             letterSpacing: -0.15,
+            includeFontPadding: false,
           }}
         >
           {localizeText(locale, title)}
@@ -454,36 +457,47 @@ export function EmptyState({
   const locale = useMobileLocale();
   /*
    * Un écran vide reste un écran DEVISERA : l'icône se pose dans un disque
-   * de la couleur de marque, entouré d'un halo, et l'ensemble entre
-   * doucement. Le bouton dit la seule chose à faire.
+   * de la couleur de marque, entouré d'un halo qui respire, et chaque
+   * élément entre à son tour — halo, titre, phrase, action. Le bouton dit la
+   * seule chose à faire et garde une largeur stable, jamais calée sur la
+   * longueur de la phrase au-dessus.
    */
   return (
-    <Enter distance={8}>
-      <View style={{ alignItems: 'center', paddingVertical: spacing['4xl'], paddingHorizontal: spacing.xl, gap: spacing.md }}>
-        <View style={{ width: 96, height: 96, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs }}>
-          <View style={{ position: 'absolute', width: 96, height: 96, borderRadius: 48, backgroundColor: colors.accentSoft, opacity: 0.55 }} />
+    <View style={{ alignItems: 'center', paddingVertical: spacing['4xl'], paddingHorizontal: spacing.xl, gap: spacing.md }}>
+      <Enter distance={6} duration={motion.slow}>
+        <View style={{ width: 120, height: 120, alignItems: 'center', justifyContent: 'center', marginBottom: spacing.xs }}>
+          <Breathe min={1} max={1.07} duration={2200}>
+            <View style={{ width: 120, height: 120, borderRadius: 60, backgroundColor: colors.accentSoft, opacity: 0.45 }} />
+          </Breathe>
+          <View style={{ position: 'absolute', width: 92, height: 92, borderRadius: 46, backgroundColor: colors.accentSoft, opacity: 0.7 }} />
           <View
             style={{
+              position: 'absolute',
               width: 66,
               height: 66,
               borderRadius: 22,
-              backgroundColor: colors.accentSoft,
+              backgroundColor: colors.canvas,
               borderWidth: StyleSheet.hairlineWidth,
               borderColor: colors.accentBorder,
               alignItems: 'center',
               justifyContent: 'center',
+              ...(shadows.card as object),
             }}
           >
             <Ionicons name={icon} size={28} color={colors.accent} />
           </View>
         </View>
+      </Enter>
+      <Enter distance={8}>
         <Heading style={{ textAlign: 'center', fontSize: 19, lineHeight: 25 }}>{localizeText(locale, title)}</Heading>
-        {description ? (
+      </Enter>
+      {description ? (
+        <Enter delay={160} distance={8}>
           <Text style={[typography.body, { color: colors.muted, textAlign: 'center', maxWidth: 300 }]}>{localizeText(locale, description)}</Text>
-        ) : null}
-        {action ? <View style={{ marginTop: spacing.sm, alignSelf: 'stretch', alignItems: 'center' }}>{action}</View> : null}
-      </View>
-    </Enter>
+        </Enter>
+      ) : null}
+      {action ? <Enter delay={240} distance={10} style={{ marginTop: spacing.sm, width: '100%', maxWidth: 320 }}>{action}</Enter> : null}
+    </View>
   );
 }
 
@@ -587,6 +601,14 @@ export function Screen({
   );
 }
 
+/**
+ * En-tête d'écran : surtitre → titre → contexte, action à droite.
+ *
+ * Le même vocabulaire que l'accueil : un surtitre bleu en capitales qui nomme
+ * la section, un titre, une phrase de contexte (souvent un compteur), et une
+ * action ronde alignée sur la ligne du titre. Le sous-titre peut être un
+ * nœud pour accueillir un compteur animé.
+ */
 export function PageHeader({
   title,
   subtitle,
@@ -594,7 +616,7 @@ export function PageHeader({
   action,
 }: {
   title: string;
-  subtitle?: string;
+  subtitle?: React.ReactNode;
   eyebrow?: string;
   action?: React.ReactNode;
 }) {
@@ -603,11 +625,61 @@ export function PageHeader({
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg }}>
       <View style={{ flex: 1, gap: 5 }}>
         {eyebrow ? <Caption upper style={{ color: colors.accent }}>{localizeText(locale, eyebrow)}</Caption> : null}
-        <Title>{localizeText(locale, title)}</Title>
-        {subtitle ? <Muted>{localizeText(locale, subtitle)}</Muted> : null}
+        <Title accessibilityRole="header">{localizeText(locale, title)}</Title>
+        {subtitle ? (typeof subtitle === 'string' ? <Muted>{localizeText(locale, subtitle)}</Muted> : subtitle) : null}
       </View>
-      {action ? <View style={{ paddingTop: eyebrow ? 14 : 0 }}>{action}</View> : null}
+      {action ? <View style={{ paddingTop: eyebrow ? typography.caption.lineHeight + 5 + (typography.title.lineHeight - 44) / 2 : (typography.title.lineHeight - 44) / 2 }}>{action}</View> : null}
     </View>
+  );
+}
+
+/** Action contextuelle d'en-tête : disque de marque de 44 pt, icône centrée, retour haptique. */
+export function HeaderAction({
+  icon,
+  label,
+  onPress,
+  tone = 'accent',
+  disabled,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  label: string;
+  onPress: () => void;
+  tone?: 'accent' | 'soft';
+  disabled?: boolean;
+}) {
+  const locale = useMobileLocale();
+  const touch = useTouchMotion(0.92);
+  return (
+    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={localizeText(locale, label)}
+        accessibilityState={{ disabled: Boolean(disabled) }}
+        disabled={disabled}
+        hitSlop={6}
+        onPressIn={touch.pressIn}
+        onPressOut={touch.pressOut}
+        onPress={() => {
+          touch.pressOut();
+          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
+          onPress();
+        }}
+        style={({ pressed }) => [
+          {
+            width: TOUCH_MIN,
+            height: TOUCH_MIN,
+            borderRadius: TOUCH_MIN / 2,
+            alignItems: 'center',
+            justifyContent: 'center',
+            backgroundColor: tone === 'accent' ? (pressed ? colors.accentHover : colors.accent) : (pressed ? colors.accentBorder : colors.accentSoft),
+            opacity: disabled ? 0.5 : 1,
+          },
+          tone === 'accent' ? (shadows.glow as object) : null,
+        ]}
+      >
+        <Ionicons name={icon} size={22} color={tone === 'accent' ? colors.white : colors.accent} />
+      </Pressable>
+    </Animated.View>
   );
 }
 

@@ -67,6 +67,10 @@ export interface SubscriptionDTO {
   trialEndsAt: string | null;
   currentPeriodEnd: string | null;
   cancelAtPeriodEnd: boolean;
+  /** Formule que Apple appliquera au prochain renouvellement (rétrogradation enregistrée). */
+  pendingPlan?: PlanId | null;
+  /** Date à laquelle `pendingPlan` prend effet (fin de la période en cours). */
+  pendingAt?: string | null;
 }
 
 export interface SessionDTO {

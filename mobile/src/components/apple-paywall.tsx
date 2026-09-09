@@ -2,9 +2,10 @@ import * as React from 'react';
 import { Alert, AppState, Linking, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
-import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, type PlanId } from '@devisia/shared';
+import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, planChange, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Muted, Screen, Title } from './ui';
 import { PlanCard } from './plan-card';
+import { PendingPlanNotice, PlanChangeSheet } from './plan-change-sheet';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -32,6 +33,7 @@ function ApplePaywallContent() {
   const [ownershipConflict, setOwnershipConflict] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
+  const [confirmingDowngrade, setConfirmingDowngrade] = React.useState(false);
   const loadGeneration = React.useRef(0);
   const acting = React.useRef(false);
   const subscription = session?.subscription;
@@ -65,6 +67,10 @@ function ApplePaywallContent() {
   const canPurchase = Boolean(product?.displayPrice);
   const wasActive = React.useRef(session?.subscription?.provider === 'apple' && accessStateFor(session.subscription).canWrite);
   const appleActive = subscription?.provider === 'apple' && accessStateFor(subscription).canWrite;
+  const change = appleActive && selected ? planChange(subscription.plan, selected) : null;
+  const pendingPlan = appleActive ? subscription.pendingPlan ?? null : null;
+  const dateOf = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
+  const pendingDate = dateOf(subscription?.pendingAt ?? subscription?.currentPeriodEnd);
   React.useEffect(() => {
     if (appleActive && !wasActive.current) router.replace('/(app)');
     wasActive.current = appleActive;
@@ -89,6 +95,22 @@ function ApplePaywallContent() {
     catch (cause) { recordApplePurchaseFailure(cause, { productId: product?.id }); const diagnostic = normalizeApplePurchaseError(cause); if (diagnostic.code === 'CONFLICT') setOwnershipConflict(true); setError(applePurchaseUserMessage(diagnostic, locale)); }
     finally { acting.current = false; setBusy(false); void load(true); }
   }
+  function purchase() {
+    return action(async () => {
+      if (!selected) return 'not_selected';
+      // requestPurchase itself fetches again natively. Refresh the displayed
+      // snapshot immediately before it, not only when the paywall mounted.
+      const fresh = await appleProducts(true);
+      setStore(fresh);
+      const current = fresh.products.find(item => item.id === APPLE_PRODUCTS[selected]);
+      if (!current?.displayPrice) throw Object.assign(new Error('Product unavailable'), { code: 'PRODUCT_UNAVAILABLE' });
+      if (current.displayPrice !== product?.displayPrice || current.currency !== product?.currency) {
+        setError(en ? 'Apple updated the price. Review the updated offer, then continue.' : 'Apple a actualisé le prix. Vérifiez l’offre actualisée, puis continuez.');
+        return 'price_updated';
+      }
+      return purchaseApplePlan(selected, session!.organization.id);
+    });
+  }
   return <Screen>
     <View style={{ alignItems: 'center', paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
       {Constants.expoConfig?.extra?.storekitDiagnostics ? <DiagnosticReport en={en} /> : <Logo size={30} />}
@@ -105,6 +127,7 @@ function ApplePaywallContent() {
     </View>
     {appleActive ? <Card style={{ backgroundColor: colors.accentDeep, gap: spacing.md }}>
       <Heading style={{ color: colors.white }}>{PLANS[subscription.plan].name} · {subscription.status === 'trialing' ? (en ? 'Trial active' : 'Essai actif') : (en ? 'Active' : 'Actif')}</Heading>
+      {pendingPlan && pendingPlan !== subscription.plan ? <PendingPlanNotice current={subscription.plan} pending={pendingPlan} date={pendingDate} en={en} /> : null}
       {subscription.currentPeriodEnd ? <Body style={{ color: colors.white }}>{en ? 'Current access ends: ' : 'Fin de la période d’accès : '}{new Date(subscription.currentPeriodEnd).toLocaleString(en ? 'en-GB' : 'fr-FR')}.</Body> : null}
       {subscription.appleEnvironment === 'Sandbox' ? <Caption style={{ color: colors.white }}>{en ? 'TestFlight testing: Apple may accelerate subscription periods.' : 'Test TestFlight : Apple peut accélérer les périodes d’abonnement.'}</Caption> : null}
       <Button title={en ? 'Manage or cancel with Apple' : 'Gérer ou annuler avec Apple'} variant="secondary" disabled={busy} onPress={() => void action(manageAppleSubscriptions)} />
@@ -120,7 +143,7 @@ function ApplePaywallContent() {
         tagline={plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}
         price={cardOffer.price}
         priceSuffix={cardOffer.period}
-        note={!p ? (loading ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : (en ? 'Reload offers to see the price' : 'Rechargez les offres pour afficher le prix')) : !appleActive ? cardOffer.note : null}
+        note={!p ? (loading ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : (en ? 'Reload offers to see the price' : 'Rechargez les offres pour afficher le prix')) : !appleActive ? cardOffer.note : plan === subscription.plan ? (en ? 'Your current plan' : 'Votre formule actuelle') : plan === pendingPlan ? (en ? `From ${pendingDate ?? 'the next renewal'}` : `À partir du ${pendingDate ?? 'prochain renouvellement'}`) : null}
         highlights={PLANS[plan].highlights.slice(0, 3).map((text) => localizeText(locale, text))}
         selected={chosen}
         recommended={plan === 'PRO'}
@@ -137,23 +160,19 @@ function ApplePaywallContent() {
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}
     {subscription?.provider === 'stripe' ? <Banner title="Votre abonnement est géré sur le web" description="Gérez l’abonnement existant avant d’en créer un autre avec Apple." /> : <Button
-      title={loading ? (en ? 'Loading Apple offers…' : 'Chargement des offres Apple…') : !selected ? (en ? 'Choose a plan' : 'Choisissez une formule') : !canPurchase ? (en ? 'Apple offers unavailable' : 'Offres Apple indisponibles') : trial ? (en ? 'Start my free trial' : 'Commencer mon essai gratuit') : (en ? 'Continue with Apple' : 'Continuer avec Apple')}
-      loading={busy || loading} disabled={ownershipConflict || busy || loading || !canPurchase || session?.organization.role !== 'OWNER'} haptic
-      onPress={() => void action(async () => {
-        if (!selected) return 'not_selected';
-        // requestPurchase itself fetches again natively. Refresh the displayed
-        // snapshot immediately before it, not only when the paywall mounted.
-        const fresh = await appleProducts(true);
-        setStore(fresh);
-        const current = fresh.products.find(item => item.id === APPLE_PRODUCTS[selected]);
-        if (!current?.displayPrice) throw Object.assign(new Error('Product unavailable'), { code: 'PRODUCT_UNAVAILABLE' });
-        if (current.displayPrice !== product?.displayPrice || current.currency !== product?.currency) {
-          setError(en ? 'Apple updated the price. Review the updated offer, then continue.' : 'Apple a actualisé le prix. Vérifiez l’offre actualisée, puis continuez.');
-          return 'price_updated';
-        }
-        return purchaseApplePlan(selected, session!.organization.id);
-      })}
+      title={loading ? (en ? 'Loading Apple offers…' : 'Chargement des offres Apple…') : !selected ? (en ? 'Choose a plan' : 'Choisissez une formule') : !canPurchase ? (en ? 'Apple offers unavailable' : 'Offres Apple indisponibles') : change === 'same' ? (en ? 'Your current plan' : 'Votre formule actuelle') : change === 'downgrade' ? (en ? `Switch to ${PLANS[selected].name} at renewal` : `Passer à ${PLANS[selected].name} à l’échéance`) : change === 'upgrade' ? (en ? `Upgrade to ${PLANS[selected].name}` : `Passer à ${PLANS[selected].name}`) : trial ? (en ? 'Start my free trial' : 'Commencer mon essai gratuit') : (en ? 'Continue with Apple' : 'Continuer avec Apple')}
+      loading={busy || loading} disabled={ownershipConflict || busy || loading || !canPurchase || change === 'same' || session?.organization.role !== 'OWNER'} haptic
+      onPress={() => {
+        // A paying customer who taps a lower plan hears what Apple will do
+        // before Apple's own sheet, which reads like an immediate loss.
+        if (change === 'downgrade') { setConfirmingDowngrade(true); return; }
+        void purchase();
+      }}
     />}
+    {appleActive && selected && change === 'downgrade' ? <PlanChangeSheet visible={confirmingDowngrade} from={subscription.plan} to={selected} periodEnd={subscription.currentPeriodEnd} en={en}
+      onCancel={() => setConfirmingDowngrade(false)}
+      onConfirm={() => { setConfirmingDowngrade(false); void purchase(); }} /> : null}
+
     {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load(ownershipConflict)} /> : null}
     {ownershipConflict ? <Button title={en ? 'Recover my subscription with support' : 'Retrouver mon abonnement avec le support'} variant="ghost" onPress={() => void Linking.openURL('mailto:contact@devisera.fr?subject=DEVISERA%20subscription%20recovery').catch(() => Alert.alert(en ? 'Contact support' : 'Contacter le support', 'contact@devisera.fr'))} /> : null}
     <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
