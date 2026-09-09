@@ -3,6 +3,7 @@ import { prisma } from '@/lib/prisma';
 import { configurationReport, env } from '@/lib/env';
 import { describeSendingDomain, getEmailProvider } from '@/lib/email';
 import { aiCapabilities } from '@/lib/ai';
+import { releaseCommit } from '@/lib/release';
 
 /**
  * Sonde de déploiement, sans secret, pour les vérifications de mise en ligne
@@ -33,9 +34,9 @@ export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`;
     checks.database = { status: 'ok', durationMs: Date.now() - databaseStarted };
-  } catch (error) {
+  } catch {
     critical = true;
-    console.error('[health] base de données injoignable', error);
+    console.error('[health] database_unavailable');
     checks.database = { status: 'unavailable', durationMs: Date.now() - databaseStarted };
   }
 
@@ -49,8 +50,8 @@ export async function GET() {
       configured: email.name === 'resend' && email.available,
       sendingDomain: sending,
     };
-  } catch (error) {
-    console.error('[health] fournisseur email indisponible', error);
+  } catch {
+    console.error('[health] email_unavailable');
     checks.email = { provider: 'unavailable', configured: false };
   }
 
@@ -65,8 +66,8 @@ export async function GET() {
       transcription: ai.transcription,
       transcriptionNote: ai.transcription ? undefined : 'iOS dictation runs on-device; server transcription is optional',
     };
-  } catch (error) {
-    console.error('[health] fournisseur IA indisponible', error);
+  } catch {
+    console.error('[health] ai_unavailable');
     checks.ai = { provider: 'unavailable', generation: false, transcription: false };
   }
 
@@ -82,6 +83,7 @@ export async function GET() {
     {
       status: critical ? 'unavailable' : degraded ? 'degraded' : 'ok',
       environment,
+      release: { commit: releaseCommit() },
       durationMs: Date.now() - started,
       checks,
     },

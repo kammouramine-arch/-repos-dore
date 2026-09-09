@@ -17,6 +17,7 @@ assertDemoDatabase({ NODE_ENV: 'test', DEVISIA_ALLOW_DEMO_SEED: 'true', DATABASE
  */
 export default defineConfig({
   testDir: './tests/e2e',
+  globalSetup: './tests/e2e/global-setup.ts',
   fullyParallel: false,
   workers: 1,
   retries: process.env.CI ? 1 : 0,
@@ -34,23 +35,4 @@ export default defineConfig({
     { name: 'chromium', use: { ...devices['Desktop Chrome'] } },
     { name: 'mobile', use: { ...devices['Pixel 7'] } },
   ],
-  webServer: {
-    command: `npx prisma migrate deploy && npx next build && npx next start --port ${PORT}`,
-    url: BASE_URL,
-    // Toujours reconstruire et redémarrer : réutiliser un serveur existant peut
-    // servir des ressources d'un build précédent (chunks CSS introuvables).
-    reuseExistingServer: false,
-    timeout: 300_000,
-    env: {
-      NODE_ENV: 'production',
-      DATABASE_URL,
-      DIRECT_URL: DATABASE_URL,
-      APP_URL: BASE_URL,
-      AUTH_SECRET: 'e2e-secret-devisia-0123456789abcdef',
-      AI_PROVIDER: 'local',
-      EMAIL_PROVIDER: 'console',
-      STORAGE_PROVIDER: 'local',
-      STORAGE_LOCAL_DIR: './.tmp-storage-e2e',
-    },
-  },
 });

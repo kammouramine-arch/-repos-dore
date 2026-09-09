@@ -17,20 +17,26 @@ export default function LegalNoticesPage() {
   return (
     <LegalPage
       title="Mentions légales"
-      updatedAt="18 août 2026"
+      updatedAt="9 septembre 2026"
       intro="Les informations ci-dessous sont une base technique pour DEVISERA. L’identité de l’éditeur, l’hébergeur et les mentions réglementaires doivent être complétés et relus par l’éditeur avec un conseil juridique avant la commercialisation publique."
     >
       <LegalSection title="Éditeur du service">
         <p>
-          Éditeur : <strong>à compléter par le propriétaire de DEVISERA</strong> (raison sociale,
-          forme juridique, adresse et numéro d’immatriculation). Contact : contact@devisera.fr.
+          DEVISERA est actuellement publié par Kammour Amine, personne physique et directeur
+          de la publication, sans société distincte constituée pour ce service. L’adresse
+          professionnelle de publication reste à confirmer avec un conseil juridique avant la
+          commercialisation publique. Aucun numéro d’immatriculation ni numéro de TVA n’a été
+          communiqué pour DEVISERA. Cette situation ne constitue pas une affirmation de dispense
+          d’immatriculation ou de TVA. Contact juridique et données personnelles : contact@devisera.fr.
         </p>
       </LegalSection>
       <LegalSection title="Hébergement et prestataires">
         <p>
-          Le service s’appuie sur des prestataires d’hébergement, de base de données, d’email,
-          de paiement et d’intelligence artificielle. Leurs coordonnées et rôles doivent être
-          confirmés dans l’inventaire des sous-traitants avant publication.
+          Le site et l’API sont hébergés par Vercel Inc., 440 N Barranca Ave #4133,
+          Covina, CA 91723, États-Unis. Informations du prestataire :{' '}
+          <a className="underline" href="https://vercel.com/legal/dpa">vercel.com/legal/dpa</a>.
+          Les autres prestataires et leurs conditions de traitement doivent être confirmés
+          dans l’inventaire des sous-traitants avant la commercialisation publique.
         </p>
       </LegalSection>
       <LegalSection title="Propriété intellectuelle">

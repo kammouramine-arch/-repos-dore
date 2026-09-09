@@ -6,8 +6,19 @@ import { createRequire } from 'node:module';
 // Credentials stay within the hosting environment and are never printed.
 const require = createRequire(import.meta.url);
 const env = { ...process.env };
-const direct = new URL(env.DIRECT_URL);
-const app = new URL(env.DATABASE_URL);
+function databaseUrl(name) {
+  try {
+    const url = new URL(env[name]);
+    if (!['postgres:', 'postgresql:'].includes(url.protocol)) throw new Error();
+    return url;
+  } catch {
+    // Missing Preview configuration must not encourage copying Production secrets.
+    console.error(`Hosted migration requires a valid ${name} for this deployment environment.`);
+    process.exit(1);
+  }
+}
+const direct = databaseUrl('DIRECT_URL');
+const app = databaseUrl('DATABASE_URL');
 const project = /^db\.([a-z0-9]+)\.supabase\.co$/.exec(direct.hostname)?.[1];
 if (project && app.hostname.endsWith('.pooler.supabase.com') &&
     decodeURIComponent(app.username).endsWith(`.${project}`) && app.pathname === direct.pathname) {

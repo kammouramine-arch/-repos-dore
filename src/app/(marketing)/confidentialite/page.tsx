@@ -11,7 +11,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Politique de confidentialité"
-      updatedAt="18 août 2026"
+      updatedAt="9 septembre 2026"
       intro="Cette page décrit les données traitées par DEVISERA, leur finalité et les droits dont vous disposez. Elle constitue une information générale et ne remplace pas l'analyse d'un conseil juridique pour votre situation particulière."
     >
       <LegalSection title="Responsable de traitement">
@@ -25,6 +25,8 @@ export default function PrivacyPage() {
       <LegalSection title="Données collectées">
         <ul>
           <li>Données de compte : nom, prénom, adresse email, téléphone, empreinte sécurisée du mot de passe.</li>
+          <li>Photo de profil facultative : choisie ou prise avec votre autorisation, redimensionnée et associée à votre compte. Vous pouvez la remplacer ou la supprimer.</li>
+          <li>Données d’abonnement : formule, état et échéance transmis par le prestataire de paiement, identifiants de transaction nécessaires à la vérification et à la prévention des réutilisations frauduleuses. Les identifiants Apple et mots de passe de paiement ne sont pas collectés par DEVISERA.</li>
           <li>
             Données d’entreprise : raison sociale, adresse, SIRET, numéro de TVA, logo, catalogue de
             prix, conditions commerciales.
@@ -87,8 +89,11 @@ export default function PrivacyPage() {
       <LegalSection title="Vos droits">
         <p>
           Vous disposez d’un droit d’accès, de rectification, d’effacement, de limitation, d’opposition
-          et de portabilité. Le catalogue dispose d’un export ; pour une demande plus complète ou
-          un effacement, contactez contact@devisera.fr. Une vérification d’identité et un examen des
+          et de portabilité. L’application propose un export des données du compte et une suppression
+          du compte, avec vérification du mot de passe. La suppression révoque l’accès et retire la
+          photo de profil ; elle ne résilie pas automatiquement un abonnement Apple. Les documents
+          commerciaux de l’entreprise sont archivés, et non automatiquement effacés. Pour leur
+          effacement ou une demande plus complète, contactez contact@devisera.fr. Une vérification d’identité et un examen des
           obligations de conservation sont nécessaires. Vous pouvez introduire une réclamation auprès de la CNIL.
         </p>
       </LegalSection>
