@@ -2,6 +2,12 @@
 
 This is a technical gap register, not legal advice or compliance certification. French/EU-facing commercial release requires qualified review and the actual operator's details.
 
+## Current factual correction — 9 September 2026
+
+The historical gaps below are not all current implementation gaps. `deletePersonalAccount` now reauthenticates, anonymizes identity, removes the private avatar, revokes sessions/challenges, archives solo workspaces and stops their jobs/invitations; a sole owner with other members must transfer ownership first. Personal and business exports and avatar authorization have integration tests. Retained commercial records are **not** hard-deleted; counsel must approve retention/purge scope. These tests do not prove external processor deletion or complete GDPR compliance.
+
+Confirmed publisher/publication director: **Kammour Amine**, individual, contact@devisera.fr. Publishable business/domiciliation address remains blocked pending professional advice; no home address is authorized. No registration/VAT number has been supplied or invented. Professional review must resolve business registration, address disclosure, tax treatment, retention, processor DPAs/transfers and subscription/consumer wording. App Privacy has an unpublished 15-category draft; public publication remains unapproved pending reconciliation/review.
+
 | Topic | Evidence / action |
 |---|---|
 | Privacy/terms/cookies pages | Present, but previously generic and partly stronger than implementation. Corrected some claims; final operator identity, address, registrations and hosting disclosures remain OWNER/LEGAL inputs |

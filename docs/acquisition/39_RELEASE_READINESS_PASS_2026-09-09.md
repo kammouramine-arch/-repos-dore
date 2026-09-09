@@ -56,6 +56,27 @@ Professional review is still needed for registration, publication address, taxes
 
 ## Pending evidence — do not award completion points
 
+### Owner spending decision (supersedes the earlier quote request)
+
+On 9 September the owner explicitly refused **all paid service purchases/upgrades**. Keep Vercel AMYN on Hobby and Supabase on Free. Do not create a paid team, enable an add-on, start billable builds, or migrate hosting without separate approval. Vercel checkout was dismissed; no purchase was made. This is an **owner/commercial-hosting launch blocker**, not permission to misrepresent commercial use as personal use.
+
+The hosting eligibility deduction belongs to backend/operational release readiness, once. Do not deduct UI, auth, localization or security implementation points merely because the owner declined Pro. Backup reliability and alert delivery remain separate evidence gaps, but they do not inherently require paid products: approved self-managed encrypted backups and a verified free alert service could satisfy them.
+
+See `40_FREE_HOSTING_ASSESSMENT_2026-09-09.md` for a commercial-use-permitted free candidate and unverified migration gates. No migration has occurred.
+
+### Additional completed no-cost evidence
+
+- Production alias health returned **db72641f5f811cbaf19f95ed4942fb60d5b2f1bd**, HTTP 200/database OK. English `/assistance?lang=en` also returned 200 with English support content and the confirmed support email.
+- Independent detached worktree at db72641 installed root and mobile dependencies from lockfiles without production secrets; all six migrations applied to a new loopback-only database. Fresh worktree unit/integration rerun: **478/478, 70 files, exit 0**, 42.41 seconds. Browser rehearsal's last-run artifact reports passed; its lost console output is not counted as a separately proven clean exit.
+- App Store Connect App Privacy now has all **15 selected data categories configured in an unpublished draft**, including actual linked Product Interaction analytics and Other Diagnostic Data. No advertising tracking declared. This remains subject to the processor/legal review; Publish was not clicked.
+- App Store support URL set to the live `https://devisera.fr/assistance`. Public screenshots/review credentials and public-release approval remain outstanding.
+- Authenticated Supabase dashboard showed the DEVISIA project on **Free**, AWS eu-west-1, with no managed project backups. No upgrade made. The prior local restore is not a substitute for approved production backup custody/retention.
+- Expo Billing showed an **existing Starter subscription**, $19/month, with $20 of $45 build credit used. This was not created or changed by this pass. No build or additional charge was initiated after the owner's no-spending instruction.
+- Removed raw database exceptions from best-effort analytics logging; a fixed `write_failed` category remains. Two regression tests prove event persistence and error non-disclosure.
+- Final code suite: **480/480 tests, 71 files**, root/mobile TypeScript and lint pass; production web build and **14/14 browser cases pass with exit 0**, 46.1 seconds, zero flaky/skipped cases. Production-profile iOS export passed (1,444 modules, 24 assets). This is export validation, not a signed iPhone build.
+- Controlled production signup, explicitly approved by owner, created one labelled disposable QA workspace and one sample recipient. Gmail received verification and welcome messages at **16:35 Europe/Paris on 9 September**; sender **DEVISERA <contact@devisera.fr>**, Reply-To **contact@devisera.fr** confirmed. Invalid code was rejected; the delivered code validated and routed to the web app. Logout returned to login; wrong password stayed on login with the correct error. No codes/passwords stored in this ledger.
+- Quote composer requires AI generation on this web path. It was not invoked while billing impact remains unknown under the no-spending instruction. Quote/follow-up/Team inbox delivery is not claimed from verification-mail success. No paid subscription was activated and no existing Apple ownership binding was modified.
+
 - Final Production deployment/source alignment and live authenticated flows.
 - Controlled inbox delivery: owner authorized four minimal DEVISERA tests to their Gmail inbox; no unrelated mail or secrets may be disclosed.
 - Native purchase, restore, active-subscriber routing, photo persistence and final integrated motion on a physical iPhone.

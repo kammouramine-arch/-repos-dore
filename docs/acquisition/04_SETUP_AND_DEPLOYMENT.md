@@ -2,6 +2,8 @@
 
 ## Local developer setup
 
+Rehearsed 9 September in a separate detached worktree without production secrets: root/mobile `npm ci`, explicit Prisma generation, six migrations and 478 unit/database tests succeeded. Prisma engine download requires network access even when packages are cached. Mobile postinstall applies both committed patches. Set `E2E_DATABASE_URL` to an isolated loopback test database for browser tests; the owned server now exits via private IPC rather than a Windows shell process tree. See the current release ledger for final evidence and remaining production/device gates.
+
 1. Obtain repository access through your own account. Install a compatible Node runtime (root engines requires at least 20.9), npm and PostgreSQL. Use lockfiles, not unpinned package upgrades.
 2. Run `npm ci` at root and in `mobile/`. Mobile postinstall applies committed patches. Review patches on upgrades.
 3. Copy `.env.example` to a private local env file and populate locally. Use a dedicated local database and local/mock AI/email for rehearsal. Never reuse production connection strings in tests.

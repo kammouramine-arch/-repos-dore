@@ -4,7 +4,7 @@ Prepared 6 September 2026. Confidential working material; not a sale offer, lega
 
 ## Start here
 
-Latest evidence: [38 Production evidence](38_PRODUCTION_READINESS_EVIDENCE_2026-09-08.md) and [Build 27 StoreKit incident](../handoff/STOREKIT_CATALOGUE_2026-09-08.md) supersede older release/readiness claims. Build 27 has not passed real-device purchase acceptance.
+Latest evidence: [39 Release readiness ledger](39_RELEASE_READINESS_PASS_2026-09-09.md) and [40 Free commercial hosting assessment](40_FREE_HOSTING_ASSESSMENT_2026-09-09.md) supersede older release/readiness claims. All paid purchases/upgrades are forbidden by the owner's current instruction. Apple case 102957593166 remains unresolved. Older numbered reports are historical, not proof of current production or physical-device acceptance.
 
 Read the [product and readiness register](01_PRODUCT_OVERVIEW.md), [asset schedule](02_ASSET_INVENTORY.md) and [closing checklist](11_TRANSFER_CHECKLIST.md) first. Each claim must be backed by source, a current account record, a test, or an owner-supplied document. Unknown traction is **unknown**, not zero.
 

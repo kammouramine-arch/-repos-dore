@@ -32,7 +32,9 @@ export async function trackEvent(
         properties: (options.properties ?? undefined) as never,
       },
     });
-  } catch (error) {
-    console.error('[analytics] écriture impossible', error);
+  } catch {
+    // Database exceptions can embed query values/customer event properties.
+    // Analytics is best-effort; retain a safe category without the payload.
+    console.error('[analytics] write_failed');
   }
 }

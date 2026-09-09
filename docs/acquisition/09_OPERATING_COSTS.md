@@ -1,5 +1,9 @@
 # 09 · Operating cost model
 
+## Current owner decision — 9 September 2026
+
+**No paid purchase or upgrade is authorized.** Live Vercel AMYN is Hobby, no payment method/add-ons added; Supabase DEVISIA is Free, without managed backups. Earlier instructions below to review an upgrade are historical, not authorization. The owner/commercial-hosting launch blocker remains. A free commercial-use candidate is assessed in `40_FREE_HOSTING_ASSESSMENT_2026-09-09.md`; no migration is approved or performed. Actual usage invoices for other providers remain unverified; do not equate a free hosting plan with zero total product operating cost.
+
 No billing statements reviewed. Actual monthly spend, credits, tax, free-tier eligibility and negotiated rates are **UNKNOWN**. Do not treat a provider's free tier as a sustainable zero-cost production plan.
 
 ## Verified public rates, checked 6 September 2026
