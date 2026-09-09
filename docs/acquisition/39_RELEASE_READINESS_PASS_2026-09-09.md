@@ -77,7 +77,15 @@ See `40_FREE_HOSTING_ASSESSMENT_2026-09-09.md` for a commercial-use-permitted fr
 - Controlled production signup, explicitly approved by owner, created one labelled disposable QA workspace and one sample recipient. Gmail received verification and welcome messages at **16:35 Europe/Paris on 9 September**; sender **DEVISERA <contact@devisera.fr>**, Reply-To **contact@devisera.fr** confirmed. Invalid code was rejected; the delivered code validated and routed to the web app. Logout returned to login; wrong password stayed on login with the correct error. No codes/passwords stored in this ledger.
 - Quote composer requires AI generation on this web path. It was not invoked while billing impact remains unknown under the no-spending instruction. Quote/follow-up/Team inbox delivery is not claimed from verification-mail success. No paid subscription was activated and no existing Apple ownership binding was modified.
 
-- Final Production deployment/source alignment and live authenticated flows.
+### Final verification follow-through
+
+- Controlled verified-account login reached `/app` without a verification step or another verification message. Reload preserved the web session. This is web evidence, not a native iPhone claim.
+- Fixed the remaining web verification cooldown: read persisted server delay on entry, honor body/Retry-After delays, keep a deadline-based countdown, disable resend until zero, and abort requests on unmount. No production rate limits were weakened.
+- Final rerun: **483/483 unit/integration tests (72 files)** and **16/16 browser cases**, zero retries, exit 0 (53.2 seconds), including desktop/mobile-browser persisted cooldown and exact hourly delay. Root TypeScript/lint and production web build passed. Earlier mobile TypeScript/lint and iOS export remain applicable; this follow-through changes only web code/tests.
+- Earlier e78f648 production health confirmed the pushed revision; the final cooldown commit is deployed through the same integration branch. Verify its release hash after deployment rather than assuming push means live.
+
+### Still outstanding
+
 - Controlled inbox delivery: owner authorized four minimal DEVISERA tests to their Gmail inbox; no unrelated mail or secrets may be disclosed.
 - Native purchase, restore, active-subscriber routing, photo persistence and final integrated motion on a physical iPhone.
 - Production recovery/alert delivery, current service billing/ownership, App Privacy and buyer handover checks.

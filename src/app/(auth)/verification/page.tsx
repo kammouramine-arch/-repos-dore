@@ -6,6 +6,7 @@ import { getAuthContext } from '@/lib/auth/session';
 import { VerificationForm } from './form';
 import { LegacyVerificationForm } from './legacy-form';
 import { redirect } from 'next/navigation';
+import { emailCodeStatus } from '@/server/services/accountService';
 
 export const metadata: Metadata = {
   title: 'Vérification de votre email',
@@ -21,6 +22,7 @@ export default async function VerifyEmailPage({
   const pendingAuth = !token ? await getAuthContext() : null;
   const pending = !token && !!pendingAuth && !pendingAuth.user.emailVerified;
   if (pendingAuth?.user.emailVerified) redirect('/app');
+  const cooldown = pending ? await emailCodeStatus(pendingAuth!.user.id) : null;
 
   return (
     <div className="text-center">
@@ -32,7 +34,7 @@ export default async function VerifyEmailPage({
           <p className="mt-2 text-[14.5px] text-muted">
             Saisissez le code à six chiffres du dernier message reçu pour confirmer votre adresse email.
           </p>
-          <VerificationForm email={pendingAuth!.user.email} />
+          <VerificationForm email={pendingAuth!.user.email} initialRetryAfterSeconds={cooldown?.retryAfterSeconds ?? 0} />
           <Button asChild variant="secondary" size="lg" className="mt-7">
             <Link href="/connexion">Retour à la connexion</Link>
           </Button>
