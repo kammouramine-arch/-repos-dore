@@ -13,7 +13,7 @@ Validation:
 - Root and mobile TypeScript: passed.
 - Root and mobile lint: passed.
 - Full Vitest: 475 tests / 69 files passed, including isolated PostgreSQL integration tests on 127.0.0.1:55432/devisia_test (never production).
-- Playwright: all 10 desktop/mobile-browser journeys passed. Email provider is console; verification/public-reading fixtures are explicit. These are not real inbox or native StoreKit purchase tests.
+- Playwright: all 10 desktop/mobile-browser cases reported `ok`. Windows web-server teardown then hung and the runner was interrupted; therefore the command did not exit successfully. Email provider is console; verification/public-reading fixtures are explicit. These are not real inbox or native StoreKit purchase tests.
 - Production Next.js build: passed, also rebuilt by Playwright.
 - Production-profile iOS Expo export: passed, 1,444 modules, no EAS binary built.
 - Changed-text secret heuristic: zero findings. Acquisition-document scan: zero findings. Git whitespace check: passed.
