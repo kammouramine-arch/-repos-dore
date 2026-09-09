@@ -52,7 +52,7 @@ async function verified<T>(operationName: string, operation: (verifier: SignedDa
  * Aucune route de l'API client n'écrit dans cette table : une transaction de
  * Production ne peut atteindre ce chemin.
  */
-async function sandboxRebindGrant(t: JWSTransactionDecodedPayload, organizationId: string) {
+export async function sandboxRebindGrant(t: JWSTransactionDecodedPayload, organizationId: string) {
   if (process.env.APPLE_ALLOW_SANDBOX !== 'true') return null;
   if (t.environment !== Environment.SANDBOX) return null;
   if (!t.originalTransactionId) return null;
