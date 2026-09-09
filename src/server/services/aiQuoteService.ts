@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 import {
@@ -150,7 +151,7 @@ export async function generateQuoteDraft(input: GenerateQuoteInput): Promise<Gen
       await logAIRequest(input, 'QUOTE_DRAFT', result.usage.provider, result.usage.model, result.usage);
     } catch (error) {
       // Le moteur local prend le relais : l'utilisateur obtient toujours un devis.
-      console.error('[ai] génération LLM indisponible, bascule sur le moteur local', error);
+console.error('[ai] génération LLM indisponible, bascule sur le moteur local', safeErrorCategory(error));
       degradedReason = error instanceof Error ? error.message : String(error);
       draft = buildHeuristicQuoteDraft({
         description: input.description,
@@ -330,7 +331,7 @@ async function loadImages(organizationId: string, fileIds: string[]) {
         fileName: file.fileName,
       });
     } catch (error) {
-      console.error('[ai] photo illisible', error);
+      console.error('[ai] photo illisible', safeErrorCategory(error));
     }
   }
   return images.length > 0 ? images : undefined;

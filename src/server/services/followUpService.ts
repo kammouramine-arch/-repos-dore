@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import type { FollowUpStatus } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { AppError, notFound } from '@/lib/errors';
@@ -158,7 +159,7 @@ export async function draftFollowUpMessage(
     });
     return { ...result.data, degraded: false };
   } catch (error) {
-    console.error('[relance] rédaction IA indisponible', error);
+console.error('[relance] rédaction IA indisponible', safeErrorCategory(error));
     return { ...fallback, degraded: true };
   }
 }
@@ -208,7 +209,7 @@ export async function sendFollowUp(input: SendFollowUpInput) {
   const body = input.body ?? followUp?.body ?? '';
   const companyName = quote.organization.businessProfile?.legalName ?? quote.organization.name;
 
-  await getEmailProvider().send({
+  const delivery = await getEmailProvider().send({
     to: quote.customer.email,
     replyTo: quote.organization.businessProfile?.email ?? env().EMAIL_REPLY_TO,
     ...followUpEmail({
@@ -220,6 +221,8 @@ export async function sendFollowUp(input: SendFollowUpInput) {
       language: quote.organization.locale,
     }),
   });
+
+  if (!delivery.delivered) throw new AppError('PROVIDER_UNAVAILABLE', 'La relance n’a pas pu être envoyée. Réessayez plus tard.');
 
   const record = followUp
     ? await prisma.followUp.update({

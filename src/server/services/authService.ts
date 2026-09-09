@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import type { AuthTokenKind } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { hashPassword, verifyPassword } from '@/lib/auth/password';
@@ -128,7 +129,7 @@ export async function signUp(input: SignUpInput) {
   }
   await getEmailProvider()
     .send({ to: email, ...welcomeEmail({ firstName: user.firstName, language: input.locale }) })
-    .catch((error) => console.error('[auth] email de bienvenue impossible', error));
+.catch((error) => console.error('[auth] email de bienvenue impossible', safeErrorCategory(error)));
 
   return { user, organization };
 }

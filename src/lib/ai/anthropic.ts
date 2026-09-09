@@ -1,4 +1,5 @@
 import Anthropic from '@anthropic-ai/sdk';
+import { safeErrorCategory } from '../safe-error';
 import { z } from 'zod';
 import { env } from '../env';
 import { AppError } from '../errors';
@@ -145,12 +146,9 @@ export class AnthropicProvider implements AIProvider {
   /**
    * Traduit les erreurs SDK en erreurs applicatives, sans fuite de secret.
    *
-   * Le motif exact est journalisé. Sans lui, une panne d'IA se présentait en
-   * production comme un simple « service momentanément indisponible » : la
-   * bascule sur le moteur local rendait toujours un devis, et rien n'indiquait
-   * si la cause était un refus d'API, un modèle inaccessible, un solde épuisé
-   * ou une coupure réseau. Seuls le statut, le modèle et le message de l'API
-   * sont retenus — jamais la clé.
+   * Seuls le statut HTTP et une catégorie contrôlée sont journalisés.
+   * Les messages SDK, corps de réponse, causes et stacks peuvent contenir
+   * des données client : ils ne doivent jamais être sérialisés dans les logs.
    */
   private async call<T>(fn: () => Promise<T>): Promise<T> {
     try {
@@ -158,7 +156,7 @@ export class AnthropicProvider implements AIProvider {
     } catch (error) {
       if (error instanceof Anthropic.APIError) {
         console.error(
-          `[ia] appel refusé — statut ${error.status}, modèle ${this.model}, type ${error.name} : ${error.message}`,
+          '[ia] provider_rejected', Number.isInteger(error.status) ? error.status : null,
         );
         if (error.status === 429) {
           throw new AppError('RATE_LIMITED', "Le service d'IA est saturé. Réessayez dans un instant.");
@@ -167,7 +165,7 @@ export class AnthropicProvider implements AIProvider {
           throw new AppError('PROVIDER_UNAVAILABLE', "La clé d'API IA est invalide ou expirée.");
         }
       } else {
-        console.error(`[ia] appel impossible — modèle ${this.model} :`, error);
+        console.error('[ia] provider_unavailable', safeErrorCategory(error));
       }
       throw new AppError('PROVIDER_UNAVAILABLE', "Le service d'IA est momentanément indisponible.", {
         cause: error,

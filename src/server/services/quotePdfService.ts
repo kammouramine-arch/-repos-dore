@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { notFound } from '@/lib/errors';
 import { getStorageProvider } from '@/lib/storage';
@@ -40,7 +41,7 @@ export async function buildQuotePdf(quoteId: string): Promise<{ bytes: Uint8Arra
       const buffer = await getStorageProvider().get(profile.logo.storageKey);
       logo = { bytes: new Uint8Array(buffer), mimeType: profile.logo.mimeType };
     } catch (error) {
-      console.error('[pdf] logo illisible', error);
+console.error('[pdf] logo illisible', safeErrorCategory(error));
     }
   }
 

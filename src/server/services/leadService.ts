@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import type { LeadSourceType, LeadStatus, Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { notFound } from '@/lib/errors';
@@ -330,7 +331,7 @@ export async function receivePublicLead(
           language: settings.organization.locale === 'en' ? 'en' : 'fr',
         }),
       })
-      .catch((error) => console.error('[lead] notification email impossible', error));
+.catch((error) => console.error('[lead] notification email impossible', safeErrorCategory(error)));
   }
 
   await trackEvent('lead_created', {

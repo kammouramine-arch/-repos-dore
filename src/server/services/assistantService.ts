@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { getAIProvider, wrapUntrusted, assistantAnswerSchema } from '@/lib/ai';
 import { ASSISTANT_SYSTEM, localizedSystemPrompt } from '@/lib/ai/prompts';
@@ -67,7 +68,7 @@ export async function askAssistant(
       facts: context.facts,
     };
   } catch (error) {
-    console.error('[assistant] IA indisponible', error);
+console.error('[assistant] IA indisponible', safeErrorCategory(error));
     return { ...answerLocally(question, context), degraded: true, facts: context.facts };
   }
 }

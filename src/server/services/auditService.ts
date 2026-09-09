@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { hashIp } from '@/lib/auth/tokens';
 
@@ -58,6 +59,6 @@ export async function recordAudit(input: AuditInput): Promise<void> {
       },
     });
   } catch (error) {
-    console.error('[audit] écriture impossible', error);
+console.error('[audit] écriture impossible', safeErrorCategory(error));
   }
 }

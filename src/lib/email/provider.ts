@@ -30,10 +30,10 @@ class ResendProvider implements EmailProvider {
       })),
     });
 
-    if (error) {
+    if (error || !data?.id) {
       throw new AppError('PROVIDER_UNAVAILABLE', "L'email n'a pas pu être envoyé.", { cause: error });
     }
-    return { id: data?.id ?? null, provider: this.name, delivered: true };
+    return { id: data.id, provider: this.name, delivered: true };
   }
 }
 

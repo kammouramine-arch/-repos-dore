@@ -17,6 +17,7 @@ export interface EmailMessage {
 export interface EmailResult {
   id: string | null;
   provider: string;
+  /** Provider accepted delivery; not proof of inbox receipt. False for console. */
   delivered: boolean;
 }
 

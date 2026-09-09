@@ -7,6 +7,7 @@
  * d'accès Expo peut être fourni pour les envois authentifiés.
  */
 import { env } from '../env';
+import { safeErrorCategory } from '../safe-error';
 
 const EXPO_PUSH_URL = 'https://exp.host/--/api/v2/push/send';
 const MAX_BATCH = 90;
@@ -94,7 +95,7 @@ export async function sendPush(message: PushMessage): Promise<PushResult> {
         }
       });
     } catch (error) {
-      console.error('[push] service injoignable', error);
+      console.error('[push] service injoignable', safeErrorCategory(error));
     }
   }
 

@@ -181,7 +181,7 @@ export function quoteSentEmail(params: {
         (params.message ? p(esc(params.message).replace(/\n/g, '<br />')) : p(english ? `Please find your quote for: <strong>${esc(params.quoteTitle)}</strong>.` : `Vous trouverez ci-dessous votre devis pour : <strong>${esc(params.quoteTitle)}</strong>.`)) +
         p(`<strong style="font-size:20px;">${amount}${english ? '' : ' TTC'}</strong>`) +
         (validity ? p(esc(validity)) : ''),
-      cta: { label: english ? 'View and respond to the quote' : 'Consulter et accepter le devis', href: params.publicUrl },
+      cta: { label: english ? 'View the quote' : 'Consulter le devis', href: params.publicUrl },
       footnote: english ? 'The complete quote is also attached as a PDF.' : 'Le devis complet est également joint à cet email au format PDF.',
       language: english ? 'en' : 'fr',
     }),

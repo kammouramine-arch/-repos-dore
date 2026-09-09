@@ -1,4 +1,5 @@
 import 'server-only';
+import { safeErrorCategory } from '@/lib/safe-error';
 import type { NotificationType } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { env } from '@/lib/env';
@@ -30,7 +31,7 @@ export async function notify(input: NotificationInput) {
     },
   });
 
-  void pushToDevices(input).catch((error) => console.error('[push] notification non relayée', error));
+void pushToDevices(input).catch((error) => console.error('[push] notification non relayée', safeErrorCategory(error)));
   return notification;
 }
 
