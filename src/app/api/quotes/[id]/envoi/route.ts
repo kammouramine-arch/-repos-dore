@@ -27,10 +27,14 @@ export async function POST(request: Request, { params }: Params) {
       to: body.to,
     });
 
+    // `sendQuote` ne rend la main qu'après acceptation par le fournisseur :
+    // l'absence de ce drapeau faisait croire au mobile que rien n'était parti.
     return ok({
       quote: toQuoteDTO(result.quote),
       publicUrl: result.publicUrl,
       recipient: result.recipient,
+      delivered: result.delivered,
+      emailProvider: result.emailProvider,
     });
   });
 }

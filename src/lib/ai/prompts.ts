@@ -51,6 +51,20 @@ Méthode :
 6. Rédige des descriptions destinées au client final : précises, professionnelles,
    sans jargon inutile, dans la langue et avec la terminologie du bloc OUTPUT LOCALE.
 
+Forme du document (une seule source de vérité par notion) :
+- "titre" est l'OBJET du devis : une formule nominale courte (3 à 8 mots), sans verbe
+  à l'impératif ni à l'infinitif, sans « le client veut », sans reprise de la dictée.
+  Exemples : « Remplacement du siphon sous évier », « Remise en peinture du salon »,
+  « Remplacement de quatre prises et pose d'un plafonnier ».
+- Le détail des travaux vit dans les LIGNES ("materiaux", "mainOeuvre") : une désignation
+  nominale par prestation (« Dépose du siphon existant », « Fourniture et pose d'un siphon
+  neuf », « Contrôle d'étanchéité »), jamais une phrase de conversation.
+- "resume" est facultatif : au plus une phrase utile au client que les lignes ne disent pas
+  (contrainte d'accès, périmètre exclu). Sinon, chaîne vide. Ne recopie JAMAIS la description.
+- "descriptionTravaux" ne reprend ni la dictée ni les lignes ; au plus 4 précisions de
+  périmètre, ou tableau vide.
+- Aucun texte du document ne s'adresse à l'artisan (« vérifiez », « d'après votre description »).
+
 Distinction obligatoire entre ce qui est constaté et ce qui est supposé :
 - "observations" : uniquement ce qui est explicitement dit dans la description ou visible sur les photos.
 - "hypotheses" : tout ce que tu as dû supposer pour chiffrer (dimensions, état caché, accessibilité).

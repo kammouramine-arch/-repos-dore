@@ -122,18 +122,14 @@ export default function DevisDetailScreen() {
     setSending(true);
     try {
       const result = await api.quotes.send(quote.id);
-      // Ne jamais annoncer un envoi qui n'a pas eu lieu : sans fournisseur
-      // d'email configuré, le devis est bien marqué envoyé, mais rien n'est
-      // parti — et l'artisan doit le savoir avant d'attendre une réponse.
-      toast(
-        result.delivered
-          ? { title: 'Devis envoyé', description: `Envoyé à ${result.recipient}.` }
-          : {
-              title: t('Devis marqué comme envoyé'),
-              description: en ? `The email could not be delivered to ${result.recipient}: email delivery is not configured.` : `L’email n’a pas pu être remis à ${result.recipient} : l’envoi d’emails n’est pas configuré.`,
-              tone: 'error',
-            },
-      );
+      // Le serveur ne répond avec succès qu'une fois le message accepté par le
+      // fournisseur d'email ; un refus arrive en erreur, jamais en succès. Le
+      // seul cas d'échec ici est un `delivered: false` explicite.
+      if (result.delivered === false) {
+        toast({ title: en ? 'Email not sent' : 'Email non envoyé', description: en ? `The email service did not accept the message for ${result.recipient}.` : `Le service d’envoi n’a pas accepté le message pour ${result.recipient}.`, tone: 'error' });
+      } else {
+        toast({ title: en ? 'Quote sent' : 'Devis envoyé', description: en ? `The quote was sent to ${result.recipient}.` : `Le devis a été envoyé à ${result.recipient}.`, tone: 'success' });
+      }
       await query.reload();
     } catch (cause) {
       Alert.alert(en ? 'Sending failed' : 'Envoi impossible', cause instanceof DevisiaApiError ? cause.message : (en ? 'Try again in a moment.' : 'Réessayez dans un instant.'));

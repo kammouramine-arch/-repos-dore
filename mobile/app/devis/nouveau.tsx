@@ -326,9 +326,9 @@ export default function NouveauDevisScreen() {
       const quote = await api.quotes.create({
         customerId: customer.id,
         title: title.trim() || draft.title,
-        summary: [draft.summary, ...draft.workDescription.map((task) => `• ${task}`)]
-          .filter(Boolean)
-          .join('\n'),
+        // Une seule source par notion : l'objet est le titre, le détail est
+        // dans les lignes, le résumé n'existe que s'il apporte autre chose.
+        summary: draft.summary.trim() || null,
         aiGenerated: true,
         aiConfidence: draft.confidence,
         aiWarnings: draft.warnings,

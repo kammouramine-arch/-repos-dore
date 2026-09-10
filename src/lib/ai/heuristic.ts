@@ -9,6 +9,7 @@
 import { centsToEuros } from '../money';
 import { matchCatalog, type CatalogEntry } from './catalog-match';
 import { extractDurationMinutes, normalize } from './text';
+import { firstClause, recognizeWork, subjectFromSentence } from './polish';
 import type { QuoteDraft } from './schemas';
 
 export interface HeuristicInput {
@@ -72,11 +73,14 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
   }
 
   const durationMinutes = extractDurationMinutes(source);
+  const recognized = recognizeWork(input.description, input.language ?? 'fr');
   if (mainOeuvre.length === 0) {
     const hours = durationMinutes ? Math.round((durationMinutes / 60) * 100) / 100 : 1;
+    // La désignation dit ce qui est fait, en termes de métier ; jamais
+    // « d'après votre description », qui trahit la génération automatique.
     mainOeuvre.push({
-      designation: english ? 'Labour' : "Main-d'œuvre",
-      description: english ? 'On-site work; time estimated from your description.' : "Intervention sur site, temps estimé d'après votre description.",
+      designation: english ? 'Labour' : 'Main-d’œuvre',
+      description: recognized ? recognized.tasks.join(' · ') : (english ? 'On-site work' : 'Intervention sur site'),
       heures: hours,
       tauxHoraire: centsToEuros(input.hourlyRateCents),
       referenceCatalogue: null,
@@ -104,17 +108,19 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
     );
   }
 
-  const descriptionTravaux = splitTasks(input.description);
+  // Les prestations types reconnues alimentent la Désignation ; la dictée
+  // brute n'est jamais recopiée dans le document.
+  const descriptionTravaux = recognized ? recognized.tasks : [];
 
   return {
-    titre: buildTitle(input.description, input.trade, input.language),
-    resume: buildSummary(input.description),
+    titre: recognized?.subject ?? buildTitle(input.description, input.trade, input.language),
+    resume: '',
     descriptionTravaux,
     materiaux,
     mainOeuvre,
     questions: dedupe(questions).slice(0, 6),
     alertes: dedupe(alertes).slice(0, 5),
-    observations: dedupe(descriptionTravaux).slice(0, 6),
+    observations: dedupe(splitTasks(input.description)).slice(0, 6),
     hypotheses: dedupe([
       durationMinutes
         ? null
@@ -141,32 +147,11 @@ export function buildHeuristicQuoteDraft(input: HeuristicInput): QuoteDraft {
  * même texte. On s'arrête donc à la première proposition, coupée sur un mot.
  */
 function buildTitle(description: string, trade?: string | null, language: 'fr' | 'en' = 'fr'): string {
-  const first = description
-    .split(/[.\n!?;]|,\s*(?:puis|ensuite|et)\s+/i)
-    .map((part) => part.trim())
-    .find((part) => part.length > 8);
-  if (!first) return trade
+  const first = firstClause(description);
+  if (!first) return trade && tradeLabel(trade, language)
     ? (language === 'en' ? `${tradeLabel(trade, language)} service` : `Intervention ${tradeLabel(trade, language)}`)
     : (language === 'en' ? 'Service' : 'Intervention');
-  const cleaned = first
-    .replace(/^(le client|la cliente|il faut|je dois)\s+/i, '')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return capitalize(shorten(cleaned, 62));
-}
-
-/** Coupe sur un mot, jamais au milieu. */
-function shorten(text: string, max: number): string {
-  if (text.length <= max) return text;
-  const cut = text.slice(0, max);
-  const space = cut.lastIndexOf(' ');
-  return `${(space > max * 0.6 ? cut.slice(0, space) : cut).trim()}…`;
-}
-
-function buildSummary(description: string): string {
-  const cleaned = description.trim().replace(/\s+/g, ' ');
-  if (cleaned.length <= 320) return capitalize(cleaned);
-  return `${capitalize(cleaned.slice(0, 317))}…`;
+  return subjectFromSentence(first, language) || (language === 'en' ? 'Service' : 'Intervention');
 }
 
 function splitTasks(description: string): string[] {

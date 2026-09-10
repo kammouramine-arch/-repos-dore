@@ -121,31 +121,30 @@ describe('confinement du secret', () => {
 describe('objet du devis', () => {
   const base = { catalog: [], hourlyRateCents: 4500, defaultVatRate: 20, trade: 'PLOMBIER' };
 
-  it('reste un titre, pas la description entière', () => {
+  it('reste un objet court et nominal, sans écho de la description', () => {
     const draft = buildHeuristicQuoteDraft({
       ...base,
       description:
         "Remplacement d'un chauffe-eau 200 litres, deux heures sur place, evacuation de l'ancien et remise en service.",
     });
-    expect(draft.titre.length).toBeLessThanOrEqual(63);
-    expect(draft.titre.length).toBeGreaterThan(8);
-    expect(draft.titre.length).toBeLessThan(draft.resume.length);
+    expect(draft.titre).toBe('Remplacement du chauffe-eau');
+    expect(draft.resume).toBe('');
+    expect(draft.descriptionTravaux.length).toBeGreaterThan(1);
   });
 
-  it('coupe sur un mot entier', () => {
+  it('coupe sur un mot entier, sans points de suspension', () => {
     const draft = buildHeuristicQuoteDraft({
       ...base,
       description:
-        'Renovation complete de la salle de bain avec depose du carrelage existant pose de faience murale et installation dune douche italienne',
+        'Reprise complete du muret de cloture en pierre avec rejointoiement et remplacement des pierres cassees sur toute la longueur',
     });
-    expect(draft.titre.endsWith('…')).toBe(true);
-    // Le caractère avant les points de suspension termine un mot, il n'est
-    // donc pas suivi d'un fragment : le titre entier existe dans le résumé.
-    expect(draft.resume.toLowerCase()).toContain(draft.titre.replace('…', '').toLowerCase());
+    expect(draft.titre.length).toBeLessThanOrEqual(64);
+    expect(draft.titre).not.toMatch(/…/);
+    expect(draft.titre).toMatch(/\w$/u);
   });
 
-  it('nomme le métier quand la description est trop courte pour un titre', () => {
-    const draft = buildHeuristicQuoteDraft({ ...base, description: 'fuite' });
+  it('nomme le métier quand la description est trop courte pour un objet', () => {
+    const draft = buildHeuristicQuoteDraft({ ...base, description: 'ok' });
     expect(draft.titre).toMatch(/Intervention/i);
   });
 });

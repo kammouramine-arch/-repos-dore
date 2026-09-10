@@ -13,6 +13,7 @@ import {
   type QuoteDraft,
 } from '@/lib/ai';
 import { QUOTE_DRAFT_SYSTEM, localizedSystemPrompt } from '@/lib/ai/prompts';
+import { polishDraft } from '@/lib/ai/polish';
 import { eurosToCents } from '@/lib/money';
 import { getStorageProvider } from '@/lib/storage';
 import { loadCatalog } from './priceBookService';
@@ -174,6 +175,10 @@ console.error('[ai] génération LLM indisponible, bascule sur le moteur local',
     });
     await logAIRequest(input, 'QUOTE_DRAFT', 'local', null, null);
   }
+
+  // Même règle de présentation pour l'IA et le moteur local : objet concis,
+  // détail dans les lignes, aucun écho de la dictée sur le document.
+  draft = polishDraft(draft, { description: input.description, language, trade: profile?.trade });
 
   const { lines, extraQuestions } = resolveLines({
     draft,

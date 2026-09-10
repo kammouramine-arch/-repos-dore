@@ -50,7 +50,7 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
   const us = country === 'US';
   const gb = country === 'GB';
   return english ? {
-    title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'DESCRIPTION',
+    title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'SUBJECT', grandTotal: 'TOTAL', grandTotalExempt: 'TOTAL', labourRate: 'Labour charged at the hourly rate shown, per hour of work on site.', replacedParts: 'You may keep any parts or equipment that are replaced.',
     designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: us ? 'Sales tax' : 'VAT', totalEx: 'TOTAL',
     totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: us ? 'Sales tax' : 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
     discount: 'Discount', companyIdentifier: us ? 'Business ID' : 'Company number', vatExemption: us ? 'Sales tax exempt' : 'VAT exempt',
@@ -58,7 +58,7 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
     acceptance: 'ACCEPTANCE', acceptanceText: 'Please sign and return this quote to confirm.', date: 'Date', signature: 'Customer name and signature',
     validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
   } : {
-    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: us ? 'TAXE' : 'TVA', total: 'TOTAL HT',
+    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: us ? 'TAXE' : 'TVA', total: 'TOTAL HT', grandTotal: 'TOTAL TTC', grandTotalExempt: 'TOTAL', labourRate: 'Main-d’œuvre facturée au taux horaire indiqué (HT, TVA en sus), par heure de travail sur place.', replacedParts: 'Le client peut conserver les pièces, éléments ou appareils remplacés.',
     totalExLabel: 'Total HT', netEx: 'Net HT', vat: us ? 'TAXE' : 'TVA', notApplicable: 'Non applicable', discount: 'Remise', companyIdentifier: us ? 'IDENTIFIANT ENTREPRISE' : gb ? 'NUMÉRO D’ENTREPRISE' : 'SIRET', vatExemption: country === 'FR' ? 'TVA non applicable, art. 293 B du CGI' : us ? 'Taxe non applicable' : 'TVA exonérée', deposit: 'Acompte à la commande', duration: 'Durée estimée', payment: 'MODALITÉS DE PAIEMENT', conditions: 'CONDITIONS', notes: 'NOTES',
     acceptance: 'BON POUR ACCORD', acceptanceText: "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».", date: 'Date', signature: 'Nom et signature du client', validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
   };
@@ -344,19 +344,26 @@ function drawParties(ctx: Ctx, input: QuotePdfInput) {
   ctx.y = Math.min(leftY, rightY) - 12;
 }
 
+/**
+ * Objet du devis : une ligne, en gras, sous une étiquette discrète. Le
+ * résumé n'apparaît que s'il est court et distinct de l'objet ; le détail des
+ * travaux est dans le tableau, jamais répété ici.
+ */
 function drawObject(ctx: Ctx, input: QuotePdfInput) {
-  ensureSpace(ctx, 90);
+  ensureSpace(ctx, 70);
   drawText(ctx, quotePdfLabels(input).object, { x: MARGIN, y: ctx.y, size: 7.5, bold: true, color: MUTED });
-  ctx.y -= 15;
-  for (const line of wrap(input.title, ctx.bold, 12.5, CONTENT_WIDTH)) {
-    drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 12.5, bold: true });
-    ctx.y -= 16;
+  ctx.y -= 16;
+  const titleLines = wrap(input.title.replace(/\s+/g, ' ').trim(), ctx.bold, 13.5, CONTENT_WIDTH).slice(0, 2);
+  for (const line of titleLines) {
+    drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 13.5, bold: true });
+    ctx.y -= 17;
   }
 
-  const intro = input.introduction || input.summary;
-  if (intro) {
-    ctx.y -= 2;
-    for (const line of wrap(intro, ctx.regular, 9.5, CONTENT_WIDTH)) {
+  const intro = (input.introduction || input.summary || '').replace(/\s+/g, ' ').trim();
+  const distinct = intro && intro.toLowerCase() !== input.title.trim().toLowerCase();
+  if (distinct) {
+    ctx.y -= 1;
+    for (const line of wrap(intro, ctx.regular, 9.5, CONTENT_WIDTH).slice(0, 3)) {
       ensureSpace(ctx, 20);
       drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 9.5, color: MUTED });
       ctx.y -= 12.5;
@@ -432,7 +439,11 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
 
   for (const line of input.lines) {
     const labelLines = wrap(line.label, ctx.bold, 9.5, 220);
-    const descLines = line.description ? wrap(line.description, ctx.regular, 8.5, 220) : [];
+    // Une prestation par ligne : les tâches séparées par « · » ou un retour
+    // se lisent comme une liste, pas comme un paragraphe.
+    const descLines = line.description
+      ? line.description.split(/\n|\s·\s/).map((part) => part.trim()).filter(Boolean).flatMap((part) => wrap(part, ctx.regular, 8.5, 220))
+      : [];
     const height = labelLines.length * 12 + descLines.length * 10.5 + 12;
 
     if (ctx.y - height < MARGIN + 80) {
@@ -518,7 +529,9 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
     height: 32,
     color: SOFT,
   });
-  drawText(ctx, labels.total, { x: boxX, y: y - 12, size: 10.5, bold: true });
+  // Le total du document est TTC (ou net, en franchise) : ce n'est pas la
+  // colonne « TOTAL HT » du tableau.
+  drawText(ctx, input.company.vatExempt ? labels.grandTotalExempt : labels.grandTotal, { x: boxX, y: y - 12, size: 10.5, bold: true });
   drawRight(ctx, money(input.totalCents, input), A4.width - MARGIN, y - 13, 13, true, ctx.accent);
   y -= 34;
 
@@ -544,6 +557,16 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
 function drawConditions(ctx: Ctx, input: QuotePdfInput) {
   const labels = quotePdfLabels(input);
   const blocks: { title: string; body: string }[] = [];
+  if ((input.country ?? 'FR').toUpperCase() === 'FR' && input.language !== 'en') {
+    // Mentions attendues pour des travaux et dépannages (arrêté du 24 janvier
+    // 2017, art. L.111-1 du code de la consommation) : taux horaire de
+    // main-d'œuvre et sort des pièces remplacées.
+    const mentions = [
+      input.lines.some((line) => /^h(?:eure)?s?$/i.test(line.unit.trim())) ? labels.labourRate : null,
+      labels.replacedParts,
+    ].filter((item): item is string => Boolean(item));
+    blocks.push({ title: labels.conditions, body: mentions.join(' ') });
+  }
   if (input.paymentTerms) blocks.push({ title: labels.payment, body: input.paymentTerms });
   if (input.terms) blocks.push({ title: labels.conditions, body: input.terms });
   if (input.notes) blocks.push({ title: labels.notes, body: input.notes });
