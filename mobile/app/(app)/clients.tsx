@@ -1,0 +1,192 @@
+import * as React from 'react';
+import { FlatList, Linking, Platform, Pressable, RefreshControl, View } from 'react-native';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import { formatCents, type CustomerDTO } from '@devisia/shared';
+import { AnimatedCount, Banner, Body, Button, PressableCard, EmptyState, HeaderAction, Ionicons, Muted, PageHeader, SearchField, Skeleton } from '@/components/ui';
+import { ClientSheet } from '@/components/client-sheet';
+import { useQuery } from '@/lib/query';
+import { api } from '@/lib/api';
+import { colors, spacing, typography } from '@/theme';
+import { copy, mobileLocale } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
+import { useToast } from '@/components/toast';
+import { Enter } from '@/components/motion';
+
+/**
+ * Répertoire client.
+ *
+ * L'écran savait chercher et appeler, mais pas créer : arrivé ici depuis
+ * « Ajoutez un client », l'artisan tombait sur une liste vide sans aucune
+ * action. La fiche s'ouvre maintenant d'ici comme depuis un devis, par le même
+ * formulaire.
+ */
+export default function ClientsScreen() {
+  const router = useRouter();
+  const { session } = useAuth();
+  const locale = mobileLocale(session);
+  const en = locale === 'en';
+  const [search, setSearch] = React.useState('');
+  const [debounced, setDebounced] = React.useState('');
+  const [creating, setCreating] = React.useState(false);
+  const { toast } = useToast();
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => setDebounced(search.trim()), 260);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const query = useQuery<{ total: number; items: CustomerDTO[] }>(
+    () => api.customers.list(debounced || undefined),
+    [debounced],
+    `customers:${debounced}`,
+  );
+  const total = query.data?.total ?? 0;
+
+  useFocusEffect(
+    React.useCallback(() => {
+      void query.refresh();
+      // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [debounced]),
+  );
+
+  return (
+    <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
+      <View style={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing.md, gap: spacing.lg }}>
+        {/* Entrée en deux temps, une seule fois : l'onglet reste monté ensuite. */}
+        <Enter distance={8}>
+          <PageHeader
+            eyebrow={copy(locale, 'directory')}
+            icon="people"
+            title={copy(locale, 'yourClients')}
+            subtitle={query.data ? (
+              <Muted accessibilityLabel={en ? `${total} client${total === 1 ? '' : 's'} in your workspace` : `${total} client${total > 1 ? 's' : ''} dans votre atelier`}>
+                <AnimatedCount value={total} style={{ ...typography.small, color: colors.ink, fontWeight: '600' }} />
+                {en ? ` client${total === 1 ? '' : 's'} in your workspace` : ` client${total > 1 ? 's' : ''} dans votre atelier`}
+              </Muted>
+            ) : (en ? 'Details, quotes and revenue.' : 'Coordonnées, devis et chiffre d’affaires.')}
+            action={<HeaderAction icon="person-add" label={en ? 'New client' : 'Nouveau client'} onPress={() => setCreating(true)} />}
+          />
+        </Enter>
+        <Enter delay={80} distance={8}>
+          <SearchField
+            value={search}
+            onChangeText={setSearch}
+            placeholder={en ? 'Name, city, phone…' : 'Nom, ville, téléphone…'}
+          />
+        </Enter>
+      </View>
+
+      {query.error ? <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}><Banner tone="danger" title={query.error} /><Button title={copy(locale, 'retry')} onPress={() => void query.reload()} /></View> : null}
+      {query.loading && !query.data ? (
+        <View style={{ paddingHorizontal: spacing.xl, gap: spacing.md }}>
+          {[0, 1, 2].map((index) => (
+            <Skeleton key={index} height={64} />
+          ))}
+        </View>
+      ) : (
+        <FlatList
+          keyboardShouldPersistTaps="handled"
+          data={query.data?.items ?? []}
+          keyExtractor={(item) => item.id}
+          showsVerticalScrollIndicator={false}
+          initialNumToRender={8}
+          maxToRenderPerBatch={8}
+          windowSize={7}
+          updateCellsBatchingPeriod={16}
+          removeClippedSubviews={Platform.OS === 'android'}
+          keyboardDismissMode="on-drag"
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'] * 2, gap: spacing.md }}
+          refreshControl={
+            <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
+          }
+          ListEmptyComponent={
+            <EmptyState
+              icon="people-outline"
+              title={debounced ? (en ? 'No clients found.' : 'Aucun client trouvé.') : (en ? 'No clients yet.' : 'Aucun client pour le moment.')}
+              description={
+                debounced
+                  ? (en ? 'Try another name or city.' : 'Essayez un autre nom ou une ville.')
+                  : (en ? 'Clients can also be created from a quote.' : 'Vos clients arrivent aussi tout seuls : chaque devis crée la fiche correspondante.')
+              }
+              action={
+                debounced ? null : (
+                  <Button
+                    title={en ? 'Add my first client' : 'Ajouter mon premier client'}
+                    icon="person-add-outline"
+                    haptic
+                    onPress={() => setCreating(true)}
+                  />
+                )
+              }
+            />
+          }
+          renderItem={({ item, index }) => (
+            <Enter delay={Math.min(index, 6) * 40} distance={8}>
+            <PressableCard haptic accessibilityLabel={`Ouvrir la fiche de ${item.displayName}`} onPress={() => router.push({ pathname: '/clients/[id]', params: { id: item.id } })} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              <View
+                style={{
+                  width: 44,
+                  height: 44,
+                  borderRadius: 14,
+                  backgroundColor: colors.surface2,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Body style={{ fontWeight: '700', color: colors.inkSoft }}>
+                  {item.displayName.trim().charAt(0).toUpperCase() || 'C'}
+                </Body>
+              </View>
+              <View style={{ flex: 1, gap: 3 }}>
+                <Body style={{ fontWeight: '600' }} numberOfLines={1}>
+                  {item.displayName}
+                </Body>
+                <Muted style={{ fontSize: 12 }} numberOfLines={1}>
+                  {[item.city, item.email].filter(Boolean).join(' · ') || 'Aucune coordonnée'}
+                </Muted>
+                <Muted style={{ fontSize: 12 }}>
+                  {item.quoteCount} devis · {formatCents(item.revenueCents, { compact: true })} devisés
+                </Muted>
+              </View>
+
+              {item.phone ? (
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel={`Appeler ${item.displayName}`}
+                  onPress={(event) => { event.stopPropagation(); void Linking.openURL(`tel:${item.phone}`); }}
+                  style={{
+                    width: 42,
+                    height: 42,
+                    borderRadius: 21,
+                    backgroundColor: colors.accentSoft,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                  }}
+                >
+                  <Ionicons name="call" size={19} color={colors.accent} />
+                </Pressable>
+              ) : null}
+            </PressableCard>
+            </Enter>
+          )}
+        />
+      )}
+
+      {/* L'action de création vit dans l'en-tête : une barre absolue en bas
+          finissait sous la barre d'onglets flottante. */}
+
+      <ClientSheet
+        visible={creating}
+        onClose={() => setCreating(false)}
+        onCreated={(customer) => {
+          setCreating(false);
+          toast({ title: en ? 'Client added' : 'Client ajouté', description: customer.displayName });
+          void query.reload();
+        }}
+      />
+    </SafeAreaView>
+  );
+}

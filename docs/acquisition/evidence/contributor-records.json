@@ -1,0 +1,20 @@
+{
+  "caveat": "Git authorship records are not assignments, employment clearance or proof of ownership. Email addresses intentionally excluded.",
+  "authors": [
+    {
+      "name": "Codex",
+      "commits": 87,
+      "assignmentEvidence": "OWNER_TO_SUPPLY"
+    },
+    {
+      "name": "Claude",
+      "commits": 68,
+      "assignmentEvidence": "OWNER_TO_SUPPLY"
+    },
+    {
+      "name": "kammouramine-arch",
+      "commits": 2,
+      "assignmentEvidence": "OWNER_TO_SUPPLY"
+    }
+  ]
+}

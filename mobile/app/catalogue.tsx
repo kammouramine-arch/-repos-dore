@@ -1,0 +1,357 @@
+import * as React from 'react';
+import { KeyboardAvoidingView, Modal, Platform, Pressable, RefreshControl, ScrollView, View } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
+import * as Haptics from 'expo-haptics';
+import {
+  DevisiaApiError,
+  formatCents,
+  PRICE_BOOK_CATEGORIES,
+  PRICE_BOOK_CATEGORY_LABELS,
+  type PriceBookCategoryId,
+  type PriceBookItemDTO,
+} from '@devisia/shared';
+import {
+  Banner,
+  Body,
+  Button,
+  Caption,
+  Card,
+  ChoiceRow,
+  Divider,
+  EmptyState,
+  Field,
+  Ionicons,
+  ListRow,
+  LoadingState,
+  SearchField,
+  SectionHeader,
+  Title,
+} from '@/components/ui';
+import { api } from '@/lib/api';
+import { useToast } from '@/components/toast';
+import { colors, spacing } from '@/theme';
+import { mobileLocale } from '@/lib/i18n';
+import { useAuth } from '@/lib/auth';
+import { Enter } from '@/components/motion';
+
+/**
+ * Catalogue de prix, natif.
+ *
+ * L'écran « Plus » renvoyait ici vers le navigateur, qui redemandait une
+ * connexion : l'artisan se retrouvait devant un formulaire au lieu de ses
+ * prix. Le catalogue conditionne pourtant la justesse de chaque devis — c'est
+ * exactement ce qu'on veut corriger sur un chantier, entre deux
+ * interventions.
+ */
+/*
+ * Les catégories viennent du contrat partagé, plus d'une liste écrite ici :
+ * cet écran proposait « Forfait » et « Déplacement », deux valeurs absentes de
+ * la base, et l'enregistrement échouait en 422 sur le téléphone.
+ */
+const KINDS = PRICE_BOOK_CATEGORIES.map((value) => ({
+  value,
+  label: PRICE_BOOK_CATEGORY_LABELS[value],
+}));
+
+interface Draft {
+  id: string | null;
+  name: string;
+  category: PriceBookCategoryId;
+  unit: string;
+  salePrice: string;
+  vatRate: string;
+}
+
+const BLANK: Draft = {
+  id: null,
+  name: '',
+  category: 'MAIN_OEUVRE',
+  unit: 'u',
+  salePrice: '',
+  vatRate: '20',
+};
+
+export default function CatalogueScreen() {
+  const { toast } = useToast();
+  const { session } = useAuth();
+  const en = mobileLocale(session) === 'en';
+  const [items, setItems] = React.useState<PriceBookItemDTO[] | null>(null);
+  const [search, setSearch] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [draft, setDraft] = React.useState<Draft | null>(null);
+  const [saving, setSaving] = React.useState(false);
+  const [refreshing, setRefreshing] = React.useState(false);
+
+  const load = React.useCallback(async (term: string) => {
+    setError(null);
+    try {
+      setItems(await api.priceBook.list(term || undefined));
+    } catch (cause) {
+      setItems([]);
+      setError(
+        cause instanceof DevisiaApiError ? cause.message : 'Le catalogue n’a pas pu être chargé.',
+      );
+    }
+  }, []);
+
+  React.useEffect(() => {
+    const timer = setTimeout(() => void load(search), search ? 260 : 0);
+    return () => clearTimeout(timer);
+  }, [search, load]);
+
+  const refresh = React.useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await load(search);
+    } finally {
+      setRefreshing(false);
+    }
+  }, [load, search]);
+
+  async function save() {
+    if (!draft) return;
+    if (draft.name.trim().length < 2) {
+      setError('Donnez un nom à cette prestation.');
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    const payload = {
+      name: draft.name.trim(),
+      category: draft.category,
+      unit: draft.unit.trim() || 'u',
+      salePriceCents: Math.round((Number(draft.salePrice.replace(',', '.')) || 0) * 100),
+      vatRate: Number(draft.vatRate.replace(',', '.')) || 20,
+    };
+    try {
+      const existing = Boolean(draft.id);
+      if (draft.id) await api.priceBook.update(draft.id, payload);
+      else await api.priceBook.create(payload);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: existing ? 'Prestation mise à jour' : 'Prestation ajoutée', description: payload.name });
+      setDraft(null);
+      await load(search);
+    } catch (cause) {
+      setError(
+        cause instanceof DevisiaApiError ? cause.message : 'Cet article n’a pas pu être enregistré.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  async function remove(id: string) {
+    setError(null);
+    try {
+      await api.priceBook.remove(id);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: 'Prestation supprimée', tone: 'info' });
+      setDraft(null);
+      await load(search);
+    } catch (cause) {
+      setError(
+        cause instanceof DevisiaApiError ? cause.message : 'Cet article n’a pas pu être supprimé.',
+      );
+    }
+  }
+
+  return (
+    <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.surface }}>
+      <View style={{ padding: spacing.lg, gap: spacing.md }}>
+        <Enter distance={8}>
+          <SearchField
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher une prestation ou un matériau"
+          />
+        </Enter>
+        {error ? <Banner tone="danger" title={error} onDismiss={() => setError(null)} /> : null}
+      </View>
+
+      <ScrollView
+        contentContainerStyle={{ paddingBottom: 120 }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={() => void refresh()} tintColor={colors.accent} />}
+      >
+        {items === null ? <LoadingState label="Chargement de votre catalogue…" /> : null}
+
+        {items?.length === 0 ? (
+          <View style={{ padding: spacing.lg }}>
+            <EmptyState
+              icon="book-outline"
+              title={search ? 'Aucun article ne correspond' : 'Votre catalogue est vide'}
+              description={
+                search
+                  ? 'Essayez un autre mot, ou créez cette prestation.'
+                  : 'Ajoutez vos prestations courantes : DEVISERA les appliquera en priorité dans chaque devis, au lieu d’estimer.'
+              }
+              action={
+                <Button
+                  title="Ajouter une prestation"
+                  icon="add"
+                  onPress={() => setDraft({ ...BLANK, name: search.trim() })}
+                />
+              }
+            />
+          </View>
+        ) : null}
+
+        {items && items.length > 0 ? (
+          <View style={{ paddingHorizontal: spacing.lg, gap: spacing.md }}>
+            <SectionHeader title={`${items.length} article${items.length > 1 ? 's' : ''}`} />
+            <Card style={{ padding: 0, overflow: 'hidden' }}>
+              {items.map((item, index) => (
+                <ListRow
+                  key={item.id}
+                  title={item.name}
+                  subtitle={en
+                    ? `${({ MAIN_OEUVRE: 'Labour', MATERIAU: 'Material', SERVICE: 'Service', PACK: 'Package' } as const)[item.category] ?? item.category} · per ${item.unit}`
+                    : `${PRICE_BOOK_CATEGORY_LABELS[item.category] ?? item.category} · par ${item.unit}`}
+                  value={formatCents(item.salePriceCents)}
+                  last={index === items.length - 1}
+                  onPress={() =>
+                    setDraft({
+                      id: item.id,
+                      name: item.name,
+                      category: item.category,
+                      unit: item.unit,
+                      salePrice: (item.salePriceCents / 100).toFixed(2),
+                      vatRate: String(item.vatRate),
+                    })
+                  }
+                />
+              ))}
+            </Card>
+            <Caption style={{ color: colors.subtle }}>
+              {en ? 'These prices are used as a reference in every quote prepared by DEVISERA.' : 'Ces prix servent de référence à chaque devis préparé par DEVISERA.'}
+            </Caption>
+          </View>
+        ) : null}
+      </ScrollView>
+
+      {/* L'état vide porte déjà son action : deux boutons identiques à l'écran
+          ne donneraient qu'une impression de brouillon. */}
+      {items && items.length > 0 ? (
+        <View
+          style={{
+            position: 'absolute',
+            left: 0,
+            right: 0,
+            bottom: 0,
+            padding: spacing.lg,
+            paddingBottom: spacing['2xl'],
+            backgroundColor: colors.canvas,
+            borderTopWidth: 1,
+            borderTopColor: colors.line,
+          }}
+        >
+          <Button title="Nouvelle prestation" icon="add" haptic onPress={() => setDraft(BLANK)} />
+        </View>
+      ) : null}
+
+      <Modal
+        visible={draft !== null}
+        animationType="slide"
+        presentationStyle="pageSheet"
+        onRequestClose={() => setDraft(null)}
+      >
+        <SafeAreaView edges={['top', 'bottom']} style={{ flex: 1, backgroundColor: colors.canvas }}>
+          <KeyboardAvoidingView
+            style={{ flex: 1 }}
+            behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+          >
+            <View
+              style={{
+                flexDirection: 'row',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                paddingHorizontal: spacing.lg,
+                paddingVertical: spacing.md,
+              }}
+            >
+              <Title>{draft?.id ? 'Modifier' : 'Nouvelle prestation'}</Title>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel="Fermer"
+                onPress={() => setDraft(null)}
+                hitSlop={10}
+              >
+                <Ionicons name="close" size={24} color={colors.muted} />
+              </Pressable>
+            </View>
+
+            <ScrollView
+              contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg }}
+              keyboardShouldPersistTaps="handled"
+              keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+              showsVerticalScrollIndicator={false}
+            >
+              {error ? <Banner tone="danger" title={error} /> : null}
+              <Field
+                label="Nom"
+                value={draft?.name ?? ''}
+                onChangeText={(name) => setDraft((d) => (d ? { ...d, name } : d))}
+                placeholder="Main-d’œuvre plombier"
+                autoFocus={!draft?.id}
+              />
+              <View style={{ gap: spacing.sm }}>
+                <Body style={{ fontWeight: '600', fontSize: 13 }}>Catégorie</Body>
+                <ChoiceRow
+                  options={KINDS}
+                  value={draft?.category ?? null}
+                  onChange={(category) => setDraft((d) => (d ? { ...d, category } : d))}
+                />
+              </View>
+              <View style={{ flexDirection: 'row', gap: spacing.md }}>
+                <View style={{ flex: 1 }}>
+                  <Field
+                    label="Prix de vente"
+                    hint="€ HT"
+                    value={draft?.salePrice ?? ''}
+                    onChangeText={(salePrice) => setDraft((d) => (d ? { ...d, salePrice } : d))}
+                    placeholder="55.00"
+                    keyboardType="decimal-pad"
+                  />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Field
+                    label="Unité"
+                    value={draft?.unit ?? ''}
+                    onChangeText={(unit) => setDraft((d) => (d ? { ...d, unit } : d))}
+                    placeholder="h, u, m²"
+                  />
+                </View>
+              </View>
+              <Field
+                label="TVA"
+                hint="%"
+                value={draft?.vatRate ?? ''}
+                onChangeText={(vatRate) => setDraft((d) => (d ? { ...d, vatRate } : d))}
+                placeholder="20"
+                keyboardType="decimal-pad"
+              />
+
+              <Button title="Enregistrer" loading={saving} haptic onPress={() => void save()} />
+
+              {draft?.id ? (
+                <>
+                  <Divider />
+                  <Button
+                    title="Supprimer cet article"
+                    variant="ghost"
+                    icon="trash-outline"
+                    onPress={() => void remove(draft.id as string)}
+                  />
+                </>
+              ) : null}
+            </ScrollView>
+          </KeyboardAvoidingView>
+        </SafeAreaView>
+      </Modal>
+    </SafeAreaView>
+  );
+}

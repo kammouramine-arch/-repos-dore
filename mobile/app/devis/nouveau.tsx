@@ -1,0 +1,1096 @@
+import * as React from 'react';
+import {
+  ActivityIndicator,
+  Animated,
+  Image,
+  KeyboardAvoidingView,
+  Platform,
+  Pressable,
+  ScrollView,
+  TextInput,
+  View,
+} from 'react-native';
+import { useLocalSearchParams, useRouter } from 'expo-router';
+import * as Haptics from 'expo-haptics';
+import { DevisiaApiError, type CustomerDTO, type GeneratedQuoteDTO } from '@devisia/shared';
+import {
+  Amount,
+  Badge,
+  Banner,
+  Body,
+  Button,
+  Caption,
+  Card,
+  ChoiceRow,
+  Divider,
+  GrowingInput,
+  IconButton,
+  Ionicons,
+  Muted,
+  PageHeader,
+  ProgressDots,
+  SectionHeader,
+  Title,
+} from '@/components/ui';
+import { ClientPicker } from '@/components/client-picker';
+import { useToast } from '@/components/toast';
+import { Breathe, Enter, Stagger, SuccessCheck } from '@/components/motion';
+import { Logo } from '@/components/logo';
+import { ListeningRings, Waveform } from '@/components/voice-visuals';
+import { useDictation } from '@/features/voice';
+import { usePhotoCapture } from '@/features/photos';
+import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
+import { appendDictation, displayedDescription, submittedDescription } from '@/features/description-input';
+import { api } from '@/lib/api';
+import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
+import { colors, motion, radius, shadows, spacing, typography } from '@/theme';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
+export { RouteError as ErrorBoundary } from '@/components/route-error';
+
+/**
+ * Création d'un devis — l'écran qui porte la promesse du produit.
+ *
+ * Le parcours suit l'ordre dans lequel un artisan pense, et non l'ordre dans
+ * lequel le serveur a besoin des données : on décrit le chantier, on complète
+ * ce qui manque, on désigne le client, on vérifie. Chaque étape se termine par
+ * une action unique et évidente.
+ */
+type Phase = 'saisie' | 'questions' | 'generation' | 'verification';
+
+/*
+ * Étapes annoncées pendant la préparation. « Lecture des photos » ne s'affiche
+ * que si des photos ont été jointes : cocher une étape qui n'a pas eu lieu,
+ * c'est raconter du travail qui n'a pas été fait.
+ */
+function etapesPour(avecPhotos: boolean): string[] {
+  return [
+    'Analyse de votre description',
+    ...(avecPhotos ? ['Lecture de vos photos'] : []),
+    'Recherche dans votre catalogue',
+    'Rédaction des lignes',
+    'Calcul des montants',
+  ];
+}
+
+function customerName(customer: CustomerDTO): string {
+  const parts = [customer.firstName, customer.lastName].filter(Boolean).join(' ').trim();
+  return customer.companyName?.trim() || parts || 'Client';
+}
+
+function seconds(ms: number): string {
+  const total = Math.floor(ms / 1000);
+  return `${String(Math.floor(total / 60)).padStart(2, '0')}:${String(total % 60).padStart(2, '0')}`;
+}
+
+/** Les montants et quantités se modifient : le cadre le dit sans l'écrire. */
+const cellInput = {
+  color: colors.ink,
+  paddingVertical: 7,
+  paddingHorizontal: 10,
+  borderWidth: 1,
+  borderColor: colors.line,
+  borderRadius: radius.sm,
+  backgroundColor: colors.canvas,
+} as const;
+
+/** Un seul bandeau d'erreur pour toutes les étapes de la création. */
+function ErrorBanner({
+  error,
+  retry,
+  onUpgrade,
+  onDismiss,
+}: {
+  error: string | null;
+  retry: (() => void) | null;
+  onUpgrade?: (() => void) | null;
+  onDismiss: () => void;
+}) {
+  if (!error) return null;
+  return (
+    <Banner
+      tone="danger"
+      title={error}
+      description={
+        retry ? 'Votre description et vos photos sont conservées : vous pouvez relancer.' : undefined
+      }
+      onDismiss={onDismiss}
+      action={
+        onUpgrade ? (
+          <Button title="Voir les formules" variant="secondary" icon="arrow-up-circle-outline" onPress={onUpgrade} />
+        ) : retry ? (
+          <Button title="Réessayer" variant="secondary" icon="refresh" onPress={retry} />
+        ) : undefined
+      }
+    />
+  );
+}
+
+export default function NouveauDevisScreen() {
+  const router = useRouter();
+  const locale = useMobileLocale();
+  const { customerId } = useLocalSearchParams<{ customerId?: string }>();
+  const { toast } = useToast();
+
+  const [phase, setPhase] = React.useState<Phase>('saisie');
+  const [description, setDescription] = React.useState('');
+  const [error, setError] = React.useState<string | null>(null);
+  const [limitReached, setLimitReached] = React.useState(false);
+  // Une panne réseau se rejoue ; une description trop courte, non. Le bandeau
+  // ne propose « Réessayer » que quand réessayer a un sens, et il rejoue
+  // exactement l'opération qui a échoué.
+  const [retry, setRetry] = React.useState<(() => void) | null>(null);
+  const [step, setStep] = React.useState(0);
+  const requestVersion = React.useRef(0);
+  const generating = React.useRef(false);
+  React.useEffect(() => () => { requestVersion.current += 1; }, []);
+
+  const [draft, setDraft] = React.useState<GeneratedQuoteDTO | null>(null);
+  const [lines, setLines] = React.useState<GeneratedQuoteDTO['lines']>([]);
+  const [title, setTitle] = React.useState('');
+  const [customer, setCustomer] = React.useState<CustomerDTO | null>(null);
+  React.useEffect(() => {
+    if (!customerId) return;
+    let active = true;
+    void api.customers.get(customerId).then(result => {
+      if (active) setCustomer(result.customer);
+    }).catch(() => { if (active) setError('Le client n’a pas pu être chargé. Vous pourrez le sélectionner avant l’enregistrement.'); });
+    return () => { active = false; };
+  }, [customerId]);
+  const [pickerOpen, setPickerOpen] = React.useState(false);
+  const [saving, setSaving] = React.useState(false);
+
+  const [questions, setQuestions] = React.useState<MissingQuestion[]>([]);
+  const [answers, setAnswers] = React.useState<Record<string, string>>({});
+
+  const dictation = useDictation(
+    React.useCallback((text: string) => {
+      setDescription((current) => appendDictation(current, text));
+    }, []),
+  );
+  const photos = usePhotoCapture();
+  const etapes = React.useMemo(() => etapesPour(photos.fileIds.length > 0), [photos.fileIds.length]);
+
+  // Progression de la génération : une barre qui avance vaut mieux qu'un écran figé.
+  React.useEffect(() => {
+    if (phase !== 'generation') return undefined;
+    const timer = setInterval(() => setStep((c) => Math.min(c + 1, etapes.length - 1)), 850);
+    return () => clearInterval(timer);
+  }, [phase, etapes.length]);
+
+  // Une fois toutes les étapes cochées, l'écran ne doit pas se figer : on a
+  // mesuré des préparations de quatre-vingt-dix secondes. Le compteur dit que
+  // le travail continue, et ouvre une sortie plutôt qu'une attente aveugle.
+  // Le repère de départ vit dans une référence, et l'état ne sert qu'à
+  // provoquer un rendu par seconde : poser l'état depuis le corps d'un effet
+  // déclencherait une cascade de rendus.
+  const departGeneration = React.useRef(0);
+  const [, tic] = React.useState(0);
+  React.useEffect(() => {
+    if (phase !== 'generation') return undefined;
+    departGeneration.current = Date.now();
+    const timer = setInterval(() => tic((n) => n + 1), 1000);
+    return () => clearInterval(timer);
+  }, [phase]);
+  const attente =
+    phase === 'generation' && departGeneration.current
+      ? Math.floor((Date.now() - departGeneration.current) / 1000)
+      : 0;
+
+  const pulse = React.useMemo(() => new Animated.Value(1), []);
+  React.useEffect(() => {
+    if (dictation.status !== 'ecoute') {
+      pulse.setValue(1);
+      return undefined;
+    }
+    const loop = Animated.loop(
+      Animated.sequence([
+        Animated.timing(pulse, { toValue: 1.05, duration: 720, useNativeDriver: true }),
+        Animated.timing(pulse, { toValue: 1, duration: 720, useNativeDriver: true }),
+      ]),
+    );
+    loop.start();
+    return () => loop.stop();
+  }, [dictation.status, pulse]);
+
+  const listening = dictation.status === 'ecoute';
+  // Halo de marque derrière le micro : s'allume à l'écoute, s'éteint à l'arrêt.
+  const glow = React.useMemo(() => new Animated.Value(0), []);
+  React.useEffect(() => {
+    const animation = Animated.timing(glow, { toValue: listening ? 1 : 0, duration: listening ? 320 : 220, useNativeDriver: true });
+    animation.start();
+    return () => animation.stop();
+  }, [glow, listening]);
+  const busy = dictation.status === 'demande' || dictation.status === 'traitement';
+  const composed = submittedDescription(description, dictation.partial);
+
+  async function generate(text: string) {
+    if (generating.current) return;
+    generating.current = true;
+    const version = ++requestVersion.current;
+    setError(null);
+    setLimitReached(false);
+    setRetry(null);
+    setStep(0);
+    setPhase('generation');
+    try {
+      const result = await api.ai.generateQuote({
+        description: text.trim(),
+        fileIds: photos.fileIds,
+      });
+      if (version !== requestVersion.current) return;
+      setDraft(result);
+      setLines(result.lines);
+      setTitle(result.title);
+      setPhase('verification');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (cause) {
+      if (version !== requestVersion.current) return;
+      setRetry(() => () => void generate(text));
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
+      setError(
+        cause instanceof DevisiaApiError
+          ? cause.message
+          : 'La préparation du devis n’a pas abouti.',
+      );
+      // On revient là d'où l'artisan est parti : ses réponses restent saisies.
+      setPhase(questions.length > 0 ? 'questions' : 'saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
+    }
+  }
+
+  /** Première passe : on demande d'abord ce qui manque, avant de faire attendre. */
+  async function prepare() {
+    if (generating.current) return;
+    if (composed.trim().length < 12) {
+      setRetry(null);
+      setError('Décrivez le chantier en quelques mots avant de continuer.');
+      return;
+    }
+    if (photos.uploading) {
+      setRetry(null);
+      setError('Une photo est en cours d’envoi. Encore un instant.');
+      return;
+    }
+    generating.current = true;
+    const version = ++requestVersion.current;
+    setError(null);
+    setLimitReached(false);
+    setRetry(null);
+    setStep(0);
+    setPhase('generation');
+    try {
+      const first = await api.ai.generateQuote({
+        description: composed.trim(),
+        fileIds: photos.fileIds,
+      });
+      if (version !== requestVersion.current) return;
+      const missing = toQuestions(first, locale);
+      if (missing.length > 0) {
+        setDraft(first);
+        setQuestions(missing);
+        setAnswers({});
+        setPhase('questions');
+        return;
+      }
+      setDraft(first);
+      setLines(first.lines);
+      setTitle(first.title);
+      setPhase('verification');
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+    } catch (cause) {
+      if (version !== requestVersion.current) return;
+      setRetry(() => () => void prepare());
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
+      setError(
+        cause instanceof DevisiaApiError
+          ? cause.message
+          : 'La préparation du devis n’a pas abouti.',
+      );
+      setPhase('saisie');
+    } finally {
+      if (version === requestVersion.current) generating.current = false;
+    }
+  }
+
+  async function save() {
+    if (!draft) return;
+    if (!customer) {
+      setPickerOpen(true);
+      return;
+    }
+    setSaving(true);
+    setError(null);
+    setLimitReached(false);
+    try {
+      const quote = await api.quotes.create({
+        customerId: customer.id,
+        title: title.trim() || draft.title,
+        // Une seule source par notion : l'objet est le titre, le détail est
+        // dans les lignes, le résumé n'existe que s'il apporte autre chose.
+        summary: draft.summary.trim() || null,
+        aiGenerated: true,
+        aiConfidence: draft.confidence,
+        aiWarnings: draft.warnings,
+        aiQuestions: draft.questions,
+        items: lines.map((line) => ({
+          kind: line.kind,
+          label: line.label,
+          description: line.description,
+          unit: line.unit,
+          quantity: line.quantity,
+          unitPriceCents: line.unitPriceCents,
+          discountRate: line.discountRate,
+          vatRate: line.vatRate,
+          priceBookItemId: line.priceBookItemId,
+        })),
+      });
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+      toast({ title: 'Devis enregistré', description: 'Vous pouvez le relire puis l’envoyer.' });
+      router.replace(`/devis/${quote.id}`);
+      void recordSuccessfulQuoteAndMaybeAskForReview(locale);
+    } catch (cause) {
+      setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
+      setError(
+        cause instanceof DevisiaApiError ? cause.message : 'L’enregistrement n’a pas abouti.',
+      );
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  function patchLine(index: number, next: Partial<GeneratedQuoteDTO['lines'][number]>) {
+    setLines((current) => current.map((line, i) => (i === index ? { ...line, ...next } : line)));
+  }
+
+  const totals = React.useMemo(() => {
+    const subtotal = lines.reduce(
+      (sum, line) => sum + Math.round(line.unitPriceCents * line.quantity * (1 - line.discountRate / 100)),
+      0,
+    );
+    const vat = lines.reduce(
+      (sum, line) =>
+        sum +
+        Math.round(
+          line.unitPriceCents * line.quantity * (1 - line.discountRate / 100) * (line.vatRate / 100),
+        ),
+      0,
+    );
+    return { subtotal, vat, total: subtotal + vat };
+  }, [lines]);
+
+  /* ---------------------------------------------------------------- Génération */
+  if (phase === 'generation') {
+    return (
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: colors.accentDeep,
+          alignItems: 'center',
+          justifyContent: 'center',
+          padding: spacing.xl,
+          gap: spacing.xl,
+        }}
+      >
+        <View
+          style={{
+            position: 'absolute',
+            width: 300,
+            height: 300,
+            borderRadius: 150,
+            backgroundColor: colors.accent,
+            opacity: 0.22,
+            top: -130,
+            right: -120,
+          }}
+        />
+        <View
+          style={{
+            width: 78,
+            height: 78,
+            borderRadius: radius.full,
+            backgroundColor: 'rgba(255,255,255,0.13)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.18)',
+            alignItems: 'center',
+            justifyContent: 'center',
+          }}
+        >
+          <Breathe min={1} max={1.08} duration={1300}>
+            <Ionicons name="sparkles" size={32} color={colors.white} />
+          </Breathe>
+        </View>
+        <Enter distance={8}>
+        <View style={{ alignItems: 'center', gap: 6 }}>
+          <Title style={{ color: colors.white, textAlign: 'center' }}>Votre devis prend forme</Title>
+          <Muted style={{ color: 'rgba(255,255,255,0.68)', textAlign: 'center' }}>
+            DEVISERA analyse, chiffre et met en page.
+          </Muted>
+        </View>
+        </Enter>
+        <View
+          style={{
+            gap: spacing.md,
+            alignSelf: 'stretch',
+            marginHorizontal: spacing.sm,
+            padding: spacing.xl,
+            borderRadius: radius.xl,
+            backgroundColor: 'rgba(255,255,255,0.08)',
+            borderWidth: 1,
+            borderColor: 'rgba(255,255,255,0.12)',
+          }}
+        >
+          {etapes.map((label, index) => (
+            <View key={label} style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
+              {index < step ? (
+                <SuccessCheck size={20} color="#78E4B6" />
+              ) : index === step ? (
+                <ActivityIndicator size="small" color={colors.white} />
+              ) : (
+                <View
+                  style={{
+                    width: 20,
+                    height: 20,
+                    borderRadius: 10,
+                    borderWidth: 1,
+                    borderColor: 'rgba(255,255,255,0.25)',
+                  }}
+                />
+              )}
+              <Body style={{ color: index <= step ? colors.white : 'rgba(255,255,255,0.42)' }}>{label}</Body>
+            </View>
+          ))}
+        </View>
+
+        {attente >= 8 ? (
+          <View style={{ alignItems: 'center', gap: spacing.md, paddingHorizontal: spacing.lg }}>
+            <Caption style={{ color: 'rgba(255,255,255,0.55)' }}>{seconds(attente * 1000)}</Caption>
+            <Muted style={{ textAlign: 'center', color: 'rgba(255,255,255,0.7)' }}>
+              {attente >= 30
+                ? 'C’est plus long que d’habitude. Vous pouvez patienter encore, ou revenir à votre description — rien n’est perdu.'
+                : 'DEVISERA affine les quantités et les prix. Encore un instant.'}
+            </Muted>
+            {attente >= 30 ? (
+              <Button
+                title="Revenir à ma description"
+                variant="secondary"
+                onPress={() => {
+                  requestVersion.current += 1;
+                  generating.current = false;
+                  setPhase(questions.length > 0 ? 'questions' : 'saisie');
+                  setError(null);
+                  setRetry(() => () => void prepare());
+                }}
+              />
+            ) : null}
+          </View>
+        ) : null}
+      </View>
+    );
+  }
+
+  /* ----------------------------------------------------- Informations manquantes */
+  if (phase === 'questions') {
+    const answered = questions.filter((q) => answers[q.id]?.trim()).length;
+    return (
+      <KeyboardAvoidingView
+        style={{ flex: 1, backgroundColor: colors.surface }}
+        behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+      >
+        <ScrollView
+          contentContainerStyle={{ padding: spacing.lg, gap: spacing.xl, paddingBottom: spacing['4xl'] }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+        >
+          <View style={{ gap: spacing.sm }}>
+            <ProgressDots total={questions.length} current={Math.min(answered, questions.length - 1)} />
+            <PageHeader
+              eyebrow="Derniers détails"
+              title={missingLabel(questions.length, locale)}
+              subtitle="Une précision de votre part vaut mieux qu’une estimation de ma part."
+            />
+          </View>
+
+          {questions.map((question) => (
+            <Card key={question.id} style={{ gap: spacing.md }}>
+              <Body style={{ fontWeight: '600' }}>{question.prompt}</Body>
+              {question.choices ? (
+                <ChoiceRow
+                  options={question.choices}
+                  value={answers[question.id] ?? null}
+                  onChange={(value) => setAnswers((a) => ({ ...a, [question.id]: value }))}
+                />
+              ) : null}
+              {question.choices && !answers[question.id] ? null : (
+              <TextInput
+                value={answers[question.id] ?? ''}
+                onChangeText={(value) => setAnswers((a) => ({ ...a, [question.id]: value }))}
+                placeholder={localizeText(locale, question.placeholder ?? 'Précisez si besoin')}
+                placeholderTextColor={colors.subtle}
+                accessibilityLabel={localizeText(locale, question.prompt)}
+                multiline={question.kind !== 'duree'}
+                style={[
+                  typography.body,
+                  {
+                    color: colors.ink,
+                    minHeight: question.kind === 'duree' ? 46 : 72,
+                    borderWidth: 1,
+                    borderColor: colors.line,
+                    borderRadius: radius.md,
+                    padding: spacing.md,
+                    textAlignVertical: 'top',
+                  },
+                ]}
+              />
+              )}
+            </Card>
+          ))}
+
+          <ErrorBanner
+            error={error}
+            retry={retry}
+            onUpgrade={limitReached ? () => router.push('/abonnement') : null}
+            onDismiss={() => { setError(null); setLimitReached(false); }}
+          />
+
+          <View style={{ gap: spacing.sm }}>
+            <Button
+              title="Préparer le devis"
+              icon="sparkles"
+              haptic
+              onPress={() => void generate(applyAnswers(composed, questions, answers, locale))}
+            />
+            <Button
+              title="Préparer sans ces précisions"
+              variant="ghost"
+              onPress={() => void generate(composed)}
+            />
+          </View>
+          <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+            Sans réponse, j’estimerai — et je le signalerai sur le devis.
+          </Caption>
+        </ScrollView>
+      </KeyboardAvoidingView>
+    );
+  }
+
+  /* -------------------------------------------------------------- Vérification */
+  if (phase === 'verification' && draft) {
+    return (
+      <>
+        <ScrollView
+          style={{ flex: 1, backgroundColor: colors.surface }}
+          contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: 160 }}
+          keyboardShouldPersistTaps="handled"
+          keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+          showsVerticalScrollIndicator={false}
+          scrollEventThrottle={16}
+          decelerationRate="fast"
+        >
+          <Enter distance={12}>
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: spacing.sm }}>
+              <SuccessCheck size={22} color={colors.success} delay={120} />
+              <Body style={{ color: colors.success, fontWeight: '600' }}>{localizeText(locale, 'Votre devis est prêt')}</Body>
+            </View>
+            <PageHeader
+              eyebrow="Votre devis"
+              title="Vérifiez les détails"
+              subtitle="Relisez, ajustez puis enregistrez. Rien n’est envoyé automatiquement."
+            />
+          </Enter>
+
+          {error ? <Banner tone="danger" title={error} /> : null}
+
+          <Card style={{ gap: spacing.md }}>
+            <SectionHeader title="Objet" />
+            {/* Multiligne : un objet de devis dépasse souvent la largeur d'un
+                iPhone, et un champ à une seule ligne le rognait. */}
+            <GrowingInput
+              value={title}
+              onChangeText={setTitle}
+              accessibilityLabel={localizeText(locale, 'Objet du devis')}
+              placeholder={localizeText(locale, 'Remplacement du siphon')}
+              placeholderTextColor={colors.subtle}
+              minHeight={30}
+              style={[typography.heading, { color: colors.ink, width: '100%' }]}
+            />
+            {draft.summary ? <Muted>{draft.summary}</Muted> : null}
+          </Card>
+
+          <Card style={{ gap: spacing.md }}>
+            <SectionHeader title="Client" />
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={localizeText(locale, customer ? 'Changer de client' : 'Choisir le client')}
+              onPress={() => setPickerOpen(true)}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+                opacity: pressed ? 0.6 : 1,
+              })}
+            >
+              <View
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: radius.full,
+                  backgroundColor: customer ? colors.accentSoft : colors.surface2,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons
+                  name={customer ? 'person' : 'person-add-outline'}
+                  size={19}
+                  color={customer ? colors.accent : colors.muted}
+                />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Body style={{ fontWeight: '600' }}>
+                  {customer ? customerName(customer) : 'Choisir ou créer le client'}
+                </Body>
+                <Muted style={{ fontSize: 13 }}>
+                  {customer
+                    ? customer.email ?? customer.phone ?? 'Fiche client'
+                    : 'Nécessaire pour enregistrer'}
+                </Muted>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={colors.subtle} />
+            </Pressable>
+          </Card>
+
+          <Card style={{ gap: spacing.md, padding: 0, overflow: 'hidden' }}>
+            <View style={{ paddingHorizontal: spacing.lg, paddingTop: spacing.lg }}>
+              <SectionHeader
+                title="Détail"
+                action={{
+                  label: '+ Ligne',
+                  onPress: () => {
+                    void Haptics.selectionAsync();
+                    setLines((current) => [
+                      ...current,
+                      {
+                        kind: 'MAIN_OEUVRE',
+                        label: 'Nouvelle ligne',
+                        description: null,
+                        unit: 'u',
+                        quantity: 1,
+                        unitPriceCents: 0,
+                        discountRate: 0,
+                        vatRate: current[0]?.vatRate ?? 20,
+                        priceBookItemId: null,
+                        fromCatalog: false,
+                      },
+                    ]);
+                  },
+                }}
+              />
+            </View>
+
+            {lines.map((line, index) => (
+              <View key={`${line.label}-${index}`} style={{ gap: spacing.sm, padding: spacing.lg }}>
+                {index > 0 ? <Divider /> : null}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.sm }}>
+                  <GrowingInput
+                    value={line.label}
+                    onChangeText={(label) => patchLine(index, { label })}
+                    accessibilityLabel={localizeText(locale, `Libellé de la ligne ${index + 1}`)}
+                    minHeight={22}
+                    style={[
+                      typography.body,
+                      { flex: 1, minWidth: 0, fontWeight: '600', color: colors.ink },
+                    ]}
+                  />
+                  <IconButton
+                    icon="trash-outline"
+                    label={`Supprimer la ligne ${index + 1}`}
+                    tone="danger"
+                    size={17}
+                    onPress={() => setLines((c) => c.filter((_, i) => i !== index))}
+                  />
+                </View>
+                {/* minWidth: 0 sur les colonnes souples : sans lui, la largeur
+                    intrinsèque des champs pousse le total hors de la carte. */}
+                <View style={{ flexDirection: 'row', alignItems: 'flex-end', gap: spacing.sm }}>
+                  <View style={{ flex: 1, minWidth: 0, gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Quantité
+                    </Caption>
+                    <TextInput
+                      value={String(line.quantity)}
+                      onChangeText={(value) =>
+                        patchLine(index, { quantity: Number(value.replace(',', '.')) || 0 })
+                      }
+                      keyboardType="decimal-pad"
+                      accessibilityLabel={localizeText(locale, `Quantité de la ligne ${index + 1}`)}
+                      style={[typography.body, cellInput]}
+                    />
+                  </View>
+                  <View style={{ flex: 1.2, minWidth: 0, gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Prix unitaire
+                    </Caption>
+                    <TextInput
+                      value={(line.unitPriceCents / 100).toFixed(2)}
+                      onChangeText={(value) =>
+                        patchLine(index, {
+                          unitPriceCents: Math.round((Number(value.replace(',', '.')) || 0) * 100),
+                        })
+                      }
+                      keyboardType="decimal-pad"
+                      accessibilityLabel={localizeText(locale, `Prix unitaire de la ligne ${index + 1}`)}
+                      style={[typography.body, cellInput]}
+                    />
+                  </View>
+                  <View style={{ flex: 1, minWidth: 0, alignItems: 'flex-end', gap: 4 }}>
+                    <Caption style={{ color: colors.subtle }} upper>
+                      Total
+                    </Caption>
+                    <View style={{ paddingVertical: 8 }}>
+                      <Amount cents={Math.round(line.unitPriceCents * line.quantity)} />
+                    </View>
+                  </View>
+                </View>
+                {line.fromCatalog ? <Badge label="Votre catalogue" tone="accent" /> : null}
+              </View>
+            ))}
+          </Card>
+
+          <Card style={{ gap: spacing.sm }}>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Muted>Total HT</Muted>
+              <Amount cents={totals.subtotal} tone="muted" />
+            </View>
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between' }}>
+              <Muted>TVA</Muted>
+              <Amount cents={totals.vat} tone="muted" />
+            </View>
+            <Divider />
+            <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+              <Body style={{ fontWeight: '600' }}>Total TTC</Body>
+              <Amount cents={totals.total} size="metric" />
+            </View>
+          </Card>
+
+          {draft.assumptions.length > 0 ? (
+            <Banner
+              tone="info"
+              title="J’ai estimé, à confirmer"
+              description={draft.assumptions.join('\n')}
+            />
+          ) : null}
+        </ScrollView>
+
+        <View
+          style={[
+            {
+              position: 'absolute',
+              left: 0,
+              right: 0,
+              bottom: 0,
+              padding: spacing.lg,
+              paddingBottom: spacing['2xl'],
+              backgroundColor: colors.canvas,
+              borderTopLeftRadius: radius.xl,
+              borderTopRightRadius: radius.xl,
+            },
+            shadows.floating as object,
+          ]}
+        >
+          <Button
+            title={customer ? 'Enregistrer le devis' : 'Choisir le client'}
+            icon={customer ? 'checkmark' : 'person-add-outline'}
+            loading={saving}
+            haptic
+            onPress={() => void save()}
+          />
+        </View>
+
+        <ClientPicker
+          visible={pickerOpen}
+          onClose={() => setPickerOpen(false)}
+          onSelect={(next) => {
+            setCustomer(next);
+            setPickerOpen(false);
+          }}
+        />
+      </>
+    );
+  }
+
+  /* -------------------------------------------------------------------- Saisie */
+  return (
+    <KeyboardAvoidingView
+      style={{ flex: 1, backgroundColor: colors.surface }}
+      behavior={Platform.OS === 'ios' ? 'padding' : undefined}
+    >
+      <ScrollView
+        contentContainerStyle={{ padding: spacing.lg, gap: spacing.lg, paddingBottom: spacing['4xl'] }}
+        keyboardShouldPersistTaps="handled"
+        keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
+        showsVerticalScrollIndicator={false}
+        scrollEventThrottle={16}
+        decelerationRate="fast"
+      >
+        {/* Arrivée en cascade après le « + » : marque, titre, consigne, puis les
+            moyens de saisie. Environ 600 ms au total, une seule fois. */}
+        <Stagger step={85} initial={30} distance={10}>
+        <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+          <View style={{ width: 34, height: 34, borderRadius: 11, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+            <Logo size={20} showName={false} />
+          </View>
+          <Caption upper style={{ color: colors.accent }}>Nouveau devis</Caption>
+        </View>
+        <PageHeader
+          title="Décrivez le chantier"
+          subtitle="Dictez naturellement. DEVISERA transforme vos mots en lignes chiffrées."
+        />
+        </Stagger>
+
+        <ErrorBanner
+          error={error}
+          retry={retry}
+          onUpgrade={limitReached ? () => router.push('/abonnement') : null}
+          onDismiss={() => { setError(null); setLimitReached(false); }}
+        />
+        {dictation.error ? (
+          <Banner
+            tone="warning"
+            title={dictation.error}
+            onDismiss={dictation.dismissError}
+          />
+        ) : null}
+        {photos.permissionNotice ? (
+          <Banner
+            tone="warning"
+            title={photos.permissionNotice}
+            onDismiss={photos.dismissNotice}
+          />
+        ) : null}
+
+        <Enter delay={200} distance={10}>
+        <Card style={{ padding: 0, overflow: 'hidden', borderColor: colors.accentBorder }}>
+          <TextInput
+            // Pendant la frappe, la valeur est exactement ce que l'artisan a
+            // tapé : espaces, retours, ponctuation. Un `.trim()` ici avalait
+            // chaque espace final au fur et à mesure. Le texte n'est
+            // normalisé qu'à l'envoi. Pendant la dictée (champ verrouillé),
+            // on montre le texte et le fragment reconnu.
+            value={displayedDescription(description, dictation.partial, listening)}
+            onChangeText={(text) => {
+              if (!listening) setDescription(text);
+            }}
+            editable={!listening}
+            multiline
+            maxLength={8000}
+            accessibilityLabel={localizeText(locale, 'Description du chantier')}
+            placeholder={localizeText(locale, 'Le client a une fuite sous l’évier. Remplacer le siphon, vérifier les raccordements, environ une heure sur place.')}
+            placeholderTextColor={colors.subtle}
+            style={[
+              typography.body,
+              { color: colors.ink, minHeight: 168, padding: spacing.lg, textAlignVertical: 'top' },
+              Platform.OS === 'web' ? ({ outlineStyle: 'none' } as object) : null,
+            ]}
+          />
+          <View
+            style={{
+              flexDirection: 'row',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              paddingHorizontal: spacing.lg,
+              paddingBottom: spacing.md,
+            }}
+          >
+            {listening ? (
+              <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: colors.danger }} />
+                <Caption style={{ color: colors.danger }}>{seconds(dictation.elapsedMs)}</Caption>
+              </View>
+            ) : (
+              <Caption style={{ color: colors.subtle }}>
+              {dictation.onDevice ? 'Dictée protégée sur l’appareil' : ''}
+              </Caption>
+            )}
+            <Caption style={{ color: colors.subtle }}>{displayedDescription(description, dictation.partial, listening).length} / 8000</Caption>
+          </View>
+        </Card>
+        </Enter>
+
+        <Enter delay={300} distance={12}>
+        <View style={{ alignItems: 'center', gap: spacing.md, paddingVertical: spacing.sm }}>
+          <View style={{ width: 120, height: 120, alignItems: 'center', justifyContent: 'center' }}>
+            <Animated.View
+              pointerEvents="none"
+              style={{
+                position: 'absolute',
+                width: 120,
+                height: 120,
+                borderRadius: 60,
+                backgroundColor: colors.accentGlow,
+                opacity: glow,
+                transform: [{ scale: glow.interpolate({ inputRange: [0, 1], outputRange: [0.8, 1] }) }],
+              }}
+            />
+            <ListeningRings size={86} active={listening} />
+            <Animated.View style={{ transform: [{ scale: pulse }] }}>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={localizeText(locale, listening ? 'Arrêter la dictée' : 'Dicter la description')}
+                accessibilityState={{ disabled: !dictation.supported || busy }}
+                disabled={!dictation.supported || busy}
+                onPress={() => {
+                  void Haptics.impactAsync(listening ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
+                  if (listening) dictation.stop(); else void dictation.start();
+                }}
+                style={({ pressed }) => [
+                  {
+                    width: 86,
+                    height: 86,
+                    borderRadius: radius.full,
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    backgroundColor: listening ? colors.accentHover : colors.accent,
+                    borderWidth: 6,
+                    borderColor: colors.canvas,
+                    opacity: !dictation.supported ? 0.4 : pressed ? 0.9 : 1,
+                    transform: [{ scale: pressed ? 0.95 : 1 }],
+                  },
+                  (listening ? shadows.glow : shadows.floating) as object,
+                ]}
+              >
+                {busy ? (
+                  <ActivityIndicator color={colors.white} />
+                ) : listening ? (
+                  <View style={{ width: 26, height: 26, borderRadius: 7, backgroundColor: colors.white }} />
+                ) : (
+                  <Ionicons name="mic" size={34} color={colors.white} />
+                )}
+              </Pressable>
+            </Animated.View>
+          </View>
+          <Waveform active={listening} />
+          <Enter key={listening ? 'on' : busy ? 'busy' : 'off'} distance={4} duration={motion.quick}>
+          <Body style={{ color: listening ? colors.accent : colors.muted, fontWeight: listening ? '600' : '400' }}>
+            {!dictation.supported
+              ? 'Dictée indisponible ici — écrivez la description'
+              : listening
+                ? 'Je vous écoute — appuyez pour arrêter'
+                : busy
+                  ? 'Un instant…'
+                  : 'Appuyez et décrivez le chantier'}
+          </Body>
+          </Enter>
+        </View>
+        </Enter>
+
+        {photos.photos.length > 0 ? (
+          <View style={{ gap: spacing.sm }}>
+            <SectionHeader title={`Photos (${photos.photos.length}/6)`} />
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: spacing.md }}>
+              {photos.photos.map((photo) => (
+                <View key={photo.localId} style={{ width: 104, gap: 6 }}>
+                  <View
+                    style={{
+                      width: 104,
+                      height: 104,
+                      borderRadius: radius.lg,
+                      overflow: 'hidden',
+                      backgroundColor: colors.surface2,
+                    }}
+                  >
+                    <Image source={{ uri: photo.uri }} style={{ width: '100%', height: '100%' }} />
+                    {photo.status !== 'pret' ? (
+                      <View
+                        style={{
+                          ...StyleSheetAbsolute,
+                          backgroundColor: 'rgba(10,14,20,0.45)',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                        }}
+                      >
+                        {photo.status === 'envoi' ? (
+                          <ActivityIndicator color={colors.white} />
+                        ) : (
+                          <Ionicons name="alert-circle" size={26} color={colors.white} />
+                        )}
+                      </View>
+                    ) : null}
+                    <View style={{ position: 'absolute', top: 2, right: 2 }}>
+                      <IconButton
+                        icon="close-circle"
+                        label="Retirer cette photo"
+                        size={20}
+                        onPress={() => photos.remove(photo.localId)}
+                      />
+                    </View>
+                  </View>
+                  {photo.status === 'echec' ? (
+                    <Pressable
+                      accessibilityRole="button"
+                      onPress={() => photos.retry(photo.localId)}
+                      hitSlop={6}
+                    >
+                      <Caption style={{ color: colors.accent }}>Renvoyer</Caption>
+                    </Pressable>
+                  ) : null}
+                </View>
+              ))}
+            </ScrollView>
+            {photos.failed.length > 0 ? (
+              <Muted style={{ fontSize: 13 }}>{photos.failed[0].error}</Muted>
+            ) : null}
+          </View>
+        ) : null}
+
+        <Enter delay={390} distance={12}>
+        <View style={{ flexDirection: 'row', gap: spacing.md }}>
+          <View style={{ flex: 1 }}>
+            <Button
+              title="Photo"
+              variant="secondary"
+              icon="camera-outline"
+              disabled={!photos.canAdd}
+              onPress={() => void photos.takePhoto()}
+            />
+          </View>
+          <View style={{ flex: 1 }}>
+            <Button
+              title="Galerie"
+              variant="secondary"
+              icon="images-outline"
+              disabled={!photos.canAdd}
+              onPress={() => void photos.pickPhotos()}
+            />
+          </View>
+        </View>
+        </Enter>
+
+        <Enter delay={470} distance={12}>
+        <Button
+          title="Préparer le devis"
+          icon="sparkles"
+          haptic
+          loading={photos.uploading}
+          onPress={() => void prepare()}
+        />
+        <Caption style={{ color: colors.subtle, textAlign: 'center', marginTop: spacing.md }}>
+          Vous vérifierez et modifierez le devis avant tout envoi.
+        </Caption>
+        </Enter>
+      </ScrollView>
+    </KeyboardAvoidingView>
+  );
+}
+
+/** Recouvrement d'une vignette — extrait pour éviter un objet recréé à chaque rendu. */
+const StyleSheetAbsolute = {
+  position: 'absolute' as const,
+  top: 0,
+  left: 0,
+  right: 0,
+  bottom: 0,
+};
