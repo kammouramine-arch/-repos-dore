@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { RefreshControl, ScrollView, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { Stagger } from '@/components/motion';
+import { Enter, Stagger } from '@/components/motion';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { DevisiaApiError, QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
 import {
@@ -118,7 +118,9 @@ export default function AnalytiqueScreen() {
           />
         }
       >
-        <ChoiceRow options={PERIODS} value={period} onChange={setPeriod} />
+        <Enter distance={8}>
+          <ChoiceRow options={PERIODS} value={period} onChange={setPeriod} />
+        </Enter>
 
         {noActivity ? (
           <EmptyState

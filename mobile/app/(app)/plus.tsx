@@ -41,8 +41,12 @@ export default function PlusScreen() {
   const name = fullName || business || (en ? 'Your workspace' : 'Votre atelier');
   const initial = (fullName || business || session?.user.email || 'D').trim().charAt(0).toUpperCase();
 
+  // « Pro · Essentiel le 11/09 » seulement quand Apple a signé la préférence.
+  const pendingLabel = subscription?.pendingPlan && subscription.pendingPlan !== subscription.plan
+    ? ` · ${PLANS[subscription.pendingPlan].name}${subscription.pendingAt ? ` ${en ? 'on' : 'le'} ${new Date(subscription.pendingAt).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: '2-digit', month: '2-digit' })}` : ''}`
+    : '';
   const planLabel = subscription
-    ? `${PLANS[subscription.plan].name}${access.inTrial ? ` · ${en ? 'trial' : 'essai'}` : subscription.status === 'active' ? '' : subscription.status === 'incomplete' ? ` · ${en ? 'to activate' : 'à activer'}` : ''}`
+    ? `${PLANS[subscription.plan].name}${pendingLabel || (access.inTrial ? ` · ${en ? 'trial' : 'essai'}` : subscription.status === 'active' ? '' : subscription.status === 'incomplete' ? ` · ${en ? 'to activate' : 'à activer'}` : '')}`
     : (en ? 'No plan yet' : 'Aucune formule');
 
   const contact = () => {

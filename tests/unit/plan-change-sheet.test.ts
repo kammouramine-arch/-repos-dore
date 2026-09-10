@@ -30,6 +30,20 @@ describe('Apple downgrade confirmation', () => {
     expect(paywall).toContain("const pendingPlan = appleActive ? subscription.pendingPlan ?? null : null;");
     expect(paywall).not.toMatch(/plan:\s*pendingPlan/);
   });
+  it('never short-circuits a plan change on an existing entitlement, and keeps the customer on the screen when opened from Mon espace', () => {
+    const purchases = readFileSync('mobile/src/lib/apple-purchases.ts', 'utf8');
+    expect(purchases).toContain("if (existing.some(purchase => purchase.productId === productId)) return 'reconciled' as const;");
+    expect(purchases).not.toMatch(/if \(existing\.length\) \{[\s\S]*return 'purchased'/);
+    expect(paywall).toContain('const manage = router.canGoBack();');
+    expect(paywall).toContain("if (appleActive && !wasActive.current && !manage) router.replace('/(app)');");
+    expect(paywall).toContain("setResult({ kind: 'restored', plan: current.plan })");
+    expect(paywall).toContain("setResult({ kind: 'downgrade', plan: current.plan, pending: intent.plan");
+    const result = readFileSync('mobile/src/components/plan-action-result.tsx', 'utf8');
+    expect(result).toContain('est maintenant actif');
+    expect(result).toContain('reste actif');
+    expect(result).toContain('prendra ensuite le relais');
+    expect(result).toContain('Achats restaurés');
+  });
   it('respects Reduce Motion', () => {
     expect(sheet).toContain('useReducedMotion');
     expect(sheet).toContain('if (reduced) { progress.setValue(1)');

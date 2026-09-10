@@ -123,3 +123,73 @@ code, and none can be corrected by the app without fabricating prices, which is 
 - DTO: `SubscriptionDTO.pendingPlan` / `pendingAt`. Paywall shows
   "Pro actif · Essentiel à partir du <date>" and marks the pending plan card.
 - Restore, rebind grants and Production ownership rules are untouched (existing tests pass).
+
+## 7. Build 34 real-device feedback pass (same day)
+
+### 7.1 "Passer à Pro" sent the customer Home — exact cause
+`purchaseApplePlan` (`mobile/src/lib/apple-purchases.ts`) ran an entitlement preflight:
+`getAvailablePurchases({ onlyIncludeActiveItemsIOS: true })` and, if ANY active DEVISERA
+product existed, synced it and returned `'purchased'` without ever calling
+`requestPurchase`. The paywall then refreshed the session, saw `nextStep === 'app'`, and
+`router.replace('/(app)')`. "Already entitled" was being read as "nothing to buy".
+
+Fix: the preflight still verifies every active item for this workspace first (ownership and
+CONFLICT protection unchanged). Then:
+- same product already active → `'reconciled'`, no StoreKit request (Flow A);
+- a different product of the group → plan-change intent: `requestPurchase` for the TARGET
+  sku (Flow B). StoreKit performs the upgrade/downgrade/crossgrade. A downgrade can come
+  back as a transaction of the CURRENT product carrying the new renewal preference, so any
+  DEVISERA product of the group settles the attempt. Backend `applyTransaction` then
+  applies Apple's semantics (upgrade immediate; downgrade recorded as pending).
+
+### 7.2 Navigation depends on where the action started
+`ApplePaywall` now distinguishes `manage = router.canGoBack()` (pushed from Mon espace or
+Paiements) from the entitlement gate (nothing behind). In the manage context no action
+routes Home; a `PlanActionResult` card states the outcome (upgrade: "Pro est maintenant
+actif"; downgrade: "Pro reste actif jusqu'au <date> · Essentiel prendra ensuite le relais";
+restore: "Achats restaurés · Votre abonnement Pro est actif"; same plan: "déjà actif";
+preference not yet signed: "Demande transmise à Apple"), with "Retour à mon atelier" and
+"Rester ici". A downgrade waits up to ~8 s for Apple's signed renewal preference before
+falling back to the "transmise" wording. The gate context keeps unlock → Home.
+
+### 7.3 Swallowed spaces — exact cause
+`app/devis/nouveau.tsx` bound the description `TextInput` to `composed`, computed as
+`` `${description}${partial}`.trim() `` on every render. A controlled input whose value drops
+the trailing space re-renders without it before the next key, so the space bar did nothing.
+Fix: `features/description-input.ts` separates `displayedDescription` (exact typed text,
+plus the dictation fragment only while listening) from `submittedDescription` (trimmed once
+at submission). Dictation results are appended through `appendDictation`. Regression tests
+type "Le client a refait toute la salle de bain" key by key and cover accents, apostrophes,
+line breaks, punctuation, double/trailing spaces, deletions around spaces, and English.
+
+### 7.4 EUR/USD: what changed in the pipeline
+- New evidence from the device: Apple's own subscription-management sheet shows €39/€79/€149
+  for the same account, so the catalogue knows the French prices; DEVISERA still received
+  USD from `Product.products(for:)` through the wrapper, even after reload.
+- `loadAppleProducts` now waits ~1.2 s and re-reads the storefront before its second
+  catalogue request (session-initialisation race, case C), then, if the wrapper answer still
+  contradicts the storefront, reads StoreKit 2 directly. If the direct answer IS consistent
+  with the storefront, that answer is displayed (`NATIVE_METADATA_ADOPTED`) — Apple's
+  dynamic `Product.displayPrice`, never a constant (case A). If the direct answer is also
+  inconsistent, the placeholder stays and both answers are journaled (case B).
+- Build 34 (production profile) cannot show the comparison. Build 35 is cut from this code
+  with the `testflight-diagnostics` profile: long-press the paywall logo → "Comparer avec
+  StoreKit en direct" → "Copier le rapport". The report lists, per product, wrapper price
+  and currency, direct StoreKit price and currency, the catalogue `href` storefront and
+  offer currency, intro-offer presence, and both storefront readings. No receipts, tokens
+  or account data.
+
+### 7.5 SubscriptionStoreView as a fallback — evaluation
+`SubscriptionStoreView` (SwiftUI, iOS 17+) renders Apple's merchandising UI and loads prices
+itself. It would require a host native module (SwiftUI in a UIViewController), takes over
+the purchase call (our `appAccountToken` can still be injected through
+`.subscriptionStoreControlStyle`/`purchaseOptions`), and the resulting transaction would
+reach the backend through the existing `Transaction.updates` listener path. It cannot show
+DEVISERA's plan cards, highlights or the downgrade sheet, and its price source is the same
+`Product` API as ours; if `Product.products` is served for the wrong storefront, the view
+displays the same wrong currency. Verdict: keep as a documented last resort only if Build 35
+proves case B AND Apple cannot correct the catalogue answer. Not implemented.
+
+### 7.6 Apple case 102957593166
+Not updated by this session (no access to the case). The material to attach is §4, §5 and
+the Build 35 comparison report once captured on the device.

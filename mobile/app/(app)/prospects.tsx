@@ -104,6 +104,7 @@ export default function ProspectsScreen() {
         <Enter distance={8}>
           <PageHeader
             eyebrow={copy(locale, 'activity')}
+            icon="pulse"
             title="Vos prospects"
             subtitle={query.data ? (
               <Muted accessibilityLabel={total ? `${total} ${en ? `request${total > 1 ? 's' : ''} to turn into jobs` : `demande${total > 1 ? 's' : ''} à transformer en chantier`}` : (en ? 'New quote requests arrive here.' : 'Les nouvelles demandes de devis arrivent ici.')}>

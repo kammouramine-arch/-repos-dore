@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { Enter } from '@/components/motion';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError, type BusinessProfileDTO } from '@devisia/shared';
 import {
@@ -170,10 +171,12 @@ export default function EntrepriseScreen() {
         scrollEventThrottle={16}
         decelerationRate="fast"
       >
+        <Enter distance={8}>
         <View style={{ gap: 4 }}>
           <Title>Mon entreprise</Title>
           <Muted>Ces informations apparaissent sur chacun de vos devis.</Muted>
         </View>
+        </Enter>
 
         {error ? <Banner tone="danger" title={error} onDismiss={() => setError(null)} /> : null}
 

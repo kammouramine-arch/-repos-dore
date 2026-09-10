@@ -49,7 +49,11 @@ export function DiagnosticReport({ en }: { en: boolean }) {
           setComparing(true);
           void appleProducts(true).catch(() => null).then(async (offers) => {
             const result = await inspectAndCompareStorekit(offers?.products ?? []);
-            const lines = result ? result.comparisons.map((c) => describeStorekitComparison(c, en)) : [en ? 'Direct StoreKit inspection failed or is not embedded in this build.' : 'La lecture StoreKit directe a échoué ou n’est pas embarquée dans cette version.'];
+            const lines = result ? [
+              `${en ? 'Wrapper storefront' : 'Vitrine (bibliothèque)'}: ${offers?.storefront ?? 'unknown'} · ${en ? 'Direct StoreKit storefront' : 'Vitrine (StoreKit direct)'}: ${result.inspection.storefrontCountry || 'unknown'} (${result.inspection.storefrontId || '?'})`,
+              ...result.comparisons.map((c) => `${c.productId} · ${en ? 'wrapper' : 'bibliothèque'} ${c.wrapperDisplayPrice ?? '—'} ${c.wrapperCurrency ?? ''} · ${en ? 'direct' : 'direct'} ${c.nativeDisplayPrice ?? '—'} ${c.nativeCurrency ?? ''} · ${en ? 'catalogue' : 'catalogue'} ${c.catalogPriceFormatted ?? '—'} ${c.catalogCurrency ?? ''} ${c.catalogPath ?? ''} · intro ${c.nativeIntroOffer === null ? '?' : c.nativeIntroOffer ? 'yes' : 'no'}`),
+              ...result.comparisons.map((c) => describeStorekitComparison(c, en)),
+            ] : [en ? 'Direct StoreKit inspection failed or is not embedded in this build.' : 'La lecture StoreKit directe a échoué ou n’est pas embarquée dans cette version.'];
             setSummary(lines); setReport(capture(lines));
           }).finally(() => setComparing(false));
         }} />

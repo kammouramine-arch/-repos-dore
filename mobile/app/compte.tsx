@@ -62,7 +62,7 @@ export default function CompteScreen() {
 
   return (
     <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined} keyboardVerticalOffset={96}>
-      <Screen>
+      <Screen reveal>
         <View style={{ gap: spacing.sm }}>
           <Heading style={{ fontSize: 22, lineHeight: 28 }}>{en ? 'Your details' : 'Vos informations'}</Heading>
           <Muted>{en ? 'Update your details without changing your plan. Your quotes and subscription stay on this account.' : 'Corrigez vos coordonnées sans toucher à votre formule. Vos devis et votre abonnement restent sur ce compte.'}</Muted>

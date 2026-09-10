@@ -27,12 +27,29 @@ const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreAppleP
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
 beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
-  it('reconciles any active plan in the group before dispatching a new purchase', async () => {
+  it('reconciles the SAME active product without asking Apple for anything', async () => {
     m.available.mockResolvedValue([purchase]);
-    await expect(purchaseApplePlan('PRO', 'org')).resolves.toBe('purchased');
+    await expect(purchaseApplePlan('ESSENTIEL', 'org')).resolves.toBe('reconciled');
     expect(m.dispatch).not.toHaveBeenCalled();
     expect(m.products).not.toHaveBeenCalled();
     expect(m.request).toHaveBeenCalledOnce();
+  });
+  it('treats a DIFFERENT active product as a plan change: verify the existing one, then ask StoreKit for the target', async () => {
+    m.available.mockResolvedValue([purchase]);
+    const pro = { ...purchase, id: 'txn-pro', productId: APPLE_PRODUCTS.PRO };
+    m.dispatch.mockResolvedValue(pro);
+    await expect(purchaseApplePlan('PRO', 'org')).resolves.toBe('purchased');
+    expect(m.dispatch).toHaveBeenCalledOnce();
+    expect(m.dispatch.mock.calls[0][0]).toMatchObject({ type: 'subs', request: { apple: { sku: APPLE_PRODUCTS.PRO, appAccountToken: 'org' } } });
+    expect(m.request).toHaveBeenCalledTimes(2);
+  });
+  it('settles a downgrade returned by StoreKit as the CURRENT product with a new renewal preference', async () => {
+    const pro = { ...purchase, id: 'txn-pro', productId: APPLE_PRODUCTS.PRO };
+    m.available.mockResolvedValue([pro]);
+    m.dispatch.mockResolvedValue(pro);
+    await expect(purchaseApplePlan('ESSENTIEL', 'org')).resolves.toBe('purchased');
+    expect(m.dispatch).toHaveBeenCalledOnce();
+    expect(m.dispatch.mock.calls[0][0].request.apple.sku).toBe(APPLE_PRODUCTS.ESSENTIEL);
   });
   it('blocks another workspace binding before charging and releases busy state', async () => {
     m.available.mockResolvedValue([purchase]);

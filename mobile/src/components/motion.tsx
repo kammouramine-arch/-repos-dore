@@ -231,3 +231,27 @@ export function Breathe({ children, min = 1, max = 1.06, duration = 1400 }: { ch
   }, [duration, max, min, reduced, scale]);
   return <Animated.View style={{ transform: [{ scale }] }}>{children}</Animated.View>;
 }
+
+/**
+ * Entrée d'écran partagée.
+ *
+ * Le « + » a fixé la règle : appui → réponse immédiate → l'écran arrive →
+ * l'en-tête puis le contenu se posent. `ScreenReveal` applique cette règle
+ * aux destinations importantes sans la rendre théâtrale : chaque bloc de
+ * premier niveau entre à son tour, 60 ms d'écart, 260 ms par bloc, une seule
+ * fois au montage. Un rendu ultérieur (liste rafraîchie, compteur mis à jour)
+ * ne rejoue rien : les clés restent stables et `Enter` n'anime qu'au montage.
+ * Avec « Réduire les animations », tout est simplement là.
+ */
+export function ScreenReveal({ children, step = 60, initial = 0, distance = 8, max = 8 }: { children: React.ReactNode; step?: number; initial?: number; distance?: number; max?: number }) {
+  const items = React.Children.toArray(children).filter(Boolean);
+  return (
+    <>
+      {items.map((child, index) => (
+        <Enter key={(React.isValidElement(child) && child.key) || index} delay={initial + Math.min(index, max) * step} distance={distance}>
+          {child}
+        </Enter>
+      ))}
+    </>
+  );
+}

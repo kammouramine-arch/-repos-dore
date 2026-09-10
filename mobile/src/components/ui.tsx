@@ -23,7 +23,7 @@ import {
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
-import { useReducedMotion, useTouchMotion, Breathe, Enter, useCountUp } from '@/components/motion';
+import { useReducedMotion, useTouchMotion, Breathe, Enter, ScreenReveal, useCountUp } from '@/components/motion';
 import { colors, motion, radius, shadows, spacing, typography, TOUCH_MIN } from '@/theme';
 import { localizeNode, localizeText, useMobileLocale } from '@/lib/i18n';
 
@@ -558,6 +558,7 @@ export function Screen({
   refreshControl,
   contentStyle,
   transparent = false,
+  reveal = false,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
@@ -569,12 +570,14 @@ export function Screen({
    * l'écran, qui les connaît.
    */
   transparent?: boolean;
+  /** Entrée partagée : chaque bloc de premier niveau se pose à son tour (voir ScreenReveal). */
+  reveal?: boolean;
 }) {
   const content = (
     <View
       style={[{ padding: spacing.xl, gap: spacing.xl, paddingBottom: spacing['5xl'] }, contentStyle]}
     >
-      {children}
+      {reveal ? <ScreenReveal>{children}</ScreenReveal> : children}
     </View>
   );
   const background = transparent ? 'transparent' : colors.surface;
@@ -613,22 +616,42 @@ export function PageHeader({
   title,
   subtitle,
   eyebrow,
+  icon,
   action,
 }: {
   title: string;
   subtitle?: React.ReactNode;
   eyebrow?: string;
+  /**
+   * Marque de section : une petite pastille de marque devant le surtitre et
+   * un trait bleu sous le titre. C'est l'identité DEVISERA en petit, pas une
+   * décoration : la même sur Clients, Activité, et les écrans de détail.
+   */
+  icon?: keyof typeof Ionicons.glyphMap;
   action?: React.ReactNode;
 }) {
   const locale = useMobileLocale();
+  const eyebrowHeight = icon ? 26 : typography.caption.lineHeight;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg }}>
-      <View style={{ flex: 1, gap: 5 }}>
-        {eyebrow ? <Caption upper style={{ color: colors.accent }}>{localizeText(locale, eyebrow)}</Caption> : null}
-        <Title accessibilityRole="header">{localizeText(locale, title)}</Title>
+      <View style={{ flex: 1, gap: icon ? 8 : 5 }}>
+        {eyebrow ? (
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            {icon ? (
+              <View style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: colors.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accentBorder, alignItems: 'center', justifyContent: 'center', ...(shadows.glow as object), shadowOpacity: 0.16, shadowRadius: 10 }}>
+                <Ionicons name={icon} size={14} color={colors.accent} />
+              </View>
+            ) : null}
+            <Caption upper style={{ color: colors.accent }}>{localizeText(locale, eyebrow)}</Caption>
+          </View>
+        ) : null}
+        <View style={{ gap: 6 }}>
+          <Title accessibilityRole="header" style={icon ? { fontSize: 28, lineHeight: 34, letterSpacing: -0.9 } : undefined}>{localizeText(locale, title)}</Title>
+          {icon ? <View style={{ width: 28, height: 3, borderRadius: 2, backgroundColor: colors.accent, opacity: 0.9 }} /> : null}
+        </View>
         {subtitle ? (typeof subtitle === 'string' ? <Muted>{localizeText(locale, subtitle)}</Muted> : subtitle) : null}
       </View>
-      {action ? <View style={{ paddingTop: eyebrow ? typography.caption.lineHeight + 5 + (typography.title.lineHeight - 44) / 2 : (typography.title.lineHeight - 44) / 2 }}>{action}</View> : null}
+      {action ? <View style={{ paddingTop: eyebrow ? eyebrowHeight + (icon ? 8 : 5) + (typography.title.lineHeight - 44) / 2 : (typography.title.lineHeight - 44) / 2 }}>{action}</View> : null}
     </View>
   );
 }
@@ -700,7 +723,7 @@ export function IconButton({
   tone = 'neutral',
   size = 20,
   disabled,
-  haptic = false,
+  haptic = true,
 }: {
   icon: keyof typeof Ionicons.glyphMap;
   /** Lu par VoiceOver : une icône seule n'est jamais explicite. */

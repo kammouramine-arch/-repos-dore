@@ -5,6 +5,7 @@ import { api } from './api';
 import { recordDiagnostic } from './diagnostics';
 import { consistentAppleCurrency } from './apple-offer';
 import { inspectAndCompareStorekit } from './native-storekit';
+import { adoptNativeMetadata } from './native-metadata';
 
 type Iap = typeof import('expo-iap');
 const observers = new Set<(busy: boolean) => void>();
@@ -67,6 +68,10 @@ async function loadAppleProducts() {
   returned();
   if (before !== storefront || !consistentAppleCurrency(products ?? [], storefront)) {
     log('PRODUCTS_METADATA_REFRESH', { category: 'client' });
+    // Storefront/session initialisation can settle a moment after the first
+    // catalogue answer. Give StoreKit that moment before asking again.
+    await new Promise(resolve => setTimeout(resolve, 1_200));
+    storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => storefront);
     products = await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT');
     eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; });
     returned();
@@ -75,9 +80,13 @@ async function loadAppleProducts() {
       // disagree in TestFlight. Do not turn a successful native catalogue into
       // "products unavailable", nor fabricate/conversion-map a replacement.
       log('STOREKIT_METADATA_MISMATCH', { category: 'client' });
-      // Evidence, not a source: ask StoreKit 2 directly and journal where the
-      // two answers diverge. Never awaited by the paywall's price display.
-      void bounded(inspectAndCompareStorekit(products ?? []), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => undefined);
+      // Ask StoreKit 2 directly, without the purchase library. If Apple's own
+      // answer is consistent with the storefront, that answer is displayed:
+      // it is still Apple's dynamic price, read from the same API, never a
+      // constant. Otherwise the journal keeps both answers as evidence.
+      const compared = await bounded(inspectAndCompareStorekit(products ?? []), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => null);
+      const adopted = compared ? adoptNativeMetadata(products ?? [], compared.inspection, storefront) : null;
+      if (adopted) { products = adopted; log('NATIVE_METADATA_ADOPTED', { productCount: adopted.length }); }
     }
   }
   const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
@@ -242,10 +251,18 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
     // item must be verified for this workspace BEFORE requesting any purchase.
     // Never compare Apple-ID and DEVISERA email addresses or transfer ownership.
     const existing = await activeGroupPurchases(iap);
-    if (existing.length) {
-      for (const purchase of existing) { stage('PREFLIGHT_ACTIVE_SUBSCRIPTION', purchase); await sync(purchase); }
-      return 'purchased' as const;
-    }
+    for (const purchase of existing) { stage(purchase.productId === productId ? 'PREFLIGHT_ACTIVE_SUBSCRIPTION' : 'PREFLIGHT_PLAN_CHANGE', purchase); await sync(purchase); }
+    /*
+     * « Déjà abonné » et « rien à acheter » ne sont pas la même chose. Le même
+     * produit déjà actif : on a réconcilié l'accès, il n'y a rien à demander à
+     * Apple. Un autre produit du groupe : c'est un changement de formule, et
+     * seul StoreKit peut le traiter (montée, descente ou changement de durée),
+     * pour le produit CIBLE. Le droit existant ne court-circuite jamais cette
+     * intention.
+     */
+    if (existing.some(purchase => purchase.productId === productId)) return 'reconciled' as const;
+    const changingFrom = existing[0]?.productId ?? null;
+    if (changingFrom) recordDiagnostic({ area: 'billing', durationMs: 0, code: 'PLAN_CHANGE_REQUESTED', category: 'ok', productId });
     const result = new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
         // A silent bridge is NOT proof of a pending Apple approval. Recheck
@@ -265,14 +282,17 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
     void result.catch(() => undefined);
     const received = new Set<string>();
     const receive = (purchase: Purchase) => {
-      if (purchase.productId !== productId) return;
+      // A downgrade or crossgrade can come back as a transaction of the
+      // CURRENT product with a new renewal preference: for a plan change,
+      // any DEVISERA product of the group settles this attempt.
+      if (purchase.productId !== productId && !(changingFrom && planForAppleProduct(purchase.productId))) return;
       if (!active || received.has(purchase.id)) return;
       received.add(purchase.id);
       void sync(purchase).then(() => { if (active) resolvePending(productId); }).catch((error) => { if (active) resolvePending(productId, error); });
     };
     const failed = (error: unknown) => {
       const diagnostic = logPurchaseFailure(error, { productId });
-      if (!active || (diagnostic.productId && diagnostic.productId !== productId)) return;
+      if (!active || (diagnostic.productId && diagnostic.productId !== productId && !(changingFrom && planForAppleProduct(diagnostic.productId)))) return;
       cancelled = diagnostic.category === 'cancelled';
       resolvePending(productId, diagnostic.category === 'cancelled' ? undefined : error instanceof Error ? error : Object.assign(new Error(diagnostic.message), { code: diagnostic.code }));
     };

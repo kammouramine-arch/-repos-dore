@@ -2,10 +2,11 @@ import * as React from 'react';
 import { Alert, AppState, Linking, Pressable, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import type { ProductSubscription } from 'expo-iap';
-import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, planChange, type PlanId } from '@devisia/shared';
+import { APPLE_PRODUCTS, PLAN_ORDER, PLANS, accessStateFor, applePurchaseUserMessage, normalizeApplePurchaseError, planChange, type PlanChange, type PlanId } from '@devisia/shared';
 import { Banner, Body, Button, Caption, Card, Heading, Muted, Screen, Title } from './ui';
 import { PlanCard } from './plan-card';
 import { PendingPlanNotice, PlanChangeSheet } from './plan-change-sheet';
+import { PlanActionResult, type PlanActionOutcome } from './plan-action-result';
 import { useAuth } from '@/lib/auth';
 import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
@@ -34,6 +35,15 @@ function ApplePaywallContent() {
   const [busy, setBusy] = React.useState(false);
   const [loading, setLoading] = React.useState(true);
   const [confirmingDowngrade, setConfirmingDowngrade] = React.useState(false);
+  const [result, setResult] = React.useState<PlanActionOutcome | null>(null);
+  /*
+   * Deux contextes, deux navigations. Poussé depuis Mon espace (on peut
+   * revenir en arrière) : on reste ici après une action et on montre le
+   * résultat. Affiché par la garde d'accès (rien derrière) : une activation
+   * réussie ouvre l'atelier.
+   */
+  const manage = router.canGoBack();
+  const leave = React.useCallback(() => { if (router.canGoBack()) router.back(); else router.replace('/(app)'); }, [router]);
   const loadGeneration = React.useRef(0);
   const acting = React.useRef(false);
   const subscription = session?.subscription;
@@ -72,30 +82,49 @@ function ApplePaywallContent() {
   const dateOf = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   const pendingDate = dateOf(subscription?.pendingAt ?? subscription?.currentPeriodEnd);
   React.useEffect(() => {
-    if (appleActive && !wasActive.current) router.replace('/(app)');
+    if (appleActive && !wasActive.current && !manage) router.replace('/(app)');
     wasActive.current = appleActive;
-  }, [appleActive, router]);
-  async function action(fn: () => Promise<unknown>) {
+  }, [appleActive, manage, router]);
+  type Intent = { kind: 'purchase'; plan: PlanId; change: PlanChange | null } | { kind: 'restore' } | { kind: 'manage' };
+  async function action(fn: () => Promise<unknown>, intent?: Intent) {
     if (acting.current) return;
     acting.current = true;
-    setBusy(true); setError(null);
+    setBusy(true); setError(null); setResult(null);
     try {
       const outcome = await fn();
-      if (outcome !== 'cancelled') {
-        const fresh = await refresh();
-        recordDiagnostic({ area: 'billing', durationMs: 0, code: `SESSION_${fresh?.nextStep ?? 'SIGNED_OUT'}`, category: 'ok' });
-        if (fresh?.nextStep === 'app' && fresh.access.canWrite) {
-          recordDiagnostic({ area: 'billing', durationMs: 0, code: 'ROUTE_APP', category: 'ok' });
-          router.replace('/(app)');
-        } else if (outcome === 'purchased') {
-          setError(en ? 'Apple confirmed the purchase, but access is not active yet. Restore purchases or contact support.' : 'Apple a confirmé l’achat, mais l’accès n’est pas encore actif. Restaurez vos achats ou contactez le support.');
+      if (outcome === 'cancelled' || outcome === 'not_selected' || outcome === 'price_updated' || outcome === 'none') return;
+      let fresh = await refresh();
+      // Apple records a downgrade as a renewal preference and signs it a
+      // moment after its sheet closes. Give that notification a short window.
+      if (intent?.kind === 'purchase' && intent.change === 'downgrade') {
+        for (let attempt = 0; attempt < 4 && fresh?.subscription?.pendingPlan !== intent.plan && fresh?.subscription?.plan !== intent.plan; attempt += 1) {
+          await new Promise(resolve => setTimeout(resolve, 2_000));
+          fresh = await refresh();
         }
+      }
+      recordDiagnostic({ area: 'billing', durationMs: 0, code: `SESSION_${fresh?.nextStep ?? 'SIGNED_OUT'}`, category: 'ok' });
+      const current = fresh?.subscription;
+      if (manage && current) {
+        if (intent?.kind === 'restore') setResult({ kind: 'restored', plan: current.plan });
+        else if (intent?.kind === 'purchase') {
+          if (current.plan === intent.plan) setResult({ kind: outcome === 'reconciled' ? 'reconciled' : 'upgrade', plan: current.plan });
+          else if (current.pendingPlan === intent.plan) setResult({ kind: 'downgrade', plan: current.plan, pending: intent.plan, date: current.pendingAt ?? current.currentPeriodEnd ?? null });
+          else setResult({ kind: 'recorded', plan: current.plan, pending: intent.plan });
+        }
+        return;
+      }
+      if (fresh?.nextStep === 'app' && fresh.access.canWrite) {
+        recordDiagnostic({ area: 'billing', durationMs: 0, code: 'ROUTE_APP', category: 'ok' });
+        router.replace('/(app)');
+      } else if (outcome === 'purchased') {
+        setError(en ? 'Apple confirmed the purchase, but access is not active yet. Restore purchases or contact support.' : 'Apple a confirmé l’achat, mais l’accès n’est pas encore actif. Restaurez vos achats ou contactez le support.');
       }
     }
     catch (cause) { recordApplePurchaseFailure(cause, { productId: product?.id }); const diagnostic = normalizeApplePurchaseError(cause); if (diagnostic.code === 'CONFLICT') setOwnershipConflict(true); setError(applePurchaseUserMessage(diagnostic, locale)); }
     finally { acting.current = false; setBusy(false); void load(true); }
   }
   function purchase() {
+    const plan = selected;
     return action(async () => {
       if (!selected) return 'not_selected';
       // requestPurchase itself fetches again natively. Refresh the displayed
@@ -109,7 +138,7 @@ function ApplePaywallContent() {
         return 'price_updated';
       }
       return purchaseApplePlan(selected, session!.organization.id);
-    });
+    }, plan ? { kind: 'purchase', plan, change } : undefined);
   }
   return <Screen>
     <View style={{ alignItems: 'center', paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
@@ -125,13 +154,14 @@ function ApplePaywallContent() {
         <Caption>{en ? 'Apple confirms your eligibility and exact duration before you agree.' : 'Apple confirme votre éligibilité et la durée exacte avant tout accord.'}</Caption>
       </Card> : null}
     </View>
+    {result ? <PlanActionResult outcome={result} en={en} onLeave={leave} onStay={() => setResult(null)} /> : null}
     {appleActive ? <Card style={{ backgroundColor: colors.accentDeep, gap: spacing.md }}>
       <Heading style={{ color: colors.white }}>{PLANS[subscription.plan].name} · {subscription.status === 'trialing' ? (en ? 'Trial active' : 'Essai actif') : (en ? 'Active' : 'Actif')}</Heading>
       {pendingPlan && pendingPlan !== subscription.plan ? <PendingPlanNotice current={subscription.plan} pending={pendingPlan} date={pendingDate} en={en} /> : null}
       {subscription.currentPeriodEnd ? <Body style={{ color: colors.white }}>{en ? 'Current access ends: ' : 'Fin de la période d’accès : '}{new Date(subscription.currentPeriodEnd).toLocaleString(en ? 'en-GB' : 'fr-FR')}.</Body> : null}
       {subscription.appleEnvironment === 'Sandbox' ? <Caption style={{ color: colors.white }}>{en ? 'TestFlight testing: Apple may accelerate subscription periods.' : 'Test TestFlight : Apple peut accélérer les périodes d’abonnement.'}</Caption> : null}
-      <Button title={en ? 'Manage or cancel with Apple' : 'Gérer ou annuler avec Apple'} variant="secondary" disabled={busy} onPress={() => void action(manageAppleSubscriptions)} />
-      <Button title={en ? 'Back to workspace' : 'Retour à mon atelier'} variant="secondary" onPress={() => router.replace('/(app)')} />
+      <Button title={en ? 'Manage or cancel with Apple' : 'Gérer ou annuler avec Apple'} variant="secondary" disabled={busy} onPress={() => void action(manageAppleSubscriptions, { kind: 'manage' })} />
+      <Button title={en ? 'Back to workspace' : 'Retour à mon atelier'} variant="secondary" onPress={leave} />
     </Card> : null}
     {PLAN_ORDER.map((plan) => {
       const p = store?.products.find((item) => item.id === APPLE_PRODUCTS[plan]);
@@ -175,7 +205,7 @@ function ApplePaywallContent() {
 
     {!loading ? <Button title={en ? 'Reload offers' : 'Recharger les offres'} variant="ghost" disabled={busy} onPress={() => void load(ownershipConflict)} /> : null}
     {ownershipConflict ? <Button title={en ? 'Recover my subscription with support' : 'Retrouver mon abonnement avec le support'} variant="ghost" onPress={() => void Linking.openURL('mailto:contact@devisera.fr?subject=DEVISERA%20subscription%20recovery').catch(() => Alert.alert(en ? 'Contact support' : 'Contacter le support', 'contact@devisera.fr'))} /> : null}
-    <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); })} />
+    <Button title={en ? 'Restore purchases' : 'Restaurer mes achats'} variant="ghost" disabled={busy} onPress={() => void action(async () => { const count = await restoreApplePurchases(); if (!count) { Alert.alert(en ? 'No subscription found' : 'Aucun abonnement trouvé', en ? 'Check the Apple account used for the purchase.' : 'Vérifiez le compte Apple utilisé pour l’achat.'); return 'none'; } return 'restored'; }, { kind: 'restore' })} />
     <Muted style={{ textAlign: 'center' }}>{en ? 'Payment confirmed with your Apple account. Monthly renewal unless cancelled. One trial per Apple account for this group, subject to eligibility.' : 'Paiement confirmé avec votre compte Apple. Renouvellement mensuel automatique sauf annulation. Une offre d’essai par compte Apple pour ce groupe, sous réserve d’éligibilité.'}</Muted>
     <Button title={en ? 'Discover DEVISERA' : 'Découvrir DEVISERA'} variant="ghost" onPress={() => router.push('/presentation')} />
     <Button title={en ? 'Correct my name or email' : 'Corriger mon nom ou mon email'} variant="ghost" onPress={() => router.push('/compte')} />

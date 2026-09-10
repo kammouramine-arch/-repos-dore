@@ -86,7 +86,7 @@ export default function PaiementsScreen() {
             : (en ? 'To activate' : 'À activer');
 
   return (
-    <Screen>
+    <Screen reveal>
       {actionError ? <Banner tone="danger" title={actionError} /> : null}
       <Card style={{ gap: spacing.md, backgroundColor: colors.accentDeep, borderColor: colors.accentDeep, padding: spacing.xl, overflow: 'hidden' }}>
         <View style={{ position: 'absolute', width: 200, height: 200, borderRadius: 100, backgroundColor: colors.accent, opacity: 0.35, right: -70, top: -90 }} />

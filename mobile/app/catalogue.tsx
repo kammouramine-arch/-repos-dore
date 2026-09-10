@@ -32,6 +32,7 @@ import { useToast } from '@/components/toast';
 import { colors, spacing } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
 import { useAuth } from '@/lib/auth';
+import { Enter } from '@/components/motion';
 
 /**
  * Catalogue de prix, natif.
@@ -157,11 +158,13 @@ export default function CatalogueScreen() {
   return (
     <SafeAreaView edges={['bottom']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <View style={{ padding: spacing.lg, gap: spacing.md }}>
-        <SearchField
-          value={search}
-          onChangeText={setSearch}
-          placeholder="Rechercher une prestation ou un matériau"
-        />
+        <Enter distance={8}>
+          <SearchField
+            value={search}
+            onChangeText={setSearch}
+            placeholder="Rechercher une prestation ou un matériau"
+          />
+        </Enter>
         {error ? <Banner tone="danger" title={error} onDismiss={() => setError(null)} /> : null}
       </View>
 

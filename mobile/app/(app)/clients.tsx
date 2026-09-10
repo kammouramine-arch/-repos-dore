@@ -57,6 +57,7 @@ export default function ClientsScreen() {
         <Enter distance={8}>
           <PageHeader
             eyebrow={copy(locale, 'directory')}
+            icon="people"
             title={copy(locale, 'yourClients')}
             subtitle={query.data ? (
               <Muted accessibilityLabel={en ? `${total} client${total === 1 ? '' : 's'} in your workspace` : `${total} client${total > 1 ? 's' : ''} dans votre atelier`}>

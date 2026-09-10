@@ -40,6 +40,7 @@ import { ListeningRings, Waveform } from '@/components/voice-visuals';
 import { useDictation } from '@/features/voice';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
+import { appendDictation, displayedDescription, submittedDescription } from '@/features/description-input';
 import { api } from '@/lib/api';
 import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
 import { colors, motion, radius, shadows, spacing, typography } from '@/theme';
@@ -163,7 +164,7 @@ export default function NouveauDevisScreen() {
 
   const dictation = useDictation(
     React.useCallback((text: string) => {
-      setDescription((current) => (current.trim() ? `${current.trim()} ${text}` : text));
+      setDescription((current) => appendDictation(current, text));
     }, []),
   );
   const photos = usePhotoCapture();
@@ -220,7 +221,7 @@ export default function NouveauDevisScreen() {
     return () => animation.stop();
   }, [glow, listening]);
   const busy = dictation.status === 'demande' || dictation.status === 'traitement';
-  const composed = `${description}${dictation.partial ? ` ${dictation.partial}` : ''}`.trim();
+  const composed = submittedDescription(description, dictation.partial);
 
   async function generate(text: string) {
     if (generating.current) return;
@@ -874,7 +875,12 @@ export default function NouveauDevisScreen() {
         <Enter delay={200} distance={10}>
         <Card style={{ padding: 0, overflow: 'hidden', borderColor: colors.accentBorder }}>
           <TextInput
-            value={composed}
+            // Pendant la frappe, la valeur est exactement ce que l'artisan a
+            // tapé : espaces, retours, ponctuation. Un `.trim()` ici avalait
+            // chaque espace final au fur et à mesure. Le texte n'est
+            // normalisé qu'à l'envoi. Pendant la dictée (champ verrouillé),
+            // on montre le texte et le fragment reconnu.
+            value={displayedDescription(description, dictation.partial, listening)}
             onChangeText={(text) => {
               if (!listening) setDescription(text);
             }}
@@ -909,7 +915,7 @@ export default function NouveauDevisScreen() {
               {dictation.onDevice ? 'Dictée protégée sur l’appareil' : ''}
               </Caption>
             )}
-            <Caption style={{ color: colors.subtle }}>{composed.length} / 8000</Caption>
+            <Caption style={{ color: colors.subtle }}>{displayedDescription(description, dictation.partial, listening).length} / 8000</Caption>
           </View>
         </Card>
         </Enter>
