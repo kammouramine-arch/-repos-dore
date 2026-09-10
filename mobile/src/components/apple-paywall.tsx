@@ -8,7 +8,7 @@ import { PlanCard } from './plan-card';
 import { PendingPlanNotice, PlanChangeSheet } from './plan-change-sheet';
 import { PlanActionResult, type PlanActionOutcome } from './plan-action-result';
 import { useAuth } from '@/lib/auth';
-import { appleProducts, manageAppleSubscriptions, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
+import { appleProducts, cachedAppleProducts, manageAppleSubscriptions, observeAppleCatalogue, observeApplePurchase, purchaseApplePlan, recordApplePurchaseFailure, restoreApplePurchases } from '@/lib/apple-purchases';
 import { API_URL } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 import { Logo } from './logo';
@@ -29,11 +29,13 @@ function ApplePaywallContent() {
   const en = locale === 'en';
   const router = useRouter();
   const [selected, setSelected] = React.useState<PlanId | null>(null);
-  const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean; storefront: string } | null>(null);
+  // Premier rendu avec le catalogue préchargé quand il existe : aucun écran de
+  // prix vide. Une lecture fraîche part quand même, et remplace en silence.
+  const [store, setStore] = React.useState<{ products: ProductSubscription[]; eligible: boolean; storefront: string } | null>(() => cachedAppleProducts() ?? null);
   const [error, setError] = React.useState<string | null>(null);
   const [ownershipConflict, setOwnershipConflict] = React.useState(false);
   const [busy, setBusy] = React.useState(false);
-  const [loading, setLoading] = React.useState(true);
+  const [loading, setLoading] = React.useState(() => cachedAppleProducts() === undefined);
   const [confirmingDowngrade, setConfirmingDowngrade] = React.useState(false);
   const [result, setResult] = React.useState<PlanActionOutcome | null>(null);
   /*
@@ -49,7 +51,9 @@ function ApplePaywallContent() {
   const subscription = session?.subscription;
   const load = React.useCallback(async (preserveError = false) => {
     const generation = ++loadGeneration.current;
-    setLoading(true); if (!preserveError) setError(null); setStore(null);
+    // Le catalogue affiché reste en place pendant la relecture : pas de
+    // clignotement entre un prix et un espace réservé.
+    setLoading(true); if (!preserveError) setError(null);
     try { const offers = await appleProducts(true); if (generation === loadGeneration.current) setStore(offers); }
     catch (cause) { recordApplePurchaseFailure(cause); if (generation === loadGeneration.current) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); }
     finally { if (generation === loadGeneration.current) setLoading(false); }
@@ -62,12 +66,13 @@ function ApplePaywallContent() {
       .catch((cause) => { recordApplePurchaseFailure(cause); if (!disposed && generation === loadGeneration.current) setError(en ? 'Apple offers are temporarily unavailable. Please try again.' : 'Les offres Apple ne sont pas disponibles pour le moment. Réessayez dans un instant.'); })
       .finally(() => { if (!disposed && generation === loadGeneration.current) setLoading(false); });
     const stop = observeApplePurchase(setBusy);
+    const refined = observeAppleCatalogue((catalogue) => { if (!disposed) setStore(catalogue); });
     const resume = AppState.addEventListener('change', (state) => {
       // Refetch after changing the Apple account/storefront in Settings, but
       // never tear down an active purchase when its native sheet closes.
       if (state === 'active' && !acting.current) void load();
     });
-    return () => { disposed = true; invalidateRequests(); stop(); resume.remove(); };
+    return () => { disposed = true; invalidateRequests(); stop(); refined(); resume.remove(); };
   }, [load, en]);
   React.useEffect(() => {
     // Journalise chaque produit affiché par le repli de vitrine : la preuve

@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 import { APPLE_PRODUCTS, APPLE_SUBSCRIPTION_GROUP, applePurchaseUserMessage, normalizeApplePurchaseError, planForAppleProduct, type PlanId } from '@devisia/shared';
-import type { Purchase, ProductSubscription } from 'expo-iap';
+import type { Purchase, ProductOrSubscription, ProductSubscription } from 'expo-iap';
 import { api } from './api';
 import { recordDiagnostic } from './diagnostics';
 import { consistentAppleCurrency } from './apple-offer';
@@ -35,8 +35,37 @@ async function store() {
   return sdk;
 }
 
-let catalogueFlight: Promise<{ products: ProductSubscription[]; eligible: boolean; storefront: string }> | undefined;
-export function appleProducts(freshAfterPending = false): Promise<{ products: ProductSubscription[]; eligible: boolean; storefront: string }> {
+type Catalogue = { products: ProductSubscription[]; eligible: boolean; storefront: string };
+let catalogueFlight: Promise<Catalogue> | undefined;
+/*
+ * Dernier catalogue reçu, en mémoire de processus seulement (jamais persisté).
+ * Il évite l'écran de prix vide quand l'abonnement s'ouvre juste après le
+ * préchargement ; toute ouverture relance quand même une lecture fraîche, et
+ * l'achat lui-même re-vérifie le prix natif juste avant `requestPurchase`.
+ */
+let lastCatalogue: (Catalogue & { at: number }) | undefined;
+const catalogueObservers = new Set<(catalogue: Catalogue) => void>();
+function publishCatalogue(catalogue: Catalogue) {
+  lastCatalogue = { ...catalogue, at: Date.now() };
+  for (const listener of catalogueObservers) listener(catalogue);
+}
+/** Catalogue récent (10 min) pour un premier rendu sans attente ; undefined sinon. */
+export function cachedAppleProducts(maxAgeMs = 10 * 60_000): Catalogue | undefined {
+  if (!lastCatalogue || Date.now() - lastCatalogue.at > maxAgeMs) return undefined;
+  const { at: _at, ...catalogue } = lastCatalogue;
+  return catalogue;
+}
+/** Notifie un catalogue affiné arrivé après la réponse rapide (relecture, lecture StoreKit directe). */
+export function observeAppleCatalogue(listener: (catalogue: Catalogue) => void) {
+  catalogueObservers.add(listener);
+  return () => { catalogueObservers.delete(listener); };
+}
+/** Préchargement silencieux dès la session ouverte : l'abonnement s'ouvre avec ses prix. */
+export function prefetchAppleProducts() {
+  if (Platform.OS !== 'ios') return;
+  void appleProducts().catch(() => undefined);
+}
+export function appleProducts(freshAfterPending = false): Promise<Catalogue> {
   // A foreground/account change or pre-purchase refresh must not adopt an
   // in-flight snapshot requested before that transition.
   if (freshAfterPending && catalogueFlight) {
@@ -45,7 +74,7 @@ export function appleProducts(freshAfterPending = false): Promise<{ products: Pr
   }
   // Mount, foreground and Retry can overlap. Share only the in-flight query,
   // never cache prices across requests or Apple account/storefront changes.
-  if (!catalogueFlight) catalogueFlight = loadAppleProducts().finally(() => { catalogueFlight = undefined; });
+  if (!catalogueFlight) catalogueFlight = loadAppleProducts().then((catalogue) => { publishCatalogue(catalogue); return catalogue; }).finally(() => { catalogueFlight = undefined; });
   else recordDiagnostic({ area: 'billing', path: 'apple-products', code: 'SHARED_INFLIGHT', durationMs: 0, cachePolicy: 'shared-current-request-not-persisted-cache' });
   return catalogueFlight;
 }
@@ -66,16 +95,56 @@ async function loadAppleProducts() {
   storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
   const returned = () => log('PRODUCTS_RETURNED', { returnedProductIds: (products ?? []).map(p => p.id), missingProductIds: requested.filter(id => !products?.some(p => p.id === id)), productCount: products?.length ?? 0 });
   returned();
-  if (before !== storefront || !consistentAppleCurrency(products ?? [], storefront)) {
+  const settled = before === storefront && consistentAppleCurrency(products ?? [], storefront);
+  const usable = finishCatalogue(products ?? [], requested, eligible, log);
+  if (!settled) {
+    /*
+     * Réponse contradictoire (vitrine changée, ou FRA + USD). On répond TOUT DE
+     * SUITE avec ce premier catalogue : l'écran résout le repli de vitrine sans
+     * état vide. L'affinage — relecture après un court délai, puis lecture
+     * StoreKit 2 directe — continue en arrière-plan et, s'il obtient une
+     * réponse cohérente, la publie aux observateurs.
+     */
+    log('PRODUCTS_FAST_PATH', { category: 'client', productCount: usable.length });
+    void refineCatalogue(iap, requested, storefront, started).catch(() => undefined);
+  }
+  log('PRODUCTS_READY', { productCount: usable.length });
+  return { products: usable, eligible, storefront };
+  } catch (error) {
+    const native = normalizeApplePurchaseError(error);
+    log('PRODUCTS_FAILED', { category: native.category === 'network' ? 'network' : 'client', nativeCode: native.code });
+    throw error;
+  }
+}
+
+function finishCatalogue(products: ProductOrSubscription[], requested: string[], eligible: boolean, log: (code: string, extra?: Partial<Parameters<typeof recordDiagnostic>[0]>) => void) {
+  const usable = products.filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
+  if (!usable.length) throw Object.assign(new Error('Apple returned no usable subscription products.'), { code: products.length ? 'PRODUCT_METADATA_INCOMPLETE' : 'PRODUCTS_EMPTY' });
+  for (const product of products) {
+    const p = product as ProductSubscription & { subscriptionPeriodUnitIOS?: string; subscriptionPeriodNumberIOS?: string; introductoryPricePaymentModeIOS?: string; introductoryPriceSubscriptionPeriodIOS?: string; introductoryPriceNumberOfPeriodsIOS?: string; introductoryPriceIOS?: string };
+    log('PRODUCT_METADATA', { productId: p.id, currency: p.currency, displayPrice: p.displayPrice,
+      subscriptionPeriodUnit: p.subscriptionPeriodUnitIOS ?? null, subscriptionPeriodCount: p.subscriptionPeriodNumberIOS ?? null,
+      introPaymentMode: p.introductoryPricePaymentModeIOS ?? null, introPeriod: p.introductoryPriceSubscriptionPeriodIOS ?? null,
+      introPeriodCount: p.introductoryPriceNumberOfPeriodsIOS ?? null, introPrice: p.introductoryPriceIOS ?? null, introEligible: eligible });
+  }
+  return usable as ProductSubscription[];
+}
+
+let refining: Promise<void> | undefined;
+/** Les affinages s'enchaînent : chaque réponse rapide obtient sa propre tentative, jamais en parallèle. */
+function refineCatalogue(iap: Iap, requested: string[], initialStorefront: string, started: number) {
+  const run = async () => {
+    let storefront = initialStorefront;
+    const log = (code: string, extra: Partial<Parameters<typeof recordDiagnostic>[0]> = {}) => recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: Date.now() - started, code, category: 'ok', storefront, ...extra });
     log('PRODUCTS_METADATA_REFRESH', { category: 'client' });
     // Storefront/session initialisation can settle a moment after the first
     // catalogue answer. Give StoreKit that moment before asking again.
     await new Promise(resolve => setTimeout(resolve, 1_200));
     storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => storefront);
-    products = await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT');
-    eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; });
-    returned();
-    if (!consistentAppleCurrency(products ?? [], storefront)) {
+    let products: ProductOrSubscription[] = (await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT')) ?? [];
+    const eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; });
+    log('PRODUCTS_RETURNED', { returnedProductIds: products.map(p => p.id), missingProductIds: requested.filter(id => !products.some(p => p.id === id)), productCount: products.length });
+    if (!consistentAppleCurrency(products, storefront)) {
       // A separate Storefront.current snapshot is not a price authority. It can
       // disagree in TestFlight. Do not turn a successful native catalogue into
       // "products unavailable", nor fabricate/conversion-map a replacement.
@@ -84,27 +153,19 @@ async function loadAppleProducts() {
       // answer is consistent with the storefront, that answer is displayed:
       // it is still Apple's dynamic price, read from the same API, never a
       // constant. Otherwise the journal keeps both answers as evidence.
-      const compared = await bounded(inspectAndCompareStorekit(products ?? []), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => null);
-      const adopted = compared ? adoptNativeMetadata(products ?? [], compared.inspection, storefront) : null;
+      const compared = await bounded(inspectAndCompareStorekit(products), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => null);
+      const adopted = compared ? adoptNativeMetadata(products, compared.inspection, storefront) : null;
       if (adopted) { products = adopted; log('NATIVE_METADATA_ADOPTED', { productCount: adopted.length }); }
+      else return; // Rien de mieux : le repli de vitrine reste affiché, sans clignotement.
     }
-  }
-  const usable = (products ?? []).filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
-  if (!usable.length) throw Object.assign(new Error('Apple returned no usable subscription products.'), { code: products?.length ? 'PRODUCT_METADATA_INCOMPLETE' : 'PRODUCTS_EMPTY' });
-  for (const product of products ?? []) {
-    const p = product as ProductSubscription & { subscriptionPeriodUnitIOS?: string; subscriptionPeriodNumberIOS?: string; introductoryPricePaymentModeIOS?: string; introductoryPriceSubscriptionPeriodIOS?: string; introductoryPriceNumberOfPeriodsIOS?: string; introductoryPriceIOS?: string };
-    log('PRODUCT_METADATA', { productId: p.id, currency: p.currency, displayPrice: p.displayPrice,
-      subscriptionPeriodUnit: p.subscriptionPeriodUnitIOS ?? null, subscriptionPeriodCount: p.subscriptionPeriodNumberIOS ?? null,
-      introPaymentMode: p.introductoryPricePaymentModeIOS ?? null, introPeriod: p.introductoryPriceSubscriptionPeriodIOS ?? null,
-      introPeriodCount: p.introductoryPriceNumberOfPeriodsIOS ?? null, introPrice: p.introductoryPriceIOS ?? null, introEligible: eligible });
-  }
-  log('PRODUCTS_READY', { productCount: usable.length });
-  return { products: usable as ProductSubscription[], eligible, storefront };
-  } catch (error) {
-    const native = normalizeApplePurchaseError(error);
-    log('PRODUCTS_FAILED', { category: native.category === 'network' ? 'network' : 'client', nativeCode: native.code });
-    throw error;
-  }
+    const usable = finishCatalogue(products, requested, eligible, log);
+    log('PRODUCTS_REFINED', { productCount: usable.length });
+    publishCatalogue({ products: usable, eligible, storefront });
+  };
+  const next = (refining ?? Promise.resolve()).then(run, run);
+  refining = next;
+  void next.catch(() => undefined).finally(() => { if (refining === next) refining = undefined; });
+  return next;
 }
 
 const syncing = new Map<string, Promise<void>>();

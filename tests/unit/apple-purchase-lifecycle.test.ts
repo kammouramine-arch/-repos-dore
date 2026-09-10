@@ -23,7 +23,7 @@ import { APPLE_PRODUCTS } from '@devisia/shared';
 // Keep React Native's global FormData declarations out of the web TS program.
 // Vitest still imports and executes the real mobile module at runtime.
 const mobileModule = '../../mobile/src/lib/apple-purchases';
-const { appleProducts, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases, observeApplePurchase } = await import(mobileModule);
+const { appleProducts, cachedAppleProducts, observeAppleCatalogue, listenForApplePurchases, purchaseApplePlan, restoreApplePurchases, observeApplePurchase } = await import(mobileModule);
 const purchase = { id: 'txn', productId: APPLE_PRODUCTS.ESSENTIEL, purchaseState: 'purchased', purchaseToken: 'test-only-not-a-real-receipt' };
 beforeEach(() => { vi.resetAllMocks(); m.request.mockResolvedValue({}); m.dispatch.mockResolvedValue(undefined); m.finish.mockResolvedValue(undefined); m.available.mockResolvedValue([]); m.storefront.mockResolvedValue('FRA'); m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '39,00 €', currency: 'EUR' }]); });
 describe('native purchase event lifecycle (mock SDK)', () => {
@@ -44,7 +44,7 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     expect(m.request).toHaveBeenCalledTimes(2);
   });
   it.each([
-    ['ESSENTIEL', 'PRO'], ['ESSENTIEL', 'ENTREPRISE'], ['PRO', 'ENTREPRISE'], ['ENTREPRISE', 'PRO'], ['PRO', 'ESSENTIEL'],
+    ['ESSENTIEL', 'PRO'], ['ESSENTIEL', 'ENTREPRISE'], ['PRO', 'ENTREPRISE'], ['ENTREPRISE', 'PRO'], ['PRO', 'ESSENTIEL'], ['ENTREPRISE', 'ESSENTIEL'],
   ] as const)('plan change %s → %s: verifies the current product, then asks StoreKit for the target and journals both ids', async (from, to) => {
     const current = { ...purchase, id: `txn-${from}`, productId: APPLE_PRODUCTS[from] };
     const target = { ...purchase, id: `txn-${to}`, productId: APPLE_PRODUCTS[to] };
@@ -101,6 +101,16 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     await older;
     expect((await fresh).products[0].displayPrice).toBe('39,00 €');
     expect(m.products.mock.calls.length).toBeGreaterThanOrEqual(2);
+  });
+  it('answers immediately with the first catalogue on a FRA/USD mismatch and refines in the background', async () => {
+    m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
+    m.storefront.mockResolvedValue('FRA');
+    const started = Date.now();
+    const first = await appleProducts(true);
+    expect(Date.now() - started).toBeLessThan(1_000);
+    expect(first.products[0].displayPrice).toBe('$35.00');
+    expect(first.storefront).toBe('FRA');
+    expect(m.diagnostic.mock.calls.map((c) => c[0].code)).toContain('PRODUCTS_FAST_PATH');
   });
   it('reconciles an existing active purchase without an interactive Apple restore', async () => {
     m.available.mockResolvedValue([purchase]);
@@ -163,15 +173,21 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     expect(m.products).toHaveBeenCalledWith({ skus: Object.values(APPLE_PRODUCTS), type: 'subs' });
     expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'PRODUCTS_RETURNED', productCount: 1, missingProductIds: [APPLE_PRODUCTS.PRO, APPLE_PRODUCTS.ENTREPRISE] }));
   });
-  it('does not convert a successful native catalogue into unavailable on a separate storefront mismatch', async () => {
+  it('does not convert a successful native catalogue into unavailable on a separate storefront mismatch, and refines in the background', async () => {
     m.products.mockResolvedValue([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
     expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '$35.00' }] });
-    expect(m.products).toHaveBeenCalledTimes(2);
-    expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'STOREKIT_METADATA_MISMATCH' }));
+    await vi.waitFor(() => expect(m.products).toHaveBeenCalledTimes(2), { timeout: 4_000 });
+    await vi.waitFor(() => expect(m.diagnostic).toHaveBeenCalledWith(expect.objectContaining({ code: 'STOREKIT_METADATA_MISMATCH' })), { timeout: 4_000 });
   });
-  it('uses the fresh EUR product after a bounded metadata refetch, never the earlier USD result', async () => {
+  it('publishes the fresh EUR product to observers after the bounded refetch, without ever blanking the first answer', async () => {
     m.products.mockResolvedValueOnce([{ id: APPLE_PRODUCTS.ESSENTIEL, displayPrice: '$35.00', currency: 'USD' }]);
-    expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '39,00 €' }] });
+    const refined: unknown[] = [];
+    const stop = observeAppleCatalogue((catalogue: { products: { displayPrice: string }[] }) => refined.push(catalogue.products[0].displayPrice));
+    try {
+      expect(await appleProducts()).toMatchObject({ products: [{ displayPrice: '$35.00' }] });
+      await vi.waitFor(() => expect(refined).toContain('39,00 €'), { timeout: 4_000 });
+      expect(cachedAppleProducts()).toMatchObject({ products: [{ displayPrice: '39,00 €' }] });
+    } finally { stop(); }
   });
   it('distinguishes zero products from a native request error and allows retry', async () => {
     m.products.mockResolvedValueOnce([]);

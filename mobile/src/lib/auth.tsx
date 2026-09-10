@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Alert, AppState, Platform } from 'react-native';
-import { listenForApplePurchases, restoreApplePurchases } from './apple-purchases';
+import { listenForApplePurchases, prefetchAppleProducts, restoreApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
 import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, persistPreferredLocale, readPreferredLocale } from './storage';
@@ -258,6 +258,9 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (state.status !== 'connecte' || !state.session?.user.emailVerified || Platform.OS !== 'ios' || state.session.organization.role !== 'OWNER') return;
     let disposed = false;
     let cleanup: (() => void) | undefined;
+    // Les prix Apple sont demandés dès la session ouverte : l'écran Abonnement
+    // s'ouvre ensuite avec un catalogue déjà en mémoire, sans état vide.
+    prefetchAppleProducts();
     void listenForApplePurchases(() => { void refreshSession().catch(() => undefined); }, (error) => {
       if (!disposed) {
         const english = authLocale === 'en';
