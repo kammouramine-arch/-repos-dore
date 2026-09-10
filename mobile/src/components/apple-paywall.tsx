@@ -69,6 +69,14 @@ function ApplePaywallContent() {
     });
     return () => { disposed = true; invalidateRequests(); stop(); resume.remove(); };
   }, [load, en]);
+  React.useEffect(() => {
+    // Journalise chaque produit affiché par le repli de vitrine : la preuve
+    // que la métadonnée Apple contredit encore la vitrine (dossier 102957593166).
+    for (const p of store?.products ?? []) {
+      const o = appleOffer(p, false, en, store?.storefront);
+      if (o.source === 'storefront-fallback') recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: 0, code: 'STOREFRONT_FALLBACK_USED', category: 'client', productId: p.id, storefront: store?.storefront, currency: p.currency, displayPrice: p.displayPrice, priceSource: 'storefront-fallback' });
+    }
+  }, [store, en]);
   const product = selected ? store?.products.find((p) => p.id === APPLE_PRODUCTS[selected]) : undefined;
   const offer = appleOffer(product, store?.eligible === true, en, store?.storefront);
   const trial = offer.trial;
@@ -142,7 +150,7 @@ function ApplePaywallContent() {
   }
   return <Screen>
     <View style={{ alignItems: 'center', paddingTop: spacing.sm, paddingBottom: spacing.xs }}>
-      {Constants.expoConfig?.extra?.storekitDiagnostics ? <DiagnosticReport en={en} /> : <Logo size={30} />}
+      {Constants.expoConfig?.extra?.storekitDiagnostics ? <DiagnosticReport en={en} storefront={store?.storefront} /> : <Logo size={30} />}
     </View>
     <View style={{ gap: spacing.md }}>
       <Caption upper>{en ? 'Your time deserves better' : 'Votre temps mérite mieux'}</Caption>
@@ -173,7 +181,7 @@ function ApplePaywallContent() {
         tagline={plan === 'PRO' ? (en ? 'The business choice' : 'Le choix des entreprises') : plan === 'ESSENTIEL' ? (en ? 'For solo work' : 'Pour travailler en solo') : (en ? 'For your team' : 'Pour votre équipe')}
         price={cardOffer.price}
         priceSuffix={cardOffer.period}
-        note={!p ? (loading ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : (en ? 'Reload offers to see the price' : 'Rechargez les offres pour afficher le prix')) : !appleActive ? cardOffer.note : plan === subscription.plan ? (en ? 'Your current plan' : 'Votre formule actuelle') : plan === pendingPlan ? (en ? `From ${pendingDate ?? 'the next renewal'}` : `À partir du ${pendingDate ?? 'prochain renouvellement'}`) : null}
+        note={!p ? (loading ? (en ? 'Waiting for Apple pricing' : 'Prix Apple en cours de chargement') : (en ? 'Reload offers to see the price' : 'Rechargez les offres pour afficher le prix')) : appleActive && plan === subscription.plan ? (en ? 'Your current plan' : 'Votre formule actuelle') : appleActive && plan === pendingPlan ? (en ? `From ${pendingDate ?? 'the next renewal'}` : `À partir du ${pendingDate ?? 'prochain renouvellement'}`) : cardOffer.source === 'storefront-fallback' ? (en ? 'France price · Apple confirms it before you agree' : 'Tarif France · Apple confirme le prix avant votre accord') : !appleActive ? cardOffer.note : null}
         highlights={PLANS[plan].highlights.slice(0, 3).map((text) => localizeText(locale, text))}
         selected={chosen}
         recommended={plan === 'PRO'}
@@ -185,7 +193,7 @@ function ApplePaywallContent() {
     {trial && selected ? <View style={{ padding: spacing.lg, backgroundColor: colors.canvas, borderRadius: radius.lg, gap: spacing.md }}>
       <Heading>{en ? 'Your trial, clearly explained' : 'Votre essai, en toute clarté'}</Heading>
       <Body>{en ? 'Today: ' : 'Aujourd’hui : '}{trialDays || 'quelques'} {en ? 'free days on ' : 'jours gratuits sur '}{PLANS[selected].name}, {en ? 'confirmed by Apple.' : 'confirmés par Apple.'}</Body>
-      <Body>{en ? 'Then: ' : 'Ensuite : '}{product?.displayPrice} {en ? 'per month, automatically unless cancelled.' : 'par mois, automatiquement, sauf annulation.'}</Body>
+      <Body>{en ? 'Then: ' : 'Ensuite : '}{offer.price} {en ? 'per month, automatically unless cancelled.' : 'par mois, automatiquement, sauf annulation.'}</Body>
       <Muted>{en ? 'Cancel in Apple subscriptions at least 24 hours before the trial ends to avoid renewal.' : 'Annulez dans vos abonnements Apple au moins 24 heures avant la fin de l’essai pour éviter le renouvellement.'}</Muted>
     </View> : null}
     {error ? <Banner tone="danger" title={error} /> : null}

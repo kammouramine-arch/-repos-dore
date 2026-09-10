@@ -40,6 +40,10 @@ export type Diagnostic = {
   introPrice?: string | number | null;
   introEligible?: boolean;
   cachePolicy?: string;
+  /* Changement de formule : produit actif et produit demandé. */
+  currentProductId?: string | null;
+  targetProductId?: string | null;
+  priceSource?: string;
   /* Lecture StoreKit 2 directe, comparée à la bibliothèque d'achat. */
   storefrontId?: string;
   nativeDisplayPrice?: string | null;

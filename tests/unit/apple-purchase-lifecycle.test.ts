@@ -43,6 +43,24 @@ describe('native purchase event lifecycle (mock SDK)', () => {
     expect(m.dispatch.mock.calls[0][0]).toMatchObject({ type: 'subs', request: { apple: { sku: APPLE_PRODUCTS.PRO, appAccountToken: 'org' } } });
     expect(m.request).toHaveBeenCalledTimes(2);
   });
+  it.each([
+    ['ESSENTIEL', 'PRO'], ['ESSENTIEL', 'ENTREPRISE'], ['PRO', 'ENTREPRISE'], ['ENTREPRISE', 'PRO'], ['PRO', 'ESSENTIEL'],
+  ] as const)('plan change %s → %s: verifies the current product, then asks StoreKit for the target and journals both ids', async (from, to) => {
+    const current = { ...purchase, id: `txn-${from}`, productId: APPLE_PRODUCTS[from] };
+    const target = { ...purchase, id: `txn-${to}`, productId: APPLE_PRODUCTS[to] };
+    m.available.mockResolvedValue([current]);
+    m.dispatch.mockResolvedValue(target);
+    await expect(purchaseApplePlan(to, 'org')).resolves.toBe('purchased');
+    expect(m.dispatch).toHaveBeenCalledOnce();
+    expect(m.dispatch.mock.calls[0][0].request.apple.sku).toBe(APPLE_PRODUCTS[to]);
+    // Ownership verified before Apple is asked, then the target transaction verified.
+    expect(m.request).toHaveBeenCalledTimes(2);
+    expect(m.request.mock.invocationCallOrder[0]).toBeLessThan(m.dispatch.mock.invocationCallOrder[0]);
+    const journal = m.diagnostic.mock.calls.map((c) => c[0]);
+    expect(journal).toContainEqual(expect.objectContaining({ code: 'PLAN_CHANGE_REQUESTED', currentProductId: APPLE_PRODUCTS[from], targetProductId: APPLE_PRODUCTS[to] }));
+    expect(journal).toContainEqual(expect.objectContaining({ code: 'PURCHASE_INVOKED', targetProductId: APPLE_PRODUCTS[to] }));
+    expect(journal).toContainEqual(expect.objectContaining({ code: 'PURCHASE_SETTLED' }));
+  });
   it('settles a downgrade returned by StoreKit as the CURRENT product with a new renewal preference', async () => {
     const pro = { ...purchase, id: 'txn-pro', productId: APPLE_PRODUCTS.PRO };
     m.available.mockResolvedValue([pro]);

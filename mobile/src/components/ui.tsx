@@ -631,23 +631,30 @@ export function PageHeader({
   action?: React.ReactNode;
 }) {
   const locale = useMobileLocale();
-  const eyebrowHeight = icon ? 26 : typography.caption.lineHeight;
+  const eyebrowHeight = icon ? 30 : typography.caption.lineHeight;
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg }}>
       <View style={{ flex: 1, gap: icon ? 8 : 5 }}>
         {eyebrow ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
             {icon ? (
-              <View style={{ width: 26, height: 26, borderRadius: 9, backgroundColor: colors.accentSoft, borderWidth: StyleSheet.hairlineWidth, borderColor: colors.accentBorder, alignItems: 'center', justifyContent: 'center', ...(shadows.glow as object), shadowOpacity: 0.16, shadowRadius: 10 }}>
-                <Ionicons name={icon} size={14} color={colors.accent} />
-              </View>
+              <Enter distance={0} duration={motion.slow}>
+                <View style={{ width: 30, height: 30, borderRadius: 10, backgroundColor: colors.accent, alignItems: 'center', justifyContent: 'center', ...(shadows.glow as object), shadowOpacity: 0.3, shadowRadius: 12 }}>
+                  <Ionicons name={icon} size={16} color={colors.white} />
+                </View>
+              </Enter>
             ) : null}
-            <Caption upper style={{ color: colors.accent }}>{localizeText(locale, eyebrow)}</Caption>
+            <Caption upper style={{ color: colors.accent, letterSpacing: 1.1 }}>{localizeText(locale, eyebrow)}</Caption>
           </View>
         ) : null}
-        <View style={{ gap: 6 }}>
-          <Title accessibilityRole="header" style={icon ? { fontSize: 28, lineHeight: 34, letterSpacing: -0.9 } : undefined}>{localizeText(locale, title)}</Title>
-          {icon ? <View style={{ width: 28, height: 3, borderRadius: 2, backgroundColor: colors.accent, opacity: 0.9 }} /> : null}
+        <View style={{ gap: 7 }}>
+          <Title accessibilityRole="header" style={icon ? { fontSize: 30, lineHeight: 36, letterSpacing: -1.05 } : undefined}>{localizeText(locale, title)}</Title>
+          {icon ? (
+            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 4 }}>
+              <View style={{ width: 22, height: 3, borderRadius: 2, backgroundColor: colors.accent }} />
+              <View style={{ width: 6, height: 3, borderRadius: 2, backgroundColor: colors.accentBright }} />
+            </View>
+          ) : null}
         </View>
         {subtitle ? (typeof subtitle === 'string' ? <Muted>{localizeText(locale, subtitle)}</Muted> : subtitle) : null}
       </View>

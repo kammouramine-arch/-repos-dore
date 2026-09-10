@@ -32,7 +32,7 @@ describe('Apple downgrade confirmation', () => {
   });
   it('never short-circuits a plan change on an existing entitlement, and keeps the customer on the screen when opened from Mon espace', () => {
     const purchases = readFileSync('mobile/src/lib/apple-purchases.ts', 'utf8');
-    expect(purchases).toContain("if (existing.some(purchase => purchase.productId === productId)) return 'reconciled' as const;");
+    expect(purchases).toMatch(/if \(existing\.some\(purchase => purchase\.productId === productId\)\) \{[\s\S]{0,400}return 'reconciled' as const;/);
     expect(purchases).not.toMatch(/if \(existing\.length\) \{[\s\S]*return 'purchased'/);
     expect(paywall).toContain('const manage = router.canGoBack();');
     expect(paywall).toContain("if (appleActive && !wasActive.current && !manage) router.replace('/(app)');");
@@ -43,6 +43,17 @@ describe('Apple downgrade confirmation', () => {
     expect(result).toContain('reste actif');
     expect(result).toContain('prendra ensuite le relais');
     expect(result).toContain('Achats restaurés');
+  });
+  it('exposes build provenance in the app and a visible diagnostics entry in the diagnostics profile', () => {
+    const config = readFileSync('mobile/app.config.ts', 'utf8');
+    expect(config).toContain("buildProfile: process.env.EAS_BUILD_PROFILE ?? null");
+    expect(config).toContain("commit: (process.env.EAS_BUILD_GIT_COMMIT_HASH ?? '').slice(0, 7) || null");
+    expect(readFileSync('mobile/app/(app)/plus.tsx', 'utf8')).toContain('Constants.nativeBuildVersion');
+    const report = readFileSync('mobile/src/components/diagnostic-report.tsx', 'utf8');
+    expect(report).toContain("en ? 'StoreKit diagnostics' : 'Diagnostic StoreKit'");
+    expect(report).toContain("en ? 'WRAPPER (expo-iap)' : 'BIBLIOTHÈQUE (expo-iap)'");
+    expect(report).toContain("en ? 'DIRECT STOREKIT 2' : 'STOREKIT 2 DIRECT'");
+    expect(report).toContain("if (!Constants.expoConfig?.extra?.storekitDiagnostics) return null;");
   });
   it('respects Reduce Motion', () => {
     expect(sheet).toContain('useReducedMotion');

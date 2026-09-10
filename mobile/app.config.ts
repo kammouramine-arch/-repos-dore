@@ -191,6 +191,10 @@ const config: ExpoConfig = {
 
   extra: {
     storekitDiagnostics: process.env.EAS_BUILD_PROFILE === 'testflight-diagnostics',
+    // Provenance visible dans l'application : profil EAS et commit source,
+    // pour ne plus jamais douter du binaire installé.
+    buildProfile: process.env.EAS_BUILD_PROFILE ?? null,
+    commit: (process.env.EAS_BUILD_GIT_COMMIT_HASH ?? '').slice(0, 7) || null,
     apiUrl: API_URL,
     eas: {
       projectId: EAS_PROJECT_ID,

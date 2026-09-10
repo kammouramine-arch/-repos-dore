@@ -260,9 +260,12 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
      * pour le produit CIBLE. Le droit existant ne court-circuite jamais cette
      * intention.
      */
-    if (existing.some(purchase => purchase.productId === productId)) return 'reconciled' as const;
     const changingFrom = existing[0]?.productId ?? null;
-    if (changingFrom) recordDiagnostic({ area: 'billing', durationMs: 0, code: 'PLAN_CHANGE_REQUESTED', category: 'ok', productId });
+    if (existing.some(purchase => purchase.productId === productId)) {
+      recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: 'PREFLIGHT_SAME_PRODUCT', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
+      return 'reconciled' as const;
+    }
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: changingFrom ? 'PLAN_CHANGE_REQUESTED' : 'FIRST_PURCHASE_REQUESTED', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
     const result = new Promise<void>((resolve, reject) => {
       const timer = setTimeout(() => {
         // A silent bridge is NOT proof of a pending Apple approval. Recheck
@@ -302,13 +305,14 @@ export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
     removeAttempt = () => updates.remove();
     const errors = iap.purchaseErrorListener(failed);
     removeAttempt = () => { updates.remove(); errors.remove(); };
-    recordDiagnostic({ area: 'billing', durationMs: 0, code: 'PURCHASE_INVOKED', category: 'ok', productId });
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: 'PURCHASE_INVOKED', category: 'ok', productId, currentProductId: changingFrom, targetProductId: productId });
     // expo-iap 5 also returns transactions on iOS. Process either channel.
     // Do NOT wait for dispatch after an event/cancellation settled the result.
     void iap.requestPurchase({ type: 'subs', request: { apple: { sku: productId, appAccountToken: organizationId, andDangerouslyFinishTransactionAutomatically: false } } })
       .then((returned) => { for (const purchase of Array.isArray(returned) ? returned : returned ? [returned] : []) receive(purchase); })
       .catch(failed);
     await result;
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: cancelled ? 'PURCHASE_CANCELLED' : 'PURCHASE_SETTLED', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
     return cancelled ? 'cancelled' as const : 'purchased' as const;
   } catch (error) {
     const diagnostic = logPurchaseFailure(error, { productId });

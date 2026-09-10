@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Constants from 'expo-constants';
 import { Alert, Linking, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
@@ -49,9 +50,11 @@ export default function PlusScreen() {
     ? `${PLANS[subscription.plan].name}${pendingLabel || (access.inTrial ? ` · ${en ? 'trial' : 'essai'}` : subscription.status === 'active' ? '' : subscription.status === 'incomplete' ? ` · ${en ? 'to activate' : 'à activer'}` : '')}`
     : (en ? 'No plan yet' : 'Aucune formule');
 
+  // « DEVISERA · 1.0.0 (36) · c589119 · diagnostics » : la provenance exacte du binaire.
+  const buildLabel = `DEVISERA · ${Constants.expoConfig?.version ?? '1.0.0'} (${Constants.nativeBuildVersion ?? '?'})${Constants.expoConfig?.extra?.commit ? ` · ${Constants.expoConfig.extra.commit}` : ''}${Constants.expoConfig?.extra?.buildProfile === 'testflight-diagnostics' ? ' · diagnostics' : ''}`;
   const contact = () => {
     const subject = encodeURIComponent('DEVISERA');
-    const body = encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\n\n\n—\nDEVISERA 1.0.0 · ${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`);
+    const body = encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\n\n\n—\n${buildLabel} · ${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`);
     void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => undefined);
   };
   const openPage = (path: string) => void WebBrowser.openBrowserAsync(`${API_URL}${path}`).catch(() => Linking.openURL(`${API_URL}${path}`));
@@ -124,7 +127,7 @@ export default function PlusScreen() {
         />
 
         </Stagger>
-        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>DEVISERA · version 1.0.0</Caption>
+        <Caption style={{ color: colors.subtle, textAlign: 'center' }}>{buildLabel}</Caption>
         <View style={{ height: spacing.xl }} />
       </Screen>
     </View>

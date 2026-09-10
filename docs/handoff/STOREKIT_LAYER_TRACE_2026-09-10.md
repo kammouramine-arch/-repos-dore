@@ -193,3 +193,41 @@ proves case B AND Apple cannot correct the catalogue answer. Not implemented.
 ### 7.6 Apple case 102957593166
 Not updated by this session (no access to the case). The material to attach is §4, §5 and
 the Build 35 comparison report once captured on the device.
+
+## 8. Provenance check and France storefront fallback (Build 35 feedback)
+
+### 8.1 Which build was tested
+EAS records: Build 34 = `96b8a860`, profile `production`, commit `6ecc11f`; Build 35 =
+`2318d0b5`, profile `testflight-diagnostics`, commit `c589119`, completed 11:43:55Z,
+uploaded to Apple (submission FINISHED) 11:46:58Z. The reported symptoms — no diagnostics
+entry, spaces swallowed, plan changes routing Home — are exactly Build 34's behaviour, and
+the report was made ~4 minutes after Build 35 reached Apple, before TestFlight processing
+completes. From now on the installed binary states its own provenance: Mon espace footer
+and the support e-mail carry `DEVISERA · 1.0.0 (<build>) · <commit> · diagnostics?`, taken
+from `EAS_BUILD_GIT_COMMIT_HASH` / `EAS_BUILD_PROFILE` at build time.
+
+### 8.2 Diagnostics entry
+In the `testflight-diagnostics` profile the paywall shows a visible "Diagnostic StoreKit ·
+<build> · <commit>" pill under the logo (the 1.8 s long-press remains). The panel renders a
+side-by-side table per product — WRAPPER (expo-iap): storefront, product, displayPrice,
+currency; DIRECT STOREKIT 2: storefront, product, displayPrice, currency, verdict — plus
+"Copier le rapport". Production builds render nothing.
+
+### 8.3 France storefront fallback
+`packages/shared/src/apple-storefront-prices.ts` is the single typed table
+(storefront → product id → `{ displayPrice, currency, period }`), holding the prices Apple's
+own subscription-management sheet displays for FRA: 39,00 € / 79,00 € / 149,00 €.
+`appleOffer` returns `source: 'apple'` when the native metadata is coherent with the
+storefront, `'storefront-fallback'` only for a known storefront + product when the metadata
+contradicts it, `null` otherwise. No arithmetic, no conversion. The card notes "Tarif France
+· Apple confirme le prix avant votre accord"; each use is journaled as
+`STOREFRONT_FALLBACK_USED` with the contradicting native price and currency. When Apple
+corrects the catalogue answer, `displayPrice` takes precedence automatically and the table
+is no longer read. Trials are still announced only on coherent metadata.
+
+### 8.4 Plan-change instrumentation
+`path: 'plan-change'` events: `PREFLIGHT_SAME_PRODUCT`, `PLAN_CHANGE_REQUESTED` /
+`FIRST_PURCHASE_REQUESTED` (currentProductId, targetProductId), `PURCHASE_INVOKED`,
+`PURCHASE_SETTLED` / `PURCHASE_CANCELLED`; exported by the diagnostics report. Regression
+matrix: Essential→Pro, Essential→Enterprise, Pro→Enterprise, Enterprise→Pro, Pro→Essential,
+each asserting ownership verification before `requestPurchase` of the target sku.
