@@ -408,6 +408,7 @@ Object.assign(TEXT_TRANSLATIONS, {
   "Vous n'avez pas accès à cette action.": 'You do not have access to this action.',
   'Cet élément est introuvable.': 'This item could not be found.',
   'Ce fichier est trop volumineux.': 'This file is too large.',
+  'Vos devis': 'Your quotes', 'À compléter': 'To complete', 'Fait': 'Done', 'Ouvrir': 'Open',
   'Ajouter mon premier client': 'Add my first client', 'Vos prospects': 'Your leads', 'Nouveaux': 'New', 'À suivre': 'To follow up', 'Gagnés': 'Won',
   'Aujourd’hui': 'Today', 'Cette semaine': 'This week', 'Plus tôt': 'Earlier', 'Tout afficher': 'Show everything',
   'Les demandes reçues depuis votre formulaire public arrivent directement ici. En attendant, un devis se prépare en une minute.': 'Requests from your public form land here. Meanwhile, a quote takes a minute to prepare.',

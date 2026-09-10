@@ -61,6 +61,16 @@ const empty = await account(process.env.CAPTURE_EMPTY_EMAIL ?? 'zz-capture-vide@
       { lastName: 'Garnier', firstName: 'Paul', phone: '0634567890', city: 'Bron' },
     ]) await call('/api/customers', { method: 'POST', token: full, body: c });
   }
+  const quotes = await call('/api/quotes', { token: full });
+  if (quotes.total === 0) {
+    const customers = (await call('/api/customers', { token: full })).items;
+    for (const [i, title] of ['Remplacement du chauffe-eau', 'Réfection salle de bain', 'Fuite sous évier'].entries()) {
+      const q = await call('/api/quotes', { method: 'POST', token: full, body: { customerId: customers[i % customers.length].id, title, items: [
+        { kind: 'MAIN_OEUVRE', label: 'Main-d’œuvre plombier', unit: 'h', quantity: 3 + i, unitPriceCents: 5500, vatRate: 10 },
+        { kind: 'MATERIAU', label: 'Fourniture', unit: 'u', quantity: 1, unitPriceCents: 74900 + i * 20000, vatRate: 10 } ] } });
+      if (i < 2) await call(`/api/quotes/${q.id}/envoi`, { method: 'POST', token: full, body: {} }).catch(() => {});
+    }
+  }
   const leads = await call('/api/leads', { token: full });
   if (!leads.length) {
     const now = Date.now();
@@ -121,6 +131,23 @@ for (const [label, token] of [['vide', empty], ['peuple', full]]) {
     await page.getByRole('tab', { name: /Gagnés/ }).first().click().catch(() => {});
     await shot(page, 'activite-filtre-gagnes', 700);
   }
+  await page.close();
+  await ctx.close();
+}
+// Accueil : salutation contextuelle, carrousel « Vos devis », « À compléter » ; Mon espace centré.
+for (const [label, token] of [['vide', empty], ['peuple', full]]) {
+  const ctx = await contexte({ token });
+  let page = await open(ctx, '/', /Bonjour|Hello/);
+  await shot(page, `home-${label}`, 1800);
+  await page.screenshot({ path: `${OUT}/home-${label}-full.png`, fullPage: true });
+  if (label === 'peuple') {
+    const card = page.getByText('Sylvie').first();
+    const box = await card.boundingBox().catch(() => null);
+    if (box) { await page.mouse.move(box.x + box.width - 20, box.y + 40); await page.mouse.down(); await page.mouse.move(box.x + 20, box.y + 40, { steps: 12 }); await page.mouse.up(); await shot(page, 'home-carrousel-swipe', 700); }
+  }
+  await page.close();
+  page = await open(ctx, '/plus', /Bienvenue|Welcome/);
+  await shot(page, `espace-${label}`, 1200);
   await page.close();
   await ctx.close();
 }

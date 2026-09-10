@@ -28,8 +28,8 @@ const items = [
   { name: 'plus', label: 'Mon espace', icon: 'person-outline', activeIcon: 'person' },
 ] as const;
 
-const BAR_HEIGHT = 66;
-const CREATE_SIZE = 60;
+const BAR_HEIGHT = 70;
+const CREATE_SIZE = 62;
 
 type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>['tabBar']>>[0];
 
@@ -75,17 +75,17 @@ function TabItem({
           void Haptics.selectionAsync().catch(() => undefined);
           onPress();
         }}
-        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: BAR_HEIGHT, gap: 3 }}
+        style={{ flex: 1, alignItems: 'center', justifyContent: 'center', minHeight: BAR_HEIGHT, gap: 4 }}
       >
         <Animated.View style={{ width: 26, height: 26, alignItems: 'center', justifyContent: 'center', transform: [{ translateY: lift }, { scale: grow }] }}>
           <Animated.View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', opacity: progress.interpolate({ inputRange: [0, 1], outputRange: [1, 0] }) }]}>
-            <Ionicons name={item.icon as keyof typeof Ionicons.glyphMap} size={23} color={colors.subtle} />
+            <Ionicons name={item.icon as keyof typeof Ionicons.glyphMap} size={24} color={colors.subtle} />
           </Animated.View>
           <Animated.View style={[StyleSheet.absoluteFill, { alignItems: 'center', justifyContent: 'center', opacity: progress }]}>
-            <Ionicons name={item.activeIcon as keyof typeof Ionicons.glyphMap} size={23} color={colors.accent} />
+            <Ionicons name={item.activeIcon as keyof typeof Ionicons.glyphMap} size={24} color={colors.accent} />
           </Animated.View>
         </Animated.View>
-        <Text numberOfLines={1} style={{ fontSize: 10.5, fontWeight: '600', letterSpacing: 0.1, color: active ? colors.accent : colors.subtle }}>
+        <Text numberOfLines={1} style={{ fontSize: 11, fontWeight: '600', letterSpacing: 0.15, color: active ? colors.accent : colors.subtle }}>
           {label}
         </Text>
       </Pressable>
@@ -214,7 +214,7 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
     name === 'index' ? copy(locale, 'home') : name === 'clients' ? copy(locale, 'clients') : name === 'nouveau' ? copy(locale, 'create') : name === 'prospects' ? copy(locale, 'activity') : copy(locale, 'space');
 
   return (
-    <View style={{ backgroundColor: 'transparent', paddingTop: spacing.sm, paddingBottom: Math.max(insets.bottom, spacing.sm), paddingHorizontal: spacing.md }}>
+    <View style={{ backgroundColor: 'transparent', paddingTop: spacing.md, paddingBottom: Math.max(insets.bottom, spacing.md), paddingHorizontal: spacing.md }}>
       <View
         onLayout={(event) => setBarWidth(event.nativeEvent.layout.width)}
         style={{

@@ -10,7 +10,8 @@ import { readToken } from '@/lib/storage';
 import { Button } from './ui';
 import { colors } from '@/theme';
 
-export function ProfileAvatar({ initial, en }: { initial: string; en: boolean }) {
+export function ProfileAvatar({ initial, en, size = 64 }: { initial: string; en: boolean; size?: number }) {
+  const r = Math.round(size * 0.34);
   const [image, setImage] = React.useState<string | null>(null);
   const [preview, setPreview] = React.useState<{ uri: string; base64: string } | null>(null);
   const [busy, setBusy] = React.useState(false);
@@ -83,21 +84,21 @@ export function ProfileAvatar({ initial, en }: { initial: string; en: boolean })
         onPressIn={touch.pressIn}
         onPressOut={touch.pressOut}
         onPress={() => { touch.pressOut(); void Haptics.selectionAsync().catch(() => undefined); menu(); }}
-        style={{ width: 64, height: 64 }}
+        style={{ width: size, height: size }}
       >
-        <View style={{ width: 64, height: 64, borderRadius: 22, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.55)', alignItems: 'center', justifyContent: 'center' }}>
+        <View style={{ width: size, height: size, borderRadius: r, overflow: 'hidden', backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.55)', alignItems: 'center', justifyContent: 'center' }}>
           <Text style={{ color: colors.white, fontSize: 25, fontWeight: '700', letterSpacing: -0.5 }}>{initial}</Text>
           {image ? (
             <Animated.Image
               source={{ uri: image }}
               onLoad={() => Animated.timing(fade, { toValue: 1, duration: 260, useNativeDriver: true }).start()}
               onError={() => setImage(null)}
-              style={{ position: 'absolute', width: 64, height: 64, opacity: fade }}
+              style={{ position: 'absolute', width: size, height: size, opacity: fade }}
             />
           ) : null}
-          {busy ? <View style={{ position: 'absolute', width: 64, height: 64, backgroundColor: 'rgba(20,36,90,0.35)', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.white} /></View> : null}
+          {busy ? <View style={{ position: 'absolute', width: size, height: size, backgroundColor: 'rgba(20,36,90,0.35)', alignItems: 'center', justifyContent: 'center' }}><ActivityIndicator color={colors.white} /></View> : null}
         </View>
-        <View pointerEvents="none" style={{ position: 'absolute', right: -4, bottom: -4, width: 24, height: 24, borderRadius: 12, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.accent }}>
+        <View pointerEvents="none" style={{ position: 'absolute', right: -4, bottom: -4, width: size >= 80 ? 30 : 24, height: size >= 80 ? 30 : 24, borderRadius: size >= 80 ? 15 : 12, backgroundColor: colors.canvas, alignItems: 'center', justifyContent: 'center', borderWidth: 2, borderColor: colors.accent }}>
           <Ionicons name="camera" size={12} color={colors.accent} />
         </View>
       </Pressable>

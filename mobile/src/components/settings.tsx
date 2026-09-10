@@ -1,7 +1,8 @@
 import * as React from 'react';
 import { StyleSheet, Text, View, type ViewStyle } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, motion, radius, spacing, typography } from '@/theme';
+import { Enter } from './motion';
 import { Card, ListRow } from './ui';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 
@@ -110,13 +111,36 @@ export function IdentityHeader({
   name,
   subtitle,
   chips,
+  greeting,
+  centered = false,
 }: {
   initial: string;
   avatar?: React.ReactNode;
   name: string;
   subtitle?: string | null;
   chips?: React.ReactNode;
+  /** Petite ligne d'accueil au-dessus du nom (« Bonjour »). */
+  greeting?: string | null;
+  /** Portrait centré : la photo au milieu, le nom dessous, l'atelier de l'artisan. */
+  centered?: boolean;
 }) {
+  if (centered) {
+    return (
+      <View style={{ alignItems: 'center', gap: spacing.md, paddingBottom: spacing.sm }}>
+        <Enter distance={6} duration={motion.slow}>
+          {avatar ?? <View style={{ width: 88, height: 88, borderRadius: 30, backgroundColor: 'rgba(255,255,255,0.18)', borderWidth: 1.5, borderColor: 'rgba(255,255,255,0.45)', alignItems: 'center', justifyContent: 'center' }}>
+            <Text style={{ color: colors.white, fontSize: 34, fontWeight: '700', letterSpacing: -0.8 }}>{initial}</Text>
+          </View>}
+        </Enter>
+        <Enter delay={70} distance={8} style={{ alignItems: 'center', gap: 3, paddingHorizontal: spacing.lg }}>
+          {greeting ? <Text style={[typography.caption, { color: 'rgba(255,255,255,0.8)', textTransform: 'uppercase', letterSpacing: 1.1 }]}>{greeting}</Text> : null}
+          <Text numberOfLines={1} style={[typography.title, { color: colors.white, fontSize: 28, lineHeight: 34, letterSpacing: -0.9, textAlign: 'center' }]}>{name}</Text>
+          {subtitle ? <Text numberOfLines={1} style={[typography.body, { color: 'rgba(255,255,255,0.86)', fontSize: 16, textAlign: 'center' }]}>{subtitle}</Text> : null}
+        </Enter>
+        {chips ? <Enter delay={140} distance={8}><View style={{ flexDirection: 'row', flexWrap: 'wrap', justifyContent: 'center', gap: spacing.sm }}>{chips}</View></Enter> : null}
+      </View>
+    );
+  }
   return (
     <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>

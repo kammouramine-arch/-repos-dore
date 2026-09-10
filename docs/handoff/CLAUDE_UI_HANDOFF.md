@@ -78,3 +78,19 @@ Applied: home cards and metrics (`(app)/index.tsx`), activity metrics + empty CT
 States: `Skeleton` now shimmers (native-driven gradient band), `EmptyState` is branded (accent disc + halo, entrance), `AnimatedAmount`/`AnimatedCount` primitives, toast success icon springs in, success toasts added for client added, catalogue saved/removed, name/email/language saved. Tab-bar indicator hides on hidden routes. Card shadow tightened (`shadows.card`), new `shadows.glow` brand shadow. Profile avatar: image fade-in, light ring, camera edit badge, busy veil, press feedback.
 
 No dependency added. No API change. Engineering note: the dictation waveform is a listening *state*, not a level meter — the native recogniser exposes no audio level; if one is exposed later, `Waveform` can take an `level` prop.
+
+## Personalization pass — 10 September 2026
+
+- Home: greeting reveals in three beats (eyebrow, name, sentence) once per mount; the
+  sentence is contextual (first quote / quotes awaiting a reply / quotes in progress /
+  up to date). "Vos devis" horizontal carousel (`quote-carousel.tsx`): dominant card with
+  the next one peeking 36 pt, snap interval, animated page dots, per-card status badge,
+  amount from `QuoteSummaryDTO.totalCents`, tap opens `/devis/[id]`, branded empty state.
+  "À compléter" (`setup-progress.tsx`): three facts read from real data
+  (`features/setup-status.ts`): legal identifier + reachable contact, at least one
+  catalogue item, at least one client; animated progress bar; completed rows stay listed
+  with a check; the card disappears only when all three are true.
+- Mon espace: centred identity (`IdentityHeader centered`), 88 pt portrait, greeting
+  "Bienvenue dans votre atelier", name, company, centred chips; structure below unchanged.
+- Tab bar: 70 pt bar, 24 pt icons, 11 pt labels, safe-area padding, + raised 28 pt.
+- Nothing changed in auth, voice, purchases, ownership or backend contracts.

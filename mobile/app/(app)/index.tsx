@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { QUOTE_EVENT_LABELS, type DashboardDTO } from '@devisia/shared';
+import { QUOTE_EVENT_LABELS, type DashboardDTO, type QuoteSummaryDTO } from '@devisia/shared';
 import {
   Amount,
   AnimatedAmount,
@@ -31,7 +31,10 @@ import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
 import { mobileLocale } from '@/lib/i18n';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
-import { Stagger } from '@/components/motion';
+import { Enter, Stagger } from '@/components/motion';
+import { QuoteCarousel } from '@/components/quote-carousel';
+import { SetupProgress } from '@/components/setup-progress';
+import { loadSetupStatus, type SetupStatus } from '@/features/setup-status';
 
 /**
  * Accueil.
@@ -119,13 +122,19 @@ function relativeDay(iso: string, en: boolean): string {
  * écrit en blanc sur le bleu saturé, et c'est l'arrière-plan de l'écran qui
  * se dissout vers le blanc sous les cartes.
  */
+/**
+ * Accueil personnel : surtitre, salutation, puis une phrase qui parle de
+ * l'atelier tel qu'il est aujourd'hui (premier devis, devis en attente,
+ * relances). L'en-tête se pose une fois, en deux temps ; il ne rejoue pas à
+ * chaque rafraîchissement.
+ */
 function HomeHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, paddingBottom: spacing.sm }}>
-      <View style={{ flex: 1, gap: 6 }}>
-        <Caption upper style={{ color: 'rgba(255,255,255,0.78)' }}>{eyebrow}</Caption>
-        <Text style={[typography.title, { color: colors.white, fontSize: 30, lineHeight: 36 }]} accessibilityRole="header">{title}</Text>
-        <Text style={[typography.body, { color: 'rgba(255,255,255,0.86)' }]}>{subtitle}</Text>
+      <View style={{ flex: 1, gap: 8 }}>
+        <Enter distance={6}><Caption upper style={{ color: 'rgba(255,255,255,0.78)', letterSpacing: 1.1 }}>{eyebrow}</Caption></Enter>
+        <Enter delay={60} distance={8}><Text style={[typography.title, { color: colors.white, fontSize: 32, lineHeight: 38, letterSpacing: -1.1 }]} accessibilityRole="header">{title}</Text></Enter>
+        <Enter delay={130} distance={8}><Text style={[typography.body, { color: 'rgba(255,255,255,0.88)', fontSize: 16, lineHeight: 23, maxWidth: 300 }]}>{subtitle}</Text></Enter>
       </View>
       <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
         <Logo size={26} showName={false} tone="inverse" />
@@ -145,6 +154,8 @@ export default function AccueilScreen() {
     if (token) void writeDashboardSnapshot(token, data);
     return data;
   }, [], 'dashboard:30');
+  const quotesQuery = useQuery<{ total: number; items: QuoteSummaryDTO[] }>(() => api.quotes.list({ take: 8 }), [], 'quotes:home');
+  const setupQuery = useQuery<SetupStatus>(() => loadSetupStatus(), [], 'setup:home');
   const setDashboard = query.setData;
   React.useEffect(() => {
     let disposed = false;
@@ -165,11 +176,15 @@ export default function AccueilScreen() {
   useFocusEffect(
     React.useCallback(() => {
       void query.refresh();
+      void quotesQuery.refresh();
+      void setupQuery.refresh();
       // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []),
   );
 
   const data = query.data;
+  const setup = setupQuery.data;
+  const setupPending = setup ? !(setup.business && setup.catalogue && setup.clients) : false;
   const firstName = session?.user.firstName?.trim() || data?.greetingName || '';
 
   if (query.loading && !data) {
@@ -245,9 +260,13 @@ export default function AccueilScreen() {
           eyebrow={en ? 'Your workspace' : 'Votre atelier'}
           title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
           subtitle={
-            started
-              ? (en ? 'Your activity, clear and ready to move forward.' : 'Votre activité, claire et prête à avancer.')
-              : (en ? 'Your first quote starts here.' : 'Votre premier devis commence ici.')
+            !started
+              ? (en ? 'Your workshop is ready. Your first quote starts here.' : 'Votre atelier est prêt. Votre premier devis commence ici.')
+              : data.toRecover.quoteCount > 0
+                ? (en ? `${data.toRecover.quoteCount} quote${data.toRecover.quoteCount > 1 ? 's' : ''} waiting for a reply. A follow-up takes a minute.` : `${data.toRecover.quoteCount} devis attend${data.toRecover.quoteCount > 1 ? 'ent' : ''} une réponse. Une relance prend une minute.`)
+                : data.pendingQuotes > 0
+                  ? (en ? `${data.pendingQuotes} quote${data.pendingQuotes > 1 ? 's' : ''} in progress. Everything is in order.` : `${data.pendingQuotes} devis en cours. Tout est en ordre.`)
+                  : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
           }
         />
 
@@ -304,55 +323,12 @@ export default function AccueilScreen() {
               </View>
             </PressableCard>
 
-            <Card style={{ gap: spacing.lg }}>
-              <SectionHeader title={en ? 'Set up your workspace' : 'Pour aller plus vite ensuite'} />
-              {[
-                {
-                  icon: 'book-outline' as const,
-                  label: en ? 'Add your catalogue' : 'Renseignez votre catalogue',
-                  hint: en ? 'Your prices will be applied instead of estimated.' : 'Vos prix seront appliqués au lieu d’être estimés.',
-                  href: '/catalogue' as const,
-                },
-                {
-                  icon: 'business-outline' as const,
-                  label: en ? 'Complete your business profile' : 'Complétez votre entreprise',
-                  hint: en ? 'Business details will appear on your quotes.' : 'SIRET, TVA et mentions apparaîtront sur vos devis.',
-                  href: '/entreprise' as const,
-                },
-                {
-                  icon: 'people-outline' as const,
-                  label: en ? 'Add a client' : 'Ajoutez un client',
-                  hint: en ? 'Or create one while preparing a quote.' : 'Ou créez-le directement pendant un devis.',
-                  href: '/clients' as const,
-                },
-              ].map((item, index, all) => (
-                <View key={item.label} style={{ gap: spacing.lg }}>
-                  {index > 0 ? <Divider /> : null}
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={item.label}
-                    onPress={() => router.push(item.href)}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: spacing.md,
-                      opacity: pressed ? 0.6 : 1,
-                    })}
-                  >
-                    <Ionicons name={item.icon} size={20} color={colors.inkSoft} />
-                    <View style={{ flex: 1 }}>
-                      <Body style={{ fontWeight: '600' }}>{item.label}</Body>
-                      <Muted style={{ fontSize: 13 }}>{item.hint}</Muted>
-                    </View>
-                    <Ionicons name="chevron-forward" size={17} color={colors.subtle} />
-                  </Pressable>
-                  {index === all.length - 1 ? <View /> : null}
-                </View>
-              ))}
-            </Card>
+            {setup ? <SetupProgress status={setup} en={en} /> : null}
           </Stagger>
         ) : (
           <Stagger step={60} initial={40}>
+            <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />
+            {setup && setupPending ? <SetupProgress status={setup} en={en} /> : null}
             {data.toRecover.quoteCount > 0 ? (
               <Pressable
                 accessibilityRole="button"

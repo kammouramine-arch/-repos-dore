@@ -64,8 +64,10 @@ export default function PlusScreen() {
       <BrandBackdrop height={surface.gradientHeight} />
       <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
         <IdentityHeader
+          centered
+          greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
           initial={initial}
-          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} />}
+          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} size={88} />}
           name={name}
           subtitle={fullName ? business || session?.user.email : session?.user.email}
           chips={
