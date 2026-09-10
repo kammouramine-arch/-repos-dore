@@ -113,9 +113,16 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
     headerStyle: { backgroundColor: colors.canvas },
     headerShadowVisible: false,
     headerBackVisible: false,
-    headerLeft: ({ canGoBack, tintColor }: { canGoBack?: boolean; tintColor?: ColorValue }) =>
-      canGoBack ? <HeaderBack tint={tintColor ?? colors.accent} /> : null,
+    // Toujours un « Retour » : un écran atteint par remplacement (devis qui
+    // vient d'être créé) n'a rien derrière lui dans la pile, et l'artisan se
+    // retrouvait sans issue. Le bouton revient en arrière quand c'est possible,
+    // sinon vers la destination de repli de l'écran.
+    headerLeft: ({ tintColor }: { canGoBack?: boolean; tintColor?: ColorValue }) =>
+      <HeaderBack tint={tintColor ?? colors.accent} />,
   };
+  const backTo = (fallback: '/(app)/devis' | '/(app)/clients') => ({
+    headerLeft: ({ tintColor }: { canGoBack?: boolean; tintColor?: ColorValue }) => <HeaderBack tint={tintColor ?? colors.accent} fallback={fallback} />,
+  });
 
   // Session existante mais serveur injoignable ou en panne : on ne déconnecte
   // pas l'artisan, son jeton reste dans le trousseau.
@@ -158,8 +165,8 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Protected guard={!needsPlan}>
           <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
           <Stack.Screen name="devis/nouveau" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'New quote' : 'Nouveau devis', headerBackTitle: back }} />
-          <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Quote' : 'Devis', headerBackTitle: back }} />
-          <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Client profile' : 'Fiche client', headerBackTitle: back }} />
+          <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Quote' : 'Devis', headerBackTitle: back, ...backTo('/(app)/devis') }} />
+          <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Client profile' : 'Fiche client', headerBackTitle: back, ...backTo('/(app)/clients') }} />
         </Stack.Protected>
         <Stack.Screen name="abonnement" options={{ headerShown: true, title: locale === 'en' ? 'Subscription' : 'Abonnement', headerBackTitle: back }} />
         <Stack.Screen name="presentation" options={{ headerShown: false }} />

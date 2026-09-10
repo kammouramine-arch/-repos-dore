@@ -63,11 +63,11 @@ export default function AppTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="prospects"
+        name="devis"
         options={{
-          title: locale === 'en' ? 'Leads' : 'Prospects',
+          title: locale === 'en' ? 'Quotes' : 'Devis',
           tabBarIcon: ({ color, size, focused }) => (
-            <TabIcon focused={focused} name={focused ? 'chatbubbles' : 'chatbubbles-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'document-text' : 'document-text-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
@@ -95,7 +95,9 @@ export default function AppTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen name="devis" options={{ href: null }} />
+      {/* Prospects : hors du produit de lancement. La route reste montée
+          (lien profond, données existantes) mais n'a plus d'entrée. */}
+      <Tabs.Screen name="prospects" options={{ href: null }} />
     </Tabs>
     </View>
   );

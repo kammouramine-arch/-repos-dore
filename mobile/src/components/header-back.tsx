@@ -16,7 +16,13 @@ import { copy, useMobileLocale } from '@/lib/i18n';
  * chevron et « Retour », une cible de 44 pt, une compression tactile et un
  * retour haptique. Il n'affiche jamais le nom d'une route.
  */
-export function HeaderBack({ tint = colors.accent }: { tint?: ColorValue }) {
+/**
+ * `fallback` : destination quand la pile n'a rien derrière (écran ouvert par
+ * remplacement après une création, lien profond). Jamais l'accueil par défaut
+ * quand une destination plus juste existe : la liste des devis pour un devis,
+ * le répertoire pour une fiche client.
+ */
+export function HeaderBack({ tint = colors.accent, fallback = '/(app)' }: { tint?: ColorValue; fallback?: '/(app)' | '/(app)/devis' | '/(app)/clients' }) {
   const router = useRouter();
   const locale = useMobileLocale();
   const touch = useTouchMotion(0.94);
@@ -36,7 +42,7 @@ export function HeaderBack({ tint = colors.accent }: { tint?: ColorValue }) {
           lastPressAt.current = now;
           void Haptics.selectionAsync().catch(() => undefined);
           if (router.canGoBack()) router.back();
-          else router.replace('/(app)');
+          else router.replace(fallback);
         }}
         style={({ pressed }) => ({
           flexDirection: 'row',

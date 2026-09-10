@@ -1,5 +1,5 @@
-const paths = ['/', '/prospects', '/clients', '/plus'];
-const destinations = ['/(app)', '/(app)/prospects', '/(app)/clients', '/(app)/plus'] as const;
+const paths = ['/', '/clients', '/devis', '/plus'];
+const destinations = ['/(app)', '/(app)/clients', '/(app)/devis', '/(app)/plus'] as const;
 
 /** Small thumb movement is a tap, not an instruction to cancel the + button. */
 export function shouldCaptureTabDrag(dx: number, dy: number) {

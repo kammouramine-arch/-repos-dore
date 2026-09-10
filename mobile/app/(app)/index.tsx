@@ -7,7 +7,6 @@ import {
   Amount,
   AnimatedAmount,
   AnimatedCount,
-  Badge,
   Body,
   Button,
   Caption,
@@ -400,19 +399,6 @@ export default function AccueilScreen() {
               )}
             </Card>
 
-            {data.newLeads > 0 ? (
-              <Pressable accessibilityRole="button" onPress={() => router.push('/prospects')}>
-                <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md }}>
-                  <Badge label={String(data.newLeads)} tone="accent" />
-                  <Body style={{ flex: 1, fontWeight: '600' }}>
-                    {en
-                      ? `${data.newLeads} new quote request${data.newLeads > 1 ? 's' : ''}`
-                      : `${data.newLeads} nouvelle${data.newLeads > 1 ? 's' : ''} demande${data.newLeads > 1 ? 's' : ''}`}
-                  </Body>
-                  <Ionicons name="chevron-forward" size={17} color={colors.subtle} />
-                </Card>
-              </Pressable>
-            ) : null}
 
             <Button
               title={en ? 'New quote' : 'Nouveau devis'}

@@ -24,7 +24,7 @@ const items = [
   { name: 'index', label: 'Accueil', icon: 'home-outline', activeIcon: 'home' },
   { name: 'clients', label: 'Clients', icon: 'people-outline', activeIcon: 'people' },
   { name: 'nouveau', label: 'Créer', icon: 'add', activeIcon: 'add' },
-  { name: 'prospects', label: 'Activité', icon: 'chatbubbles-outline', activeIcon: 'chatbubbles' },
+  { name: 'devis', label: 'Devis', icon: 'document-text-outline', activeIcon: 'document-text' },
   { name: 'plus', label: 'Mon espace', icon: 'person-outline', activeIcon: 'person' },
 ] as const;
 
@@ -178,7 +178,7 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
   const activeName = state.routes[state.index]?.name;
   const activeIndex = items.findIndex((item) => item.name === activeName);
   const activeSlot = Math.max(0, activeIndex);
-  // Route masquée (liste des devis) ou onglet de création : aucun onglet
+  // Route masquée (prospects, dormante) ou onglet de création : aucun onglet
   // n'est « sélectionné », l'indicateur s'efface au lieu de retomber sur Accueil.
   const onCreate = activeName === 'nouveau' || activeIndex < 0;
 
@@ -211,7 +211,7 @@ export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
     navigation.navigate(route.name, route.params);
   };
   const labelFor = (name: (typeof items)[number]['name']) =>
-    name === 'index' ? copy(locale, 'home') : name === 'clients' ? copy(locale, 'clients') : name === 'nouveau' ? copy(locale, 'create') : name === 'prospects' ? copy(locale, 'activity') : copy(locale, 'space');
+    name === 'index' ? copy(locale, 'home') : name === 'clients' ? copy(locale, 'clients') : name === 'nouveau' ? copy(locale, 'create') : name === 'devis' ? copy(locale, 'quotes') : copy(locale, 'space');
 
   return (
     <View style={{ backgroundColor: 'transparent', paddingTop: spacing.md, paddingBottom: Math.max(insets.bottom, spacing.md), paddingHorizontal: spacing.md }}>

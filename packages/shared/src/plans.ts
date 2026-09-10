@@ -100,7 +100,7 @@ export const PLANS: Record<PlanId, PlanDefinition> = {
     highlights: [
       'Tout Essentiel, jusqu’à 300 générations IA par mois',
       'Séquences de relance automatiques',
-      'Formulaire de demande de devis pour votre site',
+      'Historique complet de vos devis',
       'Assistant IA sur vos données',
       'Équipe de 3 utilisateurs',
       'Support prioritaire',

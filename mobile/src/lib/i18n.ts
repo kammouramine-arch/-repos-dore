@@ -10,7 +10,7 @@ export type MobileLocale = 'fr' | 'en';
  */
 const DICTIONARY = {
   fr: {
-    home: 'Accueil', clients: 'Clients', activity: 'Activité', space: 'Mon espace', create: 'Créer',
+    home: 'Accueil', clients: 'Clients', activity: 'Activité', quotes: 'Devis', space: 'Mon espace', create: 'Créer',
     directory: 'Répertoire', yourClients: 'Vos clients', account: 'Mon compte', discover: 'Découvrir DEVISERA',
     subscription: 'Abonnement', pricing: 'Catalogue de prix', business: 'Mon entreprise', analytics: 'Activité',
     manageProfile: 'Gérer mon profil', language: 'Langue de l’application', french: 'Français', english: 'English',
@@ -27,7 +27,7 @@ const DICTIONARY = {
     shareDiagnostics: 'Partager le diagnostic technique', noPayments: 'Aucun paiement enregistré', receipt: 'Reçu',
   },
   en: {
-    home: 'Home', clients: 'Clients', activity: 'Activity', space: 'My space', create: 'Create',
+    home: 'Home', clients: 'Clients', activity: 'Activity', quotes: 'Quotes', space: 'My space', create: 'Create',
     directory: 'Directory', yourClients: 'Your clients', account: 'My account', discover: 'Discover DEVISERA',
     subscription: 'Subscription', pricing: 'Price catalogue', business: 'My business', analytics: 'Activity',
     manageProfile: 'Manage my profile', language: 'App language', french: 'Français', english: 'English',
@@ -408,7 +408,8 @@ Object.assign(TEXT_TRANSLATIONS, {
   "Vous n'avez pas accès à cette action.": 'You do not have access to this action.',
   'Cet élément est introuvable.': 'This item could not be found.',
   'Ce fichier est trop volumineux.': 'This file is too large.',
-  'Vos devis': 'Your quotes', 'À compléter': 'To complete', 'Fait': 'Done', 'Ouvrir': 'Open',
+  'Vos devis': 'Your quotes', 'À compléter': 'To complete', 'Fait': 'Done', 'Ouvrir': 'Open', 'Historique complet de vos devis': 'Full history of your quotes',
+  'Brouillons': 'Drafts', 'Envoyés': 'Sent', 'Consultés': 'Viewed', 'Clos': 'Closed', 'Client, objet, numéro…': 'Client, subject, number…', 'Aucun devis ne correspond.': 'No quote matches.', 'Essayez un autre nom ou un autre statut.': 'Try another name or status.',
   'Ajouter mon premier client': 'Add my first client', 'Vos prospects': 'Your leads', 'Nouveaux': 'New', 'À suivre': 'To follow up', 'Gagnés': 'Won',
   'Aujourd’hui': 'Today', 'Cette semaine': 'This week', 'Plus tôt': 'Earlier', 'Tout afficher': 'Show everything',
   'Les demandes reçues depuis votre formulaire public arrivent directement ici. En attendant, un devis se prépare en une minute.': 'Requests from your public form land here. Meanwhile, a quote takes a minute to prepare.',

@@ -54,7 +54,8 @@ describe('en-tête des écrans poussés', () => {
 
   it('fournit son propre bouton retour et masque celui du système', () => {
     expect(layout).toContain('headerBackVisible: false');
-    expect(layout).toMatch(/headerLeft: \(\{ canGoBack, tintColor \}[\s\S]*<HeaderBack/);
+    // Le retour est toujours fourni, même sans écran derrière (repli par écran).
+    expect(layout).toMatch(/headerLeft: \(\{ tintColor \}[\s\S]*<HeaderBack/);
     expect(layout).toContain("headerTitleAlign: 'center'");
   });
 

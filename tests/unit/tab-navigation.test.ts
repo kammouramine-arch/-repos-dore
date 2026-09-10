@@ -34,14 +34,15 @@ describe('finger-following tab selection', () => {
 
 describe('bottom navigation gestures', () => {
   it('moves through content tabs without opening the quote action', () => {
-    expect(tabSwipeDestination('/', -60)).toBe('/(app)/prospects');
-    expect(tabSwipeDestination('/prospects', -60)).toBe('/(app)/clients');
-    expect(tabSwipeDestination('/clients', 60)).toBe('/(app)/prospects');
+    expect(tabSwipeDestination('/', -60)).toBe('/(app)/clients');
+    expect(tabSwipeDestination('/clients', -60)).toBe('/(app)/devis');
+    expect(tabSwipeDestination('/devis', 60)).toBe('/(app)/clients');
   });
   it('does not wrap at either edge or redirect hidden screens', () => {
     expect(tabSwipeDestination('/', 60)).toBeNull();
     expect(tabSwipeDestination('/plus', -60)).toBeNull();
-    expect(tabSwipeDestination('/devis', -60)).toBeNull();
+    // Prospects n'a plus d'entrée : une route masquée ne mène nulle part.
+    expect(tabSwipeDestination('/prospects', -60)).toBeNull();
   });
   it('ignores small movements and invalid values', () => {
     expect(tabSwipeDestination('/', -30)).toBeNull();

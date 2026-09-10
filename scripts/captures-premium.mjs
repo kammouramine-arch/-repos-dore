@@ -151,6 +151,30 @@ for (const [label, token] of [['vide', empty], ['peuple', full]]) {
   await page.close();
   await ctx.close();
 }
+// Onglet Devis : archive avec recherche et filtres ; vide et peuplé.
+for (const [label, token] of [['vide', empty], ['peuple', full]]) {
+  const ctx = await contexte({ token });
+  const page = await open(ctx, '/devis', /Vos devis|Your quotes/);
+  await shot(page, `devis-${label}`, 1500);
+  if (label === 'peuple') {
+    await page.getByRole('tab', { name: /Envoyés|Sent/ }).first().click().catch(() => {});
+    await shot(page, 'devis-filtre-envoyes', 700);
+    await page.getByRole('tab', { name: /Tous|All/ }).first().click().catch(() => {});
+    await page.getByRole('textbox').first().fill('Sylvie').catch(() => {});
+    await shot(page, 'devis-recherche', 700);
+  }
+  await page.close();
+  await ctx.close();
+}
+// Retour depuis un devis ouvert sans pile derrière (lien direct).
+{
+  const ctx = await contexte({ token: full });
+  const page = await open(ctx, '/devis', /Vos devis/);
+  await page.getByText('Sylvie').first().click().catch(() => {});
+  await shot(page, 'devis-detail-retour', 1200);
+  await page.close();
+  await ctx.close();
+}
 // Bouton « + » : état enfoncé, puis arrivée de la création.
 {
   const ctx = await contexte({ token: full });
