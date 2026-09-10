@@ -56,3 +56,30 @@ storefront, purchase/restore/management paths are exercised, legal pages respond
 diagnostics UI is compiled out of the production profile. The one external blocker is
 Apple's own metadata answer, which does not block review but should be resolved or
 disclosed before public launch.
+
+## Rescoring after Build 37 real-device acceptance (owner-confirmed, 10 September 2026)
+
+Owner confirmed on a physical iPhone: cold launch/session restore, background/resume,
+numeric French prices, subscription screen, upgrade/change, downgrade confirmation,
+Restore Purchases, no unexplained Home jump, manual typing with spaces, voice, Clients,
+Activity, central +, transitions, profile photo, verified sign-in, navigation.
+
+| Area | Score | Remaining gap |
+| --- | ---: | --- |
+| Product reliability and native UX | 22/22 | None open after device acceptance. |
+| Localization and regional documents | 14/14 | None. |
+| Plans, teams and entitlements | 10/10 | None. |
+| Privacy, deletion and export | 8/10 | Production deletion/export execution evidence; counsel-approved retention scope. |
+| Email and customer communications | 7/10 | Sending-domain status reported "unknown" by the restricted key; DPA/processor review. |
+| App Store, TestFlight and payments | 12/14 | Apple case 102957593166 open (France fallback in use); direct-vs-wrapper report not captured; App Review not yet passed. |
+| Infrastructure transferability | 9/10 | Owner-held billing/ownership records; Apple transfer needs one released version. |
+| IP, legal and marketplace package | 9/10 | Chain-of-title, LGPL/MPL notice review, legal identity on public pages. |
+
+**Overall strict score: 91 / 100.**
+Product quality: 94 / 100. App Store launch readiness: 62 / 100. Acquisition / turnkey: 74 / 100.
+
+Submission verdict: the binary (Build 37, `9110d4b`) is submittable; the App Store Connect
+listing is not yet complete enough for the Submit button (screenshots, description,
+privacy policy URL and App Privacy publication, age rating, review contact and notes,
+subscription review screenshot). Commercial hosting terms, publisher identity on the legal
+pages and the DSA trader declaration block public launch, not the review submission itself.
