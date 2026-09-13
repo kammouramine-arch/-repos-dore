@@ -2,6 +2,7 @@ import 'server-only';
 import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { getAIProvider, wrapUntrusted, assistantAnswerSchema } from '@/lib/ai';
+import { hasAiConsent } from './aiConsentService';
 import { ASSISTANT_SYSTEM, localizedSystemPrompt } from '@/lib/ai/prompts';
 import { normalize } from '@/lib/ai/text';
 import { formatCents } from '@/lib/money';
@@ -30,7 +31,9 @@ export async function askAssistant(
   question: string,
 ): Promise<AssistantAnswer> {
   const context = await collectContext(organizationId, question);
-  const provider = getAIProvider();
+  // Sans autorisation explicite, la réponse reste locale : aucun chiffre ni
+  // nom de client ne part vers le fournisseur d'IA.
+  const provider = (await hasAiConsent(userId, organizationId)) ? getAIProvider() : null;
 
   if (!provider) {
     return { ...answerLocally(question, context), degraded: true, facts: context.facts };

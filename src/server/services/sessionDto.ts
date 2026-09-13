@@ -1,6 +1,7 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { aiCapabilities } from '@/lib/ai';
+import { getAiConsent } from './aiConsentService';
 import type { AuthContext } from '@/lib/auth/session';
 import { accessStateFor, authNextStepFor, planForAppleProduct, type SessionDTO, type SubscriptionDTO } from '@devisia/shared';
 
@@ -9,12 +10,13 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
   // requireAuth already read and validated the user and membership for this
   // request. Reuse them instead of adding another database round trip at launch.
   const organizationId = auth.organization.organizationId;
-  const [subscription, profile] = await Promise.all([
+  const [subscription, profile, aiConsent] = await Promise.all([
     prisma.subscription.findUnique({ where: { organizationId } }),
     prisma.businessProfile.findUnique({
       where: { organizationId },
       select: { trade: true, onboardingCompleted: true },
     }),
+    getAiConsent(auth.user.id, organizationId),
   ]);
   const subscriptionDto = subscription ? toSubscriptionDTO(subscription) : null;
   const access = accessStateFor(subscriptionDto);
@@ -38,6 +40,7 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
     access,
     nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
     capabilities: aiCapabilities(),
+    aiConsent,
   };
 }
 
@@ -73,12 +76,13 @@ export async function buildSessionDTOFor(
     },
   };
 
-  const [subscription, profile] = await Promise.all([
+  const [subscription, profile, aiConsent] = await Promise.all([
     prisma.subscription.findUnique({ where: { organizationId } }),
     prisma.businessProfile.findUnique({
       where: { organizationId },
       select: { trade: true, onboardingCompleted: true },
     }),
+    getAiConsent(userId, organizationId),
   ]);
 
   const subscriptionDto = subscription ? toSubscriptionDTO(subscription) : null;
@@ -94,6 +98,7 @@ export async function buildSessionDTOFor(
     access,
     nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
     capabilities: aiCapabilities(),
+    aiConsent,
   };
 }
 

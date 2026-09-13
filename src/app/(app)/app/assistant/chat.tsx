@@ -7,6 +7,8 @@ import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
 import { Input } from '@/components/ui/field';
 import { Badge } from '@/components/ui/badge';
+import { aiConsentDeclinedMessage, useAiConsentGate } from '@/components/app/ai-consent-gate';
+import type { AiConsentDTO, AiProviderKind } from '@devisia/shared';
 
 interface Message {
   id: string;
@@ -22,7 +24,17 @@ const SUGGESTIONS = [
   'Montre-moi les devis supérieurs à 2 000 €',
 ];
 
-export function AssistantChat({ degraded }: { degraded: boolean }) {
+export function AssistantChat({
+  degraded,
+  provider,
+  aiConsent,
+}: {
+  degraded: boolean;
+  provider: AiProviderKind;
+  aiConsent: AiConsentDTO | null;
+}) {
+  // L'assistant lit vos devis et vos clients : rien ne part au fournisseur sans autorisation.
+  const consent = useAiConsentGate(aiConsent, provider);
   const [messages, setMessages] = React.useState<Message[]>([]);
   const [input, setInput] = React.useState('');
   const [pending, setPending] = React.useState(false);
@@ -37,6 +49,13 @@ export function AssistantChat({ degraded }: { degraded: boolean }) {
     const userMessage: Message = { id: crypto.randomUUID(), role: 'user', text: question };
     setMessages((current) => [...current, userMessage]);
     setInput('');
+    if (!(await consent.ensure())) {
+      setMessages((current) => [
+        ...current,
+        { id: crypto.randomUUID(), role: 'assistant', text: aiConsentDeclinedMessage(provider) },
+      ]);
+      return;
+    }
     setPending(true);
 
     try {
@@ -77,6 +96,7 @@ export function AssistantChat({ degraded }: { degraded: boolean }) {
 
   return (
     <div className="mx-auto max-w-2xl space-y-4">
+      {consent.dialog}
       {degraded ? (
         <p className="rounded-[10px] border border-line bg-surface px-4 py-2.5 text-[12.5px] text-muted">
           Mode local : les réponses sont calculées directement à partir de vos données, sans

@@ -1,3 +1,4 @@
+import type { AiConsentDTO, AiConsentStatus } from './ai-consent';
 import type {
   ApiError,
   ApiResponse,
@@ -469,6 +470,11 @@ export function createApiClient(options: ApiClientOptions) {
           '/api/ai/assistant',
           { method: 'POST', json: { question } },
         ),
+      /** Décision enregistrée sur l'envoi de données au fournisseur d'IA. */
+      consent: () => request<AiConsentDTO>('/api/ai/consent'),
+      /** Enregistre une décision explicite (accorder, refuser, retirer) sur la version du texte lue. */
+      setConsent: (status: AiConsentStatus, version: number) =>
+        request<AiConsentDTO>('/api/ai/consent', { method: 'PUT', json: { status, version } }),
     },
 
     files: {

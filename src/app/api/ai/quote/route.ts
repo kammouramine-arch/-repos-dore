@@ -6,6 +6,7 @@ import { enforceRateLimit, RATE_LIMITS } from '@/lib/rate-limit';
 import { assertWithinPlan } from '@/server/services/usageService';
 import { generateQuoteDraft } from '@/server/services/aiQuoteService';
 import { prisma } from '@/lib/prisma';
+import { assertAiConsent } from '@/server/services/aiConsentService';
 
 export const maxDuration = 60;
 
@@ -20,6 +21,9 @@ export async function POST(request: Request) {
     const auth = await requirePermission('quote:write');
     await assertCanWrite(auth.organization.organizationId);
     const organizationId = auth.organization.organizationId;
+    // Avant toute lecture du corps et tout appel : sans autorisation explicite,
+    // rien ne part vers le fournisseur d'IA (App Review 5.1.1 / 5.1.2).
+    await assertAiConsent(auth.user.id, organizationId);
 
     await enforceRateLimit({ key: `ai:${organizationId}`, ...RATE_LIMITS.aiGeneration });
 

@@ -56,10 +56,15 @@ export function QuoteCapture({
   onGenerated,
   transcriptionAvailable,
   visionAvailable,
+  ensureAiConsent,
+  aiConsentDeclined,
 }: {
   onGenerated: (payload: { description: string; fileIds: string[] }) => Promise<void>;
   transcriptionAvailable: boolean;
   visionAvailable: boolean;
+  /** Demande l'autorisation IA avant tout envoi ; faux = rien ne part. */
+  ensureAiConsent?: () => Promise<boolean>;
+  aiConsentDeclined?: string;
 }) {
   const { toast } = useToast();
   const t = useT();
@@ -141,6 +146,11 @@ export function QuoteCapture({
   }
 
   async function startRecording() {
+    // La transcription serveur passe par le fournisseur d'IA : autorisation d'abord.
+    if (ensureAiConsent && !(await ensureAiConsent())) {
+      setError(aiConsentDeclined ?? 'L’assistance par IA nécessite votre autorisation.');
+      return;
+    }
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
       const recorder = new MediaRecorder(stream);
@@ -216,6 +226,10 @@ export function QuoteCapture({
   async function generate() {
     if (description.trim().length < 10) {
       setError('Décrivez le chantier en quelques mots avant de continuer.');
+      return;
+    }
+    if (ensureAiConsent && !(await ensureAiConsent())) {
+      setError(aiConsentDeclined ?? 'L’assistance par IA nécessite votre autorisation.');
       return;
     }
     setStep(0);

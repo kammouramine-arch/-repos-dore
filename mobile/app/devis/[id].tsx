@@ -29,6 +29,7 @@ import { useToast } from '@/components/toast';
 import { ouvrirPdfDevis } from '@/features/pdf';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
+import { useAiConsent } from '@/lib/ai-consent';
 import { colors, radius, spacing } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 
@@ -61,6 +62,15 @@ export default function DevisDetailScreen() {
 
   const [sending, setSending] = React.useState(false);
   const [followUpOpen, setFollowUpOpen] = React.useState(false);
+  // La relance est rédigée par l'IA seulement avec autorisation ; sinon un
+  // message type, préparé sans envoi, s'ouvre quand même.
+  const aiConsent = useAiConsent();
+  const [followUpWithAi, setFollowUpWithAi] = React.useState(true);
+  async function openFollowUp() {
+    const allowed = await aiConsent.ensure();
+    setFollowUpWithAi(allowed);
+    setFollowUpOpen(true);
+  }
   const [pdfEnCours, setPdfEnCours] = React.useState(false);
 
   /**
@@ -231,7 +241,7 @@ export default function DevisDetailScreen() {
               title="Préparer une relance"
               icon="sparkles"
               variant="secondary"
-              onPress={() => setFollowUpOpen(true)}
+              onPress={() => void openFollowUp()}
             />
           ) : null}
         </View>
@@ -297,6 +307,7 @@ export default function DevisDetailScreen() {
       <FollowUpSheet
         quoteId={quote.id}
         customerName={quote.customerName}
+        withAi={followUpWithAi}
         visible={followUpOpen}
         onClose={() => setFollowUpOpen(false)}
         onSent={() => {
@@ -322,12 +333,15 @@ function Row({ label, value }: { label: string; value: string }) {
 function FollowUpSheet({
   quoteId,
   customerName,
+  withAi,
   visible,
   onClose,
   onSent,
 }: {
   quoteId: string;
   customerName: string;
+  /** Faux sans autorisation IA : le serveur renvoie un message type, rien ne part. */
+  withAi: boolean;
   visible: boolean;
   onClose: () => void;
   onSent: () => void;
@@ -391,6 +405,11 @@ function FollowUpSheet({
         <View style={{ gap: 4 }}>
           <Title>{en ? `Follow up with ${customerName}` : `Relancer ${customerName}`}</Title>
           <Muted>{en ? 'A message is ready for you. Edit it before sending.' : 'Message préparé pour vous. Modifiez-le avant l’envoi.'}</Muted>
+          {!withAi ? (
+            <Muted style={{ fontSize: 13 }}>
+              {en ? 'Prepared without AI: nothing was sent to the AI provider. You can allow AI in My space → Privacy & AI.' : 'Préparé sans IA : rien n’a été transmis au fournisseur d’IA. Vous pouvez autoriser l’IA dans Mon espace → Confidentialité et IA.'}
+            </Muted>
+          ) : null}
         </View>
 
         {error ? <Banner tone="danger" title={error} /> : null}

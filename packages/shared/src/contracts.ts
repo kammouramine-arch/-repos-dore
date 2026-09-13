@@ -1,3 +1,4 @@
+import type { AiConsentDTO } from './ai-consent';
 /**
  * Contrats d'API DEVISERA.
  *
@@ -27,6 +28,8 @@ export interface ApiError {
     | 'RATE_LIMITED'
     | 'PLAN_LIMIT'
     | 'PROVIDER_UNAVAILABLE'
+    // Aucune donnée n'a été transmise au fournisseur d'IA : l'utilisateur doit d'abord autoriser.
+    | 'AI_CONSENT_REQUIRED'
     // Émis par le client seul : la requête n'a jamais atteint le serveur.
     | 'NETWORK'
     | 'TIMEOUT'
@@ -88,6 +91,11 @@ export interface SessionDTO {
     /** Fournisseur d'IA réellement actif côté serveur. */
     provider: 'gemini' | 'anthropic' | 'local';
   };
+  /**
+   * Décision de l'utilisateur sur l'envoi de données au fournisseur d'IA.
+   * Optionnel pour les sessions mises en cache avant son introduction.
+   */
+  aiConsent?: AiConsentDTO | null;
 }
 
 /** Réponse d'authentification mobile : jeton porteur + contexte. */
@@ -294,6 +302,8 @@ export interface FollowUpDraftDTO {
   objet: string;
   message: string;
   degraded: boolean;
+  /** Faux quand le message est un modèle local, sans envoi au fournisseur d'IA. */
+  aiUsed?: boolean;
 }
 
 export interface PriceBookItemDTO {

@@ -5,6 +5,8 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { UserPlus } from 'lucide-react';
 import { QuoteCapture } from '@/components/app/quote-capture';
+import { aiConsentDeclinedMessage, useAiConsentGate } from '@/components/app/ai-consent-gate';
+import type { AiConsentDTO, AiProviderKind } from '@devisia/shared';
 import {
   QuoteEditor,
   newLine,
@@ -45,12 +47,16 @@ export function NewQuoteFlow({
   customers,
   defaults,
   capabilities,
+  aiConsent,
 }: {
   customers: EditorCustomer[];
   defaults: { terms: string; paymentTerms: string; validityDays: number; vatExempt: boolean };
-  capabilities: { generation: boolean; vision: boolean; transcription: boolean };
+  capabilities: { generation: boolean; vision: boolean; transcription: boolean; provider: AiProviderKind };
+  aiConsent: AiConsentDTO | null;
 }) {
   const router = useRouter();
+  // Aucune requête vers /api/ai/quote sans « Autoriser et continuer ».
+  const consent = useAiConsentGate(aiConsent, capabilities.provider);
   const [draft, setDraft] = React.useState<{
     value: QuoteEditorValue;
     meta?: { confidence: number; questions: string[]; warnings: string[]; degraded: boolean };
@@ -63,6 +69,9 @@ export function NewQuoteFlow({
   }, [defaults.validityDays]);
 
   async function generate({ description, fileIds }: { description: string; fileIds: string[] }) {
+    if (!(await consent.ensure())) {
+      throw new Error(aiConsentDeclinedMessage(capabilities.provider));
+    }
     const response = await fetch('/api/ai/quote', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -154,7 +163,10 @@ export function NewQuoteFlow({
           onGenerated={generate}
           transcriptionAvailable={capabilities.transcription}
           visionAvailable={capabilities.vision}
+          ensureAiConsent={consent.ensure}
+          aiConsentDeclined={aiConsentDeclinedMessage(capabilities.provider)}
         />
+        {consent.dialog}
         <div className="text-center">
           <Button variant="secondary" type="button" onClick={() => setDraft({ value: {
             customerId: customers.length === 1 ? customers[0]!.id : '',

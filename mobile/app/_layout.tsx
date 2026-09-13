@@ -5,6 +5,7 @@ import { Pressable, Text, View, type ColorValue } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 import * as SplashScreen from 'expo-splash-screen';
 import { AuthProvider, useAuth } from '@/lib/auth';
+import { AiConsentProvider } from '@/lib/ai-consent';
 import { hasSeenOnboarding } from '@/lib/onboarding';
 import { hasLaunchedBefore, markLaunched } from '@/lib/launch-memory';
 import { claimLaunch } from '@/lib/launch-timing';
@@ -177,6 +178,7 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
       </Stack.Protected>
       <Stack.Protected guard={connected}>
         <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
+        <Stack.Screen name="confidentialite-ia" options={{ headerShown: true, title: locale === 'en' ? 'Privacy & AI' : 'Confidentialité et IA', headerBackTitle: back }} />
         <Stack.Screen name="suppression" options={{ headerShown: true, title: copy(locale, 'deleteAccount'), headerBackTitle: back }} />
       </Stack.Protected>
     </Stack>
@@ -249,7 +251,9 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <AuthProvider>
         <ToastProvider>
-          <RootNavigator />
+          <AiConsentProvider>
+            <RootNavigator />
+          </AiConsentProvider>
         </ToastProvider>
       </AuthProvider>
     </SafeAreaProvider>

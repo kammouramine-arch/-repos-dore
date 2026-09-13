@@ -27,6 +27,7 @@ export async function GET(request: Request, { params }: Params) {
       attempt,
       tone,
       auth.user.locale === 'en' ? 'en' : 'fr',
+      auth.user.id,
     );
     return ok(draft);
   });

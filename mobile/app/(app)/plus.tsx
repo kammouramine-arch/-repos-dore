@@ -11,6 +11,8 @@ import { TrialBanner } from '@/components/trial-banner';
 import { Stagger } from '@/components/motion';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useAuth } from '@/lib/auth';
+import { useAiConsent } from '@/lib/ai-consent';
+import { aiConsentText } from '@/features/ai-consent';
 import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
 import { copy, mobileLocale } from '@/lib/i18n';
@@ -36,6 +38,8 @@ export default function PlusScreen() {
   const surface = useBrandSurface('settings');
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
+  const aiConsent = useAiConsent();
+  const aiCopy = aiConsentText(aiConsent.state, locale);
 
   const fullName = [session?.user.firstName, session?.user.lastName].filter(Boolean).join(' ').trim();
   const business = session?.organization.name ?? '';
@@ -100,6 +104,16 @@ export default function PlusScreen() {
         <SettingsGroup title={copy(locale, 'assistance')}>
           <SettingsRow icon="mail-outline" title={copy(locale, 'contact')} subtitle={SUPPORT_EMAIL} onPress={contact} />
           <SettingsRow icon="star-outline" title={copy(locale, 'rate')} subtitle={en ? 'Two minutes that really help us' : 'Deux minutes qui nous aident vraiment'} onPress={() => void openReviewPage()} />
+        </SettingsGroup>
+
+        <SettingsGroup title={en ? 'Privacy & data' : 'Confidentialité et données'}>
+          <SettingsRow
+            icon="sparkles-outline"
+            title={en ? 'Artificial intelligence' : 'Intelligence artificielle'}
+            subtitle={en ? 'What is sent, to whom, and your permission' : 'Ce qui est transmis, à qui, et votre autorisation'}
+            value={aiConsent.state.granted ? aiCopy.stateGranted : aiCopy.stateNotGranted}
+            onPress={() => router.push('/confidentialite-ia')}
+          />
         </SettingsGroup>
 
         <SettingsGroup title={copy(locale, 'legal')}>

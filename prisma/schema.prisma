@@ -217,6 +217,12 @@ enum FileKind {
   AUTRE
 }
 
+enum AiConsentStatus {
+  GRANTED
+  DECLINED
+  REVOKED
+}
+
 enum AIRequestKind {
   QUOTE_DRAFT
   TRANSCRIPTION
@@ -291,6 +297,7 @@ model User {
   notifications  Notification[]
   auditLogs      AuditLog[]
   aiRequests     AIRequest[]
+  aiConsents     AiConsent[]
   deviceTokens   DeviceToken[]
   emailChallenge EmailChallenge?
 
@@ -387,6 +394,7 @@ model Organization {
   usageRecords    UsageRecord[]
   files           File[]
   aiRequests      AIRequest[]
+  aiConsents      AiConsent[]
   auditLogs       AuditLog[]
   integrations    Integration[]
   counters        DocumentCounter[]
@@ -1168,4 +1176,30 @@ model WebhookEvent {
 
   @@unique([provider, externalId])
   @@map("webhook_events")
+}
+
+/**
+ * Décision de l'utilisateur sur l'envoi de données au fournisseur d'IA tiers.
+ * Une ligne par personne et par entreprise : la décision est personnelle, les
+ * données transmises appartiennent à l'entreprise. Aucune donnée personnelle
+ * au-delà de la décision, de la version du texte et de l'horodatage.
+ */
+model AiConsent {
+  id             String          @id @default(uuid()) @db.Uuid
+  userId         String          @db.Uuid
+  organizationId String          @db.Uuid
+  status         AiConsentStatus
+  /** Version du texte de consentement (AI_CONSENT_VERSION) sur laquelle porte la décision. */
+  version        Int
+  /** Fournisseur nommé dans le texte accepté (gemini, anthropic). */
+  provider       String
+  decidedAt      DateTime        @default(now())
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+  @@map("ai_consents")
 }

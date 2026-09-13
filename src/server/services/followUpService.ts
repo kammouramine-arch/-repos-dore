@@ -5,6 +5,7 @@ import { prisma } from '@/lib/prisma';
 import { AppError, notFound } from '@/lib/errors';
 import { appUrl, env } from '@/lib/env';
 import { buildTemplateFollowUp, getAIProvider, wrapUntrusted, followUpDraftSchema } from '@/lib/ai';
+import { aiConsentNeeded, hasAiConsent } from './aiConsentService';
 import { FOLLOW_UP_SYSTEM, FOLLOW_UP_TONE_INSTRUCTIONS, localizedSystemPrompt } from '@/lib/ai/prompts';
 import type { FollowUpTone } from '@devisia/shared';
 import { PLANS } from '@/lib/billing/plans';
@@ -105,6 +106,7 @@ export async function draftFollowUpMessage(
   attempt = 1,
   tone: FollowUpTone = 'professionnel',
   language?: 'fr' | 'en',
+  userId?: string,
 ) {
   const quote = await prisma.quote.findFirst({
     where: { id: quoteId, organizationId, deletedAt: null },
@@ -134,8 +136,13 @@ export async function draftFollowUpMessage(
     currency: quote.organization.currency,
   });
 
+  // Le modèle local suffit sans autorisation : le nom du client et le devis
+  // ne quittent pas DEVISERA. `degraded` reste réservé aux pannes du fournisseur.
+  const allowed = userId ? await hasAiConsent(userId, organizationId) : !aiConsentNeeded();
+  if (!allowed) return { ...fallback, degraded: false, aiUsed: false };
+
   const provider = getAIProvider();
-  if (!provider) return { ...fallback, degraded: true };
+  if (!provider) return { ...fallback, degraded: true, aiUsed: false };
 
   try {
     const result = await provider.generateStructuredOutput({
@@ -157,10 +164,10 @@ export async function draftFollowUpMessage(
       maxTokens: 800,
       temperature: 0.5,
     });
-    return { ...result.data, degraded: false };
+    return { ...result.data, degraded: false, aiUsed: true };
   } catch (error) {
 console.error('[relance] rédaction IA indisponible', safeErrorCategory(error));
-    return { ...fallback, degraded: true };
+    return { ...fallback, degraded: true, aiUsed: false };
   }
 }
 

@@ -11,7 +11,7 @@ export default function PrivacyPage() {
   return (
     <LegalPage
       title="Politique de confidentialité"
-      updatedAt="9 septembre 2026"
+      updatedAt="13 septembre 2026"
       intro="Cette page décrit les données traitées par DEVISERA, leur finalité et les droits dont vous disposez. Elle constitue une information générale et ne remplace pas l'analyse d'un conseil juridique pour votre situation particulière."
     >
       <LegalSection title="Responsable de traitement">
@@ -50,31 +50,90 @@ export default function PrivacyPage() {
         </ul>
       </LegalSection>
 
-      <LegalSection title="Traitements par intelligence artificielle">
+      <LegalSection title="Traitements par intelligence artificielle et consentement">
         <p>
-          Lorsque vous demandez la préparation d’un devis, la description que vous fournissez, les
-          photos associées et un extrait de votre catalogue de prix sont transmis au fournisseur d’IA
-          configuré. Les conditions de conservation et de traitement dépendent du fournisseur et
-          de l’offre utilisés ; elles doivent être vérifiées avant d’y transmettre des données sensibles.
+          Certaines fonctions de DEVISERA font appel à un fournisseur d’intelligence artificielle
+          tiers : la préparation d’un projet de devis à partir de votre description (saisie ou dictée),
+          l’analyse des photos de chantier que vous joignez, la rédaction d’un message de relance et
+          l’assistant du tableau de bord. La dictée vocale dans l’application iOS s’exécute sur votre
+          appareil : aucun enregistrement audio n’est transmis, seul le texte obtenu l’est.
+        </p>
+        <p>
+          <strong>Fournisseur :</strong> Google LLC, via le service Gemini API
+          (generativelanguage.googleapis.com). Les données sont traitées par Google conformément aux
+          conditions d’utilisation de l’API Gemini applicables aux services payants ; elles ne sont
+          pas utilisées par Google pour entraîner ses modèles. Si DEVISERA venait à utiliser un autre
+          fournisseur (par exemple Anthropic, service Claude API, intégré mais non activé à ce jour),
+          cette politique et le texte de consentement seraient mis à jour et votre autorisation vous
+          serait demandée à nouveau avant tout envoi.
+        </p>
+        <p>
+          <strong>Données transmises au fournisseur, uniquement lorsque vous déclenchez la fonction :</strong>
         </p>
         <ul>
-          <li>Les données d’une entreprise ne sont jamais utilisées pour une autre entreprise.</li>
+          <li>La description du chantier que vous rédigez ou dictez, et les photos que vous joignez à la demande (au plus six).</li>
           <li>
-            Les règles d’utilisation des données par le fournisseur doivent être documentées pour
-            l’offre activée. N’incluez pas de données personnelles inutiles dans vos demandes.
+            Le contexte de votre entreprise nécessaire pour adapter le devis : métier, taux horaire,
+            taux de TVA, conditions habituelles, devise, pays, langue et un extrait de votre catalogue
+            de prix (désignations, références, unités et prix).
           </li>
           <li>
-            Les montants ne sont jamais calculés par le modèle : ils sont produits par le moteur de
-            calcul de l’application.
+            Pour une relance : le nom du client, la raison sociale de votre entreprise, le numéro,
+            l’objet et le montant du devis, s’il a été consulté, et la réponse éventuelle du client.
+          </li>
+          <li>
+            Pour l’assistant : votre question et des chiffres agrégés de votre activité (devis envoyés,
+            montants, devis en attente) accompagnés des numéros, objets et noms de clients des devis
+            concernés.
           </li>
         </ul>
+        <p>
+          Ne sont jamais transmis au fournisseur : vos identifiants, votre mot de passe, vos données de
+          paiement, les coordonnées complètes de vos clients (adresse, email, téléphone), ni vos
+          documents PDF.
+        </p>
+        <p>
+          <strong>Finalité :</strong> traiter votre demande et produire le projet de devis, l’analyse,
+          le message ou la réponse demandés. Les montants ne sont jamais calculés par le modèle : ils
+          sont produits par le moteur de calcul de l’application. Les données d’une entreprise ne sont
+          jamais utilisées pour une autre. DEVISERA n’utilise pas ces données pour entraîner des modèles.
+        </p>
+        <p>
+          <strong>Consentement :</strong> aucune donnée n’est envoyée au fournisseur avant que vous
+          ayez lu et accepté, dans l’application, un écran indiquant ce qui est transmis, à qui et
+          pourquoi. Votre décision (autorisation ou refus), la version du texte accepté et sa date sont
+          enregistrées pour votre compte dans votre entreprise. Sans autorisation, les fonctions
+          assistées par IA restent inactives ; le reste de l’application fonctionne normalement.
+        </p>
+        <p>
+          <strong>Retrait :</strong> vous pouvez retirer votre autorisation à tout moment dans
+          l’application (Mon espace → Confidentialité et IA) ou sur le web (Paramètres → Intelligence
+          artificielle). Dès le retrait, plus aucune donnée n’est transmise au fournisseur ; la
+          prochaine utilisation d’une fonction assistée vous redemandera votre accord.
+        </p>
+        <p>
+          <strong>Conservation et suppression :</strong> DEVISERA conserve la description, les photos et
+          le projet de devis dans votre compte, comme les autres données commerciales, et un journal
+          technique de chaque requête (fournisseur, modèle, durée, volume de jetons) sans son contenu.
+          Google conserve les requêtes le temps de leur traitement et, pour la détection des abus,
+          selon les durées prévues par ses conditions d’utilisation de l’API Gemini. Vous pouvez
+          demander l’effacement de vos données transmises en écrivant à contact@devisera.fr ; DEVISERA
+          relaie la demande au fournisseur lorsque celui-ci offre ce mécanisme.
+        </p>
+        <p>
+          <strong>Protection équivalente :</strong> le fournisseur est soumis à des obligations
+          contractuelles de confidentialité et de sécurité au moins équivalentes à celles que DEVISERA
+          applique, et ne peut utiliser ces données que pour exécuter la demande.
+        </p>
       </LegalSection>
 
       <LegalSection title="Sous-traitants">
         <p>
-          DEVISERA s’appuie sur des prestataires techniques pour l’hébergement, la base de données,
-          l’envoi d’emails, le paiement et l’intelligence artificielle. La liste à jour de ces
-          prestataires et de leur localisation est disponible sur demande.
+          DEVISERA s’appuie sur des prestataires techniques : Vercel (hébergement de l’application),
+          Supabase (base de données et stockage des fichiers), Resend (envoi des emails), Apple
+          (abonnements sur iOS) et Google LLC (intelligence artificielle, service Gemini API). Leur
+          localisation et leurs garanties de transfert sont disponibles sur demande à
+          contact@devisera.fr.
         </p>
       </LegalSection>
 

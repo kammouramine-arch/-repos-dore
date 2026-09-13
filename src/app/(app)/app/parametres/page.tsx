@@ -19,6 +19,9 @@ import { PageHeader } from '@/components/ui/page';
 import { Card } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { LocaleSwitcher } from './locale-switcher';
+import { AiConsentSettings } from './ai-consent-settings';
+import { aiCapabilities } from '@/lib/ai';
+import { getAiConsent } from '@/server/services/aiConsentService';
 import { getLocale, getDictionary } from '@/lib/i18n';
 
 export const metadata: Metadata = { title: 'Paramètres' };
@@ -64,10 +67,12 @@ const SECTIONS = [
 
 export default async function SettingsPage() {
   const auth = await requireAuth();
-  const [subscription, locale] = await Promise.all([
+  const [subscription, locale, aiConsent] = await Promise.all([
     prisma.subscription.findUnique({ where: { organizationId: auth.organization.organizationId } }),
     getLocale(),
+    getAiConsent(auth.user.id, auth.organization.organizationId),
   ]);
+  const capabilities = aiCapabilities();
   const t = getDictionary(locale);
 
   return (
@@ -119,6 +124,8 @@ export default async function SettingsPage() {
           <LocaleSwitcher current={locale} />
         </div>
       </Card>
+
+      <AiConsentSettings initial={aiConsent} provider={capabilities.provider} />
 
       <Card className="p-5">
         <div className="flex items-start gap-3">

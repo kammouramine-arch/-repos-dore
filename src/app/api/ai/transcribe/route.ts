@@ -9,12 +9,14 @@ import { incrementUsage } from '@/server/services/usageService';
 import { prisma } from '@/lib/prisma';
 import { assertWithinPlan } from '@/server/services/usageService';
 import { assertCanWrite } from '@/server/services/accessService';
+import { assertAiConsent } from '@/server/services/aiConsentService';
 
 export async function POST(request: Request) {
   try {
     const auth = await requirePermission('quote:write');
     const organizationId = auth.organization.organizationId;
     await assertCanWrite(organizationId);
+    await assertAiConsent(auth.user.id, organizationId);
     const subscription = await prisma.subscription.findUnique({
       where: { organizationId },
       select: { plan: true },

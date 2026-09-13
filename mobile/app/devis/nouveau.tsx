@@ -41,7 +41,9 @@ import { useDictation } from '@/features/voice';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
 import { appendDictation, displayedDescription, submittedDescription } from '@/features/description-input';
+import { aiConsentText } from '@/features/ai-consent';
 import { api } from '@/lib/api';
+import { isAiConsentError, useAiConsent } from '@/lib/ai-consent';
 import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
 import { colors, motion, radius, shadows, spacing, typography } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
@@ -130,6 +132,9 @@ export default function NouveauDevisScreen() {
   const locale = useMobileLocale();
   const { customerId } = useLocalSearchParams<{ customerId?: string }>();
   const { toast } = useToast();
+  // Aucune requête vers l'API d'IA sans « Autoriser et continuer » : la
+  // feuille s'ouvre avant le premier envoi, et la description reste en place.
+  const aiConsent = useAiConsent();
 
   const [phase, setPhase] = React.useState<Phase>('saisie');
   const [description, setDescription] = React.useState('');
@@ -223,8 +228,19 @@ export default function NouveauDevisScreen() {
   const busy = dictation.status === 'demande' || dictation.status === 'traitement';
   const composed = submittedDescription(description, dictation.partial);
 
+  /** Refus ou fermeture de la feuille : rien n'est parti, tout reste saisi. */
+  function explainConsentNeeded(again: () => void) {
+    setLimitReached(false);
+    setRetry(() => again);
+    setError(aiConsentText(aiConsent.state, locale).declined);
+  }
+
   async function generate(text: string) {
     if (generating.current) return;
+    if (!(await aiConsent.ensure())) {
+      explainConsentNeeded(() => void generate(text));
+      return;
+    }
     generating.current = true;
     const version = ++requestVersion.current;
     setError(null);
@@ -245,6 +261,7 @@ export default function NouveauDevisScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
       if (version !== requestVersion.current) return;
+      if (isAiConsentError(cause)) aiConsent.markRequired();
       setRetry(() => () => void generate(text));
       setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(
@@ -270,6 +287,10 @@ export default function NouveauDevisScreen() {
     if (photos.uploading) {
       setRetry(null);
       setError('Une photo est en cours d’envoi. Encore un instant.');
+      return;
+    }
+    if (!(await aiConsent.ensure())) {
+      explainConsentNeeded(() => void prepare());
       return;
     }
     generating.current = true;
@@ -300,6 +321,7 @@ export default function NouveauDevisScreen() {
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
     } catch (cause) {
       if (version !== requestVersion.current) return;
+      if (isAiConsentError(cause)) aiConsent.markRequired();
       setRetry(() => () => void prepare());
       setLimitReached(cause instanceof DevisiaApiError && cause.code === 'PLAN_LIMIT');
       setError(

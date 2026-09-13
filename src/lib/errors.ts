@@ -9,6 +9,7 @@ export type AppErrorCode =
   | 'RATE_LIMITED'
   | 'PLAN_LIMIT'
   | 'PROVIDER_UNAVAILABLE'
+  | 'AI_CONSENT_REQUIRED'
   | 'INTERNAL';
 
 const STATUS: Record<AppErrorCode, number> = {
@@ -20,6 +21,7 @@ const STATUS: Record<AppErrorCode, number> = {
   RATE_LIMITED: 429,
   PLAN_LIMIT: 402,
   PROVIDER_UNAVAILABLE: 503,
+  AI_CONSENT_REQUIRED: 403,
   INTERNAL: 500,
 };
 
@@ -32,6 +34,7 @@ const DEFAULT_MESSAGE: Record<AppErrorCode, string> = {
   RATE_LIMITED: 'Trop de tentatives. Merci de réessayer dans quelques instants.',
   PLAN_LIMIT: 'Votre formule ne permet pas cette action. Passez à une formule supérieure.',
   PROVIDER_UNAVAILABLE: 'Un service externe est momentanément indisponible.',
+  AI_CONSENT_REQUIRED: "L'assistance par IA nécessite votre autorisation. Aucune donnée n'a été transmise.",
   INTERNAL: "Une erreur inattendue s'est produite. Merci de réessayer.",
 };
 

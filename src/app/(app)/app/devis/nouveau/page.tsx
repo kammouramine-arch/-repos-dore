@@ -6,6 +6,7 @@ import { prisma } from '@/lib/prisma';
 import { aiCapabilities } from '@/lib/ai';
 import { fullName } from '@/lib/utils';
 import { NewQuoteFlow } from './flow';
+import { getAiConsent } from '@/server/services/aiConsentService';
 
 export const metadata: Metadata = { title: 'Nouveau devis' };
 
@@ -23,6 +24,7 @@ export default async function NewQuotePage() {
   ]);
 
   const capabilities = aiCapabilities();
+  const aiConsent = await getAiConsent(auth.user.id, organizationId);
 
   return (
     <div className="space-y-6">
@@ -47,6 +49,7 @@ export default async function NewQuotePage() {
           vatExempt: profile?.vatStatus === 'FRANCHISE_EN_BASE',
         }}
         capabilities={capabilities}
+        aiConsent={aiConsent}
       />
     </div>
   );
