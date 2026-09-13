@@ -158,7 +158,7 @@ DEVISERA
 
 ## 6. Resubmission checklist
 
-1. Wait for Build 41 to finish processing in TestFlight (production profile, commit below).
+1. Wait for Build 41 to finish processing in TestFlight (production profile, commit 120f341, EAS build 8fcf2db3-a394-4fc6-a988-8d1417bcc2cf, submission d1c967ba-b4e8-45db-bbca-b4332f1b6f82, started 13 September 2026 17:10 UTC).
 2. App Store Connect → 1.0.0 → Build: remove build 40, attach build 41.
 3. Keep subscriptions attached, availability France, release **manually**.
 4. App Review Information: paste the notes from §4; keep the review account (it does not bypass consent).
