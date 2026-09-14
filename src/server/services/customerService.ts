@@ -52,9 +52,11 @@ export interface CustomerWriteInput {
   source?: LeadSourceType;
 }
 
+export type CustomerSort = 'recent' | 'name';
+
 export async function listCustomers(
   organizationId: string,
-  options: { search?: string; take?: number; skip?: number } = {},
+  options: { search?: string; take?: number; skip?: number; sort?: CustomerSort } = {},
 ) {
   const where: Prisma.CustomerWhereInput = {
     organizationId,
@@ -76,7 +78,10 @@ export async function listCustomers(
   const [rows, total] = await Promise.all([
     prisma.customer.findMany({
       where,
-      orderBy: { createdAt: 'desc' },
+      orderBy:
+        options.sort === 'name'
+          ? [{ lastName: 'asc' }, { companyName: 'asc' }, { firstName: 'asc' }]
+          : { createdAt: 'desc' },
       take: options.take ?? 50,
       skip: options.skip ?? 0,
       include: {

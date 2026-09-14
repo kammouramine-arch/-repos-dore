@@ -8,20 +8,28 @@
    ========================================================================= */
 
 @theme {
-  --color-ink: #0a0e14;
-  --color-ink-soft: #1c2532;
-  --color-muted: #5b6675;
-  --color-subtle: #8a93a1;
-  --color-line: #e6e9ee;
-  --color-line-strong: #d4d9e1;
-  --color-surface: #f7f8fa;
-  --color-surface-2: #f1f3f6;
+  /*
+   * Palette identique à l'application iOS (`mobile/src/theme/index.ts`).
+   * Un artisan qui passe de l'iPhone à l'ordinateur doit retrouver le même
+   * bleu, le même encre, les mêmes gris : ce fichier et le thème mobile sont
+   * les deux exemplaires d'une seule identité.
+   */
+  --color-ink: #0b1220;
+  --color-ink-soft: #243044;
+  --color-muted: #667085;
+  --color-subtle: #98a2b3;
+  --color-line: #e8ecf2;
+  --color-line-strong: #d8dee8;
+  --color-surface: #f5f7fb;
+  --color-surface-2: #eef2f7;
   --color-canvas: #ffffff;
 
-  --color-accent: #2547e0;
-  --color-accent-hover: #1c39bd;
-  --color-accent-soft: #eef1fe;
-  --color-accent-border: #c9d3fb;
+  --color-accent: #2f52e8;
+  --color-accent-hover: #2341c6;
+  --color-accent-deep: #14245a;
+  --color-accent-bright: #6f8cff;
+  --color-accent-soft: #eef2ff;
+  --color-accent-border: #c8d2ff;
 
   --color-success: #0f7a52;
   --color-success-soft: #e7f6ef;
@@ -43,10 +51,13 @@
   --radius-xl: 18px;
   --radius-2xl: 24px;
 
-  --shadow-xs: 0 1px 2px rgba(10, 14, 20, 0.05);
-  --shadow-sm: 0 1px 3px rgba(10, 14, 20, 0.07), 0 1px 2px rgba(10, 14, 20, 0.04);
-  --shadow-md: 0 6px 20px -6px rgba(10, 14, 20, 0.12), 0 2px 6px rgba(10, 14, 20, 0.05);
-  --shadow-lg: 0 24px 48px -20px rgba(10, 14, 20, 0.22), 0 8px 16px -12px rgba(10, 14, 20, 0.12);
+  /* Ombre de carte courte et proche de la surface (même règle que sur iOS). */
+  --shadow-xs: 0 1px 2px rgba(10, 26, 74, 0.04);
+  --shadow-sm: 0 1px 3px rgba(10, 26, 74, 0.06), 0 1px 2px rgba(10, 26, 74, 0.04);
+  --shadow-card: 0 4px 12px rgba(10, 26, 74, 0.06);
+  --shadow-md: 0 6px 20px -6px rgba(10, 26, 74, 0.12), 0 2px 6px rgba(10, 26, 74, 0.05);
+  --shadow-lg: 0 24px 48px -20px rgba(10, 26, 74, 0.22), 0 8px 16px -12px rgba(10, 26, 74, 0.12);
+  --shadow-glow: 0 10px 22px rgba(47, 82, 232, 0.32);
 
   --ease-out-soft: cubic-bezier(0.22, 1, 0.36, 1);
 }
@@ -132,6 +143,38 @@
     .container-page {
       padding-inline: 2rem;
     }
+  }
+
+  /*
+   * Surface de marque : le dégradé bleu → blanc de l'accueil et de « Mon
+   * espace » iOS (`mobile/src/theme/gradient.ts`), arrêts identiques.
+   */
+  .brand-surface {
+    background-image: linear-gradient(
+      to bottom,
+      #2a4be4 0%,
+      #2f52e8 30%,
+      #4a69ec 44%,
+      #7590f1 56%,
+      #a0b3f5 66%,
+      #c4d0f9 75%,
+      #dee5fc 83%,
+      #eef2fe 90%,
+      #f8faff 96%,
+      #ffffff 100%
+    );
+  }
+
+  /* Ligne interactive : compression brève au clic, comme `useTouchMotion` sur iOS. */
+  .pressable {
+    transition:
+      transform 120ms var(--ease-out-soft),
+      background-color 150ms,
+      border-color 150ms,
+      box-shadow 150ms;
+  }
+  .pressable:active {
+    transform: scale(0.99);
   }
 
   /* Trame très discrète utilisée en fond de section marketing. */

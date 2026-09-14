@@ -48,11 +48,14 @@ export function NewQuoteFlow({
   defaults,
   capabilities,
   aiConsent,
+  initialCustomerId = null,
 }: {
   customers: EditorCustomer[];
   defaults: { terms: string; paymentTerms: string; validityDays: number; vatExempt: boolean };
   capabilities: { generation: boolean; vision: boolean; transcription: boolean; provider: AiProviderKind };
   aiConsent: AiConsentDTO | null;
+  /** Client présélectionné (depuis sa fiche). */
+  initialCustomerId?: string | null;
 }) {
   const router = useRouter();
   // Aucune requête vers /api/ai/quote sans « Autoriser et continuer ».
@@ -93,7 +96,7 @@ export function NewQuoteFlow({
 
     setDraft({
       value: {
-        customerId: customers.length === 1 ? customers[0]!.id : '',
+        customerId: initialCustomerId && customers.some((customer) => customer.id === initialCustomerId) ? initialCustomerId : customers.length === 1 ? customers[0]!.id : '',
         title: generated.title,
         summary,
         notes: '',
@@ -169,7 +172,7 @@ export function NewQuoteFlow({
         {consent.dialog}
         <div className="text-center">
           <Button variant="secondary" type="button" onClick={() => setDraft({ value: {
-            customerId: customers.length === 1 ? customers[0]!.id : '',
+            customerId: initialCustomerId && customers.some((customer) => customer.id === initialCustomerId) ? initialCustomerId : customers.length === 1 ? customers[0]!.id : '',
             title: '', summary: '', notes: '', terms: defaults.terms,
             paymentTerms: defaults.paymentTerms, validUntil, discountRate: 0,
             depositRate: 0, estimatedDurationMin: null, lines: [newLine()],

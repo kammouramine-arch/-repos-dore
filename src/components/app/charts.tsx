@@ -7,14 +7,49 @@ import {
   Bar,
   BarChart,
   CartesianGrid,
-  ResponsiveContainer,
   Tooltip,
   XAxis,
   YAxis,
 } from 'recharts';
+
+/**
+ * Mesure du conteneur : le graphique reçoit une largeur explicite. Le
+ * `ResponsiveContainer` de recharts restait vide dans certains navigateurs
+ * (première mesure à zéro jamais réémise) ; ici la mesure est la nôtre.
+ */
+function useElementSize<T extends HTMLElement>(): [React.RefObject<T | null>, { width: number; height: number }] {
+  const ref = React.useRef<T | null>(null);
+  const [size, setSize] = React.useState({ width: 0, height: 0 });
+  React.useEffect(() => {
+    const element = ref.current;
+    if (!element) return undefined;
+    const measure = () => {
+      const rect = element.getBoundingClientRect();
+      setSize((current) =>
+        Math.round(rect.width) === current.width && Math.round(rect.height) === current.height
+          ? current
+          : { width: Math.round(rect.width), height: Math.round(rect.height) },
+      );
+    };
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(element);
+    return () => observer.disconnect();
+  }, []);
+  return [ref, size];
+}
+
+function ChartFrame({ height, children }: { height: number; children: (size: { width: number; height: number }) => React.ReactNode }) {
+  const [ref, size] = useElementSize<HTMLDivElement>();
+  return (
+    <div ref={ref} className="w-full" style={{ height }}>
+      {size.width > 0 ? children({ width: size.width, height }) : null}
+    </div>
+  );
+}
 import { centsToEuros, formatCents } from '@/lib/money';
 
-const AXIS = { fontSize: 11, fill: '#8a93a1' };
+const AXIS = { fontSize: 11, fill: '#98a2b3' };
 
 function formatDay(value: string) {
   const date = new Date(value);
@@ -65,16 +100,16 @@ export function RevenueChart({ data }: { data: Point[] }) {
   );
 
   return (
-    <div className="h-[240px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <AreaChart data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
+    <ChartFrame height={240}>
+      {(size) => (
+        <AreaChart width={size.width} height={size.height} data={series} margin={{ top: 8, right: 8, left: -12, bottom: 0 }}>
           <defs>
             <linearGradient id="devisia-quoted" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#2547e0" stopOpacity={0.22} />
-              <stop offset="100%" stopColor="#2547e0" stopOpacity={0} />
+              <stop offset="0%" stopColor="#2f52e8" stopOpacity={0.22} />
+              <stop offset="100%" stopColor="#2f52e8" stopOpacity={0} />
             </linearGradient>
           </defs>
-          <CartesianGrid stroke="#e6e9ee" strokeDasharray="3 3" vertical={false} />
+          <CartesianGrid stroke="#e8ecf2" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="date"
             tickFormatter={formatDay}
@@ -97,14 +132,14 @@ export function RevenueChart({ data }: { data: Point[] }) {
             type="monotone"
             dataKey="devise"
             name="Devisé"
-            stroke="#2547e0"
+            stroke="#2f52e8"
             strokeWidth={2}
             fill="url(#devisia-quoted)"
             dot={false}
           />
         </AreaChart>
-      </ResponsiveContainer>
-    </div>
+      )}
+    </ChartFrame>
   );
 }
 
@@ -143,10 +178,10 @@ export function FunnelChart({ data }: { data: { label: string; value: number }[]
 
 export function QuotesBarChart({ data }: { data: Point[] }) {
   return (
-    <div className="h-[180px] w-full">
-      <ResponsiveContainer width="100%" height="100%">
-        <BarChart data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-          <CartesianGrid stroke="#e6e9ee" strokeDasharray="3 3" vertical={false} />
+    <ChartFrame height={180}>
+      {(size) => (
+        <BarChart width={size.width} height={size.height} data={data} margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+          <CartesianGrid stroke="#e8ecf2" strokeDasharray="3 3" vertical={false} />
           <XAxis
             dataKey="date"
             tickFormatter={formatDay}
@@ -169,9 +204,9 @@ export function QuotesBarChart({ data }: { data: Point[] }) {
               ) : null
             }
           />
-          <Bar dataKey="quotes" fill="#2547e0" radius={[4, 4, 0, 0]} maxBarSize={22} />
+          <Bar dataKey="quotes" fill="#2f52e8" radius={[4, 4, 0, 0]} maxBarSize={22} />
         </BarChart>
-      </ResponsiveContainer>
-    </div>
+      )}
+    </ChartFrame>
   );
 }

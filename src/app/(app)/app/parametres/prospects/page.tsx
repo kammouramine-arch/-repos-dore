@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import Link from 'next/link';
-import { ArrowLeft } from 'lucide-react';
+import { PageHeader } from '@/components/ui/page';
 import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { appUrl } from '@/lib/env';
@@ -20,24 +20,11 @@ export default async function PublicFormPage() {
   const embedCode = `<iframe src="${formUrl}" width="100%" height="720" style="border:0;border-radius:14px" title="Demande de devis"></iframe>`;
 
   return (
-    <div className="mx-auto max-w-2xl space-y-6">
-      <Link
-        href="/app/parametres"
-        className="inline-flex items-center gap-1.5 text-[13.5px] text-muted transition-colors hover:text-ink"
-      >
-        <ArrowLeft className="h-3.5 w-3.5" aria-hidden />
-        Paramètres
-      </Link>
-
-      <header>
-        <h1 className="text-[22px] font-semibold tracking-[-0.025em] text-ink sm:text-[26px]">
-          Formulaire de demande de devis
-        </h1>
-        <p className="mt-1.5 text-[14px] leading-relaxed text-muted">
-          Partagez ce lien ou intégrez-le à votre site : chaque demande crée un prospect dans DEVISERA
-          et vous notifie immédiatement.
-        </p>
-      </header>
+    <div className="max-w-3xl space-y-6">
+      <PageHeader
+        title="Formulaire de demande de devis"
+        description="Partagez ce lien ou intégrez-le à votre site : chaque demande crée un prospect dans DEVISERA et vous notifie immédiatement."
+      />
 
       {!settings?.publicLeadFormEnabled ? (
         <Alert tone="warning">

@@ -27,7 +27,7 @@ export default function OpenGraphImage() {
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              background: '#2547e0',
+              background: '#2f52e8',
               color: '#ffffff',
               borderRadius: 16,
               fontSize: 34,
@@ -36,7 +36,7 @@ export default function OpenGraphImage() {
           >
             D
           </div>
-          <div style={{ fontSize: 30, fontWeight: 600, color: '#0a0e14', letterSpacing: '-0.03em' }}>
+          <div style={{ fontSize: 30, fontWeight: 600, color: '#0b1220', letterSpacing: '-0.03em' }}>
             DEVISERA
           </div>
         </div>
@@ -46,7 +46,7 @@ export default function OpenGraphImage() {
             style={{
               fontSize: 66,
               fontWeight: 700,
-              color: '#0a0e14',
+              color: '#0b1220',
               letterSpacing: '-0.04em',
               lineHeight: 1.05,
               maxWidth: 900,

@@ -34,7 +34,8 @@ test.describe('parcours complet', () => {
     await page.getByLabel(/Raison sociale/i).fill('Plomberie E2E');
     await page.getByLabel(/Taux horaire par défaut/i).fill('55');
     await page.getByRole('button', { name: /Terminer et créer mon premier devis/i }).click();
-    await expect(page.getByText(/Bienvenue sur DEVISERA\./i).first()).toBeVisible({ timeout: 20_000 });
+    // L'accueil d'un atelier vide montre un chemin — le premier devis — pas des compteurs.
+    await expect(page.getByText(/Créez votre premier devis/i).first()).toBeVisible({ timeout: 20_000 });
 
     // 3. Catalogue de prix -----------------------------------------------------
     await page.goto('/app/catalogue');

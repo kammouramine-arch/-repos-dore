@@ -10,7 +10,8 @@ import { getAiConsent } from '@/server/services/aiConsentService';
 
 export const metadata: Metadata = { title: 'Nouveau devis' };
 
-export default async function NewQuotePage() {
+export default async function NewQuotePage({ searchParams }: { searchParams: Promise<{ client?: string }> }) {
+  const { client } = await searchParams;
   const auth = await requirePermission('quote:write');
   const organizationId = auth.organization.organizationId;
 
@@ -50,6 +51,7 @@ export default async function NewQuotePage() {
         }}
         capabilities={capabilities}
         aiConsent={aiConsent}
+        initialCustomerId={client ?? null}
       />
     </div>
   );
