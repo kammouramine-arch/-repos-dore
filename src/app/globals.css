@@ -253,3 +253,197 @@
     transform: translateX(100%);
   }
 }
+
+/* =========================================================================
+   Marketing — mouvement et profondeur.
+   Uniquement opacité et transform ; tout s'éteint sous prefers-reduced-motion.
+   ========================================================================= */
+@layer utilities {
+  /* Révélation au défilement : l'élément attend d'être visible. */
+  .reveal {
+    opacity: 0;
+    transform: translateY(14px);
+    transition:
+      opacity 0.7s var(--ease-out-soft),
+      transform 0.7s var(--ease-out-soft);
+    transition-delay: var(--reveal-delay, 0ms);
+    will-change: opacity, transform;
+  }
+  .reveal.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+  .reveal-scale {
+    opacity: 0;
+    transform: translateY(22px) scale(0.985);
+    transition:
+      opacity 0.9s var(--ease-out-soft),
+      transform 0.9s var(--ease-out-soft);
+    transition-delay: var(--reveal-delay, 0ms);
+  }
+  .reveal-scale.is-visible {
+    opacity: 1;
+    transform: none;
+  }
+
+  /* Entrée orchestrée du héros (chaque élément porte son délai). */
+  .hero-in {
+    animation: devisia-hero-in 0.9s var(--ease-out-soft) both;
+    animation-delay: var(--hero-delay, 0ms);
+  }
+
+  /* Lumières du héros : dérive très lente, jamais plus de quelques pixels par seconde. */
+  .drift-a {
+    animation: devisia-drift-a 26s ease-in-out infinite alternate;
+  }
+  .drift-b {
+    animation: devisia-drift-b 32s ease-in-out infinite alternate;
+  }
+  .float-soft {
+    animation: devisia-float 7s ease-in-out infinite;
+  }
+  .flow-dash {
+    stroke-dasharray: 6 10;
+    animation: devisia-flow 9s linear infinite;
+  }
+  .pulse-dot {
+    animation: devisia-pulse-dot 2.6s ease-in-out infinite;
+  }
+  .wave-bar {
+    transform-origin: center;
+    animation: devisia-wave 1.4s ease-in-out infinite;
+  }
+  .sheen {
+    background-image: linear-gradient(110deg, transparent 35%, rgba(255, 255, 255, 0.55) 50%, transparent 65%);
+    background-size: 220% 100%;
+    animation: devisia-sheen 3.2s ease-in-out infinite;
+  }
+
+  /* Grain très léger pour casser la platitude des grands aplats. */
+  .noise::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.035;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  }
+
+  /* Surface du produit dans le héros : perspective très légère guidée par le pointeur. */
+  .product-stage {
+    perspective: 1600px;
+  }
+  .product-surface {
+    transform: rotateX(var(--tilt-x, 0deg)) rotateY(var(--tilt-y, 0deg)) translateY(var(--lift, 0px));
+    transition: transform 0.6s var(--ease-out-soft);
+    transform-style: preserve-3d;
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .reveal,
+    .reveal-scale {
+      opacity: 1;
+      transform: none;
+      transition: none;
+    }
+    .hero-in,
+    .drift-a,
+    .drift-b,
+    .float-soft,
+    .flow-dash,
+    .pulse-dot,
+    .wave-bar,
+    .sheen {
+      animation: none !important;
+    }
+    .product-surface {
+      transform: none !important;
+      transition: none;
+    }
+  }
+}
+
+@keyframes devisia-hero-in {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes devisia-drift-a {
+  from {
+    transform: translate3d(-4%, -2%, 0) scale(1);
+  }
+  to {
+    transform: translate3d(5%, 4%, 0) scale(1.08);
+  }
+}
+
+@keyframes devisia-drift-b {
+  from {
+    transform: translate3d(3%, 3%, 0) scale(1.04);
+  }
+  to {
+    transform: translate3d(-4%, -3%, 0) scale(0.98);
+  }
+}
+
+@keyframes devisia-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes devisia-flow {
+  to {
+    stroke-dashoffset: -160;
+  }
+}
+
+@keyframes devisia-pulse-dot {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes devisia-wave {
+  0%,
+  100% {
+    transform: scaleY(0.35);
+  }
+  50% {
+    transform: scaleY(1);
+  }
+}
+
+@keyframes devisia-sheen {
+  0% {
+    background-position: 120% 0;
+  }
+  100% {
+    background-position: -120% 0;
+  }
+}
+
+@keyframes devisia-progress {
+  from {
+    transform: translateX(-100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
