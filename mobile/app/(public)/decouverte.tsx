@@ -101,9 +101,10 @@ export default function DecouverteScreen() {
     void Haptics.selectionAsync().catch(() => undefined);
   }
 
-  async function leave(destination: '/inscription' | '/connexion') {
+  async function leave() {
     await markOnboardingSeen();
-    router.replace(status === 'connecte' ? '/abonnement' : destination);
+    // Une seule entrée d'authentification : Apple, Google ou adresse e-mail.
+    router.replace((status === 'connecte' ? '/abonnement' : '/(auth)') as never);
   }
 
   return (
@@ -230,12 +231,12 @@ export default function DecouverteScreen() {
                 title={status === 'connecte' ? (en ? 'View plans' : 'Voir les formules') : (en ? 'Create my account' : 'Créer mon compte')}
                 icon="arrow-forward"
                 haptic
-                onPress={() => void leave('/inscription')}
+                onPress={() => void leave()}
               />
               {status !== 'connecte' ? <Button
                 title={en ? 'I already have an account' : 'J’ai déjà un compte'}
                 variant="ghost"
-                onPress={() => void leave('/connexion')}
+                onPress={() => void leave()}
               /> : null}
             </View>
             <Caption style={{ color: colors.subtle, textAlign: 'center' }}>

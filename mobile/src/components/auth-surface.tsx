@@ -1,8 +1,10 @@
 import * as React from 'react';
 import type { ReactNode } from 'react';
-import { KeyboardAvoidingView, Platform, ScrollView, View, useWindowDimensions } from 'react-native';
+import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View, useWindowDimensions } from 'react-native';
+import Ionicons from '@expo/vector-icons/Ionicons';
+import { useFocusEffect, useRouter } from 'expo-router';
+import { useMobileLocale } from '@/lib/i18n';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
 import { Logo } from './logo';
 import { Muted, Title } from './ui';
@@ -21,8 +23,10 @@ import { GRADIENT_SPAN } from '@/theme/gradient';
  * fond de l'écran entier, calé sous la barre d'état ; le titre se tient dans
  * le tiers bleu saturé, et le formulaire repose sur le fondu.
  */
-export function AuthSurface({ title, subtitle, children }: { title: string; subtitle: string; children: ReactNode }) {
+export function AuthSurface({ title, subtitle, children, back = false }: { title: string; subtitle: string; children: ReactNode; /** Affiche « Retour » vers l'entrée d'authentification. */ back?: boolean }) {
   const { height } = useWindowDimensions();
+  const router = useRouter();
+  const locale = useMobileLocale();
   const insets = useSafeAreaInsets();
   useFocusEffect(
     React.useCallback(() => {
@@ -48,6 +52,18 @@ export function AuthSurface({ title, subtitle, children }: { title: string; subt
             gap: spacing.xl,
           }}
         >
+          {back ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={locale === 'en' ? 'Back' : 'Retour'}
+              hitSlop={10}
+              onPress={() => (router.canGoBack() ? router.back() : router.replace('/(auth)' as never))}
+              style={{ flexDirection: 'row', alignItems: 'center', gap: 2, alignSelf: 'flex-start', minHeight: 44 }}
+            >
+              <Ionicons name="chevron-back" size={22} color={colors.white} />
+              <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600' }}>{locale === 'en' ? 'Back' : 'Retour'}</Text>
+            </Pressable>
+          ) : null}
           <Logo size={40} tone="inverse" />
           <View style={{ gap: spacing.sm, paddingBottom: spacing.sm }}>
             <Title style={{ color: colors.white, fontSize: 30, lineHeight: 36 }}>{title}</Title>

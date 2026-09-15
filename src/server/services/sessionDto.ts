@@ -29,6 +29,8 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
       emailVerified: auth.user.emailVerified,
       locale: auth.user.locale,
       localeChosenAt: auth.user.localeChosenAt,
+      hasPassword: auth.user.hasPassword,
+      identities: auth.user.identities,
     },
     organization: {
       id: organizationId,
@@ -36,10 +38,11 @@ export async function buildSessionDTO(auth: AuthContext): Promise<SessionDTO> {
       role: auth.organization.role,
       trade: profile?.trade ?? null,
       onboardingCompleted: profile?.onboardingCompleted ?? false,
+      setupPending: auth.organization.setupPending,
     },
     subscription: subscriptionDto,
     access,
-    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
+    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite, setupPending: auth.organization.setupPending }),
     capabilities: aiCapabilities(),
     aiConsent,
   };
@@ -57,7 +60,7 @@ export async function buildSessionDTOFor(
 ): Promise<SessionDTO> {
   const membership = await prisma.organizationMember.findUnique({
     where: { organizationId_userId: { organizationId, userId } },
-    include: { user: true, organization: true },
+    include: { user: { include: { identities: { select: { provider: true } } } }, organization: true },
   });
   if (!membership) throw new Error('Adhésion introuvable pour cette session.');
 
@@ -70,11 +73,14 @@ export async function buildSessionDTOFor(
       emailVerified: membership.user.emailVerifiedAt != null,
       locale: membership.user.locale,
       localeChosenAt: membership.user.localeChosenAt?.toISOString() ?? null,
+      hasPassword: membership.user.passwordHash != null,
+      identities: membership.user.identities.map((identity) => identity.provider === 'APPLE' ? 'apple' as const : 'google' as const),
     },
     organization: {
       id: organizationId,
       name: membership.organization.name,
       role: membership.role,
+      setupPending: membership.organization.setupPending,
     },
   };
 
@@ -95,10 +101,11 @@ export async function buildSessionDTOFor(
       ...auth.organization,
       trade: profile?.trade ?? null,
       onboardingCompleted: profile?.onboardingCompleted ?? false,
+      setupPending: auth.organization.setupPending,
     },
     subscription: subscriptionDto,
     access,
-    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite }),
+    nextStep: authNextStepFor({ emailVerified: auth.user.emailVerified, canWrite: access.canWrite, setupPending: auth.organization.setupPending }),
     capabilities: aiCapabilities(),
     aiConsent,
   };

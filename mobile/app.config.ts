@@ -13,6 +13,19 @@ import type { ExpoConfig } from 'expo/config';
 const VERSION = '1.0.1';
 
 /**
+ * Identifiant client OAuth iOS de Google (public, pas un secret). Fourni par
+ * l'environnement EAS/CI au moment du build. Le serveur doit accepter le même
+ * identifiant dans `GOOGLE_SIGN_IN_CLIENT_IDS`.
+ */
+const GOOGLE_IOS_CLIENT_ID = (process.env.EXPO_PUBLIC_GOOGLE_IOS_CLIENT_ID ?? process.env.GOOGLE_IOS_CLIENT_ID ?? '').trim();
+
+/** `123-abc.apps.googleusercontent.com` → `com.googleusercontent.apps.123-abc`. */
+function googleUrlScheme(clientId: string): string {
+  const [head] = clientId.split('.apps.googleusercontent.com');
+  return `com.googleusercontent.apps.${head}`;
+}
+
+/**
  * Projet EAS. L'identifiant n'est pas un secret : il est de toute façon
  * embarqué dans le binaire, et le figer ici rend les builds reproductibles
  * sans dépendre d'une variable d'environnement. `EAS_PROJECT_ID` reste un
@@ -92,6 +105,9 @@ const config: ExpoConfig = {
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'fr.devisia.app',
+    // Sign in with Apple : ajoute l'entitlement `com.apple.developer.applesignin`
+    // et la capacité sur l'App ID (synchronisée par EAS).
+    usesAppleSignIn: true,
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
       CFBundleDevelopmentRegion: 'fr',
@@ -140,6 +156,13 @@ const config: ExpoConfig = {
   plugins: [
     'expo-iap',
     'expo-router',
+    'expo-apple-authentication',
+    // Google Sign-In : le greffon exige le schéma d'URL inversé de
+    // l'identifiant client iOS. Sans identifiant, le bouton Google n'est pas
+    // proposé et le binaire reste valide.
+    ...(GOOGLE_IOS_CLIENT_ID
+      ? [['@react-native-google-signin/google-signin', { iosUrlScheme: googleUrlScheme(GOOGLE_IOS_CLIENT_ID) }] as [string, Record<string, unknown>]]
+      : []),
     // Applique `userInterfaceStyle` sur Android : l'interface DEVISERA est
     // dessinée en clair, elle ne doit pas suivre le thème sombre du système.
     'expo-system-ui',
@@ -203,6 +226,7 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: true },
 
   extra: {
+    googleIosClientId: GOOGLE_IOS_CLIENT_ID || null,
     storekitDiagnostics: process.env.EAS_BUILD_PROFILE === 'testflight-diagnostics',
     // Provenance visible dans l'application : profil EAS et commit source,
     // pour ne plus jamais douter du binaire installé.

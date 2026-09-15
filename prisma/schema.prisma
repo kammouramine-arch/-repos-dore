@@ -279,7 +279,8 @@ enum IntegrationStatus {
 model User {
   id              String    @id @default(uuid()) @db.Uuid
   email           String    @unique
-  passwordHash    String
+  /** Absent pour un compte créé avec Apple ou Google et sans mot de passe. */
+  passwordHash    String?
   firstName       String?
   lastName        String?
   phone           String?
@@ -302,9 +303,45 @@ model User {
   aiConsents     AiConsent[]
   deviceTokens   DeviceToken[]
   emailChallenge EmailChallenge?
+  identities     AuthIdentity[]
 
   @@index([deletedAt])
   @@map("users")
+}
+
+enum AuthProvider {
+  APPLE
+  GOOGLE
+}
+
+/**
+ * Identité d'authentification rattachée à un compte DEVISERA.
+ *
+ * Le compte est l'identité permanente ; l'adresse email n'en est qu'un
+ * attribut. Un même compte peut porter une identité Apple, une identité
+ * Google et un mot de passe. L'identifiant fournisseur (`sub`) est stable
+ * même quand l'adresse relayée par Apple change ou est masquée.
+ */
+model AuthIdentity {
+  id             String       @id @default(uuid()) @db.Uuid
+  userId         String       @db.Uuid
+  provider       AuthProvider
+  providerUserId String
+  /** Adresse fournie par le fournisseur à la dernière connexion, si connue. */
+  email          String?
+  emailVerified  Boolean      @default(false)
+  /** Adresse de relais privé Apple (« Masquer mon adresse »). */
+  privateRelay   Boolean      @default(false)
+  /** Jeton de rafraîchissement Apple chiffré, pour la révocation à la suppression. */
+  refreshTokenCiphertext String?
+  createdAt      DateTime     @default(now())
+  lastUsedAt     DateTime     @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerUserId])
+  @@index([userId])
+  @@map("auth_identities")
 }
 
 model EmailChallenge {
@@ -373,6 +410,8 @@ model Organization {
   country   String    @default("FR")
   timezone  String    @default("Europe/Paris")
   currency  String    @default("EUR")
+  /** Créée à la volée après une connexion Apple/Google : l'artisan doit encore la nommer. */
+  setupPending Boolean @default(false)
   deletedAt DateTime?
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt

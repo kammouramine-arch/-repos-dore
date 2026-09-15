@@ -10,8 +10,8 @@ let invitedUser: { id: string; email: string };
 
 function ownerAuth(): AuthContext {
   return {
-    user: { id: org.user.id, email: org.user.email, firstName: org.user.firstName, lastName: org.user.lastName, locale: 'fr', localeChosenAt: null, emailVerified: true, isPlatformAdmin: false },
-    organization: { organizationId: org.organization.id, organizationName: org.organization.name, organizationSlug: org.organization.slug, role: 'OWNER' },
+    user: { id: org.user.id, email: org.user.email, firstName: org.user.firstName, lastName: org.user.lastName, locale: 'fr', localeChosenAt: null, emailVerified: true, isPlatformAdmin: false, hasPassword: true, identities: [] },
+    organization: { organizationId: org.organization.id, organizationName: org.organization.name, organizationSlug: org.organization.slug, role: 'OWNER', setupPending: false },
     memberships: [],
     sessionId: randomUUID(),
   };

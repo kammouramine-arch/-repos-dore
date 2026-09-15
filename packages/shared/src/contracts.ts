@@ -8,7 +8,7 @@ import type { AiConsentDTO } from './ai-consent';
  */
 import type { PlanId, SubscriptionStatusId } from './plans';
 import type { AccessState } from './entitlements';
-import type { AuthNextStep } from './auth-flow';
+import type { AuthIdentityProvider, AuthNextStep } from './auth-flow';
 import type {
   FollowUpTone,
   LeadStatusId,
@@ -61,6 +61,10 @@ export interface SessionUserDTO {
   firstName: string | null;
   lastName: string | null;
   emailVerified: boolean;
+  /** False for an account created with Apple or Google that never set a password. */
+  hasPassword?: boolean;
+  /** Sign-in providers attached to this account. */
+  identities?: AuthIdentityProvider[];
 }
 
 export interface SessionOrganizationDTO {
@@ -69,6 +73,34 @@ export interface SessionOrganizationDTO {
   role: 'OWNER' | 'ADMIN' | 'MEMBER';
   trade: string | null;
   onboardingCompleted: boolean;
+  /** True until an Apple/Google sign-up names their business (`nextStep` = onboarding). */
+  setupPending?: boolean;
+}
+
+/** Native Sign in with Apple result, verified server-side. */
+export interface AppleSignInInput {
+  identityToken: string;
+  authorizationCode?: string | null;
+  /** Raw nonce whose SHA-256 was handed to Apple; proves the token was minted for this request. */
+  nonce?: string | null;
+  /** Provided by Apple on the first authorization only. */
+  fullName?: { givenName?: string | null; familyName?: string | null } | null;
+  deviceName?: string;
+  locale?: 'fr' | 'en';
+}
+
+export interface GoogleSignInInput {
+  idToken: string;
+  deviceName?: string;
+  locale?: 'fr' | 'en';
+}
+
+export interface OnboardingInput {
+  companyName: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  trade?: string;
 }
 
 export interface SubscriptionDTO {

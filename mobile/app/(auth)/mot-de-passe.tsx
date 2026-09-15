@@ -32,7 +32,7 @@ export default function MotDePasseScreen() {
   }
 
   return (
-    <AuthSurface title="Mot de passe oublié" subtitle="Indiquez votre adresse pour demander un lien de réinitialisation.">
+    <AuthSurface back title="Mot de passe oublié" subtitle="Indiquez votre adresse pour demander un lien de réinitialisation.">
         {failed ? <Banner tone="danger" title="La demande n’a pas abouti" description="Veuillez réessayer dans un instant. Aucun changement n’a été effectué." /> : null}
 
         {sent ? (

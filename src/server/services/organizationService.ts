@@ -87,6 +87,8 @@ export interface CreateOrganizationInput {
   ownerName?: string | null;
   email?: string | null;
   phone?: string | null;
+  /** Entreprise créée après une connexion Apple/Google : nom à confirmer à l'onboarding. */
+  setupPending?: boolean;
 }
 
 /**
@@ -112,6 +114,7 @@ export async function createOrganization(input: CreateOrganizationInput) {
         name: input.name,
         slug,
         locale: input.locale ?? 'fr',
+        setupPending: input.setupPending ?? false,
         members: { create: { userId: input.ownerUserId, role: 'OWNER' } },
         businessProfile: {
           create: {

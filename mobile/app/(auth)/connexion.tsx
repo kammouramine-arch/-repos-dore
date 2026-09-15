@@ -34,7 +34,7 @@ export default function ConnexionScreen() {
   }
 
   return (
-    <AuthSurface title={en ? 'Welcome back' : 'Content de vous revoir'} subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}>
+    <AuthSurface back title={en ? 'Welcome back' : 'Content de vous revoir'} subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}>
 
           <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
             {error ? <Banner tone="danger" title={error} /> : null}

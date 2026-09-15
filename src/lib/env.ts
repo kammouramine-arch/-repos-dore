@@ -38,6 +38,19 @@ const serverSchema = z.object({
   ),
   AUTH_SECRET: z.string().min(16).default('devisera-development-secret-change-me'),
 
+  // Sign in with Apple (flux natif iOS) : le jeton d'identité est vérifié avec
+  // les clés publiques d'Apple ; l'audience attendue est l'identifiant du
+  // bundle. Aucun secret n'est nécessaire pour la connexion. La clé privée
+  // ci-dessous ne sert qu'à révoquer l'autorisation à la suppression du compte.
+  APPLE_SIGN_IN_BUNDLE_IDS: z.string().default('fr.devisia.app'),
+  APPLE_SIGN_IN_TEAM_ID: z.preprocess((value) => (value === '' ? undefined : value), z.string().optional()),
+  APPLE_SIGN_IN_KEY_ID: z.preprocess((value) => (value === '' ? undefined : value), z.string().optional()),
+  APPLE_SIGN_IN_PRIVATE_KEY: z.preprocess((value) => (value === '' ? undefined : value), z.string().optional()),
+  // Google Sign-In : identifiants clients OAuth (iOS, et web le cas échéant)
+  // acceptés comme audience du jeton d'identité, séparés par des virgules.
+  // Ce sont des identifiants publics, pas des secrets.
+  GOOGLE_SIGN_IN_CLIENT_IDS: z.preprocess((value) => (value === '' ? undefined : value), z.string().optional()),
+
   // IA — laissé vide, le fournisseur est déduit de la présence de la clé.
   AI_PROVIDER: z.preprocess(
     (value) => (value === '' || value == null ? undefined : value),

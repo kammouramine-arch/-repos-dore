@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { authDestination, verificationPath, verificationSourcePath } from '../../mobile/src/lib/auth-navigation';
+import { authDestination, needsBusinessSetup, verificationPath, verificationSourcePath } from '../../mobile/src/lib/auth-navigation';
 import type { SessionDTO } from '@devisia/shared';
 
 function session(input: Partial<SessionDTO['user']> & { nextStep: SessionDTO['nextStep']; canWrite: boolean }): SessionDTO {
@@ -17,6 +17,14 @@ describe('mobile auth navigation', () => {
   it('routes verified sessions directly to the app or subscription, never verification', () => {
     expect(authDestination(session({ emailVerified: true, nextStep: 'app', canWrite: true }))).toBe('/(app)');
     expect(authDestination(session({ emailVerified: true, nextStep: 'subscription', canWrite: false }))).toBe('/abonnement');
+  });
+
+  it('sends a social sign-up to business onboarding before any plan', () => {
+    const social = session({ emailVerified: true, nextStep: 'onboarding', canWrite: false });
+    social.organization.setupPending = true;
+    expect(authDestination(social)).toBe('/bienvenue');
+    expect(needsBusinessSetup(social)).toBe(true);
+    expect(needsBusinessSetup(session({ emailVerified: true, nextStep: 'app', canWrite: true }))).toBe(false);
   });
 
   it('routes only unverified sessions to the verification screen', () => {

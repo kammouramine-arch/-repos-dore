@@ -51,7 +51,7 @@ export async function signUp(input: SignUpInput) {
     // A failed verification email must not strand the account. Retrying the
     // same signup with the original password re-authenticates the pending
     // account and sends a fresh challenge instead of creating a duplicate.
-    if (!existing.deletedAt && !existing.emailVerifiedAt) {
+    if (!existing.deletedAt && !existing.emailVerifiedAt && existing.passwordHash) {
       const validPassword = await verifyPassword(input.password, existing.passwordHash);
       const membership = existing.memberships[0];
       if (validPassword && membership && !membership.organization.deletedAt) {
@@ -152,8 +152,11 @@ export async function signIn(input: SignInInput) {
     throw genericError;
   }
 
-  const valid = await verifyPassword(input.password, user.passwordHash);
-  if (!valid) throw genericError;
+  // Un compte Apple/Google sans mot de passe : même refus, même durée, sans
+  // révéler qu'il existe. L'artisan peut se créer un mot de passe par le
+  // lien « mot de passe oublié ».
+  const valid = await verifyPassword(input.password, user.passwordHash ?? '$2a$12$invalidinvalidinvalidinvalidinvalidinvalidinvalidinv');
+  if (!valid || !user.passwordHash) throw genericError;
 
   const membership = await prisma.organizationMember.findFirst({
     where: { userId: user.id, deletedAt: null },

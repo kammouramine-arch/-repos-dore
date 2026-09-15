@@ -29,6 +29,10 @@ export interface SessionUser {
   localeChosenAt: string | null;
   emailVerified: boolean;
   isPlatformAdmin: boolean;
+  /** False for an Apple/Google account that never set a password. */
+  hasPassword: boolean;
+  /** Sign-in providers attached to the account. */
+  identities: ('apple' | 'google')[];
 }
 
 export interface SessionMembership {
@@ -36,6 +40,8 @@ export interface SessionMembership {
   organizationName: string;
   organizationSlug: string;
   role: MemberRole;
+  /** Organisation créée après une connexion Apple/Google, encore à nommer. */
+  setupPending: boolean;
 }
 
 export interface AuthContext {
@@ -131,6 +137,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
             include: { organization: true },
             orderBy: { createdAt: 'asc' },
           },
+          identities: { select: { provider: true } },
         },
       },
     },
@@ -152,6 +159,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       organizationName: m.organization.name,
       organizationSlug: m.organization.slug,
       role: m.role,
+      setupPending: m.organization.setupPending,
     }));
 
   if (memberships.length === 0) return null;
@@ -170,6 +178,8 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       localeChosenAt: session.user.localeChosenAt?.toISOString() ?? null,
       emailVerified: session.user.emailVerifiedAt != null,
       isPlatformAdmin: session.user.isPlatformAdmin,
+      hasPassword: session.user.passwordHash != null,
+      identities: session.user.identities.map((identity) => identity.provider === 'APPLE' ? 'apple' as const : 'google' as const),
     },
     organization,
     memberships,

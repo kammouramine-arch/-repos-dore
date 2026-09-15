@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { Alert, AppState, Platform } from 'react-native';
 import { listenForApplePurchases, prefetchAppleProducts, restoreApplePurchases } from './apple-purchases';
-import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
+import { DevisiaApiError, type OnboardingInput, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
 import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, forgetLegacyLocale, persistLocaleChoice, readLocaleChoice } from './storage';
 import { clearQueryCache } from './query-cache';
@@ -10,6 +10,7 @@ import { recordDiagnostic } from './diagnostics';
 import { MobileLocaleProvider, localizeText, type MobileLocale } from './i18n';
 import { accountLocaleNeedsSync, resolveMobileLocale, type LocaleChoice, type LocaleSource } from './locale-resolution';
 import { deviceLanguageTags } from './device-locale';
+import { SocialAuthCancelled, SocialAuthUnavailable, forgetGoogleSession, signInWithAppleNative, signInWithGoogleNative } from './social-auth';
 
 /**
  * Contexte d'authentification mobile.
@@ -72,6 +73,12 @@ interface AuthContextValue extends AuthState {
     firstName?: string;
     lastName?: string;
   }) => Promise<SessionDTO>;
+  /** Sign in with Apple ; `null` quand l'artisan annule la feuille Apple. */
+  signInWithApple: () => Promise<SessionDTO | null>;
+  /** Google Sign-In ; `null` quand l'artisan annule. */
+  signInWithGoogle: () => Promise<SessionDTO | null>;
+  /** Nomme l'entreprise créée après une connexion Apple/Google et renvoie la session à jour. */
+  completeOnboarding: (input: OnboardingInput) => Promise<SessionDTO>;
   signOut: () => Promise<void>;
   /** Revalidate and return the fresh server session for immediate routing. */
   refresh: () => Promise<SessionDTO | null>;
@@ -135,6 +142,15 @@ export function describeAuthError(error: unknown, locale: MobileLocale = 'fr'): 
     default:
       return 'La connexion n’a pas abouti. Réessayez dans un instant.';
   }
+}
+
+/** Message sûr pour une feuille Apple/Google qui échoue avant tout appel serveur. */
+function describeSocialError(cause: unknown, locale: MobileLocale, provider: 'Apple' | 'Google'): string {
+  const english = locale === 'en';
+  if (cause instanceof SocialAuthUnavailable) {
+    return english ? `${provider} sign-in is not available on this device right now.` : `La connexion ${provider} n’est pas disponible sur cet appareil pour le moment.`;
+  }
+  return english ? `${provider} sign-in did not complete. Try again or continue with email.` : `La connexion ${provider} n’a pas abouti. Réessayez ou continuez avec l’adresse e-mail.`;
 }
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -397,9 +413,39 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}),
         locale: authLocale,
       })),
+      signInWithApple: async () => {
+        setState((current) => ({ ...current, error: null, errorReference: null }));
+        let payload;
+        try {
+          payload = await signInWithAppleNative();
+        } catch (cause) {
+          if (cause instanceof SocialAuthCancelled) return null;
+          setState((current) => ({ ...current, error: describeSocialError(cause, authLocale, 'Apple') }));
+          throw cause;
+        }
+        return handle(() => api.auth.signInWithApple({ ...payload, deviceName: 'DEVISERA mobile', locale: authLocale }));
+      },
+      signInWithGoogle: async () => {
+        setState((current) => ({ ...current, error: null, errorReference: null }));
+        let payload;
+        try {
+          payload = await signInWithGoogleNative();
+        } catch (cause) {
+          if (cause instanceof SocialAuthCancelled) return null;
+          setState((current) => ({ ...current, error: describeSocialError(cause, authLocale, 'Google') }));
+          throw cause;
+        }
+        return handle(() => api.auth.signInWithGoogle({ ...payload, deviceName: 'DEVISERA mobile', locale: authLocale }));
+      },
+      completeOnboarding: async (input) => {
+        const { session } = await api.auth.completeOnboarding(input);
+        adoptSession(session);
+        return session;
+      },
       signOut: async () => {
         sessionGeneration.current += 1;
         clearQueryCache();
+        void forgetGoogleSession();
         // Leave the auth screens immediately. Network revocation is best
         // effort and must never make Back/change-email feel frozen on a poor
         // job-site connection.

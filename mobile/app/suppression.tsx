@@ -17,8 +17,10 @@ const SUPPORT_EMAIL = 'contact@devisera.fr';
  * offre une porte de sortie. L'appel d'API et la déconnexion sont inchangés.
  */
 export default function SuppressionScreen() {
-  const { signOut } = useAuth();
+  const { signOut, session } = useAuth();
   const en = useMobileLocale() === 'en';
+  // Un compte Apple/Google sans mot de passe : la session authentifiée suffit.
+  const hasPassword = session?.user.hasPassword !== false;
   const [password, setPassword] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -36,7 +38,7 @@ export default function SuppressionScreen() {
     if (acting.current) return;
     acting.current = true; setBusy(true); setError(null);
     try {
-      const result = await api.auth.deleteAccount(password);
+      const result = await api.auth.deleteAccount(hasPassword ? password : null);
       setPassword('');
       setNotice(result.businessRecordsRetained
         ? (en ? 'Your access has been deleted. Business records are kept as required.' : 'Votre accès a été supprimé. Les données commerciales restent conservées selon les obligations applicables.')
@@ -73,8 +75,10 @@ export default function SuppressionScreen() {
         {notice ? <Banner tone="success" title={notice} /> : null}
 
         <Card style={{ gap: spacing.lg }}>
-          <Field label={en ? 'Current password' : 'Mot de passe actuel'} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" editable={!busy} />
-          <Button title={en ? 'Permanently delete my access' : 'Supprimer définitivement mon accès'} variant="danger" haptic loading={busy} disabled={busy || !password} onPress={() => void remove()} />
+          {hasPassword
+            ? <Field label={en ? 'Current password' : 'Mot de passe actuel'} value={password} onChangeText={setPassword} secureTextEntry autoComplete="current-password" editable={!busy} />
+            : <Muted>{en ? `You signed in with ${session?.user.identities?.includes('apple') ? 'Apple' : 'Google'}. Deleting also revokes that sign-in authorization for DEVISERA.` : `Vous êtes connecté avec ${session?.user.identities?.includes('apple') ? 'Apple' : 'Google'}. La suppression révoque aussi cette autorisation de connexion pour DEVISERA.`}</Muted>}
+          <Button title={en ? 'Permanently delete my access' : 'Supprimer définitivement mon accès'} variant="danger" haptic loading={busy} disabled={busy || (hasPassword && !password)} onPress={() => void remove()} />
         </Card>
 
         <View style={{ gap: spacing.sm, alignItems: 'center' }}>

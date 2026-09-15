@@ -6,6 +6,8 @@ import { hashToken } from '@/lib/auth/tokens';
 import { verifyPassword } from '@/lib/auth/password';
 import { AppError, conflict, forbidden, validation } from '@/lib/errors';
 import { getEmailProvider, layout, esc } from '@/lib/email';
+import { open as openSecret } from '@/lib/auth/secret-box';
+import { revokeAppleToken } from '@/server/auth/providers/apple';
 
 const TTL = 10 * 60_000;
 const HOUR = 60 * 60_000;
@@ -34,11 +36,22 @@ export async function updateAccountName(userId: string, firstName: string, lastN
  * commercial records. Those records may need statutory retention and require a
  * separate owner/legal decision before an organisation is purged.
  */
-export async function deletePersonalAccount(userId: string, password: string, confirmation: string) {
+export async function deletePersonalAccount(userId: string, password: string | null, confirmation: string) {
   if (confirmation !== 'SUPPRIMER') throw validation('Saisissez SUPPRIMER pour confirmer la suppression.');
-  const user = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true, deletedAt: true } });
-  if (!user || user.deletedAt || !await verifyPassword(password, user.passwordHash)) {
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { passwordHash: true, deletedAt: true, identities: { select: { id: true, provider: true, refreshTokenCiphertext: true } } } });
+  if (!user || user.deletedAt) throw validation('Mot de passe incorrect. Votre compte reste inchangé.');
+  // Un compte avec mot de passe le redemande ; un compte Apple/Google n'en a
+  // pas, la session authentifiée et le mot SUPPRIMER suffisent.
+  if (user.passwordHash && (!password || !await verifyPassword(password, user.passwordHash))) {
     throw validation('Mot de passe incorrect. Votre compte reste inchangé.');
+  }
+  // Apple exige que l'autorisation Sign in with Apple soit révoquée quand le
+  // compte est supprimé (App Store 5.1.1 (v)). Silencieux si non configuré.
+  for (const identity of user.identities ?? []) {
+    if (identity.provider === 'APPLE' && identity.refreshTokenCiphertext) {
+      const refreshToken = openSecret(identity.refreshTokenCiphertext);
+      if (refreshToken) await revokeAppleToken(refreshToken).catch(() => false);
+    }
   }
   const now = new Date();
   const replacementEmail = `deleted+${userId}@invalid.devisia.local`;
@@ -69,6 +82,9 @@ export async function deletePersonalAccount(userId: string, password: string, co
     await tx.authToken.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
     await tx.emailChallenge.updateMany({ where: { userId, usedAt: null }, data: { usedAt: now } });
     await tx.organizationMember.updateMany({ where: { userId, deletedAt: null }, data: { deletedAt: now } });
+    // Les identités Apple/Google sont détachées : la même personne pourra
+    // recréer un compte neuf sans retomber sur celui-ci.
+    await tx.authIdentity.deleteMany({ where: { userId } });
   }, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable });
   return { deleted: true, businessRecordsRetained: true };
 }
@@ -82,8 +98,10 @@ export async function requestEmailCode(userId: string, input: { email: string; p
   }
   const user = await prisma.user.findUniqueOrThrow({ where: { id: userId } });
   if (user.deletedAt) throw forbidden();
-  // Changing the login address requires reauthentication, including before the first purchase.
-  if (email !== user.email && (!input.password || !await verifyPassword(input.password, user.passwordHash))) {
+  // Changing the login address requires reauthentication, including before the
+  // first purchase. An Apple/Google account without a password relies on its
+  // authenticated session instead.
+  if (email !== user.email && user.passwordHash && (!input.password || !await verifyPassword(input.password, user.passwordHash))) {
     throw validation('Saisissez votre mot de passe actuel pour changer d’adresse email.');
   }
   const code = String(randomInt(0, 1_000_000)).padStart(6, '0');

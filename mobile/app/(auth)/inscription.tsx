@@ -54,7 +54,7 @@ export default function InscriptionScreen() {
   }
 
   return (
-    <AuthSurface title={en ? 'Create your workspace' : 'Créez votre atelier'} subtitle={en ? 'Clients, jobs and quotes. Everything starts here.' : 'Vos clients, vos chantiers et vos devis. Tout commence ici.'}>
+    <AuthSurface back title={en ? 'Create your workspace' : 'Créez votre atelier'} subtitle={en ? 'Clients, jobs and quotes. Everything starts here.' : 'Vos clients, vos chantiers et vos devis. Tout commence ici.'}>
 
             <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
               {validationError || error ? <Banner tone="danger" title={validationError ?? error!} /> : null}

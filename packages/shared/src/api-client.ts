@@ -1,5 +1,8 @@
 import type { AiConsentDTO, AiConsentStatus } from './ai-consent';
 import type {
+  AppleSignInInput,
+  GoogleSignInInput,
+  OnboardingInput,
   LanguageSource,
   ApiError,
   ApiResponse,
@@ -370,12 +373,19 @@ export function createApiClient(options: ApiClientOptions) {
     auth: {
       exportPersonal: () => request<Record<string, unknown>>('/api/auth/export'),
       exportBusiness: () => request<Record<string, unknown>>('/api/organization/export'),
-      deleteAccount: (password: string) => request<{ deleted: boolean; businessRecordsRetained: boolean }>('/api/auth/account', { method: 'DELETE', json: { password, confirmation: 'SUPPRIMER' } }),
+      /** `password` is null for an account without one (Apple/Google only). */
+      deleteAccount: (password: string | null) => request<{ deleted: boolean; businessRecordsRetained: boolean }>('/api/auth/account', { method: 'DELETE', json: { ...(password ? { password } : {}), confirmation: 'SUPPRIMER' } }),
       signIn: (email: string, password: string, deviceName?: string) =>
         request<AuthTokenDTO>('/api/auth/session', {
           method: 'POST',
           json: { email, password, deviceName },
         }),
+      /** Native Sign in with Apple: the identity token is verified by the server. */
+      signInWithApple: (input: AppleSignInInput) => request<AuthTokenDTO>('/api/auth/apple', { method: 'POST', json: input }),
+      /** Native Google Sign-In: the ID token is verified by the server. */
+      signInWithGoogle: (input: GoogleSignInInput) => request<AuthTokenDTO>('/api/auth/google', { method: 'POST', json: input }),
+      /** Names the business created on the fly after a social sign-up. */
+      completeOnboarding: (input: OnboardingInput) => request<{ session: SessionDTO }>('/api/auth/onboarding', { method: 'POST', json: input }),
       signUp: (input: {
         email: string;
         password: string;

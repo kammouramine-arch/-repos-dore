@@ -44,7 +44,7 @@ describe('mon compte', () => {
   it('délègue la suppression à un écran dédié qui appelle la même API', () => {
     expect(compte).toContain("'/suppression'");
     const suppression = read('app/suppression.tsx');
-    expect(suppression).toContain('api.auth.deleteAccount(password)');
+    expect(suppression).toContain('api.auth.deleteAccount(hasPassword ? password : null)');
     expect(suppression).toContain('await signOut()');
   });
 });

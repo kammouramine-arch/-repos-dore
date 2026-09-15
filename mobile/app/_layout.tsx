@@ -18,6 +18,7 @@ import { colors, radius, spacing, typography } from '@/theme';
 import { BRAND_TOP } from '@/theme/gradient';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { localizeText, useMobileLocale, copy } from '@/lib/i18n';
+import { needsBusinessSetup } from '@/lib/auth-navigation';
 
 // L'écran natif reste affiché tant que la séquence de lancement n'a pas
 // peint sa première image : c'est elle qui le retire (voir LaunchOverlay).
@@ -99,6 +100,9 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
     session.nextStep === 'subscription' ||
     (!session.nextStep && !session.access?.canWrite)
   );
+  // Compte Apple/Google dont l'entreprise n'est pas encore nommée : un seul
+  // écran possible, l'onboarding.
+  const needsSetup = connected && needsBusinessSetup(session);
   const back = locale === 'en' ? 'Back' : 'Retour';
 
   /*
@@ -162,7 +166,10 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
       <Stack.Protected guard={connected && !session?.user.emailVerified}>
         <Stack.Screen name="verification" />
       </Stack.Protected>
-      <Stack.Protected guard={connected && !!session?.user.emailVerified}>
+      <Stack.Protected guard={needsSetup}>
+        <Stack.Screen name="bienvenue" />
+      </Stack.Protected>
+      <Stack.Protected guard={connected && !!session?.user.emailVerified && !needsSetup}>
         <Stack.Protected guard={!needsPlan}>
           <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
           <Stack.Screen name="devis/nouveau" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'New quote' : 'Nouveau devis', headerBackTitle: back }} />
@@ -176,7 +183,7 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="entreprise" options={{ headerShown: true, title: locale === 'en' ? 'My business' : 'Mon entreprise', headerBackTitle: back }} />
         <Stack.Screen name="analytique" options={{ headerShown: true, title: locale === 'en' ? 'Activity' : 'Activité', headerBackTitle: back }} />
       </Stack.Protected>
-      <Stack.Protected guard={connected}>
+      <Stack.Protected guard={connected && !needsSetup}>
         <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
         <Stack.Screen name="confidentialite-ia" options={{ headerShown: true, title: locale === 'en' ? 'Privacy & AI' : 'Confidentialité et IA', headerBackTitle: back }} />
         <Stack.Screen name="suppression" options={{ headerShown: true, title: copy(locale, 'deleteAccount'), headerBackTitle: back }} />
