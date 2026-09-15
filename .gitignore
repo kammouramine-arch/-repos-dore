@@ -53,3 +53,6 @@ mobile/*.p8
 mobile/*.p12
 mobile/*.mobileprovision
 .env*
+
+# Fichier vide créé à la racine par eas-cli lors du calcul d'empreinte (le projet Expo est dans mobile/)
+/app.json
