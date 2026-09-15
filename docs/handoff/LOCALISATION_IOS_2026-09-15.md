@@ -63,4 +63,8 @@ suivent. Seul un choix fait dans l'application ou sur le web est définitif.
   15 septembre 2026 à 07:37 UTC, avant ce build, et Apple n'accepte plus aucun
   build portant `CFBundleShortVersionString = 1.0.0`
   (`SUBMISSION_SERVICE_IOS_OLD_APP_VERSION`).
-- Version 1.0.1 : Build 43, même code, seule la version marketing change.
+- Version 1.0.1 : Build 43 (EAS 6fc71b73-b83a-4e44-b2eb-0d2d274964c4,
+  soumission 0c383f11-6412-438d-bd6a-fda4bbd7dd52, terminée le 15 septembre
+  2026 à 13:55 UTC). IPA vérifié : `CFBundleShortVersionString = 1.0.1`,
+  `CFBundleVersion = 43`, `fr.devisia.app`, localisations fr et en. Même code
+  que le Build 42 ; seule la version marketing change.
