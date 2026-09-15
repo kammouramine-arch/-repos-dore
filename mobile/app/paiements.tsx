@@ -9,7 +9,7 @@ import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { mobileLocale } from '@/lib/i18n';
+import { useMobileLocale } from '@/lib/i18n';
 import { colors, radius, spacing, typography } from '@/theme';
 
 /**
@@ -60,7 +60,7 @@ function PaymentRow({ payment, last, en, source }: { payment: BillingHistoryEntr
 export default function PaiementsScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const en = useMobileLocale() === 'en';
   const [actionError, setActionError] = React.useState<string | null>(null);
   const acting = React.useRef(false);
   async function openBillingPortal() {

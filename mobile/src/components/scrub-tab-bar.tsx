@@ -6,8 +6,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows, spacing } from '@/theme';
 import { useReducedMotion, useTouchMotion } from './motion';
-import { useAuth } from '@/lib/auth';
-import { copy, mobileLocale } from '@/lib/i18n';
+import { copy, useMobileLocale } from '@/lib/i18n';
 
 /**
  * Barre de navigation.
@@ -158,8 +157,7 @@ function CreateButton({ label, onPress }: { label: string; onPress: () => void }
 }
 
 export function ScrubTabBar({ state, navigation }: BottomTabBarProps) {
-  const { session } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);

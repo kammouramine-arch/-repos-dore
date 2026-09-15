@@ -10,8 +10,7 @@ import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, radius, spacing, typography } from '@/theme';
-import { copy, localizeText, mobileLocale } from '@/lib/i18n';
-import { useAuth } from '@/lib/auth';
+import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'info'> = {
   NOUVEAU: 'accent',
@@ -53,8 +52,7 @@ type Row = { kind: 'header'; id: string; group: Group; count: number } | { kind:
 export default function ProspectsScreen() {
   const router = useRouter();
   const { toast } = useToast();
-  const { session } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   // L'instant de chargement voyage avec les données : un regroupement qui
   // bouge pendant qu'on lit n'aide personne, et Date.now() n'a pas sa place

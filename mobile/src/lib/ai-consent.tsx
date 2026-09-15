@@ -4,7 +4,7 @@ import { AiConsentSheet } from '@/components/ai-consent-sheet';
 import { aiConsentState, aiConsentText, type AiConsentState } from '@/features/ai-consent';
 import { api } from './api';
 import { useAuth } from './auth';
-import { mobileLocale } from './i18n';
+import { useMobileLocale } from './i18n';
 
 /**
  * Garde unique devant toute requête vers l'API d'IA.
@@ -32,7 +32,7 @@ export function AiConsentProvider({ children }: { children: React.ReactNode }) {
   // La session est la seule source : chaque décision y est adoptée après
   // enregistrement, et une nouvelle session (autre compte) repart du serveur.
   const state = React.useMemo(() => aiConsentState(session), [session]);
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const copy = React.useMemo(() => aiConsentText(state, locale), [state, locale]);
 

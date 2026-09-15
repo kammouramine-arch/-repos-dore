@@ -1,7 +1,9 @@
 import * as React from 'react';
 import type { SessionDTO } from '@devisia/shared';
 
-export type MobileLocale = 'fr' | 'en';
+import type { MobileLocale } from './locale-resolution';
+
+export type { MobileLocale };
 
 /**
  * Compact native dictionary for the shared mobile shell. Product content
@@ -56,6 +58,9 @@ export type MobileCopyKey = keyof typeof DICTIONARY.fr;
  * labels and status/category names.
  */
 const TEXT_TRANSLATIONS: Record<string, string> = {
+  'devis envoyés': 'quotes sent',
+  'Devis': 'Quotes',
+  'À relancer': 'To follow up',
   'Votre devis est prêt': 'Your quote is ready',
   'Je vous écoute — appuyez pour arrêter': 'Listening — tap to stop',
   'Prestation mise à jour': 'Service updated',
@@ -503,13 +508,14 @@ export function useMobileLocale(): MobileLocale {
   return React.useContext(LocaleContext);
 }
 
-export function mobileLocale(session: Pick<SessionDTO, 'user'> | null | undefined): MobileLocale {
+/**
+ * Langue portée par le compte, telle quelle. Ne l'utilisez pas pour afficher
+ * l'interface : une valeur déduite peut contredire la langue de l'iPhone.
+ * L'interface lit `useMobileLocale()`, qui applique la priorité
+ * choix explicite > appareil > français.
+ */
+export function accountLocale(session: Pick<SessionDTO, 'user'> | null | undefined): MobileLocale {
   return session?.user.locale === 'en' ? 'en' : 'fr';
-}
-
-export function deviceLocale(): MobileLocale {
-  try { return Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase().startsWith('en') ? 'en' : 'fr'; }
-  catch { return 'fr'; }
 }
 
 

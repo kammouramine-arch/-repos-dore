@@ -44,9 +44,18 @@ export interface ApiError {
 
 export type ApiResponse<T> = { data: T } | { error: ApiError };
 
+/** Where a language value comes from; only `explicit` may override the device language. */
+export type LanguageSource = 'explicit' | 'inferred' | 'reset';
+
 export interface SessionUserDTO {
   /** Optional for older cached sessions; French is the compatible default. */
   locale?: 'fr' | 'en';
+  /**
+   * ISO date of the user's explicit language choice, or null when `locale`
+   * was only inferred (sign-up device, defaults). Clients follow the device
+   * language until a choice exists; an inferred value never overrides it.
+   */
+  localeChosenAt?: string | null;
   id: string;
   email: string;
   firstName: string | null;

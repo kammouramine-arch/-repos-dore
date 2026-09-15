@@ -7,9 +7,8 @@ import { Banner, Body, Button, Card, Caption, Heading, Muted, Screen } from '@/c
 import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useToast } from '@/components/toast';
 import { useAiConsent } from '@/lib/ai-consent';
-import { useSession } from '@/lib/auth';
 import { API_URL } from '@/lib/api';
-import { mobileLocale } from '@/lib/i18n';
+import { useMobileLocale } from '@/lib/i18n';
 import { aiConsentText } from '@/features/ai-consent';
 import { colors, radius, spacing } from '@/theme';
 
@@ -21,8 +20,7 @@ import { colors, radius, spacing } from '@/theme';
  * prochaine action assistée redemande l'autorisation, avec le même texte.
  */
 export default function ConfidentialiteIaScreen() {
-  const session = useSession();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const { state, ensure, revoke } = useAiConsent();
   const copy = aiConsentText(state, locale);

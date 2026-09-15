@@ -79,11 +79,24 @@ const config: ExpoConfig = {
   icon: './assets/icon.png',
   assetBundlePatterns: ['**/*'],
 
+  // Localisations natives du binaire. Sans elles, iOS considérait DEVISERA
+  // comme une application « anglais uniquement » (fiche App Store, boutons
+  // système, dialogues d'autorisation) et l'ouvrait en anglais sur un iPhone
+  // réglé en français. Le français est la région de développement : c'est la
+  // langue de repli pour toute langue non prise en charge.
+  locales: {
+    fr: './locales/fr.json',
+    en: './locales/en.json',
+  },
+
   ios: {
     supportsTablet: true,
     bundleIdentifier: 'fr.devisia.app',
     infoPlist: {
       ITSAppUsesNonExemptEncryption: false,
+      CFBundleDevelopmentRegion: 'fr',
+      CFBundleLocalizations: ['fr', 'en'],
+      CFBundleAllowMixedLocalizations: true,
       NSMicrophoneUsageDescription:
         'DEVISERA utilise le micro pour que vous puissiez dicter la description de votre chantier.',
       NSCameraUsageDescription:

@@ -10,8 +10,7 @@ import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { colors, radius, spacing, typography } from '@/theme';
 import { ClientForm } from '@/components/client-sheet';
-import { useAuth } from '@/lib/auth';
-import { localizeText, mobileLocale } from '@/lib/i18n';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
 /**
@@ -30,8 +29,7 @@ const STATUS_TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' 
 export default function ClientProfile() {
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
-  const { session } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const t = React.useCallback((value: string) => localizeText(locale, value), [locale]);
   const query = useQuery(() => api.customers.get(id), [id], `customer:${id}`);

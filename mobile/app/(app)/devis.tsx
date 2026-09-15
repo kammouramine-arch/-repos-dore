@@ -8,8 +8,7 @@ import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { Enter } from '@/components/motion';
 import { colors, spacing, typography } from '@/theme';
-import { copy, localizeText, mobileLocale } from '@/lib/i18n';
-import { useAuth } from '@/lib/auth';
+import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 import { FilterChip } from '@/components/filter-chip';
 
 /**
@@ -40,8 +39,7 @@ function normalize(value: string) {
 
 export default function DevisScreen() {
   const router = useRouter();
-  const { session } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const params = useLocalSearchParams<{ statut?: string }>();
   const [filter, setFilter] = React.useState<Filter>(FILTERS.some((f) => f.id === params.statut) ? (params.statut as Filter) : 'all');

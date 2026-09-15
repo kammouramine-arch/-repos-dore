@@ -7,7 +7,7 @@ import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DevisiaApiError } from '@devisia/shared';
 import { colors, spacing } from '@/theme';
-import { copy, mobileLocale } from '@/lib/i18n';
+import { copy, useMobileLocale } from '@/lib/i18n';
 import { authDestination, verificationSourcePath } from '@/lib/auth-navigation';
 import { recordDiagnostic } from '@/lib/diagnostics';
 
@@ -17,7 +17,7 @@ export default function VerificationScreen() {
   const params = useLocalSearchParams<{ source?: string }>();
   const session = useSession();
   const { adoptSession, refresh, signOut } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const [code, setCode] = React.useState('');
   const [busy, setBusy] = React.useState(false);

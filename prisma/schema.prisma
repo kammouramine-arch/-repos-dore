@@ -284,6 +284,8 @@ model User {
   lastName        String?
   phone           String?
   locale          Language  @default(fr)
+  /** Set only by an explicit choice; null means `locale` was inferred. */
+  localeChosenAt  DateTime?
   emailVerifiedAt DateTime?
   isPlatformAdmin Boolean   @default(false)
   lastLoginAt     DateTime?

@@ -12,7 +12,7 @@ import { appleProducts, cachedAppleProducts, manageAppleSubscriptions, observeAp
 import { API_URL } from '@/lib/api';
 import { colors, radius, spacing } from '@/theme';
 import { Logo } from './logo';
-import { localizeText, mobileLocale } from '@/lib/i18n';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 import { appleOffer } from '@/lib/apple-offer';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { DiagnosticReport } from './diagnostic-report';
@@ -25,7 +25,7 @@ export function ApplePaywall() {
 
 function ApplePaywallContent() {
   const { session, refresh, signOut } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();
   const [selected, setSelected] = React.useState<PlanId | null>(null);

@@ -2,7 +2,7 @@ import * as SecureStore from 'expo-secure-store';
 import { Platform } from 'react-native';
 import type { SessionDTO } from '@devisia/shared';
 import { decodeDashboardSnapshot } from './dashboard-snapshot';
-import type { MobileLocale } from './i18n';
+import type { LocaleChoice } from './locale-resolution';
 
 /**
  * Stockage du jeton de session.
@@ -13,25 +13,50 @@ import type { MobileLocale } from './i18n';
 const KEY = 'devisia.session.token';
 const SNAPSHOT_KEY = 'devisia.session.snapshot';
 const DASHBOARD_KEY = 'devisia.dashboard.snapshot';
-const PREFERRED_LOCALE_KEY = 'devisera.locale';
+/**
+ * Choix de langue explicite, et lui seul. L'ancienne clé `devisera.locale`
+ * recevait la langue déduite du compte à chaque session : un « en » accidentel
+ * y survivait et imposait l'anglais à un iPhone français. Elle est effacée et
+ * n'est jamais relue.
+ */
+const LEGACY_LOCALE_KEY = 'devisera.locale';
+const LOCALE_CHOICE_KEY = 'devisera.locale.choice';
 
-export async function readPreferredLocale(): Promise<MobileLocale | null> {
+export async function readLocaleChoice(): Promise<LocaleChoice | null> {
   try {
     const raw = Platform.OS === 'web'
-      ? globalThis.localStorage?.getItem(PREFERRED_LOCALE_KEY)
-      : await SecureStore.getItemAsync(PREFERRED_LOCALE_KEY);
-    return raw === 'en' || raw === 'fr' ? raw : null;
+      ? globalThis.localStorage?.getItem(LOCALE_CHOICE_KEY)
+      : await SecureStore.getItemAsync(LOCALE_CHOICE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw) as Partial<LocaleChoice>;
+    if ((parsed.locale === 'fr' || parsed.locale === 'en') && typeof parsed.at === 'string') return { locale: parsed.locale, at: parsed.at };
+    return null;
   } catch {
     return null;
   }
 }
 
-export async function persistPreferredLocale(locale: MobileLocale): Promise<void> {
+export async function persistLocaleChoice(choice: LocaleChoice | null): Promise<void> {
   try {
-    if (Platform.OS === 'web') globalThis.localStorage?.setItem(PREFERRED_LOCALE_KEY, locale);
-    else await SecureStore.setItemAsync(PREFERRED_LOCALE_KEY, locale, { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
+    if (Platform.OS === 'web') {
+      if (choice) globalThis.localStorage?.setItem(LOCALE_CHOICE_KEY, JSON.stringify(choice));
+      else globalThis.localStorage?.removeItem(LOCALE_CHOICE_KEY);
+      return;
+    }
+    if (choice) await SecureStore.setItemAsync(LOCALE_CHOICE_KEY, JSON.stringify(choice), { keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY });
+    else await SecureStore.deleteItemAsync(LOCALE_CHOICE_KEY);
   } catch {
     // Locale persistence is best effort and must never block authentication.
+  }
+}
+
+/** Efface la valeur déduite héritée des versions précédentes. */
+export async function forgetLegacyLocale(): Promise<void> {
+  try {
+    if (Platform.OS === 'web') globalThis.localStorage?.removeItem(LEGACY_LOCALE_KEY);
+    else await SecureStore.deleteItemAsync(LEGACY_LOCALE_KEY);
+  } catch {
+    // Rien à faire : la clé n'est plus lue.
   }
 }
 

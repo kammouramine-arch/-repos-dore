@@ -28,7 +28,7 @@ import { api } from '@/lib/api';
 import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { colors, radius, spacing, typography } from '@/theme';
-import { mobileLocale } from '@/lib/i18n';
+import { useMobileLocale } from '@/lib/i18n';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
@@ -145,7 +145,7 @@ function HomeHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: stri
 export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const en = useMobileLocale() === 'en';
   const surface = useBrandSurface();
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();

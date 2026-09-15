@@ -35,7 +35,7 @@ describe('mon compte', () => {
   it('se limite aux informations du compte', () => {
     expect(compte).toContain('updateName');
     expect(compte).toContain('requestEmailCode');
-    expect(compte).toContain('updateLanguage');
+    expect(compte).toContain('LanguageSelector');
     for (const moved of ['write-review', 'reportaproblem', 'apps.apple.com/account/subscriptions', 'deleteAccount(', '/confidentialite']) {
       expect(compte, moved).not.toContain(moved);
     }

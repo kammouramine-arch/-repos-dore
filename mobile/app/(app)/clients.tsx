@@ -8,8 +8,7 @@ import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { colors, spacing, typography } from '@/theme';
-import { copy, mobileLocale } from '@/lib/i18n';
-import { useAuth } from '@/lib/auth';
+import { copy, useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
 import { Enter } from '@/components/motion';
 
@@ -23,8 +22,7 @@ import { Enter } from '@/components/motion';
  */
 export default function ClientsScreen() {
   const router = useRouter();
-  const { session } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
@@ -148,7 +146,7 @@ export default function ClientsScreen() {
                   {[item.city, item.email].filter(Boolean).join(' · ') || 'Aucune coordonnée'}
                 </Muted>
                 <Muted style={{ fontSize: 12 }}>
-                  {item.quoteCount} devis · {formatCents(item.revenueCents, { compact: true })} devisés
+                  {en ? `${item.quoteCount} ${item.quoteCount === 1 ? 'quote' : 'quotes'} · ${formatCents(item.revenueCents, { compact: true })} quoted` : `${item.quoteCount} devis · ${formatCents(item.revenueCents, { compact: true })} devisés`}
                 </Muted>
               </View>
 

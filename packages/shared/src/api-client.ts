@@ -1,5 +1,6 @@
 import type { AiConsentDTO, AiConsentStatus } from './ai-consent';
 import type {
+  LanguageSource,
   ApiError,
   ApiResponse,
   AuthTokenDTO,
@@ -396,7 +397,12 @@ export function createApiClient(options: ApiClientOptions) {
       }),
       me: () => request<SessionDTO>('/api/auth/session'),
       updateName: (firstName: string, lastName: string) => request<{ saved: boolean }>('/api/auth/compte', { method: 'PATCH', json: { firstName, lastName } }),
-      updateLanguage: (language: 'fr' | 'en') => request<{ language: 'fr' | 'en' }>('/api/auth/langue', { method: 'PATCH', json: { language } }),
+      /**
+       * `explicit`: the user chose this language (persisted as a choice).
+       * `inferred`: the device language; only applied while no choice exists.
+       * `reset`: forget the choice and follow the device language again.
+       */
+      updateLanguage: (language: 'fr' | 'en', source: LanguageSource = 'explicit') => request<{ language: 'fr' | 'en'; localeChosenAt: string | null }>('/api/auth/langue', { method: 'PATCH', json: { language, source } }),
       requestEmailCode: (email: string, password?: string) => request<{ requested: boolean; email: string; expiresInSeconds: number; retryAfterSeconds: number }>('/api/auth/code-email', { method: 'POST', json: { email, password } }),
       confirmEmailCode: (code: string) => request<{ verified: boolean; session: SessionDTO }>('/api/auth/code-email', { method: 'PATCH', json: { code } }),
       requestPasswordReset: (email: string) =>

@@ -3,11 +3,13 @@ import { Alert, AppState, Platform } from 'react-native';
 import { listenForApplePurchases, prefetchAppleProducts, restoreApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
-import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, persistPreferredLocale, readPreferredLocale } from './storage';
+import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, forgetLegacyLocale, persistLocaleChoice, readLocaleChoice } from './storage';
 import { clearQueryCache } from './query-cache';
 import { registerForPush, unregisterPush } from './push';
 import { recordDiagnostic } from './diagnostics';
-import { MobileLocaleProvider, deviceLocale, localizeText, mobileLocale, type MobileLocale } from './i18n';
+import { MobileLocaleProvider, localizeText, type MobileLocale } from './i18n';
+import { accountLocaleNeedsSync, resolveMobileLocale, type LocaleChoice, type LocaleSource } from './locale-resolution';
+import { deviceLanguageTags } from './device-locale';
 
 /**
  * Contexte d'authentification mobile.
@@ -75,6 +77,16 @@ interface AuthContextValue extends AuthState {
   refresh: () => Promise<SessionDTO | null>;
   /** Adopt a server-returned session without another round trip. */
   adoptSession: (session: SessionDTO) => void;
+  /** Langue affichée, après priorité choix explicite > iPhone > français. */
+  locale: MobileLocale;
+  /** D'où vient la langue affichée (choix, compte, appareil, repli). */
+  localeSource: LocaleSource;
+  /**
+   * Choix explicite de langue, ou `null` pour suivre à nouveau la langue de
+   * l'iPhone. Seul un choix explicite est conservé ; il est aussi enregistré
+   * sur le compte lorsqu'une session est ouverte.
+   */
+  setLanguage: (locale: MobileLocale | null) => Promise<void>;
 }
 
 const AuthContext = React.createContext<AuthContextValue | null>(null);
@@ -128,23 +140,73 @@ export function describeAuthError(error: unknown, locale: MobileLocale = 'fr'): 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const sessionGeneration = React.useRef(0);
   const restoring = React.useRef<Promise<void> | null>(null);
-  const [preferredLocale, setPreferredLocale] = React.useState<MobileLocale>(deviceLocale);
+  // Langues de l'iPhone, lues une fois de façon synchrone : le tout premier
+  // rendu (écran de lancement compris) est déjà dans la bonne langue.
+  const [deviceLanguages] = React.useState<string[]>(deviceLanguageTags);
+  // Choix explicite mémorisé sur l'appareil ; `undefined` tant qu'il n'est pas lu.
+  const [choice, setChoice] = React.useState<LocaleChoice | null | undefined>(undefined);
   const [state, setState] = React.useState<AuthState>({
     status: 'chargement',
     session: null,
     ...IDLE,
   });
-  const authLocale = state.session ? mobileLocale(state.session) : preferredLocale;
+  const resolved = resolveMobileLocale({ choice, account: state.session?.user, deviceLanguages });
+  const authLocale = resolved.locale;
 
   React.useEffect(() => {
-    void readPreferredLocale().then((stored) => { if (stored) setPreferredLocale(stored); });
+    // L'ancienne clé recevait la langue déduite du compte : elle est oubliée,
+    // seul un choix explicite compte désormais.
+    void forgetLegacyLocale();
+    void readLocaleChoice().then((stored) => setChoice(stored));
   }, []);
 
+  // Le compte porte un choix explicite plus récent (fait sur le web ou un
+  // autre appareil) : il est repris localement pour les écrans hors session.
   const rememberLocale = React.useCallback((session: SessionDTO) => {
-    const locale = mobileLocale(session);
-    setPreferredLocale(locale);
-    void persistPreferredLocale(locale);
+    const chosenAt = session.user.localeChosenAt;
+    const locale = session.user.locale;
+    if (!chosenAt || (locale !== 'fr' && locale !== 'en')) return;
+    setChoice((current) => {
+      if (current === undefined) return current;
+      if (current && Date.parse(current.at) >= Date.parse(chosenAt)) return current;
+      const next = { locale, at: chosenAt };
+      void persistLocaleChoice(next);
+      return next;
+    });
   }, []);
+
+  // Un compte dont la langue n'est que déduite suit la langue affichée : les
+  // emails et documents de l'artisan partent dans la langue de son iPhone.
+  const syncedFor = React.useRef<string | null>(null);
+  React.useEffect(() => {
+    const session = state.session;
+    if (choice === undefined || state.status !== 'connecte' || !session) return;
+    if (!accountLocaleNeedsSync(session.user, authLocale)) return;
+    const key = `${session.user.id}:${authLocale}`;
+    if (syncedFor.current === key) return;
+    syncedFor.current = key;
+    let disposed = false;
+    api.auth.updateLanguage(authLocale, 'inferred').then((result) => {
+      if (disposed) return;
+      setState((current) => current.session?.user.id === session.user.id
+        ? { ...current, session: { ...current.session, user: { ...current.session.user, locale: result.language, localeChosenAt: result.localeChosenAt } } }
+        : current);
+    }).catch(() => { if (!disposed) syncedFor.current = null; });
+    return () => { disposed = true; };
+  }, [choice, state.status, state.session, authLocale]);
+
+  const setLanguage = React.useCallback(async (locale: MobileLocale | null) => {
+    const next: LocaleChoice | null = locale ? { locale, at: new Date().toISOString() } : null;
+    setChoice(next);
+    await persistLocaleChoice(next);
+    const session = state.session;
+    if (!session) return;
+    const followed = locale ?? resolveMobileLocale({ choice: null, account: null, deviceLanguages }).locale;
+    const result = await api.auth.updateLanguage(followed, locale ? 'explicit' : 'reset');
+    setState((current) => current.session?.user.id === session.user.id
+      ? { ...current, session: { ...current.session, user: { ...current.session.user, locale: result.language, localeChosenAt: result.localeChosenAt } } }
+      : current);
+  }, [state.session, deviceLanguages]);
 
   const loadSession = React.useCallback(async () => {
     if (restoring.current) return restoring.current;
@@ -317,12 +379,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     } catch (error) {
       setState((current) => ({
         ...current,
-        error: describeAuthError(error, preferredLocale),
+        error: describeAuthError(error, authLocale),
         errorReference: error instanceof DevisiaApiError ? error.requestId ?? null : null,
       }));
       throw error;
     }
-  }, [rememberLocale, preferredLocale]);
+  }, [rememberLocale, authLocale]);
 
   const value = React.useMemo<AuthContextValue>(
     () => ({
@@ -333,7 +395,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         deviceName: 'DEVISERA mobile',
         verificationMethod: 'code',
         ...(Platform.OS === 'ios' ? { billingProvider: 'apple' as const } : {}),
-        locale: preferredLocale,
+        locale: authLocale,
       })),
       signOut: async () => {
         sessionGeneration.current += 1;
@@ -350,8 +412,11 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       },
       refresh: refreshSession,
       adoptSession,
+      locale: authLocale,
+      localeSource: resolved.source,
+      setLanguage,
     }),
-    [state, handle, preferredLocale, refreshSession, adoptSession],
+    [state, handle, authLocale, resolved.source, setLanguage, refreshSession, adoptSession],
   );
 
   return (

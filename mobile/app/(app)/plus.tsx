@@ -8,6 +8,7 @@ import { Button, Caption, Screen } from '@/components/ui';
 import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
+import { LanguageSelector } from '@/components/language-selector';
 import { Stagger } from '@/components/motion';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useAuth } from '@/lib/auth';
@@ -15,7 +16,7 @@ import { useAiConsent } from '@/lib/ai-consent';
 import { aiConsentText } from '@/features/ai-consent';
 import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
-import { copy, mobileLocale } from '@/lib/i18n';
+import { copy, useMobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
 
 export const SUPPORT_EMAIL = 'contact@devisera.fr';
@@ -33,7 +34,7 @@ export const SUPPORT_EMAIL = 'contact@devisera.fr';
 export default function PlusScreen() {
   const router = useRouter();
   const { session, signOut } = useAuth();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const surface = useBrandSurface('settings');
   const access = accessStateFor(session?.subscription ?? null);
@@ -88,6 +89,12 @@ export default function PlusScreen() {
         <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
+        </SettingsGroup>
+
+        <SettingsGroup title={copy(locale, 'language')}>
+          <View style={{ padding: spacing.md }}>
+            <LanguageSelector compact />
+          </View>
         </SettingsGroup>
 
         <SettingsGroup title={en ? 'Subscription & payments' : 'Abonnement et paiements'}>

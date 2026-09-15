@@ -30,8 +30,7 @@ import {
 import { api } from '@/lib/api';
 import { useToast } from '@/components/toast';
 import { colors, spacing } from '@/theme';
-import { mobileLocale } from '@/lib/i18n';
-import { useAuth } from '@/lib/auth';
+import { useMobileLocale } from '@/lib/i18n';
 import { Enter } from '@/components/motion';
 
 /**
@@ -73,8 +72,7 @@ const BLANK: Draft = {
 
 export default function CatalogueScreen() {
   const { toast } = useToast();
-  const { session } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const en = useMobileLocale() === 'en';
   const [items, setItems] = React.useState<PriceBookItemDTO[] | null>(null);
   const [search, setSearch] = React.useState('');
   const [error, setError] = React.useState<string | null>(null);

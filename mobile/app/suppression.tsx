@@ -2,9 +2,9 @@ import * as React from 'react';
 import { KeyboardAvoidingView, Linking, Platform, Text, View } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/components/ui';
-import { useAuth, useSession } from '@/lib/auth';
+import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
-import { mobileLocale } from '@/lib/i18n';
+import { useMobileLocale } from '@/lib/i18n';
 import { colors, radius, spacing, typography } from '@/theme';
 
 const SUPPORT_EMAIL = 'contact@devisera.fr';
@@ -17,9 +17,8 @@ const SUPPORT_EMAIL = 'contact@devisera.fr';
  * offre une porte de sortie. L'appel d'API et la déconnexion sont inchangés.
  */
 export default function SuppressionScreen() {
-  const session = useSession();
   const { signOut } = useAuth();
-  const en = mobileLocale(session) === 'en';
+  const en = useMobileLocale() === 'en';
   const [password, setPassword] = React.useState('');
   const [busy, setBusy] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);

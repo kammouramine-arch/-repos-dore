@@ -25,6 +25,8 @@ export interface SessionUser {
   firstName: string | null;
   lastName: string | null;
   locale: 'fr' | 'en';
+  /** ISO date of an explicit language choice; null when `locale` was inferred. */
+  localeChosenAt: string | null;
   emailVerified: boolean;
   isPlatformAdmin: boolean;
 }
@@ -165,6 +167,7 @@ export async function getAuthContext(): Promise<AuthContext | null> {
       firstName: session.user.firstName,
       lastName: session.user.lastName,
       locale: session.user.locale,
+      localeChosenAt: session.user.localeChosenAt?.toISOString() ?? null,
       emailVerified: session.user.emailVerifiedAt != null,
       isPlatformAdmin: session.user.isPlatformAdmin,
     },

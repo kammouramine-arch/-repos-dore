@@ -7,8 +7,9 @@ import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/component
 import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { useAuth, useSession } from '@/lib/auth';
 import { useToast } from '@/components/toast';
+import { LanguageSelector } from '@/components/language-selector';
 import { api } from '@/lib/api';
-import { copy, mobileLocale } from '@/lib/i18n';
+import { copy, useMobileLocale } from '@/lib/i18n';
 import { colors, spacing } from '@/theme';
 
 /**
@@ -25,7 +26,7 @@ export default function CompteScreen() {
   const router = useRouter();
   const { refresh, signOut, adoptSession } = useAuth();
   const { toast } = useToast();
-  const locale = mobileLocale(session);
+  const locale = useMobileLocale();
   const en = locale === 'en';
   const [firstName, setFirstName] = React.useState(session.user.firstName ?? '');
   const [lastName, setLastName] = React.useState(session.user.lastName ?? '');
@@ -119,11 +120,8 @@ export default function CompteScreen() {
 
         <Card style={{ gap: spacing.md }}>
           <Heading>{copy(locale, 'language')}</Heading>
-          <Muted>{en ? 'Saved to your account; guides generated answers and documents.' : 'Conservée sur votre compte ; guide les réponses et documents générés.'}</Muted>
-          <View style={{ flexDirection: 'row', gap: spacing.sm }}>
-            <Button style={{ flex: 1 }} title={copy(locale, 'french')} variant={session.user.locale === 'fr' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'fr'} onPress={() => void perform(async () => { await api.auth.updateLanguage('fr'); await refresh(); toast({ title: 'Langue française enregistrée' }); })} />
-            <Button style={{ flex: 1 }} title={copy(locale, 'english')} variant={session.user.locale === 'en' ? 'primary' : 'secondary'} disabled={busy || session.user.locale === 'en'} onPress={() => void perform(async () => { await api.auth.updateLanguage('en'); await refresh(); toast({ title: 'English language saved' }); })} />
-          </View>
+          <Muted>{en ? 'Interface, generated answers and documents. Only a language you choose is saved.' : 'Interface, réponses et documents générés. Seule une langue que vous choisissez est enregistrée.'}</Muted>
+          <LanguageSelector />
         </Card>
 
         <SettingsGroup
