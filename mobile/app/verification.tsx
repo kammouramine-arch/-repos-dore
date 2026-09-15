@@ -1,8 +1,7 @@
 import * as React from 'react';
-import { AppState, KeyboardAvoidingView, Platform, View } from 'react-native';
+import { AppState, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
-import { AuthSurface } from '@/components/auth-surface';
-import { Banner, Body, Button, Card, Field, Heading, Muted } from '@/components/ui';
+import { AuthHeading, AuthScreen, CodeInput, Entrance, Notice, PrimaryAction, TextAction } from '@/components/auth-kit';
 import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DevisiaApiError } from '@devisia/shared';
@@ -73,62 +72,76 @@ export default function VerificationScreen() {
     router.replace(verificationSourcePath(source) as never);
   }
 
+  const confirm = () => void run(async () => {
+    const result = await api.auth.confirmEmailCode(code);
+    // The endpoint returns a fresh server DTO. Adopt it immediately
+    // so the verification screen cannot remain mounted on stale
+    // state while a second refresh request is in flight.
+    const freshSession = result.session ?? await refresh();
+    if (!freshSession) throw new Error(en ? 'Your session expired. Please sign in again.' : 'Votre session a expiré. Reconnectez-vous.');
+    adoptSession(freshSession);
+    router.replace(authDestination(freshSession) as never);
+  });
+
+  // Six chiffres saisis : la confirmation part d'elle-même.
+  const submitted = React.useRef('');
+  React.useEffect(() => {
+    if (code.length === 6 && !busy && submitted.current !== code) {
+      submitted.current = code;
+      confirm();
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [code]);
+
   return (
-    <AuthSurface title={copy(locale, 'verify')} subtitle={en ? 'One last step to protect your quotes and keep your account secure.' : 'Une dernière étape pour protéger vos devis et éviter les comptes jetables.'}>
-      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-          <View style={{ width: 52, height: 52, borderRadius: 17, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
-            <Body style={{ color: colors.accent, fontWeight: '700' }}>@</Body>
+    <AuthScreen
+      footer={(
+        <Entrance index={6}>
+          <View style={{ gap: spacing.xs }}>
+            <TextAction label={en ? 'Change my email' : 'Modifier mon adresse'} disabled={busy} onPress={() => void run(changeEmail)} />
+            <TextAction label={en ? 'Use another account' : 'Utiliser un autre compte'} disabled={busy} onPress={() => void run(signOut)} />
           </View>
-          <Heading>{copy(locale, 'verifySent')}</Heading>
-          <Muted>{en ? `Enter the six-digit code sent to ${session.user.email}. It is valid for 10 minutes. Check your spam folder too.` : `Entrez le code à six chiffres reçu sur ${session.user.email}. Il est valable 10 minutes. Vérifiez aussi vos courriers indésirables.`}</Muted>
-          {error ? <Banner tone="danger" title={error} /> : null}
-          {notice ? <Banner title={notice} /> : null}
-          <Field
-            label={en ? 'Confirmation code' : 'Code de confirmation'}
-            value={code}
-            onChangeText={(value) => setCode(value.normalize('NFKC').replace(/\D/g, '').slice(0, 6))}
-            keyboardType="number-pad"
-            textContentType="oneTimeCode"
-            autoComplete="one-time-code"
-            maxLength={6}
-            editable={!busy}
-            autoFocus
-          />
-          <Button
-            title={copy(locale, 'confirm')}
-            loading={busy}
-            disabled={code.length !== 6}
-            onPress={() => void run(async () => {
-              const result = await api.auth.confirmEmailCode(code);
-              // The endpoint returns a fresh server DTO. Adopt it immediately
-              // so the verification screen cannot remain mounted on stale
-              // state while a second refresh request is in flight.
-              const freshSession = result.session ?? await refresh();
-              if (!freshSession) throw new Error(en ? 'Your session expired. Please sign in again.' : 'Votre session a expiré. Reconnectez-vous.');
-              adoptSession(freshSession);
-              router.replace(authDestination(freshSession) as never);
-            })}
-            haptic
-          />
-          <Button
-            title={copy(locale, 'resend')}
-            variant="secondary"
-            disabled={busy || resendCoolingDown}
-            onPress={() => void run(async () => {
-              const result = await api.auth.requestEmailCode(session.user.email);
-              if (mounted.current) {
-                setCode('');
-                applyCooldown(result.retryAfterSeconds);
-                setNotice(en ? `New code sent to ${result.email}.` : `Nouveau code envoyé à ${result.email}.`);
-              }
-            })}
-          />
-          {resendIn > 0 ? <Muted>{en ? `You can request another code in ${resendIn} s.` : `Vous pourrez demander un nouveau code dans ${resendIn} s.`}</Muted> : null}
-          <Button title={en ? 'Change my email' : 'Modifier mon adresse'} variant="ghost" disabled={busy} onPress={() => void run(changeEmail)} />
-          <Button title={en ? 'Use another account' : 'Utiliser un autre compte'} variant="ghost" disabled={busy} onPress={() => void run(signOut)} />
-        </Card>
-      </KeyboardAvoidingView>
-    </AuthSurface>
+        </Entrance>
+      )}
+    >
+      <View style={{ paddingTop: spacing.lg, gap: spacing['2xl'] }}>
+        <AuthHeading
+          kicker={source === 'signup' ? (en ? 'Step 2 of 2' : 'Étape 2 sur 2') : undefined}
+          title={copy(locale, 'verify')}
+          subtitle={en ? `Enter the six-digit code sent to ${session.user.email}.` : `Entrez le code à six chiffres envoyé à ${session.user.email}.`}
+        />
+        <View style={{ gap: spacing.lg }}>
+          {error ? <Notice tone="danger" title={error} /> : null}
+          {notice ? <Notice tone="success" title={notice} /> : null}
+          <Entrance index={3}>
+            <CodeInput value={code} onChange={(value) => { setError(null); setCode(value); }} editable={!busy} error={Boolean(error)} autoFocus />
+          </Entrance>
+          <Entrance index={4}>
+            <Text style={{ fontSize: 13, lineHeight: 19, color: colors.subtle, textAlign: 'center' }}>
+              {en ? 'Valid for 10 minutes. Check your spam folder too.' : 'Valable 10 minutes. Vérifiez aussi vos courriers indésirables.'}
+            </Text>
+          </Entrance>
+          <Entrance index={5}>
+            <PrimaryAction title={copy(locale, 'confirm')} loading={busy} disabled={code.length !== 6} onPress={confirm} />
+            <View style={{ marginTop: spacing.md }}>
+              <TextAction
+                prefix={resendIn > 0 ? (en ? `New code in ${resendIn} s.` : `Nouveau code dans ${resendIn} s.`) : (en ? 'Nothing received?' : 'Rien reçu ?')}
+                label={copy(locale, 'resend')}
+                disabled={busy || resendCoolingDown}
+                onPress={() => void run(async () => {
+                  const result = await api.auth.requestEmailCode(session.user.email);
+                  if (mounted.current) {
+                    setCode('');
+                    submitted.current = '';
+                    applyCooldown(result.retryAfterSeconds);
+                    setNotice(en ? `New code sent to ${result.email}.` : `Nouveau code envoyé à ${result.email}.`);
+                  }
+                })}
+              />
+            </View>
+          </Entrance>
+        </View>
+      </View>
+    </AuthScreen>
   );
 }

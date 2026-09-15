@@ -29,8 +29,15 @@ function errorCode(error: unknown): string | undefined {
   return typeof error === 'object' && error !== null && 'code' in error ? String((error as { code?: unknown }).code) : undefined;
 }
 
+/**
+ * Aperçu web des captures de contrôle : les deux boutons s'affichent sans
+ * fonctionner. Constante figée à l'export ; absente des binaires iPhone.
+ */
+const WEB_PREVIEW = Platform.OS === 'web' && process.env.EXPO_PUBLIC_AUTH_PREVIEW === '1';
+
 /** Sign in with Apple : disponible sur iOS 13+ ; jamais sur le web ni Android. */
 export async function appleSignInAvailable(): Promise<boolean> {
+  if (WEB_PREVIEW) return true;
   if (Platform.OS !== 'ios') return false;
   try {
     return await AppleAuthentication.isAvailableAsync();
@@ -74,6 +81,7 @@ export function googleIosClientId(): string | null {
 }
 
 export function googleSignInAvailable(): boolean {
+  if (WEB_PREVIEW) return true;
   return Platform.OS !== 'web' && googleIosClientId() !== null;
 }
 

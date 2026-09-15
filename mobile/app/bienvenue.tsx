@@ -1,10 +1,8 @@
 import * as React from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { Pressable, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
-import { Banner, Button, Card, Field, Heading, Muted } from '@/components/ui';
-import { Logo } from '@/components/logo';
+import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, StepProgress, TextAction } from '@/components/auth-kit';
 import { useAuth, useSession } from '@/lib/auth';
 import { useMobileLocale } from '@/lib/i18n';
 import { authDestination } from '@/lib/auth-navigation';
@@ -27,12 +25,12 @@ const TRADES: { id: string; fr: string; en: string }[] = [
 ];
 
 /**
- * Onboarding après une connexion Apple ou Google.
+ * Onboarding après une connexion Apple ou Google : la suite du même écran.
  *
  * Le compte existe et l'adresse est vérifiée par le fournisseur ; il manque
  * seulement ce que DEVISERA ne peut pas deviner : le nom de l'entreprise, et
  * le métier pour préparer de meilleurs devis. Le nom de la personne arrive
- * pré-rempli quand le fournisseur l'a transmis.
+ * pré-rempli quand le fournisseur l'a transmis. L'appel serveur est inchangé.
  */
 export default function BienvenueScreen() {
   const router = useRouter();
@@ -40,7 +38,6 @@ export default function BienvenueScreen() {
   const { completeOnboarding, signOut } = useAuth();
   const locale = useMobileLocale();
   const en = locale === 'en';
-  const insets = useSafeAreaInsets();
   const [form, setForm] = React.useState({
     companyName: '',
     firstName: session.user.firstName ?? '',
@@ -88,26 +85,30 @@ export default function BienvenueScreen() {
   const greeting = session.user.firstName
     ? (en ? `Nice to meet you, ${session.user.firstName}.` : `Enchanté, ${session.user.firstName}.`)
     : (en ? 'Nice to meet you.' : 'Enchanté.');
+  const ready = form.companyName.trim().length >= 2;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === 'ios' ? 'padding' : undefined}>
-        <ScrollView
-          keyboardShouldPersistTaps="handled"
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={{ paddingTop: insets.top + spacing.xl, paddingBottom: insets.bottom + spacing['3xl'], paddingHorizontal: spacing.xl, gap: spacing.xl }}
-        >
-          <Logo size={34} />
-          <View style={{ gap: spacing.sm }}>
-            <Heading style={{ fontSize: 26, lineHeight: 32 }}>{greeting}</Heading>
-            <Muted style={{ fontSize: 15, lineHeight: 22 }}>
-              {en ? 'One last thing before your first quote: tell us about your business. It appears on every quote you send.' : 'Une dernière chose avant votre premier devis : parlez-nous de votre entreprise. Elle figure sur chaque devis envoyé.'}
-            </Muted>
-          </View>
-
-          <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-            {error ? <Banner tone="danger" title={error} /> : null}
-            <Field
+    <AuthScreen
+      footer={(
+        <Entrance index={9}>
+          <PrimaryAction title={en ? 'Open my workspace' : 'Ouvrir mon atelier'} loading={busy} disabled={!ready} onPress={() => void submit()} />
+          <TextAction prefix={en ? `Signed in as ${session.user.email}.` : `Connecté avec ${session.user.email}.`} label={en ? 'Change' : 'Changer'} disabled={busy} onPress={() => void signOut()} />
+        </Entrance>
+      )}
+    >
+      <View style={{ paddingTop: spacing.sm, gap: spacing['2xl'], paddingBottom: spacing.lg }}>
+        <Entrance index={0}>
+          <StepProgress step={2} total={2} label={en ? 'Step 2 of 2 · Your business' : 'Étape 2 sur 2 · Votre entreprise'} />
+        </Entrance>
+        <AuthHeading
+          index={1}
+          title={greeting}
+          subtitle={en ? 'Tell us about your business. It appears on every quote you send.' : 'Parlez-nous de votre entreprise : elle figure sur chaque devis envoyé.'}
+        />
+        <View style={{ gap: spacing.lg }}>
+          {error ? <Notice tone="danger" title={error} onDismiss={() => setError(null)} /> : null}
+          <Entrance index={3}>
+            <AuthField
               label={en ? 'Business name' : 'Nom de votre entreprise'}
               value={form.companyName}
               onChangeText={update('companyName')}
@@ -115,16 +116,21 @@ export default function BienvenueScreen() {
               autoComplete="organization"
               autoFocus
               editable={!busy}
+              returnKeyType="next"
             />
+          </Entrance>
+          <Entrance index={4}>
             <View style={{ flexDirection: 'row', gap: spacing.md }}>
               <View style={{ flex: 1 }}>
-                <Field label={en ? 'First name' : 'Prénom'} value={form.firstName} onChangeText={update('firstName')} autoComplete="given-name" editable={!busy} />
+                <AuthField label={en ? 'First name' : 'Prénom'} value={form.firstName} onChangeText={update('firstName')} autoComplete="given-name" editable={!busy} />
               </View>
               <View style={{ flex: 1 }}>
-                <Field label={en ? 'Last name' : 'Nom'} value={form.lastName} onChangeText={update('lastName')} autoComplete="family-name" editable={!busy} />
+                <AuthField label={en ? 'Last name' : 'Nom'} value={form.lastName} onChangeText={update('lastName')} autoComplete="family-name" editable={!busy} />
               </View>
             </View>
-            <Field
+          </Entrance>
+          <Entrance index={5}>
+            <AuthField
               label={en ? 'Phone' : 'Téléphone'}
               hint={en ? 'optional' : 'facultatif'}
               value={form.phone}
@@ -134,8 +140,13 @@ export default function BienvenueScreen() {
               textContentType="telephoneNumber"
               editable={!busy}
             />
+          </Entrance>
+          <Entrance index={6}>
             <View style={{ gap: spacing.sm }}>
-              <Text style={{ fontSize: 13, fontWeight: '600', color: colors.inkSoft }}>{en ? 'Your trade' : 'Votre métier'} <Text style={{ color: colors.muted, fontWeight: '400' }}>· {en ? 'optional' : 'facultatif'}</Text></Text>
+              <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 6 }}>
+                <Text style={{ fontSize: 13.5, fontWeight: '600', color: colors.inkSoft }}>{en ? 'Your trade' : 'Votre métier'}</Text>
+                <Text style={{ fontSize: 12.5, color: colors.subtle }}>{en ? 'optional' : 'facultatif'}</Text>
+              </View>
               <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
                 {TRADES.map((trade) => {
                   const selected = form.trade === trade.id;
@@ -146,34 +157,25 @@ export default function BienvenueScreen() {
                       accessibilityState={{ selected }}
                       disabled={busy}
                       onPress={() => { void Haptics.selectionAsync().catch(() => undefined); update('trade')(selected ? '' : trade.id); }}
-                      style={{
+                      style={({ pressed }) => ({
                         paddingHorizontal: 14,
-                        paddingVertical: 9,
+                        height: 38,
+                        justifyContent: 'center',
                         borderRadius: radius.full,
-                        backgroundColor: selected ? colors.accent : colors.surface2,
+                        backgroundColor: selected ? colors.accent : pressed ? colors.surface2 : colors.surface,
                         borderWidth: 1,
-                        borderColor: selected ? colors.accent : colors.line,
-                      }}
+                        borderColor: selected ? colors.accent : 'transparent',
+                      })}
                     >
-                      <Text style={{ fontSize: 13.5, fontWeight: '600', color: selected ? colors.white : colors.ink }}>{en ? trade.en : trade.fr}</Text>
+                      <Text style={{ fontSize: 14, fontWeight: '600', color: selected ? colors.white : colors.inkSoft }}>{en ? trade.en : trade.fr}</Text>
                     </Pressable>
                   );
                 })}
               </View>
             </View>
-            <Button title={en ? 'Open my workspace' : 'Ouvrir mon atelier'} size="lg" loading={busy} onPress={() => void submit()} haptic />
-          </Card>
-
-          <View style={{ alignItems: 'center' }}>
-            <Muted style={{ fontSize: 12.5, textAlign: 'center' }}>
-              {en ? `Signed in as ${session.user.email}.` : `Connecté avec ${session.user.email}.`}
-            </Muted>
-            <Pressable accessibilityRole="button" disabled={busy} onPress={() => void signOut()} style={{ minHeight: 44, justifyContent: 'center' }}>
-              <Text style={{ color: colors.accent, fontWeight: '600', fontSize: 14 }}>{en ? 'Use another account' : 'Utiliser un autre compte'}</Text>
-            </Pressable>
-          </View>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+          </Entrance>
+        </View>
+      </View>
+    </AuthScreen>
   );
 }

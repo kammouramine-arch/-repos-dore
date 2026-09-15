@@ -1,13 +1,13 @@
 import * as React from 'react';
-import { Pressable, View } from 'react-native';
-import { Link, useRouter } from 'expo-router';
-import { Banner, Body, Button, Card, Field, Muted } from '@/components/ui';
-import { AuthSurface } from '@/components/auth-surface';
+import { View, type TextInput } from 'react-native';
+import { useRouter } from 'expo-router';
+import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, TextAction } from '@/components/auth-kit';
 import { useAuth } from '@/lib/auth';
-import { colors, spacing } from '@/theme';
+import { spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { authDestination, verificationPath } from '@/lib/auth-navigation';
 
+/** Connexion par adresse e-mail et mot de passe : la logique est inchangée. */
 export default function ConnexionScreen() {
   const locale = useMobileLocale();
   const en = locale === 'en';
@@ -16,11 +16,14 @@ export default function ConnexionScreen() {
   const [email, setEmail] = React.useState('');
   const [password, setPassword] = React.useState('');
   const [pending, setPending] = React.useState(false);
+  const [attempted, setAttempted] = React.useState(false);
   const submitting = React.useRef(false);
+  const passwordRef = React.useRef<TextInput>(null);
 
   async function submit() {
     if (submitting.current) return;
     submitting.current = true;
+    setAttempted(true);
     setPending(true);
     try {
       const session = await signIn(email.trim(), password);
@@ -33,12 +36,26 @@ export default function ConnexionScreen() {
     }
   }
 
-  return (
-    <AuthSurface back title={en ? 'Welcome back' : 'Content de vous revoir'} subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}>
+  const ready = email.trim().length > 3 && password.length > 0;
 
-          <Card style={{ gap: spacing.lg, padding: spacing.xl }}>
-            {error ? <Banner tone="danger" title={error} /> : null}
-            <Field
+  return (
+    <AuthScreen
+      back
+      footer={(
+        <Entrance index={6}>
+          <TextAction prefix={en ? 'New to DEVISERA?' : 'Nouveau sur DEVISERA ?'} label={copy(locale, 'createAccount')} disabled={pending} onPress={() => router.replace('/(auth)/inscription')} />
+        </Entrance>
+      )}
+    >
+      <View style={{ paddingTop: spacing.lg, gap: spacing['2xl'] }}>
+        <AuthHeading
+          title={en ? 'Welcome back' : 'Content de vous revoir'}
+          subtitle={en ? 'Your workspace, clients and quotes are waiting for you.' : 'Votre atelier, vos clients et vos devis vous attendent.'}
+        />
+        <View style={{ gap: spacing.lg }}>
+          {attempted && error ? <Notice tone="danger" title={error} /> : null}
+          <Entrance index={2}>
+            <AuthField
               label={copy(locale, 'email')}
               value={email}
               onChangeText={setEmail}
@@ -47,8 +64,14 @@ export default function ConnexionScreen() {
               keyboardType="email-address"
               textContentType="emailAddress"
               placeholder="vous@entreprise.fr"
+              returnKeyType="next"
+              editable={!pending}
+              onSubmitEditing={() => passwordRef.current?.focus()}
             />
-            <Field
+          </Entrance>
+          <Entrance index={3}>
+            <AuthField
+              inputRef={passwordRef}
               label={copy(locale, 'password')}
               value={password}
               onChangeText={setPassword}
@@ -58,25 +81,17 @@ export default function ConnexionScreen() {
               placeholder="••••••••••"
               onSubmitEditing={() => void submit()}
               returnKeyType="go"
+              editable={!pending}
             />
-
-            <Button title={copy(locale, 'login')} size="lg" loading={pending} onPress={() => void submit()} haptic />
-          </Card>
-
-          <View style={{ alignItems: 'center', gap: spacing.md }}>
-            <Link href="/(auth)/mot-de-passe" asChild>
-              <Pressable accessibilityRole="link">
-                <Muted>{en ? 'Forgot your password?' : 'Mot de passe oublié ?'}</Muted>
-              </Pressable>
-            </Link>
-            <Link href="/(auth)/inscription" asChild>
-              <Pressable accessibilityRole="link">
-                <Body style={{ color: colors.accent, fontWeight: '600' }}>
-                  {copy(locale, 'createAccount')}
-                </Body>
-              </Pressable>
-            </Link>
-          </View>
-    </AuthSurface>
+          </Entrance>
+          <Entrance index={4}>
+            <TextAction align="left" label={en ? 'Forgot your password?' : 'Mot de passe oublié ?'} disabled={pending} onPress={() => router.push('/(auth)/mot-de-passe')} />
+          </Entrance>
+          <Entrance index={5}>
+            <PrimaryAction title={copy(locale, 'login')} loading={pending} disabled={!ready} onPress={() => void submit()} />
+          </Entrance>
+        </View>
+      </View>
+    </AuthScreen>
   );
 }

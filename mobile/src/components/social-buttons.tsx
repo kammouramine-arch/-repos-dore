@@ -1,32 +1,55 @@
 import * as React from 'react';
-import { ActivityIndicator, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import * as Haptics from 'expo-haptics';
+import { ActivityIndicator, Platform, Text, View } from 'react-native';
 import * as AppleAuthentication from 'expo-apple-authentication';
+import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMobileLocale } from '@/lib/i18n';
 import { colors, radius, spacing } from '@/theme';
-import { useTouchMotion } from './motion';
-import Animated from 'react-native-reanimated';
-
-const HEIGHT = 52;
+import { AUTH_CONTROL_HEIGHT, PressableScale } from './auth-kit';
 
 /**
- * Boutons de connexion Apple, Google et e-mail.
+ * Les trois façons de continuer.
  *
  * Apple : le bouton natif d'AuthenticationServices, seul traitement autorisé
  * par les règles Apple ; iOS le libelle dans la langue de l'application.
+ * Pendant l'authentification, une pastille noire de même taille indique le
+ * chargement, sans jamais imiter le bouton lui-même.
  * Google : le bouton clair officiel (fond blanc, bordure #747775, « G » en
- * couleurs, texte #1F1F1F). E-mail : le bouton DEVISERA.
+ * couleurs, texte #1F1F1F).
+ * E-mail : action secondaire sur une surface bleue douce.
  */
-export function AppleContinueButton({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
-  if (Platform.OS !== 'ios') return null;
+const HEIGHT = AUTH_CONTROL_HEIGHT;
+const RADIUS = radius.md + 2;
+
+export function AppleContinueButton({ onPress, disabled, loading }: { onPress: () => void; disabled?: boolean; loading?: boolean }) {
+  const locale = useMobileLocale();
+  if (Platform.OS !== 'ios') {
+    // Aperçu web (captures de contrôle) : mêmes dimensions, jamais livré sur iPhone.
+    if (Platform.OS !== 'web') return null;
+    return (
+      <PressableScale accessibilityRole="button" accessibilityState={{ disabled: Boolean(disabled) || Boolean(loading), busy: Boolean(loading) }} disabled={disabled || loading} onPress={onPress}>
+        <View style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: disabled && !loading ? 0.55 : 1 }}>
+          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="logo-apple" size={20} color="#fff" style={{ marginTop: -2 }} />}
+          <Text style={{ color: '#fff', fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{loading ? (locale === 'en' ? 'Signing in…' : 'Connexion…') : locale === 'en' ? 'Continue with Apple' : 'Continuer avec Apple'}</Text>
+        </View>
+      </PressableScale>
+    );
+  }
+  if (loading) {
+    return (
+      <View accessibilityRole="button" accessibilityState={{ busy: true }} style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}>
+        <ActivityIndicator size="small" color="#fff" />
+        <Text style={{ color: '#fff', fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{locale === 'en' ? 'Signing in…' : 'Connexion…'}</Text>
+      </View>
+    );
+  }
   return (
     <View style={{ opacity: disabled ? 0.55 : 1 }} pointerEvents={disabled ? 'none' : 'auto'}>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
         buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
-        cornerRadius={radius.md}
+        cornerRadius={RADIUS}
         style={{ height: HEIGHT, width: '100%' }}
         onPress={() => {
           void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
@@ -50,75 +73,61 @@ function GoogleMark({ size = 20 }: { size?: number }) {
 
 export function GoogleContinueButton({ onPress, disabled, loading }: { onPress: () => void; disabled?: boolean; loading?: boolean }) {
   const locale = useMobileLocale();
-  const touch = useTouchMotion(0.98);
+  const label = loading ? (locale === 'en' ? 'Signing in…' : 'Connexion…') : locale === 'en' ? 'Continue with Google' : 'Continuer avec Google';
   return (
-    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityLabel={locale === 'en' ? 'Continue with Google' : 'Continuer avec Google'}
-        accessibilityState={{ disabled: Boolean(disabled) || Boolean(loading), busy: Boolean(loading) }}
-        disabled={disabled || loading}
-        onPressIn={touch.pressIn}
-        onPressOut={touch.pressOut}
-        onPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-          onPress();
-        }}
-        style={({ pressed }) => ({
+    <PressableScale
+      accessibilityRole="button"
+      accessibilityLabel={locale === 'en' ? 'Continue with Google' : 'Continuer avec Google'}
+      accessibilityState={{ disabled: Boolean(disabled) || Boolean(loading), busy: Boolean(loading) }}
+      disabled={disabled || loading}
+      onPress={onPress}
+    >
+      <View
+        style={{
           height: HEIGHT,
-          borderRadius: radius.md,
-          backgroundColor: pressed ? '#F2F2F2' : '#FFFFFF',
-          borderWidth: StyleSheet.hairlineWidth * 2,
+          borderRadius: RADIUS,
+          backgroundColor: '#FFFFFF',
+          borderWidth: 1,
           borderColor: '#747775',
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 12,
           paddingHorizontal: spacing.lg,
-          opacity: disabled ? 0.55 : 1,
-        })}
+          opacity: disabled && !loading ? 0.55 : 1,
+        }}
       >
         {loading ? <ActivityIndicator size="small" color="#1F1F1F" /> : <GoogleMark />}
-        <Text style={{ color: '#1F1F1F', fontSize: 16, fontWeight: '600', letterSpacing: -0.1, includeFontPadding: false }}>
-          {locale === 'en' ? 'Continue with Google' : 'Continuer avec Google'}
-        </Text>
-      </Pressable>
-    </Animated.View>
+        <Text style={{ color: '#1F1F1F', fontSize: 17, fontWeight: '600', letterSpacing: -0.2, includeFontPadding: false }}>{label}</Text>
+      </View>
+    </PressableScale>
   );
 }
 
 export function EmailContinueButton({ onPress, disabled }: { onPress: () => void; disabled?: boolean }) {
   const locale = useMobileLocale();
-  const touch = useTouchMotion(0.98);
   return (
-    <Animated.View style={{ transform: [{ scale: touch.scale }] }}>
-      <Pressable
-        accessibilityRole="button"
-        accessibilityState={{ disabled: Boolean(disabled) }}
-        disabled={disabled}
-        onPressIn={touch.pressIn}
-        onPressOut={touch.pressOut}
-        onPress={() => {
-          void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-          onPress();
-        }}
-        style={({ pressed }) => ({
+    <PressableScale accessibilityRole="button" accessibilityState={{ disabled: Boolean(disabled) }} disabled={disabled} onPress={onPress}>
+      <View
+        style={{
           height: HEIGHT,
-          borderRadius: radius.md,
-          backgroundColor: pressed ? colors.accentHover : colors.accent,
+          borderRadius: RADIUS,
+          backgroundColor: colors.accentSoft,
+          borderWidth: 1,
+          borderColor: colors.accentBorder,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
           gap: 10,
           paddingHorizontal: spacing.lg,
           opacity: disabled ? 0.55 : 1,
-        })}
+        }}
       >
-        <Ionicons name="mail-outline" size={19} color={colors.white} />
-        <Text style={{ color: colors.white, fontSize: 16, fontWeight: '600', letterSpacing: -0.1, includeFontPadding: false }}>
+        <Ionicons name="mail-outline" size={20} color={colors.accentHover} />
+        <Text style={{ color: colors.accentHover, fontSize: 17, fontWeight: '600', letterSpacing: -0.2, includeFontPadding: false }}>
           {locale === 'en' ? 'Continue with email' : 'Continuer avec l’adresse e-mail'}
         </Text>
-      </Pressable>
-    </Animated.View>
+      </View>
+    </PressableScale>
   );
 }
