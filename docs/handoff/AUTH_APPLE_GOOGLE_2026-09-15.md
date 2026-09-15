@@ -73,9 +73,18 @@ Aiguillage : `verify_email → onboarding → subscription → app`.
 
 ## Configuration manuelle requise
 
+### Build TestFlight livré
+
+Build 47 (1.0.1), EAS b32319ac-2373-4120-8304-7af7f18935c9, soumission
+9d29258a-96de-449a-a644-d366a03ef923 terminée le 15 septembre 2026 à
+16:54 UTC. Profil de provisionnement régénéré (Developer Portal
+FVF33P2L4W) ; l'IPA embarque `com.apple.developer.applesignin = [Default]`,
+`aps-environment = production`, localisations fr et en. Google reste
+inactif tant que l'identifiant client iOS n'est pas fourni.
+
 ### Apple Developer (Certificates, Identifiers & Profiles)
 
-1. **Bloquant pour le build TestFlight.** Identifiers → App ID
+1. **Fait le 15 septembre 2026.** Identifiers → App ID
    `fr.devisia.app` → cocher **Sign In with Apple** (Enable as a primary App
    ID) → Save. Les builds 44 (EAS 333c32e3-4e5d-4353-9b40-f2bbfeb59b66) et
    46 (68f4b966-e218-4e95-8901-5f24866196c3) ont échoué à la signature :
