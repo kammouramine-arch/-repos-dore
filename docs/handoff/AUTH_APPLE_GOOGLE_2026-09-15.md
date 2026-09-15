@@ -75,8 +75,19 @@ Aiguillage : `verify_email → onboarding → subscription → app`.
 
 ### Apple Developer (Certificates, Identifiers & Profiles)
 
-1. Identifiers → App ID `fr.devisia.app` → capacité **Sign In with Apple**
-   cochée (EAS l'active normalement au premier build ; vérifier).
+1. **Bloquant pour le build TestFlight.** Identifiers → App ID
+   `fr.devisia.app` → cocher **Sign In with Apple** (Enable as a primary App
+   ID) → Save. Les builds 44 (EAS 333c32e3-4e5d-4353-9b40-f2bbfeb59b66) et
+   46 (68f4b966-e218-4e95-8901-5f24866196c3) ont échoué à la signature :
+   « Provisioning profile … doesn't include the Sign In with Apple
+   capability ». En mode non interactif, EAS ne synchronise pas les capacités
+   de l'App ID avant de réutiliser le profil existant. Une fois la capacité
+   cochée, Apple invalide le profil actuel et le build suivant le régénère
+   avec l'entitlement : `cd mobile && eas build --platform ios --profile
+   production --auto-submit --non-interactive` avec l'identifiant d'équipe
+   Apple fourni à la CLI (variables `EXPO_APPLE_TEAM_ID` et
+   `EXPO_APPLE_TEAM_TYPE`), ou `eas build -p ios --profile production` en
+   interactif sur un Mac, qui synchronise la capacité tout seul.
 2. **Hide My Email** : Services → *Sign in with Apple for Email
    Communication* → enregistrer le domaine `devisera.fr` et l'adresse
    d'envoi `contact@devisera.fr`, puis vérifier le SPF. Sans cela, les emails
