@@ -53,4 +53,9 @@ suivent. Seul un choix fait dans l'application ou sur le web est définitif.
 - `Info.plist` du prebuild : `CFBundleDevelopmentRegion = fr`,
   `CFBundleLocalizations = [fr, en]`, `fr.lproj` et `en.lproj` présents.
 - Bundle web du mobile lancé avec un navigateur `fr-FR` puis `en-GB`.
-- Migration à appliquer en production : `20260915090000_user_locale_chosen_at`.
+- Migration `20260915090000_user_locale_chosen_at` appliquée en production par
+  le build Vercel (`scripts/migrate-hosted.mjs`) ; production sur 2af5787.
+- Build iOS 42 (EAS a0450847-aab7-4274-92e2-df2d377c90bc, soumission
+  1dd74673-10ff-48d6-8639-039df97476a3) : l'IPA produit contient
+  `CFBundleDevelopmentRegion = fr`, `CFBundleLocalizations = [fr, en]`,
+  `fr.lproj` et `en.lproj` avec leurs `InfoPlist.strings`.
