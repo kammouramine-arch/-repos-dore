@@ -55,7 +55,12 @@ suivent. Seul un choix fait dans l'application ou sur le web est définitif.
 - Bundle web du mobile lancé avec un navigateur `fr-FR` puis `en-GB`.
 - Migration `20260915090000_user_locale_chosen_at` appliquée en production par
   le build Vercel (`scripts/migrate-hosted.mjs`) ; production sur 2af5787.
-- Build iOS 42 (EAS a0450847-aab7-4274-92e2-df2d377c90bc, soumission
-  1dd74673-10ff-48d6-8639-039df97476a3) : l'IPA produit contient
-  `CFBundleDevelopmentRegion = fr`, `CFBundleLocalizations = [fr, en]`,
-  `fr.lproj` et `en.lproj` avec leurs `InfoPlist.strings`.
+- Build iOS 42 (EAS a0450847-aab7-4274-92e2-df2d377c90bc) : l'IPA produit
+  contient `CFBundleDevelopmentRegion = fr`, `CFBundleLocalizations = [fr, en]`,
+  `fr.lproj` et `en.lproj` avec leurs `InfoPlist.strings`. Ses deux soumissions
+  (1dd74673-10ff-48d6-8639-039df97476a3, adafae02-650e-47be-aae6-f73fbda9b945)
+  ont été refusées : la version 1.0.0 est sortie sur l'App Store le
+  15 septembre 2026 à 07:37 UTC, avant ce build, et Apple n'accepte plus aucun
+  build portant `CFBundleShortVersionString = 1.0.0`
+  (`SUBMISSION_SERVICE_IOS_OLD_APP_VERSION`).
+- Version 1.0.1 : Build 43, même code, seule la version marketing change.

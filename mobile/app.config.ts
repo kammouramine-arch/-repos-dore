@@ -10,7 +10,7 @@ import type { ExpoConfig } from 'expo/config';
 // `versionCode` Android) ne sont volontairement pas déclarés ici : `eas.json`
 // fixe `appVersionSource: "remote"`, EAS les incrémente lui-même, et les
 // valeurs locales seraient ignorées tout en laissant croire le contraire.
-const VERSION = '1.0.0';
+const VERSION = '1.0.1';
 
 /**
  * Projet EAS. L'identifiant n'est pas un secret : il est de toute façon
