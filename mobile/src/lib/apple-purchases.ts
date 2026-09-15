@@ -1,0 +1,416 @@
+import { Platform } from 'react-native';
+import { APPLE_PRODUCTS, APPLE_SUBSCRIPTION_GROUP, applePurchaseUserMessage, normalizeApplePurchaseError, planForAppleProduct, type PlanId } from '@devisia/shared';
+import type { Purchase, ProductOrSubscription, ProductSubscription } from 'expo-iap';
+import { api } from './api';
+import { recordDiagnostic } from './diagnostics';
+import { consistentAppleCurrency } from './apple-offer';
+import { inspectAndCompareStorekit } from './native-storekit';
+import { adoptNativeMetadata } from './native-metadata';
+
+type Iap = typeof import('expo-iap');
+const observers = new Set<(busy: boolean) => void>();
+let purchaseBusy = false;
+export function observeApplePurchase(listener: (busy: boolean) => void) {
+  observers.add(listener);
+  listener(purchaseBusy);
+  return () => { observers.delete(listener); };
+}
+function setBusy(busy: boolean) { purchaseBusy = busy; for (const listener of observers) listener(busy); }
+let sdk: Promise<Iap> | undefined;
+async function bounded<T>(operation: Promise<T>, code: string, ms = 30_000): Promise<T> {
+  let timer: ReturnType<typeof setTimeout> | undefined;
+  try {
+    return await Promise.race([operation, new Promise<never>((_, reject) => {
+      timer = setTimeout(() => reject(Object.assign(new Error('Apple confirmation is temporarily unavailable. Please retry or restore purchases.'), { code })), ms);
+    })]);
+  } finally { if (timer) clearTimeout(timer); }
+}
+async function store() {
+  if (Platform.OS !== 'ios') throw new Error('Les abonnements Apple sont disponibles sur iPhone et iPad.');
+  if (!sdk) sdk = import('expo-iap').then(async (iap) => {
+    const connected = await bounded(iap.initConnection(), 'CONNECTION_TIMEOUT');
+    if (!connected) throw Object.assign(new Error('Apple connection was not established.'), { code: 'CONNECTION_NOT_READY' });
+    return iap;
+  }).catch((e) => { sdk = undefined; throw e; });
+  return sdk;
+}
+
+type Catalogue = { products: ProductSubscription[]; eligible: boolean; storefront: string };
+let catalogueFlight: Promise<Catalogue> | undefined;
+/*
+ * Dernier catalogue reçu, en mémoire de processus seulement (jamais persisté).
+ * Il évite l'écran de prix vide quand l'abonnement s'ouvre juste après le
+ * préchargement ; toute ouverture relance quand même une lecture fraîche, et
+ * l'achat lui-même re-vérifie le prix natif juste avant `requestPurchase`.
+ */
+let lastCatalogue: (Catalogue & { at: number }) | undefined;
+const catalogueObservers = new Set<(catalogue: Catalogue) => void>();
+function publishCatalogue(catalogue: Catalogue) {
+  lastCatalogue = { ...catalogue, at: Date.now() };
+  for (const listener of catalogueObservers) listener(catalogue);
+}
+/** Catalogue récent (10 min) pour un premier rendu sans attente ; undefined sinon. */
+export function cachedAppleProducts(maxAgeMs = 10 * 60_000): Catalogue | undefined {
+  if (!lastCatalogue || Date.now() - lastCatalogue.at > maxAgeMs) return undefined;
+  const { at: _at, ...catalogue } = lastCatalogue;
+  return catalogue;
+}
+/** Notifie un catalogue affiné arrivé après la réponse rapide (relecture, lecture StoreKit directe). */
+export function observeAppleCatalogue(listener: (catalogue: Catalogue) => void) {
+  catalogueObservers.add(listener);
+  return () => { catalogueObservers.delete(listener); };
+}
+/** Préchargement silencieux dès la session ouverte : l'abonnement s'ouvre avec ses prix. */
+export function prefetchAppleProducts() {
+  if (Platform.OS !== 'ios') return;
+  void appleProducts().catch(() => undefined);
+}
+export function appleProducts(freshAfterPending = false): Promise<Catalogue> {
+  // A foreground/account change or pre-purchase refresh must not adopt an
+  // in-flight snapshot requested before that transition.
+  if (freshAfterPending && catalogueFlight) {
+    recordDiagnostic({ area: 'billing', path: 'apple-products', code: 'WAIT_THEN_REFETCH', durationMs: 0, cachePolicy: 'wait-for-inflight-then-native-fetch' });
+    return catalogueFlight.catch(() => undefined).then(() => appleProducts());
+  }
+  // Mount, foreground and Retry can overlap. Share only the in-flight query,
+  // never cache prices across requests or Apple account/storefront changes.
+  if (!catalogueFlight) catalogueFlight = loadAppleProducts().then((catalogue) => { publishCatalogue(catalogue); return catalogue; }).finally(() => { catalogueFlight = undefined; });
+  else recordDiagnostic({ area: 'billing', path: 'apple-products', code: 'SHARED_INFLIGHT', durationMs: 0, cachePolicy: 'shared-current-request-not-persisted-cache' });
+  return catalogueFlight;
+}
+
+async function loadAppleProducts() {
+  const started = Date.now();
+  const requested = Object.values(APPLE_PRODUCTS);
+  let storefront = 'unknown';
+  const log = (code: string, extra: Partial<Parameters<typeof recordDiagnostic>[0]> = {}) => recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: Date.now() - started, code, category: 'ok', storefront, ...extra });
+  log('PRODUCTS_REQUESTED', { requestedProductIds: requested, cachePolicy: 'native-fetch; no-app-persisted-cache; native-cache-unknown' });
+  try {
+  const iap = await store();
+  const before = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  let [products, eligible] = await Promise.all([
+    bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT'),
+    bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; }),
+  ]);
+  storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => 'unknown');
+  const returned = () => log('PRODUCTS_RETURNED', { returnedProductIds: (products ?? []).map(p => p.id), missingProductIds: requested.filter(id => !products?.some(p => p.id === id)), productCount: products?.length ?? 0 });
+  returned();
+  const settled = before === storefront && consistentAppleCurrency(products ?? [], storefront);
+  const usable = finishCatalogue(products ?? [], requested, eligible, log);
+  if (!settled) {
+    /*
+     * Réponse contradictoire (vitrine changée, ou FRA + USD). On répond TOUT DE
+     * SUITE avec ce premier catalogue : l'écran résout le repli de vitrine sans
+     * état vide. L'affinage — relecture après un court délai, puis lecture
+     * StoreKit 2 directe — continue en arrière-plan et, s'il obtient une
+     * réponse cohérente, la publie aux observateurs.
+     */
+    log('PRODUCTS_FAST_PATH', { category: 'client', productCount: usable.length });
+    void refineCatalogue(iap, requested, storefront, started).catch(() => undefined);
+  }
+  log('PRODUCTS_READY', { productCount: usable.length });
+  return { products: usable, eligible, storefront };
+  } catch (error) {
+    const native = normalizeApplePurchaseError(error);
+    log('PRODUCTS_FAILED', { category: native.category === 'network' ? 'network' : 'client', nativeCode: native.code });
+    throw error;
+  }
+}
+
+function finishCatalogue(products: ProductOrSubscription[], requested: string[], eligible: boolean, log: (code: string, extra?: Partial<Parameters<typeof recordDiagnostic>[0]>) => void) {
+  const usable = products.filter(p => requested.includes(p.id) && typeof p.displayPrice === 'string' && p.displayPrice.trim());
+  if (!usable.length) throw Object.assign(new Error('Apple returned no usable subscription products.'), { code: products.length ? 'PRODUCT_METADATA_INCOMPLETE' : 'PRODUCTS_EMPTY' });
+  for (const product of products) {
+    const p = product as ProductSubscription & { subscriptionPeriodUnitIOS?: string; subscriptionPeriodNumberIOS?: string; introductoryPricePaymentModeIOS?: string; introductoryPriceSubscriptionPeriodIOS?: string; introductoryPriceNumberOfPeriodsIOS?: string; introductoryPriceIOS?: string };
+    log('PRODUCT_METADATA', { productId: p.id, currency: p.currency, displayPrice: p.displayPrice,
+      subscriptionPeriodUnit: p.subscriptionPeriodUnitIOS ?? null, subscriptionPeriodCount: p.subscriptionPeriodNumberIOS ?? null,
+      introPaymentMode: p.introductoryPricePaymentModeIOS ?? null, introPeriod: p.introductoryPriceSubscriptionPeriodIOS ?? null,
+      introPeriodCount: p.introductoryPriceNumberOfPeriodsIOS ?? null, introPrice: p.introductoryPriceIOS ?? null, introEligible: eligible });
+  }
+  return usable as ProductSubscription[];
+}
+
+let refining: Promise<void> | undefined;
+/** Les affinages s'enchaînent : chaque réponse rapide obtient sa propre tentative, jamais en parallèle. */
+function refineCatalogue(iap: Iap, requested: string[], initialStorefront: string, started: number) {
+  const run = async () => {
+    let storefront = initialStorefront;
+    const log = (code: string, extra: Partial<Parameters<typeof recordDiagnostic>[0]> = {}) => recordDiagnostic({ area: 'billing', path: 'apple-products', durationMs: Date.now() - started, code, category: 'ok', storefront, ...extra });
+    log('PRODUCTS_METADATA_REFRESH', { category: 'client' });
+    // Storefront/session initialisation can settle a moment after the first
+    // catalogue answer. Give StoreKit that moment before asking again.
+    await new Promise(resolve => setTimeout(resolve, 1_200));
+    storefront = await bounded(iap.getStorefront(), 'STOREFRONT_TIMEOUT', 3_000).catch(() => storefront);
+    let products: ProductOrSubscription[] = (await bounded(iap.fetchProducts({ skus: requested, type: 'subs' }), 'PRODUCTS_TIMEOUT')) ?? [];
+    const eligible = await bounded(iap.isEligibleForIntroOfferIOS(APPLE_SUBSCRIPTION_GROUP), 'ELIGIBILITY_TIMEOUT', 5_000).catch(() => { log('INTRO_ELIGIBILITY_UNKNOWN', { category: 'client' }); return false; });
+    log('PRODUCTS_RETURNED', { returnedProductIds: products.map(p => p.id), missingProductIds: requested.filter(id => !products.some(p => p.id === id)), productCount: products.length });
+    if (!consistentAppleCurrency(products, storefront)) {
+      // A separate Storefront.current snapshot is not a price authority. It can
+      // disagree in TestFlight. Do not turn a successful native catalogue into
+      // "products unavailable", nor fabricate/conversion-map a replacement.
+      log('STOREKIT_METADATA_MISMATCH', { category: 'client' });
+      // Ask StoreKit 2 directly, without the purchase library. If Apple's own
+      // answer is consistent with the storefront, that answer is displayed:
+      // it is still Apple's dynamic price, read from the same API, never a
+      // constant. Otherwise the journal keeps both answers as evidence.
+      const compared = await bounded(inspectAndCompareStorekit(products), 'NATIVE_STOREKIT_TIMEOUT', 8_000).catch(() => null);
+      const adopted = compared ? adoptNativeMetadata(products, compared.inspection, storefront) : null;
+      if (adopted) { products = adopted; log('NATIVE_METADATA_ADOPTED', { productCount: adopted.length }); }
+      else return; // Rien de mieux : le repli de vitrine reste affiché, sans clignotement.
+    }
+    const usable = finishCatalogue(products, requested, eligible, log);
+    log('PRODUCTS_REFINED', { productCount: usable.length });
+    publishCatalogue({ products: usable, eligible, storefront });
+  };
+  const next = (refining ?? Promise.resolve()).then(run, run);
+  refining = next;
+  void next.catch(() => undefined).finally(() => { if (refining === next) refining = undefined; });
+  return next;
+}
+
+const syncing = new Map<string, Promise<void>>();
+type PendingPurchase = { resolve: () => void; reject: (error: Error) => void; timer: ReturnType<typeof setTimeout> };
+const pendingPurchases = new Map<string, PendingPurchase>();
+
+function purchaseKey(productId: string | null | undefined) {
+  return productId ?? '__unknown__';
+}
+
+function logPurchaseFailure(error: unknown, context: { productId?: string | null; storefront?: string | null; transactionState?: string | null } = {}) {
+  const diagnostic = normalizeApplePurchaseError(error, context);
+  const metadata = error && typeof error === 'object' ? error as { requestId?: unknown; status?: unknown } : {};
+  const rawCode = error && typeof error === 'object' && typeof (error as { code?: unknown }).code === 'string'
+    ? (error as { code: string }).code
+    : null;
+  const serverFailure = typeof metadata.status === 'number' && metadata.status > 0;
+  const networkFailure = rawCode === 'NETWORK' || rawCode === 'TIMEOUT' || diagnostic.category === 'network';
+  // The local journal keeps only a native error code/category and bounded
+  // storefront/product metadata. It never stores receipts, tokens or account
+  // identifiers. This is enough to distinguish StoreKit, network and user
+  // cancellation failures reported from a real iPhone.
+  recordDiagnostic({
+    area: 'billing',
+    durationMs: 0,
+    code: `${serverFailure ? 'APPLE_SYNC' : 'STOREKIT'}_${diagnostic.code}`,
+    category: networkFailure ? 'network' : serverFailure ? 'server' : 'client',
+    path: 'apple-purchase',
+    status: typeof metadata.status === 'number' ? metadata.status : 0,
+    requestId: typeof metadata.requestId === 'string' ? metadata.requestId.slice(0, 100) : undefined,
+    productId: diagnostic.productId,
+    storefront: diagnostic.storefront,
+    transactionState: diagnostic.transactionState,
+  });
+  return diagnostic;
+}
+
+/** Record a product-load failure from a paywall without exposing native data. */
+export function recordApplePurchaseFailure(error: unknown, context: { productId?: string | null; storefront?: string | null; transactionState?: string | null } = {}) {
+  return logPurchaseFailure(error, context);
+}
+
+function resolvePending(productId: string | null | undefined, error?: Error) {
+  const key = productId ? purchaseKey(productId) : pendingPurchases.size === 1 ? pendingPurchases.keys().next().value! : '__unknown__';
+  const pending = pendingPurchases.get(key);
+  if (!pending) return;
+  clearTimeout(pending.timer);
+  pendingPurchases.delete(key);
+  pendingPurchases.delete('__unknown__');
+  if (error) pending.reject(error); else pending.resolve();
+}
+
+const transactionReferences = new Map<string, string>();
+let transactionSequence = 0;
+function stage(code: string, purchase: Purchase) {
+  // Opaque process-local reference: never emit Apple's raw transaction ID.
+  if (!transactionReferences.has(purchase.id)) {
+    if (transactionReferences.size >= 120) transactionReferences.delete(transactionReferences.keys().next().value!);
+    transactionReferences.set(purchase.id, `purchase-${++transactionSequence}`);
+  }
+  recordDiagnostic({ area: 'billing', durationMs: 0, code, category: 'ok', productId: purchase.productId, transactionReference: transactionReferences.get(purchase.id), ...iosContext(purchase) });
+}
+
+function iosContext(purchase: Purchase) {
+  const candidate = purchase as Purchase & { storefrontCountryCodeIOS?: string | null };
+  return {
+    storefront: candidate.storefrontCountryCodeIOS ?? undefined,
+    transactionState: purchase.purchaseState,
+  };
+}
+
+async function sync(purchase: Purchase) {
+  if (!planForAppleProduct(purchase.productId)) return;
+  if (purchase.purchaseState === 'pending') {
+    throw Object.assign(new Error('Le paiement Apple est en attente de validation.'), { code: 'PAYMENT_PENDING' });
+  }
+  if (!purchase.purchaseToken) throw Object.assign(new Error('Le justificatif Apple est indisponible. Restaurez vos achats pour confirmer l’abonnement.'), { code: 'RECEIPT_MISSING' });
+  const key = purchase.id;
+  if (syncing.has(key)) return syncing.get(key);
+  const task = (async () => {
+    stage('TRANSACTION_RECEIVED', purchase);
+    await api.request('/api/billing/apple', { method: 'POST', json: { signedTransaction: purchase.purchaseToken } });
+    stage('ENTITLEMENT_VERIFIED', purchase);
+    const iap = await store();
+    // Server access is already persisted. A delayed finish must not prevent
+    // session refresh/unlock; the unfinished transaction can be retried later.
+    void bounded(iap.finishTransaction({ purchase, isConsumable: false }), 'FINISH_TIMEOUT')
+      .then(() => stage('TRANSACTION_FINISHED', purchase))
+      .catch(error => logPurchaseFailure(error, { productId: purchase.productId, ...iosContext(purchase) }));
+  })();
+  syncing.set(key, task);
+  try { await task; }
+  catch (error) { logPurchaseFailure(error, { productId: purchase.productId, ...iosContext(purchase) }); throw error; }
+  finally { syncing.delete(key); }
+}
+
+/** Listeners live at the authenticated app root, including pending purchases. */
+export async function listenForApplePurchases(onSynced: () => void, onError: (error: unknown) => void, language: 'fr' | 'en' = 'fr') {
+  const iap = await store();
+  const purchases = iap.purchaseUpdatedListener((purchase) => {
+    if (purchaseBusy || !planForAppleProduct(purchase.productId)) return;
+    void sync(purchase)
+      .then(() => { resolvePending(purchase.productId); onSynced(); })
+      .catch((error) => {
+        logPurchaseFailure(error, {
+          productId: purchase.productId,
+          ...iosContext(purchase),
+        });
+        resolvePending(purchase.productId, error instanceof Error ? error : new Error('Apple purchase could not be confirmed.'));
+        if (!purchaseBusy) onError(error);
+      });
+  }, { dedupeTransactionIOS: false });
+  const errors = iap.purchaseErrorListener((error) => {
+    if (purchaseBusy) return; // The active attempt owns error presentation.
+    const diagnostic = logPurchaseFailure(error, { productId: error.productId });
+    const userMessage = applePurchaseUserMessage(diagnostic, language);
+    if (diagnostic.category === 'cancelled') {
+      resolvePending(error.productId);
+    } else {
+      const normalized = new Error(userMessage ?? diagnostic.message);
+      Object.assign(normalized, { code: diagnostic.code });
+      resolvePending(error.productId, normalized);
+      onError(new Error(userMessage ?? diagnostic.message));
+    }
+  });
+  return () => {
+    purchases.remove();
+    errors.remove();
+    // A locale/session refresh may replace this observer while Apple's sheet
+    // is open. The purchase owns its own listeners and must not be cancelled.
+  };
+}
+
+export async function purchaseApplePlan(plan: PlanId, organizationId: string) {
+  const productId = APPLE_PRODUCTS[plan];
+  if (purchaseBusy) throw new Error('Un achat Apple est déjà en cours.');
+  setBusy(true);
+  let removeAttempt: (() => void) | undefined;
+  let active = true;
+  let cancelled = false;
+  try {
+    const iap = await store();
+    // All three plans share one Apple subscription group. An existing active
+    // item must be verified for this workspace BEFORE requesting any purchase.
+    // Never compare Apple-ID and DEVISERA email addresses or transfer ownership.
+    const existing = await activeGroupPurchases(iap);
+    for (const purchase of existing) { stage(purchase.productId === productId ? 'PREFLIGHT_ACTIVE_SUBSCRIPTION' : 'PREFLIGHT_PLAN_CHANGE', purchase); await sync(purchase); }
+    /*
+     * « Déjà abonné » et « rien à acheter » ne sont pas la même chose. Le même
+     * produit déjà actif : on a réconcilié l'accès, il n'y a rien à demander à
+     * Apple. Un autre produit du groupe : c'est un changement de formule, et
+     * seul StoreKit peut le traiter (montée, descente ou changement de durée),
+     * pour le produit CIBLE. Le droit existant ne court-circuite jamais cette
+     * intention.
+     */
+    const changingFrom = existing[0]?.productId ?? null;
+    if (existing.some(purchase => purchase.productId === productId)) {
+      recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: 'PREFLIGHT_SAME_PRODUCT', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
+      return 'reconciled' as const;
+    }
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: changingFrom ? 'PLAN_CHANGE_REQUESTED' : 'FIRST_PURCHASE_REQUESTED', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
+    const result = new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => {
+        // A silent bridge is NOT proof of a pending Apple approval. Recheck
+        // current entitlements once before reporting a native-response failure.
+        void activeGroupPurchases(iap).then(async purchases => {
+          if (!active) return;
+          for (const purchase of purchases) await sync(purchase);
+          if (purchases.length) { resolvePending(productId); return; }
+          const pending = await bounded(iap.getPendingTransactionsIOS(), 'PENDING_QUERY_TIMEOUT', 5_000);
+          const approval = pending.some(p => planForAppleProduct(p.productId) && p.purchaseState === 'pending');
+          resolvePending(productId, Object.assign(new Error('Apple returned no completed purchase.'), { code: approval ? 'PAYMENT_PENDING' : 'NATIVE_RESPONSE_MISSING' }));
+        }).catch(error => { if (active) resolvePending(productId, error); });
+      }, 60_000);
+      pendingPurchases.set(productId, { resolve, reject, timer });
+    });
+    // Listener registration itself may throw before result is awaited.
+    void result.catch(() => undefined);
+    const received = new Set<string>();
+    const receive = (purchase: Purchase) => {
+      // A downgrade or crossgrade can come back as a transaction of the
+      // CURRENT product with a new renewal preference: for a plan change,
+      // any DEVISERA product of the group settles this attempt.
+      if (purchase.productId !== productId && !(changingFrom && planForAppleProduct(purchase.productId))) return;
+      if (!active || received.has(purchase.id)) return;
+      received.add(purchase.id);
+      void sync(purchase).then(() => { if (active) resolvePending(productId); }).catch((error) => { if (active) resolvePending(productId, error); });
+    };
+    const failed = (error: unknown) => {
+      const diagnostic = logPurchaseFailure(error, { productId });
+      if (!active || (diagnostic.productId && diagnostic.productId !== productId && !(changingFrom && planForAppleProduct(diagnostic.productId)))) return;
+      cancelled = diagnostic.category === 'cancelled';
+      resolvePending(productId, diagnostic.category === 'cancelled' ? undefined : error instanceof Error ? error : Object.assign(new Error(diagnostic.message), { code: diagnostic.code }));
+    };
+    // Installed BEFORE dispatch, independent of the React/session lifecycle.
+    // Server verification is idempotent; allow retries of unfinished updates.
+    const updates = iap.purchaseUpdatedListener(receive, { dedupeTransactionIOS: false });
+    removeAttempt = () => updates.remove();
+    const errors = iap.purchaseErrorListener(failed);
+    removeAttempt = () => { updates.remove(); errors.remove(); };
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: 'PURCHASE_INVOKED', category: 'ok', productId, currentProductId: changingFrom, targetProductId: productId });
+    // expo-iap 5 also returns transactions on iOS. Process either channel.
+    // Do NOT wait for dispatch after an event/cancellation settled the result.
+    void iap.requestPurchase({ type: 'subs', request: { apple: { sku: productId, appAccountToken: organizationId, andDangerouslyFinishTransactionAutomatically: false } } })
+      .then((returned) => { for (const purchase of Array.isArray(returned) ? returned : returned ? [returned] : []) receive(purchase); })
+      .catch(failed);
+    await result;
+    recordDiagnostic({ area: 'billing', path: 'plan-change', durationMs: 0, code: cancelled ? 'PURCHASE_CANCELLED' : 'PURCHASE_SETTLED', category: 'ok', currentProductId: changingFrom, targetProductId: productId });
+    return cancelled ? 'cancelled' as const : 'purchased' as const;
+  } catch (error) {
+    const diagnostic = logPurchaseFailure(error, { productId });
+    if (diagnostic.category === 'cancelled') {
+      resolvePending(productId);
+      return 'cancelled' as const;
+    }
+    resolvePending(productId, error instanceof Error ? error : new Error('Apple purchase failed.'));
+    throw error;
+  } finally { active = false; removeAttempt?.(); setBusy(false); }
+}
+
+async function activeGroupPurchases(iap: Iap) {
+  const purchases = await bounded(iap.getAvailablePurchases({ onlyIncludeActiveItemsIOS: true, alsoPublishToEventListenerIOS: false }), 'ENTITLEMENT_QUERY_TIMEOUT');
+  return purchases.filter(p => planForAppleProduct(p.productId));
+}
+
+export async function restoreApplePurchases(interactive = true) {
+  if (purchaseBusy) throw new Error('Un achat Apple est déjà en cours.');
+  setBusy(true);
+  try {
+    const iap = await store();
+    if (interactive) await bounded(iap.restorePurchases(), 'RESTORE_TIMEOUT');
+    const relevant = await activeGroupPurchases(iap);
+    for (const purchase of relevant) {
+      try { await sync(purchase); }
+      catch (error) {
+        logPurchaseFailure(error, { productId: purchase.productId, ...iosContext(purchase) });
+        throw error;
+      }
+    }
+    return relevant.length;
+  } finally { setBusy(false); }
+}
+
+export async function manageAppleSubscriptions() {
+  const iap = await store();
+  await iap.showManageSubscriptionsIOS();
+  await restoreApplePurchases();
+}

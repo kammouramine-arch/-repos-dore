@@ -1,0 +1,23 @@
+# Only application source belongs in hosted build uploads.
+node_modules/
+mobile/
+tests/
+.next/
+.git/
+.vercel/
+output/
+archive/
+test-results/
+playwright-report/
+coverage/
+.tmp-storage*/
+/storage/
+/public/uploads/
+.env
+.env.*
+*.pem
+*.p8
+*.p12
+*.mobileprovision
+*.tsbuildinfo
+NEXT-PASS.md

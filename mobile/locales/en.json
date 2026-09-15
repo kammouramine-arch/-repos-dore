@@ -1,0 +1,9 @@
+{
+  "CFBundleDisplayName": "DEVISERA",
+  "NSMicrophoneUsageDescription": "DEVISERA uses the microphone so you can dictate the description of your job.",
+  "NSSpeechRecognitionUsageDescription": "DEVISERA transcribes your job description to prepare the quote for you.",
+  "NSCameraUsageDescription": "DEVISERA uses the camera for your profile photo and job-site photos.",
+  "NSPhotoLibraryUsageDescription": "DEVISERA accesses the photos you choose for your profile and your quotes.",
+  "NSFaceIDUsageDescription": "DEVISERA protects your session with Face ID so your quotes and clients stay private.",
+  "NSUserNotificationsUsageDescription": "DEVISERA notifies you when a client views a quote or a follow-up is ready."
+}
