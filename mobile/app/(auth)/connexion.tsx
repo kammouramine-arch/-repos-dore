@@ -5,7 +5,8 @@ import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, Te
 import { useAuth } from '@/lib/auth';
 import { spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
-import { authDestination, verificationPath } from '@/lib/auth-navigation';
+import { verificationPath } from '@/lib/auth-navigation';
+import { appEntry } from '@/lib/first-run';
 
 /** Connexion par adresse e-mail et mot de passe : la logique est inchangée. */
 export default function ConnexionScreen() {
@@ -27,7 +28,7 @@ export default function ConnexionScreen() {
     setPending(true);
     try {
       const session = await signIn(email.trim(), password);
-      router.replace((session.nextStep === 'verify_email' ? verificationPath('signin') : authDestination(session)) as never);
+      router.replace((session.nextStep === 'verify_email' ? verificationPath('signin') : appEntry(session)) as never);
     } catch {
       // Le message est porté par le contexte d'authentification.
     } finally {

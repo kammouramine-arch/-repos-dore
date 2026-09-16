@@ -7,7 +7,7 @@ import { useAuth } from '@/lib/auth';
 import { API_URL } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
 import { appleSignInAvailable, googleSignInAvailable } from '@/lib/social-auth';
-import { authDestination } from '@/lib/auth-navigation';
+import { appEntry } from '@/lib/first-run';
 import { colors, spacing } from '@/theme';
 
 /**
@@ -43,7 +43,7 @@ export default function AuthEntryScreen() {
     setDismissed(null);
     try {
       const session = await action();
-      if (session) router.replace(authDestination(session as never) as never);
+      if (session) router.replace(appEntry(session as never) as never);
     } catch {
       // Le message est porté par le contexte d'authentification.
     } finally {

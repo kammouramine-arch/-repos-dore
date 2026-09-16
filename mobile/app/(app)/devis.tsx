@@ -52,6 +52,21 @@ export default function DocumentsScreen() {
   // `?onglet=factures` ouvre directement les factures : c'est ce que visent
   // les accès rapides de l'accueil et de l'écran Outils.
   const [tab, setTab] = React.useState<'devis' | 'factures'>(params.onglet === 'factures' ? 'factures' : 'devis');
+  /*
+   * L'onglet peut déjà être monté quand l'accès rapide « Mes factures » de
+   * l'accueil le rappelle : sans cette synchronisation, le paramètre n'aurait
+   * d'effet qu'à la toute première ouverture, et le raccourci semblerait mort
+   * la deuxième fois.
+   */
+  const requested = params.onglet === 'factures' ? 'factures' : params.onglet === 'devis' ? 'devis' : null;
+  const [seenRequest, setSeenRequest] = React.useState(requested);
+  if (requested !== seenRequest) {
+    // Ajustement d'état pendant le rendu, le motif recommandé par React pour
+    // dériver un état d'une propriété : React relance le rendu aussitôt, sans
+    // passer par un effet ni afficher l'onglet précédent une image de trop.
+    setSeenRequest(requested);
+    if (requested) setTab(requested);
+  }
   const invoices = useInvoiceBoard();
   const [filter, setFilter] = React.useState<Filter>(FILTERS.some((f) => f.id === params.statut) ? (params.statut as Filter) : 'all');
   const [search, setSearch] = React.useState('');
