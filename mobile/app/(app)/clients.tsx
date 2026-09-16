@@ -7,6 +7,7 @@ import { AnimatedCount, Banner, Body, Button, PressableCard, EmptyState, HeaderA
 import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
+import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { colors, spacing, typography } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
@@ -23,6 +24,7 @@ import { Enter } from '@/components/motion';
 export default function ClientsScreen() {
   const router = useRouter();
   const locale = useMobileLocale();
+  const tabBarSpace = useTabBarSpace();
   const en = locale === 'en';
   const [search, setSearch] = React.useState('');
   const [debounced, setDebounced] = React.useState('');
@@ -96,7 +98,7 @@ export default function ClientsScreen() {
           keyboardDismissMode="on-drag"
           scrollEventThrottle={16}
           decelerationRate="fast"
-          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: spacing['5xl'] * 2, gap: spacing.md }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.sm, paddingBottom: tabBarSpace, gap: spacing.md }}
           refreshControl={
             <RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />
           }

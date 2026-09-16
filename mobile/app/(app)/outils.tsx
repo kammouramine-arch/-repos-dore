@@ -7,6 +7,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Body, Caption, PageHeader } from '@/components/ui';
 import { Enter } from '@/components/motion';
 import { useMobileLocale } from '@/lib/i18n';
+import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { colors, radius, shadows, spacing } from '@/theme';
 
 /**
@@ -82,6 +83,12 @@ const SECONDARY: { href: Href; icon: keyof typeof Ionicons.glyphMap; title: { fr
     title: { fr: 'Encaissement en ligne', en: 'Online payments' },
     body: { fr: 'Laissez vos clients régler par carte', en: 'Let your clients pay by card' },
   },
+  {
+    href: '/presentation',
+    icon: 'sparkles-outline',
+    title: { fr: 'Découvrir DEVISERA', en: 'Discover DEVISERA' },
+    body: { fr: 'Ce que l’application sait faire, et les formules', en: 'What the app can do, and the plans' },
+  },
 ];
 
 /** Grande carte : icône pleine, titre, une phrase, et l'action nommée. */
@@ -124,6 +131,7 @@ function ToolCard({ tool, en, onPress }: { tool: Tool; en: boolean; onPress: () 
 export default function OutilsScreen() {
   const router = useRouter();
   const en = useMobileLocale() === 'en';
+  const tabBarSpace = useTabBarSpace();
   const go = (href: Href) => {
     void Haptics.selectionAsync().catch(() => undefined);
     router.push(href);
@@ -132,7 +140,7 @@ export default function OutilsScreen() {
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
       <ScrollView
-        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: spacing['5xl'] * 2, gap: spacing.lg }}
+        contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.lg, paddingBottom: tabBarSpace, gap: spacing.lg }}
         showsVerticalScrollIndicator={false}
       >
         <Enter distance={8}>
@@ -187,42 +195,6 @@ export default function OutilsScreen() {
           </View>
         </Enter>
 
-        {/*
-          Le compte est à part, et le reste.
-
-          « Mon espace » mélangeait les réglages personnels et les fonctions du
-          produit ; c'est ce mélange qui rendait les secondes introuvables. Les
-          réglages gardent leur écran, accessible d'ici, mais ne se confondent
-          plus avec les outils.
-        */}
-        <Enter delay={320} distance={8}>
-          <Pressable
-            accessibilityRole="button"
-            accessibilityLabel={en ? 'My account and settings' : 'Mon compte et réglages'}
-            onPress={() => go('/(app)/plus')}
-            style={({ pressed }) => ({
-              flexDirection: 'row',
-              alignItems: 'center',
-              gap: spacing.md,
-              padding: spacing.lg,
-              minHeight: 64,
-              borderRadius: radius.lg,
-              backgroundColor: pressed ? colors.surface2 : colors.surface2,
-              opacity: pressed ? 0.85 : 1,
-            })}
-          >
-            <Ionicons name="person-circle-outline" size={24} color={colors.muted} />
-            <View style={{ flex: 1, gap: 2 }}>
-              <Text style={{ fontSize: 16, fontWeight: '600', color: colors.ink }}>
-                {en ? 'My account' : 'Mon compte'}
-              </Text>
-              <Text style={{ fontSize: 13, color: colors.muted }}>
-                {en ? 'Profile, business, subscription, language' : 'Profil, entreprise, abonnement, langue'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={16} color={colors.subtle} />
-          </Pressable>
-        </Enter>
       </ScrollView>
     </SafeAreaView>
   );

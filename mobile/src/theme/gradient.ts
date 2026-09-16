@@ -34,9 +34,50 @@ export const BRAND_GRADIENT: readonly GradientStop[] = [
   { offset: 1, color: BRAND_BOTTOM },
 ];
 
-/** Part de la hauteur d'écran couverte par le dégradé, par écran. */
+/**
+ * Dégradé des bandeaux d'en-tête.
+ *
+ * Celui du dessus étale son fondu sur plus de la moitié de sa hauteur : c'est
+ * ce qu'il faut pour une surface plein écran, et c'est exactement ce qu'il ne
+ * faut pas pour un bandeau qui coiffe un en-tête. Le texte blanc de l'en-tête
+ * y tombait dans la zone pâle et disparaissait — le nom, les pastilles d'état,
+ * les titres de section.
+ *
+ * Ici le bleu tient jusqu'aux trois quarts, puis se dissout vite. Tout ce qui
+ * est écrit en blanc tient dans le bleu franc ; le fondu ne sert plus qu'à
+ * poser le bandeau sur la surface sans dessiner de frontière.
+ */
+export const BRAND_HEADER_GRADIENT: readonly GradientStop[] = [
+  { offset: 0, color: '#2A4BE4' },
+  { offset: 0.5, color: BRAND_TOP },
+  { offset: 0.74, color: '#3D5CEA' },
+  { offset: 0.85, color: '#7A94F2' },
+  { offset: 0.93, color: '#BFCCF8' },
+  { offset: 0.98, color: '#E9EEFD' },
+  { offset: 1, color: BRAND_BOTTOM },
+];
+
+/**
+ * Part du bandeau où le bleu reste assez franc pour porter du texte blanc.
+ *
+ * L'en-tête est dimensionné pour tenir dans cette part ; ce qui vient après
+ * commence une fois le fondu terminé, en encre sur la surface claire.
+ */
+export const BRAND_HEADER_SOLID = 0.74;
+
+/**
+ * Part de la hauteur d'écran couverte par le dégradé, par écran.
+ *
+ * L'accueil couvrait les deux tiers de l'écran. Comme la blancheur du dégradé
+ * dépend de la position à l'écran et non du contenu, tout texte blanc passant
+ * sous la moitié du bandeau devenait illisible — c'est ce qui a rendu
+ * « Décrivez simplement le chantier » et « VOS DEVIS » invisibles sur
+ * l'appareil. Le bandeau s'arrête maintenant juste après l'en-tête : ce qui
+ * est écrit en blanc tient dans le bleu franc, et tout ce qui suit est en
+ * encre sur la surface claire.
+ */
 export const GRADIENT_SPAN = {
-  home: 0.64,
+  home: 0.36,
   auth: 0.68,
   /** Réglages : l'identité respire sur le bleu, les groupes reposent sur le fondu. */
   settings: 0.5,

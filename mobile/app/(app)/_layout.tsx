@@ -4,7 +4,6 @@ import { View } from 'react-native';
 import * as Haptics from 'expo-haptics';
 import { colors } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { GlassTabBar } from '@/components/glass-tab-bar';
 import { useMobileLocale } from '@/lib/i18n';
 
@@ -13,10 +12,7 @@ import { useMobileLocale } from '@/lib/i18n';
  * au pouce depuis n'importe quel onglet : c'est le geste qui rapporte.
  */
 export default function AppTabsLayout() {
-  const insets = useSafeAreaInsets();
   const locale = useMobileLocale();
-  const bottomPadding = Math.max(insets.bottom, 12);
-  const barHeight = 64 + bottomPadding;
 
   return (
     <View style={{ flex: 1 }}>
@@ -35,22 +31,14 @@ export default function AppTabsLayout() {
         tabBarActiveTintColor: colors.accent,
         tabBarInactiveTintColor: colors.subtle,
         tabBarHideOnKeyboard: true,
-        tabBarStyle: {
-          backgroundColor: colors.canvas,
-          borderTopWidth: 0,
-          height: barHeight,
-          borderTopLeftRadius: 26,
-          borderTopRightRadius: 26,
-          paddingTop: 10,
-          paddingBottom: bottomPadding,
-          shadowColor: colors.ink,
-          shadowOpacity: 0.08,
-          shadowRadius: 18,
-          shadowOffset: { width: 0, height: -5 },
-          elevation: 14,
-        },
-        tabBarItemStyle: { paddingVertical: 2 },
-        tabBarLabelStyle: { fontSize: 10.5, fontWeight: '600', letterSpacing: 0.1 },
+        /*
+         * `position: 'absolute'` : le navigateur cesse de réserver une bande
+         * en bas de la scène. C'est ce qui fait que le contenu occupe toute la
+         * hauteur et passe réellement **sous** le verre, au lieu de s'arrêter
+         * net à son bord — la découpe constatée sur l'appareil. Chaque écran
+         * réserve la place lui-même avec `useTabBarSpace()`.
+         */
+        tabBarStyle: { position: 'absolute', backgroundColor: 'transparent', borderTopWidth: 0, elevation: 0 },
       }}
     >
       <Tabs.Screen
@@ -71,12 +59,9 @@ export default function AppTabsLayout() {
           ),
         }}
       />
-      <Tabs.Screen
-        name="nouveau"
-        options={{
-          title: locale === 'en' ? 'Create' : 'Créer',
-        }}
-      />
+      {/* La création n'est plus une destination : le « + » ouvre une feuille
+          montée dans la barre. La route reste pour les liens profonds. */}
+      <Tabs.Screen name="nouveau" options={{ href: null }} />
       <Tabs.Screen
         name="clients"
         options={{
@@ -95,9 +80,15 @@ export default function AppTabsLayout() {
           ),
         }}
       />
-      {/* Le compte garde son écran et ses liens profonds, mais n'occupe plus
-          une destination : on y arrive depuis Outils et depuis l'accueil. */}
-      <Tabs.Screen name="plus" options={{ href: null }} />
+      <Tabs.Screen
+        name="plus"
+        options={{
+          title: locale === 'en' ? 'Account' : 'Mon compte',
+          tabBarIcon: ({ color, size, focused }) => (
+            <TabIcon focused={focused} name={focused ? 'person' : 'person-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+          ),
+        }}
+      />
       {/* Prospects : hors du produit de lancement. La route reste montée
           (lien profond, données existantes) mais n'a plus d'entrée. */}
       <Tabs.Screen name="prospects" options={{ href: null }} />

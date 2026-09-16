@@ -18,7 +18,7 @@ describe('home personalization contracts', () => {
   const progress = readFileSync('mobile/src/components/setup-progress.tsx', 'utf8');
   it('renders the quote carousel from the API and never a hard-coded amount', () => {
     expect(home).toContain("api.quotes.list({ take: 8 })");
-    expect(home).toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />');
+    expect(home).toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} />');
     expect(carousel).toContain('snapToInterval={cardWidth + GAP}');
     expect(carousel).toContain('formatCents(quote.totalCents)');
     expect(carousel).not.toMatch(/\b(39|79|149|1 ?200) ?€/);

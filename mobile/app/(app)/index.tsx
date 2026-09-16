@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
+import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_EVENT_LABELS, type DashboardDTO, type QuoteSummaryDTO } from '@devisia/shared';
 import {
@@ -27,6 +27,8 @@ import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
+import { useTabBarSpace } from '@/components/glass-tab-bar';
+import { BRAND_HEADER_SOLID } from '@/theme/gradient';
 import { colors, radius, spacing, typography } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
@@ -34,10 +36,6 @@ import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
 import { QuickActions } from '@/components/quick-actions';
 import { SetupProgress } from '@/components/setup-progress';
-import { VoiceHero, type VoiceHeroState } from '@/components/voice-hero';
-import { useDictation } from '@/features/voice';
-import { stashDictation } from '@/lib/voice-handoff';
-import { useAiConsent } from '@/lib/ai-consent';
 import { loadSetupStatus, type SetupStatus } from '@/features/setup-status';
 
 /**
@@ -152,69 +150,32 @@ export default function AccueilScreen() {
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
   const surface = useBrandSurface();
-  // `?voix=1` : arrivée depuis « Créer mon premier devis à la voix ». Le micro
-  // s'ouvre de lui-même, puisque c'est exactement ce que le bouton annonçait.
-  const { voix } = useLocalSearchParams<{ voix?: string }>();
+  const tabBarSpace = useTabBarSpace();
 
   /*
-   * Le micro de l'accueil.
+   * Hauteur du bandeau, déduite de l'en-tête mesuré.
    *
-   * La dictée démarre ici, sur l'écran que l'artisan ouvre en arrivant, et la
-   * transcription part vers l'écran de devis qui enchaîne la génération. Le
-   * consentement IA est demandé avant le premier envoi, jamais après coup.
+   * L'en-tête doit tenir dans la part où le bleu porte encore du texte blanc
+   * (`BRAND_HEADER_SOLID`). Le reste du bandeau est le fondu, et le contenu
+   * suivant commence une fois ce fondu terminé — donc en encre sur la surface
+   * claire, jamais dans l'entre-deux pâle où tout disparaît.
    */
-  const aiConsent = useAiConsent();
-  const [handingOff, setHandingOff] = React.useState(false);
-  const dictation = useDictation(
-    React.useCallback((text: string) => {
-      const trimmed = text.trim();
-      if (!trimmed) return;
-      setHandingOff(true);
-      stashDictation(trimmed);
-      router.push('/devis/nouveau?source=voix');
-      // L'écran de création reprend la main : on relâche l'état au retour.
-      setTimeout(() => setHandingOff(false), 600);
-    }, [router]),
-  );
-
-  const voiceState: VoiceHeroState = handingOff || dictation.status === 'traitement'
-    ? 'thinking'
-    : dictation.status === 'ecoute'
-      ? 'listening'
-      : dictation.status === 'demande'
-        ? 'starting'
-        : 'idle';
-
-  const toggleVoice = React.useCallback(() => {
-    if (dictation.status === 'ecoute') {
-      dictation.stop();
-      return;
-    }
-    // Sans reconnaissance vocale (simulateur, web), on bascule vers la saisie
-    // plutôt que de laisser un bouton sans effet.
-    if (!dictation.supported) {
-      router.push('/devis/nouveau');
-      return;
-    }
-    void aiConsent.ensure().then((granted) => {
-      if (granted) void dictation.start();
-    });
-  }, [aiConsent, dictation, router]);
-
+  const [headerHeight, setHeaderHeight] = React.useState<number | null>(null);
+  const headerBottom = headerHeight == null ? null : surface.paddingTop + headerHeight;
+  const bandHeight = headerBottom == null
+    ? surface.gradientHeight
+    : Math.round(headerBottom / BRAND_HEADER_SOLID);
+  /** Ce qui reste de fondu sous l'en-tête, à laisser vide. */
+  const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   /*
-   * Démarrage automatique après l'écran « Votre atelier est prêt ».
+   * Plus de micro sur l'accueil.
    *
-   * Une seule fois : la garde empêche que revenir sur l'accueil, l'écran de
-   * devis fermé, relance le micro en boucle. La permission passe par le même
-   * chemin que l'appui manuel — rien n'écoute avant qu'iOS ait demandé.
+   * Le bloc vocal occupait la moitié de l'écran, et sa légende tombait dans la
+   * zone où le dégradé a viré au blanc : du texte blanc sur presque blanc.
+   * La dictée n'a pas disparu du produit — elle a rejoint l'endroit où l'on
+   * crée : la feuille du « + », puis l'écran de devis qui porte déjà son
+   * propre micro. L'accueil redevient un tableau de bord.
    */
-  const autoVoice = React.useRef(false);
-  React.useEffect(() => {
-    if (autoVoice.current || voix !== '1') return;
-    autoVoice.current = true;
-    const timer = setTimeout(() => toggleVoice(), 520);
-    return () => clearTimeout(timer);
-  }, [toggleVoice, voix]);
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();
     const data = await api.dashboard(30);
@@ -267,8 +228,8 @@ export default function AccueilScreen() {
      */
     return (
       <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-        <BrandBackdrop height={surface.gradientHeight} />
-        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
+        <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
+        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}>
           <HomeHeader
             eyebrow={en ? 'Your workspace' : 'Votre atelier'}
             title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
@@ -310,11 +271,11 @@ export default function AccueilScreen() {
   const started = data.quotesSent > 0 || data.recentActivity.length > 0 || data.newLeads > 0;
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-      <BrandBackdrop height={surface.gradientHeight} />
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
       <Screen
         transparent
-        contentStyle={{ paddingTop: surface.paddingTop }}
+        contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}
         refreshControl={
           <RefreshControl
             refreshing={query.refreshing}
@@ -323,6 +284,7 @@ export default function AccueilScreen() {
           />
         }
       >
+        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
         <HomeHeader
           eyebrow={en ? 'Your workspace' : 'Votre atelier'}
           title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
@@ -337,28 +299,11 @@ export default function AccueilScreen() {
                   : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
           }
         />
+        </View>
+        {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
+        {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
 
-        {/* Le geste central, avant tout compteur : parler pour chiffrer. */}
-        <VoiceHero
-          state={voiceState}
-          hearing={dictation.hearing}
-          elapsedMs={dictation.elapsedMs}
-          partial={dictation.partial}
-          onToggle={toggleVoice}
-          onCancel={dictation.cancel}
-          onManual={() => router.push('/devis/nouveau')}
-          en={en}
-        />
-        {dictation.error ? (
-          <Card style={{ backgroundColor: colors.dangerSoft, borderColor: colors.dangerSoft, gap: spacing.sm }}>
-            <Body style={{ color: colors.danger }}>{dictation.error}</Body>
-            <Pressable accessibilityRole="button" onPress={dictation.dismissError} hitSlop={8}>
-              <Caption style={{ color: colors.danger, fontWeight: '700' }}>{en ? 'OK' : 'J’ai compris'}</Caption>
-            </Pressable>
-          </Card>
-        ) : null}
-
-        {(query.loading || query.refreshing || query.error) && <Caption style={{ color: 'rgba(255,255,255,0.85)' }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
+        {(query.loading || query.refreshing || query.error) && <Caption style={{ color: colors.muted }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
 
         {!started ? (
           /* Première utilisation : une seule chose à faire, et on explique
@@ -419,10 +364,10 @@ export default function AccueilScreen() {
           </Stagger>
         ) : (
           <Stagger step={60} initial={40}>
-            <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />
+            <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} />
 
             {/* Les gestes de fin de journée, sans passer par la navigation. */}
-            <QuickActions onBrand />
+            <QuickActions />
             {setup && setupPending ? <SetupProgress status={setup} en={en} /> : null}
             {data.toRecover.quoteCount > 0 ? (
               <Pressable

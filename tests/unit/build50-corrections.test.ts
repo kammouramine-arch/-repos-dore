@@ -57,10 +57,15 @@ describe('première ouverture', () => {
     expect(screen).toContain('Votre atelier est prêt.');
     expect(screen).toContain('Créer mon premier devis à la voix');
     expect(screen).toContain('Explorer DEVISERA');
-    // L'action principale ouvre le parcours vocal, pas un formulaire vide.
-    expect(screen).toContain("router.replace(voice ? '/(app)?voix=1' : '/(app)')");
+    // L'action principale ouvre le parcours vocal, pas un formulaire vide :
+    // l'accueil se pose sous la pile, puis l'écran de devis s'ouvre en dictée.
+    expect(screen).toContain("router.replace('/(app)')");
+    expect(screen).toContain("router.push('/devis/nouveau?dicter=1')");
     expect(screen).toContain('clearWorkshopReady');
-    expect(mobile('app/(app)/index.tsx')).toContain("voix !== '1'");
+    // Et l'accueil ne porte plus de micro : la dictée a rejoint l'écran de
+    // création, qui a le sien.
+    expect(mobile('app/(app)/index.tsx')).not.toContain('<VoiceHero');
+    expect(mobile('app/devis/nouveau.tsx')).toContain("dicter !== '1'");
   });
 
   it('n’est dû qu’après une configuration réelle, jamais déduit de l’ancienneté', () => {
@@ -150,5 +155,36 @@ describe('reçus et comptable', () => {
     expect(screen).toContain('api.accounting.preview');
     expect(screen).toContain("datasets: ['sales', 'expenses', 'payments']");
     expect(screen).toContain('Sharing.shareAsync');
+  });
+});
+
+describe('feuille de création', () => {
+  /*
+   * Le « + » a pris la place du micro géant : c'est par lui qu'on crée, et la
+   * voix y passe en tête. La feuille est un Modal monté dans la barre, pas une
+   * route — une route imposerait un montage d'écran, donc un blanc d'une
+   * fraction de seconde sur un appui qu'on fait vingt fois par jour.
+   */
+  it('ouvre sans navigation, et met la voix en premier', () => {
+    const sheet = mobile('src/components/create-sheet.tsx');
+    expect(sheet).toContain('<Modal');
+    expect(sheet).not.toContain('router.replace');
+    const ids = [...sheet.matchAll(/id: '([a-z]+)'/g)].map((match) => match[1]);
+    expect(ids[0]).toBe('voix');
+    expect(ids).toEqual(['voix', 'devis', 'client', 'recu', 'facture']);
+    expect(sheet).toContain("href: '/devis/nouveau?dicter=1'");
+
+    // Une facture naît d'un devis accepté : le serveur l'exige, donc la
+    // feuille ne promet pas de facture vierge.
+    const route = read('src/app/api/invoices/route.ts');
+    expect(route).toContain('quoteId: z.string().uuid()');
+    expect(sheet).toContain('Facturer un devis signé');
+  });
+
+  it('arme le micro quand on arrive par « Devis à la voix »', () => {
+    const screen = mobile('app/devis/nouveau.tsx');
+    expect(screen).toContain("dicter !== '1'");
+    // Le consentement IA passe avant toute écoute.
+    expect(screen).toContain('aiConsent.ensure().then((granted) => { if (granted) void dictation.start(); })');
   });
 });

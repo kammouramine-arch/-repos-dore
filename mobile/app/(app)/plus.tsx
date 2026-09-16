@@ -17,6 +17,8 @@ import { aiConsentText } from '@/features/ai-consent';
 import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
 import { copy, useMobileLocale } from '@/lib/i18n';
+import { useTabBarSpace } from '@/components/glass-tab-bar';
+import { BRAND_HEADER_SOLID } from '@/theme/gradient';
 import { colors, spacing } from '@/theme';
 
 export const SUPPORT_EMAIL = 'contact@devisera.fr';
@@ -44,6 +46,23 @@ export default function PlusScreen() {
   const locale = useMobileLocale();
   const en = locale === 'en';
   const surface = useBrandSurface('settings');
+  const tabBarSpace = useTabBarSpace();
+
+  /*
+   * Hauteur du bandeau, déduite de l'en-tête mesuré.
+   *
+   * L'en-tête doit tenir dans la part où le bleu porte encore du texte blanc
+   * (`BRAND_HEADER_SOLID`). Le reste du bandeau est le fondu, et le contenu
+   * suivant commence une fois ce fondu terminé — donc en encre sur la surface
+   * claire, jamais dans l'entre-deux pâle où tout disparaît.
+   */
+  const [headerHeight, setHeaderHeight] = React.useState<number | null>(null);
+  const headerBottom = headerHeight == null ? null : surface.paddingTop + headerHeight;
+  const bandHeight = headerBottom == null
+    ? surface.gradientHeight
+    : Math.round(headerBottom / BRAND_HEADER_SOLID);
+  /** Ce qui reste de fondu sous l'en-tête, à laisser vide. */
+  const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
   const aiConsent = useAiConsent();
@@ -72,9 +91,10 @@ export default function PlusScreen() {
   const openPage = (path: string) => void WebBrowser.openBrowserAsync(`${API_URL}${path}`).catch(() => Linking.openURL(`${API_URL}${path}`));
 
   return (
-    <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-      <BrandBackdrop height={surface.gradientHeight} />
-      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop }}>
+    <View style={{ flex: 1, backgroundColor: colors.surface }}>
+      <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
+      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}>
+        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
         <IdentityHeader
           centered
           greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
@@ -89,11 +109,14 @@ export default function PlusScreen() {
             </>
           }
         />
+        </View>
+        {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
+        {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
 
         <TrialBanner subscription={subscription} />
 
         <Stagger step={45} initial={30} distance={8}>
-        <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
+        <SettingsGroup title={en ? 'Account' : 'Compte'}>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
         </SettingsGroup>
@@ -107,18 +130,6 @@ export default function PlusScreen() {
         <SettingsGroup title={en ? 'Your DEVISERA subscription' : 'Votre abonnement DEVISERA'}>
           <SettingsRow icon="card-outline" title={copy(locale, 'manageSubscription')} subtitle={en ? 'Plan, trial and renewal' : 'Formule, essai et renouvellement'} value={subscription ? PLANS[subscription.plan].name : null} onPress={() => router.push('/abonnement')} />
           <SettingsRow icon="receipt-outline" title={copy(locale, 'invoices')} subtitle={en ? 'History and receipts' : 'Historique et reçus'} onPress={() => router.push('/paiements')} />
-        </SettingsGroup>
-
-        {/*
-          Les outils du métier ont quitté cet écran.
-
-          Reçus, export comptable, marque, catalogue et chiffre d'affaires
-          vivent maintenant dans l'onglet Outils. Les laisser ici en double
-          ferait hésiter sur le bon chemin ; une seule ligne y renvoie.
-        */}
-        <SettingsGroup title={copy(locale, 'tools')}>
-          <SettingsRow icon="apps-outline" title={en ? 'Open Tools' : 'Ouvrir les Outils'} subtitle={en ? 'Receipts, accountant export, branding' : 'Reçus, export comptable, marque'} onPress={() => router.push('/(app)/outils')} />
-          <SettingsRow icon="sparkles-outline" title={copy(locale, 'discover')} subtitle={en ? 'Overview and plans' : 'Présentation et formules'} onPress={() => router.push('/presentation')} />
         </SettingsGroup>
 
         <SettingsGroup title={copy(locale, 'assistance')}>

@@ -131,7 +131,7 @@ function ErrorBanner({
 export default function NouveauDevisScreen() {
   const router = useRouter();
   const locale = useMobileLocale();
-  const { customerId, source } = useLocalSearchParams<{ customerId?: string; source?: string }>();
+  const { customerId, source, dicter } = useLocalSearchParams<{ customerId?: string; source?: string; dicter?: string }>();
   const { toast } = useToast();
   // Aucune requête vers l'API d'IA sans « Autoriser et continuer » : la
   // feuille s'ouvre avant le premier envoi, et la description reste en place.
@@ -182,8 +182,8 @@ export default function NouveauDevisScreen() {
       setDescription((current) => appendDictation(current, text));
     }, []),
   );
-  // La génération enchaîne toute seule sur une dictée venue de l'accueil :
-  // l'artisan a parlé, il n'a pas à appuyer une seconde fois.
+  // La génération enchaîne toute seule sur une dictée déjà faite : l'artisan
+  // a parlé, il n'a pas à appuyer une seconde fois.
   const autoStarted = React.useRef(false);
   React.useEffect(() => {
     if (autoStarted.current || source !== 'voix' || !description.trim()) return;
@@ -191,6 +191,24 @@ export default function NouveauDevisScreen() {
     void generate(description);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source]);
+
+  /*
+   * `?dicter=1` : ouverture depuis « Devis à la voix ».
+   *
+   * Le micro s'arme tout seul, parce que c'est exactement ce que le bouton
+   * annonçait. Le consentement IA passe d'abord — rien n'écoute avant. Une
+   * seule fois : revenir sur cet écran ne doit pas relancer une dictée.
+   */
+  const autoDictated = React.useRef(false);
+  React.useEffect(() => {
+    if (autoDictated.current || dicter !== '1' || !dictation.supported) return;
+    autoDictated.current = true;
+    const timer = setTimeout(() => {
+      void aiConsent.ensure().then((granted) => { if (granted) void dictation.start(); });
+    }, 420);
+    return () => clearTimeout(timer);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dicter, dictation.supported]);
 
   const photos = usePhotoCapture();
   const etapes = React.useMemo(() => etapesPour(photos.fileIds.length > 0), [photos.fileIds.length]);

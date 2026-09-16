@@ -96,14 +96,15 @@ export default function PretScreen() {
    * Quel que soit le chemin choisi, l'écran ne revient pas.
    *
    * `replace` et non `push` : rien derrière, donc aucun retour possible vers
-   * un écran de félicitations dont le moment est passé. Le chemin vocal
-   * atterrit sur l'accueil avec `?voix=1`, qui ouvre le micro — c'est bien le
-   * parcours vocal complet, pas un formulaire de devis vide.
+   * un écran de félicitations dont le moment est passé. Le chemin vocal pose
+   * l'accueil sous la pile, puis ouvre l'écran de devis en dictée — revenir
+   * en arrière ramène donc à l'atelier, pas ici.
    */
   const leave = (voice: boolean) => {
     if (session?.user.id) clearWorkshopReady(session.user.id);
     void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
-    router.replace(voice ? '/(app)?voix=1' : '/(app)');
+    router.replace('/(app)');
+    if (voice) router.push('/devis/nouveau?dicter=1');
   };
 
   return (

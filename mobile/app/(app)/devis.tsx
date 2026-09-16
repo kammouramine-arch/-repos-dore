@@ -7,6 +7,7 @@ import { AnimatedCount, Badge, Body, Button, EmptyState, HeaderAction, Ionicons,
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { Enter } from '@/components/motion';
+import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { colors, spacing, typography } from '@/theme';
 import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 import { FilterChip } from '@/components/filter-chip';
@@ -47,6 +48,7 @@ function normalize(value: string) {
 export default function DocumentsScreen() {
   const router = useRouter();
   const locale = useMobileLocale();
+  const tabBarSpace = useTabBarSpace();
   const en = locale === 'en';
   const params = useLocalSearchParams<{ statut?: string; onglet?: string }>();
   // `?onglet=factures` ouvre directement les factures : c'est ce que visent
@@ -145,7 +147,7 @@ export default function DocumentsScreen() {
 
       {!quotesTab ? (
         <ScrollView
-          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing['5xl'] * 2, gap: spacing.lg }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: tabBarSpace, gap: spacing.lg }}
           refreshControl={invoices.refreshControl}
           showsVerticalScrollIndicator={false}
         >
@@ -180,7 +182,7 @@ export default function DocumentsScreen() {
           keyboardDismissMode="on-drag"
           scrollEventThrottle={16}
           decelerationRate="fast"
-          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xs, paddingBottom: spacing['5xl'] * 2, gap: spacing.md }}
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingTop: spacing.xs, paddingBottom: tabBarSpace, gap: spacing.md }}
           refreshControl={<RefreshControl refreshing={query.refreshing} onRefresh={() => void query.refresh({ force: true })} tintColor={colors.accent} />}
           ListEmptyComponent={
             items.length === 0 ? (

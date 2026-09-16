@@ -14,6 +14,7 @@ const DICTIONARY = {
   fr: {
     home: 'Accueil', clients: 'Clients', activity: 'Activité', quotes: 'Devis', space: 'Mon espace', create: 'Créer',
     documents: 'Documents',
+    accountTab: 'Compte',
     directory: 'Répertoire', yourClients: 'Vos clients', account: 'Mon compte', discover: 'Découvrir DEVISERA',
     subscription: 'Abonnement', pricing: 'Catalogue de prix', business: 'Mon entreprise', analytics: 'Activité',
     manageProfile: 'Gérer mon profil', language: 'Langue de l’application', french: 'Français', english: 'English',
@@ -31,7 +32,7 @@ const DICTIONARY = {
   },
   en: {
     home: 'Home', clients: 'Clients', activity: 'Activity', quotes: 'Quotes', space: 'My space', create: 'Create',
-    documents: 'Documents',
+    documents: 'Documents', accountTab: 'Account',
     directory: 'Directory', yourClients: 'Your clients', account: 'My account', discover: 'Discover DEVISERA',
     subscription: 'Subscription', pricing: 'Price catalogue', business: 'My business', analytics: 'Activity',
     manageProfile: 'Manage my profile', language: 'App language', french: 'Français', english: 'English',

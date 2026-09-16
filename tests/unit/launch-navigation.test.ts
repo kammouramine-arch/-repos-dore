@@ -13,30 +13,49 @@ describe('launch navigation', () => {
     expect(back).toContain('else router.replace(fallback);');
   });
   /*
-   * Accueil · Clients · (+) · Documents · Outils.
+   * Cinq destinations, et une action.
    *
-   * Les fonctions du métier — reçus, export comptable, marque — ont quitté les
-   * réglages de compte pour l'onglet Outils ; « Mon espace » n'occupe plus une
-   * destination et ne mélange plus préférences et produit.
+   *     [ Accueil · Clients · Documents · Outils · Compte ]  ( + )
+   *
+   * Le « + » n'est pas une destination : le placer parmi les onglets imposait
+   * six cibles sur la largeur d'un iPhone et laissait croire qu'il menait
+   * quelque part. Il ouvre une feuille, montée dans la barre.
    */
-  it('keeps five destinations with the central + and gives the trade tools their own tab', () => {
+  it('carries five destinations and keeps creation as an action, not a tab', () => {
     const bar = readFileSync('mobile/src/components/glass-tab-bar.tsx', 'utf8');
-    expect(bar).not.toContain("name: 'prospects'");
     expect(bar.match(/\{ name: '/g)).toHaveLength(5);
-    for (const name of ["'index'", "'clients'", "'nouveau'", "'devis'", "'outils'"]) expect(bar).toContain(`{ name: ${name}`);
+    for (const name of ["'index'", "'clients'", "'devis'", "'outils'", "'plus'"]) {
+      expect(bar).toContain(`{ name: ${name}`);
+    }
+    expect(bar).not.toContain("{ name: 'nouveau'");
+    expect(bar).toContain('<CreateSheet');
+
     const tabs = readFileSync('mobile/app/(app)/_layout.tsx', 'utf8');
     expect(tabs).toContain('<Tabs.Screen name="prospects" options={{ href: null }} />');
-    expect(tabs).toContain('<Tabs.Screen name="plus" options={{ href: null }} />');
+    expect(tabs).toContain('<Tabs.Screen name="nouveau" options={{ href: null }} />');
     expect(tabs).toMatch(/name="outils"[\s\S]*apps/);
-    expect(readFileSync('mobile/app/(app)/index.tsx', 'utf8')).not.toContain("router.push('/prospects')");
+    expect(tabs).toMatch(/name="plus"[\s\S]*person/);
+
+    // La barre flotte : la scène occupe toute la hauteur et le contenu passe
+    // dessous, au lieu de s'arrêter net à son bord.
+    expect(tabs).toContain("tabBarStyle: { position: 'absolute'");
+    expect(bar).toContain("position: 'absolute'");
+    expect(bar).toContain('export function useTabBarSpace');
+
+    // Chaque écran d'onglet réserve la place : sinon la dernière carte passe
+    // derrière la barre — la « découpe » constatée sur l'appareil.
+    for (const screen of ['index', 'clients', 'devis', 'outils', 'plus']) {
+      expect(readFileSync(`mobile/app/(app)/${screen}.tsx`, 'utf8'), screen).toContain('useTabBarSpace()');
+    }
 
     const outils = readFileSync('mobile/app/(app)/outils.tsx', 'utf8');
     for (const href of ["'/depenses'", "'/comptable'", "'/marque'"]) expect(outils).toContain(href);
 
-    // Et elles ne restent pas en double dans les réglages de compte.
-    const plus = readFileSync('mobile/app/(app)/plus.tsx', 'utf8');
-    for (const href of ["'/depenses'", "'/comptable'", "'/marque'"]) expect(plus).not.toContain(href);
+    // Et les réglages de compte ne reprennent aucune fonction du métier.
+    const compte = readFileSync('mobile/app/(app)/plus.tsx', 'utf8');
+    for (const href of ["'/depenses'", "'/comptable'", "'/marque'"]) expect(compte).not.toContain(href);
   });
+
   it('no longer advertises the public quote-request form', () => {
     expect(readFileSync('packages/shared/src/plans.ts', 'utf8')).not.toContain('Formulaire de demande de devis pour votre site');
   });

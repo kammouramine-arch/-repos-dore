@@ -1,7 +1,7 @@
 import * as React from 'react';
 import { StyleSheet, View, type StyleProp, type ViewStyle } from 'react-native';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, RadialGradient, Rect, Stop } from 'react-native-svg';
-import { BRAND_BOTTOM, BRAND_GRADIENT } from '@/theme/gradient';
+import { BRAND_BOTTOM, BRAND_GRADIENT, BRAND_HEADER_GRADIENT } from '@/theme/gradient';
 
 /**
  * Surface de marque : bleu saturé en haut, qui se dissout jusqu'au blanc.
@@ -15,17 +15,34 @@ export function PremiumGradient({
   children,
   style,
   glow = true,
+  bottom = BRAND_BOTTOM,
+  header = false,
 }: {
   children?: React.ReactNode;
   style?: StyleProp<ViewStyle>;
   glow?: boolean;
+  /**
+   * Couleur d'arrivée du fondu.
+   *
+   * Le dégradé finit en blanc par défaut. Quand l'écran qui le porte repose
+   * sur la surface claire plutôt que sur du blanc, il faut lui donner cette
+   * couleur : sinon le bas du bandeau s'arrête une nuance au-dessus du fond
+   * et dessine une ligne là où il ne devrait rien y avoir.
+   */
+  bottom?: string;
+  /** Bandeau d'en-tête : bleu franc plus longtemps, fondu plus court. */
+  header?: boolean;
 }) {
+  const stops = React.useMemo(
+    () => (header ? BRAND_HEADER_GRADIENT : BRAND_GRADIENT).map((stop) => (stop.offset === 1 ? { ...stop, color: bottom } : stop)),
+    [bottom, header],
+  );
   return (
-    <View style={[styles.root, style]}>
+    <View style={[styles.root, { backgroundColor: bottom }, style]}>
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
         <Defs>
           <SvgLinearGradient id="devisera-brand" x1="0" y1="0" x2="0" y2="1">
-            {BRAND_GRADIENT.map((stop) => (
+            {stops.map((stop) => (
               <Stop key={stop.offset} offset={stop.offset} stopColor={stop.color} stopOpacity="1" />
             ))}
           </SvgLinearGradient>

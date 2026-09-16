@@ -48,9 +48,36 @@ describe('dégradé de marque', () => {
     expect(end - start).toBeGreaterThanOrEqual(0.5);
   });
 
-  it('occupe une part substantielle de l’écran, pas une bande sous un en-tête', () => {
-    expect(GRADIENT_SPAN.home).toBeGreaterThanOrEqual(0.55);
+  /*
+   * L'accueil ne mesure plus son bandeau en fraction d'écran.
+   *
+   * C'était la cause du défaut signalé sur l'appareil : la blancheur du fondu
+   * dépend de la position à l'écran, donc n'importe quel texte blanc passant
+   * sous la moitié du bandeau devenait invisible — « Décrivez simplement le
+   * chantier » et « VOS DEVIS » l'étaient. Le bandeau est désormais mesuré sur
+   * l'en-tête, et la fraction ne sert plus que de valeur de départ, le temps
+   * d'une mesure.
+   */
+  it('cale le bandeau de l’accueil sur l’en-tête, pas sur une fraction d’écran', async () => {
+    const { readFileSync } = await import('node:fs');
+    const home = readFileSync('mobile/app/(app)/index.tsx', 'utf8');
+    expect(home).toContain('setHeaderHeight(event.nativeEvent.layout.height)');
+    expect(home).toContain('surface.paddingTop + headerHeight');
+    expect(home).toContain('<BrandBackdrop height={bandHeight}');
+    // La valeur de repli reste courte : un bandeau d'en-tête, pas un demi-écran.
+    expect(GRADIENT_SPAN.home).toBeLessThanOrEqual(0.4);
+    // L'authentification garde son grand fondu : son texte blanc tient en haut.
     expect(GRADIENT_SPAN.auth).toBeGreaterThanOrEqual(0.55);
-    expect(GRADIENT_SPAN.home).toBeLessThanOrEqual(0.75);
+  });
+
+  it('n’écrit plus en blanc hors du bandeau, sur l’accueil', async () => {
+    const { readFileSync } = await import('node:fs');
+    const home = readFileSync('mobile/app/(app)/index.tsx', 'utf8');
+    // Le carrousel et les accès rapides ne prennent plus la variante « sur
+    // fond de marque » : leurs titres descendent sous le bleu.
+    expect(home).not.toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />');
+    expect(home).not.toContain('<QuickActions onBrand />');
+    // Et le bandeau d'état repasse en encre.
+    expect(home).not.toContain("color: 'rgba(255,255,255,0.85)'");
   });
 });

@@ -70,7 +70,7 @@ describe('barre de navigation', () => {
   });
   it('efface l’indicateur sur une route masquée au lieu de retomber sur Accueil', () => {
     const bar = read('src/components/glass-tab-bar.tsx');
-    expect(bar).toContain("activeName === 'nouveau' || activeIndex < 0");
+    expect(bar).toContain('const unselected = activeIndex < 0;');
   });
 
   /*

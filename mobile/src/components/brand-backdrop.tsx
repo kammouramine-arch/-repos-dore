@@ -24,10 +24,10 @@ export function useBrandSurface(span: keyof typeof GRADIENT_SPAN = 'home') {
   return { gradientHeight: Math.round(height * GRADIENT_SPAN[span]), paddingTop: insets.top + spacing.lg };
 }
 
-export function BrandBackdrop({ height }: { height: number }) {
+export function BrandBackdrop({ height, bottom, header }: { height: number; bottom?: string; header?: boolean }) {
   return (
     <View pointerEvents="none" style={{ position: 'absolute', top: 0, left: 0, right: 0, height }}>
-      <PremiumGradient />
+      <PremiumGradient bottom={bottom} header={header} />
     </View>
   );
 }
