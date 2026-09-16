@@ -71,3 +71,5 @@ export { buildHeuristicQuoteDraft, buildTemplateFollowUp, tradeLabel } from './h
 export { GeminiProvider, createGeminiProvider, toGeminiSchema } from './gemini';
 export { matchCatalog, findBestCatalogEntry, type CatalogEntry, type CatalogMatch } from './catalog-match';
 export { wrapUntrusted, sanitizeUntrusted, escapeForPrompt } from './sanitize';
+
+export { RECEIPT_EXTRACTION_SYSTEM } from './prompts';

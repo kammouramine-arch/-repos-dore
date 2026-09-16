@@ -44,28 +44,44 @@ function formatDate(date: Date | null | undefined, input: Pick<QuotePdfInput, 'l
   return new Intl.DateTimeFormat(locale, { dateStyle: 'long' }).format(date).replace(new RegExp('[\\u202f\\u00a0]', 'g'), ' ');
 }
 
-export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'>) {
+export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country' | 'document'>) {
   const english = input.language === 'en';
+  const invoice = input.document === 'invoice';
   const country = (input.country ?? 'FR').toUpperCase();
   const us = country === 'US';
   const gb = country === 'GB';
   return english ? {
-    title: us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'SUBJECT', grandTotal: 'TOTAL', grandTotalExempt: 'TOTAL', labourRate: 'Labour charged at the hourly rate shown, per hour of work on site.', replacedParts: 'You may keep any parts or equipment that are replaced.',
+    title: invoice ? 'INVOICE' : us ? 'ESTIMATE' : 'QUOTE', company: 'COMPANY', customer: 'CUSTOMER', object: 'SUBJECT', grandTotal: 'TOTAL', grandTotalExempt: 'TOTAL', labourRate: 'Labour charged at the hourly rate shown, per hour of work on site.', replacedParts: 'You may keep any parts or equipment that are replaced.',
     designation: 'DESCRIPTION', quantity: 'QTY', unit: 'UNIT', unitPrice: 'UNIT PRICE', tax: us ? 'Sales tax' : 'VAT', totalEx: 'TOTAL',
     totalExLabel: 'Subtotal', netEx: 'Net subtotal', vat: us ? 'Sales tax' : 'VAT', notApplicable: 'Not applicable', total: 'TOTAL',
     discount: 'Discount', companyIdentifier: us ? 'Business ID' : 'Company number', vatExemption: us ? 'Sales tax exempt' : 'VAT exempt',
     deposit: 'Deposit due', duration: 'Estimated duration', payment: 'PAYMENT TERMS', conditions: 'TERMS', notes: 'NOTES',
-    acceptance: 'ACCEPTANCE', acceptanceText: 'Please sign and return this quote to confirm.', date: 'Date', signature: 'Customer name and signature',
+    acceptance: invoice ? 'PAYMENT' : 'ACCEPTANCE',
+    acceptanceText: invoice ? 'Amount due on the date shown above.' : 'Please sign and return this quote to confirm.',
+    date: 'Date', signature: 'Customer name and signature',
     validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
+    signedElectronically: 'Accepted and signed online',
+    signedOn: 'on', paid: 'Already paid', balance: 'Balance due', dueOn: 'Payment due',
+    paymentDetails: 'PAYMENT DETAILS', settled: 'PAID IN FULL',
   } : {
-    title: 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: us ? 'TAXE' : 'TVA', total: 'TOTAL HT', grandTotal: 'TOTAL TTC', grandTotalExempt: 'TOTAL', labourRate: 'Main-d’œuvre facturée au taux horaire indiqué (HT, TVA en sus), par heure de travail sur place.', replacedParts: 'Le client peut conserver les pièces, éléments ou appareils remplacés.',
+    title: invoice ? 'FACTURE' : 'DEVIS', company: 'ENTREPRISE', customer: 'CLIENT', object: 'OBJET', designation: 'DÉSIGNATION', quantity: 'QTÉ', unit: 'UNITÉ', unitPrice: 'P.U. HT', tax: us ? 'TAXE' : 'TVA', total: 'TOTAL HT', grandTotal: 'TOTAL TTC', grandTotalExempt: 'TOTAL', labourRate: 'Main-d’œuvre facturée au taux horaire indiqué (HT, TVA en sus), par heure de travail sur place.', replacedParts: 'Le client peut conserver les pièces, éléments ou appareils remplacés.',
     totalExLabel: 'Total HT', netEx: 'Net HT', vat: us ? 'TAXE' : 'TVA', notApplicable: 'Non applicable', discount: 'Remise', companyIdentifier: us ? 'IDENTIFIANT ENTREPRISE' : gb ? 'NUMÉRO D’ENTREPRISE' : 'SIRET', vatExemption: country === 'FR' ? 'TVA non applicable, art. 293 B du CGI' : us ? 'Taxe non applicable' : 'TVA exonérée', deposit: 'Acompte à la commande', duration: 'Durée estimée', payment: 'MODALITÉS DE PAIEMENT', conditions: 'CONDITIONS', notes: 'NOTES',
-    acceptance: 'BON POUR ACCORD', acceptanceText: "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».", date: 'Date', signature: 'Nom et signature du client', validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
+    acceptance: invoice ? 'RÈGLEMENT' : 'BON POUR ACCORD',
+    acceptanceText: invoice
+      ? 'Montant à régler à la date indiquée ci-dessus.'
+      : "À retourner daté et signé, avec la mention manuscrite « Bon pour accord ».",
+    date: 'Date', signature: 'Nom et signature du client',
+    validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
+    signedElectronically: 'Accepté et signé en ligne',
+    signedOn: 'le', paid: 'Déjà réglé', balance: 'Restant dû', dueOn: 'À régler avant le',
+    paymentDetails: 'COORDONNÉES DE RÈGLEMENT', settled: 'FACTURE ACQUITTÉE',
   };
 }
 
 export interface QuotePdfCompany {
   name: string;
+  /** Coordonnées de règlement imprimées sur la facture (IBAN, ordre du chèque). */
+  paymentDetails?: string | null;
   ownerName?: string | null;
   addressLine1?: string | null;
   postalCode?: string | null;
@@ -101,7 +117,30 @@ export interface QuotePdfLine {
   lineTotalCents: number;
 }
 
+/** Modèles de mise en page proposés à l'artisan. */
+export type PdfTemplate = 'MINIMAL' | 'MODERNE' | 'EXECUTIF';
+
+/**
+ * Signature apposée par le client, rendue sur le document accepté.
+ *
+ * `strokePath` est un chemin SVG normalisé dans un carré de 1000 × 400, validé
+ * côté serveur avant d'arriver ici. La mention imprimée reste « acceptation
+ * électronique » : ce n'est pas une signature qualifiée eIDAS.
+ */
+export interface PdfSignature {
+  signerName: string;
+  signedAt: Date;
+  strokePath: string;
+}
+
 export interface QuotePdfInput {
+  /** Devis par défaut ; « invoice » bascule les libellés et les totaux. */
+  document?: 'quote' | 'invoice';
+  template?: PdfTemplate;
+  signature?: PdfSignature | null;
+  /** Facture : déjà encaissé et restant dû. */
+  paidCents?: number;
+  dueAt?: Date | null;
   number: string;
   title: string;
   summary?: string | null;
@@ -140,6 +179,7 @@ function hexToRgb(hex: string | null | undefined) {
 }
 
 interface Ctx {
+  template: PdfTemplate;
   doc: PDFDocument;
   page: PDFPage;
   y: number;
@@ -192,7 +232,7 @@ function drawText(
 
 export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> {
   const doc = await PDFDocument.create();
-  doc.setTitle(`Devis ${input.number} - ${input.company.name}`);
+  doc.setTitle(`${input.document === 'invoice' ? 'Facture' : 'Devis'} ${input.number} - ${input.company.name}`);
   doc.setAuthor(input.company.name);
   doc.setSubject(input.title);
   doc.setProducer('DEVISERA');
@@ -201,6 +241,7 @@ export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> 
   const regular = await doc.embedFont(StandardFonts.Helvetica);
   const bold = await doc.embedFont(StandardFonts.HelveticaBold);
   const ctx: Ctx = {
+    template: input.template ?? 'MODERNE',
     doc,
     page: doc.addPage([A4.width, A4.height]),
     y: A4.height - MARGIN,
@@ -289,13 +330,43 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
   }
 
   ctx.y = top - 78;
-  ctx.page.drawLine({
-    start: { x: MARGIN, y: ctx.y },
-    end: { x: A4.width - MARGIN, y: ctx.y },
-    thickness: 0.8,
-    color: LINE,
-  });
-  ctx.y -= 22;
+
+  // Les trois modèles se distinguent par le filet sous l'en-tête — le seul
+  // endroit où un artisan perçoit la différence en un coup d'œil. Le reste de
+  // la mise en page est identique : trois documents lisibles valent mieux que
+  // trois documents différemment illisibles.
+  if (ctx.template === 'MINIMAL') {
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: ctx.y },
+      end: { x: A4.width - MARGIN, y: ctx.y },
+      thickness: 0.6,
+      color: LINE,
+    });
+  } else if (ctx.template === 'MODERNE') {
+    // Bandeau plein à la couleur de l'entreprise.
+    ctx.page.drawRectangle({
+      x: MARGIN,
+      y: ctx.y - 3,
+      width: CONTENT_WIDTH,
+      height: 3,
+      color: ctx.accent,
+    });
+  } else {
+    // Exécutif : double filet fin, registre plus formel.
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: ctx.y },
+      end: { x: A4.width - MARGIN, y: ctx.y },
+      thickness: 1.2,
+      color: ctx.accent,
+    });
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: ctx.y - 3.5 },
+      end: { x: A4.width - MARGIN, y: ctx.y - 3.5 },
+      thickness: 0.5,
+      color: LINE,
+    });
+  }
+  ctx.y -= 24;
 }
 
 function drawParties(ctx: Ctx, input: QuotePdfInput) {
@@ -584,46 +655,168 @@ function drawConditions(ctx: Ctx, input: QuotePdfInput) {
   }
 }
 
+/**
+ * Rend le tracé de signature du client.
+ *
+ * Le chemin est normalisé dans un carré de 1000 × 400 côté application ; il
+ * est ici mis à l'échelle de la boîte disponible. pdf-lib accepte un chemin
+ * SVG tel quel, ce qui garde un trait net à l'impression — une image
+ * matricielle baverait.
+ */
+function drawSignatureStroke(
+  ctx: Ctx,
+  strokePath: string,
+  box: { x: number; y: number; width: number; height: number },
+) {
+  const scale = Math.min(box.width / 1000, box.height / 400);
+  try {
+    ctx.page.drawSvgPath(strokePath, {
+      x: box.x,
+      // pdf-lib place l'origine d'un chemin SVG en haut à gauche.
+      y: box.y + box.height,
+      scale,
+      borderColor: INK,
+      borderWidth: 1.4,
+      color: undefined,
+    });
+  } catch {
+    // Un tracé illisible ne doit jamais empêcher le document de sortir.
+  }
+}
+
 function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
   const labels = quotePdfLabels(input);
-  ensureSpace(ctx, 108);
-  const boxY = ctx.y - 92;
+  const invoice = input.document === 'invoice';
+
+  // Facture : pas de case à signer, mais l'état du règlement.
+  if (invoice) {
+    const paid = input.paidCents ?? 0;
+    const balance = Math.max(0, input.totalCents - input.depositCents - paid);
+    const rows: [string, string][] = [];
+    if (input.depositCents > 0) rows.push([labels.deposit, money(input.depositCents, input)]);
+    if (paid > 0) rows.push([labels.paid, money(paid, input)]);
+    rows.push([labels.balance, money(balance, input)]);
+
+    ensureSpace(ctx, 40 + rows.length * 16);
+    const height = 30 + rows.length * 16;
+    const boxY = ctx.y - height;
+    ctx.page.drawRectangle({
+      x: MARGIN,
+      y: boxY,
+      width: CONTENT_WIDTH,
+      height,
+      color: balance === 0 ? rgb(0.941, 0.98, 0.949) : SOFT,
+      borderColor: LINE,
+      borderWidth: 0.8,
+    });
+    drawText(ctx, balance === 0 ? labels.settled : labels.acceptance, {
+      x: MARGIN + 14,
+      y: boxY + height - 18,
+      size: 8,
+      bold: true,
+      color: balance === 0 ? rgb(0.086, 0.51, 0.271) : MUTED,
+    });
+    rows.forEach(([label, value], index) => {
+      const y = boxY + height - 36 - index * 16;
+      const last = index === rows.length - 1;
+      drawText(ctx, label, { x: MARGIN + 14, y, size: last ? 10 : 9, bold: last, color: last ? INK : MUTED });
+      const text = safeText(value);
+      const font = last ? ctx.bold : ctx.regular;
+      drawText(ctx, value, {
+        x: A4.width - MARGIN - 14 - font.widthOfTextAtSize(text, last ? 10 : 9),
+        y,
+        size: last ? 10 : 9,
+        bold: last,
+      });
+    });
+    if (input.dueAt && balance > 0) {
+      drawText(ctx, `${labels.dueOn} ${formatDate(input.dueAt, input)}.`, {
+        x: MARGIN + 14,
+        y: boxY + 8,
+        size: 8,
+        color: MUTED,
+      });
+    }
+    ctx.y = boxY - 16;
+
+    if (input.company.paymentDetails) {
+      ensureSpace(ctx, 44);
+      drawText(ctx, labels.paymentDetails, { x: MARGIN, y: ctx.y, size: 8, bold: true, color: MUTED });
+      ctx.y -= 13;
+      for (const line of wrap(safeText(input.company.paymentDetails), ctx.regular, 8.5, CONTENT_WIDTH)) {
+        ensureSpace(ctx, 12);
+        drawText(ctx, line, { x: MARGIN, y: ctx.y, size: 8.5, color: MUTED });
+        ctx.y -= 11;
+      }
+      ctx.y -= 8;
+    }
+    return;
+  }
+
+  // Devis déjà signé : on imprime la signature reçue plutôt qu'une case vide.
+  const signature = input.signature;
+  const height = signature ? 104 : 92;
+  ensureSpace(ctx, height + 16);
+  const boxY = ctx.y - height;
   ctx.page.drawRectangle({
     x: MARGIN,
     y: boxY,
     width: CONTENT_WIDTH,
-    height: 92,
-    borderColor: LINE,
+    height,
+    borderColor: signature ? ctx.accent : LINE,
     borderWidth: 0.8,
     color: rgb(1, 1, 1),
   });
-  drawText(ctx, labels.acceptance, {
+  drawText(ctx, signature ? labels.signedElectronically : labels.acceptance, {
     x: MARGIN + 14,
-    y: boxY + 74,
+    y: boxY + height - 18,
     size: 8,
     bold: true,
-    color: MUTED,
+    color: signature ? ctx.accent : MUTED,
   });
-  drawText(
-    ctx,
-    labels.acceptanceText,
-    { x: MARGIN + 14, y: boxY + 58, size: 8.5, color: MUTED },
-  );
-  drawText(ctx, `${labels.date} : ..........................`, { x: MARGIN + 14, y: boxY + 32, size: 9 });
-  drawText(ctx, `${labels.signature} :`, { x: MARGIN + 250, y: boxY + 32, size: 9 });
-  ctx.page.drawLine({
-    start: { x: MARGIN + 250, y: boxY + 16 },
-    end: { x: A4.width - MARGIN - 14, y: boxY + 16 },
-    thickness: 0.6,
-    color: LINE,
-  });
-  if (input.validUntil) {
-    drawText(ctx, `${labels.offerValid} ${formatDate(input.validUntil, input)}.`, {
+
+  if (signature) {
+    drawText(ctx, safeText(signature.signerName), {
       x: MARGIN + 14,
-      y: boxY + 12,
-      size: 8,
-      color: MUTED,
+      y: boxY + height - 40,
+      size: 11,
+      bold: true,
     });
+    drawText(
+      ctx,
+      `${labels.signedOn} ${formatDate(signature.signedAt, input)}`,
+      { x: MARGIN + 14, y: boxY + height - 55, size: 8.5, color: MUTED },
+    );
+    drawSignatureStroke(ctx, signature.strokePath, {
+      x: MARGIN + 250,
+      y: boxY + 14,
+      width: CONTENT_WIDTH - 264,
+      height: height - 34,
+    });
+    ctx.page.drawLine({
+      start: { x: MARGIN + 250, y: boxY + 12 },
+      end: { x: A4.width - MARGIN - 14, y: boxY + 12 },
+      thickness: 0.6,
+      color: LINE,
+    });
+  } else {
+    drawText(ctx, labels.acceptanceText, { x: MARGIN + 14, y: boxY + 58, size: 8.5, color: MUTED });
+    drawText(ctx, `${labels.date} : ..........................`, { x: MARGIN + 14, y: boxY + 32, size: 9 });
+    drawText(ctx, `${labels.signature} :`, { x: MARGIN + 250, y: boxY + 32, size: 9 });
+    ctx.page.drawLine({
+      start: { x: MARGIN + 250, y: boxY + 16 },
+      end: { x: A4.width - MARGIN - 14, y: boxY + 16 },
+      thickness: 0.6,
+      color: LINE,
+    });
+    if (input.validUntil) {
+      drawText(ctx, `${labels.offerValid} ${formatDate(input.validUntil, input)}.`, {
+        x: MARGIN + 14,
+        y: boxY + 12,
+        size: 8,
+        color: MUTED,
+      });
+    }
   }
   ctx.y = boxY - 16;
 }

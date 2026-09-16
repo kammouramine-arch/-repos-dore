@@ -128,3 +128,47 @@ export const followUpDraftSchema = z.object({
 });
 
 export type FollowUpDraft = z.infer<typeof followUpDraftSchema>;
+
+
+/**
+ * Lecture d'un justificatif de dépense.
+ *
+ * Tous les champs sont optionnels par construction. Un ticket froissé, une
+ * ligne effacée, une TVA absente : l'IA doit laisser le champ vide et le citer
+ * dans `champsIllisibles`, jamais deviner. L'artisan relit et complète avant
+ * enregistrement — c'est sa saisie qui fait foi, pas la lecture.
+ *
+ * Les montants sont lus en euros et convertis en centimes côté serveur.
+ */
+export const receiptExtractionSchema = z.object({
+  marchand: z.string().max(140).nullish().describe('Nom du commerce tel qu’imprimé sur le ticket.'),
+  date: z
+    .string()
+    .max(32)
+    .nullish()
+    .describe('Date d’achat au format AAAA-MM-JJ. Vide si elle n’est pas lisible.'),
+  totalTTC: z.number().min(0).max(1_000_000).nullish().describe('Montant total payé, en euros.'),
+  montantTVA: z.number().min(0).max(1_000_000).nullish().describe('Montant de TVA, en euros, uniquement s’il est imprimé.'),
+  devise: z.string().max(8).nullish().describe('Code ISO de la devise, EUR par défaut.'),
+  reference: z.string().max(64).nullish().describe('Numéro de ticket ou de facture, s’il figure.'),
+  categorie: z
+    .enum([
+      'MATERIAUX', 'OUTILLAGE', 'CARBURANT', 'VEHICULE', 'SOUS_TRAITANCE',
+      'ASSURANCE', 'TELECOM', 'LOYER', 'FOURNITURES', 'REPAS', 'FORMATION',
+      'TAXES', 'AUTRE',
+    ])
+    .nullish()
+    .describe('Poste de dépense le plus probable pour une entreprise artisanale.'),
+  confiance: z
+    .number()
+    .min(0)
+    .max(100)
+    .default(0)
+    .describe('Confiance globale dans la lecture, de 0 à 100.'),
+  champsIllisibles: z
+    .array(z.string().max(40))
+    .max(10)
+    .default([])
+    .describe('Champs que le justificatif ne permet pas de lire avec certitude.'),
+  avertissements: z.array(z.string().max(200)).max(5).default([]),
+});

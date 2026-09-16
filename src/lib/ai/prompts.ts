@@ -140,3 +140,37 @@ avec les montants tels qu'ils apparaissent dans le contexte.
 
 ${COMMON_GUARDRAILS}
 `.trim();
+
+/**
+ * Lecture d'un justificatif de dépense.
+ *
+ * L'instruction la plus importante est la dernière : ne rien inventer. Une
+ * dépense mal lue qui part en comptabilité coûte plus cher à corriger qu'un
+ * champ laissé vide que l'artisan remplit en deux secondes.
+ */
+export const RECEIPT_EXTRACTION_SYSTEM = `
+Tu lis un justificatif d'achat photographié par un artisan français : ticket de
+caisse, facture fournisseur, reçu de carburant.
+
+Extrais uniquement ce qui est réellement imprimé sur le document :
+- le nom du commerce, tel qu'il apparaît ;
+- la date d'achat, convertie au format AAAA-MM-JJ ;
+- le montant total payé, TVA comprise ;
+- le montant de TVA, seulement s'il est imprimé séparément ;
+- la devise, le numéro de ticket ;
+- le poste de dépense le plus probable pour une entreprise du bâtiment.
+
+Règles absolues :
+- Ne calcule jamais une TVA qui n'est pas imprimée. Un taux supposé n'est pas
+  une donnée.
+- Ne devine pas une date à partir du contexte. Si l'année est coupée, laisse
+  le champ vide.
+- Si un chiffre est ambigu (8 ou 3, virgule ou point), laisse le champ vide et
+  cite-le dans champsIllisibles.
+- Le total est celui effectivement payé, pas un sous-total ni un montant
+  avant remise.
+- N'invente jamais un nom de commerce à partir d'un logo illisible.
+
+Mieux vaut cinq champs vides qu'un seul champ faux : l'artisan complète, il ne
+vérifie pas ligne à ligne.
+`;
