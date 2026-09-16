@@ -131,7 +131,10 @@ export function deriveInvoiceStatus(invoice: {
   sentAt: Date | null;
 }): 'BROUILLON' | 'ENVOYEE' | 'PARTIELLE' | 'PAYEE' | 'EN_RETARD' | 'ANNULEE' {
   if (invoice.status === 'ANNULEE') return 'ANNULEE';
-  if (invoice.status === 'BROUILLON' && !invoice.sentAt) return 'BROUILLON';
+  // Un brouillon qui a reçu de l'argent n'est plus un brouillon : le client
+  // l'a forcément reçu. Le laisser en brouillon masquerait un encaissement
+  // réel dans le total « en attente de règlement ».
+  if (invoice.status === 'BROUILLON' && !invoice.sentAt && invoice.paidCents === 0) return 'BROUILLON';
   const balance = balanceOf(invoice);
   if (balance === 0) return 'PAYEE';
   const overdue = invoice.dueAt != null && invoice.dueAt.getTime() < Date.now();

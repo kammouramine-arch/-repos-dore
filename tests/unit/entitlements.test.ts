@@ -25,7 +25,7 @@ function snapshot(overrides: Partial<SubscriptionSnapshot> = {}): SubscriptionSn
 }
 
 describe('essai gratuit', () => {
-  it('dure 3 jours', () => {
+  it('dure 7 jours', () => {
     expect(TRIAL_DAYS).toBe(7);
   });
 

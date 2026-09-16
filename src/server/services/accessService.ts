@@ -2,7 +2,6 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 import { accessStateFor, featureBlock, type AccessState, type SubscriptionSnapshot } from '@devisia/shared';
-import { PLANS } from '@/lib/billing/plans';
 import type { PlanFeatures } from '@devisia/shared';
 
 /** Nom d'une capacité de formule, tel que déclaré dans le paquet partagé. */

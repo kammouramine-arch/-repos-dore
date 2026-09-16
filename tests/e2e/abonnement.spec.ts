@@ -1,9 +1,10 @@
 import { expect, test } from '@playwright/test';
+import { TRIAL_DAYS } from '@devisia/shared';
 import { PrismaClient } from '@prisma/client';
 import { continueWithVerifiedFixture } from './verified-fixture';
 
 /**
- * Parcours commercial : essai de 3 jours, expiration, page d'abonnement.
+ * Parcours commercial : essai web de 7 jours, expiration, page d'abonnement.
  * Le test manipule directement la base pour simuler la fin de l'essai.
  */
 const prisma = new PrismaClient({
@@ -21,7 +22,7 @@ test.afterAll(async () => {
 });
 
 test.describe('abonnement', () => {
-  test('essai de 3 jours puis conversion', async ({ page }) => {
+  test('essai de 7 jours puis conversion', async ({ page }) => {
     const email = `essai-${Date.now().toString(36)}@devisera.test`;
 
     // Inscription : l'essai démarre automatiquement.
@@ -45,18 +46,19 @@ test.describe('abonnement', () => {
     expect(subscription?.status).toBe('trialing');
     expect(subscription?.trialStartedAt).not.toBeNull();
 
-    // 3 jours exactement, conformément à la durée décidée par le propriétaire.
+    // Durée exacte de l'essai web, décidée par le propriétaire du produit.
+    // Sur iPhone, l'essai vient de l'offre Apple et n'est pas décidé ici.
     const days = Math.round(
       ((subscription!.trialEndsAt!.getTime() - subscription!.trialStartedAt!.getTime()) /
         (24 * 60 * 60 * 1000)) *
         10,
     ) / 10;
-    expect(days).toBe(3);
+    expect(days).toBe(TRIAL_DAYS);
 
     // Pendant l'essai, la création de devis est ouverte.
     await page.goto('/app/parametres/abonnement');
     await expect(
-      page.getByText(/Période d’essai|essai de 3 jours/i).filter({ visible: true }).first(),
+      page.getByText(new RegExp(`Période d’essai|essai de ${TRIAL_DAYS} jours`, 'i')).filter({ visible: true }).first(),
     ).toBeVisible();
 
     // Fin de l'essai.
@@ -106,9 +108,9 @@ test.describe('abonnement', () => {
     }
   });
 
-  test('la page tarifs annonce 3 jours d’essai', async ({ page }) => {
+  test('la page tarifs annonce la durée d’essai', async ({ page }) => {
     await page.goto('/tarifs');
-    await expect(page.getByText(/3 jours/i).filter({ visible: true }).first()).toBeVisible();
+    await expect(page.getByText(new RegExp(`${TRIAL_DAYS} jours`, 'i')).filter({ visible: true }).first()).toBeVisible();
     await expect(page.getByText(/14 jours/i)).toHaveCount(0);
   });
 });
