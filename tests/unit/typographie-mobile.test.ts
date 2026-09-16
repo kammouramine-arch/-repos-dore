@@ -72,6 +72,6 @@ describe('typographie mobile', () => {
     expect(ui).toMatch(/export function Price/);
     expect(ui).toMatch(/alignItems:\s*'baseline'/);
     const abonnement = readFileSync(path.join(MOBILE, 'app/abonnement.tsx'), 'utf8');
-    expect(abonnement).toContain('<Price cents={plan.monthlyPriceCents}');
+    expect(abonnement).toContain('<Price cents={effectiveMonthlyPriceCents(plan.id)}');
   });
 });

@@ -10,12 +10,20 @@ import type { PlanId, SubscriptionStatusId } from './plans';
 import type { AccessState } from './entitlements';
 import type { AuthIdentityProvider, AuthNextStep } from './auth-flow';
 import type {
+  DocumentTemplateId,
+  ExpenseCategoryId,
   FollowUpTone,
+  InvoiceStatusId,
   LeadStatusId,
+  MemberRoleId,
+  PaymentMethodId,
+  PaymentProviderId,
+  PaymentStatusId,
   PriceBookCategoryId,
   QuoteEventTypeId,
   QuoteItemKindId,
   QuoteStatusId,
+  StripeAccountStatusId,
 } from './labels';
 
 export interface ApiError {
@@ -70,7 +78,7 @@ export interface SessionUserDTO {
 export interface SessionOrganizationDTO {
   id: string;
   name: string;
-  role: 'OWNER' | 'ADMIN' | 'MEMBER';
+  role: MemberRoleId;
   trade: string | null;
   onboardingCompleted: boolean;
   /** True until an Apple/Google sign-up names their business (`nextStep` = onboarding). */
@@ -459,4 +467,326 @@ export interface BillingHistoryDTO {
   receiptsUrl: string | null;
   manageAction: 'apple_subscriptions' | 'stripe_portal' | null;
   note: string;
+}
+
+// ---------------------------------------------------------------------------
+// Signature du devis par le client
+// ---------------------------------------------------------------------------
+
+/**
+ * Signature apposée par le client sur un devis.
+ *
+ * Acceptation électronique simple : identité déclarée, case d'acceptation
+ * explicite et tracé manuscrit. Ce n'est pas une signature électronique
+ * qualifiée au sens eIDAS, et aucun écran ne le laisse entendre.
+ */
+export interface QuoteSignatureDTO {
+  id: string;
+  signerName: string;
+  signerEmail: string | null;
+  /** Tracé normalisé dans un carré de 1000 × 400, prêt à rendre en SVG. */
+  strokePath: string;
+  signedAt: string;
+  totalCents: number;
+  /** Renseigné quand une modification du devis a invalidé cette signature. */
+  invalidatedAt: string | null;
+}
+
+export interface SignQuoteInput {
+  signerName: string;
+  signerEmail?: string;
+  strokePath: string;
+  accepted: true;
+}
+
+/** Devis tel que le client le voit sur son lien public, avant signature. */
+export interface PublicQuoteDTO {
+  id: string;
+  number: string;
+  title: string;
+  status: QuoteStatusId;
+  businessName: string;
+  businessEmail: string | null;
+  businessPhone: string | null;
+  brandColor: string;
+  logoUrl: string | null;
+  customerName: string;
+  introduction: string | null;
+  items: {
+    kind: QuoteItemKindId;
+    label: string;
+    description: string | null;
+    unit: string;
+    quantity: number;
+    unitPriceCents: number;
+    lineTotalCents: number;
+    vatRate: number;
+  }[];
+  subtotalCents: number;
+  discountCents: number;
+  vatCents: number;
+  totalCents: number;
+  depositCents: number;
+  validUntil: string | null;
+  terms: string | null;
+  paymentTerms: string | null;
+  notes: string | null;
+  signature: QuoteSignatureDTO | null;
+  /** Faux quand le devis n'accepte plus de signature (expiré, annulé, déjà signé). */
+  signable: boolean;
+  pdfUrl: string;
+}
+
+// ---------------------------------------------------------------------------
+// Factures et encaissement
+// ---------------------------------------------------------------------------
+
+export interface InvoiceItemDTO {
+  id: string;
+  kind: QuoteItemKindId;
+  label: string;
+  description: string | null;
+  unit: string;
+  quantity: number;
+  unitPriceCents: number;
+  discountRate: number;
+  vatRate: number;
+  lineTotalCents: number;
+  vatCents: number;
+  position: number;
+}
+
+/**
+ * Encaissement d'une facture de l'artisan par son client.
+ *
+ * À ne pas confondre avec `PaymentDTO`, qui décrit les prélèvements de
+ * l'abonnement DEVISERA lui-même. Les deux flux d'argent sont distincts :
+ * celui-ci part vers le compte Stripe de l'artisan.
+ */
+export interface InvoicePaymentDTO {
+  id: string;
+  amountCents: number;
+  currency: string;
+  method: PaymentMethodId;
+  provider: PaymentProviderId;
+  status: PaymentStatusId;
+  reference: string | null;
+  receivedAt: string;
+  refundedAt: string | null;
+  failureReason: string | null;
+}
+
+export interface InvoiceSummaryDTO {
+  id: string;
+  number: string;
+  title: string;
+  status: InvoiceStatusId;
+  customerId: string;
+  customerName: string;
+  totalCents: number;
+  paidCents: number;
+  /** Restant dû après acompte et encaissements. */
+  balanceCents: number;
+  issuedAt: string | null;
+  dueAt: string | null;
+  paidAt: string | null;
+  /** Vrai quand l'échéance est dépassée et le solde non nul. */
+  overdue: boolean;
+  quoteId: string | null;
+  createdAt: string;
+}
+
+export interface InvoiceDetailDTO extends InvoiceSummaryDTO {
+  customerEmail: string | null;
+  subtotalCents: number;
+  discountRate: number;
+  discountCents: number;
+  netSubtotalCents: number;
+  vatCents: number;
+  depositCents: number;
+  notes: string | null;
+  terms: string | null;
+  paymentTerms: string | null;
+  sentAt: string | null;
+  items: InvoiceItemDTO[];
+  payments: InvoicePaymentDTO[];
+  publicUrl: string;
+  pdfUrl: string;
+  /** Vrai quand l'entreprise peut encaisser en ligne (Stripe actif). */
+  onlinePaymentAvailable: boolean;
+}
+
+export interface CreateInvoiceFromQuoteInput {
+  quoteId: string;
+  /** Échéance en jours à compter de l'émission ; par défaut celle du profil. */
+  dueInDays?: number;
+  /** Déduire l'acompte déjà réglé sur le devis. */
+  deductDeposit?: boolean;
+}
+
+export interface RecordPaymentInput {
+  amountCents: number;
+  method: PaymentMethodId;
+  reference?: string;
+  receivedAt?: string;
+}
+
+/** Facture telle que le client la voit sur sa page de règlement. */
+export interface PublicInvoiceDTO {
+  id: string;
+  number: string;
+  title: string;
+  status: InvoiceStatusId;
+  businessName: string;
+  businessEmail: string | null;
+  brandColor: string;
+  logoUrl: string | null;
+  customerName: string;
+  totalCents: number;
+  paidCents: number;
+  balanceCents: number;
+  currency: string;
+  dueAt: string | null;
+  paymentDetails: string | null;
+  pdfUrl: string;
+  /** Vrai quand le bouton « Payer maintenant » peut être présenté. */
+  payable: boolean;
+  /** Motif lisible quand le paiement en ligne n'est pas proposé. */
+  unavailableReason: string | null;
+}
+
+export interface StartInvoicePaymentResponse {
+  /** URL de la page de paiement hébergée par Stripe. */
+  checkoutUrl: string;
+  paymentIntentId: string;
+}
+
+/** État de l'inscription Stripe Connect de l'entreprise. */
+export interface PaymentAccountDTO {
+  status: StripeAccountStatusId;
+  chargesEnabled: boolean;
+  payoutsEnabled: boolean;
+  onboardedAt: string | null;
+  /** Vrai quand la formule inclut l'encaissement en ligne. */
+  includedInPlan: boolean;
+  /** Motif lisible quand la formule ne l'inclut pas. */
+  planReason: string | null;
+  /** Configuré côté serveur : sans clé Stripe, rien n'est proposé. */
+  configured: boolean;
+}
+
+// ---------------------------------------------------------------------------
+// Dépenses et justificatifs
+// ---------------------------------------------------------------------------
+
+/**
+ * Lecture IA d'un justificatif.
+ *
+ * Chaque champ est optionnel : quand le ticket est illisible sur un point,
+ * l'IA le laisse vide plutôt que d'inventer une valeur. `confidence` dit à
+ * quel point la lecture globale est sûre ; l'artisan relit toujours.
+ */
+export interface ReceiptExtractionDTO {
+  merchant: string | null;
+  spentAt: string | null;
+  amountCents: number | null;
+  vatCents: number | null;
+  currency: string | null;
+  reference: string | null;
+  category: ExpenseCategoryId | null;
+  confidence: number;
+  /** Champs que l'IA n'a pas pu lire et que l'artisan doit compléter. */
+  missing: string[];
+  warnings: string[];
+}
+
+export interface ExpenseDTO {
+  id: string;
+  merchant: string;
+  category: ExpenseCategoryId;
+  description: string | null;
+  spentAt: string;
+  amountCents: number;
+  vatCents: number;
+  currency: string;
+  reference: string | null;
+  paymentMethod: PaymentMethodId;
+  receiptFileId: string | null;
+  receiptUrl: string | null;
+  aiExtracted: boolean;
+  createdAt: string;
+}
+
+export interface ExpenseInput {
+  merchant: string;
+  category: ExpenseCategoryId;
+  description?: string;
+  spentAt: string;
+  amountCents: number;
+  vatCents?: number;
+  reference?: string;
+  paymentMethod?: PaymentMethodId;
+  receiptFileId?: string | null;
+  /** Lecture IA d'origine, conservée pour comparaison. */
+  parsed?: ReceiptExtractionDTO | null;
+}
+
+export interface ExpenseListDTO {
+  expenses: ExpenseDTO[];
+  totalCents: number;
+  vatCents: number;
+  count: number;
+  byCategory: { category: ExpenseCategoryId; totalCents: number; count: number }[];
+}
+
+// ---------------------------------------------------------------------------
+// Marque documentaire et export comptable
+// ---------------------------------------------------------------------------
+
+export interface BrandingDTO {
+  legalName: string;
+  brandColor: string;
+  documentTemplate: DocumentTemplateId;
+  documentFooter: string | null;
+  paymentDetails: string | null;
+  logoFileId: string | null;
+  logoUrl: string | null;
+  signatureFileId: string | null;
+  signatureUrl: string | null;
+  /** Vrai quand la formule ouvre les modèles Moderne et Exécutif. */
+  advancedTemplatesAvailable: boolean;
+  planReason: string | null;
+}
+
+export interface BrandingInput {
+  brandColor?: string;
+  documentTemplate?: DocumentTemplateId;
+  documentFooter?: string | null;
+  paymentDetails?: string | null;
+  logoFileId?: string | null;
+  signatureFileId?: string | null;
+}
+
+export type AccountingExportDataset = 'expenses' | 'sales' | 'payments';
+
+export interface AccountingExportInput {
+  from: string;
+  to: string;
+  datasets: AccountingExportDataset[];
+  /** Joindre les PDF de factures et les justificatifs dans l'archive. */
+  includeDocuments?: boolean;
+}
+
+export interface AccountingExportSummaryDTO {
+  from: string;
+  to: string;
+  salesCount: number;
+  salesTotalCents: number;
+  salesVatCents: number;
+  expenseCount: number;
+  expenseTotalCents: number;
+  expenseVatCents: number;
+  paymentCount: number;
+  paymentTotalCents: number;
+  documentCount: number;
 }

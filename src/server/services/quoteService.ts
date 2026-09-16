@@ -6,6 +6,7 @@ import { generateToken } from '@/lib/auth/tokens';
 import { AppError, notFound } from '@/lib/errors';
 import { nextDocumentNumber } from './numberingService';
 import { recordAudit } from './auditService';
+import { invalidateSignaturesIfChanged } from './signatureService';
 import { trackEvent } from './analyticsService';
 import { notify } from './notificationService';
 import { dec } from '../dto';
@@ -247,12 +248,18 @@ export async function updateQuote(
     });
   });
 
+  // Un devis déjà signé dont le contenu contractuel change perd sa signature :
+  // le client doit revalider ce qu'il n'a pas approuvé. Si seuls le titre ou
+  // les notes ont bougé, l'empreinte est inchangée et la signature tient.
+  const invalidated = await invalidateSignaturesIfChanged(quoteId);
+
   await recordAudit({
     action: 'quote.updated',
     organizationId,
     userId,
     entityType: 'quote',
     entityId: quoteId,
+    metadata: invalidated > 0 ? { invalidatedSignatures: invalidated } : undefined,
   });
   return quote;
 }

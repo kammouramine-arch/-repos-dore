@@ -3,7 +3,10 @@ import { forbidden } from '../errors';
 
 /**
  * Permissions vérifiées côté serveur, jamais côté client.
- * OWNER > ADMIN > MEMBER.
+ *
+ * OWNER > ADMIN > MEMBER pour la conduite de l'entreprise. COMPTABLE est à
+ * part : ce n'est pas un rang intermédiaire mais un accès en lecture aux
+ * documents et aux exports, sans aucun droit d'écriture métier.
  */
 export const PERMISSIONS = {
   'org:update': ['OWNER', 'ADMIN'],
@@ -18,7 +21,7 @@ export const PERMISSIONS = {
   'customer:delete': ['OWNER', 'ADMIN'],
   'lead:read': ['OWNER', 'ADMIN', 'MEMBER'],
   'lead:write': ['OWNER', 'ADMIN', 'MEMBER'],
-  'quote:read': ['OWNER', 'ADMIN', 'MEMBER'],
+  'quote:read': ['OWNER', 'ADMIN', 'MEMBER', 'COMPTABLE'],
   'quote:write': ['OWNER', 'ADMIN', 'MEMBER'],
   'quote:send': ['OWNER', 'ADMIN', 'MEMBER'],
   'quote:delete': ['OWNER', 'ADMIN'],
@@ -30,9 +33,16 @@ export const PERMISSIONS = {
   'settings:read': ['OWNER', 'ADMIN', 'MEMBER'],
   'settings:write': ['OWNER', 'ADMIN'],
   'analytics:read': ['OWNER', 'ADMIN'],
-  'organization:export': ['OWNER', 'ADMIN'],
-  'invoice:read': ['OWNER', 'ADMIN'],
+  'organization:export': ['OWNER', 'ADMIN', 'COMPTABLE'],
+  'invoice:read': ['OWNER', 'ADMIN', 'COMPTABLE'],
   'invoice:write': ['OWNER', 'ADMIN'],
+  'invoice:send': ['OWNER', 'ADMIN'],
+  'payment:read': ['OWNER', 'ADMIN', 'COMPTABLE'],
+  'payment:write': ['OWNER', 'ADMIN'],
+  'expense:read': ['OWNER', 'ADMIN', 'MEMBER', 'COMPTABLE'],
+  'expense:write': ['OWNER', 'ADMIN', 'MEMBER'],
+  'expense:delete': ['OWNER', 'ADMIN'],
+  'accounting:export': ['OWNER', 'ADMIN', 'COMPTABLE'],
 } as const satisfies Record<string, readonly MemberRole[]>;
 
 export type Permission = keyof typeof PERMISSIONS;
@@ -51,10 +61,12 @@ export const ROLE_LABELS: Record<MemberRole, string> = {
   OWNER: 'Propriétaire',
   ADMIN: 'Administrateur',
   MEMBER: 'Membre',
+  COMPTABLE: 'Comptable',
 };
 
 export const ROLE_DESCRIPTIONS: Record<MemberRole, string> = {
   OWNER: 'Accès complet, y compris la facturation et la suppression du compte.',
   ADMIN: "Gestion opérationnelle complète : devis, clients, catalogue, automatisations.",
   MEMBER: 'Création et suivi des devis, clients et prospects.',
+  COMPTABLE: 'Lecture des devis, factures et dépenses, et téléchargement des exports. Aucune modification.',
 };

@@ -7,6 +7,7 @@ import {
   daysUntil,
   planChange,
   trialMessage,
+  effectiveMonthlyPriceCents,
   type SubscriptionSnapshot,
 } from '@devisia/shared';
 
@@ -25,7 +26,7 @@ function snapshot(overrides: Partial<SubscriptionSnapshot> = {}): SubscriptionSn
 
 describe('essai gratuit', () => {
   it('dure 3 jours', () => {
-    expect(TRIAL_DAYS).toBe(3);
+    expect(TRIAL_DAYS).toBe(7);
   });
 
   it('compte les jours restants sans jamais passer sous zéro', () => {
@@ -97,10 +98,19 @@ describe('états d’abonnement', () => {
 });
 
 describe('formules', () => {
-  it('applique les prix annoncés', () => {
-    expect(PLANS.ESSENTIEL.monthlyPriceCents).toBe(3900);
-    expect(PLANS.PRO.monthlyPriceCents).toBe(7900);
-    expect(PLANS.ENTREPRISE.monthlyPriceCents).toBe(14900);
+  it('facture le tarif en vigueur tant que le tarif de lancement n’est pas appliqué', () => {
+    // Tant que les produits App Store et les prix Stripe portent l'ancien
+    // tarif, l'application doit annoncer l'ancien tarif : afficher le tarif
+    // de lancement avant de l'avoir appliqué reviendrait à tromper le client.
+    expect(effectiveMonthlyPriceCents('ESSENTIEL', false)).toBe(3900);
+    expect(effectiveMonthlyPriceCents('PRO', false)).toBe(7900);
+    expect(effectiveMonthlyPriceCents('ENTREPRISE', false)).toBe(14900);
+  });
+
+  it('bascule sur le tarif de lancement une fois les produits mis à jour', () => {
+    expect(effectiveMonthlyPriceCents('ESSENTIEL', true)).toBe(2999);
+    expect(effectiveMonthlyPriceCents('PRO', true)).toBe(5999);
+    expect(effectiveMonthlyPriceCents('ENTREPRISE', true)).toBe(9999);
   });
 
   it('distingue montée et descente en gamme', () => {

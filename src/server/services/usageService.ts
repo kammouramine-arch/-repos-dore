@@ -14,6 +14,7 @@ const METRIC_TO_LIMIT: Partial<Record<UsageMetric, keyof PlanLimits>> = {
   AI_IMAGE_ANALYSIS: 'aiImageAnalyses',
   FOLLOWUP_SENT: 'followUps',
   QUOTE_SENT: 'quotesSent',
+  RECEIPT_SCAN: 'receiptScans',
 };
 
 export async function getUsage(organizationId: string, metric: UsageMetric): Promise<number> {

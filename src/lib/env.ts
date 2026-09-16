@@ -129,6 +129,11 @@ const serverSchema = z.object({
   STRIPE_SECRET_KEY: z.string().optional(),
   NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY: z.string().optional(),
   STRIPE_WEBHOOK_SECRET: z.string().optional(),
+  /**
+   * Secret du webhook Stripe Connect — encaissement des factures des artisans.
+   * Distinct de STRIPE_WEBHOOK_SECRET, qui couvre l'abonnement DEVISERA.
+   */
+  STRIPE_CONNECT_WEBHOOK_SECRET: z.string().optional(),
   STRIPE_PRICE_ESSENTIEL: z.string().optional(),
   STRIPE_PRICE_PRO: z.string().optional(),
   STRIPE_PRICE_ENTREPRISE: z.string().optional(),

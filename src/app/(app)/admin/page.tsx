@@ -3,7 +3,7 @@ import { requirePlatformAdmin } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
 import { formatCents } from '@/lib/money';
 import { formatDate } from '@/lib/i18n';
-import { PLANS } from '@/lib/billing/plans';
+import { PLANS, effectiveMonthlyPriceCents} from '@/lib/billing/plans';
 import { PageHeader } from '@/components/ui/page';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { StatCard } from '@/components/app/stat-card';
@@ -43,7 +43,7 @@ export default async function AdminPage() {
 
   const mrrCents = subscriptions
     .filter((row) => row.status === 'active')
-    .reduce((acc, row) => acc + PLANS[row.plan].monthlyPriceCents * row._count, 0);
+    .reduce((acc, row) => acc + effectiveMonthlyPriceCents(row.plan) * row._count, 0);
 
   return (
     <div className="space-y-6">

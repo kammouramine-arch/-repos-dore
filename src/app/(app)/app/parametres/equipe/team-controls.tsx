@@ -1,5 +1,6 @@
 'use client';
 
+import type { MemberRoleId } from '@devisia/shared';
 import { useState, useTransition } from 'react';
 import { AlertCircle, Check, MailPlus, RefreshCw, Trash2, UserRoundPlus } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -8,11 +9,11 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ROLE_LABELS } from '@/lib/auth/permissions';
 import { initials } from '@/lib/utils';
 
-type Member = { id: string; email: string; firstName: string | null; lastName: string | null; role: 'OWNER' | 'ADMIN' | 'MEMBER'; createdAt: string };
+type Member = { id: string; email: string; firstName: string | null; lastName: string | null; role: MemberRoleId; createdAt: string };
 type Invitation = { id: string; email: string; role: 'ADMIN' | 'MEMBER'; expiresAt: string; createdAt: string };
 const dateFormatter = new Intl.DateTimeFormat('fr-FR', { dateStyle: 'medium' });
 
-export function TeamControls({ plan, seats, usedSeats, pendingSeats, members, invitations, currentRole }: { plan: string; seats: number; usedSeats: number; pendingSeats: number; members: Member[]; invitations: Invitation[]; currentRole: 'OWNER' | 'ADMIN' | 'MEMBER' }) {
+export function TeamControls({ plan, seats, usedSeats, pendingSeats, members, invitations, currentRole }: { plan: string; seats: number; usedSeats: number; pendingSeats: number; members: Member[]; invitations: Invitation[]; currentRole: MemberRoleId }) {
   const [isPending, startTransition] = useTransition();
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);

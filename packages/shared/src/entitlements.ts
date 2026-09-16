@@ -1,4 +1,4 @@
-import { PLANS, type PlanFeatures, type PlanId, type PlanLimits, type SubscriptionStatusId } from './plans';
+import { PLANS, PLAN_ORDER, type PlanFeatures, type PlanId, type PlanLimits, type SubscriptionStatusId } from './plans';
 
 /**
  * Droits d'accès selon la formule et l'état de l'abonnement.
@@ -121,6 +121,41 @@ export function accessStateFor(
 
 export function limitsFor(plan: PlanId): PlanLimits {
   return PLANS[plan].limits;
+}
+
+/**
+ * Motif de refus d'une fonctionnalité réservée, ou null si elle est ouverte.
+ *
+ * Le serveur appelle cette fonction avant d'agir ; le client l'appelle pour
+ * afficher la bonne invitation. Une seule règle, deux usages — jamais une
+ * restriction inventée côté interface.
+ */
+export function featureBlock(
+  plan: PlanId,
+  feature: keyof PlanFeatures,
+): { blocked: boolean; requiredPlan: PlanId | null; reason: string | null } {
+  if (PLANS[plan].features[feature]) return { blocked: false, requiredPlan: null, reason: null };
+  const required = PLAN_ORDER.find((candidate) => PLANS[candidate].features[feature]) ?? null;
+  const labels: Record<keyof PlanFeatures, string> = {
+    automations: 'Les relances automatiques',
+    team: 'Le travail en équipe',
+    advancedAnalytics: 'L’analytique avancée',
+    integrations: 'Les intégrations',
+    publicLeadForm: 'Le formulaire public',
+    prioritySupport: 'Le support prioritaire',
+    whiteLabel: 'La marque blanche',
+    clientPayments: 'Le paiement en ligne de vos factures',
+    receiptScanning: 'Le scan des justificatifs',
+    accountantExport: 'L’export comptable',
+    advancedBranding: 'Les modèles de document avancés',
+  };
+  return {
+    blocked: true,
+    requiredPlan: required,
+    reason: required
+      ? `${labels[feature]} est inclus à partir de la formule ${PLANS[required].name}.`
+      : `${labels[feature]} n’est pas inclus dans votre formule.`,
+  };
 }
 
 export function featuresFor(plan: PlanId): PlanFeatures {

@@ -1,6 +1,6 @@
 import Link from 'next/link';
 import { ArrowRight, Check } from 'lucide-react';
-import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/billing/plans';
+import { PLANS, PLAN_ORDER, TRIAL_DAYS, effectiveMonthlyPriceCents} from '@/lib/billing/plans';
 import { formatCents } from '@/lib/money';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -44,7 +44,7 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
 
               <p className="mt-5 flex items-baseline gap-1.5">
                 <span className={cn('text-[40px] font-bold leading-none tracking-[-0.035em] tabular', plan.recommended ? 'text-accent-hover' : 'text-ink')}>
-                  {formatCents(plan.monthlyPriceCents, { compact: true })}
+                  {formatCents(effectiveMonthlyPriceCents(plan.id), { compact: true })}
                 </span>
                 <span className="text-[13px] text-muted">HT / mois</span>
               </p>

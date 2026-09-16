@@ -36,7 +36,18 @@ export type AuditAction =
   | 'followup.sent'
   | 'automation.updated'
   | 'subscription.updated'
-  | 'settings.updated';
+  | 'settings.updated'
+  | 'quote.signature.viewed'
+  | 'invoice.created'
+  | 'invoice.sent'
+  | 'invoice.cancelled'
+  | 'payment.recorded'
+  | 'payment_account.created'
+  | 'expense.created'
+  | 'expense.updated'
+  | 'expense.deleted'
+  | 'branding.updated'
+  | 'accounting.exported';
 
 export interface AuditInput {
   organizationId?: string | null;

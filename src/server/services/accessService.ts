@@ -1,9 +1,12 @@
 import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
-import { accessStateFor, type AccessState, type SubscriptionSnapshot } from '@devisia/shared';
+import { accessStateFor, featureBlock, type AccessState, type SubscriptionSnapshot } from '@devisia/shared';
 import { PLANS } from '@/lib/billing/plans';
 import type { PlanFeatures } from '@devisia/shared';
+
+/** Nom d'une capacité de formule, tel que déclaré dans le paquet partagé. */
+export type PlanFeatureName = keyof PlanFeatures;
 
 /**
  * Droits d'accès d'une organisation, calculés à partir de son abonnement.
@@ -55,22 +58,23 @@ export async function assertCanWrite(organizationId: string): Promise<AccessStat
 }
 
 /**
- * Server-side feature gate. UI visibility is only a convenience; every
- * mutation that unlocks a paid capability must call this function as well.
+ * Refuse côté serveur une fonctionnalité que la formule ne couvre pas.
+ *
+ * La visibilité dans l'interface n'est qu'un confort : toute mutation qui
+ * ouvre une capacité payante passe aussi par ici. La phrase de refus vient de
+ * `@devisia/shared`, donc le client affiche exactement la règle appliquée.
  */
 export async function assertPlanFeature(
   organizationId: string,
-  feature: keyof PlanFeatures,
+  feature: PlanFeatureName,
 ): Promise<void> {
   const subscription = await prisma.subscription.findUnique({
     where: { organizationId },
     select: { plan: true },
   });
-  const plan = subscription?.plan ?? 'ESSENTIEL';
-  if (!PLANS[plan].features[feature]) {
-    throw new AppError(
-      'PLAN_LIMIT',
-      `La fonctionnalité « ${feature} » n’est pas incluse dans la formule ${PLANS[plan].name}. Passez à une formule supérieure pour continuer.`,
-    );
+  const verdict = featureBlock(subscription?.plan ?? 'ESSENTIEL', feature);
+  if (verdict.blocked) {
+    throw new AppError('PLAN_LIMIT', verdict.reason ?? 'Cette fonctionnalité n’est pas incluse dans votre formule.');
   }
 }
+

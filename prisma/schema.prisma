@@ -32,6 +32,10 @@ enum MemberRole {
   OWNER
   ADMIN
   MEMBER
+  /**
+   * Comptable externe : lecture des documents et des exports, aucune écriture métier.
+   */
+  COMPTABLE
 }
 
 enum InvitationStatus {
@@ -160,6 +164,62 @@ enum PaymentMethod {
   AUTRE
 }
 
+/**
+ * Cycle de vie d'un encaissement, piloté par les webhooks du prestataire.
+ */
+enum PaymentStatus {
+  EN_ATTENTE
+  REUSSI
+  ECHOUE
+  REMBOURSE
+}
+
+/**
+ * Qui a encaissé : Stripe pour le paiement en ligne, MANUEL pour une saisie.
+ */
+enum PaymentProvider {
+  MANUEL
+  STRIPE
+}
+
+/**
+ * Postes de dépense, alignés sur un plan comptable artisan simplifié.
+ */
+enum ExpenseCategory {
+  MATERIAUX
+  OUTILLAGE
+  CARBURANT
+  VEHICULE
+  SOUS_TRAITANCE
+  ASSURANCE
+  TELECOM
+  LOYER
+  FOURNITURES
+  REPAS
+  FORMATION
+  TAXES
+  AUTRE
+}
+
+/**
+ * Modèles de document proposés à l'artisan. Trois styles tenus, pas un catalogue.
+ */
+enum DocumentTemplate {
+  MINIMAL
+  MODERNE
+  EXECUTIF
+}
+
+/**
+ * Avancement de l'inscription Stripe Connect d'une entreprise.
+ */
+enum StripeAccountStatus {
+  ABSENT
+  EN_COURS
+  ACTIF
+  RESTREINT
+}
+
 enum NotificationType {
   DEVIS_CONSULTE
   DEVIS_ACCEPTE
@@ -206,6 +266,10 @@ enum UsageMetric {
   FOLLOWUP_SENT
   QUOTE_SENT
   SEAT
+  /**
+   * Justificatifs lus par l'IA dans le mois.
+   */
+  RECEIPT_SCAN
 }
 
 enum FileKind {
@@ -214,6 +278,14 @@ enum FileKind {
   PIECE_JOINTE
   DEVIS_IMPORTE
   CATALOGUE_IMPORTE
+  /**
+   * Justificatif de dépense photographié ou importé.
+   */
+  RECU
+  /**
+   * Tracé de signature client, rendu sur le document accepté.
+   */
+  SIGNATURE
   AUTRE
 }
 
@@ -230,6 +302,10 @@ enum AIRequestKind {
   MESSAGE_DRAFT
   PRICEBOOK_EXTRACTION
   ASSISTANT
+  /**
+   * Lecture d'un justificatif : marchand, date, total, TVA.
+   */
+  RECEIPT_EXTRACTION
 }
 
 enum AIRequestStatus {
@@ -279,13 +355,17 @@ enum IntegrationStatus {
 model User {
   id              String    @id @default(uuid()) @db.Uuid
   email           String    @unique
-  /** Absent pour un compte créé avec Apple ou Google et sans mot de passe. */
+  /**
+   * Absent pour un compte créé avec Apple ou Google et sans mot de passe.
+   */
   passwordHash    String?
   firstName       String?
   lastName        String?
   phone           String?
   locale          Language  @default(fr)
-  /** Set only by an explicit choice; null means `locale` was inferred. */
+  /**
+   * Set only by an explicit choice; null means `locale` was inferred.
+   */
   localeChosenAt  DateTime?
   emailVerifiedAt DateTime?
   isPlatformAdmin Boolean   @default(false)
@@ -316,26 +396,31 @@ enum AuthProvider {
 
 /**
  * Identité d'authentification rattachée à un compte DEVISERA.
- *
  * Le compte est l'identité permanente ; l'adresse email n'en est qu'un
  * attribut. Un même compte peut porter une identité Apple, une identité
  * Google et un mot de passe. L'identifiant fournisseur (`sub`) est stable
  * même quand l'adresse relayée par Apple change ou est masquée.
  */
 model AuthIdentity {
-  id             String       @id @default(uuid()) @db.Uuid
-  userId         String       @db.Uuid
-  provider       AuthProvider
-  providerUserId String
-  /** Adresse fournie par le fournisseur à la dernière connexion, si connue. */
-  email          String?
-  emailVerified  Boolean      @default(false)
-  /** Adresse de relais privé Apple (« Masquer mon adresse »). */
-  privateRelay   Boolean      @default(false)
-  /** Jeton de rafraîchissement Apple chiffré, pour la révocation à la suppression. */
+  id                     String       @id @default(uuid()) @db.Uuid
+  userId                 String       @db.Uuid
+  provider               AuthProvider
+  providerUserId         String
+  /**
+   * Adresse fournie par le fournisseur à la dernière connexion, si connue.
+   */
+  email                  String?
+  emailVerified          Boolean      @default(false)
+  /**
+   * Adresse de relais privé Apple (« Masquer mon adresse »).
+   */
+  privateRelay           Boolean      @default(false)
+  /**
+   * Jeton de rafraîchissement Apple chiffré, pour la révocation à la suppression.
+   */
   refreshTokenCiphertext String?
-  createdAt      DateTime     @default(now())
-  lastUsedAt     DateTime     @default(now())
+  createdAt              DateTime     @default(now())
+  lastUsedAt             DateTime     @default(now())
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 
@@ -403,18 +488,28 @@ model AuthToken {
 // ---------------------------------------------------------------------------
 
 model Organization {
-  id        String    @id @default(uuid()) @db.Uuid
-  name      String
-  slug      String    @unique
-  locale    Language  @default(fr)
-  country   String    @default("FR")
-  timezone  String    @default("Europe/Paris")
-  currency  String    @default("EUR")
-  /** Créée à la volée après une connexion Apple/Google : l'artisan doit encore la nommer. */
-  setupPending Boolean @default(false)
-  deletedAt DateTime?
-  createdAt DateTime  @default(now())
-  updatedAt DateTime  @updatedAt
+  id           String   @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String   @unique
+  locale       Language @default(fr)
+  country      String   @default("FR")
+  timezone     String   @default("Europe/Paris")
+  currency     String   @default("EUR")
+  /**
+   * Créée à la volée après une connexion Apple/Google : l'artisan doit encore la nommer.
+   */
+  setupPending Boolean  @default(false)
+
+  // Stripe Connect — encaissement des factures par le client de l'artisan.
+  // Distinct de l'abonnement DEVISERA : ce compte appartient à l'artisan.
+  stripeAccountId      String?             @unique
+  stripeAccountStatus  StripeAccountStatus @default(ABSENT)
+  stripeChargesEnabled Boolean             @default(false)
+  stripePayoutsEnabled Boolean             @default(false)
+  stripeOnboardedAt    DateTime?
+  deletedAt            DateTime?
+  createdAt            DateTime            @default(now())
+  updatedAt            DateTime            @updatedAt
 
   members         OrganizationMember[]
   invitations     TeamInvitation[]
@@ -441,6 +536,8 @@ model Organization {
   counters        DocumentCounter[]
   analyticsEvents AnalyticsEvent[]
   deviceTokens    DeviceToken[]
+  expenses        Expense[]
+  signatures      QuoteSignature[]
 
   @@index([deletedAt])
   @@map("organizations")
@@ -484,37 +581,54 @@ model TeamInvitation {
 }
 
 model BusinessProfile {
-  id                  String    @id @default(uuid()) @db.Uuid
-  organizationId      String    @unique @db.Uuid
-  legalName           String
-  ownerName           String?
-  email               String?
-  phone               String?
-  website             String?
-  addressLine1        String?
-  addressLine2        String?
-  city                String?
-  postalCode          String?
-  country             String    @default("FR")
-  siret               String?
-  vatNumber           String?
-  insurance           String?
-  trade               Trade     @default(AUTRE)
-  vatStatus           VatStatus @default(ASSUJETTI)
-  defaultVatRate      Decimal   @default(20) @db.Decimal(5, 2)
-  defaultHourlyCents  Int       @default(4500)
-  paymentTerms        String?
-  quoteValidityDays   Int       @default(30)
-  quoteFooter         String?
-  quoteTerms          String?
-  brandColor          String    @default("#0F62FE")
-  logoFileId          String?   @db.Uuid
-  onboardingCompleted Boolean   @default(false)
-  createdAt           DateTime  @default(now())
-  updatedAt           DateTime  @updatedAt
+  id                 String    @id @default(uuid()) @db.Uuid
+  organizationId     String    @unique @db.Uuid
+  legalName          String
+  ownerName          String?
+  email              String?
+  phone              String?
+  website            String?
+  addressLine1       String?
+  addressLine2       String?
+  city               String?
+  postalCode         String?
+  country            String    @default("FR")
+  siret              String?
+  vatNumber          String?
+  insurance          String?
+  trade              Trade     @default(AUTRE)
+  vatStatus          VatStatus @default(ASSUJETTI)
+  defaultVatRate     Decimal   @default(20) @db.Decimal(5, 2)
+  defaultHourlyCents Int       @default(4500)
+  paymentTerms       String?
+  quoteValidityDays  Int       @default(30)
+  quoteFooter        String?
+  quoteTerms         String?
+  brandColor         String    @default("#0F62FE")
+  logoFileId         String?   @db.Uuid
+
+  // Marque documentaire : ce qui distingue le PDF d'un artisan de celui d'un autre.
+  documentTemplate DocumentTemplate @default(MODERNE)
+  /**
+   * Pied de page libre, sous les mentions légales (ex. « Merci de votre confiance »).
+   */
+  documentFooter   String?
+  /**
+   * Coordonnées de règlement imprimées sur la facture (IBAN, ordre du chèque).
+   */
+  paymentDetails   String?
+  /**
+   * Signature de l'artisan, apposée sur les documents émis.
+   */
+  signatureFileId  String?          @db.Uuid
+
+  onboardingCompleted Boolean  @default(false)
+  createdAt           DateTime @default(now())
+  updatedAt           DateTime @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   logo         File?        @relation("BusinessLogo", fields: [logoFileId], references: [id], onDelete: SetNull)
+  signature    File?        @relation("BusinessSignature", fields: [signatureFileId], references: [id], onDelete: SetNull)
 
   @@map("business_profiles")
 }
@@ -652,6 +766,8 @@ model Job {
   invoices     Invoice[]
   files        File[]
 
+  expenses Expense[]
+
   @@index([organizationId, status, deletedAt])
   @@index([customerId])
   @@map("jobs")
@@ -712,15 +828,16 @@ model Quote {
   createdAt DateTime  @default(now())
   updatedAt DateTime  @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  lead         Lead?        @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  job          Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  organization Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer         @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  lead         Lead?            @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  job          Job?             @relation(fields: [jobId], references: [id], onDelete: SetNull)
   items        QuoteItem[]
   events       QuoteEvent[]
   followUps    FollowUp[]
   invoices     Invoice[]
   files        File[]
+  signatures   QuoteSignature[]
 
   @@unique([organizationId, number])
   @@index([organizationId, status, deletedAt])
@@ -766,6 +883,14 @@ enum QuoteEventType {
   RELANCE
   PDF_TELECHARGE
   ANNULE
+  /**
+   * Le client a signé : acceptation explicite avec tracé.
+   */
+  SIGNE
+  /**
+   * Le devis accepté a produit une facture.
+   */
+  FACTURE
 }
 
 model QuoteEvent {
@@ -914,46 +1039,209 @@ model Invoice {
   customerId     String        @db.Uuid
   quoteId        String?       @db.Uuid
   jobId          String?       @db.Uuid
+  createdById    String?       @db.Uuid
   number         String
+  title          String        @default("")
   status         InvoiceStatus @default(BROUILLON)
   issuedAt       DateTime?
   dueAt          DateTime?
-  subtotalCents  Int           @default(0)
-  vatCents       Int           @default(0)
-  totalCents     Int           @default(0)
-  paidCents      Int           @default(0)
-  notes          String?
-  createdAt      DateTime      @default(now())
-  updatedAt      DateTime      @updatedAt
 
-  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  customer     Customer     @relation(fields: [customerId], references: [id], onDelete: Restrict)
-  quote        Quote?       @relation(fields: [quoteId], references: [id], onDelete: SetNull)
-  job          Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  // Montants en centimes, recalculés par le serveur à partir des lignes.
+  subtotalCents    Int     @default(0)
+  discountRate     Decimal @default(0) @db.Decimal(5, 2)
+  discountCents    Int     @default(0)
+  netSubtotalCents Int     @default(0)
+  vatCents         Int     @default(0)
+  totalCents       Int     @default(0)
+  /**
+   * Acompte déjà réglé au devis, déduit du restant dû.
+   */
+  depositCents     Int     @default(0)
+  paidCents        Int     @default(0)
+
+  notes        String?
+  terms        String?
+  paymentTerms String?
+
+  // Page publique de règlement : le client paie sans créer de compte.
+  publicToken           String    @unique
+  sentAt                DateTime?
+  paidAt                DateTime?
+  /**
+   * Dernière intention de paiement Stripe ouverte pour cette facture.
+   */
+  stripePaymentIntentId String?
+
+  deletedAt DateTime?
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  organization Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer     Customer      @relation(fields: [customerId], references: [id], onDelete: Restrict)
+  quote        Quote?        @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  job          Job?          @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  items        InvoiceItem[]
   payments     Payment[]
   followUps    FollowUp[]
 
   @@unique([organizationId, number])
-  @@index([organizationId, status])
+  @@index([organizationId, status, deletedAt])
+  @@index([organizationId, createdAt])
+  @@index([customerId])
   @@map("invoices")
 }
 
-model Payment {
+/**
+ * Ligne de facture.
+ * Copiée depuis le devis à la conversion puis figée : une facture émise ne doit
+ * plus bouger parce que le catalogue ou le devis d'origine a changé.
+ */
+model InvoiceItem {
   id             String        @id @default(uuid()) @db.Uuid
-  organizationId String        @db.Uuid
   invoiceId      String        @db.Uuid
-  amountCents    Int
-  method         PaymentMethod @default(VIREMENT)
-  reference      String?
-  receivedAt     DateTime      @default(now())
+  kind           QuoteItemKind @default(MATERIAU)
+  label          String
+  description    String?
+  unit           String        @default("u")
+  quantity       Decimal       @default(1) @db.Decimal(12, 3)
+  unitPriceCents Int           @default(0)
+  discountRate   Decimal       @default(0) @db.Decimal(5, 2)
+  vatRate        Decimal       @default(20) @db.Decimal(5, 2)
+  lineTotalCents Int           @default(0)
+  vatCents       Int           @default(0)
+  position       Int           @default(0)
   createdAt      DateTime      @default(now())
   updatedAt      DateTime      @updatedAt
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+
+  @@index([invoiceId, position])
+  @@map("invoice_items")
+}
+
+model Payment {
+  id                String          @id @default(uuid()) @db.Uuid
+  organizationId    String          @db.Uuid
+  invoiceId         String          @db.Uuid
+  amountCents       Int
+  currency          String          @default("EUR")
+  method            PaymentMethod   @default(VIREMENT)
+  provider          PaymentProvider @default(MANUEL)
+  status            PaymentStatus   @default(REUSSI)
+  reference         String?
+  /**
+   * Identifiant côté prestataire (PaymentIntent Stripe).
+   * Unique : un webhook rejoué ne crée jamais un second encaissement.
+   */
+  providerReference String?         @unique
+  /**
+   * Commission retenue par le prestataire, quand elle est connue.
+   */
+  feeCents          Int?
+  failureReason     String?
+  receivedAt        DateTime        @default(now())
+  refundedAt        DateTime?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
 
   organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
   invoice      Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Restrict)
 
   @@index([organizationId, receivedAt])
+  @@index([invoiceId, status])
   @@map("payments")
+}
+
+/**
+ * Signature d'un devis par le client.
+ * Acceptation électronique simple : le client ouvre le lien, lit le devis,
+ * accepte et trace sa signature. Ce n'est pas une signature électronique
+ * qualifiée au sens eIDAS et le produit ne le prétend nulle part.
+ * `documentHash` fige le contenu signé : si l'artisan modifie ensuite le devis,
+ * la signature ne correspond plus et le devis doit repartir en validation.
+ */
+model QuoteSignature {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @db.Uuid
+  quoteId        String    @db.Uuid
+  signerName     String
+  signerEmail    String?
+  /**
+   * Tracé manuscrit normalisé, stocké en SVG path pour rester net à l'impression.
+   */
+  strokePath     String
+  /**
+   * Empreinte du devis au moment de la signature (lignes et totaux).
+   */
+  documentHash   String
+  totalCents     Int
+  /**
+   * Preuve d'intention : la case d'acceptation explicite a été cochée.
+   */
+  accepted       Boolean   @default(true)
+  ipAddress      String?
+  userAgent      String?
+  signedAt       DateTime  @default(now())
+  /**
+   * Renseigné quand une modification du devis a invalidé cette signature.
+   */
+  invalidatedAt  DateTime?
+  createdAt      DateTime  @default(now())
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quote        Quote        @relation(fields: [quoteId], references: [id], onDelete: Cascade)
+
+  @@index([quoteId, signedAt])
+  @@index([organizationId, signedAt])
+  @@map("quote_signatures")
+}
+
+/**
+ * Dépense de l'entreprise, avec son justificatif.
+ * Les valeurs lues par l'IA sur le reçu et celles confirmées par l'artisan sont
+ * conservées séparément : `parsed` garde la lecture brute, les colonnes portent
+ * ce que l'artisan a validé. Rien n'est enregistré sans sa relecture.
+ */
+model Expense {
+  id             String          @id @default(uuid()) @db.Uuid
+  organizationId String          @db.Uuid
+  createdById    String?         @db.Uuid
+  jobId          String?         @db.Uuid
+  merchant       String
+  category       ExpenseCategory @default(AUTRE)
+  description    String?
+  spentAt        DateTime
+  amountCents    Int
+  vatCents       Int             @default(0)
+  currency       String          @default("EUR")
+  /**
+   * Numéro de pièce ou référence du ticket, quand il est lisible.
+   */
+  reference      String?
+  paymentMethod  PaymentMethod   @default(CARTE)
+  /**
+   * Justificatif photographié ou importé.
+   */
+  receiptFileId  String?         @db.Uuid
+  /**
+   * Lecture IA brute, conservée pour comparaison et correction.
+   */
+  parsed         Json?
+  /**
+   * Vrai quand les champs viennent d'une lecture IA relue par l'artisan.
+   */
+  aiExtracted    Boolean         @default(false)
+  deletedAt      DateTime?
+  createdAt      DateTime        @default(now())
+  updatedAt      DateTime        @updatedAt
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  job          Job?         @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  receipt      File?        @relation("ExpenseReceipt", fields: [receiptFileId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, spentAt])
+  @@index([organizationId, category])
+  @@map("expenses")
 }
 
 // ---------------------------------------------------------------------------
@@ -1042,11 +1330,13 @@ model File {
   createdAt      DateTime  @default(now())
   updatedAt      DateTime  @updatedAt
 
-  organization  Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
-  quote         Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
-  lead          Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
-  job           Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
-  businessLogos BusinessProfile[] @relation("BusinessLogo")
+  organization       Organization      @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  quote              Quote?            @relation(fields: [quoteId], references: [id], onDelete: SetNull)
+  lead               Lead?             @relation(fields: [leadId], references: [id], onDelete: SetNull)
+  job                Job?              @relation(fields: [jobId], references: [id], onDelete: SetNull)
+  businessLogos      BusinessProfile[] @relation("BusinessLogo")
+  businessSignatures BusinessProfile[] @relation("BusinessSignature")
+  expenses           Expense[]         @relation("ExpenseReceipt")
 
   @@index([organizationId, kind])
   @@map("files")
@@ -1230,9 +1520,13 @@ model AiConsent {
   userId         String          @db.Uuid
   organizationId String          @db.Uuid
   status         AiConsentStatus
-  /** Version du texte de consentement (AI_CONSENT_VERSION) sur laquelle porte la décision. */
+  /**
+   * Version du texte de consentement (AI_CONSENT_VERSION) sur laquelle porte la décision.
+   */
   version        Int
-  /** Fournisseur nommé dans le texte accepté (gemini, anthropic). */
+  /**
+   * Fournisseur nommé dans le texte accepté (gemini, anthropic).
+   */
   provider       String
   decidedAt      DateTime        @default(now())
   createdAt      DateTime        @default(now())

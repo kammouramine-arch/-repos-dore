@@ -3,7 +3,7 @@
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
 import { AlertTriangle, ArrowUpRight, CreditCard, RotateCcw } from 'lucide-react';
-import { PLANS, PLAN_ORDER, planChange, type PlanId } from '@devisia/shared';
+import { PLANS, PLAN_ORDER, planChange, type PlanId, effectiveMonthlyPriceCents} from '@devisia/shared';
 import { Button } from '@/components/ui/button';
 import { Select } from '@/components/ui/field';
 import {
@@ -157,7 +157,7 @@ export function PlanActions({
         >
           {PLAN_ORDER.map((id) => (
             <option key={id} value={id}>
-              {PLANS[id].name} — {formatCents(PLANS[id].monthlyPriceCents, { compact: true })}/mois
+              {PLANS[id].name} — {formatCents(effectiveMonthlyPriceCents(id), { compact: true })}/mois
             </option>
           ))}
         </Select>

@@ -1,6 +1,6 @@
 import type { Metadata } from 'next';
 import { LegalPage, LegalSection } from '@/components/marketing/legal';
-import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/billing/plans';
+import { PLANS, PLAN_ORDER, TRIAL_DAYS, effectiveMonthlyPriceCents} from '@/lib/billing/plans';
 import { formatCents } from '@/lib/money';
 
 export const metadata: Metadata = {
@@ -47,7 +47,7 @@ export default function TermsPage() {
         <ul>
           {PLAN_ORDER.map((id) => (
             <li key={id}>
-              {PLANS[id].name} : {formatCents(PLANS[id].monthlyPriceCents)} HT par mois.
+              {PLANS[id].name} : {formatCents(effectiveMonthlyPriceCents(id))} HT par mois.
             </li>
           ))}
           <li>Sur le web : période d’essai de {TRIAL_DAYS} jours sans carte bancaire.</li>

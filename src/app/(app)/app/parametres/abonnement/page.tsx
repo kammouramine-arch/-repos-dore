@@ -3,7 +3,7 @@ import Link from 'next/link';
 import { Apple, Check, CreditCard, ExternalLink, Mail, Smartphone, Sparkles } from 'lucide-react';
 import { requirePermission } from '@/lib/auth/page-session';
 import { prisma } from '@/lib/prisma';
-import { PLANS, PLAN_ORDER, TRIAL_DAYS } from '@/lib/billing/plans';
+import { PLANS, PLAN_ORDER, TRIAL_DAYS, effectiveMonthlyPriceCents} from '@/lib/billing/plans';
 import { isBillingConfigured } from '@/lib/billing/stripe';
 import { usageSummary } from '@/server/services/usageService';
 import { getBillingHistory } from '@/server/services/billingHistoryService';
@@ -87,7 +87,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
               <p className="text-[11.5px] font-semibold uppercase tracking-[0.12em] text-subtle">{t.settings.plan}</p>
               <CardTitle className="mt-1 text-[22px] tracking-[-0.02em]">{PLANS[plan].name}</CardTitle>
               <p className="mt-1 text-[13px] text-muted">
-                {formatCents(PLANS[plan].monthlyPriceCents)} {t.settings.exclTax} {t.settings.perMonth} · {format(t.settings.seats, { count: PLANS[plan].limits.seats })}
+                {formatCents(effectiveMonthlyPriceCents(plan))} {t.settings.exclTax} {t.settings.perMonth} · {format(t.settings.seats, { count: PLANS[plan].limits.seats })}
               </p>
             </div>
             <Badge tone={STATUS_TONE[subscription?.status ?? 'trialing'] ?? 'neutral'}>{statusLabel[subscription?.status ?? 'trialing']}</Badge>
@@ -207,7 +207,7 @@ export default async function SubscriptionPage({ searchParams }: { searchParams:
                     {current ? <Badge tone="accent">{t.settings.current}</Badge> : definition.recommended ? <Badge tone="success">{t.settings.recommended}</Badge> : null}
                   </div>
                   <p className="mt-2 text-[24px] font-bold tracking-[-0.02em] text-ink tabular">
-                    {formatCents(definition.monthlyPriceCents, { compact: true })}
+                    {formatCents(effectiveMonthlyPriceCents(definition.id), { compact: true })}
                     <span className="ml-1 text-[12.5px] font-normal text-muted">
                       {t.settings.exclTax} {t.settings.perMonth}
                     </span>

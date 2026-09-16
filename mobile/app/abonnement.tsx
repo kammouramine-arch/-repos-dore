@@ -10,6 +10,7 @@ import {
   accessStateFor,
   planChange,
   trialMessage,
+  effectiveMonthlyPriceCents,
   type BillingOverviewDTO,
   type PlanId,
 } from '@devisia/shared';
@@ -279,7 +280,7 @@ function WebAbonnementScreen() {
                 {!isCurrent && plan.recommended ? <Badge label={en ? 'Recommended' : 'Recommandé'} tone="success" /> : null}
               </View>
 
-              <Price cents={plan.monthlyPriceCents} suffix={en ? '/ month excl. VAT' : '/ mois HT'} />
+              <Price cents={effectiveMonthlyPriceCents(plan.id)} suffix={en ? '/ month excl. VAT' : '/ mois HT'} />
 
               <Divider />
 

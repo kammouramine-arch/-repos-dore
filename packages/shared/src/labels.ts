@@ -62,7 +62,9 @@ export type QuoteEventTypeId =
   | 'MODIFICATION_DEMANDEE'
   | 'RELANCE'
   | 'PDF_TELECHARGE'
-  | 'ANNULE';
+  | 'ANNULE'
+  | 'SIGNE'
+  | 'FACTURE';
 
 export const QUOTE_EVENT_LABELS: Record<QuoteEventTypeId, string> = {
   CREE: 'Créé',
@@ -75,6 +77,8 @@ export const QUOTE_EVENT_LABELS: Record<QuoteEventTypeId, string> = {
   RELANCE: 'Relancé',
   PDF_TELECHARGE: 'PDF téléchargé',
   ANNULE: 'Annulé',
+  SIGNE: 'Signé par le client',
+  FACTURE: 'Facturé',
 };
 
 export type FollowUpTone = 'court' | 'professionnel' | 'amical' | 'ferme';
@@ -122,3 +126,105 @@ export const FOLLOW_UP_TONE_HINTS: Record<FollowUpTone, string> = {
   amical: 'Ton chaleureux, adapté aux particuliers fidèles.',
   ferme: 'Dernier rappel courtois avant classement sans suite.',
 };
+
+
+/** Rôles d'équipe — mêmes littéraux que l'enum Prisma `MemberRole`. */
+export type MemberRoleId = 'OWNER' | 'ADMIN' | 'MEMBER' | 'COMPTABLE';
+
+/** Statuts de facture — mêmes littéraux que l'enum Prisma `InvoiceStatus`. */
+export type InvoiceStatusId =
+  | 'BROUILLON'
+  | 'ENVOYEE'
+  | 'PARTIELLE'
+  | 'PAYEE'
+  | 'EN_RETARD'
+  | 'ANNULEE';
+
+export const INVOICE_STATUS_LABELS: Record<InvoiceStatusId, string> = {
+  BROUILLON: 'Brouillon',
+  ENVOYEE: 'Envoyée',
+  PARTIELLE: 'Partiellement payée',
+  PAYEE: 'Payée',
+  EN_RETARD: 'En retard',
+  ANNULEE: 'Annulée',
+};
+
+/** Cycle de vie d'un encaissement. */
+export type PaymentStatusId = 'EN_ATTENTE' | 'REUSSI' | 'ECHOUE' | 'REMBOURSE';
+
+export const PAYMENT_STATUS_LABELS: Record<PaymentStatusId, string> = {
+  EN_ATTENTE: 'En attente',
+  REUSSI: 'Reçu',
+  ECHOUE: 'Échoué',
+  REMBOURSE: 'Remboursé',
+};
+
+export type PaymentProviderId = 'MANUEL' | 'STRIPE';
+export type PaymentMethodId = 'VIREMENT' | 'CARTE' | 'ESPECES' | 'CHEQUE' | 'AUTRE';
+
+export const PAYMENT_METHOD_LABELS: Record<PaymentMethodId, string> = {
+  VIREMENT: 'Virement',
+  CARTE: 'Carte bancaire',
+  ESPECES: 'Espèces',
+  CHEQUE: 'Chèque',
+  AUTRE: 'Autre',
+};
+
+/** Avancement de l'inscription Stripe Connect de l'entreprise. */
+export type StripeAccountStatusId = 'ABSENT' | 'EN_COURS' | 'ACTIF' | 'RESTREINT';
+
+/** Modèles de document proposés à l'artisan. */
+export type DocumentTemplateId = 'MINIMAL' | 'MODERNE' | 'EXECUTIF';
+
+export const DOCUMENT_TEMPLATE_LABELS: Record<DocumentTemplateId, { name: string; description: string }> = {
+  MINIMAL: {
+    name: 'Minimal',
+    description: 'Noir et blanc, beaucoup d’air. Le document se lit d’un coup d’œil.',
+  },
+  MODERNE: {
+    name: 'Moderne',
+    description: 'Bandeau à votre couleur et totaux mis en avant. Le choix par défaut.',
+  },
+  EXECUTIF: {
+    name: 'Exécutif',
+    description: 'En-tête dense et filets fins, pour les dossiers les plus formels.',
+  },
+};
+
+/** Postes de dépense. */
+export type ExpenseCategoryId =
+  | 'MATERIAUX'
+  | 'OUTILLAGE'
+  | 'CARBURANT'
+  | 'VEHICULE'
+  | 'SOUS_TRAITANCE'
+  | 'ASSURANCE'
+  | 'TELECOM'
+  | 'LOYER'
+  | 'FOURNITURES'
+  | 'REPAS'
+  | 'FORMATION'
+  | 'TAXES'
+  | 'AUTRE';
+
+export const EXPENSE_CATEGORY_LABELS: Record<ExpenseCategoryId, string> = {
+  MATERIAUX: 'Matériaux',
+  OUTILLAGE: 'Outillage',
+  CARBURANT: 'Carburant',
+  VEHICULE: 'Véhicule',
+  SOUS_TRAITANCE: 'Sous-traitance',
+  ASSURANCE: 'Assurance',
+  TELECOM: 'Téléphone et internet',
+  LOYER: 'Loyer',
+  FOURNITURES: 'Fournitures',
+  REPAS: 'Repas',
+  FORMATION: 'Formation',
+  TAXES: 'Taxes et cotisations',
+  AUTRE: 'Autre',
+};
+
+export const EXPENSE_CATEGORY_ORDER: ExpenseCategoryId[] = [
+  'MATERIAUX', 'OUTILLAGE', 'CARBURANT', 'VEHICULE', 'SOUS_TRAITANCE',
+  'FOURNITURES', 'ASSURANCE', 'TELECOM', 'LOYER', 'REPAS', 'FORMATION',
+  'TAXES', 'AUTRE',
+];
