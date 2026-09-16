@@ -151,6 +151,49 @@ Le numéro de build reste géré par EAS en versionnage distant.
 Le build 49 (1.0.1, EAS `833585a7`) reste consultable sur EAS : il s'est
 construit sans erreur, seul l'envoi a été refusé. Il n'y a rien à en tirer.
 
+## Deuxième passe — ce qui était invisible
+
+Le reproche était fondé : factures, dépenses, marque et signature étaient
+codées mais joignables uniquement en tapant une adresse, et l'écran d'export
+comptable n'existait pas. Une fonction qu'on ne trouve pas n'existe pas.
+
+| Fonction | Où elle se trouve maintenant |
+| --- | --- |
+| Factures | Mon espace → **Votre activité** → Factures |
+| Reçus et dépenses | Mon espace → **Votre activité** → Reçus et dépenses |
+| Export comptable | Mon espace → **Votre activité** → Export comptable |
+| Marque et logo | Mon espace → **Votre activité** → Ma marque |
+| Faire signer | Fiche du devis → bouton principal, tant que le devis n'est pas accepté |
+| Créer la facture | Fiche du devis accepté → bouton principal |
+
+« Votre activité » est la **première** section de Mon espace, avant les
+réglages de compte : elle est visible sans défiler.
+
+Ajouts de cette passe :
+
+- Écran d'export comptable (il n'existait pas) : période, aperçu chiffré
+  avant envoi, trois CSV remis à la feuille de partage d'iOS.
+- Téléversement du logo dans Ma marque, réduit et converti en PNG, avec
+  aperçu du document montrant où il apparaîtra.
+- PDF : police incorporée et sous-ensemblée — l'euro, les apostrophes
+  courbes et les ligatures sortent enfin correctement, sans l'approximation
+  que le jeu CP1252 imposait. Bandeau de couleur en tête, logo en haut à
+  droite sur pastille blanche, bloc de totaux plein avec le total dans une
+  bande de couleur, zone de signature à deux repères datés.
+
+## Build 51
+
+| | |
+| --- | --- |
+| Version | 1.0.2 |
+| Build | 51 |
+| EAS | `a59c86a6-0d6a-4373-9c25-586220204456` — terminé, IPA produit |
+| Soumission | `cd4fef79-bd4e-4322-ae84-4216ea8b2ee9` — terminée, acceptée par Apple |
+| Commit | `69b5c3b` |
+
+C'est ce build qu'il faut installer : les builds 49 et 50 n'ont pas la
+navigation corrigée.
+
 ## À tester sur iPhone réel
 
 1. **Installation propre** — désinstaller l'app, installer depuis TestFlight,
