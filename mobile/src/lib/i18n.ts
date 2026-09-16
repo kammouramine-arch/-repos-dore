@@ -91,6 +91,7 @@ const TEXT_TRANSLATIONS: Record<string, string> = {
   'Refusés': 'Declined', 'Aucun devis dans ce statut.': 'No quotes with this status.',
   'Vous n’avez encore aucun devis.': 'You have no quotes yet.', 'Votre premier devis est à moins d’une minute.': 'Your first quote is less than a minute away.',
   'Créer mon premier devis': 'Create my first quote', 'Envoyer le devis': 'Send the quote', 'Renvoyer le devis': 'Send the quote again',
+  'Faire signer le client': 'Get the client to sign', 'Créer la facture': 'Create the invoice',
   'Partager': 'Share', 'Détail': 'Details', 'Total HT': 'Subtotal', 'Total TTC': 'Total incl. VAT',
   'Devis moyen': 'Average quote', 'Chiffre d’affaires': 'Revenue', 'Devisé': 'Quoted', 'En jeu': 'Potential',
   'Sans réponse': 'No reply', 'Mis à jour': 'Updated', 'À récupérer': 'To recover',

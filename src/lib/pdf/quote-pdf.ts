@@ -1,4 +1,7 @@
-import { PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib';
+import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib';
+import fontkit from '@pdf-lib/fontkit';
+import { readFileSync } from 'node:fs';
+import path from 'node:path';
 import { centsToEuros, formatPercent, formatQuantity } from '../money';
 
 /**
@@ -10,25 +13,58 @@ import { centsToEuros, formatPercent, formatQuantity } from '../money';
  */
 
 const A4 = { width: 595.28, height: 841.89 };
-const MARGIN = 46;
+const MARGIN = 48;
 const CONTENT_WIDTH = A4.width - MARGIN * 2;
 
 const INK = rgb(0.043, 0.059, 0.078);
 const MUTED = rgb(0.357, 0.396, 0.447);
 const LINE = rgb(0.898, 0.91, 0.925);
 const SOFT = rgb(0.973, 0.976, 0.98);
+const WHITE = rgb(1, 1, 1);
 
-/** CP1252 ne couvre pas tous les caractères typographiques : on les normalise. */
+/**
+ * Polices du document.
+ *
+ * Les polices standard de PDF (Helvetica) sont codées en CP1252 : il fallait
+ * remplacer les apostrophes typographiques, les tirets longs et jusqu'au
+ * symbole euro par des approximations. Une police incorporée règle le
+ * problème à la racine et donne une vraie maîtrise typographique.
+ *
+ * pdf-lib ne retient que les glyphes réellement employés : le fichier
+ * embarqué pèse quelques kilo-octets, pas les quatre cents du fichier source.
+ */
+const FONT_DIR = path.join(process.cwd(), 'src/lib/pdf/fonts');
+let fontCache: { regular: Uint8Array; bold: Uint8Array } | null = null;
+
+function loadFonts(): { regular: Uint8Array; bold: Uint8Array } | null {
+  if (fontCache) return fontCache;
+  try {
+    fontCache = {
+      regular: new Uint8Array(readFileSync(path.join(FONT_DIR, 'DocSans-Regular.ttf'))),
+      bold: new Uint8Array(readFileSync(path.join(FONT_DIR, 'DocSans-Bold.ttf'))),
+    };
+    return fontCache;
+  } catch {
+    // Police introuvable (empaquetage inattendu) : on retombe sur Helvetica
+    // plutôt que de ne produire aucun document.
+    return null;
+  }
+}
+
+/**
+ * Nettoie un texte avant de le dessiner.
+ *
+ * La police incorporée couvre le latin étendu, l'euro et la ponctuation
+ * typographique : apostrophes courbes, tirets longs et espaces insécables
+ * sont conservés tels quels. Seuls les caractères de contrôle et les espaces
+ * exotiques, que pdf-lib ne sait pas mesurer, sont normalisés.
+ */
 function safeText(value: string | null | undefined): string {
   if (!value) return '';
   return value
-    .replace(new RegExp('[\\u202f\\u00a0\\u2009\\u2007]', 'g'), ' ')
-    .replace(new RegExp('[\\u2018\\u2019\\u201b]', 'g'), "'")
-    .replace(new RegExp('[\\u201c\\u201d]', 'g'), '"')
-    .replace(new RegExp('[\\u2013\\u2014]', 'g'), '-')
-    .replace(new RegExp('[\\u2026]', 'g'), '...')
+    .replace(new RegExp('[\\u202f\\u2009\\u2007]', 'g'), '\u00a0')
     .replace(new RegExp('[\\u00ad]', 'g'), '')
-    .replace(new RegExp('[^\\u0020-\\u00ff\\u0152\\u0153\\u20ac]', 'g'), '');
+    .replace(new RegExp('[\\u0000-\\u001f\\u007f]', 'g'), '');
 }
 
 function money(cents: number, input: Pick<QuotePdfInput, 'language' | 'country' | 'currency'>): string {
@@ -195,8 +231,15 @@ function newPage(ctx: Ctx) {
   ctx.y = A4.height - MARGIN;
 }
 
+/**
+ * Ouvre une page si le bloc à venir ne tient plus.
+ *
+ * La réserve correspond à la hauteur réelle du pied de page. Trop généreuse,
+ * elle envoyait en page 2 des blocs qui tenaient — un devis de quatre lignes
+ * sur deux pages fait négligé.
+ */
 function ensureSpace(ctx: Ctx, needed: number) {
-  if (ctx.y - needed < MARGIN + 60) newPage(ctx);
+  if (ctx.y - needed < MARGIN + 42) newPage(ctx);
 }
 
 /** Découpe un texte pour qu'il tienne dans une largeur donnée. */
@@ -219,7 +262,15 @@ function wrap(text: string, font: PDFFont, size: number, maxWidth: number): stri
 function drawText(
   ctx: Ctx,
   text: string,
-  options: { x: number; y: number; size?: number; bold?: boolean; color?: ReturnType<typeof rgb> },
+  options: {
+    x: number;
+    y: number;
+    size?: number;
+    bold?: boolean;
+    color?: ReturnType<typeof rgb>;
+    /** Sert aux libellés posés sur le bandeau de couleur. */
+    opacity?: number;
+  },
 ) {
   ctx.page.drawText(safeText(text), {
     x: options.x,
@@ -227,6 +278,7 @@ function drawText(
     size: options.size ?? 9.5,
     font: options.bold ? ctx.bold : ctx.regular,
     color: options.color ?? INK,
+    opacity: options.opacity,
   });
 }
 
@@ -238,8 +290,18 @@ export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> 
   doc.setProducer('DEVISERA');
   doc.setCreator('DEVISERA');
 
-  const regular = await doc.embedFont(StandardFonts.Helvetica);
-  const bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  const embedded = loadFonts();
+  let regular: PDFFont;
+  let bold: PDFFont;
+  if (embedded) {
+    doc.registerFontkit(fontkit);
+    regular = await doc.embedFont(embedded.regular, { subset: true });
+    bold = await doc.embedFont(embedded.bold, { subset: true });
+  } else {
+    const { StandardFonts } = await import('pdf-lib');
+    regular = await doc.embedFont(StandardFonts.Helvetica);
+    bold = await doc.embedFont(StandardFonts.HelveticaBold);
+  }
   const ctx: Ctx = {
     template: input.template ?? 'MODERNE',
     doc,
@@ -264,10 +326,24 @@ export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> 
   return doc.save();
 }
 
+/**
+ * En-tête du document.
+ *
+ * L'ancien en-tête était du texte posé sur du blanc : à l'ouverture, on ne
+ * voyait rien avant la première ligne du tableau. Un bandeau plein à la
+ * couleur de l'entreprise donne au document un point d'ancrage immédiat, y
+ * compris en vignette dans une boîte mail.
+ *
+ * Le logo est placé en haut à droite sur une pastille blanche : c'est là que
+ * l'œil se pose en premier sur un document professionnel, et le fond blanc
+ * garantit qu'un logo sombre reste lisible quelle que soit la couleur choisie.
+ */
 async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
-  const top = ctx.y;
-  let logoImage: PDFImage | null = null;
+  const labels = quotePdfLabels(input);
+  const minimal = ctx.template === 'MINIMAL';
+  const bandHeight = minimal ? 0 : 128;
 
+  let logoImage: PDFImage | null = null;
   if (input.company.logo) {
     try {
       logoImage = input.company.logo.mimeType.includes('png')
@@ -278,95 +354,103 @@ async function drawHeader(ctx: Ctx, input: QuotePdfInput) {
     }
   }
 
+  // Modèle Moderne et Exécutif : bandeau plein bord à bord.
+  if (!minimal) {
+    ctx.page.drawRectangle({
+      x: 0,
+      y: A4.height - bandHeight,
+      width: A4.width,
+      height: bandHeight,
+      color: ctx.template === 'EXECUTIF' ? INK : ctx.accent,
+    });
+  }
+
+  const bandInk = minimal ? INK : WHITE;
+  const bandMuted = minimal ? MUTED : rgb(1, 1, 1);
+  const top = minimal ? A4.height - MARGIN : A4.height - 34;
+
+  // Type de document, en très gros : « DEVIS » ou « FACTURE ».
+  drawText(ctx, labels.title, {
+    x: MARGIN,
+    y: top - 26,
+    size: 27,
+    bold: true,
+    color: bandInk,
+  });
+  drawText(ctx, safeText(input.number), {
+    x: MARGIN,
+    y: top - 48,
+    size: 12,
+    bold: true,
+    color: bandMuted,
+    opacity: minimal ? 1 : 0.9,
+  });
+
+  // Dates alignées à gauche sous le numéro, en deux colonnes serrées.
+  const dates: [string, string][] = [[labels.issued, formatDate(input.createdAt, input)]];
+  if (input.document === 'invoice' && input.dueAt) dates.push([labels.dueOn, formatDate(input.dueAt, input)]);
+  else if (input.validUntil) dates.push([labels.validUntil, formatDate(input.validUntil, input)]);
+
+  dates.forEach(([label, value], index) => {
+    const x = MARGIN + index * 168;
+    drawText(ctx, label.toUpperCase(), {
+      x,
+      y: top - 72,
+      size: 6.5,
+      bold: true,
+      color: bandMuted,
+      opacity: minimal ? 0.75 : 0.72,
+    });
+    drawText(ctx, value, { x, y: top - 85, size: 9.5, color: bandInk, opacity: minimal ? 1 : 0.95 });
+  });
+
+  // Logo en haut à droite, sur pastille blanche pour rester lisible.
+  const plateSize = 64;
+  const plateX = A4.width - MARGIN - plateSize;
+  const plateY = top - plateSize + 8;
   if (logoImage) {
-    const maxW = 132;
-    const maxH = 46;
-    const scale = Math.min(maxW / logoImage.width, maxH / logoImage.height);
+    if (!minimal) {
+      ctx.page.drawRectangle({
+        x: plateX - 6,
+        y: plateY - 6,
+        width: plateSize + 12,
+        height: plateSize + 12,
+        color: WHITE,
+      });
+    }
+    const scale = Math.min(plateSize / logoImage.width, plateSize / logoImage.height);
     const width = logoImage.width * scale;
     const height = logoImage.height * scale;
-    ctx.page.drawImage(logoImage, { x: MARGIN, y: top - height, width, height });
+    ctx.page.drawImage(logoImage, {
+      x: plateX + (plateSize - width) / 2,
+      y: plateY + (plateSize - height) / 2,
+      width,
+      height,
+    });
   } else {
-    drawText(ctx, input.company.name.toUpperCase(), {
-      x: MARGIN,
-      y: top - 16,
-      size: 15,
+    // Sans logo, le nom de l'entreprise tient le coin droit.
+    const name = safeText(input.company.name).toUpperCase();
+    const size = name.length > 26 ? 10 : 13;
+    drawText(ctx, name, {
+      x: A4.width - MARGIN - ctx.bold.widthOfTextAtSize(name, size),
+      y: top - 26,
+      size,
       bold: true,
+      color: bandInk,
     });
   }
 
-  // Bloc identité du devis, aligné à droite.
-  const rightX = A4.width - MARGIN;
-  const labels = quotePdfLabels(input);
-  const label = labels.title;
-  drawText(ctx, label, {
-    x: rightX - ctx.bold.widthOfTextAtSize(label, 22),
-    y: top - 18,
-    size: 22,
-    bold: true,
-    color: ctx.accent,
-  });
-  const numberText = safeText(input.number);
-  drawText(ctx, numberText, {
-    x: rightX - ctx.regular.widthOfTextAtSize(numberText, 10.5),
-    y: top - 34,
-    size: 10.5,
-    color: MUTED,
-  });
-  const dateText = `${labels.issued} ${formatDate(input.createdAt, input)}`;
-  drawText(ctx, dateText, {
-    x: rightX - ctx.regular.widthOfTextAtSize(safeText(dateText), 9),
-    y: top - 48,
-    size: 9,
-    color: MUTED,
-  });
-  if (input.validUntil) {
-    const validity = `${labels.validUntil} ${formatDate(input.validUntil, input)}`;
-    drawText(ctx, validity, {
-      x: rightX - ctx.regular.widthOfTextAtSize(safeText(validity), 9),
-      y: top - 60,
-      size: 9,
-      color: MUTED,
-    });
-  }
+  ctx.y = minimal ? top - 108 : A4.height - bandHeight - 26;
 
-  ctx.y = top - 78;
-
-  // Les trois modèles se distinguent par le filet sous l'en-tête — le seul
-  // endroit où un artisan perçoit la différence en un coup d'œil. Le reste de
-  // la mise en page est identique : trois documents lisibles valent mieux que
-  // trois documents différemment illisibles.
-  if (ctx.template === 'MINIMAL') {
+  if (minimal) {
     ctx.page.drawLine({
-      start: { x: MARGIN, y: ctx.y },
-      end: { x: A4.width - MARGIN, y: ctx.y },
-      thickness: 0.6,
-      color: LINE,
+      start: { x: MARGIN, y: ctx.y + 12 },
+      end: { x: A4.width - MARGIN, y: ctx.y + 12 },
+      thickness: 1.4,
+      color: INK,
     });
-  } else if (ctx.template === 'MODERNE') {
-    // Bandeau plein à la couleur de l'entreprise.
-    ctx.page.drawRectangle({
-      x: MARGIN,
-      y: ctx.y - 3,
-      width: CONTENT_WIDTH,
-      height: 3,
-      color: ctx.accent,
-    });
-  } else {
-    // Exécutif : double filet fin, registre plus formel.
-    ctx.page.drawLine({
-      start: { x: MARGIN, y: ctx.y },
-      end: { x: A4.width - MARGIN, y: ctx.y },
-      thickness: 1.2,
-      color: ctx.accent,
-    });
-    ctx.page.drawLine({
-      start: { x: MARGIN, y: ctx.y - 3.5 },
-      end: { x: A4.width - MARGIN, y: ctx.y - 3.5 },
-      thickness: 0.5,
-      color: LINE,
-    });
+    ctx.y -= 6;
   }
-  ctx.y -= 24;
 }
 
 function drawParties(ctx: Ctx, input: QuotePdfInput) {
@@ -481,7 +565,7 @@ function drawTableHeader(ctx: Ctx, input: QuotePdfInput) {
   drawRight(ctx, labels.unitPrice, COLUMNS.unitPrice + 50, y, 7.5, true, MUTED);
   drawRight(ctx, labels.tax, COLUMNS.vat + 30, y, 7.5, true, MUTED);
   drawRight(ctx, labels.total, COLUMNS.total, y, 7.5, true, MUTED);
-  ctx.y -= 24;
+  ctx.y -= 21;
 }
 
 function drawRight(
@@ -559,9 +643,17 @@ function drawLinesTable(ctx: Ctx, input: QuotePdfInput) {
   }
 }
 
+/**
+ * Bloc des totaux.
+ *
+ * C'est le seul endroit du document que tout le monde lit. Il est donc
+ * dessiné comme un bloc plein, aligné à droite, avec le total dans une bande
+ * à la couleur de l'entreprise : on le trouve sans chercher, même en
+ * diagonale sur un téléphone.
+ */
 function drawTotals(ctx: Ctx, input: QuotePdfInput) {
   const labels = quotePdfLabels(input);
-  const rows: { label: string; value: string; strong?: boolean }[] = [
+  const rows: { label: string; value: string }[] = [
     { label: labels.totalExLabel, value: money(input.subtotalCents, input) },
   ];
   if (input.discountCents > 0) {
@@ -579,50 +671,63 @@ function drawTotals(ctx: Ctx, input: QuotePdfInput) {
     }
   }
 
-  const boxHeight = rows.length * 15 + 46 + (input.depositCents > 0 ? 16 : 0);
-  ensureSpace(ctx, boxHeight + 20);
-
-  const boxWidth = 232;
+  const ROW = 15;
+  const GRAND = 34;
+  const boxWidth = 250;
   const boxX = A4.width - MARGIN - boxWidth;
-  let y = ctx.y - 6;
+  const bodyHeight = rows.length * ROW + 12;
+  const total = bodyHeight + GRAND;
+  ensureSpace(ctx, total + 16);
 
-  for (const row of rows) {
-    drawText(ctx, row.label, { x: boxX, y, size: 9.5, color: MUTED });
-    drawRight(ctx, row.value, A4.width - MARGIN, y, 9.5, false);
-    y -= 15;
-  }
+  const topY = ctx.y - 4;
 
-  y -= 4;
+  // Corps : fond très clair, une ligne par poste.
   ctx.page.drawRectangle({
-    x: boxX - 12,
-    y: y - 22,
-    width: boxWidth + 12,
-    height: 32,
+    x: boxX,
+    y: topY - bodyHeight,
+    width: boxWidth,
+    height: bodyHeight,
     color: SOFT,
   });
-  // Le total du document est TTC (ou net, en franchise) : ce n'est pas la
-  // colonne « TOTAL HT » du tableau.
-  drawText(ctx, input.company.vatExempt ? labels.grandTotalExempt : labels.grandTotal, { x: boxX, y: y - 12, size: 10.5, bold: true });
-  drawRight(ctx, money(input.totalCents, input), A4.width - MARGIN, y - 13, 13, true, ctx.accent);
-  y -= 34;
 
-  if (input.depositCents > 0) {
-    drawText(ctx, labels.deposit, { x: boxX, y: y - 8, size: 9, color: MUTED });
-    drawRight(ctx, money(input.depositCents, input), A4.width - MARGIN, y - 8, 9, true);
-    y -= 18;
+  let y = topY - 17;
+  for (const row of rows) {
+    drawText(ctx, row.label, { x: boxX + 14, y, size: 9.5, color: MUTED });
+    drawRight(ctx, row.value, A4.width - MARGIN - 14, y, 9.5, false);
+    y -= ROW;
   }
 
+  // Bande du total : la couleur de l'entreprise, texte blanc.
+  const grandY = topY - bodyHeight - GRAND;
+  const strong = ctx.template === 'EXECUTIF' ? INK : ctx.accent;
+  ctx.page.drawRectangle({ x: boxX, y: grandY, width: boxWidth, height: GRAND, color: strong });
+  drawText(ctx, input.company.vatExempt ? labels.grandTotalExempt : labels.grandTotal, {
+    x: boxX + 14,
+    y: grandY + 13,
+    size: 9.5,
+    bold: true,
+    color: WHITE,
+  });
+  drawRight(ctx, money(input.totalCents, input), A4.width - MARGIN - 14, grandY + 11, 14.5, true, WHITE);
+
+  // Acompte et durée : posés à gauche, en regard du bloc, sans l'alourdir.
+  let leftY = topY - 17;
+  if (input.depositCents > 0) {
+    drawText(ctx, labels.deposit.toUpperCase(), { x: MARGIN, y: leftY, size: 6.5, bold: true, color: MUTED });
+    drawText(ctx, money(input.depositCents, input), { x: MARGIN, y: leftY - 15, size: 12, bold: true, color: strong });
+    leftY -= 36;
+  }
   if (input.estimatedDurationMin) {
     const hours = Math.round((input.estimatedDurationMin / 60) * 10) / 10;
-    drawText(ctx, `${labels.duration}: ${formatQuantity(hours)} h`, {
+    drawText(ctx, `${labels.duration} : ${formatQuantity(hours)} h`, {
       x: MARGIN,
-      y: ctx.y - 6,
+      y: leftY,
       size: 9,
       color: MUTED,
     });
   }
 
-  ctx.y = y - 14;
+  ctx.y = grandY - 22;
 }
 
 function drawConditions(ctx: Ctx, input: QuotePdfInput) {
@@ -755,70 +860,94 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
 
   // Devis déjà signé : on imprime la signature reçue plutôt qu'une case vide.
   const signature = input.signature;
-  const height = signature ? 104 : 92;
-  ensureSpace(ctx, height + 16);
+  const strong = ctx.template === 'EXECUTIF' ? INK : ctx.accent;
+  const height = signature ? 96 : 86;
+  ensureSpace(ctx, height + 14);
   const boxY = ctx.y - height;
+
   ctx.page.drawRectangle({
     x: MARGIN,
     y: boxY,
     width: CONTENT_WIDTH,
     height,
-    borderColor: signature ? ctx.accent : LINE,
-    borderWidth: 0.8,
-    color: rgb(1, 1, 1),
+    color: signature ? rgb(0.976, 0.984, 1) : WHITE,
+    borderColor: signature ? strong : LINE,
+    borderWidth: signature ? 1.2 : 0.8,
   });
-  drawText(ctx, signature ? labels.signedElectronically : labels.acceptance, {
-    x: MARGIN + 14,
+
+  // Onglet de titre : le bloc se lit comme une zone à part, pas comme une
+  // dernière ligne du document.
+  const tabLabel = signature ? labels.signedElectronically : labels.acceptance;
+  const tabWidth = ctx.bold.widthOfTextAtSize(safeText(tabLabel), 7.5) + 20;
+  ctx.page.drawRectangle({
+    x: MARGIN,
     y: boxY + height - 18,
-    size: 8,
+    width: tabWidth,
+    height: 18,
+    color: signature ? strong : SOFT,
+  });
+  drawText(ctx, tabLabel, {
+    x: MARGIN + 10,
+    y: boxY + height - 12.5,
+    size: 7.5,
     bold: true,
-    color: signature ? ctx.accent : MUTED,
+    color: signature ? WHITE : MUTED,
   });
 
   if (signature) {
     drawText(ctx, safeText(signature.signerName), {
       x: MARGIN + 14,
-      y: boxY + height - 40,
-      size: 11,
+      y: boxY + height - 44,
+      size: 12,
       bold: true,
     });
-    drawText(
-      ctx,
-      `${labels.signedOn} ${formatDate(signature.signedAt, input)}`,
-      { x: MARGIN + 14, y: boxY + height - 55, size: 8.5, color: MUTED },
-    );
+    drawText(ctx, `${labels.signedOn} ${formatDate(signature.signedAt, input)}`, {
+      x: MARGIN + 14,
+      y: boxY + height - 60,
+      size: 8.5,
+      color: MUTED,
+    });
     drawSignatureStroke(ctx, signature.strokePath, {
       x: MARGIN + 250,
-      y: boxY + 14,
-      width: CONTENT_WIDTH - 264,
-      height: height - 34,
+      y: boxY + 16,
+      width: CONTENT_WIDTH - 268,
+      height: height - 42,
     });
     ctx.page.drawLine({
-      start: { x: MARGIN + 250, y: boxY + 12 },
-      end: { x: A4.width - MARGIN - 14, y: boxY + 12 },
+      start: { x: MARGIN + 250, y: boxY + 14 },
+      end: { x: A4.width - MARGIN - 18, y: boxY + 14 },
       thickness: 0.6,
-      color: LINE,
+      color: strong,
+      opacity: 0.4,
     });
   } else {
-    drawText(ctx, labels.acceptanceText, { x: MARGIN + 14, y: boxY + 58, size: 8.5, color: MUTED });
-    drawText(ctx, `${labels.date} : ..........................`, { x: MARGIN + 14, y: boxY + 32, size: 9 });
-    drawText(ctx, `${labels.signature} :`, { x: MARGIN + 250, y: boxY + 32, size: 9 });
+    drawText(ctx, labels.acceptanceText, {
+      x: MARGIN + 14,
+      y: boxY + height - 36,
+      size: 8.5,
+      color: MUTED,
+    });
+
+    // Deux zones nettes : la date à gauche, la signature à droite, chacune
+    // avec sa ligne. Un cadre sans repère se remplit n'importe comment.
+    const zoneY = boxY + 18;
+    drawText(ctx, labels.date.toUpperCase(), { x: MARGIN + 14, y: zoneY + 22, size: 6.5, bold: true, color: MUTED });
     ctx.page.drawLine({
-      start: { x: MARGIN + 250, y: boxY + 16 },
-      end: { x: A4.width - MARGIN - 14, y: boxY + 16 },
-      thickness: 0.6,
+      start: { x: MARGIN + 14, y: zoneY },
+      end: { x: MARGIN + 190, y: zoneY },
+      thickness: 0.7,
       color: LINE,
     });
-    if (input.validUntil) {
-      drawText(ctx, `${labels.offerValid} ${formatDate(input.validUntil, input)}.`, {
-        x: MARGIN + 14,
-        y: boxY + 12,
-        size: 8,
-        color: MUTED,
-      });
-    }
+
+    drawText(ctx, labels.signature.toUpperCase(), { x: MARGIN + 250, y: zoneY + 22, size: 6.5, bold: true, color: MUTED });
+    ctx.page.drawLine({
+      start: { x: MARGIN + 250, y: zoneY },
+      end: { x: A4.width - MARGIN - 18, y: zoneY },
+      thickness: 0.7,
+      color: LINE,
+    });
   }
-  ctx.y = boxY - 16;
+  ctx.y = boxY - 14;
 }
 
 function drawFooters(ctx: Ctx, input: QuotePdfInput) {

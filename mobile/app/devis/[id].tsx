@@ -44,6 +44,14 @@ const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'dang
   ANNULE: 'neutral',
 };
 
+/**
+ * Statuts où « Faire signer » a un sens.
+ *
+ * Un devis déjà accepté n'a plus à être signé ; un devis annulé ou expiré non
+ * plus. Le serveur applique la même règle : le bouton ne fait que refléter ce
+ * qui est réellement possible.
+ */
+const SIGNABLE: string[] = ['BROUILLON', 'ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'];
 const SENDABLE = ['BROUILLON', 'ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'];
 /** Statuts pour lesquels la page publique existe réellement côté serveur. */
 const LIEN_PUBLIC_VISIBLE = ['ENVOYE', 'CONSULTE', 'ACCEPTE', 'REFUSE', 'MODIFICATION_DEMANDEE', 'EXPIRE'];
@@ -205,11 +213,41 @@ export default function DevisDetailScreen() {
         ) : null}
 
         <View style={{ gap: spacing.md }}>
+          {/*
+            Faire signer, sur place.
+            
+            C'est l'action qui transforme un devis en chantier, et le moment où
+            le client est encore devant l'artisan. Elle passe donc devant
+            l'envoi tant que le devis n'est pas accepté : un devis qu'on fait
+            signer tout de suite ne part pas se perdre dans une boîte mail.
+          */}
+          {SIGNABLE.includes(quote.status) ? (
+            <Button
+              title="Faire signer le client"
+              icon="create"
+              size="lg"
+              haptic
+              onPress={() => router.push({ pathname: '/devis/signature', params: { id: quote.id } })}
+            />
+          ) : null}
+
+          {/* Devis accepté : la suite logique est la facture. */}
+          {quote.status === 'ACCEPTE' ? (
+            <Button
+              title="Créer la facture"
+              icon="document-text"
+              size="lg"
+              haptic
+              onPress={() => router.push({ pathname: '/factures', params: { devis: quote.id } })}
+            />
+          ) : null}
+
           {SENDABLE.includes(quote.status) ? (
             <Button
               title={quote.status === 'BROUILLON' ? 'Envoyer le devis' : 'Renvoyer le devis'}
               icon="send"
               size="lg"
+              variant={SIGNABLE.includes(quote.status) ? 'secondary' : 'primary'}
               loading={sending}
               onPress={confirmSend}
               haptic

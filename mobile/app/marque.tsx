@@ -1,5 +1,7 @@
 import * as React from 'react';
-import { Pressable, ScrollView, Text, View } from 'react-native';
+import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import * as ImagePicker from 'expo-image-picker';
+import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import {
@@ -9,7 +11,7 @@ import {
 } from '@devisia/shared';
 import { Body, Button, Caption, Card, ErrorState, Screen, Skeleton } from '@/components/ui';
 import { AuthField } from '@/components/auth-kit';
-import { api } from '@/lib/api';
+import { api, API_URL } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
@@ -48,11 +50,13 @@ function DocumentPreview({
   template,
   color,
   businessName,
+  logoUrl,
   en,
 }: {
   template: DocumentTemplateId;
   color: string;
   businessName: string;
+  logoUrl: string | null;
   en: boolean;
 }) {
   return (
@@ -64,14 +68,44 @@ function DocumentPreview({
         borderColor: colors.line,
         padding: spacing.lg,
         gap: 10,
-        aspectRatio: 0.72,
+        aspectRatio: 1.05,
       }}
     >
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-        <Text numberOfLines={1} style={{ fontSize: 11, fontWeight: '700', color: colors.ink, flex: 1 }}>
-          {businessName.toUpperCase()}
-        </Text>
-        <Text style={{ fontSize: 13, fontWeight: '700', color }}>{en ? 'QUOTE' : 'DEVIS'}</Text>
+      {/*
+        L'en-tête reproduit le PDF : type de document à gauche, logo en haut à
+        droite. C'est là que le logo apparaît sur le document réel.
+      */}
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', gap: spacing.sm }}>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Text style={{ fontSize: 14, fontWeight: '700', color: template === 'MINIMAL' ? colors.ink : color }}>
+            {en ? 'QUOTE' : 'DEVIS'}
+          </Text>
+          <Text numberOfLines={1} style={{ fontSize: 9, fontWeight: '600', color: colors.subtle }}>
+            {businessName.toUpperCase()}
+          </Text>
+        </View>
+        {logoUrl ? (
+          <Image
+            source={{ uri: logoUrl }}
+            resizeMode="contain"
+            style={{ width: 42, height: 42, borderRadius: 4 }}
+          />
+        ) : (
+          <View
+            style={{
+              width: 42,
+              height: 42,
+              borderRadius: 4,
+              borderWidth: 1,
+              borderStyle: 'dashed',
+              borderColor: colors.line,
+              alignItems: 'center',
+              justifyContent: 'center',
+            }}
+          >
+            <Ionicons name="image-outline" size={17} color={colors.subtle} />
+          </View>
+        )}
       </View>
 
       {/* Le filet : seule différence visible entre les trois modèles. */}
@@ -129,7 +163,81 @@ export default function MarqueScreen() {
   const [footer, setFooter] = React.useState<string | null>(null);
   const [paymentDetails, setPaymentDetails] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
+  const [uploading, setUploading] = React.useState(false);
   const submitting = React.useRef(false);
+
+  /**
+   * Téléverse le logo de l'entreprise.
+   *
+   * L'image est réduite et convertie en PNG avant l'envoi : les logos sortent
+   * souvent d'un export imprimeur de plusieurs mégaoctets, et le HEIC des
+   * iPhone n'est lisible ni par le moteur PDF ni par le navigateur du client.
+   * L'enregistrement est immédiat — un logo qu'on choisit puis qu'on oublie
+   * d'enregistrer ne sert à rien.
+   */
+  async function pickLogo() {
+    const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
+    if (!permission.granted) {
+      toast({
+        title: en
+          ? 'Allow access to your photos to choose a logo.'
+          : 'Autorisez l’accès à vos photos pour choisir un logo.',
+      });
+      return;
+    }
+    const picked = await ImagePicker.launchImageLibraryAsync({
+      mediaTypes: ['images'],
+      quality: 1,
+    });
+    if (picked.canceled || !picked.assets[0]) return;
+
+    setUploading(true);
+    try {
+      const asset = picked.assets[0];
+      const context = ImageManipulator.manipulate(asset.uri);
+      const longest = Math.max(asset.width ?? 0, asset.height ?? 0);
+      if (longest > 600) {
+        context.resize((asset.height ?? 0) > (asset.width ?? 0) ? { height: 600 } : { width: 600 });
+      }
+      const rendered = await context.renderAsync();
+      // PNG : un logo a souvent un fond transparent, que le JPEG noircirait.
+      const image = await rendered.saveAsync({ format: SaveFormat.PNG });
+      rendered.release();
+
+      const uploaded = await api.files.upload(
+        { uri: image.uri, name: 'logo.png', type: 'image/png' },
+        'LOGO',
+      );
+      const updated = await api.branding.update({ logoFileId: uploaded.id });
+      query.setData(updated);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      toast({ title: en ? 'Logo updated.' : 'Logo mis à jour.' });
+    } catch (cause) {
+      toast({
+        title:
+          cause instanceof Error
+            ? cause.message
+            : en
+              ? 'The logo could not be uploaded.'
+              : 'Le logo n’a pas pu être envoyé.',
+      });
+    } finally {
+      setUploading(false);
+    }
+  }
+
+  async function removeLogo() {
+    setUploading(true);
+    try {
+      const updated = await api.branding.update({ logoFileId: null });
+      query.setData(updated);
+      toast({ title: en ? 'Logo removed.' : 'Logo retiré.' });
+    } catch {
+      toast({ title: en ? 'The logo could not be removed.' : 'Le logo n’a pas pu être retiré.' });
+    } finally {
+      setUploading(false);
+    }
+  }
 
   const currentTemplate = template ?? branding?.documentTemplate ?? 'MODERNE';
   const currentColor = color ?? branding?.brandColor ?? '#0F62FE';
@@ -209,8 +317,63 @@ export default function MarqueScreen() {
             template={currentTemplate}
             color={currentColor}
             businessName={branding.legalName}
+            logoUrl={branding.logoUrl ? `${API_URL}${branding.logoUrl}` : null}
             en={en}
           />
+        </View>
+
+        <View style={{ gap: spacing.sm }}>
+          <Caption upper style={{ color: colors.subtle }}>
+            {en ? 'Your logo' : 'Votre logo'}
+          </Caption>
+          <Card style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
+            {branding.logoUrl ? (
+              <Image
+                source={{ uri: `${API_URL}${branding.logoUrl}` }}
+                resizeMode="contain"
+                style={{ width: 64, height: 64, borderRadius: radius.md, backgroundColor: colors.surface }}
+              />
+            ) : (
+              <View
+                style={{
+                  width: 64,
+                  height: 64,
+                  borderRadius: radius.md,
+                  backgroundColor: colors.surface,
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                }}
+              >
+                <Ionicons name="image-outline" size={26} color={colors.subtle} />
+              </View>
+            )}
+            <View style={{ flex: 1, gap: 4 }}>
+              <Body style={{ fontWeight: '600' }}>
+                {branding.logoUrl ? (en ? 'Logo in place' : 'Logo en place') : en ? 'No logo yet' : 'Aucun logo'}
+              </Body>
+              <Caption style={{ color: colors.subtle, lineHeight: 16 }}>
+                {en ? 'Appears top-right on every document.' : 'Apparaît en haut à droite de chaque document.'}
+              </Caption>
+              <View style={{ flexDirection: 'row', gap: spacing.lg, marginTop: 4 }}>
+                <Pressable accessibilityRole="button" disabled={uploading} onPress={() => void pickLogo()} hitSlop={8}>
+                  <Caption style={{ color: colors.accent, fontWeight: '700' }}>
+                    {uploading
+                      ? en ? 'Sending…' : 'Envoi…'
+                      : branding.logoUrl
+                        ? en ? 'Replace' : 'Remplacer'
+                        : en ? 'Choose a logo' : 'Choisir un logo'}
+                  </Caption>
+                </Pressable>
+                {branding.logoUrl ? (
+                  <Pressable accessibilityRole="button" disabled={uploading} onPress={() => void removeLogo()} hitSlop={8}>
+                    <Caption style={{ color: colors.danger, fontWeight: '700' }}>
+                      {en ? 'Remove' : 'Retirer'}
+                    </Caption>
+                  </Pressable>
+                ) : null}
+              </View>
+            </View>
+          </Card>
         </View>
 
         <View style={{ gap: spacing.sm }}>

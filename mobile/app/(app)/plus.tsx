@@ -86,6 +86,41 @@ export default function PlusScreen() {
         <TrialBanner subscription={subscription} />
 
         <Stagger step={45} initial={30} distance={8}>
+        {/*
+          Votre activité, en tête de l'écran.
+
+          Ces quatre écrans sont ceux qu'un artisan ouvre chaque semaine :
+          factures, reçus, export comptable, marque. Placés sous les réglages
+          de compte, ils demandaient de défiler pour être découverts — donc
+          ils n'existaient pas. Ils passent avant tout le reste.
+        */}
+        <SettingsGroup onBrand title={en ? 'Your business' : 'Votre activité'}>
+          <SettingsRow
+            icon="document-text-outline"
+            title={en ? 'Invoices' : 'Factures'}
+            subtitle={en ? 'What is owed and what is paid' : 'Ce qui reste dû, ce qui est réglé'}
+            onPress={() => router.push('/factures')}
+          />
+          <SettingsRow
+            icon="camera-outline"
+            title={en ? 'Receipts & expenses' : 'Reçus et dépenses'}
+            subtitle={en ? 'Photograph a receipt, it is read and filed' : 'Photographiez un ticket, il est lu et classé'}
+            onPress={() => router.push('/depenses')}
+          />
+          <SettingsRow
+            icon="share-outline"
+            title={en ? 'Accountant export' : 'Export comptable'}
+            subtitle={en ? 'Sales, expenses and payments over a period' : 'Ventes, dépenses et encaissements sur une période'}
+            onPress={() => router.push('/comptable')}
+          />
+          <SettingsRow
+            icon="color-palette-outline"
+            title={en ? 'My branding' : 'Ma marque'}
+            subtitle={en ? 'Logo, colour and document style' : 'Logo, couleur et modèle de document'}
+            onPress={() => router.push('/marque')}
+          />
+        </SettingsGroup>
+
         <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
@@ -97,7 +132,7 @@ export default function PlusScreen() {
           </View>
         </SettingsGroup>
 
-        <SettingsGroup title={en ? 'Subscription & payments' : 'Abonnement et paiements'}>
+        <SettingsGroup title={en ? 'Your DEVISERA subscription' : 'Votre abonnement DEVISERA'}>
           <SettingsRow icon="card-outline" title={copy(locale, 'manageSubscription')} subtitle={en ? 'Plan, trial and renewal' : 'Formule, essai et renouvellement'} value={subscription ? PLANS[subscription.plan].name : null} onPress={() => router.push('/abonnement')} />
           <SettingsRow icon="receipt-outline" title={copy(locale, 'invoices')} subtitle={en ? 'History and receipts' : 'Historique et reçus'} onPress={() => router.push('/paiements')} />
         </SettingsGroup>
