@@ -255,7 +255,8 @@ jamais atteint TestFlight. L'état réel chez EAS au moment de cette passe :
 
 | Build | Version | Construction | Soumission |
 | --- | --- | --- | --- |
-| 52 | 1.0.2 | cette passe | à installer |
+| 53 | 1.0.2 | terminée · commit `4980d42` | **celui à installer** |
+| 52 | 1.0.2 | annulée volontairement | — |
 | 51 | 1.0.2 | terminée | terminée, acceptée |
 | 50 | 1.0.2 | terminée | terminée, acceptée |
 | 49 | 1.0.1 | terminée | **refusée** |
@@ -263,8 +264,13 @@ jamais atteint TestFlight. L'état réel chez EAS au moment de cette passe :
 
 La capture envoyée montre « VOTRE ACTIVITÉ » avec Factures, Reçus, Export
 comptable et Ma marque : ce groupe n'existe que depuis le commit `69b5c3b`,
-donc l'appareil tournait bien sous **le build 51**. Le prochain build valide
-est donc **52**, pas 50.
+donc l'appareil tournait bien sous **le build 51**.
+
+Le build 52 a été lancé puis **annulé délibérément** : un défaut est apparu
+pendant qu'il compilait — l'onglet Documents ne lisait `?onglet=factures`
+qu'au montage, donc l'accès rapide « Mes factures » de l'accueil ne répondait
+plus une fois l'onglet déjà ouvert. Livrer un raccourci mort aurait reproduit
+exactement le reproche de cette passe. Le build livré est donc **53**.
 
 ## D'où venaient réellement 39 / 79 / 149 €
 
@@ -354,3 +360,51 @@ vérifie qu'aucune chaîne imprimée ne dit « qualifiée » ou « certifiée »
 - L'encaissement en ligne reste inactif tant que Stripe Connect n'est pas
   activé (voir plus haut).
 - Aucune soumission à la validation App Store : TestFlight uniquement.
+
+## Checklist de recette — build 53
+
+1. **Barre de navigation** — cinq destinations : Accueil, Clients, (+), Documents,
+   Outils. La capsule de sélection *glisse* d'un onglet à l'autre ; elle ne
+   saute pas et ne clignote pas au premier affichage.
+2. **Verre** — sur iOS 26, la barre laisse deviner le contenu qui défile
+   dessous, avec des bords qui prennent la lumière. Réglages → Accessibilité →
+   Affichage et taille du texte → **Réduire la transparence** : la barre
+   devient opaque et reste lisible.
+3. **Réduire les animations** (même menu, Mouvement) : la capsule se pose
+   directement sur la destination, sans trajet.
+4. **Outils** — les trois cartes Reçus, Export comptable, Ma marque, chacune
+   avec son action nommée. « Mon compte » est plus bas, séparé.
+5. **Accueil** — la rangée d'accès rapides : Scanner un reçu, Mes factures,
+   Export comptable, Ma marque. Tapez « Mes factures », revenez, retapez :
+   le segment doit répondre **les deux fois**.
+6. **Documents** — le sélecteur Devis / Factures, avec les compteurs.
+7. **Signature** — un devis non signé → « Faire signer le client » → « Signer
+   ici » ouvre la feuille **plein écran**. Tracez : le trait doit suivre le
+   doigt sans à-coups et sans que l'écran défile. « Annuler le trait » retire
+   le dernier seulement. « Tout effacer » vide. Posez la paume à plat :
+   « Valider » doit rester inactif.
+8. **Signature (PDF)** — validez, cochez l'acceptation, signez. Rouvrez le PDF :
+   la signature est imprimée **à sa taille**, non écrasée, à côté du nom et de
+   la date, dans votre couleur.
+9. **Marque** — changez le nom affiché, la couleur, le modèle. L'aperçu suit.
+   Enregistrez, puis rouvrez un PDF : l'en-tête porte le nouveau nom et la
+   nouvelle couleur. Sur le modèle **Exécutif**, le bandeau est volontairement
+   noir : la couleur de marque passe dans les accents.
+10. **Logo** — choisissez une image dans Photos : elle apparaît en haut à droite
+    de l'aperçu, puis du PDF.
+11. **Reçus** — « Scanner un reçu » (appareil photo) et « Importer depuis mes
+    photos » (photothèque). Un champ illisible doit être **signalé**, jamais
+    rempli au hasard. Un ticket dans une autre devise doit le dire.
+12. **Export comptable** — choisissez « Mois dernier », vérifiez les chiffres
+    avant d'envoyer, puis envoyez : trois CSV arrivent dans Mail ou Fichiers.
+13. **Première ouverture** — sur un **compte neuf** seulement : après la
+    configuration, « Votre atelier est prêt. » avec deux chemins. Le chemin
+    vocal doit ouvrir le micro tout seul. Un compte existant ne doit **jamais**
+    voir cet écran.
+14. **Langue** — basculez en anglais et refaites 4, 5, 7 : aucun texte français
+    ne doit subsister sur les nouveaux écrans.
+15. **Tarifs** — le paywall affiche toujours 39 / 79 / 149 € tant qu'App Store
+    Connect n'a pas été reprisé. C'est **le prix réellement facturé** ; ce
+    n'est pas un défaut.
+16. **Arrière-plan** — quittez l'application en pleine signature, revenez : la
+    feuille ne doit pas ressortir avec un tracé fantôme.
