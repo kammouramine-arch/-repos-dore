@@ -124,6 +124,22 @@ Aucune clé supplémentaire n'est requise.
 | `npx expo-doctor` | seule la note préexistante « paquets non à jour » |
 | `npx expo prebuild --platform ios` | entitlement Sign in with Apple présent, `CFBundleLocalizations` fr + en, icône 1024 présente |
 
+## Version et build TestFlight
+
+**Version portée de 1.0.1 à 1.0.2.**
+
+Le build 49 (1.0.1) a été produit correctement — IPA généré, profil et
+entitlements en ordre — mais App Store Connect a refusé l'envoi :
+
+> `SUBMISSION_SERVICE_IOS_OLD_APP_VERSION` — You've already submitted this
+> version of the app. Versions are identified by CFBundleShortVersionString.
+
+La version 1.0.1 est donc fermée à de nouveaux envois côté Apple, ce qui
+arrive une fois qu'une version a été soumise à validation ou publiée. Le
+remède est celui qu'indique le message lui-même : incrémenter la version. Le
+build livré est donc **1.0.2**, et c'est celui à installer depuis TestFlight.
+Le numéro de build reste géré par EAS en versionnage distant.
+
 ## Migration de base
 
 `prisma/migrations/20260916100000_voice_first_lifecycle` est écrite pour être
