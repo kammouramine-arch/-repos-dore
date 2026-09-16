@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { FlatList, Platform, RefreshControl, View } from 'react-native';
+import { FlatList, Platform, RefreshControl, ScrollView, View } from 'react-native';
 import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_STATUS_LABELS, formatCents, type QuoteStatusId, type QuoteSummaryDTO } from '@devisia/shared';
@@ -10,9 +10,16 @@ import { Enter } from '@/components/motion';
 import { colors, spacing, typography } from '@/theme';
 import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 import { FilterChip } from '@/components/filter-chip';
+import { Segmented } from '@/components/segmented';
+import { InvoiceBoard, useInvoiceBoard } from '@/components/invoice-board';
 
 /**
- * Devis : l'archive et le suivi de tous les documents.
+ * Documents : devis et factures au même endroit.
+ *
+ * Un artisan ne pense pas « module devis » puis « module facturation » : il
+ * pense au chantier, qui commence par un devis et finit par une facture.
+ * L'onglet porte donc les deux, sous un sélecteur, et le devis reste devant
+ * puisque c'est par là que tout commence.
  *
  * L'accueil montre les derniers devis ; ici, l'artisan retrouve tout :
  * recherche par client, objet ou numéro, filtre par statut, montant, date.
@@ -37,11 +44,15 @@ function normalize(value: string) {
   return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
 }
 
-export default function DevisScreen() {
+export default function DocumentsScreen() {
   const router = useRouter();
   const locale = useMobileLocale();
   const en = locale === 'en';
-  const params = useLocalSearchParams<{ statut?: string }>();
+  const params = useLocalSearchParams<{ statut?: string; onglet?: string }>();
+  // `?onglet=factures` ouvre directement les factures : c'est ce que visent
+  // les accès rapides de l'accueil et de l'écran Outils.
+  const [tab, setTab] = React.useState<'devis' | 'factures'>(params.onglet === 'factures' ? 'factures' : 'devis');
+  const invoices = useInvoiceBoard();
   const [filter, setFilter] = React.useState<Filter>(FILTERS.some((f) => f.id === params.statut) ? (params.statut as Filter) : 'all');
   const [search, setSearch] = React.useState('');
 
@@ -62,6 +73,7 @@ export default function DevisScreen() {
       && (!needle || normalize(`${q.customerName} ${q.title} ${q.number}`).includes(needle)));
   }, [filter, items, search]);
   const total = query.data?.total ?? items.length;
+  const quotesTab = tab === 'devis';
 
   return (
     <SafeAreaView edges={['top']} style={{ flex: 1, backgroundColor: colors.surface }}>
@@ -70,32 +82,62 @@ export default function DevisScreen() {
           <PageHeader
             eyebrow={en ? 'Documents' : 'Documents'}
             icon="document-text"
-            title={en ? 'Your quotes' : 'Vos devis'}
-            subtitle={query.data ? (
-              <Muted accessibilityLabel={en ? `${total} quote${total === 1 ? '' : 's'}` : `${total} devis`}>
-                <AnimatedCount value={total} style={{ ...typography.small, color: colors.ink, fontWeight: '600' }} />
-                {en ? ` quote${total === 1 ? '' : 's'} · drafts, sent and viewed` : ` devis · brouillons, envoyés et consultés`}
-              </Muted>
-            ) : (en ? 'Every job, one tap away.' : 'Retrouvez chaque chantier en un geste.')}
-            action={<HeaderAction icon="add" label={en ? 'New quote' : 'Nouveau devis'} onPress={() => router.push('/devis/nouveau')} />}
+            title={quotesTab ? (en ? 'Your quotes' : 'Vos devis') : (en ? 'Your invoices' : 'Vos factures')}
+            subtitle={quotesTab
+              ? (query.data ? (
+                <Muted accessibilityLabel={en ? `${total} quote${total === 1 ? '' : 's'}` : `${total} devis`}>
+                  <AnimatedCount value={total} style={{ ...typography.small, color: colors.ink, fontWeight: '600' }} />
+                  {en ? ` quote${total === 1 ? '' : 's'} · drafts, sent and viewed` : ` devis · brouillons, envoyés et consultés`}
+                </Muted>
+              ) : (en ? 'Every job, one tap away.' : 'Retrouvez chaque chantier en un geste.'))
+              : (en ? 'What is owed, and what is paid.' : 'Ce qui reste dû, ce qui est réglé.')}
+            action={quotesTab ? <HeaderAction icon="add" label={en ? 'New quote' : 'Nouveau devis'} onPress={() => router.push('/devis/nouveau')} /> : undefined}
           />
         </Enter>
-        <Enter delay={70} distance={8}>
-          <SearchField value={search} onChangeText={setSearch} placeholder={en ? 'Client, subject, number…' : 'Client, objet, numéro…'} />
+
+        {/* Devis et factures : un seul geste pour passer de l'un à l'autre. */}
+        <Enter delay={50} distance={8}>
+          <Segmented
+            value={tab}
+            onChange={setTab}
+            options={[
+              { id: 'devis', label: en ? 'Quotes' : 'Devis', count: total },
+              { id: 'factures', label: en ? 'Invoices' : 'Factures', count: invoices.query.data?.length ?? 0 },
+            ]}
+          />
         </Enter>
-        {items.length > 0 ? (
-          <Enter delay={120} distance={8}>
-            <FlatList
-              horizontal
-              data={FILTERS}
-              keyExtractor={(item) => item.id}
-              showsHorizontalScrollIndicator={false}
-              contentContainerStyle={{ gap: spacing.sm }}
-              renderItem={({ item }) => <FilterChip label={localizeText(locale, item.label)} count={counts[item.id]} active={filter === item.id} onPress={() => setFilter(item.id)} />}
-            />
-          </Enter>
+
+        {quotesTab ? (
+          <>
+            <Enter delay={90} distance={8}>
+              <SearchField value={search} onChangeText={setSearch} placeholder={en ? 'Client, subject, number…' : 'Client, objet, numéro…'} />
+            </Enter>
+            {items.length > 0 ? (
+              <Enter delay={130} distance={8}>
+                <FlatList
+                  horizontal
+                  data={FILTERS}
+                  keyExtractor={(item) => item.id}
+                  showsHorizontalScrollIndicator={false}
+                  contentContainerStyle={{ gap: spacing.sm }}
+                  renderItem={({ item }) => <FilterChip label={localizeText(locale, item.label)} count={counts[item.id]} active={filter === item.id} onPress={() => setFilter(item.id)} />}
+                />
+              </Enter>
+            ) : null}
+          </>
         ) : null}
       </View>
+
+      {!quotesTab ? (
+        <ScrollView
+          contentContainerStyle={{ paddingHorizontal: spacing.xl, paddingBottom: spacing['5xl'] * 2, gap: spacing.lg }}
+          refreshControl={invoices.refreshControl}
+          showsVerticalScrollIndicator={false}
+        >
+          <InvoiceBoard {...invoices} />
+        </ScrollView>
+      ) : (
+      <>
 
       {query.error ? (
         <View style={{ paddingHorizontal: spacing.xl, gap: spacing.sm }}>
@@ -172,6 +214,8 @@ export default function DevisScreen() {
             );
           }}
         />
+      )}
+      </>
       )}
     </SafeAreaView>
   );

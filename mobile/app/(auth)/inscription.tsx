@@ -6,7 +6,8 @@ import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, St
 import { useAuth } from '@/lib/auth';
 import { colors, spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
-import { authDestination, verificationPath } from '@/lib/auth-navigation';
+import { verificationPath } from '@/lib/auth-navigation';
+import { appEntry, markWorkshopReady } from '@/lib/first-run';
 
 /** Création de compte par adresse e-mail : la logique (mot de passe, code) est inchangée. */
 export default function InscriptionScreen() {
@@ -46,7 +47,11 @@ export default function InscriptionScreen() {
         email: form.email.trim(),
         password: form.password,
       });
-      router.replace((session.nextStep === 'verify_email' ? verificationPath('signup') : authDestination(session)) as never);
+      // Inscription par e-mail : le nom de l'entreprise est saisi ici même,
+      // il n'y a pas d'étape « bienvenue ». L'écran de fin de configuration
+      // est donc dû à partir d'ici, une fois l'adresse confirmée.
+      markWorkshopReady(session.user.id);
+      router.replace((session.nextStep === 'verify_email' ? verificationPath('signup') : appEntry(session)) as never);
     } catch {
       // Message affiché au-dessus du formulaire.
     } finally {

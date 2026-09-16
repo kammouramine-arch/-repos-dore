@@ -172,6 +172,9 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
       <Stack.Protected guard={connected && !!session?.user.emailVerified && !needsSetup}>
         <Stack.Protected guard={!needsPlan}>
           <Stack.Screen name="(app)" options={{ headerShown: false, title: 'DEVISERA' }} />
+          {/* Fin de configuration : plein écran, sans en-tête ni retour. On
+              n'y revient pas, et il n'y a rien derrière. */}
+          <Stack.Screen name="pret" options={{ headerShown: false, gestureEnabled: false, animation: 'fade' }} />
           <Stack.Screen name="devis/nouveau" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'New quote' : 'Nouveau devis', headerBackTitle: back }} />
           <Stack.Screen name="devis/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Quote' : 'Devis', headerBackTitle: back, ...backTo('/(app)/devis') }} />
           <Stack.Screen name="clients/[id]" options={{ headerShown: true, title: locale === 'en' ? 'Client profile' : 'Fiche client', headerBackTitle: back, ...backTo('/(app)/clients') }} />

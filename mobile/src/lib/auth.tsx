@@ -4,6 +4,7 @@ import { listenForApplePurchases, prefetchAppleProducts, restoreApplePurchases }
 import { DevisiaApiError, type OnboardingInput, type SessionDTO } from '@devisia/shared';
 import { api, setUnauthenticatedHandler } from './api';
 import { clearToken, readToken, writeToken, readSessionSnapshot, writeSessionSnapshot, forgetLegacyLocale, persistLocaleChoice, readLocaleChoice } from './storage';
+import { restoreWorkshopReady } from './first-run';
 import { clearQueryCache } from './query-cache';
 import { registerForPush, unregisterPush } from './push';
 import { recordDiagnostic } from './diagnostics';
@@ -239,6 +240,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (generation !== sessionGeneration.current) return;
     if (cached) {
       rememberLocale(cached);
+      // L'application a pu être tuée entre la fin de la configuration et
+      // l'écran « Votre atelier est prêt » : on relit le marqueur avant toute
+      // décision de navigation.
+      void restoreWorkshopReady(cached.user.id);
       setState((current) => current.status === 'chargement'
         ? { status: 'connecte', session: cached, ...IDLE }
         : current);

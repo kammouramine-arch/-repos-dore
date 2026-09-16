@@ -24,6 +24,28 @@ describe('Apple-only offer presentation', () => {
     expect(code).not.toMatch(/[*\/]\s*[0-9.]+|parseFloat|toFixed|rate/i);
     expect(readFileSync('mobile/src/lib/apple-offer.ts', 'utf8')).not.toMatch(/parseFloat|toFixed|exchange|rate\b/i);
   });
+  /*
+   * Le repli et la table des formules ne peuvent plus diverger.
+   *
+   * C'est exactement ce qui a produit le build 49 : la table des formules
+   * portait le tarif de lancement pendant que le repli affichait l'ancien.
+   * Le repli est maintenant dérivé — ce test empêche qu'on le recopie.
+   */
+  it('derives the France fallback from the plan table, never from a second list of numbers', async () => {
+    const shared = await import('../../packages/shared/src/apple-storefront-prices');
+    const { APPLE_PRODUCTS, PLANS, effectiveMonthlyPriceCents, formatEurosPlain } = await import('../../packages/shared/src');
+    for (const plan of Object.keys(PLANS) as (keyof typeof PLANS)[]) {
+      expect(shared.storefrontFallbackPrice('FRA', APPLE_PRODUCTS[plan])).toEqual({
+        displayPrice: formatEurosPlain(effectiveMonthlyPriceCents(plan)),
+        currency: 'EUR',
+        period: 'month',
+      });
+    }
+    // Tant qu'App Store Connect n'a pas été reprisé, le repli montre le tarif
+    // réellement facturé, pas le tarif visé.
+    expect(shared.STOREFRONT_FALLBACK_USES_LAUNCH_PRICING).toBe(false);
+    expect(shared.storefrontFallbackPrice('FRA', APPLE_PRODUCTS.ESSENTIEL)?.displayPrice).toBe('39,00 \u20ac');
+  });
   it.each([['$35.00', '39,00 €'], ['$69.00', '79,00 €'], ['$129.00', '149,00 €']])('replaces %s with current Apple %s', (oldPrice, currentPrice) => {
     const stale = { ...eur, displayPrice: oldPrice, currency: 'USD' };
     expect(appleOffer(stale, false, false).price).toBe(oldPrice);

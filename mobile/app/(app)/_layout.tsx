@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { colors } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { ScrubTabBar } from '@/components/scrub-tab-bar';
+import { GlassTabBar } from '@/components/glass-tab-bar';
 import { useMobileLocale } from '@/lib/i18n';
 
 /**
@@ -22,7 +22,7 @@ export default function AppTabsLayout() {
     <View style={{ flex: 1 }}>
     <Tabs
       detachInactiveScreens={false}
-      tabBar={props => <ScrubTabBar {...props} />}
+      tabBar={props => <GlassTabBar {...props} />}
       screenListeners={{ tabPress: () => { void Haptics.selectionAsync().catch(() => undefined); } }}
       screenOptions={{
         // Keep native scenes attached and opaque. Content must not depend on
@@ -65,7 +65,7 @@ export default function AppTabsLayout() {
       <Tabs.Screen
         name="devis"
         options={{
-          title: locale === 'en' ? 'Quotes' : 'Devis',
+          title: 'Documents',
           tabBarIcon: ({ color, size, focused }) => (
             <TabIcon focused={focused} name={focused ? 'document-text' : 'document-text-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
@@ -87,14 +87,17 @@ export default function AppTabsLayout() {
         }}
       />
       <Tabs.Screen
-        name="plus"
+        name="outils"
         options={{
-          title: locale === 'en' ? 'More' : 'Plus',
+          title: locale === 'en' ? 'Tools' : 'Outils',
           tabBarIcon: ({ color, size, focused }) => (
-            <TabIcon focused={focused} name={focused ? 'grid' : 'grid-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
+            <TabIcon focused={focused} name={focused ? 'apps' : 'apps-outline'} size={size} color={typeof color === 'string' ? color : colors.subtle} />
           ),
         }}
       />
+      {/* Le compte garde son écran et ses liens profonds, mais n'occupe plus
+          une destination : on y arrive depuis Outils et depuis l'accueil. */}
+      <Tabs.Screen name="plus" options={{ href: null }} />
       {/* Prospects : hors du produit de lancement. La route reste montée
           (lien profond, données existantes) mais n'a plus d'entrée. */}
       <Tabs.Screen name="prospects" options={{ href: null }} />

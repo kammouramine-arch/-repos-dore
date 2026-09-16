@@ -247,3 +247,17 @@ export const VAT_RATES = [
   { value: 5.5, label: '5,5 % — rénovation énergétique' },
   { value: 0, label: '0 % — non assujetti / autoliquidation' },
 ] as const;
+
+/**
+ * Formate des centimes en euros sans passer par `Intl` — « 29,99 € ».
+ *
+ * `Intl.NumberFormat` place une espace fine insécable avant le symbole, et
+ * Hermes ne la produit pas toujours à l'identique. Là où la chaîne doit
+ * reproduire exactement un relevé fait sur l'appareil — le repli de vitrine
+ * App Store — on la compose à la main, avec une espace simple.
+ */
+export function formatEurosPlain(cents: number): string {
+  const whole = Math.trunc(Math.abs(cents) / 100);
+  const decimals = String(Math.abs(cents) % 100).padStart(2, '0');
+  return `${cents < 0 ? '-' : ''}${whole},${decimals} €`;
+}

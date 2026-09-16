@@ -4,6 +4,7 @@ import { ok, parseBody, route } from '@/server/api';
 import { getBranding, updateBranding } from '@/server/services/brandingService';
 
 const schema = z.object({
+  legalName: z.string().trim().min(2).max(120).optional(),
   brandColor: z.string().regex(/^#[0-9a-fA-F]{6}$/).optional(),
   documentTemplate: z.enum(['MINIMAL', 'MODERNE', 'EXECUTIF']).optional(),
   documentFooter: z.string().trim().max(400).nullish(),

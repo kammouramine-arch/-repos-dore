@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, StepProgress, TextAction } from '@/components/auth-kit';
 import { useAuth, useSession } from '@/lib/auth';
 import { useMobileLocale } from '@/lib/i18n';
-import { authDestination } from '@/lib/auth-navigation';
+import { appEntry, markWorkshopReady } from '@/lib/first-run';
 import { colors, radius, spacing } from '@/theme';
 
 const TRADES: { id: string; fr: string; en: string }[] = [
@@ -73,7 +73,10 @@ export default function BienvenueScreen() {
         trade: form.trade || undefined,
       });
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      router.replace(authDestination(fresh) as never);
+      // La configuration vient d'aboutir : l'écran « Votre atelier est prêt »
+      // est dû, dès que l'accès est ouvert (après le paywall s'il y en a un).
+      markWorkshopReady(fresh.user.id);
+      router.replace(appEntry(fresh) as never);
     } catch (cause) {
       setError(cause instanceof Error ? cause.message : (en ? 'Please try again in a moment.' : 'Réessayez dans un instant.'));
     } finally {

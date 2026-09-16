@@ -22,7 +22,14 @@ import { colors, spacing } from '@/theme';
 export const SUPPORT_EMAIL = 'contact@devisera.fr';
 
 /**
- * « Mon espace » : le centre de contrôle de l'artisan.
+ * « Mon compte » : ce qui relève du compte, et rien d'autre.
+ *
+ * L'écran portait à la fois les réglages personnels et les fonctions du
+ * produit — reçus, export comptable, marque. Ce mélange était la vraie
+ * raison pour laquelle personne ne les trouvait : on ne cherche pas le scan
+ * de justificatifs entre la langue de l'application et la suppression du
+ * compte. Les fonctions sont parties dans l'onglet Outils ; ici restent le
+ * profil, l'entreprise, l'abonnement, la langue, l'assistance et le légal.
  *
  * L'écran précédent renvoyait tout ce qui compte — abonnement, paiements,
  * avis, contact, suppression du compte — au fond de « Mon compte », derrière
@@ -86,41 +93,6 @@ export default function PlusScreen() {
         <TrialBanner subscription={subscription} />
 
         <Stagger step={45} initial={30} distance={8}>
-        {/*
-          Votre activité, en tête de l'écran.
-
-          Ces quatre écrans sont ceux qu'un artisan ouvre chaque semaine :
-          factures, reçus, export comptable, marque. Placés sous les réglages
-          de compte, ils demandaient de défiler pour être découverts — donc
-          ils n'existaient pas. Ils passent avant tout le reste.
-        */}
-        <SettingsGroup onBrand title={en ? 'Your business' : 'Votre activité'}>
-          <SettingsRow
-            icon="document-text-outline"
-            title={en ? 'Invoices' : 'Factures'}
-            subtitle={en ? 'What is owed and what is paid' : 'Ce qui reste dû, ce qui est réglé'}
-            onPress={() => router.push('/factures')}
-          />
-          <SettingsRow
-            icon="camera-outline"
-            title={en ? 'Receipts & expenses' : 'Reçus et dépenses'}
-            subtitle={en ? 'Photograph a receipt, it is read and filed' : 'Photographiez un ticket, il est lu et classé'}
-            onPress={() => router.push('/depenses')}
-          />
-          <SettingsRow
-            icon="share-outline"
-            title={en ? 'Accountant export' : 'Export comptable'}
-            subtitle={en ? 'Sales, expenses and payments over a period' : 'Ventes, dépenses et encaissements sur une période'}
-            onPress={() => router.push('/comptable')}
-          />
-          <SettingsRow
-            icon="color-palette-outline"
-            title={en ? 'My branding' : 'Ma marque'}
-            subtitle={en ? 'Logo, colour and document style' : 'Logo, couleur et modèle de document'}
-            onPress={() => router.push('/marque')}
-          />
-        </SettingsGroup>
-
         <SettingsGroup onBrand title={en ? 'Account' : 'Compte'}>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
@@ -137,9 +109,15 @@ export default function PlusScreen() {
           <SettingsRow icon="receipt-outline" title={copy(locale, 'invoices')} subtitle={en ? 'History and receipts' : 'Historique et reçus'} onPress={() => router.push('/paiements')} />
         </SettingsGroup>
 
+        {/*
+          Les outils du métier ont quitté cet écran.
+
+          Reçus, export comptable, marque, catalogue et chiffre d'affaires
+          vivent maintenant dans l'onglet Outils. Les laisser ici en double
+          ferait hésiter sur le bon chemin ; une seule ligne y renvoie.
+        */}
         <SettingsGroup title={copy(locale, 'tools')}>
-          <SettingsRow icon="book-outline" title={copy(locale, 'pricing')} subtitle={en ? 'Your services and prices' : 'Vos prestations et vos tarifs'} onPress={() => router.push('/catalogue')} />
-          <SettingsRow icon="bar-chart-outline" title={copy(locale, 'analytics')} subtitle={en ? 'Revenue and quote tracking' : 'Chiffre d’affaires et suivi des devis'} onPress={() => router.push('/analytique')} />
+          <SettingsRow icon="apps-outline" title={en ? 'Open Tools' : 'Ouvrir les Outils'} subtitle={en ? 'Receipts, accountant export, branding' : 'Reçus, export comptable, marque'} onPress={() => router.push('/(app)/outils')} />
           <SettingsRow icon="sparkles-outline" title={copy(locale, 'discover')} subtitle={en ? 'Overview and plans' : 'Présentation et formules'} onPress={() => router.push('/presentation')} />
         </SettingsGroup>
 

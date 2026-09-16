@@ -35,7 +35,11 @@ describe('Apple downgrade confirmation', () => {
     expect(purchases).toMatch(/if \(existing\.some\(purchase => purchase\.productId === productId\)\) \{[\s\S]{0,400}return 'reconciled' as const;/);
     expect(purchases).not.toMatch(/if \(existing\.length\) \{[\s\S]*return 'purchased'/);
     expect(paywall).toContain('const manage = router.canGoBack();');
-    expect(paywall).toContain("if (appleActive && !wasActive.current && !manage) router.replace('/(app)');");
+    // Une activation depuis la garde d'accès ouvre l'atelier au lieu de
+    // laisser le paywall monté. La destination passe désormais par `appEntry`,
+    // qui intercale « Votre atelier est prêt » quand la configuration vient de
+    // se terminer — le comportement protégé ici reste le même.
+    expect(paywall).toContain("if (appleActive && !wasActive.current && !manage) router.replace((session ? appEntry(session) : '/(app)') as never);");
     expect(paywall).toContain("setResult({ kind: 'restored', plan: current.plan })");
     expect(paywall).toContain("setResult({ kind: 'downgrade', plan: current.plan, pending: intent.plan");
     const result = readFileSync('mobile/src/components/plan-action-result.tsx', 'utf8');

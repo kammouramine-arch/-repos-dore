@@ -7,7 +7,8 @@ import { api } from '@/lib/api';
 import { DevisiaApiError } from '@devisia/shared';
 import { colors, spacing } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
-import { authDestination, verificationSourcePath } from '@/lib/auth-navigation';
+import { verificationSourcePath } from '@/lib/auth-navigation';
+import { appEntry } from '@/lib/first-run';
 import { recordDiagnostic } from '@/lib/diagnostics';
 
 /** The only app surface available until the account proves mailbox ownership. */
@@ -80,7 +81,7 @@ export default function VerificationScreen() {
     const freshSession = result.session ?? await refresh();
     if (!freshSession) throw new Error(en ? 'Your session expired. Please sign in again.' : 'Votre session a expiré. Reconnectez-vous.');
     adoptSession(freshSession);
-    router.replace(authDestination(freshSession) as never);
+    router.replace(appEntry(freshSession) as never);
   });
 
   // Six chiffres saisis : la confirmation part d'elle-même.

@@ -267,6 +267,29 @@ export default function DepensesScreen() {
             editable={!saving}
           />
 
+          {/*
+            La devise, dite plutôt que devinée.
+
+            DEVISERA tient ses comptes en euros. Quand le ticket porte une
+            autre devise, on le signale au lieu d'enregistrer un montant
+            converti en silence : une conversion inventée se retrouverait en
+            comptabilité sans que personne ne l'ait décidée.
+          */}
+          <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.sm }}>
+            <Ionicons
+              name={draft.parsed?.currency && draft.parsed.currency !== 'EUR' ? 'alert-circle-outline' : 'cash-outline'}
+              size={17}
+              color={draft.parsed?.currency && draft.parsed.currency !== 'EUR' ? colors.warning : colors.subtle}
+            />
+            <Caption style={{ flex: 1, color: draft.parsed?.currency && draft.parsed.currency !== 'EUR' ? colors.warning : colors.subtle, lineHeight: 17 }}>
+              {draft.parsed?.currency && draft.parsed.currency !== 'EUR'
+                ? (en
+                  ? `Receipt read in ${draft.parsed.currency}. Enter the amount in euros — nothing is converted for you.`
+                  : `Reçu lu en ${draft.parsed.currency}. Saisissez le montant en euros : aucune conversion n’est faite à votre place.`)
+                : (en ? 'Amounts recorded in euros (EUR).' : 'Montants enregistrés en euros (EUR).')}
+            </Caption>
+          </View>
+
           <View style={{ gap: spacing.sm }}>
             <Caption upper style={{ color: colors.subtle }}>
               {en ? 'Category' : 'Poste de dépense'}
@@ -343,13 +366,47 @@ export default function DepensesScreen() {
           <Ionicons name={reading ? 'hourglass-outline' : 'camera'} size={24} color={colors.white} />
         </View>
         <Title style={{ color: colors.white, fontSize: 22 }}>
-          {reading ? (en ? 'Reading the receipt…' : 'Lecture du justificatif…') : en ? 'Scan a receipt' : 'Scanner un justificatif'}
+          {reading ? (en ? 'Reading the receipt…' : 'Lecture du reçu…') : en ? 'Scan a receipt' : 'Scanner un reçu'}
         </Title>
         <Body style={{ color: 'rgba(255,255,255,0.88)', lineHeight: 21 }}>
           {en
             ? 'Take a photo. DEVISERA reads the merchant, date, total and VAT. You check before saving.'
             : 'Prenez la photo. DEVISERA lit le commerce, la date, le total et la TVA. Vous vérifiez avant d’enregistrer.'}
         </Body>
+      </Pressable>
+
+      {/*
+        L'import depuis la photothèque.
+
+        Un ticket photographié le matin sur le chantier, et classé le soir à
+        l'atelier : sans cette entrée il fallait le reprendre en photo depuis
+        l'écran, ce qui n'a aucun sens une fois le ticket jeté.
+      */}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={en ? 'Import a receipt from your photos' : 'Importer un reçu depuis la photothèque'}
+        disabled={reading}
+        onPress={() => {
+          void Haptics.selectionAsync().catch(() => undefined);
+          void photos.pickPhotos();
+        }}
+        style={({ pressed }) => ({
+          flexDirection: 'row',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: spacing.sm,
+          minHeight: 48,
+          borderRadius: radius.lg,
+          backgroundColor: colors.canvas,
+          borderWidth: 1,
+          borderColor: colors.line,
+          opacity: pressed || reading ? 0.7 : 1,
+        })}
+      >
+        <Ionicons name="images-outline" size={19} color={colors.accent} />
+        <Text style={{ fontSize: 15.5, fontWeight: '600', color: colors.accent }}>
+          {en ? 'Import from my photos' : 'Importer depuis mes photos'}
+        </Text>
       </Pressable>
 
       {photos.permissionNotice ? (

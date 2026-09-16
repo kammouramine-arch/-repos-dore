@@ -21,7 +21,7 @@ describe('mouvement', () => {
   });
 
   it('anime les écrans natifs avec le pilote natif partout où c’est possible', () => {
-    const files = ['src/components/motion.tsx', 'src/components/voice-visuals.tsx', 'src/components/scrub-tab-bar.tsx', 'src/components/launch.tsx'];
+    const files = ['src/components/motion.tsx', 'src/components/voice-visuals.tsx', 'src/components/launch.tsx'];
     for (const file of files) {
       const source = read(file);
       const timings = source.match(/useNativeDriver: (true|false)/g) ?? [];
@@ -69,7 +69,26 @@ describe('barre de navigation', () => {
     expect(profile).not.toMatch(/<Ionicons[^>]*onPress=/);
   });
   it('efface l’indicateur sur une route masquée au lieu de retomber sur Accueil', () => {
-    const bar = read('src/components/scrub-tab-bar.tsx');
+    const bar = read('src/components/glass-tab-bar.tsx');
     expect(bar).toContain("activeName === 'nouveau' || activeIndex < 0");
+  });
+
+  /*
+   * La barre est passée au verre natif d'iOS 26. Ce qui compte n'est pas
+   * qu'elle l'utilise, mais qu'elle sache s'en passer : un iPhone sous iOS 18
+   * et un réglage « Réduire la transparence » doivent rester lisibles.
+   */
+  it('n’impose le verre que là où le système le fournit, et le rend à l’accessibilité', () => {
+    const glass = read('src/components/glass.tsx');
+    expect(glass).toContain('isLiquidGlassAvailable()');
+    expect(glass).toContain('isReduceTransparencyEnabled');
+    expect(glass).toContain("reduceTransparencyChanged");
+    // Trois niveaux : verre natif, flou natif, surface opaque.
+    for (const kind of ["'liquid'", "'blur'", "'solid'"]) expect(glass).toContain(kind);
+    // Jamais de faux verre : pas de rectangle translucide bordé de blanc.
+    expect(glass).not.toMatch(/borderColor:\s*'rgba\(255,\s*255,\s*255/);
+    const bar = read('src/components/glass-tab-bar.tsx');
+    expect(bar).toContain('useReducedMotion');
+    expect(bar).toContain('withSpring');
   });
 });

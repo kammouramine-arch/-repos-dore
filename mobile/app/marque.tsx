@@ -162,6 +162,7 @@ export default function MarqueScreen() {
   const [color, setColor] = React.useState<string | null>(null);
   const [footer, setFooter] = React.useState<string | null>(null);
   const [paymentDetails, setPaymentDetails] = React.useState<string | null>(null);
+  const [name, setName] = React.useState<string | null>(null);
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const submitting = React.useRef(false);
@@ -243,13 +244,15 @@ export default function MarqueScreen() {
   const currentColor = color ?? branding?.brandColor ?? '#0F62FE';
   const currentFooter = footer ?? branding?.documentFooter ?? '';
   const currentPayment = paymentDetails ?? branding?.paymentDetails ?? '';
+  const currentName = name ?? branding?.legalName ?? '';
 
   const dirty =
     branding != null &&
     (currentTemplate !== branding.documentTemplate ||
       currentColor !== branding.brandColor ||
       currentFooter !== (branding.documentFooter ?? '') ||
-      currentPayment !== (branding.paymentDetails ?? ''));
+      currentPayment !== (branding.paymentDetails ?? '') ||
+      (currentName.trim().length >= 2 && currentName.trim() !== branding.legalName));
 
   async function save() {
     if (submitting.current || !branding) return;
@@ -257,6 +260,9 @@ export default function MarqueScreen() {
     setSaving(true);
     try {
       const updated = await api.branding.update({
+        // Un nom vidé par mégarde ne doit pas effacer l'en-tête des documents
+        // déjà envoyés : sous deux caractères, on n'envoie rien.
+        ...(currentName.trim().length >= 2 ? { legalName: currentName.trim() } : {}),
         documentTemplate: currentTemplate,
         brandColor: currentColor,
         documentFooter: currentFooter.trim() || null,
@@ -267,6 +273,7 @@ export default function MarqueScreen() {
       setColor(null);
       setFooter(null);
       setPaymentDetails(null);
+      setName(null);
       void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
       toast({ title: en ? 'Branding saved.' : 'Marque enregistrée.' });
     } catch (cause) {
@@ -316,9 +323,31 @@ export default function MarqueScreen() {
           <DocumentPreview
             template={currentTemplate}
             color={currentColor}
-            businessName={branding.legalName}
+            businessName={currentName || branding.legalName}
             logoUrl={branding.logoUrl ? `${API_URL}${branding.logoUrl}` : null}
             en={en}
+          />
+        </View>
+
+        {/*
+          Le nom affiché.
+
+          C'est la première ligne du document que reçoit le client, et jusqu'ici
+          elle ne se corrigeait que depuis « Mon entreprise », deux écrans plus
+          loin. On la modifie ici, là où l'aperçu montre l'effet immédiatement ;
+          c'est la même valeur des deux côtés, pas un doublon.
+        */}
+        <View style={{ gap: spacing.sm }}>
+          <Caption upper style={{ color: colors.subtle }}>
+            {en ? 'Business name on documents' : 'Nom affiché sur les documents'}
+          </Caption>
+          <AuthField
+            label={en ? 'Business name' : 'Nom de l’entreprise'}
+            value={currentName}
+            onChangeText={setName}
+            editable={!saving}
+            autoComplete="organization"
+            placeholder="Plomberie Martin"
           />
         </View>
 

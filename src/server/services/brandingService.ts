@@ -114,6 +114,9 @@ export async function updateBranding(
   const profile = await prisma.businessProfile.update({
     where: { organizationId },
     data: {
+      // Le nom affiché est la raison sociale : une seule valeur, deux écrans
+      // où la corriger.
+      ...(input.legalName != null ? { legalName: input.legalName.trim() } : {}),
       ...(input.brandColor != null ? { brandColor: input.brandColor } : {}),
       ...(input.documentTemplate != null ? { documentTemplate: input.documentTemplate } : {}),
       ...(input.documentFooter !== undefined ? { documentFooter: input.documentFooter?.trim() || null } : {}),

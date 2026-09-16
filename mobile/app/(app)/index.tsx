@@ -1,6 +1,6 @@
 import * as React from 'react';
 import { Pressable, RefreshControl, Text, View } from 'react-native';
-import { useFocusEffect, useRouter } from 'expo-router';
+import { useFocusEffect, useLocalSearchParams, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_EVENT_LABELS, type DashboardDTO, type QuoteSummaryDTO } from '@devisia/shared';
 import {
@@ -32,6 +32,7 @@ import { useMobileLocale } from '@/lib/i18n';
 import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
+import { QuickActions } from '@/components/quick-actions';
 import { SetupProgress } from '@/components/setup-progress';
 import { VoiceHero, type VoiceHeroState } from '@/components/voice-hero';
 import { useDictation } from '@/features/voice';
@@ -151,6 +152,9 @@ export default function AccueilScreen() {
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
   const surface = useBrandSurface();
+  // `?voix=1` : arrivée depuis « Créer mon premier devis à la voix ». Le micro
+  // s'ouvre de lui-même, puisque c'est exactement ce que le bouton annonçait.
+  const { voix } = useLocalSearchParams<{ voix?: string }>();
 
   /*
    * Le micro de l'accueil.
@@ -196,6 +200,21 @@ export default function AccueilScreen() {
       if (granted) void dictation.start();
     });
   }, [aiConsent, dictation, router]);
+
+  /*
+   * Démarrage automatique après l'écran « Votre atelier est prêt ».
+   *
+   * Une seule fois : la garde empêche que revenir sur l'accueil, l'écran de
+   * devis fermé, relance le micro en boucle. La permission passe par le même
+   * chemin que l'appui manuel — rien n'écoute avant qu'iOS ait demandé.
+   */
+  const autoVoice = React.useRef(false);
+  React.useEffect(() => {
+    if (autoVoice.current || voix !== '1') return;
+    autoVoice.current = true;
+    const timer = setTimeout(() => toggleVoice(), 520);
+    return () => clearTimeout(timer);
+  }, [toggleVoice, voix]);
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();
     const data = await api.dashboard(30);
@@ -393,10 +412,17 @@ export default function AccueilScreen() {
             </PressableCard>
 
             {setup ? <SetupProgress status={setup} en={en} /> : null}
+
+            {/* Même rangée pour un atelier encore vide : elle montre ce que
+                DEVISERA sait faire au-delà du devis. */}
+            <QuickActions />
           </Stagger>
         ) : (
           <Stagger step={60} initial={40}>
             <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />
+
+            {/* Les gestes de fin de journée, sans passer par la navigation. */}
+            <QuickActions onBrand />
             {setup && setupPending ? <SetupProgress status={setup} en={en} /> : null}
             {data.toRecover.quoteCount > 0 ? (
               <Pressable

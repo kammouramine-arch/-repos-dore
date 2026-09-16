@@ -73,12 +73,14 @@ describe('en-tête des écrans poussés', () => {
 });
 
 describe('barre de navigation', () => {
-  const bar = read('src/components/scrub-tab-bar.tsx');
+  const bar = read('src/components/glass-tab-bar.tsx');
 
   it('n’a qu’un indicateur de sélection et le positionne sans animation au montage', () => {
-    expect(bar.match(/backgroundColor: colors\.accentSoft/g)?.length).toBe(1);
+    // Une seule capsule, dont la couleur dépend du matériau réellement
+    // disponible — jamais deux indicateurs superposés comme autrefois.
+    expect(bar.match(/const capsuleColor =/g)?.length).toBe(1);
     expect(bar).toContain('positioned.current');
-    expect(bar).toContain('indicatorX.setValue(target)');
+    expect(bar).toContain('slide.value = target;');
   });
 
   it('garde une graisse d’étiquette constante pour ne jamais décaler la mise en page', () => {

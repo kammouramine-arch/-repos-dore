@@ -3,9 +3,10 @@ import { Pressable, ScrollView, Text, View } from 'react-native';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import { formatCents, type QuoteDetailDTO } from '@devisia/shared';
-import { Body, Button, Caption, Card, ErrorState, Screen, Skeleton, Title } from '@/components/ui';
+import Svg, { Path } from 'react-native-svg';
+import { Body, Button, Caption, Card, ErrorState, Ionicons, Screen, Skeleton, Title } from '@/components/ui';
 import { AuthField } from '@/components/auth-kit';
-import { SignaturePad } from '@/components/signature-pad';
+import { SignatureSheet } from '@/components/signature-pad';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
@@ -46,6 +47,7 @@ export default function SignatureDevisScreen() {
    */
   const [typedName, setTypedName] = React.useState<string | null>(null);
   const [strokePath, setStrokePath] = React.useState<string | null>(null);
+  const [signing, setSigning] = React.useState(false);
   const [accepted, setAccepted] = React.useState(false);
   const [saving, setSaving] = React.useState(false);
   const [error, setError] = React.useState<string | null>(null);
@@ -192,12 +194,77 @@ export default function SignatureDevisScreen() {
           placeholder="Jean Dupont"
         />
 
+        {/*
+          La signature elle-même.
+
+          Elle se trace sur une feuille plein écran, pas dans un cadre coincé
+          au milieu d'une vue défilante : le geste était volé par le
+          défilement dès qu'il descendait. Ici, l'écran montre l'état — pas
+          encore signé, ou signé avec le tracé visible — et le bouton ouvre la
+          feuille.
+        */}
         <View style={{ gap: spacing.sm }}>
           <Caption upper style={{ color: colors.subtle }}>
             {en ? 'Signature' : 'Signature'}
           </Caption>
-          <SignaturePad onChange={setStrokePath} en={en} disabled={saving} />
+
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel={strokePath
+              ? (en ? 'Signature captured. Tap to sign again.' : 'Signature enregistrée. Touchez pour signer à nouveau.')
+              : (en ? 'Open the signature pad' : 'Ouvrir la zone de signature')}
+            disabled={saving}
+            onPress={() => setSigning(true)}
+            style={({ pressed }) => ({
+              minHeight: 132,
+              borderRadius: radius.lg,
+              borderWidth: 1.5,
+              borderStyle: strokePath ? 'solid' : 'dashed',
+              borderColor: strokePath ? colors.accent : colors.lineStrong,
+              backgroundColor: strokePath ? colors.canvas : colors.surface,
+              alignItems: 'center',
+              justifyContent: 'center',
+              gap: spacing.sm,
+              padding: spacing.md,
+              opacity: pressed ? 0.85 : 1,
+            })}
+          >
+            {strokePath ? (
+              <>
+                <Svg width="100%" height={72} viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                  <Path d={strokePath} stroke={colors.ink} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </Svg>
+                <View style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Ionicons name="checkmark-circle" size={16} color={colors.success} />
+                  <Caption style={{ color: colors.success, fontWeight: '700' }}>
+                    {en ? 'Signature captured · tap to redo' : 'Signature enregistrée · touchez pour refaire'}
+                  </Caption>
+                </View>
+              </>
+            ) : (
+              <>
+                <Ionicons name="create-outline" size={28} color={colors.accent} />
+                <Body style={{ color: colors.accent, fontWeight: '700' }}>
+                  {en ? 'Sign here' : 'Signer ici'}
+                </Body>
+                <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+                  {en ? 'Opens a full-screen signature pad' : 'Ouvre une zone de signature plein écran'}
+                </Caption>
+              </>
+            )}
+          </Pressable>
         </View>
+
+        <SignatureSheet
+          visible={signing}
+          en={en}
+          signerName={signerName.trim()}
+          onCancel={() => setSigning(false)}
+          onConfirm={(path) => {
+            setStrokePath(path);
+            setSigning(false);
+          }}
+        />
 
         {/* Acceptation explicite : une signature sans intention déclarée ne
             vaudrait pas grand-chose en cas de litige. */}

@@ -14,6 +14,7 @@ import { colors, radius, spacing } from '@/theme';
 import { Logo } from './logo';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 import { appleOffer } from '@/lib/apple-offer';
+import { appEntry } from '@/lib/first-run';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { DiagnosticReport } from './diagnostic-report';
 import Constants from 'expo-constants';
@@ -95,9 +96,9 @@ function ApplePaywallContent() {
   const dateOf = (value: string | null | undefined) => value ? new Date(value).toLocaleDateString(en ? 'en-GB' : 'fr-FR', { day: 'numeric', month: 'long', year: 'numeric' }) : null;
   const pendingDate = dateOf(subscription?.pendingAt ?? subscription?.currentPeriodEnd);
   React.useEffect(() => {
-    if (appleActive && !wasActive.current && !manage) router.replace('/(app)');
+    if (appleActive && !wasActive.current && !manage) router.replace((session ? appEntry(session) : '/(app)') as never);
     wasActive.current = appleActive;
-  }, [appleActive, manage, router]);
+  }, [appleActive, manage, router, session]);
   type Intent = { kind: 'purchase'; plan: PlanId; change: PlanChange | null } | { kind: 'restore' } | { kind: 'manage' };
   async function action(fn: () => Promise<unknown>, intent?: Intent) {
     if (acting.current) return;
@@ -128,7 +129,10 @@ function ApplePaywallContent() {
       }
       if (fresh?.nextStep === 'app' && fresh.access.canWrite) {
         recordDiagnostic({ area: 'billing', durationMs: 0, code: 'ROUTE_APP', category: 'ok' });
-        router.replace('/(app)');
+        // Un abonnement qui vient d'être signé ouvre l'atelier ; si la
+        // configuration s'est terminée juste avant, l'écran de bienvenue
+        // passe d'abord.
+        router.replace(appEntry(fresh) as never);
       } else if (outcome === 'purchased') {
         setError(en ? 'Apple confirmed the purchase, but access is not active yet. Restore purchases or contact support.' : 'Apple a confirmé l’achat, mais l’accès n’est pas encore actif. Restaurez vos achats ou contactez le support.');
       }

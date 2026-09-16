@@ -759,6 +759,14 @@ export interface BrandingDTO {
 }
 
 export interface BrandingInput {
+  /**
+   * Nom affiché en tête des documents.
+   *
+   * C'est la même valeur que la raison sociale du profil d'entreprise : un
+   * artisan ne comprendrait pas d'avoir deux noms à tenir à jour. On la rend
+   * modifiable ici parce que c'est l'écran où il voit l'effet.
+   */
+  legalName?: string;
   brandColor?: string;
   documentTemplate?: DocumentTemplateId;
   documentFooter?: string | null;

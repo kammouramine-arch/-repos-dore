@@ -1,4 +1,4 @@
-import { PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib';
+import { LineCapStyle, PDFDocument, rgb, type PDFFont, type PDFPage, type PDFImage } from 'pdf-lib';
 import fontkit from '@pdf-lib/fontkit';
 import { readFileSync } from 'node:fs';
 import path from 'node:path';
@@ -97,6 +97,8 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
     date: 'Date', signature: 'Customer name and signature',
     validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
     signedElectronically: 'Accepted and signed online',
+    acceptedBy: 'ACCEPTED BY',
+    electronicNotice: 'Electronic acceptance recorded by DEVISERA: name, date and signature, bound to this exact quote.',
     signedOn: 'on', paid: 'Already paid', balance: 'Balance due', dueOn: 'Payment due',
     paymentDetails: 'PAYMENT DETAILS', settled: 'PAID IN FULL',
   } : {
@@ -109,6 +111,8 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
     date: 'Date', signature: 'Nom et signature du client',
     validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
     signedElectronically: 'Accepté et signé en ligne',
+    acceptedBy: 'ACCEPTÉ PAR',
+    electronicNotice: 'Acceptation électronique enregistrée par DEVISERA : nom, date et tracé, liés à ce devis exact.',
     signedOn: 'le', paid: 'Déjà réglé', balance: 'Restant dû', dueOn: 'À régler avant le',
     paymentDetails: 'COORDONNÉES DE RÈGLEMENT', settled: 'FACTURE ACQUITTÉE',
   };
@@ -761,27 +765,80 @@ function drawConditions(ctx: Ctx, input: QuotePdfInput) {
 }
 
 /**
+ * Boîte englobante d'un chemin de signature.
+ *
+ * On ne lit que les couples de nombres : pour `Q`, le point de contrôle n'est
+ * pas sur la courbe, donc la boîte est légèrement plus large que le tracé
+ * réel. C'est la bonne erreur — une marge en trop, jamais un trait coupé.
+ */
+function strokeBounds(strokePath: string): { x: number; y: number; width: number; height: number } | null {
+  const numbers = strokePath.match(/-?\d+(?:\.\d+)?/g);
+  if (!numbers || numbers.length < 4) return null;
+  let minX = Infinity;
+  let minY = Infinity;
+  let maxX = -Infinity;
+  let maxY = -Infinity;
+  for (let index = 0; index + 1 < numbers.length; index += 2) {
+    const x = Number(numbers[index]);
+    const y = Number(numbers[index + 1]);
+    if (!Number.isFinite(x) || !Number.isFinite(y)) return null;
+    if (x < minX) minX = x;
+    if (x > maxX) maxX = x;
+    if (y < minY) minY = y;
+    if (y > maxY) maxY = y;
+  }
+  const width = maxX - minX;
+  const height = maxY - minY;
+  if (width <= 0 && height <= 0) return null;
+  return { x: minX, y: minY, width, height };
+}
+
+/**
  * Rend le tracé de signature du client.
  *
- * Le chemin est normalisé dans un carré de 1000 × 400 côté application ; il
- * est ici mis à l'échelle de la boîte disponible. pdf-lib accepte un chemin
- * SVG tel quel, ce qui garde un trait net à l'impression — une image
- * matricielle baverait.
+ * Le chemin arrive normalisé dans un repère de 1000 × 400. Le mettre à
+ * l'échelle de ce repère donnait des signatures minuscules perdues en haut de
+ * leur case : personne ne signe en remplissant tout le cadre. On cadre donc
+ * sur la **boîte englobante du tracé**, centrée dans la case, avec un
+ * plafond d'agrandissement pour qu'un paraphe de trois centimètres ne
+ * devienne pas une fresque.
+ *
+ * pdf-lib accepte un chemin SVG tel quel : le trait reste net à l'impression,
+ * là où une image matricielle baverait.
  */
+const MAX_SIGNATURE_SCALE = 0.42;
+
 function drawSignatureStroke(
   ctx: Ctx,
   strokePath: string,
   box: { x: number; y: number; width: number; height: number },
 ) {
-  const scale = Math.min(box.width / 1000, box.height / 400);
+  const bounds = strokeBounds(strokePath);
+  if (!bounds) return;
+  const scale = Math.min(
+    MAX_SIGNATURE_SCALE,
+    bounds.width > 0 ? box.width / bounds.width : Infinity,
+    bounds.height > 0 ? box.height / bounds.height : Infinity,
+  );
+  if (!Number.isFinite(scale) || scale <= 0) return;
+
+  const inkWidth = bounds.width * scale;
+  const inkHeight = bounds.height * scale;
+  // pdf-lib place l'origine d'un chemin SVG en haut à gauche, et l'axe y
+  // descend : le haut de la case est `y + height`, et on décale de la
+  // position du tracé dans son repère.
+  const left = box.x + (box.width - inkWidth) / 2 - bounds.x * scale;
+  const top = box.y + box.height - (box.height - inkHeight) / 2 + bounds.y * scale;
+
   try {
     ctx.page.drawSvgPath(strokePath, {
-      x: box.x,
-      // pdf-lib place l'origine d'un chemin SVG en haut à gauche.
-      y: box.y + box.height,
+      x: left,
+      y: top,
       scale,
       borderColor: INK,
-      borderWidth: 1.4,
+      // Le trait garde une épaisseur lisible quel que soit l'agrandissement.
+      borderWidth: Math.max(0.9, Math.min(2, 5 * scale)),
+      borderLineCap: LineCapStyle.Round,
       color: undefined,
     });
   } catch {
@@ -858,11 +915,26 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
     return;
   }
 
-  // Devis déjà signé : on imprime la signature reçue plutôt qu'une case vide.
+  /*
+   * Le bloc de signature.
+   *
+   * C'est la partie du document qu'un client regarde en dernier et dont il se
+   * souvient : elle mérite d'être dessinée, pas expédiée en une ligne. Deux
+   * états, une seule structure — un cadre titré, une zone de tracé, et sous
+   * elle le nom et la date.
+   *
+   * Signé : la signature manuscrite est imprimée à sa taille, avec le nom du
+   * signataire et l'horodatage sous la ligne, comme sur un document papier.
+   * Non signé : la même zone reste vide avec sa ligne et ses intitulés, prête
+   * à être signée à la main si le client préfère imprimer.
+   *
+   * La couleur de l'encadré vient de la marque de l'artisan, jamais de celle
+   * de DEVISERA : ce document part chez *son* client, sous *son* nom.
+   */
   const signature = input.signature;
   const strong = ctx.template === 'EXECUTIF' ? INK : ctx.accent;
-  const height = signature ? 96 : 86;
-  ensureSpace(ctx, height + 14);
+  const height = 122;
+  ensureSpace(ctx, height + 16);
   const boxY = ctx.y - height;
 
   ctx.page.drawRectangle({
@@ -870,9 +942,9 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
     y: boxY,
     width: CONTENT_WIDTH,
     height,
-    color: signature ? rgb(0.976, 0.984, 1) : WHITE,
+    color: WHITE,
     borderColor: signature ? strong : LINE,
-    borderWidth: signature ? 1.2 : 0.8,
+    borderWidth: signature ? 1.1 : 0.8,
   });
 
   // Onglet de titre : le bloc se lit comme une zone à part, pas comme une
@@ -881,73 +953,107 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
   const tabWidth = ctx.bold.widthOfTextAtSize(safeText(tabLabel), 7.5) + 20;
   ctx.page.drawRectangle({
     x: MARGIN,
-    y: boxY + height - 18,
+    y: boxY + height - 19,
     width: tabWidth,
-    height: 18,
+    height: 19,
     color: signature ? strong : SOFT,
   });
   drawText(ctx, tabLabel, {
     x: MARGIN + 10,
-    y: boxY + height - 12.5,
+    y: boxY + height - 13,
     size: 7.5,
     bold: true,
     color: signature ? WHITE : MUTED,
   });
 
+  /*
+   * Deux colonnes, comme sur un bon de commande : à gauche ce que le client
+   * doit écrire ou a écrit, à droite la signature elle-même. La colonne de
+   * droite est la plus large — c'est le geste, pas la mention, qui compte.
+   */
+  const leftX = MARGIN + 16;
+  const rightX = MARGIN + 236;
+  const rightWidth = CONTENT_WIDTH - 236 - 16;
+  /*
+   * Ligne de signature : la même dans les deux états, pour que le document
+   * vide et le document signé se ressemblent.
+   *
+   * Elle est posée assez haut pour que les intitulés qui la suivent et la
+   * mention légale du bas ne se touchent pas — à 34 points du bord, les deux
+   * se collaient et la mention semblait légender la date.
+   */
+  const ruleY = boxY + 42;
+
+  drawText(ctx, labels.signature.toUpperCase(), {
+    x: rightX,
+    y: ruleY - 13,
+    size: 6.5,
+    bold: true,
+    color: MUTED,
+  });
+  ctx.page.drawLine({
+    start: { x: rightX, y: ruleY },
+    end: { x: rightX + rightWidth, y: ruleY },
+    thickness: 0.8,
+    color: signature ? strong : LINE,
+    opacity: signature ? 0.55 : 1,
+  });
+
+  drawText(ctx, labels.date.toUpperCase(), { x: leftX, y: ruleY - 13, size: 6.5, bold: true, color: MUTED });
+  ctx.page.drawLine({
+    start: { x: leftX, y: ruleY },
+    end: { x: leftX + 180, y: ruleY },
+    thickness: 0.8,
+    color: signature ? strong : LINE,
+    opacity: signature ? 0.55 : 1,
+  });
+
   if (signature) {
+    // Le tracé occupe l'espace entre l'onglet et la ligne.
+    drawSignatureStroke(ctx, signature.strokePath, {
+      x: rightX,
+      y: ruleY + 4,
+      width: rightWidth,
+      height: height - 19 - 34 - 10,
+    });
+
+    const signedAt = formatDate(signature.signedAt, input);
+    drawText(ctx, signedAt, { x: leftX, y: ruleY + 8, size: 11, bold: true });
+
     drawText(ctx, safeText(signature.signerName), {
-      x: MARGIN + 14,
-      y: boxY + height - 44,
-      size: 12,
+      x: leftX,
+      y: boxY + height - 47,
+      size: 12.5,
       bold: true,
     });
-    drawText(ctx, `${labels.signedOn} ${formatDate(signature.signedAt, input)}`, {
-      x: MARGIN + 14,
-      y: boxY + height - 60,
-      size: 8.5,
+    drawText(ctx, labels.acceptedBy, {
+      x: leftX,
+      y: boxY + height - 34,
+      size: 6.5,
+      bold: true,
       color: MUTED,
     });
-    drawSignatureStroke(ctx, signature.strokePath, {
-      x: MARGIN + 250,
-      y: boxY + 16,
-      width: CONTENT_WIDTH - 268,
-      height: height - 42,
-    });
-    ctx.page.drawLine({
-      start: { x: MARGIN + 250, y: boxY + 14 },
-      end: { x: A4.width - MARGIN - 18, y: boxY + 14 },
-      thickness: 0.6,
-      color: strong,
-      opacity: 0.4,
+    /*
+     * Ce que vaut cette acceptation, dit sur le document lui-même — en petit
+     * et en gris. C'est une mention, pas une signature de DEVISERA : le
+     * document part chez le client de l'artisan, sous le nom de l'artisan.
+     */
+    drawText(ctx, labels.electronicNotice, {
+      x: leftX,
+      y: boxY + 11,
+      size: 6.5,
+      color: MUTED,
     });
   } else {
     drawText(ctx, labels.acceptanceText, {
-      x: MARGIN + 14,
-      y: boxY + height - 36,
+      x: leftX,
+      y: boxY + height - 38,
       size: 8.5,
       color: MUTED,
     });
-
-    // Deux zones nettes : la date à gauche, la signature à droite, chacune
-    // avec sa ligne. Un cadre sans repère se remplit n'importe comment.
-    const zoneY = boxY + 18;
-    drawText(ctx, labels.date.toUpperCase(), { x: MARGIN + 14, y: zoneY + 22, size: 6.5, bold: true, color: MUTED });
-    ctx.page.drawLine({
-      start: { x: MARGIN + 14, y: zoneY },
-      end: { x: MARGIN + 190, y: zoneY },
-      thickness: 0.7,
-      color: LINE,
-    });
-
-    drawText(ctx, labels.signature.toUpperCase(), { x: MARGIN + 250, y: zoneY + 22, size: 6.5, bold: true, color: MUTED });
-    ctx.page.drawLine({
-      start: { x: MARGIN + 250, y: zoneY },
-      end: { x: A4.width - MARGIN - 18, y: zoneY },
-      thickness: 0.7,
-      color: LINE,
-    });
   }
-  ctx.y = boxY - 14;
+
+  ctx.y = boxY - 16;
 }
 
 function drawFooters(ctx: Ctx, input: QuotePdfInput) {
