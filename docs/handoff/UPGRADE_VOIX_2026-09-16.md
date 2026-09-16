@@ -241,3 +241,116 @@ rejouable : chaque ajout est gardé par `IF NOT EXISTS` ou par un bloc
 d'exception. Les tables existantes `invoices` et `payments` sont complétées
 sans perte : `publicToken` est ajouté nullable, rempli pour les lignes
 existantes, puis rendu obligatoire.
+
+---
+
+# Passe de correction — build 52 (2026-09-16, soir)
+
+## Le numéro de build réel
+
+Le retour d'essai parlait du « build 49 ». Ce n'est pas celui qui a été testé :
+le build 49 (1.0.1) a bien été *construit*, mais sa soumission a été **refusée**
+par App Store Connect (`SUBMISSION_SERVICE_IOS_OLD_APP_VERSION`) et il n'a
+jamais atteint TestFlight. L'état réel chez EAS au moment de cette passe :
+
+| Build | Version | Construction | Soumission |
+| --- | --- | --- | --- |
+| 52 | 1.0.2 | cette passe | à installer |
+| 51 | 1.0.2 | terminée | terminée, acceptée |
+| 50 | 1.0.2 | terminée | terminée, acceptée |
+| 49 | 1.0.1 | terminée | **refusée** |
+| 48, 47 | 1.0.1 | terminées | terminées |
+
+La capture envoyée montre « VOTRE ACTIVITÉ » avec Factures, Reçus, Export
+comptable et Ma marque : ce groupe n'existe que depuis le commit `69b5c3b`,
+donc l'appareil tournait bien sous **le build 51**. Le prochain build valide
+est donc **52**, pas 50.
+
+## D'où venaient réellement 39 / 79 / 149 €
+
+Pas d'un libellé codé en dur dans le paywall, et pas de `plans.ts` non plus.
+Enchaînement exact :
+
+1. App Store Connect facture aujourd'hui 39 / 79 / 149 € pour les trois
+   produits. C'est le tarif réel, relevé dans l'écran natif de gestion
+   d'abonnement d'Apple.
+2. StoreKit renvoie pour cet appareil une devise qui contredit sa vitrine
+   (FRA + USD, dossier Apple 102957593166).
+3. `appleOffer()` détecte la contradiction et affiche le prix public vérifié de
+   la vitrine française plutôt qu'une conversion — d'où la mention « Tarif
+   France · Apple confirme le prix avant votre accord » visible sur la capture.
+
+Le défaut corrigé ici n'est donc pas un prix faux, c'est une **table de prix en
+double** : `apple-storefront-prices.ts` recopiait des montants que `plans.ts`
+portait déjà. Elle les **dérive** désormais de `effectiveMonthlyPriceCents()`,
+et un test échoue si quelqu'un les recopie à nouveau.
+
+**Rien n'a été modifié chez Apple, et rien ne pouvait l'être :** cet
+environnement n'a aucune clé App Store Connect sur disque, aucune variable
+d'environnement Apple, et l'API d'App Store Connect y répond 401. La clé
+« DEVISIA EAS » (UYGAWWUX8D) vit sur les serveurs EAS et n'est injectée que
+dans les jobs de build et de soumission. La procédure manuelle reste celle du
+paragraphe « Tarifs de lancement » plus haut.
+
+Une fois les trois produits repricés chez Apple, le paywall iPhone affiche le
+nouveau tarif **sans rebuild** : il lit `displayPrice` de StoreKit. Le repli,
+lui, suivra au rebuild suivant une fois `EXPO_PUBLIC_LAUNCH_PRICING=1` posé.
+
+## Où vivent les fonctions, maintenant
+
+| Fonction | Chemin dans l'interface |
+| --- | --- |
+| Devis | Onglet **Documents** → segment « Devis » |
+| Factures | Onglet **Documents** → segment « Factures » |
+| Reçus et dépenses | Onglet **Outils** → carte « Reçus et dépenses » · aussi en accès rapide sur l'accueil |
+| Export comptable | Onglet **Outils** → carte « Export comptable » · aussi en accès rapide |
+| Ma marque | Onglet **Outils** → carte « Ma marque » · aussi en accès rapide |
+| Catalogue, chiffre d'affaires, encaissement | Onglet **Outils** → « Utile aussi » |
+| Compte, entreprise, abonnement, langue, légal | Onglet **Outils** → « Mon compte » |
+| Signature client | Écran d'un devis → « Faire signer le client » → « Signer ici » |
+| Facturer un devis signé | Écran d'un devis accepté → « Créer la facture » |
+
+« Mon espace » ne porte plus aucune fonction du métier : les mêmes liens en
+double auraient laissé hésiter sur le bon chemin.
+
+## Le verre
+
+La barre de navigation utilise `UIGlassEffect` d'iOS 26 par
+`expo-glass-effect`. Trois niveaux, décidés à l'exécution et non à la
+compilation :
+
+1. `isLiquidGlassAvailable()` vrai → verre natif, avec `GlassContainer` pour la
+   fusion des formes ;
+2. sinon → `BlurView`, matériau système ;
+3. « Réduire la transparence », Android ou web → surface opaque.
+
+La sélection est une capsule qui **glisse** d'une destination à l'autre
+(ressort Reanimated), pendant que l'icône passe du contour au plein. « Réduire
+les animations » la pose directement à destination. Aucun rectangle
+semi-transparent bordé de blanc : un test le vérifie.
+
+## La signature
+
+L'ancien cadre tenait 200 points de haut au milieu d'une vue défilante, qui
+volait le geste dès qu'il descendait ; le trait était une suite de segments
+droits ; et une fois raté, il fallait tout effacer. Trois défauts, et un
+quatrième invisible : x et y étaient normalisés séparément, donc une signature
+tracée dans un cadre plus haut que 5:2 **ressortait écrasée sur le PDF**.
+
+Maintenant : feuille plein écran, trait lissé par quadratiques, retour arrière
+trait par trait, tout effacer, annuler, validation qui refuse une paume posée
+sur l'écran (`isSignature`), et une échelle unique sur les deux axes.
+
+Sur le PDF, le tracé est cadré sur sa **boîte englobante** et non sur un repère
+vide : l'encre sort à sa taille, à côté du nom et de la date, dans la couleur
+de l'artisan. La mention imprimée reste « acceptation électronique » — un test
+vérifie qu'aucune chaîne imprimée ne dit « qualifiée » ou « certifiée ».
+
+## Ce qui n'a pas changé, volontairement
+
+- Aucun tarif n'a été modifié chez Apple ni chez Stripe.
+- La signature n'est toujours pas qualifiée au sens d'eIDAS, et ne le prétend
+  nulle part.
+- L'encaissement en ligne reste inactif tant que Stripe Connect n'est pas
+  activé (voir plus haut).
+- Aucune soumission à la validation App Store : TestFlight uniquement.
