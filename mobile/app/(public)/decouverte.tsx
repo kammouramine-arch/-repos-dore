@@ -40,35 +40,28 @@ interface Pillar {
 const PILLARS: Pillar[] = [
   {
     icon: 'mic',
-    benefit: 'Dictez, le devis s’écrit',
+    benefit: 'Parlez. Votre devis prend forme.',
     detail:
-      'Décrivez le chantier à voix haute comme à votre apprenti. DEVISERA met en forme les lignes, les quantités et les prix.',
+      'Décrivez le chantier à voix haute, comme à votre apprenti. DEVISERA en tire les lignes, les quantités et les prix. Vous relisez, vous corrigez, vous envoyez.',
   },
   {
-    icon: 'camera',
-    benefit: 'Vos photos comptent',
+    icon: 'create',
+    benefit: 'Faites signer. Facturez.',
     detail:
-      'Ajoutez des photos du chantier : elles servent à décrire le travail et restent jointes au devis.',
+      'Le client signe du doigt sur votre téléphone, sur place. Le devis accepté devient une facture, sans ressaisir une seule ligne.',
   },
   {
-    icon: 'document-text',
-    benefit: 'Un devis net, envoyé en deux gestes',
+    icon: 'card',
+    benefit: 'Encaissez et gardez tout en ordre.',
     detail:
-      'Un PDF à votre image, prêt à être vérifié puis envoyé directement à votre client.',
-  },
-  {
-    icon: 'notifications',
-    benefit: 'Plus de devis oubliés',
-    detail:
-      'DEVISERA suit les devis sans réponse et prépare la relance. Vous décidez de l’envoyer.',
+      'Votre client règle sa facture en ligne. Vos justificatifs sont photographiés et classés, prêts pour votre comptable.',
   },
 ];
 
 const PILLARS_EN: Pillar[] = [
-  { icon: 'mic', benefit: 'Speak it, the quote writes itself', detail: 'Describe the job out loud as if talking to your apprentice. DEVISERA turns your words into clear line items, quantities and prices.' },
-  { icon: 'camera', benefit: 'Your photos add context', detail: 'Add job-site photos: they help describe the work and stay attached to the quote.' },
-  { icon: 'document-text', benefit: 'A clean quote, sent in two taps', detail: 'A professional PDF in your brand, ready to review and send directly to your customer.' },
-  { icon: 'notifications', benefit: 'Fewer forgotten quotes', detail: 'DEVISERA follows quotes without a reply and prepares the follow-up. You decide when to send it.' },
+  { icon: 'mic', benefit: 'Speak. Your quote takes shape.', detail: 'Describe the job out loud, as if talking to your apprentice. DEVISERA turns it into line items, quantities and prices. You review, correct and send.' },
+  { icon: 'create', benefit: 'Get it signed. Invoice it.', detail: 'Your customer signs with a finger on your phone, on site. The accepted quote becomes an invoice without retyping a single line.' },
+  { icon: 'card', benefit: 'Get paid and stay organised.', detail: 'Your customer settles the invoice online. Your receipts are photographed and filed, ready for your accountant.' },
 ];
 
 export default function DecouverteScreen() {

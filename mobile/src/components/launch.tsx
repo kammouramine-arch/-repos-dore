@@ -209,7 +209,7 @@ export function LaunchOverlay({
           }}
         />
         <Animated.View style={{ opacity: markOpacity, transform: [{ scale: markScale }] }}>
-          <LogoMark size={LAUNCH_MARK_SIZE} inverse stroke={1.92} />
+          <LogoMark size={LAUNCH_MARK_SIZE} inverse />
         </Animated.View>
         <View style={{ position: 'absolute', top: '50%', marginTop: LAUNCH_MARK_SIZE / 2 + 22, alignItems: 'center', gap: 8 }}>
           <Animated.Text style={[styles.word, { opacity: wordOpacity, transform: [{ translateY: wordRise }] }]}>DEVISERA</Animated.Text>

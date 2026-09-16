@@ -131,7 +131,7 @@ export function BrandMark({ size = 72 }: { size?: number }) {
           Platform.select({ ios: { shadowColor: '#2F52E8', shadowOpacity: 0.28, shadowRadius: 22, shadowOffset: { width: 0, height: 10 } }, android: { elevation: 6 }, default: {} }),
         ]}
       >
-        <LogoMark size={size} stroke={Math.max(1.8, size * 0.06)} />
+        <LogoMark size={size} />
       </View>
     </View>
   );

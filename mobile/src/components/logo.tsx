@@ -22,13 +22,11 @@ export function Logo({
   showName?: boolean;
   tone?: 'ink' | 'white' | 'inverse';
 }) {
-  // Le trait s'épaissit avec la taille : à 96 px, un trait de 1.9 disparaît.
-  const stroke = Math.max(1.6, 32 * 0.06);
   const nameColor = tone === 'ink' ? colors.ink : colors.white;
 
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: size * 0.33 }}>
-      <LogoMark size={size} inverse={tone === 'inverse'} stroke={stroke} />
+      <LogoMark size={size} inverse={tone === 'inverse'} />
       {showName ? (
         <Text
           style={{
@@ -45,22 +43,31 @@ export function Logo({
   );
 }
 
-/** Monogramme seul. La géométrie est reprise à l'identique par l'écran natif. */
-export function LogoMark({ size, inverse = false, stroke = 1.92 }: { size: number; inverse?: boolean; stroke?: number }) {
-  const fill = inverse ? colors.white : colors.accent;
+/**
+ * Monogramme seul.
+ *
+ * Même géométrie que l'icône de l'application : une onde vocale à gauche, une
+ * page de devis à droite, et les deux ensemble dessinent le D de DEVISERA.
+ * Le repère de 32 × 32 reprend celui de l'icône divisé par 32, afin que le
+ * dessin à l'écran et celui sur l'écran d'accueil soient le même dessin.
+ */
+export function LogoMark({ size, inverse = false }: { size: number; inverse?: boolean }) {
+  // `inverse` : marque blanche posée sur une surface bleue. Sinon pavé bleu,
+  // dessin blanc — comme l'icône.
+  const plate = inverse ? colors.white : colors.accent;
   const ink = inverse ? colors.accent : colors.white;
+  // Le pli du coin perd son contraste en très petit : il rejoint alors la page.
+  const fold = size >= 26 ? (inverse ? '#8FB0FC' : '#8FB0FC') : ink;
   return (
     <Svg width={size} height={size} viewBox="0 0 32 32">
-      <Rect width={32} height={32} rx={9} fill={fill} />
-      <Path
-        d="M10.75 9.75h6.6c3.6 0 5.9 2.5 5.9 6.25s-2.3 6.25-5.9 6.25h-6.6"
-        stroke={ink}
-        strokeWidth={stroke}
-        strokeLinecap="round"
-        strokeLinejoin="round"
-        fill="none"
-      />
-      <Path d="M8.5 16h6.2" stroke={ink} strokeWidth={stroke} strokeLinecap="round" />
+      <Rect width={32} height={32} rx={9} fill={plate} />
+      {/* Panse du D : la page, coin replié. */}
+      <Path d="M 14.1 6.4 H 21 L 26.6 12.1 V 19.1 A 6.4 6.4 0 0 1 20.2 25.4 H 14.1 Z" fill={ink} />
+      <Path d="M 21 6.4 L 26.6 12.1 H 21 Z" fill={fold} />
+      {/* Hampe du D : l'onde vocale. */}
+      <Rect x={4.7} y={13.6} width={1.75} height={4.8} rx={0.9} fill={ink} />
+      <Rect x={7.7} y={10.6} width={1.75} height={10.9} rx={0.9} fill={ink} />
+      <Rect x={10.7} y={7.7} width={1.75} height={16.6} rx={0.9} fill={ink} />
     </Svg>
   );
 }
