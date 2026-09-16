@@ -408,3 +408,111 @@ vérifie qu'aucune chaîne imprimée ne dit « qualifiée » ou « certifiée »
     n'est pas un défaut.
 16. **Arrière-plan** — quittez l'application en pleine signature, revenez : la
     feuille ne doit pas ressortir avec un tracé fantôme.
+
+---
+
+# Passe de correction — build 54 (2026-09-16, nuit)
+
+## La découpe basse : la cause
+
+La barre était rendue **dans le flux** du navigateur d'onglets. Trois effets,
+tous visibles sur la capture reçue :
+
+1. Le navigateur raccourcissait la scène de la hauteur de la barre. Le contenu
+   s'arrêtait donc net à son bord supérieur — d'où les cartes tranchées.
+2. Derrière le verre, il n'y avait pas de contenu mais le fond blanc du
+   navigateur. Un matériau translucide sans rien derrière n'est pas du verre :
+   c'est un rectangle pâle. C'est exactement ce qu'on voyait.
+3. La réserve de défilement des écrans (`spacing['5xl']`, 48 points) était
+   inférieure à la hauteur réelle de la barre avec la zone sûre (~130 points).
+
+**Correction.** `tabBarStyle: { position: 'absolute' }` sur le navigateur, et
+la barre elle-même en position absolue. La scène occupe toute la hauteur, le
+contenu passe réellement sous le verre, et chaque écran d'onglet réserve la
+place avec `useTabBarSpace()` — hauteur de barre + zone sûre + respiration.
+
+## Le verre
+
+`GlassView` d'`expo-glass-effect`, c'est-à-dire `UIGlassEffect` d'iOS 26, avec
+`isInteractive`. La barre et le bouton « + » sont deux formes sœurs dans un
+`GlassContainer`, ce qui laisse le système les fondre l'une dans l'autre quand
+elles se rapprochent. Repli sur `BlurView` (matériau système) avant iOS 26,
+puis sur une surface opaque quand « Réduire la transparence » est actif.
+
+La sélection est une capsule qui **glisse** d'une destination à l'autre
+(ressort Reanimated : damping 20, stiffness 240), pendant que l'icône passe du
+contour au plein par fondu croisé et se soulève de deux points. « Réduire les
+animations » la pose directement à destination.
+
+## Cinq destinations, une action
+
+```
+[ Accueil · Clients · Documents · Outils · Compte ]   ( + )
+```
+
+Le « + » n'est pas une sixième destination : le placer parmi les onglets
+imposait six cibles sur la largeur d'un iPhone SE et laissait croire qu'il
+menait quelque part. Il vit dans sa propre pastille pleine et colorée — une
+action doit ressortir, et le contraste d'un disque plein est garanti sur
+n'importe quel fond. Il ouvre une feuille montée **dans la barre** : un
+`Modal`, pas une route, donc aucune page blanche à l'ouverture.
+
+La feuille propose, dans cet ordre : devis à la voix, devis manuel, nouveau
+client, scanner un reçu, facturer un devis signé. Pas de « créer une facture
+vierge » : le serveur exige un devis accepté, et la feuille ne promet pas ce
+qui n'existe pas.
+
+## Les contrastes : la cause
+
+Ce n'était pas une couleur mal choisie, mais un rapport faux. La blancheur du
+fondu dépend de la **position à l'écran** ; le texte, lui, est placé par le
+flux. Tout ce qui descendait sous la moitié du bandeau virait au blanc sur
+presque blanc : la légende du micro, « VOS DEVIS », « Tout voir », les
+pastilles d'état de Mon compte.
+
+Trois changements, pour que le problème disparaisse par construction :
+
+1. **Un dégradé propre aux bandeaux d'en-tête** (`BRAND_HEADER_GRADIENT`) : le
+   bleu tient jusqu'aux trois quarts, puis se dissout vite. Celui du plein
+   écran étale son fondu sur plus de la moitié de sa hauteur — parfait pour une
+   surface, fatal pour un bandeau.
+2. **Une hauteur mesurée sur l'en-tête**, plus une fraction d'écran. L'en-tête
+   est dimensionné pour tenir dans `BRAND_HEADER_SOLID`, la part où le bleu
+   porte encore du texte blanc. Juste quelle que soit la langue, la taille de
+   police ou l'appareil.
+3. **Le reste du fondu laissé vide.** Aucun texte ne s'y trouve, donc aucun
+   texte ne peut s'y perdre.
+
+## L'accueil
+
+Le bloc vocal est retiré. L'écran montre, dans l'ordre : la salutation et
+l'état de l'activité, les devis en cartes, les accès rapides (scanner un reçu,
+mes factures, export comptable, ma marque), le chiffre d'affaires à récupérer,
+les compteurs, l'activité récente.
+
+La dictée n'a pas quitté le produit : elle est en tête de la feuille du « + »,
+et `?dicter=1` arme le micro de l'écran de devis, qui a déjà le sien. Le
+consentement IA passe avant toute écoute.
+
+## Frontière Outils / Mon compte
+
+| Outils | Mon compte |
+| --- | --- |
+| Reçus et dépenses | Informations personnelles |
+| Export comptable | Mon entreprise |
+| Ma marque | Langue de l'application |
+| Catalogue de prix | Abonnement et paiements |
+| Chiffre d'affaires | Assistance, avis |
+| Encaissement en ligne | Confidentialité et IA, légal |
+| Découvrir DEVISERA | Suppression du compte |
+
+Aucune fonction du métier dans Mon compte, pas même par renvoi — un test le
+vérifie.
+
+## Revue visuelle
+
+Captures prises sur le bundle exporté, connecté à une base réelle, aux trois
+largeurs qui comptent : iPhone SE (375), 15 Pro (393), 15 Pro Max (430).
+Accueil (haut et défilé jusqu'en bas), Documents, Outils, Mon compte, Clients,
+et la feuille de création. Zéro erreur de page. La découpe basse a disparu :
+le dernier bouton de l'accueil dégage la barre.
