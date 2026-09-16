@@ -32,6 +32,14 @@ export interface Dictation {
   supported: boolean;
   /** Vrai quand la transcription se fait sans réseau. */
   onDevice: boolean;
+  /**
+   * Vrai quand le moteur détecte de la parole à l'instant.
+   *
+   * C'est un état réel, remonté par `speechstart` / `speechend` : la forme
+   * d'onde s'anime quand l'artisan parle et se repose quand il se tait. Le
+   * moteur n'expose aucun niveau sonore ; rien ici ne prétend en mesurer un.
+   */
+  hearing: boolean;
   start: () => Promise<void>;
   stop: () => void;
   cancel: () => void;
@@ -78,6 +86,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
   const [partial, setPartial] = useState('');
   const [error, setError] = useState<string | null>(null);
   const [elapsedMs, setElapsedMs] = useState(0);
+  const [hearing, setHearing] = useState(false);
 
   // La reconnaissance n'existe pas sur le web de développement : l'écran doit
   // alors proposer la saisie sans laisser croire à un bouton mort.
@@ -99,11 +108,16 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
     setPartial(text);
   });
 
+  // Parole détectée / silence : le seul signal audio réel que le moteur donne.
+  useSpeechRecognitionEvent('speechstart', () => setHearing(true));
+  useSpeechRecognitionEvent('speechend', () => setHearing(false));
+
   useSpeechRecognitionEvent('error', (event) => {
     // `no-speech` après un arrêt volontaire n'est pas une erreur à montrer.
     if (cancelled.current || (event.error === 'no-speech' && latest.current.trim())) return;
     setError(describe(String(event.error), locale));
     setStatus('inactif');
+    setHearing(false);
   });
 
   useSpeechRecognitionEvent('end', () => {
@@ -111,6 +125,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
     latest.current = '';
     setPartial('');
     setStatus('inactif');
+    setHearing(false);
     if (cancelled.current) {
       cancelled.current = false;
       return;
@@ -149,6 +164,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
       startedAt.current = Date.now();
       setElapsedMs(0);
       setPartial('');
+      setHearing(false);
 
       ExpoSpeechRecognitionModule.start({
         lang: locale === 'en' ? 'en-US' : 'fr-FR',
@@ -182,6 +198,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
     cancelled.current = true;
     setStatus('inactif');
     setPartial('');
+    setHearing(false);
     ExpoSpeechRecognitionModule.abort();
   }, [status]);
 
@@ -201,6 +218,7 @@ export function useDictation(onTranscript: (text: string) => void): Dictation {
     elapsedMs,
     supported,
     onDevice,
+    hearing,
     start,
     stop,
     cancel,

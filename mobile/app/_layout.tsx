@@ -182,6 +182,11 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="catalogue" options={{ headerShown: true, title: locale === 'en' ? 'Price book' : 'Catalogue de prix', headerBackTitle: back }} />
         <Stack.Screen name="entreprise" options={{ headerShown: true, title: locale === 'en' ? 'My business' : 'Mon entreprise', headerBackTitle: back }} />
         <Stack.Screen name="analytique" options={{ headerShown: true, title: locale === 'en' ? 'Activity' : 'Activité', headerBackTitle: back }} />
+        <Stack.Screen name="factures" options={{ headerShown: true, title: locale === 'en' ? 'Invoices' : 'Factures', headerBackTitle: back }} />
+        <Stack.Screen name="depenses" options={{ headerShown: true, title: locale === 'en' ? 'Expenses' : 'Dépenses', headerBackTitle: back }} />
+        <Stack.Screen name="marque" options={{ headerShown: true, title: locale === 'en' ? 'My branding' : 'Ma marque', headerBackTitle: back }} />
+        <Stack.Screen name="comptable" options={{ headerShown: true, title: locale === 'en' ? 'Accountant export' : 'Export comptable', headerBackTitle: back }} />
+        <Stack.Screen name="devis/signature" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'Client signature' : 'Signature du client', headerBackTitle: back }} />
       </Stack.Protected>
       <Stack.Protected guard={connected && !needsSetup}>
         <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />

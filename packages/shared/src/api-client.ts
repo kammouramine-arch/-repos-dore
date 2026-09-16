@@ -22,6 +22,23 @@ import type {
   QuoteSummaryDTO,
   SessionDTO,
 } from './contracts';
+import type {
+  AccountingExportInput,
+  AccountingExportSummaryDTO,
+  BrandingDTO,
+  BrandingInput,
+  CreateInvoiceFromQuoteInput,
+  ExpenseDTO,
+  ExpenseInput,
+  ExpenseListDTO,
+  InvoiceDetailDTO,
+  InvoiceSummaryDTO,
+  PaymentAccountDTO,
+  QuoteSignatureDTO,
+  ReceiptExtractionDTO,
+  RecordPaymentInput,
+  SignQuoteInput,
+} from './contracts';
 import type { PlanId } from './plans';
 import type { FollowUpTone } from './labels';
 
@@ -455,6 +472,18 @@ export function createApiClient(options: ApiClientOptions) {
           json: input,
         }),
       pdfUrl: (id: string) => `${base}/api/quotes/${id}/pdf`,
+      /**
+       * Signature du devis par le client.
+       *
+       * Passe par la route publique : c'est le client qui signe, pas le
+       * compte connecté. Le jeton du devis fait autorité, que la signature
+       * soit tracée sur l'iPhone de l'artisan ou sur le téléphone du client.
+       */
+      sign: (publicToken: string, input: SignQuoteInput) =>
+        request<QuoteSignatureDTO>(`/api/public/devis/${encodeURIComponent(publicToken)}/signature`, {
+          method: 'POST',
+          json: input,
+        }),
     },
 
     customers: {
@@ -559,6 +588,72 @@ export function createApiClient(options: ApiClientOptions) {
           json: { immediate },
         }),
       resume: () => request<{ resumed: boolean }>('/api/billing/reprise', { method: 'POST' }),
+    },
+
+    /**
+     * Factures de l'artisan — à ne pas confondre avec `billing`, qui concerne
+     * l'abonnement DEVISERA lui-même.
+     */
+    invoices: {
+      list: (params: { statut?: string; clientId?: string; take?: number } = {}) => {
+        const search = new URLSearchParams();
+        if (params.statut) search.set('statut', params.statut);
+        if (params.clientId) search.set('clientId', params.clientId);
+        if (params.take) search.set('take', String(params.take));
+        const suffix = search.toString();
+        return request<InvoiceSummaryDTO[]>(`/api/invoices${suffix ? `?${suffix}` : ''}`);
+      },
+      get: (id: string) => request<InvoiceDetailDTO>(`/api/invoices/${id}`),
+      createFromQuote: (input: CreateInvoiceFromQuoteInput) =>
+        request<InvoiceDetailDTO>('/api/invoices', { method: 'POST', json: input }),
+      send: (id: string) => request<InvoiceDetailDTO>(`/api/invoices/${id}/envoi`, { method: 'POST' }),
+      recordPayment: (id: string, input: RecordPaymentInput) =>
+        request<InvoiceDetailDTO>(`/api/invoices/${id}/paiements`, { method: 'POST', json: input }),
+      cancel: (id: string) => request<InvoiceDetailDTO>(`/api/invoices/${id}`, { method: 'DELETE' }),
+      pdfUrl: (id: string) => `${base}/api/invoices/${id}/pdf`,
+    },
+
+    /** Encaissement en ligne : compte Stripe de l'artisan. */
+    paymentAccount: {
+      get: (refresh = false) =>
+        request<PaymentAccountDTO>(`/api/paiements/compte${refresh ? '?refresh=1' : ''}`),
+      startOnboarding: () => request<{ url: string }>('/api/paiements/compte', { method: 'POST' }),
+    },
+
+    expenses: {
+      list: (params: { du?: string; au?: string; poste?: string; take?: number } = {}) => {
+        const search = new URLSearchParams();
+        for (const [key, value] of Object.entries(params)) {
+          if (value != null) search.set(key, String(value));
+        }
+        const suffix = search.toString();
+        return request<ExpenseListDTO>(`/api/depenses${suffix ? `?${suffix}` : ''}`);
+      },
+      create: (input: ExpenseInput) => request<ExpenseDTO>('/api/depenses', { method: 'POST', json: input }),
+      update: (id: string, input: ExpenseInput) =>
+        request<ExpenseDTO>(`/api/depenses/${id}`, { method: 'PUT', json: input }),
+      remove: (id: string) => request<{ deleted: boolean }>(`/api/depenses/${id}`, { method: 'DELETE' }),
+      /** Lecture IA d'un justificatif déjà téléversé ; n'enregistre rien. */
+      readReceipt: (fileId: string) =>
+        request<ReceiptExtractionDTO>('/api/ai/recu', { method: 'POST', json: { fileId } }),
+    },
+
+    branding: {
+      get: () => request<BrandingDTO>('/api/marque'),
+      update: (input: BrandingInput) => request<BrandingDTO>('/api/marque', { method: 'PATCH', json: input }),
+    },
+
+    accounting: {
+      preview: (du: string, au: string) =>
+        request<AccountingExportSummaryDTO>(
+          `/api/comptable/export?du=${encodeURIComponent(du)}&au=${encodeURIComponent(au)}`,
+        ),
+      build: (input: AccountingExportInput) =>
+        request<{
+          summary: AccountingExportSummaryDTO;
+          files: { name: string; content: string; contentType: string }[];
+          documents: { id: string; kind: string; label: string; url: string }[];
+        }>('/api/comptable/export', { method: 'POST', json: input }),
     },
   };
 }

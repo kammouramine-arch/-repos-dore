@@ -33,6 +33,10 @@ import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
 import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
 import { SetupProgress } from '@/components/setup-progress';
+import { VoiceHero, type VoiceHeroState } from '@/components/voice-hero';
+import { useDictation } from '@/features/voice';
+import { stashDictation } from '@/lib/voice-handoff';
+import { useAiConsent } from '@/lib/ai-consent';
 import { loadSetupStatus, type SetupStatus } from '@/features/setup-status';
 
 /**
@@ -127,12 +131,12 @@ function relativeDay(iso: string, en: boolean): string {
  * relances). L'en-tête se pose une fois, en deux temps ; il ne rejoue pas à
  * chaque rafraîchissement.
  */
-function HomeHeader({ eyebrow, title, subtitle }: { eyebrow: string; title: string; subtitle: string }) {
+function HomeHeader({ eyebrow, title, subtitle, compact = false }: { eyebrow: string; title: string; subtitle: string; compact?: boolean }) {
   return (
     <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, paddingBottom: spacing.sm }}>
       <View style={{ flex: 1, gap: 8 }}>
         <Enter distance={6}><Caption upper style={{ color: 'rgba(255,255,255,0.78)', letterSpacing: 1.1 }}>{eyebrow}</Caption></Enter>
-        <Enter delay={60} distance={8}><Text style={[typography.title, { color: colors.white, fontSize: 32, lineHeight: 38, letterSpacing: -1.1 }]} accessibilityRole="header">{title}</Text></Enter>
+        <Enter delay={60} distance={8}><Text style={[typography.title, { color: colors.white, fontSize: compact ? 25 : 32, lineHeight: compact ? 30 : 38, letterSpacing: -1 }]} accessibilityRole="header">{title}</Text></Enter>
         <Enter delay={130} distance={8}><Text style={[typography.body, { color: 'rgba(255,255,255,0.88)', fontSize: 16, lineHeight: 23, maxWidth: 300 }]}>{subtitle}</Text></Enter>
       </View>
       <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
@@ -147,6 +151,51 @@ export default function AccueilScreen() {
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
   const surface = useBrandSurface();
+
+  /*
+   * Le micro de l'accueil.
+   *
+   * La dictée démarre ici, sur l'écran que l'artisan ouvre en arrivant, et la
+   * transcription part vers l'écran de devis qui enchaîne la génération. Le
+   * consentement IA est demandé avant le premier envoi, jamais après coup.
+   */
+  const aiConsent = useAiConsent();
+  const [handingOff, setHandingOff] = React.useState(false);
+  const dictation = useDictation(
+    React.useCallback((text: string) => {
+      const trimmed = text.trim();
+      if (!trimmed) return;
+      setHandingOff(true);
+      stashDictation(trimmed);
+      router.push('/devis/nouveau?source=voix');
+      // L'écran de création reprend la main : on relâche l'état au retour.
+      setTimeout(() => setHandingOff(false), 600);
+    }, [router]),
+  );
+
+  const voiceState: VoiceHeroState = handingOff || dictation.status === 'traitement'
+    ? 'thinking'
+    : dictation.status === 'ecoute'
+      ? 'listening'
+      : dictation.status === 'demande'
+        ? 'starting'
+        : 'idle';
+
+  const toggleVoice = React.useCallback(() => {
+    if (dictation.status === 'ecoute') {
+      dictation.stop();
+      return;
+    }
+    // Sans reconnaissance vocale (simulateur, web), on bascule vers la saisie
+    // plutôt que de laisser un bouton sans effet.
+    if (!dictation.supported) {
+      router.push('/devis/nouveau');
+      return;
+    }
+    void aiConsent.ensure().then((granted) => {
+      if (granted) void dictation.start();
+    });
+  }, [aiConsent, dictation, router]);
   const query = useQuery<DashboardDTO>(async () => {
     const token = await readToken();
     const data = await api.dashboard(30);
@@ -258,6 +307,7 @@ export default function AccueilScreen() {
         <HomeHeader
           eyebrow={en ? 'Your workspace' : 'Votre atelier'}
           title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
+          compact
           subtitle={
             !started
               ? (en ? 'Your workshop is ready. Your first quote starts here.' : 'Votre atelier est prêt. Votre premier devis commence ici.')
@@ -268,6 +318,26 @@ export default function AccueilScreen() {
                   : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
           }
         />
+
+        {/* Le geste central, avant tout compteur : parler pour chiffrer. */}
+        <VoiceHero
+          state={voiceState}
+          hearing={dictation.hearing}
+          elapsedMs={dictation.elapsedMs}
+          partial={dictation.partial}
+          onToggle={toggleVoice}
+          onCancel={dictation.cancel}
+          onManual={() => router.push('/devis/nouveau')}
+          en={en}
+        />
+        {dictation.error ? (
+          <Card style={{ backgroundColor: colors.dangerSoft, borderColor: colors.dangerSoft, gap: spacing.sm }}>
+            <Body style={{ color: colors.danger }}>{dictation.error}</Body>
+            <Pressable accessibilityRole="button" onPress={dictation.dismissError} hitSlop={8}>
+              <Caption style={{ color: colors.danger, fontWeight: '700' }}>{en ? 'OK' : 'J’ai compris'}</Caption>
+            </Pressable>
+          </Card>
+        ) : null}
 
         {(query.loading || query.refreshing || query.error) && <Caption style={{ color: 'rgba(255,255,255,0.85)' }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
 

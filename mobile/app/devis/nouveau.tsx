@@ -38,6 +38,7 @@ import { Breathe, Enter, Stagger, SuccessCheck } from '@/components/motion';
 import { Logo } from '@/components/logo';
 import { ListeningRings, Waveform } from '@/components/voice-visuals';
 import { useDictation } from '@/features/voice';
+import { takeDictation } from '@/lib/voice-handoff';
 import { usePhotoCapture } from '@/features/photos';
 import { applyAnswers, missingLabel, toQuestions, type MissingQuestion } from '@/features/missing-info';
 import { appendDictation, displayedDescription, submittedDescription } from '@/features/description-input';
@@ -130,14 +131,23 @@ function ErrorBanner({
 export default function NouveauDevisScreen() {
   const router = useRouter();
   const locale = useMobileLocale();
-  const { customerId } = useLocalSearchParams<{ customerId?: string }>();
+  const { customerId, source } = useLocalSearchParams<{ customerId?: string; source?: string }>();
   const { toast } = useToast();
   // Aucune requête vers l'API d'IA sans « Autoriser et continuer » : la
   // feuille s'ouvre avant le premier envoi, et la description reste en place.
   const aiConsent = useAiConsent();
 
   const [phase, setPhase] = React.useState<Phase>('saisie');
-  const [description, setDescription] = React.useState('');
+  /*
+   * Dictée venue de l'accueil.
+   *
+   * L'artisan a déjà parlé : la description est l'état initial de l'écran, pas
+   * une valeur posée après coup. Le dépôt se vide à la lecture, donc revenir
+   * ici plus tard repart d'un écran vierge.
+   */
+  const [description, setDescription] = React.useState(() =>
+    source === 'voix' ? (takeDictation() ?? '') : '',
+  );
   const [error, setError] = React.useState<string | null>(null);
   const [limitReached, setLimitReached] = React.useState(false);
   // Une panne réseau se rejoue ; une description trop courte, non. Le bandeau
@@ -172,6 +182,16 @@ export default function NouveauDevisScreen() {
       setDescription((current) => appendDictation(current, text));
     }, []),
   );
+  // La génération enchaîne toute seule sur une dictée venue de l'accueil :
+  // l'artisan a parlé, il n'a pas à appuyer une seconde fois.
+  const autoStarted = React.useRef(false);
+  React.useEffect(() => {
+    if (autoStarted.current || source !== 'voix' || !description.trim()) return;
+    autoStarted.current = true;
+    void generate(description);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [source]);
+
   const photos = usePhotoCapture();
   const etapes = React.useMemo(() => etapesPour(photos.fileIds.length > 0), [photos.fileIds.length]);
 
