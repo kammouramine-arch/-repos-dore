@@ -71,6 +71,29 @@ export async function GET() {
     checks.ai = { provider: 'unavailable', generation: false, transcription: false };
   }
 
+  /*
+   * Encaissement des factures : trois interrupteurs, trois pannes distinctes.
+   *
+   * Sans clé, aucune page de paiement ne s'ouvre. Avec la clé mais sans le
+   * secret Connect, le client paie et la facture reste « à régler » : la
+   * confirmation ne vient que du webhook signé, jamais de la redirection. Les
+   * distinguer ici évite de chercher la panne du mauvais côté. Aucun secret
+   * n'est renvoyé — seulement sa présence.
+   */
+  try {
+    const key = env().STRIPE_SECRET_KEY;
+    checks.payments = {
+      provider: 'stripe',
+      configured: Boolean(key),
+      mode: key?.startsWith('sk_live') ? 'live' : key ? 'test' : null,
+      subscriptionWebhook: Boolean(env().STRIPE_WEBHOOK_SECRET),
+      connectWebhook: Boolean(env().STRIPE_CONNECT_WEBHOOK_SECRET),
+    };
+  } catch {
+    console.error('[health] payments_unavailable');
+    checks.payments = { provider: 'stripe', configured: false };
+  }
+
   let environment: string | null = null;
   try {
     environment = env().NODE_ENV;
