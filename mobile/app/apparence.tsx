@@ -31,13 +31,13 @@ const OPTIONS: { value: AppearanceChoice; icon: keyof typeof Ionicons.glyphMap; 
     value: 'light',
     icon: 'sunny-outline',
     title: { fr: 'Clair', en: 'Light' },
-    body: { fr: 'Toujours clair, même la nuit', en: 'Always light, even at night' },
+    body: { fr: 'Toujours l’apparence claire', en: 'Always use the Light appearance' },
   },
   {
     value: 'dark',
     icon: 'moon-outline',
     title: { fr: 'Sombre', en: 'Dark' },
-    body: { fr: 'Toujours sombre, même en plein jour', en: 'Always dark, even in daylight' },
+    body: { fr: 'Toujours l’apparence sombre', en: 'Always use the Dark appearance' },
   },
 ];
 
@@ -110,8 +110,8 @@ export default function ApparenceScreen() {
 
       <Caption style={{ color: colors.subtle, paddingHorizontal: 4, lineHeight: 17 }}>
         {en
-          ? 'Your choice is kept on this iPhone and applies the next time you open DEVISERA. Documents you send keep your brand colour in both appearances — a PDF is printed, not looked at on a screen.'
-          : 'Votre choix est conservé sur cet iPhone et s’applique au prochain lancement. Les documents que vous envoyez gardent votre couleur de marque dans les deux apparences — un PDF s’imprime, il ne se regarde pas sur un écran.'}
+          ? 'Automatic follows your iPhone’s Light or Dark appearance, as it changes. Your choice is kept on this iPhone. Documents you send keep your brand colour in both appearances — a PDF is printed, not looked at on a screen.'
+          : 'Automatique suit l’apparence claire ou sombre de votre iPhone, au fil de ses changements. Votre choix est conservé sur cet iPhone. Les documents que vous envoyez gardent votre couleur de marque dans les deux apparences — un PDF s’imprime, il ne se regarde pas sur un écran.'}
       </Caption>
     </Screen>
   );

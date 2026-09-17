@@ -139,12 +139,20 @@ export default function PlusScreen() {
         question de couleur mais d'architecture de calques.
       */}
       <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+        {/*
+          L'identité en ligne, et non en portrait.
+
+          Mon compte est un écran de réglages, pas une page de profil : le
+          portrait centré occupait un tiers de l'écran avant la première
+          section. L'identité tient maintenant sur une rangée — photo à gauche,
+          nom et entreprise à droite, états en dessous — ce qui laisse voir deux
+          cartes de réglages dès l'ouverture.
+        */}
         <BrandAtmosphere scrollY={brandScroll.scrollY}>
         <IdentityHeader
-          centered
           greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
           initial={initial}
-          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} size={88} />}
+          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} size={60} />}
           name={name}
           subtitle={fullName ? business || session?.user.email : session?.user.email}
           chips={

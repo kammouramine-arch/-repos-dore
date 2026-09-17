@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Appearance, Platform, useColorScheme } from 'react-native';
+import { AppState, Appearance, Platform, useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { applyScheme, publishScheme } from '@/theme';
 import type { ColorScheme } from '@/theme/palette';
@@ -25,14 +25,25 @@ import type { ColorScheme } from '@/theme/palette';
  * « Clair » renvoyait l'utilisateur à l'accueil, pile de navigation perdue.
  * Un réglage ne doit jamais déplacer celui qui le règle.
  *
- * ## Le matériau natif suit aussi
+ * ## Le matériau natif suit aussi — et c'est un piège
  *
  * Le verre d'iOS, les claviers, les feuilles de partage et les alertes ne
  * lisent pas notre palette : ils lisent l'apparence de la fenêtre. Sans
  * `Appearance.setColorScheme`, un iPhone réglé en sombre gardait une barre
  * d'onglets noire sous une application passée en clair — deux thèmes à
- * l'écran en même temps. Ce réglage aligne ce qu'iOS dessine sur ce que
- * DEVISERA a choisi.
+ * l'écran en même temps.
+ *
+ * Mais cet appel pose une **surcharge** au niveau de l'application, et
+ * `useColorScheme()` renvoie alors cette surcharge, plus celle du système. La
+ * première version la posait dès le premier rendu, avant même d'avoir lu la
+ * préférence : la surcharge valait « clair », la préférence arrivait ensuite
+ * à « automatique », et « automatique » lisait… « clair ». L'iPhone avait beau
+ * être en sombre, DEVISERA restait clair, définitivement. On avait crevé l'œil
+ * avec lequel on regardait.
+ *
+ * La règle qui en découle, et qui tient tout le fichier : **la surcharge
+ * n'existe que pour un choix explicite.** En « automatique », il n'y en a
+ * aucune — le système est seul maître, et `useColorScheme()` dit la vérité.
  *
  * ## Le premier rendu
  *
@@ -75,6 +86,20 @@ async function writeChoice(choice: AppearanceChoice): Promise<void> {
   }
 }
 
+/**
+ * Aligne ce qu'iOS dessine lui-même — verre, claviers, alertes — sur le choix.
+ *
+ * `null` **efface** la surcharge et rend la main au système : c'est ce que
+ * veut dire « automatique », et c'est aussi ce qui permet à
+ * `useColorScheme()` de redevenir fiable.
+ */
+function applyNativeOverride(choice: AppearanceChoice): void {
+  if (Platform.OS === 'web') return;
+  // Les typages d'Expo n'admettent pas encore `null`, que l'API accepte
+  // pourtant pour rendre la main au système — c'est tout l'intérêt ici.
+  Appearance.setColorScheme((choice === 'system' ? null : choice) as 'light' | 'dark');
+}
+
 interface AppearanceValue {
   /** Ce que l'utilisateur a choisi : `system`, `light` ou `dark`. */
   choice: AppearanceChoice;
@@ -92,20 +117,48 @@ export function useAppearance(): AppearanceValue {
 }
 
 export function AppearanceProvider({ children }: { children: React.ReactNode }) {
-  const system = useColorScheme();
   const [choice, setStored] = React.useState<AppearanceChoice | null>(null);
+
+  /*
+   * L'apparence du système.
+   *
+   * `useColorScheme()` ne dit la vérité que s'il n'y a pas de surcharge — donc
+   * uniquement en « automatique », le seul cas où l'on s'en sert. Le compteur
+   * force une relecture au retour de veille : iOS peut changer d'apparence
+   * pendant que l'application dort, et la notification se perd parfois.
+   */
+  const reported = useColorScheme();
+  const [resumes, setResumes] = React.useState(0);
+  React.useEffect(() => {
+    const subscription = AppState.addEventListener('change', (next) => {
+      if (next === 'active') setResumes((count) => count + 1);
+    });
+    return () => subscription.remove();
+  }, []);
+  const system: ColorScheme = React.useMemo(() => {
+    const value = Platform.OS === 'web' ? reported : (Appearance.getColorScheme() ?? reported);
+    return value === 'dark' ? 'dark' : 'light';
+    // `resumes` n'est pas lu : il est là pour relire au réveil.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [reported, resumes]);
 
   React.useEffect(() => {
     let disposed = false;
-    void readChoice().then((stored) => { if (!disposed) setStored(stored); });
+    void readChoice().then((stored) => {
+      if (disposed) return;
+      /*
+       * La surcharge native est posée ici, à la lecture de la préférence, et
+       * jamais avant : tant qu'on ne sait pas ce que l'utilisateur veut, on ne
+       * doit rien imposer à iOS — sinon « automatique » ne verra plus que
+       * notre propre imposition.
+       */
+      applyNativeOverride(stored);
+      setStored(stored);
+    });
     return () => { disposed = true; };
   }, []);
 
-  const scheme: ColorScheme = choice == null
-    ? 'light'
-    : choice === 'system'
-      ? (system === 'dark' ? 'dark' : 'light')
-      : choice;
+  const scheme: ColorScheme = choice == null || choice === 'system' ? system : choice;
 
   /*
    * La palette est appliquée **pendant** le rendu, pas dans un effet.
@@ -125,11 +178,17 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
    */
   React.useLayoutEffect(() => {
     publishScheme();
-    // Aligne ce qu'iOS dessine lui-même sur le thème de l'application.
-    if (Platform.OS !== 'web') Appearance.setColorScheme(scheme);
   }, [scheme]);
 
   const setChoice = React.useCallback((next: AppearanceChoice) => {
+    /*
+     * La surcharge est levée ou posée **avant** le rendu suivant.
+     *
+     * Repasser en « automatique » doit d'abord effacer la surcharge, sinon le
+     * rendu qui suit lirait encore l'ancien choix comme s'il venait du
+     * système — et l'on retomberait exactement sur le défaut corrigé ici.
+     */
+    applyNativeOverride(next);
     setStored(next);
     void writeChoice(next);
   }, []);

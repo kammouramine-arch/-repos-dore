@@ -39,10 +39,18 @@ describe('home personalization contracts', () => {
     expect(home).toContain('On chiffre quoi aujourd’hui ?');
     expect(home).toMatch(/function HomeHeader[\s\S]*<Enter delay=\{60\}/);
   });
-  it('centres the Mon espace identity with a larger portrait', () => {
+  /*
+   * Mon compte portait un portrait centré de 88 points, salutation et pastilles
+   * empilées : un tiers de l'écran avant la première section de réglages. Mon
+   * compte est un écran de réglages, pas une page de profil — l'identité tient
+   * sur une rangée, et deux cartes sont visibles dès l'ouverture.
+   */
+  it('range l’identité de Mon compte sur une rangée, pour que les réglages commencent tôt', () => {
     const espace = readFileSync('mobile/app/(app)/plus.tsx', 'utf8');
-    expect(espace).toContain('centered');
-    expect(espace).toContain('size={88}');
-    expect(readFileSync('mobile/src/components/settings.tsx', 'utf8')).toContain("justifyContent: 'center', gap: spacing.sm }}>{chips}");
+    expect(espace).not.toContain('centered');
+    expect(espace).toContain('size={60}');
+    // Le surtitre garde sa place, au-dessus du nom plutôt que sur sa propre
+    // ligne centrée : il situe l'écran sans coûter une hauteur de plus.
+    expect(espace).toContain("greeting={en ? 'Welcome to your workshop'");
   });
 });

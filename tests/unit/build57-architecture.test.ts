@@ -71,7 +71,58 @@ describe('changer de thème ne démonte rien', () => {
    * clair — deux thèmes à l'écran en même temps.
    */
   it('aligne l’apparence native sur le thème choisi dans l’application', () => {
-    expect(mobile('src/lib/appearance.tsx')).toContain('Appearance.setColorScheme(scheme)');
+    expect(mobile('src/lib/appearance.tsx')).toContain('Appearance.setColorScheme(');
+  });
+
+  /*
+   * Le piège de cet alignement, et la raison d'être de ce test.
+   *
+   * `Appearance.setColorScheme` pose une **surcharge** au niveau de
+   * l'application, et `useColorScheme()` renvoie ensuite cette surcharge — plus
+   * celle du système. La version précédente la posait dès le premier rendu,
+   * avant d'avoir lu la préférence : la surcharge valait « clair », la
+   * préférence arrivait à « automatique », et « automatique » lisait « clair ».
+   * L'iPhone avait beau être en sombre, DEVISERA restait clair pour toujours.
+   *
+   * Deux règles en découlent, et elles sont vérifiées ici parce qu'elles se
+   * cassent en silence : on ne pose rien avant de savoir, et « automatique »
+   * n'a **aucune** surcharge.
+   */
+  it('n’impose rien à iOS tant que la préférence n’est pas lue', () => {
+    const provider = mobile('src/lib/appearance.tsx');
+    // La surcharge est posée à la lecture de la préférence…
+    const read = provider.indexOf('void readChoice().then');
+    const applied = provider.indexOf('applyNativeOverride(stored)');
+    expect(read).toBeGreaterThan(0);
+    expect(applied).toBeGreaterThan(read);
+    // …et jamais depuis l'effet qui publie le thème, qui s'exécute avant.
+    const publish = provider.slice(provider.indexOf('React.useLayoutEffect'));
+    expect(publish.slice(0, 220)).not.toContain('setColorScheme');
+  });
+
+  it('rend la main au système quand le choix est « automatique »', () => {
+    const provider = mobile('src/lib/appearance.tsx');
+    // `null` efface la surcharge : c'est ce qui rend `useColorScheme()` à
+    // nouveau fiable, donc ce qui fait marcher « automatique ».
+    expect(provider).toContain("choice === 'system' ? null : choice");
+    // Et le thème effectif suit le système dans ce cas, sans le mémoriser.
+    expect(provider).toContain("choice == null || choice === 'system' ? system : choice");
+  });
+
+  it('relit l’apparence du système au réveil de l’application', () => {
+    // iOS peut basculer pendant que l'application dort, et la notification se
+    // perd parfois : au retour au premier plan, on relit.
+    const provider = mobile('src/lib/appearance.tsx');
+    expect(provider).toContain("AppState.addEventListener('change'");
+    expect(provider).toContain('Appearance.getColorScheme()');
+  });
+
+  it('ne promet plus que le thème s’appliquera au prochain lancement', () => {
+    // Le changement est immédiat : le pied de page le disait encore autrement.
+    const screen = mobile('app/apparence.tsx');
+    expect(screen).not.toContain('next time you open');
+    expect(screen).not.toContain('prochain lancement');
+    expect(screen).toContain('Automatic follows your iPhone’s Light or Dark appearance');
   });
 });
 
@@ -105,9 +156,9 @@ describe('aucun calque de fond ne traverse le contenu', () => {
 
   it('réserve le fondu, pour qu’aucun intitulé ne puisse y tomber', () => {
     const atmosphere = mobile('src/components/brand-atmosphere.tsx');
-    expect(atmosphere).toContain('const FADE = 240');
+    expect(atmosphere).toContain('const FADE = 176');
     // Le bleu couvre le contenu ; le fondu qui suit est laissé vide.
-    expect(atmosphere).toContain('style={{ height: FADE }}');
+    expect(atmosphere).toContain('style={{ height: fade }}');
   });
 });
 

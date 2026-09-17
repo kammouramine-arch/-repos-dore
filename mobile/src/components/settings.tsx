@@ -141,8 +141,15 @@ export function IdentityHeader({
       </View>
     );
   }
+  /*
+   * La variante en ligne : photo à gauche, identité à droite, états dessous.
+   *
+   * C'est celle de Mon compte, qui est un écran de réglages. Le surtitre y
+   * garde sa place — il situe l'écran — mais au-dessus du nom plutôt que sur
+   * sa propre ligne centrée, pour ne pas coûter une hauteur de plus.
+   */
   return (
-    <View style={{ gap: spacing.lg, paddingBottom: spacing.sm }}>
+    <View style={{ gap: spacing.md, paddingBottom: spacing.sm }}>
       <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.lg }}>
         {avatar ?? <View
           style={{
@@ -158,9 +165,14 @@ export function IdentityHeader({
         >
           <Text style={{ color: colors.white, fontSize: 24, fontWeight: '700', letterSpacing: -0.5 }}>{initial}</Text>
         </View>}
-        <View style={{ flex: 1, gap: 3 }}>
-          <Text numberOfLines={1} style={[typography.title, { color: colors.white, fontSize: 26, lineHeight: 32 }]}>{name}</Text>
-          {subtitle ? <Text numberOfLines={1} style={[typography.body, { color: 'rgba(255,255,255,0.84)' }]}>{subtitle}</Text> : null}
+        <View style={{ flex: 1, gap: 2 }}>
+          {greeting ? (
+            <Text numberOfLines={1} style={[typography.caption, { color: 'rgba(255,255,255,0.74)', textTransform: 'uppercase', letterSpacing: 1 }]}>
+              {greeting}
+            </Text>
+          ) : null}
+          <Text numberOfLines={1} style={[typography.title, { color: colors.white, fontSize: 24, lineHeight: 29 }]}>{name}</Text>
+          {subtitle ? <Text numberOfLines={1} style={[typography.body, { color: 'rgba(255,255,255,0.84)', fontSize: 14.5 }]}>{subtitle}</Text> : null}
         </View>
       </View>
       {chips ? <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>{chips}</View> : null}

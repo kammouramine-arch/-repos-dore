@@ -274,8 +274,8 @@ describe('le bleu rejoint le fond au lieu de s’arrêter dessus', () => {
 
   it('réserve un fondu vide sous le contenu, pour qu’aucun intitulé n’y tombe', () => {
     const atmosphere = mobile('src/components/brand-atmosphere.tsx');
-    expect(atmosphere).toContain('const FADE = 240');
-    expect(atmosphere).toContain('style={{ height: FADE }}');
+    expect(atmosphere).toContain('const FADE = 176');
+    expect(atmosphere).toContain('style={{ height: fade }}');
   });
 });
 

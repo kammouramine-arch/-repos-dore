@@ -70,11 +70,16 @@ const STOPS = 24;
  * vide considérable entre l'identité et la première section.
  *
  * Ici le bleu couvre exactement ce qu'on lui confie, et le fondu qui suit fait
- * toujours la même longueur, quel que soit l'écran. Deux cent quarante points
- * suffisent à ce qu'on ne puisse pas montrer où le bleu s'arrête, sans laisser
- * un demi-écran vide.
+ * toujours la même longueur, quel que soit l'écran.
+ *
+ * Cette longueur a été ramenée de 240 à 176 points après essai sur appareil :
+ * le fondu est de l'espace **vide** par construction, et à 240 il repoussait
+ * la première carte des réglages aux deux tiers de l'écran. Ce qui rend une
+ * frontière invisible n'est pas la longueur du fondu mais la nullité de sa
+ * pente aux deux bouts — la courbe s'en charge, et 176 points suffisent
+ * largement à l'œil. Un écran peut demander plus s'il en a l'usage.
  */
-const FADE = 240;
+const FADE = 176;
 
 /**
  * Le profil de la descente.
@@ -139,9 +144,11 @@ export interface BrandAtmosphereProps {
   scrollY?: SharedValue<number>;
   /** Hauteur minimale du dégradé tant que le contenu n'est pas mesuré. */
   minHeight?: number;
+  /** Longueur du fondu sous le contenu. Par défaut `FADE`. */
+  fade?: number;
 }
 
-export function BrandAtmosphere({ children, scrollY, minHeight = 120 }: BrandAtmosphereProps) {
+export function BrandAtmosphere({ children, scrollY, minHeight = 120, fade = FADE }: BrandAtmosphereProps) {
   const { width } = useWindowDimensions();
   const [contentHeight, setContentHeight] = React.useState<number | null>(null);
 
@@ -152,7 +159,7 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120 }: BrandAtm
    * soit la position de défilement.
    */
   const solid = Math.max(minHeight, contentHeight ?? minHeight);
-  const height = solid + FADE;
+  const height = solid + fade;
   const palette = stops(solid / height);
 
   /*
@@ -215,7 +222,7 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120 }: BrandAtm
       <View onLayout={measure}>{children}</View>
       {/* Le fondu, laissé vide : c'est ce qui garantit qu'aucun intitulé de
           section ne peut se retrouver sur du bleu. */}
-      <View pointerEvents="none" style={{ height: FADE }} />
+      <View pointerEvents="none" style={{ height: fade }} />
     </View>
   );
 }
