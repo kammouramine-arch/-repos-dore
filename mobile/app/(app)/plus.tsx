@@ -6,17 +6,16 @@ import * as WebBrowser from 'expo-web-browser';
 import { PLANS, accessStateFor } from '@devisia/shared';
 import { Button, Caption, Screen } from '@/components/ui';
 import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
-import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
+import { BrandBackdrop, BrandHeader, useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
 import { LanguageSelector } from '@/components/language-selector';
 import { Stagger } from '@/components/motion';
 import { ProfileAvatar } from '@/components/profile-avatar';
 import { useAuth } from '@/lib/auth';
-import { useAiConsent } from '@/lib/ai-consent';
-import { aiConsentText } from '@/features/ai-consent';
 import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
 import { copy, useMobileLocale } from '@/lib/i18n';
+import { cachedAppleProducts } from '@/lib/apple-purchases';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { BRAND_HEADER_SOLID } from '@/theme/gradient';
 import { colors, spacing } from '@/theme';
@@ -47,6 +46,7 @@ export default function PlusScreen() {
   const en = locale === 'en';
   const surface = useBrandSurface('settings');
   const tabBarSpace = useTabBarSpace();
+  const brandScroll = useBrandScroll();
 
   /*
    * Hauteur du bandeau, déduite de l'en-tête mesuré.
@@ -65,8 +65,6 @@ export default function PlusScreen() {
   const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
-  const aiConsent = useAiConsent();
-  const aiCopy = aiConsentText(aiConsent.state, locale);
 
   const fullName = [session?.user.firstName, session?.user.lastName].filter(Boolean).join(' ').trim();
   const business = session?.organization.name ?? '';
@@ -81,20 +79,59 @@ export default function PlusScreen() {
     ? `${PLANS[subscription.plan].name}${pendingLabel || (access.inTrial ? ` · ${en ? 'trial' : 'essai'}` : subscription.status === 'active' ? '' : subscription.status === 'incomplete' ? ` · ${en ? 'to activate' : 'à activer'}` : '')}`
     : (en ? 'No plan yet' : 'Aucune formule');
 
-  // « DEVISERA · 1.0.0 (36) · c589119 · diagnostics » : la provenance exacte du binaire.
-  const buildLabel = `DEVISERA · ${Constants.expoConfig?.version ?? '1.0.0'} (${Constants.nativeBuildVersion ?? '?'})${Constants.expoConfig?.extra?.commit ? ` · ${Constants.expoConfig.extra.commit}` : ''}${Constants.expoConfig?.extra?.buildProfile === 'testflight-diagnostics' ? ' · diagnostics' : ''}`;
+  /*
+   * « DEVISERA · 1.0.2 · 17d5e81 » : la provenance exacte du binaire.
+   *
+   * Chaque morceau n'apparaît que s'il existe réellement. L'ancienne version
+   * écrivait « (?) » quand le numéro de build n'était pas lisible et
+   * « [object Object] » quand `extra` portait autre chose qu'une chaîne :
+   * deux façons de montrer à l'utilisateur qu'on n'a pas su lire sa propre
+   * application. Mieux vaut ne rien dire que dire ça.
+   */
+  const buildNumber = Constants.nativeBuildVersion;
+  const commit = typeof Constants.expoConfig?.extra?.commit === 'string' ? Constants.expoConfig.extra.commit : null;
+  const buildLabel = [
+    `DEVISERA · ${Constants.expoConfig?.version ?? '1.0.0'}`,
+    buildNumber ? `build ${buildNumber}` : null,
+    commit,
+    Constants.expoConfig?.extra?.buildProfile === 'testflight-diagnostics' ? 'diagnostics' : null,
+  ].filter(Boolean).join(' · ');
+  /**
+   * Ouvre un message au support, provenance comprise.
+   *
+   * Le pied du message porte la version, le build, le commit — et l'état réel
+   * du catalogue Apple. C'est la seule façon de connaître la métadonnée
+   * StoreKit d'un appareil donné : elle n'existe que là, aucun serveur ne peut
+   * la lire à distance. Quand un prix surprend, la réponse est dans ces trois
+   * lignes plutôt que dans une série de questions.
+   *
+   * Invisible tant qu'on n'écrit pas au support : rien de tout cela n'est
+   * affiché dans l'interface.
+   */
   const contact = () => {
+    const catalogue = cachedAppleProducts();
+    const storeLines = catalogue
+      ? catalogue.products
+          .map((product) => `${product.id} · ${product.displayPrice ?? '—'} · ${product.currency ?? '—'}`)
+          .join('\n')
+      : en ? 'Apple catalogue not loaded' : 'Catalogue Apple non chargé';
+    const provenance = [
+      buildLabel,
+      `${en ? 'storefront' : 'vitrine'}: ${catalogue?.storefront ?? '—'}`,
+      storeLines,
+      `${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`,
+    ].join('\n');
     const subject = encodeURIComponent('DEVISERA');
-    const body = encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\n\n\n—\n${buildLabel} · ${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`);
+    const body = encodeURIComponent(`${en ? 'Hello' : 'Bonjour'},\n\n\n\n—\n${provenance}`);
     void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=${subject}&body=${body}`).catch(() => undefined);
   };
   const openPage = (path: string) => void WebBrowser.openBrowserAsync(`${API_URL}${path}`).catch(() => Linking.openURL(`${API_URL}${path}`));
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
-      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}>
-        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+      <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
+      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+        <BrandHeader scrollY={brandScroll.scrollY} height={bandHeight} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
         <IdentityHeader
           centered
           greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
@@ -109,7 +146,7 @@ export default function PlusScreen() {
             </>
           }
         />
-        </View>
+        </BrandHeader>
         {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
         {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
 
@@ -137,17 +174,26 @@ export default function PlusScreen() {
           <SettingsRow icon="star-outline" title={copy(locale, 'rate')} subtitle={en ? 'Two minutes that really help us' : 'Deux minutes qui nous aident vraiment'} onPress={() => void openReviewPage()} />
         </SettingsGroup>
 
-        <SettingsGroup title={en ? 'Privacy & data' : 'Confidentialité et données'}>
+        {/*
+          La confidentialité, sans vitrine technique.
+
+          L'écran affichait « Intelligence artificielle · Autorisée » en clair,
+          au même rang que l'abonnement. C'est une information d'implémentation
+          promue au rang de fonction : l'artisan n'a pas acheté un accès à un
+          modèle, il a acheté des devis qui s'écrivent tout seuls.
+          
+          L'autorisation ne disparaît pas pour autant — elle reste due, et
+          reste retirable. Elle est nommée par ce qu'elle fait et rangée avec
+          les autres informations sur les données. Le détail complet, y compris
+          le nom du destinataire, est sur l'écran qui s'ouvre.
+        */}
+        <SettingsGroup title={copy(locale, 'legal')}>
           <SettingsRow
-            icon="sparkles-outline"
-            title={en ? 'Artificial intelligence' : 'Intelligence artificielle'}
-            subtitle={en ? 'What is sent, to whom, and your permission' : 'Ce qui est transmis, à qui, et votre autorisation'}
-            value={aiConsent.state.granted ? aiCopy.stateGranted : aiCopy.stateNotGranted}
+            icon="lock-closed-outline"
+            title={en ? 'Use of your data' : 'Utilisation de vos données'}
+            subtitle={en ? 'What DEVISERA sends to prepare your quotes' : 'Ce que DEVISERA transmet pour préparer vos devis'}
             onPress={() => router.push('/confidentialite-ia')}
           />
-        </SettingsGroup>
-
-        <SettingsGroup title={copy(locale, 'legal')}>
           <SettingsRow icon="shield-checkmark-outline" title={copy(locale, 'privacy')} onPress={() => openPage('/confidentialite')} />
           <SettingsRow icon="document-text-outline" title={copy(locale, 'terms')} onPress={() => openPage('/conditions')} />
           <SettingsRow icon="information-circle-outline" title={en ? 'Legal notices' : 'Mentions légales'} onPress={() => openPage('/mentions-legales')} />

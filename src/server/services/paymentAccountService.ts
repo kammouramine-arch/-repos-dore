@@ -5,8 +5,8 @@ import { AppError } from '@/lib/errors';
 import { env } from '@/lib/env';
 import { getStripe, requireStripe } from '@/lib/billing/stripe';
 import { featureBlock } from '@devisia/shared';
-import type { PaymentAccountDTO, StartInvoicePaymentResponse } from '@devisia/shared';
-import { balanceOf } from './invoiceService';
+import type { PaymentAccountDTO, PublicInvoiceDTO, StartInvoicePaymentResponse } from '@devisia/shared';
+import { balanceOf, customerDisplayName, deriveInvoiceStatus } from './invoiceService';
 import { recordAudit } from './auditService';
 
 /**
@@ -225,4 +225,78 @@ export async function startInvoicePayment(publicToken: string): Promise<StartInv
     data: { stripePaymentIntentId: paymentIntentId },
   });
   return { checkoutUrl: session.url, paymentIntentId };
+}
+
+/**
+ * La facture telle que la voit le client de l'artisan.
+ *
+ * Aucune authentification : c'est le jeton du lien qui fait autorité, comme
+ * pour le devis public. On n'expose donc que ce qui figure déjà sur la
+ * facture papier — jamais l'identifiant interne du client, ni le catalogue,
+ * ni quoi que ce soit d'une autre entreprise.
+ *
+ * `payable` répond à une question simple : peut-on présenter le bouton ? Elle
+ * est calculée ici, côté serveur, plutôt que déduite dans le navigateur, pour
+ * qu'une page rafraîchie ne propose jamais de payer une facture déjà réglée.
+ */
+export async function publicInvoice(publicToken: string): Promise<PublicInvoiceDTO> {
+  const invoice = await prisma.invoice.findUnique({
+    where: { publicToken },
+    include: {
+      organization: {
+        select: {
+          name: true,
+          stripeAccountId: true,
+          stripeChargesEnabled: true,
+          businessProfile: {
+            select: { legalName: true, brandColor: true, logoFileId: true, paymentDetails: true, email: true },
+          },
+        },
+      },
+      customer: { select: { companyName: true, firstName: true, lastName: true, email: true } },
+    },
+  });
+  if (!invoice || invoice.deletedAt) throw new AppError('NOT_FOUND', 'Cette facture n’est plus disponible.');
+
+  const profile = invoice.organization.businessProfile;
+  const balance = balanceOf(invoice);
+  const cancelled = invoice.status === 'ANNULEE';
+  const configured = getStripe() != null;
+  const accountReady = Boolean(invoice.organization.stripeAccountId && invoice.organization.stripeChargesEnabled);
+
+  /*
+   * Le motif est dit en clair, du point de vue du client.
+   *
+   * « Cette entreprise n'accepte pas encore le paiement en ligne » est une
+   * information utile : elle lui évite d'attendre un bouton qui ne viendra
+   * pas, et l'oriente vers les coordonnées de règlement imprimées plus bas.
+   */
+  const unavailableReason = cancelled
+    ? 'Cette facture a été annulée.'
+    : balance <= 0
+      ? 'Cette facture est déjà réglée. Merci.'
+      : !configured || !accountReady
+        ? 'Cette entreprise n’accepte pas encore le paiement en ligne. Utilisez les coordonnées de règlement ci-dessous.'
+        : null;
+
+  return {
+    id: invoice.id,
+    number: invoice.number,
+    title: invoice.title,
+    status: deriveInvoiceStatus(invoice),
+    businessName: profile?.legalName || invoice.organization.name,
+    businessEmail: profile?.email ?? null,
+    brandColor: profile?.brandColor ?? '#2F52E8',
+    logoUrl: profile?.logoFileId ? `/api/public/logo/${profile.logoFileId}` : null,
+    customerName: customerDisplayName(invoice.customer),
+    totalCents: invoice.totalCents,
+    paidCents: invoice.paidCents,
+    balanceCents: balance,
+    currency: 'EUR',
+    dueAt: invoice.dueAt?.toISOString() ?? null,
+    paymentDetails: profile?.paymentDetails ?? null,
+    pdfUrl: `/api/public/facture/${publicToken}/pdf`,
+    payable: unavailableReason == null,
+    unavailableReason,
+  };
 }

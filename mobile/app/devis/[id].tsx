@@ -9,6 +9,7 @@ import {
   formatCents,
   type FollowUpTone,
   type QuoteDetailDTO,
+  type BrandingDTO,
 } from '@devisia/shared';
 import {
   Amount,
@@ -67,6 +68,16 @@ export default function DevisDetailScreen() {
 
   const query = useQuery<QuoteDetailDTO>(() => api.quotes.get(String(id)), [id], `quote:${id}`);
   const quote = query.data;
+
+  /*
+   * L'entreprise a-t-elle une signature enregistrée ?
+   *
+   * La marque est lue à part parce qu'elle ne dépend pas du devis : c'est la
+   * même signature pour tous. Le cache partagé évite d'interroger le serveur
+   * à chaque ouverture d'un devis.
+   */
+  const branding = useQuery<BrandingDTO>(() => api.branding.get(), [], 'marque');
+  const signed = Boolean(branding.data?.signature.strokePath);
 
   const [sending, setSending] = React.useState(false);
   const [followUpOpen, setFollowUpOpen] = React.useState(false);
@@ -221,14 +232,51 @@ export default function DevisDetailScreen() {
             l'envoi tant que le devis n'est pas accepté : un devis qu'on fait
             signer tout de suite ne part pas se perdre dans une boîte mail.
           */}
-          {SIGNABLE.includes(quote.status) ? (
-            <Button
-              title="Faire signer le client"
-              icon="create"
-              size="lg"
-              haptic
-              onPress={() => router.push({ pathname: '/devis/signature', params: { id: quote.id } })}
-            />
+          {/*
+            Signer son propre devis, avant de l'envoyer.
+
+            C'est l'artisan qui s'engage : il appose sa signature comme il le
+            ferait sur un document papier, puis il envoie. La signature est
+            celle de son entreprise — tracée une fois dans Ma marque, apposée
+            sur tout ce qu'il émet — d'où le renvoi vers cet écran plutôt
+            qu'un nouveau tracé à chaque devis.
+          */}
+          {SENDABLE.includes(quote.status) ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={signed
+                ? 'Document signé par votre entreprise'
+                : 'Ajouter la signature de mon entreprise'}
+              onPress={() => router.push('/marque')}
+              style={({ pressed }) => ({
+                flexDirection: 'row',
+                alignItems: 'center',
+                gap: spacing.md,
+                padding: spacing.lg,
+                borderRadius: radius.lg,
+                backgroundColor: signed ? colors.successSoft : colors.surface,
+                borderWidth: 1,
+                borderColor: signed ? colors.successSoft : colors.lineStrong,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              <Ionicons
+                name={signed ? 'checkmark-circle' : 'create-outline'}
+                size={21}
+                color={signed ? colors.success : colors.accent}
+              />
+              <View style={{ flex: 1, gap: 2 }}>
+                <Body style={{ fontWeight: '600', color: signed ? colors.success : colors.ink }}>
+                  {signed ? 'Signé par votre entreprise' : 'Ajouter votre signature'}
+                </Body>
+                <Caption style={{ color: signed ? colors.success : colors.muted }}>
+                  {signed
+                    ? 'Elle figure sur le PDF envoyé au client'
+                    : 'Elle sera apposée sur le PDF avant l’envoi'}
+                </Caption>
+              </View>
+              <Ionicons name="chevron-forward" size={16} color={colors.subtle} />
+            </Pressable>
           ) : null}
 
           {/* Devis accepté : la suite logique est la facture. */}
@@ -247,7 +295,6 @@ export default function DevisDetailScreen() {
               title={quote.status === 'BROUILLON' ? 'Envoyer le devis' : 'Renvoyer le devis'}
               icon="send"
               size="lg"
-              variant={SIGNABLE.includes(quote.status) ? 'secondary' : 'primary'}
               loading={sending}
               onPress={confirmSend}
               haptic
@@ -280,6 +327,22 @@ export default function DevisDetailScreen() {
               icon="sparkles"
               variant="secondary"
               onPress={() => void openFollowUp()}
+            />
+          ) : null}
+
+          {/*
+            Recueillir l'accord du client sur place, quand il est là.
+
+            Fonction à part, et action secondaire : le parcours de l'artisan
+            est « je prépare, je signe, j'envoie ». Tendre le téléphone au
+            client est une commodité qui existe, pas l'étape attendue.
+          */}
+          {SIGNABLE.includes(quote.status) ? (
+            <Button
+              title="Recueillir l’accord du client"
+              icon="create-outline"
+              variant="ghost"
+              onPress={() => router.push({ pathname: '/devis/signature', params: { id: quote.id } })}
             />
           ) : null}
         </View>

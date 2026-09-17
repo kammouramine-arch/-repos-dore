@@ -189,6 +189,7 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="depenses" options={{ headerShown: true, title: locale === 'en' ? 'Expenses' : 'Dépenses', headerBackTitle: back }} />
         <Stack.Screen name="marque" options={{ headerShown: true, title: locale === 'en' ? 'My branding' : 'Ma marque', headerBackTitle: back }} />
         <Stack.Screen name="comptable" options={{ headerShown: true, title: locale === 'en' ? 'Accountant export' : 'Export comptable', headerBackTitle: back }} />
+        <Stack.Screen name="encaissement" options={{ headerShown: true, title: locale === 'en' ? 'Online payments' : 'Encaissement en ligne', headerBackTitle: back }} />
         <Stack.Screen name="devis/signature" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'Client signature' : 'Signature du client', headerBackTitle: back }} />
       </Stack.Protected>
       <Stack.Protected guard={connected && !needsSetup}>

@@ -1,8 +1,9 @@
 import * as React from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Share, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
+import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   INVOICE_STATUS_LABELS,
   formatCents,
@@ -13,7 +14,7 @@ import {
 import { Body, Button, Caption, Card, Divider, ErrorState, SectionHeader, Skeleton, Title } from './ui';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { useMobileLocale } from '@/lib/i18n';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 import { useToast } from './toast';
 import { colors, radius, spacing } from '@/theme';
 
@@ -113,7 +114,27 @@ export function useInvoiceBoard({ claimQuoteId }: { claimQuoteId?: string } = {}
 
 export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBoard>) {
   const router = useRouter();
-  const en = useMobileLocale() === 'en';
+  const locale = useMobileLocale();
+  const en = locale === 'en';
+
+  /**
+   * Envoie le lien de règlement au client.
+   *
+   * Le lien est public et porte le jeton de la facture : c'est lui qui donne
+   * accès, pas une session. Il ouvre une page aux couleurs de l'artisan, où
+   * le client paie par carte. Rien de sensible n'y transite : le montant est
+   * recalculé par le serveur, et la confirmation viendra du webhook signé.
+   */
+  async function collect(invoice: InvoiceSummaryDTO) {
+    const url = api.invoicePayments.publicUrl(invoice.publicToken);
+    void Haptics.selectionAsync().catch(() => undefined);
+    await Share.share({
+      message: en
+        ? `Invoice ${invoice.number} — pay online: ${url}`
+        : `Facture ${invoice.number} — régler en ligne : ${url}`,
+      url,
+    }).catch(() => undefined);
+  }
   const invoices = query.data;
 
   if (query.loading && !invoices) {
@@ -222,6 +243,36 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
                     </Caption>
                   ) : null}
                 </Pressable>
+
+                {/*
+                  « Encaisser ».
+                  
+                  Proposé seulement quand il reste quelque chose à percevoir :
+                  une facture soldée n'a pas besoin d'un lien de paiement, et
+                  une facture annulée encore moins. Le lien part par la feuille
+                  de partage d'iOS — message, e-mail, ce que l'artisan veut —
+                  parce que c'est lui qui sait comment il parle à son client.
+                */}
+                {invoice.balanceCents > 0 && invoice.status !== 'ANNULEE' ? (
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel={`${localizeText(locale, 'Encaisser')} · ${invoice.number}`}
+                    onPress={() => void collect(invoice)}
+                    hitSlop={6}
+                    style={({ pressed }) => ({
+                      flexDirection: 'row',
+                      alignItems: 'center',
+                      gap: 6,
+                      alignSelf: 'flex-start',
+                      opacity: pressed ? 0.6 : 1,
+                    })}
+                  >
+                    <Ionicons name="card-outline" size={15} color={colors.accent} />
+                    <Caption style={{ color: colors.accent, fontWeight: '700' }}>
+                      {localizeText(locale, 'Encaisser')}
+                    </Caption>
+                  </Pressable>
+                ) : null}
               </View>
             ))}
           </Card>

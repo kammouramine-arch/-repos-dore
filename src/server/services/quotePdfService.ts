@@ -63,6 +63,13 @@ console.error('[pdf] logo illisible', safeErrorCategory(error));
   const input: QuotePdfInput = {
     document: 'quote',
     template: effectiveTemplate((profile?.documentTemplate ?? 'MODERNE') as DocumentTemplateId, advancedBranding),
+    businessSignature: profile?.signatureStrokePath
+      ? {
+          strokePath: profile.signatureStrokePath,
+          name: profile.signatureName,
+          drawnAt: profile.signatureDrawnAt,
+        }
+      : null,
     signature: signature
       ? { signerName: signature.signerName, signedAt: signature.signedAt, strokePath: signature.strokePath }
       : null,
@@ -189,6 +196,15 @@ export async function buildInvoicePdf(invoiceId: string): Promise<{ bytes: Uint8
   const input: QuotePdfInput = {
     document: 'invoice',
     template: effectiveTemplate((profile?.documentTemplate ?? 'MODERNE') as DocumentTemplateId, advancedBranding),
+    // La facture porte la même signature d'entreprise que le devis : c'est
+    // le même émetteur qui s'engage.
+    businessSignature: profile?.signatureStrokePath
+      ? {
+          strokePath: profile.signatureStrokePath,
+          name: profile.signatureName,
+          drawnAt: profile.signatureDrawnAt,
+        }
+      : null,
     number: invoice.number,
     title: invoice.title,
     createdAt: invoice.issuedAt ?? invoice.createdAt,

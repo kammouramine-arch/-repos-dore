@@ -4,6 +4,8 @@ import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
+import Svg, { Path } from 'react-native-svg';
+import { SignatureSheet } from '@/components/signature-pad';
 import {
   DOCUMENT_TEMPLATE_LABELS,
   type BrandingDTO,
@@ -163,6 +165,33 @@ export default function MarqueScreen() {
   const [footer, setFooter] = React.useState<string | null>(null);
   const [paymentDetails, setPaymentDetails] = React.useState<string | null>(null);
   const [name, setName] = React.useState<string | null>(null);
+  const [signing, setSigning] = React.useState(false);
+
+  /**
+   * Enregistre — ou retire — la signature de l'entreprise.
+   *
+   * Immédiat, sans passer par le bouton « Enregistrer » du bas : on vient de
+   * la tracer, on s'attend à ce qu'elle soit prise. Une signature qu'il
+   * faudrait penser à valider ensuite serait perdue une fois sur deux.
+   */
+  async function saveSignature(strokePath: string | null) {
+    setSaving(true);
+    try {
+      const updated = await api.branding.update({
+        signatureStrokePath: strokePath,
+        ...(strokePath ? { signatureName: branding?.legalName } : {}),
+      });
+      query.setData(updated);
+      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
+      toast({ title: strokePath
+        ? (en ? 'Signature saved.' : 'Signature enregistrée.')
+        : (en ? 'Signature removed.' : 'Signature retirée.') });
+    } catch (cause) {
+      toast({ title: cause instanceof Error ? cause.message : (en ? 'It could not be saved.' : 'Cela n’a pas pu être enregistré.') });
+    } finally {
+      setSaving(false);
+    }
+  }
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const submitting = React.useRef(false);
@@ -245,6 +274,8 @@ export default function MarqueScreen() {
   const currentFooter = footer ?? branding?.documentFooter ?? '';
   const currentPayment = paymentDetails ?? branding?.paymentDetails ?? '';
   const currentName = name ?? branding?.legalName ?? '';
+  /** Le tracé enregistré, ou null tant que l'artisan n'a pas signé. */
+  const signature = branding?.signature.strokePath ?? null;
 
   const dirty =
     branding != null &&
@@ -404,6 +435,84 @@ export default function MarqueScreen() {
             </View>
           </Card>
         </View>
+
+        {/*
+          Ma signature.
+
+          Tracée une fois, elle figure ensuite sur chaque devis et chaque
+          facture émis — comme un tampon d'entreprise, pas comme une formalité
+          à refaire à chaque document. C'est la signature de l'artisan, celle
+          de l'émetteur ; l'acceptation du client est une autre chose, et elle
+          vit ailleurs.
+        */}
+        <View style={{ gap: spacing.sm }}>
+          <Caption upper style={{ color: colors.subtle }}>
+            {en ? 'My signature' : 'Ma signature'}
+          </Caption>
+          <Card style={{ gap: spacing.md }}>
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={signature
+                ? (en ? 'Redraw my signature' : 'Refaire ma signature')
+                : (en ? 'Draw my signature' : 'Tracer ma signature')}
+              disabled={saving}
+              onPress={() => setSigning(true)}
+              style={({ pressed }) => ({
+                minHeight: 108,
+                borderRadius: radius.lg,
+                borderWidth: 1.5,
+                borderStyle: signature ? 'solid' : 'dashed',
+                borderColor: signature ? colors.accentBorder : colors.lineStrong,
+                backgroundColor: signature ? colors.canvas : colors.surface,
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: spacing.sm,
+                padding: spacing.md,
+                opacity: pressed ? 0.85 : 1,
+              })}
+            >
+              {signature ? (
+                <>
+                  <Svg width="100%" height={58} viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                    <Path d={signature} stroke={colors.ink} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                  </Svg>
+                  <Caption style={{ color: colors.subtle }}>
+                    {en ? 'Appears on your quotes and invoices · tap to redo' : 'Figure sur vos devis et factures · touchez pour refaire'}
+                  </Caption>
+                </>
+              ) : (
+                <>
+                  <Ionicons name="create-outline" size={26} color={colors.accent} />
+                  <Body style={{ color: colors.accent, fontWeight: '700' }}>
+                    {en ? 'Draw my signature' : 'Tracer ma signature'}
+                  </Body>
+                  <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
+                    {en ? 'It is added to every document you issue' : 'Elle est apposée sur chaque document que vous émettez'}
+                  </Caption>
+                </>
+              )}
+            </Pressable>
+
+            {signature ? (
+              <Pressable accessibilityRole="button" disabled={saving} onPress={() => void saveSignature(null)} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
+                <Caption style={{ color: colors.danger, fontWeight: '700' }}>
+                  {en ? 'Remove my signature' : 'Retirer ma signature'}
+                </Caption>
+              </Pressable>
+            ) : null}
+          </Card>
+        </View>
+
+        <SignatureSheet
+          visible={signing}
+          en={en}
+          signerName={branding.legalName}
+          onCancel={() => setSigning(false)}
+          onConfirm={(path) => {
+            setSigning(false);
+            void saveSignature(path);
+          }}
+        />
 
         <View style={{ gap: spacing.sm }}>
           <Caption upper style={{ color: colors.subtle }}>

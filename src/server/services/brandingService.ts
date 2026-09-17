@@ -2,6 +2,7 @@ import 'server-only';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
 import { featureBlock } from '@devisia/shared';
+import { assertStroke } from './signatureService';
 import type { BrandingDTO, BrandingInput, DocumentTemplateId } from '@devisia/shared';
 import { recordAudit } from './auditService';
 
@@ -33,6 +34,9 @@ function toDTO(
     paymentDetails: string | null;
     logoFileId: string | null;
     signatureFileId: string | null;
+    signatureStrokePath: string | null;
+    signatureName: string | null;
+    signatureDrawnAt: Date | null;
   },
   advancedAvailable: boolean,
   planReason: string | null,
@@ -47,6 +51,11 @@ function toDTO(
     logoUrl: profile.logoFileId ? `/api/public/logo/${profile.logoFileId}` : null,
     signatureFileId: profile.signatureFileId,
     signatureUrl: profile.signatureFileId ? `/api/files/${profile.signatureFileId}` : null,
+    signature: {
+      strokePath: profile.signatureStrokePath,
+      name: profile.signatureName,
+      drawnAt: profile.signatureDrawnAt?.toISOString() ?? null,
+    },
     advancedTemplatesAvailable: advancedAvailable,
     planReason,
   };
@@ -64,6 +73,9 @@ export async function getBranding(organizationId: string): Promise<BrandingDTO> 
         paymentDetails: true,
         logoFileId: true,
         signatureFileId: true,
+        signatureStrokePath: true,
+        signatureName: true,
+        signatureDrawnAt: true,
       },
     }),
     prisma.subscription.findUnique({ where: { organizationId }, select: { plan: true } }),
@@ -123,6 +135,23 @@ export async function updateBranding(
       ...(input.paymentDetails !== undefined ? { paymentDetails: input.paymentDetails?.trim() || null } : {}),
       ...(input.logoFileId !== undefined ? { logoFileId: input.logoFileId } : {}),
       ...(input.signatureFileId !== undefined ? { signatureFileId: input.signatureFileId } : {}),
+      /*
+       * La signature manuscrite de l'entreprise.
+       *
+       * Le tracé passe par la même validation que celle du client : il finit
+       * dans un attribut `d` du PDF, et n'accepter que la grammaire des
+       * chemins est ce qui empêche un contenu arbitraire d'y arriver. `null`
+       * efface — l'artisan a le droit de retirer sa signature.
+       */
+      ...(input.signatureStrokePath !== undefined
+        ? input.signatureStrokePath === null
+          ? { signatureStrokePath: null, signatureName: null, signatureDrawnAt: null }
+          : {
+              signatureStrokePath: assertStroke(input.signatureStrokePath),
+              signatureName: input.signatureName?.trim() || null,
+              signatureDrawnAt: new Date(),
+            }
+        : {}),
     },
     select: {
       legalName: true,
@@ -132,6 +161,9 @@ export async function updateBranding(
       paymentDetails: true,
       logoFileId: true,
       signatureFileId: true,
+      signatureStrokePath: true,
+      signatureName: true,
+      signatureDrawnAt: true,
     },
   });
 

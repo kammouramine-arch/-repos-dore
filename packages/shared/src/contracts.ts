@@ -594,6 +594,13 @@ export interface InvoiceSummaryDTO {
   overdue: boolean;
   quoteId: string | null;
   createdAt: string;
+  /**
+   * Jeton du lien de règlement remis au client.
+   *
+   * Il est dans le résumé parce que l'action « Encaisser » vit dans la liste :
+   * l'artisan doit pouvoir envoyer le lien sans ouvrir la facture.
+   */
+  publicToken: string;
 }
 
 export interface InvoiceDetailDTO extends InvoiceSummaryDTO {
@@ -753,9 +760,20 @@ export interface BrandingDTO {
   logoUrl: string | null;
   signatureFileId: string | null;
   signatureUrl: string | null;
+  /** Signature manuscrite : le tracé, le nom imprimé, la date. */
+  signature: BusinessSignatureDTO;
   /** Vrai quand la formule ouvre les modèles Moderne et Exécutif. */
   advancedTemplatesAvailable: boolean;
   planReason: string | null;
+}
+
+/** Signature manuscrite de l'entreprise, telle qu'elle est enregistrée. */
+export interface BusinessSignatureDTO {
+  /** Chemin SVG normalisé 1000 × 400, ou null si l'artisan n'a pas signé. */
+  strokePath: string | null;
+  /** Nom imprimé sous le tracé. */
+  name: string | null;
+  drawnAt: string | null;
 }
 
 export interface BrandingInput {
@@ -773,6 +791,14 @@ export interface BrandingInput {
   paymentDetails?: string | null;
   logoFileId?: string | null;
   signatureFileId?: string | null;
+  /**
+   * Signature manuscrite de l'entreprise.
+   *
+   * `null` efface la signature enregistrée. Une chaîne la remplace — l'artisan
+   * peut la refaire autant de fois qu'il veut, c'est la sienne.
+   */
+  signatureStrokePath?: string | null;
+  signatureName?: string | null;
 }
 
 export type AccountingExportDataset = 'expenses' | 'sales' | 'payments';

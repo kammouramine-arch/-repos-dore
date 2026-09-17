@@ -591,6 +591,25 @@ export function createApiClient(options: ApiClientOptions) {
     },
 
     /**
+     * Encaissement en ligne des factures de l'artisan.
+     *
+     * Rien à voir avec `billing` ci-dessus : là, l'artisan paie DEVISERA ;
+     * ici, le client de l'artisan paie l'artisan. Les deux flux gardent des
+     * routes, des comptes et des webhooks distincts, et ne doivent jamais
+     * être appelés l'un pour l'autre.
+     */
+    invoicePayments: {
+      /** État de l'activation : jamais inscrit, en cours, actif, restreint. */
+      account: (refresh = false) =>
+        request<PaymentAccountDTO>(`/api/paiements/compte${refresh ? '?refresh=1' : ''}`),
+      /** Ouvre l'inscription et renvoie le lien à présenter à l'artisan. */
+      startOnboarding: () =>
+        request<{ url: string }>('/api/paiements/compte', { method: 'POST' }),
+      /** Le lien que l'artisan envoie à son client pour qu'il règle. */
+      publicUrl: (publicToken: string) => `${base}/facture/${publicToken}`,
+    },
+
+    /**
      * Factures de l'artisan — à ne pas confondre avec `billing`, qui concerne
      * l'abonnement DEVISERA lui-même.
      */

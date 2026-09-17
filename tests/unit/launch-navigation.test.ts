@@ -28,7 +28,8 @@ describe('launch navigation', () => {
       expect(bar).toContain(`{ name: ${name}`);
     }
     expect(bar).not.toContain("{ name: 'nouveau'");
-    expect(bar).toContain('<CreateSheet');
+    // Le « + » mène droit au devis à la voix : plus de menu intermédiaire.
+    expect(bar).toContain("router.push('/devis/nouveau?dicter=1')");
 
     const tabs = readFileSync('mobile/app/(app)/_layout.tsx', 'utf8');
     expect(tabs).toContain('<Tabs.Screen name="prospects" options={{ href: null }} />');

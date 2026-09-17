@@ -1,14 +1,14 @@
 import * as React from 'react';
 import { Animated as RNAnimated, Keyboard, Platform, Pressable, StyleSheet, Text, View } from 'react-native';
-import Animated, { useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated';
-import { Tabs } from 'expo-router';
+import Animated, { useAnimatedStyle, useSharedValue, withSequence, withSpring, withTiming } from 'react-native-reanimated';
+import { Tabs, useRouter } from 'expo-router';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { colors, radius, shadows, spacing } from '@/theme';
+import { DURATION, EASE_OUT, SPRING } from '@/theme/motion';
 import { GlassGroup, GlassSurface, useGlassKind } from './glass';
 import { useReducedMotion, useTouchMotion } from './motion';
-import { CreateSheet } from './create-sheet';
 import { copy, useMobileLocale } from '@/lib/i18n';
 
 /**
@@ -21,7 +21,12 @@ import { copy, useMobileLocale } from '@/lib/i18n';
  * Le « + » n'est **pas** une sixième destination. Le mettre au milieu des
  * cinq forçait six cibles sur la largeur d'un iPhone et laissait croire qu'il
  * menait quelque part. C'est une action : elle vit dans sa propre pastille, à
- * côté de la barre, et ouvre une feuille de création.
+ * côté de la barre, et ouvre directement le devis à la voix.
+ *
+ * Elle ouvrait auparavant un menu de cinq entrées. Un menu à ce niveau, c'est
+ * une décision de plus avant le geste qui rapporte — et c'était la feuille
+ * dont le voile restait affiché par-dessus toute l'application. Le geste le
+ * plus fréquent mérite le chemin le plus court : on appuie, on parle.
  *
  * ## Pourquoi la barre est en position absolue
  *
@@ -49,8 +54,8 @@ const BAR_HEIGHT = 64;
 const CREATE_SIZE = 60;
 /** Écart entre la barre et la pastille de création. */
 const GAP = 10;
-/** Ressort de la capsule : rapide, sans rebond visible, arrêt net. */
-const SLIDE = { damping: 20, stiffness: 240, mass: 0.7 } as const;
+/** La capsule reprend le ressort de sélection commun à l'application. */
+const SLIDE = SPRING.select;
 
 /**
  * Place à réserver sous le contenu défilant d'un écran d'onglet.
@@ -137,8 +142,20 @@ function TabItem({
 function CreateButton({ label, onPress }: { label: string; onPress: () => void }) {
   const touch = useTouchMotion(0.9);
   const reduced = useReducedMotion();
+  /*
+   * Le halo d'appui.
+   *
+   * Il montait à 1 et **y restait** : aucune valeur ne le ramenait à zéro.
+   * Un disque bleu pâle, à double échelle, se figeait donc au-dessus de
+   * l'interface dès le premier appui sur le « + » et n'en repartait plus.
+   * C'est la « forme bleue décorative bloquée » visible sur l'enregistrement.
+   *
+   * Il s'ouvre puis se referme en une séquence : la valeur finit à zéro, donc
+   * le halo finit invisible, quoi qu'il arrive ensuite — navigation, perte de
+   * focus, démontage de l'écran.
+   */
   const bloom = useSharedValue(0);
-  const halo = useAnimatedStyle(() => ({ opacity: bloom.value * 0.35, transform: [{ scale: 1 + bloom.value }] }));
+  const halo = useAnimatedStyle(() => ({ opacity: bloom.value * 0.3, transform: [{ scale: 1 + bloom.value * 0.9 }] }));
 
   return (
     <RNAnimated.View style={{ transform: [{ scale: touch.scale }] }}>
@@ -165,7 +182,10 @@ function CreateButton({ label, onPress }: { label: string; onPress: () => void }
           touch.pressIn();
           if (reduced) return;
           bloom.value = 0;
-          bloom.value = withTiming(1, { duration: 460 });
+          bloom.value = withSequence(
+            withTiming(1, { duration: DURATION.quick, easing: EASE_OUT }),
+            withTiming(0, { duration: DURATION.slow, easing: EASE_OUT }),
+          );
         }}
         onPressOut={touch.pressOut}
         onPress={() => {
@@ -190,13 +210,13 @@ function CreateButton({ label, onPress }: { label: string; onPress: () => void }
 }
 
 export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
+  const router = useRouter();
   const locale = useMobileLocale();
   const insets = useSafeAreaInsets();
   const reduced = useReducedMotion();
   const kind = useGlassKind();
   const [keyboardVisible, setKeyboardVisible] = React.useState(false);
   const [barWidth, setBarWidth] = React.useState(0);
-  const [creating, setCreating] = React.useState(false);
   const slide = useSharedValue(0);
   const fade = useSharedValue(1);
   const positioned = React.useRef(false);
@@ -228,7 +248,7 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
       return;
     }
     slide.value = withSpring(target, SLIDE);
-    fade.value = withTiming(unselected ? 0 : 1, { duration: 160 });
+    fade.value = withTiming(unselected ? 0 : 1, { duration: DURATION.instant, easing: EASE_OUT });
   }, [activeSlot, barWidth, fade, reduced, slide, slot, unselected]);
 
   const capsule = useAnimatedStyle(() => ({
@@ -323,11 +343,13 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
             ))}
           </GlassSurface>
 
-          <CreateButton label={copy(locale, 'create')} onPress={() => setCreating(true)} />
+          {/* Appuyer, puis parler. Rien entre les deux. */}
+          <CreateButton
+            label={copy(locale, 'voiceQuote')}
+            onPress={() => router.push('/devis/nouveau?dicter=1')}
+          />
         </GlassGroup>
       </View>
-
-      <CreateSheet visible={creating} onClose={() => setCreating(false)} />
     </>
   );
 }

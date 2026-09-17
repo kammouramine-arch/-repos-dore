@@ -98,6 +98,7 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
     validUntil: 'Valid until', issued: 'Issued', offerValid: 'Offer valid until',
     signedElectronically: 'Accepted and signed online',
     acceptedBy: 'ACCEPTED BY',
+    businessSignature: 'COMPANY SIGNATURE',
     electronicNotice: 'Electronic acceptance recorded by DEVISERA: name, date and signature, bound to this exact quote.',
     signedOn: 'on', paid: 'Already paid', balance: 'Balance due', dueOn: 'Payment due',
     paymentDetails: 'PAYMENT DETAILS', settled: 'PAID IN FULL',
@@ -112,6 +113,7 @@ export function quotePdfLabels(input: Pick<QuotePdfInput, 'language' | 'country'
     validUntil: 'Valable jusqu\'au', issued: 'Émis le', offerValid: 'Offre valable jusqu\'au',
     signedElectronically: 'Accepté et signé en ligne',
     acceptedBy: 'ACCEPTÉ PAR',
+    businessSignature: 'SIGNATURE DE L’ENTREPRISE',
     electronicNotice: 'Acceptation électronique enregistrée par DEVISERA : nom, date et tracé, liés à ce devis exact.',
     signedOn: 'le', paid: 'Déjà réglé', balance: 'Restant dû', dueOn: 'À régler avant le',
     paymentDetails: 'COORDONNÉES DE RÈGLEMENT', settled: 'FACTURE ACQUITTÉE',
@@ -173,11 +175,26 @@ export interface PdfSignature {
   strokePath: string;
 }
 
+/**
+ * Signature de l'entreprise émettrice.
+ *
+ * À ne pas confondre avec `PdfSignature`, qui est l'acceptation du client.
+ * Celle-ci est apposée par l'artisan **avant l'envoi** : c'est lui qui signe
+ * son devis, comme il signerait un document papier avant de le remettre.
+ */
+export interface PdfBusinessSignature {
+  strokePath: string;
+  name: string | null;
+  drawnAt: Date | null;
+}
+
 export interface QuotePdfInput {
   /** Devis par défaut ; « invoice » bascule les libellés et les totaux. */
   document?: 'quote' | 'invoice';
   template?: PdfTemplate;
   signature?: PdfSignature | null;
+  /** Signature de l'émetteur, imprimée sur tous ses documents. */
+  businessSignature?: PdfBusinessSignature | null;
   /** Facture : déjà encaissé et restant dû. */
   paidCents?: number;
   dueAt?: Date | null;
@@ -324,6 +341,7 @@ export async function renderQuotePdf(input: QuotePdfInput): Promise<Uint8Array> 
   drawLinesTable(ctx, input);
   drawTotals(ctx, input);
   drawConditions(ctx, input);
+  drawBusinessSignature(ctx, input);
   drawAcceptance(ctx, input);
   drawFooters(ctx, input);
 
@@ -846,6 +864,73 @@ function drawSignatureStroke(
   }
 }
 
+/**
+ * La signature de l'entreprise, au-dessus du bloc d'acceptation.
+ *
+ * Elle est apposée par l'artisan avant l'envoi, donc elle vient **avant** ce
+ * que le client aura à remplir : en lisant le document de haut en bas, on
+ * voit d'abord qui s'engage, ensuite où l'on répond. C'est l'ordre d'un
+ * document commercial ordinaire, et c'est ce qui fait qu'il a l'air d'en
+ * être un.
+ *
+ * Elle ne s'imprime que si l'artisan a réellement tracé quelque chose : pas
+ * de cadre vide qui appellerait une signature manquante.
+ */
+function drawBusinessSignature(ctx: Ctx, input: QuotePdfInput) {
+  const signature = input.businessSignature;
+  if (!signature?.strokePath) return;
+
+  const labels = quotePdfLabels(input);
+  const strong = ctx.template === 'EXECUTIF' ? INK : ctx.accent;
+  /*
+   * Assez haut pour que le trait respire, assez court pour que la ligne
+   * « bon pour accord » tienne sous lui : à 92 points, elle débordait de
+   * cinq points et s'en allait seule sur une deuxième page.
+   */
+  const height = 78;
+  ensureSpace(ctx, height + 10);
+  const boxY = ctx.y - height;
+
+  drawText(ctx, labels.businessSignature, {
+    x: MARGIN,
+    y: boxY + height - 8,
+    size: 6.5,
+    bold: true,
+    color: MUTED,
+  });
+
+  // Le tracé occupe la colonne de gauche : c'est l'émetteur, et sur un
+  // document on signe du côté d'où l'on parle.
+  const width = 200;
+  drawSignatureStroke(ctx, signature.strokePath, {
+    x: MARGIN,
+    y: boxY + 24,
+    width,
+    height: height - 38,
+  });
+  ctx.page.drawLine({
+    start: { x: MARGIN, y: boxY + 20 },
+    end: { x: MARGIN + width, y: boxY + 20 },
+    thickness: 0.8,
+    color: strong,
+    opacity: 0.5,
+  });
+
+  const name = safeText(signature.name || input.company.ownerName || input.company.name);
+  drawText(ctx, name, { x: MARGIN, y: boxY + 8, size: 9.5, bold: true });
+  if (signature.drawnAt) {
+    const when = formatDate(signature.drawnAt, input);
+    drawText(ctx, when, {
+      x: MARGIN + width - ctx.regular.widthOfTextAtSize(safeText(when), 8),
+      y: boxY + 8,
+      size: 8,
+      color: MUTED,
+    });
+  }
+
+  ctx.y = boxY - 10;
+}
+
 function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
   const labels = quotePdfLabels(input);
   const invoice = input.document === 'invoice';
@@ -933,6 +1018,38 @@ function drawAcceptance(ctx: Ctx, input: QuotePdfInput) {
    */
   const signature = input.signature;
   const strong = ctx.template === 'EXECUTIF' ? INK : ctx.accent;
+
+  /*
+   * Devis déjà signé par l'entreprise, pas encore accepté par le client.
+   *
+   * Le grand cadre vide n'a alors plus lieu d'être : il double la signature
+   * qui vient d'être apposée, et il est assez haut pour pousser à lui seul
+   * une deuxième page ne contenant que du vide. On garde une ligne — un
+   * client qui imprime doit pouvoir écrire « bon pour accord » — et rien de
+   * plus. Le devis accepté, lui, imprime toujours son bloc complet : il porte
+   * une information réelle.
+   */
+  if (!signature && input.businessSignature?.strokePath) {
+    ensureSpace(ctx, 44);
+    const lineY = ctx.y - 26;
+    drawText(ctx, labels.acceptanceText, { x: MARGIN, y: ctx.y - 8, size: 8, color: MUTED });
+    ctx.page.drawLine({
+      start: { x: MARGIN, y: lineY },
+      end: { x: A4.width - MARGIN, y: lineY },
+      thickness: 0.7,
+      color: LINE,
+    });
+    drawText(ctx, `${labels.date.toUpperCase()}   ·   ${labels.signature.toUpperCase()}`, {
+      x: MARGIN,
+      y: lineY - 11,
+      size: 6.5,
+      bold: true,
+      color: MUTED,
+    });
+    ctx.y = lineY - 24;
+    return;
+  }
+
   const height = 122;
   ensureSpace(ctx, height + 16);
   const boxY = ctx.y - height;

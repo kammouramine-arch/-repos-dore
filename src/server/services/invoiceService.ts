@@ -158,6 +158,7 @@ function summaryToDTO(invoice: {
   quoteId: string | null;
   createdAt: Date;
   sentAt: Date | null;
+  publicToken: string;
 }): InvoiceSummaryDTO {
   const balance = balanceOf(invoice);
   return {
@@ -176,6 +177,7 @@ function summaryToDTO(invoice: {
     overdue: balance > 0 && invoice.dueAt != null && invoice.dueAt.getTime() < Date.now(),
     quoteId: invoice.quoteId,
     createdAt: invoice.createdAt.toISOString(),
+    publicToken: invoice.publicToken,
   };
 }
 

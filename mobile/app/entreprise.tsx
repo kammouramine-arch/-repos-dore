@@ -1,6 +1,7 @@
 import * as React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
+import { useRouter } from 'expo-router';
 import { Enter } from '@/components/motion';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError, type BusinessProfileDTO } from '@devisia/shared';
@@ -12,6 +13,7 @@ import {
   ChoiceRow,
   ErrorState,
   Field,
+  ListRow,
   LoadingState,
   Muted,
   SectionHeader,
@@ -20,7 +22,7 @@ import {
 import { useToast } from '@/components/toast';
 import { api } from '@/lib/api';
 import { colors, spacing } from '@/theme';
-import { useMobileLocale } from '@/lib/i18n';
+import { localizeText, useMobileLocale } from '@/lib/i18n';
 
 /**
  * Réglages de l'entreprise, natifs.
@@ -56,7 +58,9 @@ function toForm(profile: BusinessProfileDTO): Form {
 }
 
 export default function EntrepriseScreen() {
-  const en = useMobileLocale() === 'en';
+  const router = useRouter();
+  const locale = useMobileLocale();
+  const en = locale === 'en';
   const { toast } = useToast();
   const [profile, setProfile] = React.useState<BusinessProfileDTO | null>(null);
   const [form, setForm] = React.useState<Form | null>(null);
@@ -291,6 +295,21 @@ export default function EntrepriseScreen() {
         </Card>
 
         <Button title="Enregistrer" loading={saving} haptic onPress={() => void save()} />
+
+        {/*
+          L'encaissement en ligne, là où l'artisan règle ce qui concerne son
+          entreprise. Ce n'est pas un réglage de compte : c'est la façon dont
+          il se fait payer.
+        */}
+        <Card style={{ gap: spacing.md }}>
+          <SectionHeader title={localizeText(locale, 'Paiements')} />
+          <ListRow
+            icon="card-outline"
+            title={localizeText(locale, 'Encaissement en ligne')}
+            subtitle={localizeText(locale, 'Laissez vos clients régler vos factures par carte')}
+            onPress={() => router.push('/encaissement')}
+          />
+        </Card>
       </ScrollView>
     </KeyboardAvoidingView>
   );

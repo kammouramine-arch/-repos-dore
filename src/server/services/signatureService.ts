@@ -83,7 +83,7 @@ export function signatureToDTO(signature: {
   };
 }
 
-function assertStroke(strokePath: string): string {
+export function assertStroke(strokePath: string): string {
   const trimmed = strokePath.trim();
   if (trimmed.length < 8) {
     throw new AppError('VALIDATION', 'La signature est vide. Tracez votre signature dans le cadre.');

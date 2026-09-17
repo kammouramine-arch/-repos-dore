@@ -11,6 +11,8 @@ const schema = z.object({
   paymentDetails: z.string().trim().max(400).nullish(),
   logoFileId: z.string().uuid().nullish(),
   signatureFileId: z.string().uuid().nullish(),
+  signatureStrokePath: z.string().max(20000).nullish(),
+  signatureName: z.string().trim().max(120).nullish(),
 });
 
 export async function GET() {

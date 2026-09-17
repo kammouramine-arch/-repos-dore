@@ -210,6 +210,7 @@ export default function NouveauDevisScreen() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [dicter, dictation.supported]);
 
+  const descriptionField = React.useRef<TextInput>(null);
   const photos = usePhotoCapture();
   const etapes = React.useMemo(() => etapesPour(photos.fileIds.length > 0), [photos.fileIds.length]);
 
@@ -935,6 +936,7 @@ export default function NouveauDevisScreen() {
         <Enter delay={200} distance={10}>
         <Card style={{ padding: 0, overflow: 'hidden', borderColor: colors.accentBorder }}>
           <TextInput
+            ref={descriptionField}
             // Pendant la frappe, la valeur est exactement ce que l'artisan a
             // tapé : espaces, retours, ponctuation. Un `.trim()` ici avalait
             // chaque espace final au fur et à mesure. Le texte n'est
@@ -1044,6 +1046,31 @@ export default function NouveauDevisScreen() {
                   : 'Appuyez et décrivez le chantier'}
           </Body>
           </Enter>
+
+          {/*
+            Le passage à la saisie, discret.
+
+            Le « + » ouvre maintenant cet écran micro armé : il faut donc une
+            sortie visible pour qui préfère écrire, sans lui donner autant de
+            poids qu'au geste principal. Elle arrête la dictée en cours et
+            rend la main au champ.
+          */}
+          {!listening && !busy ? (
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel={localizeText(locale, 'Saisir la description à la main')}
+              onPress={() => {
+                void Haptics.selectionAsync().catch(() => undefined);
+                descriptionField.current?.focus();
+              }}
+              hitSlop={8}
+              style={({ pressed }) => ({ paddingVertical: spacing.xs, opacity: pressed ? 0.6 : 1 })}
+            >
+              <Caption style={{ color: colors.accent, fontWeight: '700' }}>
+                {localizeText(locale, 'Écrire plutôt que parler')}
+              </Caption>
+            </Pressable>
+          ) : null}
         </View>
         </Enter>
 

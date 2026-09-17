@@ -99,9 +99,19 @@ describe('écrans', () => {
     expect(provider).toContain('settle(false)');
   });
 
-  it('offre le retrait dans Mon espace → Confidentialité et IA', () => {
+  /*
+   * « Intelligence artificielle · Autorisée » s'affichait au même rang que
+   * l'abonnement : une information d'implémentation promue au rang de
+   * fonction. Le consentement reste dû, reste retirable, mais il est nommé
+   * par ce qu'il fait et rangé avec les informations légales.
+   */
+  it('range le consentement avec les informations légales, nommé par son effet', () => {
     expect(espace).toContain("router.push('/confidentialite-ia')");
-    expect(espace).toContain('Confidentialité et données');
+    expect(espace).toContain('Utilisation de vos données');
+    // Ce qui compte est ce qui s'affiche : les commentaires ont le droit de
+    // nommer ce qu'on a retiré de l'écran.
+    const rendu = espace.replace(/\/\*[\s\S]*?\*\/|\/\/.*$/gm, '');
+    expect(rendu).not.toContain('Intelligence artificielle');
     expect(privacy).toContain('Retirer mon autorisation');
     expect(privacy).toContain('Autoriser l’IA');
     expect(privacy).toContain('revoke()');

@@ -1,4 +1,5 @@
 import * as React from 'react';
+import Reanimated, { type useAnimatedScrollHandler } from 'react-native-reanimated';
 import Svg, { Defs, LinearGradient as SvgLinearGradient, Rect, Stop } from 'react-native-svg';
 import {
   ActivityIndicator,
@@ -559,6 +560,7 @@ export function Screen({
   contentStyle,
   transparent = false,
   reveal = false,
+  onScroll,
 }: {
   children: React.ReactNode;
   scroll?: boolean;
@@ -572,6 +574,14 @@ export function Screen({
   transparent?: boolean;
   /** Entrée partagée : chaque bloc de premier niveau se pose à son tour (voir ScreenReveal). */
   reveal?: boolean;
+  /**
+   * Gestionnaire de défilement Reanimated.
+   *
+   * Fourni, l'écran défile dans une `Animated.ScrollView` : la position part
+   * sur le fil d'interface, où la surface de marque la lit sans repasser par
+   * JavaScript. Absent, on garde la vue ordinaire.
+   */
+  onScroll?: ReturnType<typeof useAnimatedScrollHandler>;
 }) {
   const content = (
     <View
@@ -586,21 +596,25 @@ export function Screen({
     return <View style={{ flex: 1, backgroundColor: background }}>{content}</View>;
   }
 
+  const Container = onScroll ? Reanimated.ScrollView : ScrollView;
   return (
-    <ScrollView
+    <Container
       style={{ flex: 1, backgroundColor: background }}
       contentInsetAdjustmentBehavior={transparent ? 'never' : 'automatic'}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       showsVerticalScrollIndicator={false}
-      scrollEventThrottle={16}
+      // Une image sur deux suffit pour un bandeau qui suit le doigt ; `16`
+      // reste la valeur sûre quand le gestionnaire vit côté JavaScript.
+      scrollEventThrottle={onScroll ? 1 : 16}
+      onScroll={onScroll}
       alwaysBounceVertical
       decelerationRate="fast"
       overScrollMode="never"
       refreshControl={refreshControl}
     >
       {content}
-    </ScrollView>
+    </Container>
   );
 }
 

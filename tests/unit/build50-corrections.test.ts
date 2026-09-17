@@ -158,33 +158,37 @@ describe('reçus et comptable', () => {
   });
 });
 
-describe('feuille de création', () => {
+describe('le « + »', () => {
   /*
-   * Le « + » a pris la place du micro géant : c'est par lui qu'on crée, et la
-   * voix y passe en tête. La feuille est un Modal monté dans la barre, pas une
-   * route — une route imposerait un montage d'écran, donc un blanc d'une
-   * fraction de seconde sur un appui qu'on fait vingt fois par jour.
+   * Il ouvrait un menu de cinq entrées. Deux défauts, tous deux constatés sur
+   * l'appareil : une décision de plus avant le geste qui rapporte, et une
+   * feuille dont le voile restait affiché par-dessus toute l'application.
+   * Il mène désormais droit au devis à la voix.
    */
-  it('ouvre sans navigation, et met la voix en premier', () => {
-    const sheet = mobile('src/components/create-sheet.tsx');
-    expect(sheet).toContain('<Modal');
-    expect(sheet).not.toContain('router.replace');
-    const ids = [...sheet.matchAll(/id: '([a-z]+)'/g)].map((match) => match[1]);
-    expect(ids[0]).toBe('voix');
-    expect(ids).toEqual(['voix', 'devis', 'client', 'recu', 'facture']);
-    expect(sheet).toContain("href: '/devis/nouveau?dicter=1'");
-
-    // Une facture naît d'un devis accepté : le serveur l'exige, donc la
-    // feuille ne promet pas de facture vierge.
-    const route = read('src/app/api/invoices/route.ts');
-    expect(route).toContain('quoteId: z.string().uuid()');
-    expect(sheet).toContain('Facturer un devis signé');
+  it('mène droit au devis à la voix, sans feuille intermédiaire', () => {
+    const bar = mobile('src/components/glass-tab-bar.tsx');
+    expect(bar).toContain("router.push('/devis/nouveau?dicter=1')");
+    expect(bar).not.toContain('CreateSheet');
+    // Et la facturation d'un devis signé ne s'invite plus dans la création.
+    expect(bar).not.toContain('Facturer un devis');
   });
 
-  it('arme le micro quand on arrive par « Devis à la voix »', () => {
+  it('arme le micro à l’arrivée, et laisse une sortie vers la saisie', () => {
     const screen = mobile('app/devis/nouveau.tsx');
     expect(screen).toContain("dicter !== '1'");
     // Le consentement IA passe avant toute écoute.
     expect(screen).toContain('aiConsent.ensure().then((granted) => { if (granted) void dictation.start(); })');
+    // Écrire reste possible, discrètement.
+    expect(screen).toContain('Écrire plutôt que parler');
+  });
+
+  /*
+   * Le halo d'appui montait à 1 et y restait : un disque bleu pâle se figeait
+   * au-dessus de l'interface dès le premier appui. Il revient à zéro.
+   */
+  it('referme le halo du « + » au lieu de le laisser figé', () => {
+    const bar = mobile('src/components/glass-tab-bar.tsx');
+    expect(bar).toContain('withSequence(');
+    expect(bar).toMatch(/withTiming\(0, \{ duration: DURATION\.slow/);
   });
 });

@@ -621,6 +621,20 @@ model BusinessProfile {
    * Signature de l'artisan, apposée sur les documents émis.
    */
   signatureFileId  String?          @db.Uuid
+  /**
+   * Signature manuscrite de l'entreprise, tracée au doigt.
+   *
+   * Un chemin SVG normalisé dans un repère de 1000 × 400, comme celui du
+   * client — mais celui-ci appartient à l'artisan et vaut pour tous ses
+   * documents : il la trace une fois, elle figure sur chaque devis qu'il
+   * signe ensuite. Vectoriel plutôt qu'image : le trait reste net à
+   * l'impression, et le champ reste lisible en base.
+   */
+  signatureStrokePath String?
+  /** Nom imprimé sous la signature. Le gérant, pas forcément la raison sociale. */
+  signatureName       String?
+  /** Date du tracé, pour savoir de quand date la signature enregistrée. */
+  signatureDrawnAt    DateTime?
 
   onboardingCompleted Boolean  @default(false)
   createdAt           DateTime @default(now())

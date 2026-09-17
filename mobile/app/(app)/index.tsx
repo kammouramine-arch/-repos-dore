@@ -31,7 +31,7 @@ import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { BRAND_HEADER_SOLID } from '@/theme/gradient';
 import { colors, radius, spacing, typography } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
-import { BrandBackdrop, useBrandSurface } from '@/components/brand-backdrop';
+import { BrandBackdrop, BrandHeader, useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
 import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
 import { QuickActions } from '@/components/quick-actions';
@@ -151,6 +151,7 @@ export default function AccueilScreen() {
   const en = useMobileLocale() === 'en';
   const surface = useBrandSurface();
   const tabBarSpace = useTabBarSpace();
+  const brandScroll = useBrandScroll();
 
   /*
    * Hauteur du bandeau, déduite de l'en-tête mesuré.
@@ -228,8 +229,8 @@ export default function AccueilScreen() {
      */
     return (
       <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-        <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
-        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}>
+        <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
+        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
           <HomeHeader
             eyebrow={en ? 'Your workspace' : 'Votre atelier'}
             title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
@@ -272,10 +273,11 @@ export default function AccueilScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <BrandBackdrop height={bandHeight} bottom={colors.surface} header />
+      <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
       <Screen
         transparent
         contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}
+        onScroll={brandScroll.onScroll}
         refreshControl={
           <RefreshControl
             refreshing={query.refreshing}
@@ -284,7 +286,7 @@ export default function AccueilScreen() {
           />
         }
       >
-        <View onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+        <BrandHeader scrollY={brandScroll.scrollY} height={bandHeight} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
         <HomeHeader
           eyebrow={en ? 'Your workspace' : 'Votre atelier'}
           title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
@@ -299,7 +301,7 @@ export default function AccueilScreen() {
                   : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
           }
         />
-        </View>
+        </BrandHeader>
         {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
         {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
 
