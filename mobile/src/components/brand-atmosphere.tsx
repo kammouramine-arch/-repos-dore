@@ -12,74 +12,69 @@ import { BRAND_TOP } from '@/theme/gradient';
 /**
  * L'atmosphère de marque, posée **dans** le contenu.
  *
- * ## Le défaut qu'elle supprime
+ * ## Le défaut d'origine : deux plans qui se coupent
  *
- * La version précédente dessinait le bleu dans une vue en position absolue,
- * calée sur l'écran, pendant que le contenu défilait par-dessus. Deux calques
- * indépendants, donc deux défauts qu'aucun réglage d'animation ne pouvait
- * résoudre :
+ * La toute première version dessinait le bleu dans une vue en position
+ * absolue calée sur l'écran, pendant que le contenu défilait par-dessus. Deux
+ * calques indépendants, donc une frontière mobile, donc une bande bleue
+ * horizontale qui finissait toujours par traverser une carte. Accélérer ou
+ * comprimer ce calque déplaçait le défaut sans jamais l'enlever.
  *
- * - **la couture** : le bas du bleu tombait à un endroit qui n'avait rien à
- *   voir avec le contenu, d'où une bande bleue horizontale derrière la
- *   première carte des réglages ;
- * - **la traversée** : un intitulé de section pouvait se retrouver au milieu
- *   du bleu, gris sur bleu saturé, illisible.
+ * Elle est donc devenue un **élément du flux**, premier enfant de la zone
+ * défilante : elle monte exactement à la vitesse du contenu parce qu'elle
+ * *est* le contenu. Plus deux plans, plus de couture. Cela reste vrai.
  *
- * Accélérer, ralentir ou comprimer ce calque déplaçait le défaut sans jamais
- * l'enlever : tant que deux plans glissent l'un sur l'autre, il existe une
- * position de défilement où la frontière coupe une carte.
+ * ## Le défaut qu'on corrige ici : le fondu réservait sa place
  *
- * ## Ce que fait celle-ci
+ * Pour être certain qu'aucun intitulé gris ne tombe sur du bleu, la version
+ * précédente réservait le fondu : une vue **vide** de 176 points posée sous le
+ * héros, que rien ne pouvait occuper. Mesuré sur l'appareil, entre la dernière
+ * ligne de l'en-tête et le premier intitulé de section il y avait 204 points —
+ * 176 de réserve, 20 d'écart de section, 8 de marge basse. Autrement dit : la
+ * totalité du vide dont on se plaignait était cette réserve. La ramener de 240
+ * à 176 n'avait retiré que 27 points à l'écran ; c'est pourquoi rien n'avait
+ * visiblement changé.
  *
- * Elle est un **élément du flux**, le premier enfant de la zone défilante.
- * Elle monte donc exactement à la vitesse du contenu, parce qu'elle *est* le
- * contenu. Il n'y a plus deux plans, donc plus de frontière mobile, donc plus
- * de couture possible — à aucune position de défilement, sur aucun appareil.
+ * La réserve disparaît. Le dégradé descend maintenant **sous** la boîte, en
+ * débordement : il est peint par un enfant absolu qui dépasse le bas de son
+ * parent, donc il n'occupe aucune hauteur de mise en page, et les frères qui
+ * suivent — qui se peignent après lui — passent par-dessus. Le contenu reprend
+ * immédiatement là où le héros s'arrête, et le bleu continue de se dissoudre
+ * derrière lui.
  *
- * ## Elle calcule sa propre hauteur
+ * ## Ce que cela suppose de l'écran
  *
- * Le composant mesure ce qu'on lui confie et en déduit la hauteur du dégradé,
- * de sorte que le contenu blanc se termine toujours à `SOLID`, là où le bleu
- * porte encore du texte. Les anciennes versions confiaient ce calcul à chaque
- * écran ; les deux écrans le faisaient différemment, et c'est de là que
- * venaient les bandes. Un seul endroit sait, maintenant.
+ * Que ce qui suit immédiatement l'atmosphère soit **opaque** — une carte, une
+ * tuile — et non un intitulé gris nu. C'est la contrepartie de la réserve
+ * supprimée, et c'est la composition qui la respecte : les intitulés de
+ * section qui tombent sur le bleu sont passés *dans* le héros, écrits en
+ * blanc, et c'est une carte qui ouvre la suite. Un écran qui ne peut pas
+ * respecter cela demande `fade={0}`.
  *
  * ## Pourquoi on ne voit pas où elle se termine
  *
  * Son dernier arrêt est **exactement** `colors.surface`, la couleur de la
- * page. Le dégradé ne s'arrête donc pas : il rejoint le fond. Et la descente
- * est longue — près de soixante pour cent de sa hauteur n'est que du fondu —
- * en passant par des bleus de plus en plus désaturés plutôt qu'en
- * s'éclaircissant d'un coup.
- *
- * Le mode sombre n'est pas le même dégradé sur fond noir : `colors.surface`
- * valant alors le bleu de nuit de l'application, la descente y va directement,
- * sans jamais passer par une zone pâle qui ferait une bande lumineuse au
- * milieu de l'écran.
+ * page : le dégradé ne s'arrête pas, il rejoint le fond. Le mode sombre n'est
+ * pas le même dégradé sur fond noir — `colors.surface` valant le bleu de nuit
+ * de l'application, la descente y va directement, sans jamais passer par une
+ * zone pâle qui ferait une bande lumineuse au milieu de l'écran.
  */
 
 /** Assez d'arrêts pour qu'aucune marche ne se voie sur un écran de 3x. */
 const STOPS = 24;
 
 /**
- * Longueur du fondu, en points, sous le contenu.
+ * Longueur du fondu, en points, sous le contenu du héros.
  *
- * Une **distance**, pas une proportion. La première version fixait la part
- * saturée à 42 % de la hauteur totale : avec l'en-tête de Compte, plus haut
- * que celui de l'accueil, le fondu occupait cinq cent cinquante points — un
- * vide considérable entre l'identité et la première section.
+ * Une **distance**, pas une proportion : la toute première version fixait la
+ * part saturée à 42 % de la hauteur totale, ce qui donnait cinq cent cinquante
+ * points de fondu sur Mon compte, dont l'en-tête est plus haut.
  *
- * Ici le bleu couvre exactement ce qu'on lui confie, et le fondu qui suit fait
- * toujours la même longueur, quel que soit l'écran.
- *
- * Cette longueur a été ramenée de 240 à 176 points après essai sur appareil :
- * le fondu est de l'espace **vide** par construction, et à 240 il repoussait
- * la première carte des réglages aux deux tiers de l'écran. Ce qui rend une
- * frontière invisible n'est pas la longueur du fondu mais la nullité de sa
- * pente aux deux bouts — la courbe s'en charge, et 176 points suffisent
- * largement à l'œil. Un écran peut demander plus s'il en a l'usage.
+ * Et surtout : cette distance ne coûte plus rien à la mise en page. Elle peut
+ * donc être généreuse — c'est du débordement, pas de la réserve — et rester
+ * douce aux deux bouts.
  */
-const FADE = 176;
+const FADE = 168;
 
 /**
  * Le profil de la descente.
@@ -131,20 +126,24 @@ const TOP_BLEED = 260;
 const SIDE_BLEED = 32;
 
 export interface BrandAtmosphereProps {
-  /** Ce qui s'écrit dans la partie saturée : identité, salutation, titre. */
+  /** Ce qui s'écrit sur le bleu saturé : identité, état, intitulé, cartes. */
   children?: React.ReactNode;
   /**
    * Position de défilement.
    *
    * Facultative. Sans elle, l'atmosphère est simplement portée par le
    * défilement, ce qui suffit déjà à supprimer toute couture. Avec elle, le
-   * bleu se désature à mesure qu'on descend : le héros « répond » au geste
-   * sans qu'aucune frontière n'apparaisse jamais.
+   * bleu se retire à mesure qu'on descend : le héros « répond » au geste sans
+   * qu'aucune frontière n'apparaisse jamais.
    */
   scrollY?: SharedValue<number>;
-  /** Hauteur minimale du dégradé tant que le contenu n'est pas mesuré. */
+  /** Hauteur minimale du bleu plein tant que le contenu n'est pas mesuré. */
   minHeight?: number;
-  /** Longueur du fondu sous le contenu. Par défaut `FADE`. */
+  /**
+   * Longueur du fondu sous le contenu, en débordement. Par défaut `FADE`.
+   * `0` arrête le bleu net au bas du héros, pour un écran dont la suite ne
+   * serait pas opaque.
+   */
   fade?: number;
 }
 
@@ -153,21 +152,20 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120, fade = FAD
   const [contentHeight, setContentHeight] = React.useState<number | null>(null);
 
   /*
-   * Le bleu couvre exactement le contenu ; le fondu vient après, toujours de
-   * la même longueur. Le fondu est laissé **vide** : c'est ce qui garantit
-   * qu'aucun intitulé de section ne peut se retrouver sur du bleu, quelle que
-   * soit la position de défilement.
+   * Le bleu plein couvre exactement le contenu confié ; le fondu vient après,
+   * hors mise en page. La boîte, elle, ne fait que la hauteur du contenu :
+   * c'est ce qui fait que la section suivante commence tout de suite.
    */
   const solid = Math.max(minHeight, contentHeight ?? minHeight);
   const height = solid + fade;
-  const palette = stops(solid / height);
+  const palette = stops(fade <= 0 ? 1 : solid / height);
 
   /*
-   * Les arrêts replacés dans la hauteur totale, débordement compris.
+   * Les arrêts replacés dans la hauteur totale, débordement du haut compris.
    *
-   * Le débordement du haut reprend le bleu plein : il n'est visible que
-   * pendant le rebond d'un tiré vers le bas, et doit y être d'une seule
-   * couleur plutôt que de laisser voir le début du fondu.
+   * Ce débordement reprend le bleu plein : il n'est visible que pendant le
+   * rebond d'un tiré vers le bas, et doit y être d'une seule couleur plutôt
+   * que de laisser voir le début du fondu.
    */
   const painted = [
     { offset: 0, color: BRAND_TOP },
@@ -183,11 +181,10 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120, fade = FAD
   }, []);
 
   /*
-   * La réponse au défilement se joue **à l'intérieur** de la boîte en flux :
-   * on ne déplace pas la boîte, on change la façon dont le dégradé remplit sa
-   * propre surface. La géométrie de la page n'est jamais touchée, donc rien ne
-   * peut se décaler par rapport au contenu. Tout est calculé sur le fil
-   * d'interface.
+   * La réponse au défilement se joue **à l'intérieur** de la boîte : on ne
+   * déplace pas la boîte, on change la façon dont le dégradé remplit sa propre
+   * surface. La géométrie de la page n'est jamais touchée, donc rien ne peut
+   * se décaler par rapport au contenu. Tout est calculé sur le fil d'interface.
    */
   const paint = useAnimatedStyle(() => {
     if (!scrollY) return {};
@@ -200,6 +197,12 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120, fade = FAD
 
   return (
     <View pointerEvents="box-none" style={{ marginHorizontal: -SIDE_BLEED, paddingHorizontal: SIDE_BLEED }}>
+      {/*
+        Le dégradé déborde du bas de son parent : il ne prend donc aucune
+        hauteur de mise en page, et les frères suivants, peints après lui,
+        passent par-dessus son fondu. C'est ce débordement qui remplace la
+        réserve vide de la version précédente.
+      */}
       <Animated.View
         pointerEvents="none"
         style={[
@@ -220,9 +223,6 @@ export function BrandAtmosphere({ children, scrollY, minHeight = 120, fade = FAD
       </Animated.View>
 
       <View onLayout={measure}>{children}</View>
-      {/* Le fondu, laissé vide : c'est ce qui garantit qu'aucun intitulé de
-          section ne peut se retrouver sur du bleu. */}
-      <View pointerEvents="none" style={{ height: fade }} />
     </View>
   );
 }

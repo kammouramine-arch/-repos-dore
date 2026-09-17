@@ -5,8 +5,9 @@ import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { PLANS, accessStateFor } from '@devisia/shared';
 import { Button, Caption, Screen } from '@/components/ui';
-import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
+import { SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
 import { BrandAtmosphere } from '@/components/brand-atmosphere';
+import { HeroIdentity, HeroLabel } from '@/components/hero';
 import { useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
 import { LanguageSelector } from '@/components/language-selector';
@@ -140,37 +141,42 @@ export default function PlusScreen() {
       */}
       <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
         {/*
-          L'identité en ligne, et non en portrait.
+          Une identité de profil, pas une page de couverture.
 
-          Mon compte est un écran de réglages, pas une page de profil : le
-          portrait centré occupait un tiers de l'écran avant la première
-          section. L'identité tient maintenant sur une rangée — photo à gauche,
-          nom et entreprise à droite, états en dessous — ce qui laisse voir deux
-          cartes de réglages dès l'ouverture.
+          Mon compte est un écran de réglages : son en-tête doit se lire d'un
+          coup d'œil et rendre la main. Le surtitre d'accueil — « Bienvenue dans
+          votre atelier » — appartenait à une page d'accueil, pas ici ; il part.
+          Restent la photo, le nom, l'entreprise et les deux états, groupés sur
+          une rangée, puis l'intitulé « Compte » écrit en blanc sur le bleu pour
+          que la première carte de réglages vienne immédiatement après.
         */}
-        <BrandAtmosphere scrollY={brandScroll.scrollY}>
-        <IdentityHeader
-          greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
-          initial={initial}
-          avatar={<ProfileAvatar key={session?.user.id} initial={initial} en={en} size={60} />}
-          name={name}
-          subtitle={fullName ? business || session?.user.email : session?.user.email}
-          chips={
-            <>
-              <StatusChip onLight icon="card-outline" label={planLabel} />
-              <StatusChip onLight icon={session?.user.emailVerified ? 'checkmark-circle' : 'alert-circle'} label={copy(locale, session?.user.emailVerified ? 'verifiedEmail' : 'unverifiedEmail')} />
-            </>
-          }
-        />
+        <BrandAtmosphere scrollY={brandScroll.scrollY} minHeight={130}>
+          <View style={{ gap: spacing.lg }}>
+            <HeroIdentity
+              scrollY={brandScroll.scrollY}
+              mark={<ProfileAvatar key={session?.user.id} initial={initial} en={en} size={56} />}
+              title={name}
+              subtitle={fullName ? business || session?.user.email : session?.user.email}
+              titleSize={23}
+            >
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: spacing.sm }}>
+                <StatusChip onLight icon="card-outline" label={planLabel} />
+                <StatusChip onLight icon={session?.user.emailVerified ? 'checkmark-circle' : 'alert-circle'} label={copy(locale, session?.user.emailVerified ? 'verifiedEmail' : 'unverifiedEmail')} />
+              </View>
+            </HeroIdentity>
+            <HeroLabel title={en ? 'Account' : 'Compte'} />
+          </View>
         </BrandAtmosphere>
 
-        <TrialBanner subscription={subscription} />
-
         <Stagger step={45} initial={30} distance={8}>
-        <SettingsGroup title={en ? 'Account' : 'Compte'}>
+        {/* Le premier groupe n'a plus d'intitulé à lui : il est déjà écrit sur
+            le bleu, juste au-dessus. */}
+        <SettingsGroup>
           <SettingsRow icon="person-outline" title={copy(locale, 'personalInfo')} subtitle={en ? 'Name, email and language' : 'Nom, email et langue'} onPress={() => router.push('/compte')} />
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
         </SettingsGroup>
+
+        <TrialBanner subscription={subscription} />
 
         {/*
           Ce qui règle l'application elle-même : sa langue, son apparence, ce

@@ -18,7 +18,8 @@ describe('home personalization contracts', () => {
   const progress = readFileSync('mobile/src/components/setup-progress.tsx', 'utf8');
   it('renders the quote carousel from the API and never a hard-coded amount', () => {
     expect(home).toContain("api.quotes.list({ take: 8 })");
-    expect(home).toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} />');
+    // Le carrousel est monté dans le héros, sur le bleu : d'où `onBrand`.
+    expect(home).toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />');
     expect(carousel).toContain('snapToInterval={cardWidth + GAP}');
     expect(carousel).toContain('formatCents(quote.totalCents)');
     expect(carousel).not.toMatch(/\b(39|79|149|1 ?200) ?€/);
@@ -34,10 +35,16 @@ describe('home personalization contracts', () => {
     expect(home).toContain('{setup && setupPending ? <SetupProgress status={setup} en={en} /> : null}');
   });
   it('greets contextually and reveals the header once', () => {
-    expect(home).toContain('Votre atelier est prêt. Votre premier devis commence ici.');
-    expect(home).toContain('attend${data.toRecover.quoteCount > 1 ? \'ent\' : \'\'} une réponse');
+    expect(home).toContain('Votre atelier est prêt. Commencez votre premier devis.');
+    expect(home).toContain('attend${waiting > 1 ? \'ent\' : \'\'} une réponse');
     expect(home).toContain('On chiffre quoi aujourd’hui ?');
-    expect(home).toMatch(/function HomeHeader[\s\S]*<Enter delay=\{60\}/);
+    // L'en-tête n'est plus trois lignes empilées : l'identité est une rangée
+    // — marque, surtitre, atelier, salutation — et l'état une bande qu'on
+    // touche, qui mène aux devis qu'elle annonce.
+    expect(home).toMatch(/function HomeHero[\s\S]*<HeroIdentity/);
+    expect(home).toContain('<HeroMark>');
+    expect(home).toContain('<HeroStatus scrollY={scrollY}');
+    expect(home).toContain("onPress: () => router.push('/devis')");
   });
   /*
    * Mon compte portait un portrait centré de 88 points, salutation et pastilles
@@ -48,9 +55,14 @@ describe('home personalization contracts', () => {
   it('range l’identité de Mon compte sur une rangée, pour que les réglages commencent tôt', () => {
     const espace = readFileSync('mobile/app/(app)/plus.tsx', 'utf8');
     expect(espace).not.toContain('centered');
-    expect(espace).toContain('size={60}');
-    // Le surtitre garde sa place, au-dessus du nom plutôt que sur sa propre
-    // ligne centrée : il situe l'écran sans coûter une hauteur de plus.
-    expect(espace).toContain("greeting={en ? 'Welcome to your workshop'");
+    expect(espace).toContain('size={56}');
+    // Le surtitre d'accueil — « Bienvenue dans votre atelier » — appartenait à
+    // une page d'accueil. Mon compte est un écran de réglages : l'identité se
+    // lit et rend la main, et l'intitulé « Compte » est déjà sur le bleu, ce
+    // qui fait commencer la première carte tout de suite après.
+    expect(espace).not.toContain('Welcome to your workshop');
+    expect(espace).not.toContain('Bienvenue dans votre atelier');
+    expect(espace).toContain("<HeroLabel title={en ? 'Account' : 'Compte'} />");
+    expect(espace).toContain('<SettingsGroup>');
   });
 });

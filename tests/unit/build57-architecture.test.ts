@@ -154,11 +154,32 @@ describe('aucun calque de fond ne traverse le contenu', () => {
     expect(atmosphere).toContain('mix(BRAND_TOP, surface, ease(fade))');
   });
 
-  it('réserve le fondu, pour qu’aucun intitulé ne puisse y tomber', () => {
+  /*
+   * Ce que le build 59 change ici, et pourquoi.
+   *
+   * La garantie « aucun intitulé gris sur du bleu » était obtenue en
+   * réservant le fondu : une vue vide sous le héros. Mesurée sur l'appareil,
+   * cette réserve valait 176 points, et l'écart de section 20 : les 204 points
+   * de désert dont se plaignait l'essai étaient exactement cela.
+   *
+   * La même garantie tient maintenant par la composition plutôt que par le
+   * vide — les intitulés qui tombent sur le bleu sont passés dans le héros,
+   * écrits en blanc — et le dégradé déborde sous sa boîte sans rien coûter.
+   */
+  it('ne réserve aucune hauteur pour son fondu', () => {
     const atmosphere = mobile('src/components/brand-atmosphere.tsx');
-    expect(atmosphere).toContain('const FADE = 176');
-    // Le bleu couvre le contenu ; le fondu qui suit est laissé vide.
-    expect(atmosphere).toContain('style={{ height: fade }}');
+    expect(atmosphere).not.toContain('style={{ height: fade }}');
+    expect(atmosphere).toContain('const height = solid + fade;');
+  });
+
+  it('écrit sur le bleu les intitulés qui y tombent', () => {
+    // La contrepartie de la réserve supprimée : ce qui suit l'atmosphère est
+    // opaque, et l'intitulé de section est monté dans le héros, en blanc.
+    const hero = mobile('src/components/hero.tsx');
+    expect(hero).toContain('export function HeroLabel');
+    expect(mobile('app/(app)/plus.tsx')).toContain('<HeroLabel');
+    // Sur l'accueil c'est le carrousel qui porte son propre intitulé blanc.
+    expect(mobile('app/(app)/index.tsx')).toContain('onBrand');
   });
 });
 

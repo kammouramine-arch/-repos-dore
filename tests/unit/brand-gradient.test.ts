@@ -82,14 +82,40 @@ describe('dégradé de marque', () => {
     expect(GRADIENT_SPAN.auth).toBeGreaterThanOrEqual(0.55);
   });
 
-  it('n’écrit plus en blanc hors du bandeau, sur l’accueil', async () => {
+  /*
+   * Ce que cette règle est devenue, et pourquoi elle a changé de sens.
+   *
+   * Elle interdisait d'écrire en blanc hors du bandeau, parce qu'à l'époque le
+   * bleu s'arrêtait sous l'en-tête : un titre blanc placé plus bas tombait sur
+   * du presque-blanc et disparaissait. La règle réelle n'a jamais été « pas de
+   * blanc » mais « du blanc seulement là où il y a du bleu sous lui ».
+   *
+   * La composition du build 59 étend le bleu : il porte l'identité, l'état,
+   * l'intitulé et les cartes de devis. Écrire en blanc y est donc juste — et
+   * c'est même ce qui permet de supprimer le fondu vide, puisque l'intitulé
+   * n'attend plus la couleur de page pour être lisible.
+   *
+   * Ce qui reste interdit, et qui est le vrai défaut d'origine : du blanc dans
+   * ce qui suit l'atmosphère, où il n'y a plus de bleu à tenir.
+   */
+  it('n’écrit en blanc que sur ce que l’atmosphère couvre', async () => {
     const { readFileSync } = await import('node:fs');
     const home = readFileSync('mobile/app/(app)/index.tsx', 'utf8');
-    // Le carrousel et les accès rapides ne prennent plus la variante « sur
-    // fond de marque » : leurs titres descendent sous le bleu.
-    expect(home).not.toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />');
-    expect(home).not.toContain('<QuickActions onBrand />');
-    // Et le bandeau d'état repasse en encre.
-    expect(home).not.toContain("color: 'rgba(255,255,255,0.85)'");
+    // Le carrousel est dans l'atmosphère : sa variante blanche est légitime.
+    expect(home).toContain('<QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />');
+    const atmosphereEnd = home.indexOf('</BrandAtmosphere>', home.lastIndexOf('<BrandAtmosphere'));
+    expect(atmosphereEnd).toBeGreaterThan(0);
+    // Sous l'atmosphère, aucune variante « sur fond de marque ».
+    const below = home.slice(atmosphereEnd);
+    expect(below).not.toContain('onBrand');
+    /*
+     * Et le blanc qui subsiste ne tient pas au bleu de la page : il est écrit
+     * sur la carte bleu nuit du premier devis, qui porte son propre fond
+     * opaque. On la retire, et il ne doit plus rester de blanc du tout.
+     */
+    const card = below.indexOf('backgroundColor: colors.accentDeep');
+    const rest = card < 0 ? below : below.slice(0, card) + below.slice(below.indexOf('</PressableCard>', card));
+    expect(rest).not.toContain("color: 'rgba(255,255,255");
+    expect(rest).not.toContain('colors.white');
   });
 });

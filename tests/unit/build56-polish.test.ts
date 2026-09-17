@@ -272,10 +272,23 @@ describe('le bleu rejoint le fond au lieu de s’arrêter dessus', () => {
     expect(atmosphere).toContain('mix(BRAND_TOP, surface, ease(fade))');
   });
 
-  it('réserve un fondu vide sous le contenu, pour qu’aucun intitulé n’y tombe', () => {
+  /*
+   * Le fondu ne réserve plus sa place — c'était tout le vide.
+   *
+   * Réserver une vue vide de 176 points sous le héros garantissait bien
+   * qu'aucun intitulé gris ne tombe sur du bleu, mais au prix de deux cents
+   * points de désert entre l'en-tête et la première section. Le dégradé
+   * déborde maintenant sous sa boîte : il ne coûte aucune hauteur, et le
+   * contenu suivant se peint par-dessus.
+   */
+  it('ne réserve plus aucune hauteur pour le fondu', () => {
     const atmosphere = mobile('src/components/brand-atmosphere.tsx');
-    expect(atmosphere).toContain('const FADE = 176');
-    expect(atmosphere).toContain('style={{ height: fade }}');
+    expect(atmosphere).not.toContain('style={{ height: fade }}');
+    // La boîte ne fait que la hauteur du contenu confié…
+    expect(atmosphere).toContain('<View onLayout={measure}>{children}</View>');
+    // …et c'est le dégradé, en position absolue, qui dépasse d'autant.
+    expect(atmosphere).toContain('height: height + TOP_BLEED');
+    expect(atmosphere).toContain('const height = solid + fade;');
   });
 });
 

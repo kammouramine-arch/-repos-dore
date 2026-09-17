@@ -74,7 +74,7 @@ export function QuoteCarousel({ quotes, loading, en, onBrand = false }: { quotes
               </Enter>
             )}
           />
-          {items.length > 1 ? <PageDots count={items.length} active={page} /> : null}
+          {items.length > 1 ? <PageDots count={items.length} active={page} onBrand={onBrand} /> : null}
         </>
       )}
     </View>
@@ -127,17 +127,17 @@ function QuoteCard({ quote, width, en, onPress }: { quote: QuoteSummaryDTO; widt
   );
 }
 
-function PageDots({ count, active }: { count: number; active: number }) {
+function PageDots({ count, active, onBrand }: { count: number; active: number; onBrand: boolean }) {
   const reduced = useReducedMotion();
   const dots = Math.min(count, 8);
   return (
     <View style={{ flexDirection: 'row', justifyContent: 'center', gap: 6 }} accessibilityLabel={`${active + 1} / ${count}`}>
-      {Array.from({ length: dots }, (_, index) => <Dot key={index} active={index === Math.min(active, dots - 1)} reduced={reduced} />)}
+      {Array.from({ length: dots }, (_, index) => <Dot key={index} active={index === Math.min(active, dots - 1)} reduced={reduced} onBrand={onBrand} />)}
     </View>
   );
 }
 
-function Dot({ active, reduced }: { active: boolean; reduced: boolean }) {
+function Dot({ active, reduced, onBrand }: { active: boolean; reduced: boolean; onBrand: boolean }) {
   const [progress] = React.useState(() => new Animated.Value(active ? 1 : 0));
   React.useEffect(() => {
     if (reduced) { progress.setValue(active ? 1 : 0); return undefined; }
@@ -146,7 +146,7 @@ function Dot({ active, reduced }: { active: boolean; reduced: boolean }) {
     return () => animation.stop();
   }, [active, progress, reduced]);
   return (
-    <Animated.View style={{ height: 6, borderRadius: 3, width: progress.interpolate({ inputRange: [0, 1], outputRange: [6, 18] }), backgroundColor: progress.interpolate({ inputRange: [0, 1], outputRange: [colors.lineStrong, colors.accent] }) }} />
+    <Animated.View style={{ height: 6, borderRadius: 3, width: progress.interpolate({ inputRange: [0, 1], outputRange: [6, 18] }), backgroundColor: progress.interpolate({ inputRange: [0, 1], outputRange: onBrand ? ['rgba(255,255,255,0.38)', colors.white] : [colors.lineStrong, colors.accent] }) }} />
   );
 }
 

@@ -50,18 +50,25 @@ const PILLARS: Pillar[] = [
     detail:
       'Le client signe du doigt sur votre téléphone, sur place. Le devis accepté devient une facture, sans ressaisir une seule ligne.',
   },
+  /*
+   * Cette promesse annonçait un encaissement en ligne que l'application ne
+   * propose pas : la fonction a été retirée au build 57, parce qu'elle
+   * reposait sur un malentendu de produit. La laisser ici, c'était la vendre
+   * à chaque nouvel arrivant. Elle est remplacée par ce que DEVISERA fait
+   * réellement après le devis : la facture, les justificatifs, le comptable.
+   */
   {
-    icon: 'card',
-    benefit: 'Encaissez et gardez tout en ordre.',
+    icon: 'folder-open',
+    benefit: 'Gardez tout en ordre.',
     detail:
-      'Votre client règle sa facture en ligne. Vos justificatifs sont photographiés et classés, prêts pour votre comptable.',
+      'Vos factures suivent vos devis, vos justificatifs sont photographiés et classés, et l’export part chez votre comptable.',
   },
 ];
 
 const PILLARS_EN: Pillar[] = [
   { icon: 'mic', benefit: 'Speak. Your quote takes shape.', detail: 'Describe the job out loud, as if talking to your apprentice. DEVISERA turns it into line items, quantities and prices. You review, correct and send.' },
   { icon: 'create', benefit: 'Get it signed. Invoice it.', detail: 'Your customer signs with a finger on your phone, on site. The accepted quote becomes an invoice without retyping a single line.' },
-  { icon: 'card', benefit: 'Get paid and stay organised.', detail: 'Your customer settles the invoice online. Your receipts are photographed and filed, ready for your accountant.' },
+  { icon: 'folder-open', benefit: 'Stay organised.', detail: 'Your invoices follow your quotes, your receipts are photographed and filed, and the export goes straight to your accountant.' },
 ];
 
 export default function DecouverteScreen() {

@@ -1,5 +1,6 @@
 import * as React from 'react';
-import { Pressable, RefreshControl, Text, View } from 'react-native';
+import { Pressable, RefreshControl, View } from 'react-native';
+import type { SharedValue } from 'react-native-reanimated';
 import { useFocusEffect, useRouter } from 'expo-router';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { QUOTE_EVENT_LABELS, type DashboardDTO, type QuoteSummaryDTO } from '@devisia/shared';
@@ -28,11 +29,12 @@ import { api } from '@/lib/api';
 import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
-import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 import { BrandAtmosphere } from '@/components/brand-atmosphere';
+import { HeroIdentity, HeroMark, HeroStatus } from '@/components/hero';
 import { useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
-import { Enter, Stagger } from '@/components/motion';
+import { Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
 import { QuickActions } from '@/components/quick-actions';
 import { SetupProgress } from '@/components/setup-progress';
@@ -117,31 +119,54 @@ function relativeDay(iso: string, en: boolean): string {
 }
 
 /**
- * En-tête de l'accueil, posé directement sur la surface de marque.
+ * L'identité de l'atelier, en tête d'accueil.
  *
- * L'ancien en-tête était une carte bleue aux coins arrondis sur un fond gris :
- * on lisait « un rectangle bleu, puis du blanc ». Le texte est maintenant
- * écrit en blanc sur le bleu saturé, et c'est l'arrière-plan de l'écran qui
- * se dissout vers le blanc sous les cartes.
+ * ## Ce qu'elle remplace
+ *
+ * Trois lignes empilées — surtitre, « Bonjour Amine. », une phrase d'état — au
+ * milieu d'une grande surface bleue, avec la marque DEVISERA flottant en haut
+ * à droite sans rapport avec elles. Quatre éléments indépendants, aucune
+ * composition, et deux cents points de vide en dessous.
+ *
+ * ## Ce qu'elle fait
+ *
+ * Une rangée : la marque à gauche, à l'endroit où l'œil commence, puis le nom
+ * de l'atelier en dominante, situé par un surtitre et signé par la salutation.
+ * Ce n'est plus l'utilisateur qu'on salue dans le vide, c'est **son atelier**
+ * qu'on nomme — ce que l'accueil d'un logiciel de métier doit dire en premier.
+ *
+ * L'état devient une bande qu'on touche, et l'intitulé « Vos devis » reste sur
+ * le bleu : les cartes commencent donc immédiatement après, sans traverser
+ * d'espace mort.
  */
-/**
- * Accueil personnel : surtitre, salutation, puis une phrase qui parle de
- * l'atelier tel qu'il est aujourd'hui (premier devis, devis en attente,
- * relances). L'en-tête se pose une fois, en deux temps ; il ne rejoue pas à
- * chaque rafraîchissement.
- */
-function HomeHeader({ eyebrow, title, subtitle, compact = false }: { eyebrow: string; title: string; subtitle: string; compact?: boolean }) {
+function HomeHero({
+  scrollY,
+  business,
+  firstName,
+  en,
+  status,
+}: {
+  scrollY: SharedValue<number>;
+  business: string;
+  firstName: string;
+  en: boolean;
+  status: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void } | null;
+}) {
+  const greeting = firstName ? (en ? `Hello ${firstName}` : `Bonjour ${firstName}`) : null;
   return (
-    <View style={{ flexDirection: 'row', alignItems: 'flex-start', gap: spacing.lg, paddingBottom: spacing.sm }}>
-      <View style={{ flex: 1, gap: 8 }}>
-        <Enter distance={6}><Caption upper style={{ color: 'rgba(255,255,255,0.78)', letterSpacing: 1.1 }}>{eyebrow}</Caption></Enter>
-        <Enter delay={60} distance={8}><Text style={[typography.title, { color: colors.white, fontSize: compact ? 25 : 32, lineHeight: compact ? 30 : 38, letterSpacing: -1 }]} accessibilityRole="header">{title}</Text></Enter>
-        <Enter delay={130} distance={8}><Text style={[typography.body, { color: 'rgba(255,255,255,0.88)', fontSize: 16, lineHeight: 23, maxWidth: 300 }]}>{subtitle}</Text></Enter>
-      </View>
-      <View style={{ width: 44, height: 44, borderRadius: 15, backgroundColor: 'rgba(255,255,255,0.16)', borderWidth: 1, borderColor: 'rgba(255,255,255,0.28)', alignItems: 'center', justifyContent: 'center', marginTop: 14 }}>
-        <Logo size={26} showName={false} tone="inverse" />
-      </View>
-    </View>
+    <HeroIdentity
+      scrollY={scrollY}
+      mark={<HeroMark><Logo size={28} showName={false} tone="inverse" /></HeroMark>}
+      eyebrow={en ? 'Your workspace' : 'Votre atelier'}
+      // L'atelier prime sur la personne : c'est lui qu'on ouvre le matin.
+      // Sans nom d'entreprise enregistré, la salutation reprend la dominante.
+      title={business || greeting || (en ? 'Your workspace' : 'Votre atelier')}
+      subtitle={business ? greeting : null}
+    >
+      {status ? (
+        <HeroStatus scrollY={scrollY} icon={status.icon} label={status.label} onPress={status.onPress} />
+      ) : null}
+    </HeroIdentity>
   );
 }
 
@@ -203,6 +228,7 @@ export default function AccueilScreen() {
   const setup = setupQuery.data;
   const setupPending = setup ? !(setup.business && setup.catalogue && setup.clients) : false;
   const firstName = session?.user.firstName?.trim() || data?.greetingName || '';
+  const business = session?.organization.name?.trim() ?? '';
 
   if (query.loading && !data) {
     /*
@@ -219,11 +245,13 @@ export default function AccueilScreen() {
       <View style={{ flex: 1, backgroundColor: colors.surface }}>
         <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
           <BrandAtmosphere scrollY={brandScroll.scrollY}>
-          <HomeHeader
-            eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-            title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-            subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
-          />
+            <HomeHero
+              scrollY={brandScroll.scrollY}
+              business={business}
+              firstName={firstName}
+              en={en}
+              status={null}
+            />
           </BrandAtmosphere>
 
           <Card style={{ gap: spacing.md }}>
@@ -260,6 +288,44 @@ export default function AccueilScreen() {
 
   const started = data.quotesSent > 0 || data.recentActivity.length > 0 || data.newLeads > 0;
 
+  /*
+   * L'état de l'atelier, en une phrase et un chemin.
+   *
+   * L'ancienne version écrivait « 3 devis attendent une réponse. Une relance
+   * prend une minute. » et n'en tirait rien : une phrase qui constate un
+   * retard sans permettre d'agir dessus est un reproche. Ici la bande mène aux
+   * devis concernés, et la deuxième phrase — qui ne faisait qu'encourager —
+   * tombe : le chevron dit déjà qu'on peut y aller.
+   */
+  const waiting = data.toRecover.quoteCount;
+  const status: { icon: keyof typeof Ionicons.glyphMap; label: string; onPress: () => void } = !started
+    ? {
+        icon: 'sparkles',
+        label: en ? 'Your workshop is ready. Start your first quote.' : 'Votre atelier est prêt. Commencez votre premier devis.',
+        onPress: () => router.push('/devis/nouveau'),
+      }
+    : waiting > 0
+      ? {
+          icon: 'time-outline',
+          label: en
+            ? `${waiting} quote${waiting > 1 ? 's' : ''} waiting for a reply`
+            : `${waiting} devis attend${waiting > 1 ? 'ent' : ''} une réponse`,
+          onPress: () => router.push('/devis'),
+        }
+      : data.pendingQuotes > 0
+        ? {
+            icon: 'paper-plane-outline',
+            label: en
+              ? `${data.pendingQuotes} quote${data.pendingQuotes > 1 ? 's' : ''} in progress. Everything is in order.`
+              : `${data.pendingQuotes} devis en cours. Tout est en ordre.`,
+            onPress: () => router.push('/devis'),
+          }
+        : {
+            icon: 'checkmark-circle-outline',
+            label: en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?',
+            onPress: () => router.push('/devis/nouveau'),
+          };
+
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
       {/*
@@ -278,21 +344,19 @@ export default function AccueilScreen() {
           />
         }
       >
-        <BrandAtmosphere scrollY={brandScroll.scrollY}>
-        <HomeHeader
-          eyebrow={en ? 'Your workspace' : 'Votre atelier'}
-          title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
-          compact
-          subtitle={
-            !started
-              ? (en ? 'Your workshop is ready. Your first quote starts here.' : 'Votre atelier est prêt. Votre premier devis commence ici.')
-              : data.toRecover.quoteCount > 0
-                ? (en ? `${data.toRecover.quoteCount} quote${data.toRecover.quoteCount > 1 ? 's' : ''} waiting for a reply. A follow-up takes a minute.` : `${data.toRecover.quoteCount} devis attend${data.toRecover.quoteCount > 1 ? 'ent' : ''} une réponse. Une relance prend une minute.`)
-                : data.pendingQuotes > 0
-                  ? (en ? `${data.pendingQuotes} quote${data.pendingQuotes > 1 ? 's' : ''} in progress. Everything is in order.` : `${data.pendingQuotes} devis en cours. Tout est en ordre.`)
-                  : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
-          }
-        />
+        {/*
+          Le héros porte l'identité, l'état, l'intitulé « Vos devis » **et** les
+          cartes de devis. C'est ce qui remplit le bleu : il n'est plus une
+          surface à traverser avant d'arriver au produit, il est le produit.
+          Le fondu, lui, déborde derrière les raccourcis qui suivent.
+        */}
+        <BrandAtmosphere scrollY={brandScroll.scrollY} minHeight={150}>
+          <View style={{ gap: spacing.xl }}>
+            <HomeHero scrollY={brandScroll.scrollY} business={business} firstName={firstName} en={en} status={status} />
+            {started ? (
+              <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} onBrand />
+            ) : null}
+          </View>
         </BrandAtmosphere>
 
         {(query.loading || query.refreshing || query.error) && <Caption style={{ color: colors.muted }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
@@ -356,8 +420,8 @@ export default function AccueilScreen() {
           </Stagger>
         ) : (
           <Stagger step={60} initial={40}>
-            <QuoteCarousel quotes={quotesQuery.data?.items} loading={quotesQuery.loading} en={en} />
-
+            {/* Les devis sont montés dans le héros, sur le bleu : ce qui suit
+                commence donc par les raccourcis, posés sur le fondu. */}
             {/* Les gestes de fin de journée, sans passer par la navigation. */}
             <QuickActions />
             {setup && setupPending ? <SetupProgress status={setup} en={en} /> : null}
