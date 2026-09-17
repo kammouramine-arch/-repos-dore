@@ -76,7 +76,7 @@ export default function DevisDetailScreen() {
    * même signature pour tous. Le cache partagé évite d'interroger le serveur
    * à chaque ouverture d'un devis.
    */
-  const branding = useQuery<BrandingDTO>(() => api.branding.get(), [], 'marque');
+  const branding = useQuery<BrandingDTO>(() => api.branding.get(), [], 'branding');
   const signed = Boolean(branding.data?.signature.strokePath);
 
   const [sending, setSending] = React.useState(false);

@@ -87,7 +87,14 @@ const config: ExpoConfig = {
   version: VERSION,
   orientation: 'portrait',
   scheme: 'devisia',
-  userInterfaceStyle: 'light',
+  /*
+   * L'application sait maintenant s'habiller en sombre (Compte → Apparence).
+   * Laisser `light` ici forcerait iOS à dessiner en clair les éléments qu'il
+   * contrôle — claviers, feuilles de partage, alertes système, sélecteurs de
+   * date — au milieu d'une interface nuit. `automatic` les laisse suivre
+   * l'iPhone, ce qui est exact pour le réglage par défaut de DEVISERA.
+   */
+  userInterfaceStyle: 'automatic',
   primaryColor: '#2547E0',
   icon: './assets/icon.png',
   assetBundlePatterns: ['**/*'],
@@ -163,8 +170,9 @@ const config: ExpoConfig = {
     ...(GOOGLE_IOS_CLIENT_ID
       ? [['@react-native-google-signin/google-signin', { iosUrlScheme: googleUrlScheme(GOOGLE_IOS_CLIENT_ID) }] as [string, Record<string, unknown>]]
       : []),
-    // Applique `userInterfaceStyle` sur Android : l'interface DEVISERA est
-    // dessinée en clair, elle ne doit pas suivre le thème sombre du système.
+    // Applique `userInterfaceStyle` sur Android, où il n'est pas lu du
+    // manifeste : le système peut donc suivre l'apparence de l'appareil comme
+    // sur iPhone.
     'expo-system-ui',
     'expo-font',
     'expo-asset',

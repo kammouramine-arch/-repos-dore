@@ -190,12 +190,21 @@ export function PressableCard({
 type ButtonVariant = 'primary' | 'secondary' | 'ghost' | 'danger';
 type ButtonSize = 'md' | 'lg';
 
-const BUTTON_COLORS: Record<ButtonVariant, { bg: string; fg: string; border: string }> = {
+/*
+ * Lu à chaque rendu, jamais figé au chargement du module.
+ *
+ * Un objet de couleurs évalué à l'import garde la palette du premier rendu :
+ * la bascule en mode sombre laissait des pastilles blanches au milieu de la
+ * nuit. La fonction relit `colors`, qui est muté par `applyScheme`.
+ */
+function BUTTON_COLORS(): Record<ButtonVariant, { bg: string; fg: string; border: string }> {
+  return {
   primary: { bg: colors.accent, fg: colors.white, border: colors.accent },
   secondary: { bg: colors.canvas, fg: colors.ink, border: colors.lineStrong },
   ghost: { bg: 'transparent', fg: colors.inkSoft, border: 'transparent' },
   danger: { bg: colors.danger, fg: colors.white, border: colors.danger },
-};
+  };
+}
 
 export interface ButtonProps extends Omit<PressableProps, 'style'> {
   title: string;
@@ -223,7 +232,7 @@ export function Button({
   ...props
 }: ButtonProps) {
   const locale = useMobileLocale();
-  const palette = BUTTON_COLORS[variant];
+  const palette = BUTTON_COLORS()[variant];
   const height = size === 'lg' ? 56 : 48;
   const touch = useTouchMotion(0.975);
 
@@ -336,7 +345,10 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
             borderRadius: radius.md,
             borderWidth: StyleSheet.hairlineWidth * 2,
             borderColor: error ? colors.danger : focused ? colors.accent : colors.lineStrong,
-            backgroundColor: focused ? colors.canvas : '#FCFCFD',
+            // Au repos, un champ est légèrement en retrait de la carte ; il
+            // remonte au blanc — ou au gris clair de la nuit — quand il a le
+            // focus. Une valeur en dur ici restait blanche en mode sombre.
+            backgroundColor: focused ? colors.canvas : colors.surface2,
             paddingHorizontal: spacing.lg,
             paddingVertical: spacing.md,
             fontSize: 16,
@@ -354,18 +366,27 @@ export function Field({ label, hint, error, style, ...props }: FieldProps) {
 
 type BadgeTone = 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info';
 
-const BADGE_TONES: Record<BadgeTone, { bg: string; fg: string }> = {
+/*
+ * Lu à chaque rendu, jamais figé au chargement du module.
+ *
+ * Un objet de couleurs évalué à l'import garde la palette du premier rendu :
+ * la bascule en mode sombre laissait des pastilles blanches au milieu de la
+ * nuit. La fonction relit `colors`, qui est muté par `applyScheme`.
+ */
+function BADGE_TONES(): Record<BadgeTone, { bg: string; fg: string }> {
+  return {
   neutral: { bg: colors.surface2, fg: colors.muted },
   accent: { bg: colors.accentSoft, fg: colors.accentHover },
   success: { bg: colors.successSoft, fg: colors.success },
   warning: { bg: colors.warningSoft, fg: colors.warning },
   danger: { bg: colors.dangerSoft, fg: colors.danger },
   info: { bg: colors.infoSoft, fg: colors.info },
-};
+  };
+}
 
 export function Badge({ label, tone = 'neutral' }: { label: string; tone?: BadgeTone }) {
   const locale = useMobileLocale();
-  const palette = BADGE_TONES[tone];
+  const palette = BADGE_TONES()[tone];
   return (
     <View
       style={{

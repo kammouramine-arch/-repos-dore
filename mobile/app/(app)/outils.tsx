@@ -77,11 +77,25 @@ const SECONDARY: { href: Href; icon: keyof typeof Ionicons.glyphMap; title: { fr
     title: { fr: 'Chiffre d’affaires', en: 'Revenue' },
     body: { fr: 'Ce qui rentre, mois par mois', en: 'What comes in, month by month' },
   },
+  /*
+   * Cette entrée portait le bon nom et menait au mauvais écran : `/paiements`,
+   * qui est l'historique de l'abonnement DEVISERA de l'artisan. Celui qui
+   * cherchait comment se faire régler par ses clients tombait donc sur ses
+   * propres reçus — c'est pourquoi la fonction restait introuvable. Elle mène
+   * à l'activation ; l'historique d'abonnement vit dans Mon compte, où il
+   * figure déjà.
+   */
   {
-    href: '/paiements',
+    href: '/encaissement',
     icon: 'card-outline',
     title: { fr: 'Encaissement en ligne', en: 'Online payments' },
-    body: { fr: 'Laissez vos clients régler par carte', en: 'Let your clients pay by card' },
+    body: { fr: 'Laissez vos clients régler vos factures par carte', en: 'Let your clients settle your invoices by card' },
+  },
+  {
+    href: '/signature',
+    icon: 'create-outline',
+    title: { fr: 'Ma signature', en: 'My signature' },
+    body: { fr: 'Tracée une fois, apposée sur vos documents', en: 'Drawn once, applied to your documents' },
   },
   {
     href: '/presentation',

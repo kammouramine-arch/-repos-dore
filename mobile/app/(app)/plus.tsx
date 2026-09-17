@@ -1,6 +1,6 @@
 import * as React from 'react';
 import Constants from 'expo-constants';
-import { Alert, Linking, View } from 'react-native';
+import { Alert, Linking, Platform, View } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import { PLANS, accessStateFor } from '@devisia/shared';
@@ -16,7 +16,9 @@ import { API_URL } from '@/lib/api';
 import { openReviewPage } from '@/lib/review';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { cachedAppleProducts } from '@/lib/apple-purchases';
+import { googleSignInAvailable } from '@/lib/social-auth';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
+import { useAppearance } from '@/lib/appearance';
 import { BRAND_HEADER_SOLID } from '@/theme/gradient';
 import { colors, spacing } from '@/theme';
 
@@ -65,6 +67,12 @@ export default function PlusScreen() {
   const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
+  const { choice: appearance } = useAppearance();
+  const appearanceLabel = appearance === 'system'
+    ? (en ? 'Automatic' : 'Automatique')
+    : appearance === 'dark'
+      ? (en ? 'Dark' : 'Sombre')
+      : (en ? 'Light' : 'Clair');
 
   const fullName = [session?.user.firstName, session?.user.lastName].filter(Boolean).join(' ').trim();
   const business = session?.organization.name ?? '';
@@ -118,6 +126,10 @@ export default function PlusScreen() {
     const provenance = [
       buildLabel,
       `${en ? 'storefront' : 'vitrine'}: ${catalogue?.storefront ?? '—'}`,
+      // Présence des connexions tierces dans **ce binaire** : c'est la moitié
+      // de la réponse quand un bouton manque, l'autre étant sur le serveur
+      // (voir le bloc `signIn` de /api/health).
+      `sign-in: apple=${Platform.OS === 'ios' ? 'natif' : 'n/a'} google=${googleSignInAvailable() ? 'configuré' : 'absent'}`,
       storeLines,
       `${session?.user.locale ?? locale}${session ? ` · ${session.user.id}` : ''}`,
     ].join('\n');
@@ -158,10 +170,28 @@ export default function PlusScreen() {
           <SettingsRow icon="business-outline" title={copy(locale, 'business')} subtitle={en ? 'Identity, tax and quote details' : 'Identité, TVA, mentions du devis'} onPress={() => router.push('/entreprise')} />
         </SettingsGroup>
 
-        <SettingsGroup title={copy(locale, 'language')}>
+        {/*
+          Ce qui règle l'application elle-même : sa langue, son apparence, ce
+          dont elle prévient. Trois choses de même nature, donc un seul groupe —
+          elles ne sont ni des réglages d'entreprise ni des questions de
+          facturation.
+        */}
+        <SettingsGroup title={en ? 'The app' : 'L’application'}>
           <View style={{ padding: spacing.md }}>
             <LanguageSelector compact />
           </View>
+          <SettingsRow
+            icon="contrast-outline"
+            title={en ? 'Appearance' : 'Apparence'}
+            subtitle={appearanceLabel}
+            onPress={() => router.push('/apparence')}
+          />
+          <SettingsRow
+            icon="notifications-outline"
+            title="Notifications"
+            subtitle={en ? 'Choose what you are told about' : 'Choisissez ce dont vous êtes prévenu'}
+            onPress={() => router.push('/notifications')}
+          />
         </SettingsGroup>
 
         <SettingsGroup title={en ? 'Your DEVISERA subscription' : 'Votre abonnement DEVISERA'}>

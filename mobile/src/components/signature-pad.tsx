@@ -4,7 +4,7 @@ import Svg, { Line, Path } from 'react-native-svg';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { activeScheme, colors, radius, shadows, spacing } from '@/theme';
 import {
   VIEWBOX_HEIGHT,
   VIEWBOX_WIDTH,
@@ -188,12 +188,22 @@ export function SignatureSheet({
   visible,
   en,
   signerName,
+  purpose = 'client',
   onCancel,
   onConfirm,
 }: {
   visible: boolean;
   en: boolean;
   signerName: string;
+  /**
+   * Qui signe.
+   *
+   * `client` : l'acceptation d'un devis, sur le chantier. `business` : la
+   * signature de l'entreprise, tracée une fois par l'artisan pour ses propres
+   * documents. La consigne « tendez le téléphone à votre client » n'a aucun
+   * sens dans le second cas — et c'est très exactement ce qu'elle disait.
+   */
+  purpose?: 'client' | 'business';
   onCancel: () => void;
   onConfirm: (strokePath: string) => void;
 }) {
@@ -213,7 +223,7 @@ export function SignatureSheet({
         a aucun effet de remise à zéro à écrire — donc rien qui puisse
         déclencher un rendu en cascade à chaque ouverture.
       */}
-      {visible ? <SignatureSheetBody en={en} signerName={signerName} onCancel={onCancel} onConfirm={onConfirm} /> : null}
+      {visible ? <SignatureSheetBody en={en} signerName={signerName} purpose={purpose} onCancel={onCancel} onConfirm={onConfirm} /> : null}
     </Modal>
   );
 }
@@ -221,11 +231,13 @@ export function SignatureSheet({
 function SignatureSheetBody({
   en,
   signerName,
+  purpose,
   onCancel,
   onConfirm,
 }: {
   en: boolean;
   signerName: string;
+  purpose: 'client' | 'business';
   onCancel: () => void;
   onConfirm: (strokePath: string) => void;
 }) {
@@ -287,7 +299,9 @@ function SignatureSheetBody({
 
   return (
     <>
-      <StatusBar barStyle="dark-content" />
+      {/* La feuille couvre l'écran : la barre d'état doit suivre le thème,
+          sinon ses icônes disparaissent sur le fond de la nuit. */}
+      <StatusBar barStyle={activeScheme() === 'dark' ? 'light-content' : 'dark-content'} />
       <SafeAreaView style={{ flex: 1, backgroundColor: colors.surface }}>
         <View style={{ flex: 1, padding: spacing.lg, gap: spacing.md }}>
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 44 }}>
@@ -317,9 +331,13 @@ function SignatureSheetBody({
           </View>
 
           <Text style={{ fontSize: 14.5, lineHeight: 20, color: colors.muted, textAlign: 'center' }}>
-            {en
-              ? 'Hand the phone to your client. They sign above the line.'
-              : 'Tendez le téléphone à votre client. Il signe au-dessus de la ligne.'}
+            {purpose === 'business'
+              ? en
+                ? 'Sign above the line, as you would on paper. Drawn once, it goes on every document you issue.'
+                : 'Signez au-dessus de la ligne, comme sur papier. Tracée une fois, elle figure sur chaque document que vous émettez.'
+              : en
+                ? 'Hand the phone to your client. They sign above the line.'
+                : 'Tendez le téléphone à votre client. Il signe au-dessus de la ligne.'}
           </Text>
 
           <Canvas

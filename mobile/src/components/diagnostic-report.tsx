@@ -3,6 +3,7 @@ import { Alert, Modal, Pressable, ScrollView, Text, View } from 'react-native';
 import * as Clipboard from 'expo-clipboard';
 import Constants from 'expo-constants';
 import { Button, Muted } from './ui';
+import { colors } from '@/theme';
 import { readDiagnostics } from '@/lib/diagnostics';
 import { appleProducts } from '@/lib/apple-purchases';
 import { Logo } from './logo';
@@ -51,34 +52,34 @@ export function DiagnosticReport({ en, storefront }: { en: boolean; storefront?:
     <View style={{ alignItems: 'center', gap: 8 }}>
       <Pressable delayLongPress={1800} onLongPress={open} accessibilityLabel="DEVISERA"><Logo size={30} /></Pressable>
       {/* Version de diagnostic : l'entrée est visible, pas seulement cachée derrière un appui long. */}
-      <Pressable accessibilityRole="button" onPress={open} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: '#EEF2FF', borderWidth: 1, borderColor: '#C8D2FF' }}>
-        <Text style={{ fontSize: 12, fontWeight: '600', color: '#2341C6' }}>{en ? 'StoreKit diagnostics' : 'Diagnostic StoreKit'} · {Constants.nativeBuildVersion ?? '?'}{Constants.expoConfig?.extra?.commit ? ` · ${Constants.expoConfig.extra.commit}` : ''}</Text>
+      <Pressable accessibilityRole="button" onPress={open} style={{ paddingHorizontal: 12, paddingVertical: 6, borderRadius: 999, backgroundColor: colors.accentSoft, borderWidth: 1, borderColor: colors.accentBorder }}>
+        <Text style={{ fontSize: 12, fontWeight: '600', color: colors.accentHover }}>{en ? 'StoreKit diagnostics' : 'Diagnostic StoreKit'} · {Constants.nativeBuildVersion ?? '?'}{Constants.expoConfig?.extra?.commit ? ` · ${Constants.expoConfig.extra.commit}` : ''}</Text>
       </Pressable>
     </View>
     <Modal visible={report !== null} animationType="slide" presentationStyle="pageSheet" onRequestClose={() => setReport(null)}>
-      <View style={{ flex: 1, padding: 24, paddingTop: 48, backgroundColor: 'white', gap: 12 }}>
+      <View style={{ flex: 1, padding: 24, paddingTop: 48, backgroundColor: colors.canvas, gap: 12 }}>
         <Muted>{en ? 'Share this report with support. It contains technical events, not passwords, verification codes or receipts.' : 'Partagez ce rapport avec le support. Il contient des événements techniques, pas de mot de passe, de code de vérification ni de reçu.'}</Muted>
         {failed ? <Muted>{en ? 'Sharing is unavailable. You can select and copy the report below.' : 'Le partage est indisponible. Vous pouvez sélectionner et copier le rapport ci-dessous.'}</Muted> : null}
         <ScrollView>
           {rows.length ? <View style={{ gap: 6, marginBottom: 12 }}>
-            <Text style={{ fontSize: 12, fontWeight: '700', color: '#152039' }}>{en ? 'Side by side' : 'Côte à côte'} · {en ? 'wrapper storefront' : 'vitrine bibliothèque'} {storefront ?? '?'} · {en ? 'direct storefront' : 'vitrine directe'} {nativeStorefront || '?'}</Text>
+            <Text style={{ fontSize: 12, fontWeight: '700', color: colors.ink }}>{en ? 'Side by side' : 'Côte à côte'} · {en ? 'wrapper storefront' : 'vitrine bibliothèque'} {storefront ?? '?'} · {en ? 'direct storefront' : 'vitrine directe'} {nativeStorefront || '?'}</Text>
             {rows.map((c) => (
-              <View key={c.productId} style={{ flexDirection: 'row', gap: 8, borderWidth: 1, borderColor: '#E8ECF2', borderRadius: 10, padding: 8 }}>
+              <View key={c.productId} style={{ flexDirection: 'row', gap: 8, borderWidth: 1, borderColor: colors.line, borderRadius: 10, padding: 8 }}>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#667085' }}>{en ? 'WRAPPER (expo-iap)' : 'BIBLIOTHÈQUE (expo-iap)'}</Text>
-                  <Text style={{ fontSize: 12, color: '#152039' }}>{c.productId}</Text>
-                  <Text style={{ fontSize: 12, color: '#152039' }}>{c.wrapperDisplayPrice ?? '—'} · {c.wrapperCurrency ?? '—'}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.muted }}>{en ? 'WRAPPER (expo-iap)' : 'BIBLIOTHÈQUE (expo-iap)'}</Text>
+                  <Text style={{ fontSize: 12, color: colors.ink }}>{c.productId}</Text>
+                  <Text style={{ fontSize: 12, color: colors.ink }}>{c.wrapperDisplayPrice ?? '—'} · {c.wrapperCurrency ?? '—'}</Text>
                 </View>
                 <View style={{ flex: 1, gap: 2 }}>
-                  <Text style={{ fontSize: 11, fontWeight: '700', color: '#667085' }}>{en ? 'DIRECT STOREKIT 2' : 'STOREKIT 2 DIRECT'}</Text>
-                  <Text style={{ fontSize: 12, color: '#152039' }}>{c.productId}</Text>
-                  <Text style={{ fontSize: 12, color: '#152039' }}>{c.nativeDisplayPrice ?? '—'} · {c.nativeCurrency ?? '—'}</Text>
-                  <Text style={{ fontSize: 11, color: '#667085' }}>{c.verdict}</Text>
+                  <Text style={{ fontSize: 11, fontWeight: '700', color: colors.muted }}>{en ? 'DIRECT STOREKIT 2' : 'STOREKIT 2 DIRECT'}</Text>
+                  <Text style={{ fontSize: 12, color: colors.ink }}>{c.productId}</Text>
+                  <Text style={{ fontSize: 12, color: colors.ink }}>{c.nativeDisplayPrice ?? '—'} · {c.nativeCurrency ?? '—'}</Text>
+                  <Text style={{ fontSize: 11, color: colors.muted }}>{c.verdict}</Text>
                 </View>
               </View>
             ))}
           </View> : null}
-          <Text selectable style={{ fontSize: 12, color: '#152039' }}>{report}</Text>
+          <Text selectable style={{ fontSize: 12, color: colors.ink }}>{report}</Text>
         </ScrollView>
         <Button title={en ? 'Fetch current Apple products' : 'Charger les produits Apple actuels'} loading={loading} disabled={loading} onPress={() => {
           setLoading(true);

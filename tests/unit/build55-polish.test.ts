@@ -22,9 +22,12 @@ describe('calques qui restaient collés', () => {
     const backdrop = mobile('src/components/brand-backdrop.tsx');
     expect(backdrop).toContain('useAnimatedScrollHandler');
     expect(backdrop).toContain('export function useBrandScroll');
-    expect(backdrop).toContain('translateY: y < 0 ? 0 : -y * PARALLAX');
+    // La parallaxe a cédé la place à la compression (voir build56-polish) :
+    // le bandeau se referme ancré en haut au lieu de glisser, et son bord bas
+    // recule au moins aussi vite que le contenu.
+    expect(backdrop).toContain('Math.max(0, 1 - y / height)');
     // Tiré vers le bas, il s'étire depuis le haut plutôt que de se déplacer.
-    expect(backdrop).toContain('const stretch = y < 0');
+    expect(backdrop).toContain('const factor = y < 0');
 
     for (const screen of ['app/(app)/index.tsx', 'app/(app)/plus.tsx']) {
       const source = mobile(screen);
@@ -78,10 +81,12 @@ describe('signature de l’entreprise', () => {
     // Même validation que le tracé du client : il finit dans un attribut `d`.
     expect(branding).toContain('assertStroke(input.signatureStrokePath)');
     expect(branding).toContain('signatureStrokePath: null, signatureName: null');
-    // L'écran de marque la trace et l'enregistre aussitôt.
-    const marque = mobile('app/marque.tsx');
-    expect(marque).toContain('<SignatureSheet');
-    expect(marque).toContain('saveSignature');
+    // La signature a son écran depuis le build 56 ; Ma marque n'y renvoie que
+    // par un lien.
+    const signature = mobile('app/signature.tsx');
+    expect(signature).toContain('<SignatureSheet');
+    expect(signature).toContain('api.branding.update');
+    expect(mobile('app/marque.tsx')).toContain("router.push('/signature')");
   });
 
   it('s’imprime sur le devis et sur la facture, avant l’acceptation du client', () => {
@@ -91,8 +96,9 @@ describe('signature de l’entreprise', () => {
     // Dessinée avant le bloc d'acceptation : on voit d'abord qui s'engage.
     expect(pdf.indexOf('drawBusinessSignature(ctx, input);')).toBeLessThan(pdf.indexOf('drawAcceptance(ctx, input);'));
     // Les deux documents la reçoivent.
+    // Les deux documents la reçoivent, via l'instantané figé à l'envoi.
     const service = read('src/server/services/quotePdfService.ts');
-    expect(service.match(/businessSignature: profile\?\.signatureStrokePath/g)).toHaveLength(2);
+    expect(service.match(/businessSignature: issuerSignature\(/g)).toHaveLength(2);
   });
 
   it('ne pousse plus le client à signer sur le téléphone de l’artisan', () => {

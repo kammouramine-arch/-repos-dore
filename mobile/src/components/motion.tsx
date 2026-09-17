@@ -7,7 +7,7 @@ import {
   type ViewStyle,
 } from 'react-native';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { motion, spring } from '@/theme';
+import { colors, motion, spring } from '@/theme';
 
 /** Reusable touch response; animation never delays the action itself. */
 export function useTouchMotion(pressedScale = 0.985) {
@@ -196,7 +196,7 @@ export function useCountUp(target: number, { duration = 760, enabled = true }: {
 }
 
 /** Coche de réussite qui se pose d'un ressort : le signe visuel d'une action aboutie. */
-export function SuccessCheck({ size = 20, color = '#0F7A52', delay = 0 }: { size?: number; color?: string; delay?: number }) {
+export function SuccessCheck({ size = 20, color = colors.success, delay = 0 }: { size?: number; color?: string; delay?: number }) {
   const reduced = useReducedMotion();
   const [scale] = React.useState(() => new Animated.Value(reduced ? 1 : 0.4));
   const [opacity] = React.useState(() => new Animated.Value(reduced ? 1 : 0));

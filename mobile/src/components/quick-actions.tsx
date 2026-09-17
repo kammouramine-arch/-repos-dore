@@ -16,12 +16,21 @@ import { useMobileLocale } from '@/lib/i18n';
  *
  * Elle double délibérément l'onglet Outils : un raccourci n'est pas une
  * cachette, c'est la même destination atteinte plus vite.
+ *
+ * ## Un raccourci pousse, il ne déplace pas
+ *
+ * « Mes factures » menait à `/(app)/devis?onglet=factures` : l'application
+ * basculait sur l'onglet Documents, et l'artisan parti de l'accueil se
+ * retrouvait ailleurs, sans retour. Un raccourci n'a pas à décider où l'on
+ * habite. Chacun pousse maintenant son propre écran, avec le retour iOS
+ * habituel, et l'onglet sélectionné reste celui d'où l'on est parti.
  */
 
 const ACTIONS: { href: Href; icon: keyof typeof Ionicons.glyphMap; label: { fr: string; en: string } }[] = [
   { href: '/depenses', icon: 'camera', label: { fr: 'Scanner\nun reçu', en: 'Scan a\nreceipt' } },
-  { href: '/(app)/devis?onglet=factures', icon: 'cash-outline', label: { fr: 'Mes\nfactures', en: 'My\ninvoices' } },
+  { href: '/factures', icon: 'cash-outline', label: { fr: 'Mes\nfactures', en: 'My\ninvoices' } },
   { href: '/comptable', icon: 'share-outline', label: { fr: 'Export\ncomptable', en: 'Accountant\nexport' } },
+  { href: '/signature', icon: 'create-outline', label: { fr: 'Ma\nsignature', en: 'My\nsignature' } },
   { href: '/marque', icon: 'color-palette-outline', label: { fr: 'Ma\nmarque', en: 'My\nbranding' } },
 ];
 

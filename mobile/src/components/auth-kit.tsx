@@ -24,7 +24,7 @@ import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { LogoMark } from './logo';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing } from '@/theme';
+import { activeScheme, colors, radius, spacing } from '@/theme';
 
 /**
  * Kit visuel de l'authentification.
@@ -166,7 +166,7 @@ export function AuthScreen({
   const horizontal = width >= 430 ? spacing['2xl'] + 4 : spacing['2xl'];
   useFocusEffect(
     React.useCallback(() => {
-      setStatusBarStyle('dark');
+      setStatusBarStyle(activeScheme() === 'dark' ? 'light' : 'dark');
       return undefined;
     }, []),
   );

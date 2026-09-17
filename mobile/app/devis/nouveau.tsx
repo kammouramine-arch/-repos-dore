@@ -195,20 +195,18 @@ export default function NouveauDevisScreen() {
   /*
    * `?dicter=1` : ouverture depuis « Devis à la voix ».
    *
-   * Le micro s'arme tout seul, parce que c'est exactement ce que le bouton
-   * annonçait. Le consentement IA passe d'abord — rien n'écoute avant. Une
-   * seule fois : revenir sur cet écran ne doit pas relancer une dictée.
+   * Le micro **ne s'arme pas**. Il se déclenchait tout seul à l'ouverture, et
+   * c'était une erreur : appuyer sur « + » n'est pas consentir à être écouté.
+   * Entre l'intention d'ouvrir et celle de parler il y a une décision, et
+   * elle appartient à l'artisan — qui peut ouvrir l'écran devant un client,
+   * dans une réunion, ou par erreur.
+   *
+   * Le paramètre ne fait donc plus qu'une chose : mettre le micro en avant.
+   * L'écran arrive prêt, l'invite est explicite, et l'enregistrement commence
+   * au toucher, jamais avant. Le consentement IA est demandé à ce toucher —
+   * au moment où il porte sur quelque chose de réel.
    */
-  const autoDictated = React.useRef(false);
-  React.useEffect(() => {
-    if (autoDictated.current || dicter !== '1' || !dictation.supported) return;
-    autoDictated.current = true;
-    const timer = setTimeout(() => {
-      void aiConsent.ensure().then((granted) => { if (granted) void dictation.start(); });
-    }, 420);
-    return () => clearTimeout(timer);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dicter, dictation.supported]);
+  const invited = dicter === '1';
 
   const descriptionField = React.useRef<TextInput>(null);
   const photos = usePhotoCapture();
@@ -257,14 +255,22 @@ export default function NouveauDevisScreen() {
   }, [dictation.status, pulse]);
 
   const listening = dictation.status === 'ecoute';
-  // Halo de marque derrière le micro : s'allume à l'écoute, s'éteint à l'arrêt.
+  /*
+   * Halo de marque derrière le micro.
+   *
+   * Plein à l'écoute. Entrouvert — un tiers — quand on arrive par « + » sans
+   * avoir encore parlé : l'écran doit se dire prêt sans se mettre à écouter.
+   * C'est toute la différence entre inviter et prendre les devants.
+   */
+  const busy = dictation.status === 'demande' || dictation.status === 'traitement';
   const glow = React.useMemo(() => new Animated.Value(0), []);
+  const ready = invited && !listening && !busy;
   React.useEffect(() => {
-    const animation = Animated.timing(glow, { toValue: listening ? 1 : 0, duration: listening ? 320 : 220, useNativeDriver: true });
+    const target = listening ? 1 : ready ? 0.34 : 0;
+    const animation = Animated.timing(glow, { toValue: target, duration: listening ? 320 : 260, useNativeDriver: true });
     animation.start();
     return () => animation.stop();
-  }, [glow, listening]);
-  const busy = dictation.status === 'demande' || dictation.status === 'traitement';
+  }, [glow, listening, ready]);
   const composed = submittedDescription(description, dictation.partial);
 
   /** Refus ou fermeture de la feuille : rien n'est parti, tout reste saisi. */
@@ -1006,7 +1012,13 @@ export default function NouveauDevisScreen() {
                 disabled={!dictation.supported || busy}
                 onPress={() => {
                   void Haptics.impactAsync(listening ? Haptics.ImpactFeedbackStyle.Light : Haptics.ImpactFeedbackStyle.Medium).catch(() => undefined);
-                  if (listening) dictation.stop(); else void dictation.start();
+                  if (listening) { dictation.stop(); return; }
+                  // Le consentement est demandé ici, au moment où l'on va
+                  // réellement écouter — plus à l'ouverture de l'écran.
+                  void aiConsent.ensure().then((granted) => {
+                    if (granted) void dictation.start();
+                    else explainConsentNeeded(() => void dictation.start());
+                  });
                 }}
                 style={({ pressed }) => [
                   {
@@ -1035,15 +1047,19 @@ export default function NouveauDevisScreen() {
             </Animated.View>
           </View>
           <Waveform active={listening} />
-          <Enter key={listening ? 'on' : busy ? 'busy' : 'off'} distance={4} duration={motion.quick}>
-          <Body style={{ color: listening ? colors.accent : colors.muted, fontWeight: listening ? '600' : '400' }}>
+          <Enter key={listening ? 'on' : busy ? 'busy' : ready ? 'ready' : 'off'} distance={4} duration={motion.quick}>
+          <Body style={{ color: listening || ready ? colors.accent : colors.muted, fontWeight: listening || ready ? '600' : '400' }}>
             {!dictation.supported
               ? 'Dictée indisponible ici — écrivez la description'
               : listening
                 ? 'Je vous écoute — appuyez pour arrêter'
                 : busy
                   ? 'Un instant…'
-                  : 'Appuyez et décrivez le chantier'}
+                  : ready
+                    // Dit exactement où en est l'appareil : prêt, pas en train
+                    // d'écouter. C'est le toucher qui ouvre le micro.
+                    ? 'Prêt — appuyez pour parler'
+                    : 'Appuyez et décrivez le chantier'}
           </Body>
           </Enter>
 

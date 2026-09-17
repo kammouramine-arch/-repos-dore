@@ -1,6 +1,7 @@
 import { env } from '@/lib/env';
 import { processDueFollowUps } from '@/server/services/followUpService';
 import { expireOutdatedQuotes } from '@/server/services/quoteService';
+import { notifyOverdueInvoices } from '@/server/services/invoiceService';
 
 /**
  * Tâche planifiée : traitement des relances arrivées à échéance et
@@ -22,8 +23,12 @@ async function handle(request: Request): Promise<Response> {
     return Response.json({ error: 'Non autorisé.' }, { status: 401 });
   }
 
-  const [followUps, expired] = await Promise.all([processDueFollowUps(), expireOutdatedQuotes()]);
-  return Response.json({ data: { ...followUps, expiredQuotes: expired } });
+  const [followUps, expired, overdue] = await Promise.all([
+    processDueFollowUps(),
+    expireOutdatedQuotes(),
+    notifyOverdueInvoices(),
+  ]);
+  return Response.json({ data: { ...followUps, expiredQuotes: expired, ...overdue } });
 }
 
 export async function GET(request: Request) {

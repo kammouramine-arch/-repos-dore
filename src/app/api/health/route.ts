@@ -4,6 +4,8 @@ import { configurationReport, env } from '@/lib/env';
 import { describeSendingDomain, getEmailProvider } from '@/lib/email';
 import { aiCapabilities } from '@/lib/ai';
 import { releaseCommit } from '@/lib/release';
+import { appleRevocationConfigured } from '@/server/auth/providers/apple';
+import { splitAudiences } from '@/server/auth/providers/claims';
 
 /**
  * Sonde de déploiement, sans secret, pour les vérifications de mise en ligne
@@ -92,6 +94,27 @@ export async function GET() {
   } catch {
     console.error('[health] payments_unavailable');
     checks.payments = { provider: 'stripe', configured: false };
+  }
+
+  /*
+   * Connexions par fournisseur.
+   *
+   * Le bouton Google n'apparaît dans l'application que si un identifiant
+   * client est présent **des deux côtés** : dans le binaire (au build) et sur
+   * le serveur (pour accepter l'audience du jeton). Quand l'un des deux
+   * manque, le bouton disparaît sans rien dire — c'est volontaire côté
+   * utilisateur, et invérifiable côté exploitant. Cette ligne le rend
+   * vérifiable. Les identifiants clients sont publics par nature ; seul leur
+   * nombre est renvoyé, pas leur valeur.
+   */
+  try {
+    checks.signIn = {
+      apple: { revocationConfigured: appleRevocationConfigured() },
+      google: { audiences: splitAudiences(env().GOOGLE_SIGN_IN_CLIENT_IDS).length },
+    };
+  } catch {
+    console.error('[health] sign_in_unavailable');
+    checks.signIn = { apple: { revocationConfigured: false }, google: { audiences: 0 } };
   }
 
   let environment: string | null = null;

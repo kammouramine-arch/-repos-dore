@@ -10,6 +10,7 @@ import {
   type InvoiceDetailDTO,
   type InvoiceStatusId,
   type InvoiceSummaryDTO,
+  type PaymentAccountDTO,
 } from '@devisia/shared';
 import { Body, Button, Caption, Card, Divider, ErrorState, SectionHeader, Skeleton, Title } from './ui';
 import { api } from '@/lib/api';
@@ -32,14 +33,23 @@ import { colors, radius, spacing } from '@/theme';
  * qu'elles se mettent à diverger.
  */
 
-const STATUS_TONE: Record<InvoiceStatusId, { bg: string; fg: string }> = {
+/*
+ * Lu à chaque rendu, jamais figé au chargement du module.
+ *
+ * Un objet de couleurs évalué à l'import garde la palette du premier rendu :
+ * la bascule en mode sombre laissait des pastilles blanches au milieu de la
+ * nuit. La fonction relit `colors`, qui est muté par `applyScheme`.
+ */
+function STATUS_TONE(): Record<InvoiceStatusId, { bg: string; fg: string }> {
+  return {
   BROUILLON: { bg: colors.surface2, fg: colors.muted },
   ENVOYEE: { bg: colors.accentSoft, fg: colors.accentHover },
   PARTIELLE: { bg: colors.warningSoft, fg: colors.warning },
   PAYEE: { bg: colors.successSoft, fg: colors.success },
   EN_RETARD: { bg: colors.dangerSoft, fg: colors.danger },
   ANNULEE: { bg: colors.surface2, fg: colors.subtle },
-};
+  };
+}
 
 const STATUS_EN: Record<InvoiceStatusId, string> = {
   BROUILLON: 'Draft',
@@ -51,7 +61,7 @@ const STATUS_EN: Record<InvoiceStatusId, string> = {
 };
 
 function StatusPill({ status, en }: { status: InvoiceStatusId; en: boolean }) {
-  const tone = STATUS_TONE[status];
+  const tone = STATUS_TONE()[status];
   return (
     <View style={{ paddingHorizontal: 10, height: 24, borderRadius: radius.full, backgroundColor: tone.bg, justifyContent: 'center' }}>
       <Text style={{ fontSize: 12, fontWeight: '700', color: tone.fg }}>
@@ -112,10 +122,61 @@ export function useInvoiceBoard({ claimQuoteId }: { claimQuoteId?: string } = {}
   return { query, creating, refreshControl };
 }
 
+/**
+ * Bandeau d'état de l'encaissement.
+ *
+ * L'artisan ne trouvait pas la fonction : elle existait, mais rien dans
+ * l'écran des factures ne disait qu'elle existait. Une ligne au-dessus de la
+ * liste répond à la question posée — « est-ce que mes clients peuvent me
+ * payer par carte ? » — et mène à l'activation quand la réponse est non.
+ *
+ * Quand c'est actif, la ligne ne dit rien de plus : une fonction qui marche
+ * n'a pas à s'annoncer à chaque ouverture.
+ */
+function CollectionState({ account, en, onPress }: { account: PaymentAccountDTO; en: boolean; onPress: () => void }) {
+  if (account.status === 'ACTIF') return null;
+  const started = account.status === 'EN_COURS' || account.status === 'RESTREINT';
+  return (
+    <Pressable
+      accessibilityRole="button"
+      accessibilityLabel={en ? 'Set up online payments' : 'Activer l’encaissement en ligne'}
+      onPress={onPress}
+      style={({ pressed }) => ({
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: spacing.md,
+        padding: spacing.lg,
+        borderRadius: radius.lg,
+        backgroundColor: colors.accentSoft,
+        borderWidth: 1,
+        borderColor: colors.accentBorder,
+        opacity: pressed ? 0.8 : 1,
+      })}
+    >
+      <Ionicons name="card-outline" size={20} color={colors.accent} />
+      <View style={{ flex: 1, gap: 2 }}>
+        <Caption style={{ color: colors.accentHover, fontWeight: '700' }}>
+          {started
+            ? (en ? 'Online payments — almost there' : 'Encaissement en ligne — presque prêt')
+            : (en ? 'Let your clients pay by card' : 'Laissez vos clients régler par carte')}
+        </Caption>
+        <Caption style={{ color: colors.accentHover, fontWeight: '400' }}>
+          {started
+            ? (en ? 'A few details are still missing. Finish the setup.' : 'Il manque quelques informations. Terminez l’activation.')
+            : (en ? 'Every invoice gets a secure payment link.' : 'Chaque facture reçoit un lien de paiement sécurisé.')}
+        </Caption>
+      </View>
+      <Ionicons name="chevron-forward" size={17} color={colors.accent} />
+    </Pressable>
+  );
+}
+
 export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBoard>) {
   const router = useRouter();
   const locale = useMobileLocale();
   const en = locale === 'en';
+  const account = useQuery<PaymentAccountDTO>(() => api.invoicePayments.account(), [], 'payment-account');
+  const collecting = account.data?.status === 'ACTIF';
 
   /**
    * Envoie le lien de règlement au client.
@@ -124,8 +185,17 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
    * accès, pas une session. Il ouvre une page aux couleurs de l'artisan, où
    * le client paie par carte. Rien de sensible n'y transite : le montant est
    * recalculé par le serveur, et la confirmation viendra du webhook signé.
+   *
+   * Tant que l'encaissement n'est pas actif, le lien mènerait le client à une
+   * page qui lui dit poliment de payer autrement. Envoyer cela est pire que
+   * ne rien envoyer : on ouvre l'activation à la place.
    */
   async function collect(invoice: InvoiceSummaryDTO) {
+    if (!collecting) {
+      void Haptics.selectionAsync().catch(() => undefined);
+      router.push('/encaissement');
+      return;
+    }
     const url = api.invoicePayments.publicUrl(invoice.publicToken);
     void Haptics.selectionAsync().catch(() => undefined);
     await Share.share({
@@ -179,6 +249,10 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
         <Card style={{ backgroundColor: colors.accentSoft, borderColor: colors.accentBorder }}>
           <Body style={{ color: colors.accentHover }}>{en ? 'Creating the invoice…' : 'Création de la facture…'}</Body>
         </Card>
+      ) : null}
+
+      {account.data ? (
+        <CollectionState account={account.data} en={en} onPress={() => router.push('/encaissement')} />
       ) : null}
 
       {invoices.length === 0 ? (
@@ -267,9 +341,11 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
                       opacity: pressed ? 0.6 : 1,
                     })}
                   >
-                    <Ionicons name="card-outline" size={15} color={colors.accent} />
+                    <Ionicons name={collecting ? 'card-outline' : 'add-circle-outline'} size={15} color={colors.accent} />
                     <Caption style={{ color: colors.accent, fontWeight: '700' }}>
-                      {localizeText(locale, 'Encaisser')}
+                      {collecting
+                        ? localizeText(locale, 'Encaisser')
+                        : (en ? 'Set up card payments' : 'Activer le paiement par carte')}
                     </Caption>
                   </Pressable>
                 ) : null}

@@ -66,7 +66,10 @@ export function LanguageSelector({ compact = false }: { compact?: boolean }) {
                 paddingVertical: compact ? 8 : 10,
                 borderRadius: radius.md - 3,
                 alignItems: 'center',
-                backgroundColor: selected ? colors.white : 'transparent',
+                // `colors.white` est l'encre du bandeau de marque, pas une
+                // surface : posée ici, la pastille sélectionnée restait blanche
+                // en mode sombre, avec du texte clair dessus.
+                backgroundColor: selected ? colors.canvas : 'transparent',
                 shadowColor: '#0B1220',
                 shadowOpacity: selected ? 0.08 : 0,
                 shadowRadius: 6,

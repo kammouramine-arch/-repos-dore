@@ -1,17 +1,17 @@
 import * as React from 'react';
 import { Image, Pressable, ScrollView, Text, View } from 'react-native';
+import { useRouter } from 'expo-router';
 import * as ImagePicker from 'expo-image-picker';
 import { ImageManipulator, SaveFormat } from 'expo-image-manipulator';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import Svg, { Path } from 'react-native-svg';
-import { SignatureSheet } from '@/components/signature-pad';
 import {
   DOCUMENT_TEMPLATE_LABELS,
   type BrandingDTO,
   type DocumentTemplateId,
 } from '@devisia/shared';
-import { Body, Button, Caption, Card, ErrorState, Screen, Skeleton } from '@/components/ui';
+import { Body, Button, Caption, Card, ErrorState, Muted, Screen, Skeleton } from '@/components/ui';
 import { AuthField } from '@/components/auth-kit';
 import { api, API_URL } from '@/lib/api';
 import { useQuery } from '@/lib/query';
@@ -156,6 +156,7 @@ function DocumentPreview({
 
 export default function MarqueScreen() {
   const en = useMobileLocale() === 'en';
+  const router = useRouter();
   const { toast } = useToast();
   const query = useQuery<BrandingDTO>(() => api.branding.get(), [], 'branding');
   const branding = query.data;
@@ -165,33 +166,7 @@ export default function MarqueScreen() {
   const [footer, setFooter] = React.useState<string | null>(null);
   const [paymentDetails, setPaymentDetails] = React.useState<string | null>(null);
   const [name, setName] = React.useState<string | null>(null);
-  const [signing, setSigning] = React.useState(false);
 
-  /**
-   * Enregistre — ou retire — la signature de l'entreprise.
-   *
-   * Immédiat, sans passer par le bouton « Enregistrer » du bas : on vient de
-   * la tracer, on s'attend à ce qu'elle soit prise. Une signature qu'il
-   * faudrait penser à valider ensuite serait perdue une fois sur deux.
-   */
-  async function saveSignature(strokePath: string | null) {
-    setSaving(true);
-    try {
-      const updated = await api.branding.update({
-        signatureStrokePath: strokePath,
-        ...(strokePath ? { signatureName: branding?.legalName } : {}),
-      });
-      query.setData(updated);
-      void Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success).catch(() => undefined);
-      toast({ title: strokePath
-        ? (en ? 'Signature saved.' : 'Signature enregistrée.')
-        : (en ? 'Signature removed.' : 'Signature retirée.') });
-    } catch (cause) {
-      toast({ title: cause instanceof Error ? cause.message : (en ? 'It could not be saved.' : 'Cela n’a pas pu être enregistré.') });
-    } finally {
-      setSaving(false);
-    }
-  }
   const [saving, setSaving] = React.useState(false);
   const [uploading, setUploading] = React.useState(false);
   const submitting = React.useRef(false);
@@ -437,13 +412,13 @@ export default function MarqueScreen() {
         </View>
 
         {/*
-          Ma signature.
+          Ma signature, renvoyée à son propre écran.
 
-          Tracée une fois, elle figure ensuite sur chaque devis et chaque
-          facture émis — comme un tampon d'entreprise, pas comme une formalité
-          à refaire à chaque document. C'est la signature de l'artisan, celle
-          de l'émetteur ; l'acceptation du client est une autre chose, et elle
-          vit ailleurs.
+          Elle vivait ici, entre la couleur et le pied de page, comme un
+          réglage de mise en page parmi d'autres. Ce n'en est pas un : c'est ce
+          qui engage l'entreprise. Ma marque et la signature restent voisines —
+          l'identité d'un côté, la main de l'artisan de l'autre — mais la
+          seconde a maintenant sa page, atteignable depuis l'accueil.
         */}
         <View style={{ gap: spacing.sm }}>
           <Caption upper style={{ color: colors.subtle }}>
@@ -452,67 +427,33 @@ export default function MarqueScreen() {
           <Card style={{ gap: spacing.md }}>
             <Pressable
               accessibilityRole="button"
-              accessibilityLabel={signature
-                ? (en ? 'Redraw my signature' : 'Refaire ma signature')
-                : (en ? 'Draw my signature' : 'Tracer ma signature')}
-              disabled={saving}
-              onPress={() => setSigning(true)}
-              style={({ pressed }) => ({
-                minHeight: 108,
-                borderRadius: radius.lg,
-                borderWidth: 1.5,
-                borderStyle: signature ? 'solid' : 'dashed',
-                borderColor: signature ? colors.accentBorder : colors.lineStrong,
-                backgroundColor: signature ? colors.canvas : colors.surface,
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: spacing.sm,
-                padding: spacing.md,
-                opacity: pressed ? 0.85 : 1,
-              })}
+              accessibilityLabel={en ? 'Open my signature' : 'Ouvrir Ma signature'}
+              onPress={() => router.push('/signature')}
+              style={({ pressed }) => ({ flexDirection: 'row', alignItems: 'center', gap: spacing.md, minHeight: 56, opacity: pressed ? 0.6 : 1 })}
             >
+              <View style={{ width: 44, height: 44, borderRadius: 14, backgroundColor: colors.accentSoft, alignItems: 'center', justifyContent: 'center' }}>
+                <Ionicons name="create-outline" size={21} color={colors.accent} />
+              </View>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Body style={{ fontWeight: '600' }}>
+                  {signature
+                    ? (en ? 'Your signature is saved' : 'Votre signature est enregistrée')
+                    : (en ? 'Draw my signature' : 'Tracer ma signature')}
+                </Body>
+                <Muted style={{ fontSize: 13 }}>
+                  {en ? 'Applied to every document you issue' : 'Apposée sur chaque document que vous émettez'}
+                </Muted>
+              </View>
               {signature ? (
-                <>
-                  <Svg width="100%" height={58} viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
-                    <Path d={signature} stroke={colors.ink} strokeWidth={7} strokeLinecap="round" strokeLinejoin="round" fill="none" />
-                  </Svg>
-                  <Caption style={{ color: colors.subtle }}>
-                    {en ? 'Appears on your quotes and invoices · tap to redo' : 'Figure sur vos devis et factures · touchez pour refaire'}
-                  </Caption>
-                </>
-              ) : (
-                <>
-                  <Ionicons name="create-outline" size={26} color={colors.accent} />
-                  <Body style={{ color: colors.accent, fontWeight: '700' }}>
-                    {en ? 'Draw my signature' : 'Tracer ma signature'}
-                  </Body>
-                  <Caption style={{ color: colors.subtle, textAlign: 'center' }}>
-                    {en ? 'It is added to every document you issue' : 'Elle est apposée sur chaque document que vous émettez'}
-                  </Caption>
-                </>
-              )}
+                <Svg width={72} height={34} viewBox="0 0 1000 400" preserveAspectRatio="xMidYMid meet">
+                  <Path d={signature} stroke={colors.ink} strokeWidth={14} strokeLinecap="round" strokeLinejoin="round" fill="none" />
+                </Svg>
+              ) : null}
+              <Ionicons name="chevron-forward" size={18} color={colors.subtle} />
             </Pressable>
-
-            {signature ? (
-              <Pressable accessibilityRole="button" disabled={saving} onPress={() => void saveSignature(null)} hitSlop={8} style={{ alignSelf: 'flex-end' }}>
-                <Caption style={{ color: colors.danger, fontWeight: '700' }}>
-                  {en ? 'Remove my signature' : 'Retirer ma signature'}
-                </Caption>
-              </Pressable>
-            ) : null}
           </Card>
         </View>
 
-        <SignatureSheet
-          visible={signing}
-          en={en}
-          signerName={branding.legalName}
-          onCancel={() => setSigning(false)}
-          onConfirm={(path) => {
-            setSigning(false);
-            void saveSignature(path);
-          }}
-        />
 
         <View style={{ gap: spacing.sm }}>
           <Caption upper style={{ color: colors.subtle }}>

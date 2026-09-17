@@ -5,7 +5,7 @@ import * as Haptics from 'expo-haptics';
 import Svg, { Path } from 'react-native-svg';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing } from '@/theme';
+import { activeScheme, colors, radius, spacing } from '@/theme';
 import { AUTH_CONTROL_HEIGHT, PressableScale } from './auth-kit';
 
 /**
@@ -13,34 +13,44 @@ import { AUTH_CONTROL_HEIGHT, PressableScale } from './auth-kit';
  *
  * Apple : le bouton natif d'AuthenticationServices, seul traitement autorisé
  * par les règles Apple ; iOS le libelle dans la langue de l'application.
- * Pendant l'authentification, une pastille noire de même taille indique le
+ * Pendant l'authentification, une pastille de même taille indique le
  * chargement, sans jamais imiter le bouton lui-même.
- * Google : le bouton clair officiel (fond blanc, bordure #747775, « G » en
- * couleurs, texte #1F1F1F).
+ * Google : le bouton officiel (fond blanc, bordure #747775, « G » en couleurs,
+ * texte #1F1F1F ; et sa déclinaison sombre #131314 / #8E918F / #E3E3E3).
  * E-mail : action secondaire sur une surface bleue douce.
+ *
+ * ## Les deux marques ont leur version sombre, et elle est obligatoire
+ *
+ * Apple demande le bouton blanc sur fond sombre, Google sa déclinaison
+ * sombre. Garder le bouton noir d'Apple sur une interface nuit n'est pas
+ * seulement moins joli : c'est hors des règles des deux plateformes, et le
+ * bouton disparaît dans le fond. Ils suivent donc le thème de DEVISERA.
  */
 const HEIGHT = AUTH_CONTROL_HEIGHT;
 const RADIUS = radius.md + 2;
 
 export function AppleContinueButton({ onPress, disabled, loading }: { onPress: () => void; disabled?: boolean; loading?: boolean }) {
   const locale = useMobileLocale();
+  const dark = activeScheme() === 'dark';
+  const plate = dark ? '#FFFFFF' : '#000000';
+  const mark = dark ? '#000000' : '#FFFFFF';
   if (Platform.OS !== 'ios') {
     // Aperçu web (captures de contrôle) : mêmes dimensions, jamais livré sur iPhone.
     if (Platform.OS !== 'web') return null;
     return (
       <PressableScale accessibilityRole="button" accessibilityState={{ disabled: Boolean(disabled) || Boolean(loading), busy: Boolean(loading) }} disabled={disabled || loading} onPress={onPress}>
-        <View style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: disabled && !loading ? 0.55 : 1 }}>
-          {loading ? <ActivityIndicator size="small" color="#fff" /> : <Ionicons name="logo-apple" size={20} color="#fff" style={{ marginTop: -2 }} />}
-          <Text style={{ color: '#fff', fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{loading ? (locale === 'en' ? 'Signing in…' : 'Connexion…') : locale === 'en' ? 'Continue with Apple' : 'Continuer avec Apple'}</Text>
+        <View style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: plate, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 8, opacity: disabled && !loading ? 0.55 : 1 }}>
+          {loading ? <ActivityIndicator size="small" color={mark} /> : <Ionicons name="logo-apple" size={20} color={mark} style={{ marginTop: -2 }} />}
+          <Text style={{ color: mark, fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{loading ? (locale === 'en' ? 'Signing in…' : 'Connexion…') : locale === 'en' ? 'Continue with Apple' : 'Continuer avec Apple'}</Text>
         </View>
       </PressableScale>
     );
   }
   if (loading) {
     return (
-      <View accessibilityRole="button" accessibilityState={{ busy: true }} style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: '#000', alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}>
-        <ActivityIndicator size="small" color="#fff" />
-        <Text style={{ color: '#fff', fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{locale === 'en' ? 'Signing in…' : 'Connexion…'}</Text>
+      <View accessibilityRole="button" accessibilityState={{ busy: true }} style={{ height: HEIGHT, borderRadius: RADIUS, backgroundColor: plate, alignItems: 'center', justifyContent: 'center', flexDirection: 'row', gap: 10 }}>
+        <ActivityIndicator size="small" color={mark} />
+        <Text style={{ color: mark, fontSize: 17, fontWeight: '600', letterSpacing: -0.2 }}>{locale === 'en' ? 'Signing in…' : 'Connexion…'}</Text>
       </View>
     );
   }
@@ -48,7 +58,9 @@ export function AppleContinueButton({ onPress, disabled, loading }: { onPress: (
     <View style={{ opacity: disabled ? 0.55 : 1 }} pointerEvents={disabled ? 'none' : 'auto'}>
       <AppleAuthentication.AppleAuthenticationButton
         buttonType={AppleAuthentication.AppleAuthenticationButtonType.CONTINUE}
-        buttonStyle={AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
+        buttonStyle={dark
+          ? AppleAuthentication.AppleAuthenticationButtonStyle.WHITE
+          : AppleAuthentication.AppleAuthenticationButtonStyle.BLACK}
         cornerRadius={RADIUS}
         style={{ height: HEIGHT, width: '100%' }}
         onPress={() => {
@@ -74,6 +86,11 @@ function GoogleMark({ size = 20 }: { size?: number }) {
 export function GoogleContinueButton({ onPress, disabled, loading }: { onPress: () => void; disabled?: boolean; loading?: boolean }) {
   const locale = useMobileLocale();
   const label = loading ? (locale === 'en' ? 'Signing in…' : 'Connexion…') : locale === 'en' ? 'Continue with Google' : 'Continuer avec Google';
+  // Les valeurs exactes des deux thèmes publiés par Google.
+  const dark = activeScheme() === 'dark';
+  const plate = dark ? '#131314' : '#FFFFFF';
+  const stroke = dark ? '#8E918F' : '#747775';
+  const label_ = dark ? '#E3E3E3' : '#1F1F1F';
   return (
     <PressableScale
       accessibilityRole="button"
@@ -86,9 +103,9 @@ export function GoogleContinueButton({ onPress, disabled, loading }: { onPress: 
         style={{
           height: HEIGHT,
           borderRadius: RADIUS,
-          backgroundColor: '#FFFFFF',
+          backgroundColor: plate,
           borderWidth: 1,
-          borderColor: '#747775',
+          borderColor: stroke,
           flexDirection: 'row',
           alignItems: 'center',
           justifyContent: 'center',
@@ -97,8 +114,8 @@ export function GoogleContinueButton({ onPress, disabled, loading }: { onPress: 
           opacity: disabled && !loading ? 0.55 : 1,
         }}
       >
-        {loading ? <ActivityIndicator size="small" color="#1F1F1F" /> : <GoogleMark />}
-        <Text style={{ color: '#1F1F1F', fontSize: 17, fontWeight: '600', letterSpacing: -0.2, includeFontPadding: false }}>{label}</Text>
+        {loading ? <ActivityIndicator size="small" color={label_} /> : <GoogleMark />}
+        <Text style={{ color: label_, fontSize: 17, fontWeight: '600', letterSpacing: -0.2, includeFontPadding: false }}>{label}</Text>
       </View>
     </PressableScale>
   );

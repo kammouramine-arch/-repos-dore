@@ -16,6 +16,7 @@ import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
 import { colors, radius, spacing, typography } from '@/theme';
 import { BRAND_TOP } from '@/theme/gradient';
+import { AppearanceProvider, useAppearance } from '@/lib/appearance';
 import { recordDiagnostic } from '@/lib/diagnostics';
 import { localizeText, useMobileLocale, copy } from '@/lib/i18n';
 import { needsBusinessSetup } from '@/lib/auth-navigation';
@@ -188,12 +189,15 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="factures" options={{ headerShown: true, title: locale === 'en' ? 'Invoices' : 'Factures', headerBackTitle: back }} />
         <Stack.Screen name="depenses" options={{ headerShown: true, title: locale === 'en' ? 'Expenses' : 'Dépenses', headerBackTitle: back }} />
         <Stack.Screen name="marque" options={{ headerShown: true, title: locale === 'en' ? 'My branding' : 'Ma marque', headerBackTitle: back }} />
+        <Stack.Screen name="signature" options={{ headerShown: true, title: locale === 'en' ? 'My signature' : 'Ma signature', headerBackTitle: back }} />
         <Stack.Screen name="comptable" options={{ headerShown: true, title: locale === 'en' ? 'Accountant export' : 'Export comptable', headerBackTitle: back }} />
         <Stack.Screen name="encaissement" options={{ headerShown: true, title: locale === 'en' ? 'Online payments' : 'Encaissement en ligne', headerBackTitle: back }} />
         <Stack.Screen name="devis/signature" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'Client signature' : 'Signature du client', headerBackTitle: back }} />
       </Stack.Protected>
       <Stack.Protected guard={connected && !needsSetup}>
         <Stack.Screen name="compte" options={{ headerShown: true, title: locale === 'en' ? 'My account' : 'Mon compte', headerBackTitle: back }} />
+        <Stack.Screen name="apparence" options={{ headerShown: true, title: locale === 'en' ? 'Appearance' : 'Apparence', headerBackTitle: back }} />
+        <Stack.Screen name="notifications" options={{ headerShown: true, title: 'Notifications', headerBackTitle: back }} />
         <Stack.Screen name="confidentialite-ia" options={{ headerShown: true, title: locale === 'en' ? 'Privacy & AI' : 'Confidentialité et IA', headerBackTitle: back }} />
         <Stack.Screen name="suppression" options={{ headerShown: true, title: copy(locale, 'deleteAccount'), headerBackTitle: back }} />
       </Stack.Protected>
@@ -221,6 +225,7 @@ function RootNavigator() {
   const [repeat, setRepeat] = React.useState(false);
   const startupAt = React.useRef<number | null>(null);
   const startupRecorded = React.useRef(false);
+  const { scheme } = useAppearance();
 
   React.useEffect(() => {
     startupAt.current ??= Date.now();
@@ -247,10 +252,11 @@ function RootNavigator() {
   // retiré ici pour ne jamais rester bloqué.
   React.useEffect(() => {
     if (!launching) {
-      setStatusBarStyle('dark');
+      // Icônes de la barre d'état : claires sur fond sombre, et l'inverse.
+      setStatusBarStyle(scheme === 'dark' ? 'light' : 'dark');
       void SplashScreen.hideAsync().catch(() => undefined);
     }
-  }, [launching]);
+  }, [launching, scheme]);
 
   const finishLaunch = React.useCallback(() => setLaunching(false), []);
 
@@ -264,14 +270,24 @@ function RootNavigator() {
 
 export default function RootLayout() {
   return (
-    <SafeAreaProvider>
-      <AuthProvider>
-        <ToastProvider>
-          <AiConsentProvider>
-            <RootNavigator />
-          </AiConsentProvider>
-        </ToastProvider>
-      </AuthProvider>
-    </SafeAreaProvider>
+    /*
+      L'apparence est le fournisseur le plus extérieur.
+
+      La palette doit être posée avant que quoi que ce soit ne se rende : un
+      écran d'authentification ou une alerte montés sous l'ancien thème
+      resteraient en clair. Ce fournisseur remonte l'arbre à chaque bascule,
+      d'où sa place au sommet.
+    */
+    <AppearanceProvider>
+      <SafeAreaProvider>
+        <AuthProvider>
+          <ToastProvider>
+            <AiConsentProvider>
+              <RootNavigator />
+            </AiConsentProvider>
+          </ToastProvider>
+        </AuthProvider>
+      </SafeAreaProvider>
+    </AppearanceProvider>
   );
 }

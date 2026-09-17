@@ -1,41 +1,60 @@
 /**
  * Design system DEVISERA — déclinaison mobile.
  *
- * Les valeurs reprennent exactement celles du web (`src/app/globals.css`) afin
- * que l'identité soit identique sur les trois plateformes.
+ * Les valeurs reprennent celles du web (`src/app/globals.css`) afin que
+ * l'identité soit identique sur les trois plateformes.
+ *
+ * ## Pourquoi `colors` est un objet muté, et non un contexte
+ *
+ * Soixante-trois fichiers importent `colors` directement. Les convertir en
+ * `useColors()` aurait voulu dire toucher chaque écran de l'application pour
+ * livrer un mode sombre — beaucoup de risque pour aucun gain de lisibilité.
+ *
+ * L'objet est donc unique et ses champs sont réécrits quand le thème change
+ * (`applyScheme`). Ce qui lit `colors.ink` au rendu lit la bonne valeur, sans
+ * rien changer nulle part. React ne s'en apercevant pas tout seul, le
+ * fournisseur de thème remonte l'arbre entier à chaque bascule : c'est franc,
+ * instantané à l'échelle d'un changement de réglage, et cela garantit qu'il ne
+ * reste aucun écran à l'ancienne palette.
+ *
+ * Deux conséquences à respecter : ne jamais capturer une couleur au niveau
+ * module (`const BG = colors.surface`), et ne jamais la figer dans un
+ * `StyleSheet.create` — les deux gèleraient la valeur du premier rendu.
  */
 import { Platform } from 'react-native';
+import { LIGHT, PALETTES, type ColorScheme, type Palette } from './palette';
+import { applyGradientScheme } from './gradient';
 
-export const colors = {
-  ink: '#0B1220',
-  inkSoft: '#243044',
-  muted: '#667085',
-  subtle: '#98A2B3',
-  line: '#E8ECF2',
-  lineStrong: '#D8DEE8',
-  surface: '#F5F7FB',
-  surface2: '#EEF2F7',
-  canvas: '#FFFFFF',
+/**
+ * La palette courante.
+ *
+ * Mutable par construction : c'est ce qui permet au mode sombre d'atteindre
+ * toute l'application sans réécrire chaque écran.
+ */
+export const colors: Palette = { ...LIGHT };
 
-  accent: '#2F52E8',
-  accentHover: '#2341C6',
-  accentDeep: '#14245A',
-  accentBright: '#6F8CFF',
-  accentSoft: '#EEF2FF',
-  accentBorder: '#C8D2FF',
-  accentGlow: 'rgba(111, 140, 255, 0.22)',
+let current: ColorScheme = 'light';
 
-  success: '#0F7A52',
-  successSoft: '#E7F6EF',
-  warning: '#A35B06',
-  warningSoft: '#FDF3E6',
-  danger: '#B42318',
-  dangerSoft: '#FDECEB',
-  info: '#1E5FA8',
-  infoSoft: '#EAF2FB',
+/** Le thème réellement appliqué en ce moment. */
+export function activeScheme(): ColorScheme {
+  return current;
+}
 
-  white: '#FFFFFF',
-} as const;
+/**
+ * Bascule la palette.
+ *
+ * Renvoie `true` si quelque chose a changé, pour que l'appelant sache s'il
+ * doit remonter l'arbre. Les ombres suivent : une ombre calculée pour du blanc
+ * ne se voit pas sur du bleu nuit, il faut plus de noir et plus d'opacité.
+ */
+export function applyScheme(scheme: ColorScheme): boolean {
+  if (scheme === current) return false;
+  current = scheme;
+  Object.assign(colors, PALETTES[scheme]);
+  Object.assign(shadows, shadowsFor(scheme));
+  applyGradientScheme(scheme);
+  return true;
+}
 
 export const spacing = {
   xs: 4,
@@ -68,45 +87,62 @@ export const typography = {
   metric: { fontSize: 30, lineHeight: 36, fontWeight: '700' as const, letterSpacing: -1.1 },
 } as const;
 
-/** Ombres discrètes, jamais décoratives. */
-export const shadows = {
-  /*
-   * Ombre de carte : courte et proche de la surface. Une ombre large et
-   * lointaine fait flotter les cartes comme des vignettes ; une ombre serrée
-   * les pose sur la page.
-   */
-  card: Platform.select({
-    ios: {
-      shadowColor: '#0A1A4A',
-      shadowOpacity: 0.06,
-      shadowRadius: 12,
-      shadowOffset: { width: 0, height: 4 },
-    },
-    android: { elevation: 1 },
-    default: {},
-  }),
-  /** Ombre de marque, pour un élément bleu qui doit rayonner (micro, bouton +). */
-  glow: Platform.select({
-    ios: {
-      shadowColor: '#2F52E8',
-      shadowOpacity: 0.42,
-      shadowRadius: 22,
-      shadowOffset: { width: 0, height: 10 },
-    },
-    android: { elevation: 10 },
-    default: {},
-  }),
-  floating: Platform.select({
-    ios: {
-      shadowColor: '#0A0E14',
-      shadowOpacity: 0.18,
-      shadowRadius: 26,
-      shadowOffset: { width: 0, height: 12 },
-    },
-    android: { elevation: 8 },
-    default: {},
-  }),
-} as const;
+/**
+ * Ombres discrètes, jamais décoratives.
+ *
+ * En mode sombre une ombre grise disparaît : le fond est déjà sombre. Elles
+ * deviennent plus noires et plus opaques, ce qui recrée la séparation que
+ * l'élévation assure en clair.
+ */
+type ShadowSet = {
+  card: object;
+  glow: object;
+  floating: object;
+};
+
+function shadowsFor(scheme: ColorScheme): ShadowSet {
+  const dark = scheme === 'dark';
+  return {
+    /*
+     * Ombre de carte : courte et proche de la surface. Une ombre large et
+     * lointaine fait flotter les cartes comme des vignettes ; une ombre serrée
+     * les pose sur la page.
+     */
+    card: Platform.select({
+      ios: {
+        shadowColor: dark ? '#000000' : '#0A1A4A',
+        shadowOpacity: dark ? 0.5 : 0.06,
+        shadowRadius: dark ? 14 : 12,
+        shadowOffset: { width: 0, height: 4 },
+      },
+      android: { elevation: 1 },
+      default: {},
+    }) as object,
+    /** Ombre de marque, pour un élément bleu qui doit rayonner (micro, bouton +). */
+    glow: Platform.select({
+      ios: {
+        shadowColor: dark ? '#5C7CFF' : '#2F52E8',
+        shadowOpacity: dark ? 0.5 : 0.42,
+        shadowRadius: 22,
+        shadowOffset: { width: 0, height: 10 },
+      },
+      android: { elevation: 10 },
+      default: {},
+    }) as object,
+    floating: Platform.select({
+      ios: {
+        shadowColor: dark ? '#000000' : '#0A0E14',
+        shadowOpacity: dark ? 0.62 : 0.18,
+        shadowRadius: 26,
+        shadowOffset: { width: 0, height: 12 },
+      },
+      android: { elevation: 8 },
+      default: {},
+    }) as object,
+  };
+}
+
+export const shadows: ShadowSet = shadowsFor('light');
 
 
 /**

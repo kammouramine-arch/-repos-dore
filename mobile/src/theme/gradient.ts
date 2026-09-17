@@ -18,10 +18,16 @@ export interface GradientStop {
 
 /** Bleu d'accroche : celui de l'écran de lancement natif et du haut des écrans. */
 export const BRAND_TOP = '#2F52E8';
-/** Fond des écrans, atteint en bas du fondu. */
-export const BRAND_BOTTOM = '#FFFFFF';
+/**
+ * Fond des écrans, atteint en bas du fondu.
+ *
+ * Il suit le thème : en sombre, un dégradé qui finit en blanc dessinerait une
+ * bande lumineuse au milieu d'un écran nuit — exactement la frontière qu'on
+ * cherche à supprimer.
+ */
+export let BRAND_BOTTOM = '#FFFFFF';
 
-export const BRAND_GRADIENT: readonly GradientStop[] = [
+const LIGHT_GRADIENT: readonly GradientStop[] = [
   { offset: 0, color: '#2A4BE4' },
   { offset: 0.3, color: BRAND_TOP },
   { offset: 0.44, color: '#4A69EC' },
@@ -31,13 +37,56 @@ export const BRAND_GRADIENT: readonly GradientStop[] = [
   { offset: 0.83, color: '#DEE5FC' },
   { offset: 0.9, color: '#EEF2FE' },
   { offset: 0.96, color: '#F8FAFF' },
-  { offset: 1, color: BRAND_BOTTOM },
+  { offset: 1, color: '#FFFFFF' },
+];
+
+/**
+ * Le même fondu, vers la nuit.
+ *
+ * Il ne s'agit pas d'assombrir le clair arrêt par arrêt : le bleu saturé du
+ * haut reste identique — c'est la marque — et c'est la descente qui change de
+ * direction. Elle traverse des bleus de plus en plus profonds jusqu'au fond
+ * de l'application, sans jamais passer par une zone pâle.
+ */
+const DARK_GRADIENT: readonly GradientStop[] = [
+  { offset: 0, color: '#2A4BE4' },
+  { offset: 0.3, color: BRAND_TOP },
+  { offset: 0.44, color: '#2743B8' },
+  { offset: 0.56, color: '#1E3287' },
+  { offset: 0.66, color: '#17255F' },
+  { offset: 0.75, color: '#121B42' },
+  { offset: 0.83, color: '#0E152F' },
+  { offset: 0.9, color: '#0C1122' },
+  { offset: 0.96, color: '#0B0F1A' },
+  { offset: 1, color: '#0B0F17' },
+];
+
+export let BRAND_GRADIENT: readonly GradientStop[] = LIGHT_GRADIENT;
+
+const LIGHT_HEADER: readonly GradientStop[] = [
+  { offset: 0, color: '#2A4BE4' },
+  { offset: 0.5, color: BRAND_TOP },
+  { offset: 0.74, color: '#3D5CEA' },
+  { offset: 0.85, color: '#7A94F2' },
+  { offset: 0.93, color: '#BFCCF8' },
+  { offset: 0.98, color: '#E9EEFD' },
+  { offset: 1, color: '#FFFFFF' },
+];
+
+const DARK_HEADER: readonly GradientStop[] = [
+  { offset: 0, color: '#2A4BE4' },
+  { offset: 0.5, color: BRAND_TOP },
+  { offset: 0.74, color: '#2643B4' },
+  { offset: 0.85, color: '#1A2C76' },
+  { offset: 0.93, color: '#101A3E' },
+  { offset: 0.98, color: '#0C1122' },
+  { offset: 1, color: '#0B0F17' },
 ];
 
 /**
  * Dégradé des bandeaux d'en-tête.
  *
- * Celui du dessus étale son fondu sur plus de la moitié de sa hauteur : c'est
+ * Celui de l'écran étale son fondu sur plus de la moitié de sa hauteur : c'est
  * ce qu'il faut pour une surface plein écran, et c'est exactement ce qu'il ne
  * faut pas pour un bandeau qui coiffe un en-tête. Le texte blanc de l'en-tête
  * y tombait dans la zone pâle et disparaissait — le nom, les pastilles d'état,
@@ -47,15 +96,15 @@ export const BRAND_GRADIENT: readonly GradientStop[] = [
  * est écrit en blanc tient dans le bleu franc ; le fondu ne sert plus qu'à
  * poser le bandeau sur la surface sans dessiner de frontière.
  */
-export const BRAND_HEADER_GRADIENT: readonly GradientStop[] = [
-  { offset: 0, color: '#2A4BE4' },
-  { offset: 0.5, color: BRAND_TOP },
-  { offset: 0.74, color: '#3D5CEA' },
-  { offset: 0.85, color: '#7A94F2' },
-  { offset: 0.93, color: '#BFCCF8' },
-  { offset: 0.98, color: '#E9EEFD' },
-  { offset: 1, color: BRAND_BOTTOM },
-];
+export let BRAND_HEADER_GRADIENT: readonly GradientStop[] = LIGHT_HEADER;
+
+/** Bascule les dégradés avec la palette. Appelé par `applyScheme`. */
+export function applyGradientScheme(scheme: 'light' | 'dark'): void {
+  const dark = scheme === 'dark';
+  BRAND_BOTTOM = dark ? '#0B0F17' : '#FFFFFF';
+  BRAND_GRADIENT = dark ? DARK_GRADIENT : LIGHT_GRADIENT;
+  BRAND_HEADER_GRADIENT = dark ? DARK_HEADER : LIGHT_HEADER;
+}
 
 /**
  * Part du bandeau où le bleu reste assez franc pour porter du texte blanc.

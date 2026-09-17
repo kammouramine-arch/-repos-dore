@@ -19,3 +19,4 @@ export * from './apple-purchase-errors';
 export * from './apple-storefront-prices';
 export * from './ai-consent';
 export * from './setup-facts';
+export * from './notification-categories';

@@ -33,10 +33,13 @@ export function PremiumGradient({
   /** Bandeau d'en-tête : bleu franc plus longtemps, fondu plus court. */
   header?: boolean;
 }) {
-  const stops = React.useMemo(
-    () => (header ? BRAND_HEADER_GRADIENT : BRAND_GRADIENT).map((stop) => (stop.offset === 1 ? { ...stop, color: bottom } : stop)),
-    [bottom, header],
-  );
+  /*
+   * Les arrêts sont relus à chaque rendu, jamais mémorisés sur `[bottom,
+   * header]` seuls : `BRAND_GRADIENT` change avec le thème, et une liste
+   * mémorisée aurait gardé le fondu clair sur un écran passé en sombre.
+   */
+  const source = header ? BRAND_HEADER_GRADIENT : BRAND_GRADIENT;
+  const stops = source.map((stop) => (stop.offset === 1 ? { ...stop, color: bottom } : stop));
   return (
     <View style={[styles.root, { backgroundColor: bottom }, style]}>
       <Svg pointerEvents="none" style={StyleSheet.absoluteFill} width="100%" height="100%" preserveAspectRatio="none">
@@ -60,10 +63,11 @@ export function PremiumGradient({
   );
 }
 
+// La couleur de fond ne peut pas vivre ici : `StyleSheet.create` fige la
+// valeur du premier rendu, et le bandeau serait resté blanc en mode sombre.
 const styles = StyleSheet.create({
   root: {
     flex: 1,
     overflow: 'hidden',
-    backgroundColor: BRAND_BOTTOM,
   },
 });

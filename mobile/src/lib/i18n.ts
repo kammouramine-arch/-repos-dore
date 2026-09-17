@@ -121,7 +121,7 @@ const TEXT_TRANSLATIONS: Record<string, string> = {
   'Lien de paiement copié': 'Payment link copied',
   'Paiements': 'Payments',
   'Saisir la description à la main': 'Type the description by hand',
-  'Appuyez et décrivez le chantier': 'Tap and describe the job', 'Dictée indisponible ici — écrivez la description': 'Dictation is unavailable here — type the description',
+  'Appuyez et décrivez le chantier': 'Tap and describe the job', 'Prêt — appuyez pour parler': 'Ready — tap to speak', 'Dictée indisponible ici — écrivez la description': 'Dictation is unavailable here — type the description',
   'Une photo est en cours d’envoi. Encore un instant.': 'A photo is still uploading. One moment.',
   'Décrivez le chantier en quelques mots avant de continuer.': 'Describe the job in a few words before continuing.',
   'La préparation du devis n’a pas abouti.': 'The quote could not be prepared.', 'L’enregistrement n’a pas abouti.': 'Save failed.',

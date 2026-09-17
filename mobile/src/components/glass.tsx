@@ -2,7 +2,7 @@ import * as React from 'react';
 import { AccessibilityInfo, Platform, StyleSheet, View, type ViewProps, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 import { GlassContainer, GlassView, isLiquidGlassAvailable } from 'expo-glass-effect';
-import { colors } from '@/theme';
+import { activeScheme, colors } from '@/theme';
 
 /**
  * Surfaces en verre.
@@ -106,16 +106,22 @@ export function GlassSurface({
   }
 
   if (kind === 'blur') {
+    // Le matériau système et le voile suivent le thème : un chrome clair sous
+    // une interface sombre redevient un rectangle blanc posé sur la nuit.
+    const dark = activeScheme() === 'dark';
     return (
       <View {...rest} style={[shape, style]}>
         <BlurView
           intensity={effect === 'clear' ? 42 : 68}
-          tint="systemChromeMaterialLight"
+          tint={dark ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight'}
           style={StyleSheet.absoluteFill}
         />
-        {/* Un voile très léger : sans lui, le texte sombre passe mal sur une
-            photo claire. Il reste sous le seuil où le flou cesse de se voir. */}
-        <View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(255,255,255,0.28)' }]} />
+        {/* Un voile très léger : sans lui, le texte passe mal sur une photo de
+            la même valeur. Il reste sous le seuil où le flou cesse de se voir. */}
+        <View
+          pointerEvents="none"
+          style={[StyleSheet.absoluteFill, { backgroundColor: dark ? 'rgba(10,14,22,0.34)' : 'rgba(255,255,255,0.28)' }]}
+        />
         {children}
       </View>
     );

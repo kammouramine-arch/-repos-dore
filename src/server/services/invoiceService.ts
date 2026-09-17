@@ -15,6 +15,8 @@ import type {
 import { generateToken } from '@/lib/auth/tokens';
 import { nextDocumentNumber } from './numberingService';
 import { recordAudit } from './auditService';
+import { issuerSignatureSnapshot } from './brandingService';
+import { notify } from './notificationService';
 
 /**
  * Factures de l'artisan.
@@ -364,11 +366,14 @@ export async function markInvoiceSent(
   if (!invoice) throw new AppError('NOT_FOUND', 'Facture introuvable.');
   if (invoice.status === 'ANNULEE') throw new AppError('CONFLICT', 'Cette facture est annulée.');
 
+  // Même règle que pour le devis : la signature est figée à l'émission.
+  const signature = await issuerSignatureSnapshot(organizationId);
   await prisma.invoice.update({
     where: { id: invoiceId },
     data: {
       sentAt: invoice.sentAt ?? new Date(),
       issuedAt: invoice.issuedAt ?? new Date(),
+      ...signature,
       status: invoice.status === 'BROUILLON' ? 'ENVOYEE' : invoice.status,
     },
   });
@@ -487,4 +492,49 @@ export async function cancelInvoice(
     entityId: invoiceId,
   });
   return invoiceDetail(organizationId, invoiceId);
+}
+
+/**
+ * Prévient l'artisan des factures dont l'échéance est passée.
+ *
+ * Appelée par la tâche planifiée, une fois par facture : l'événement
+ * `FACTURE_EN_RETARD` déjà présent sert de marque, sinon un artisan avec dix
+ * factures en retard recevrait dix notifications par jour et couperait tout.
+ *
+ * Une facture annulée, réglée ou encore en brouillon n'est jamais en retard,
+ * quelle que soit sa date.
+ */
+export async function notifyOverdueInvoices(): Promise<{ overdue: number }> {
+  const now = new Date();
+  const candidates = await prisma.invoice.findMany({
+    where: {
+      deletedAt: null,
+      status: { in: ['ENVOYEE', 'PARTIELLE', 'EN_RETARD'] },
+      dueAt: { lt: now },
+      sentAt: { not: null },
+    },
+    select: { id: true, organizationId: true, number: true, totalCents: true, paidCents: true, dueAt: true },
+    take: 200,
+  });
+
+  let notified = 0;
+  for (const invoice of candidates) {
+    if (invoice.totalCents - invoice.paidCents <= 0) continue;
+    const href = `/app/factures/${invoice.id}`;
+    const already = await prisma.notification.findFirst({
+      where: { organizationId: invoice.organizationId, type: 'FACTURE_EN_RETARD', href },
+      select: { id: true },
+    });
+    if (already) continue;
+
+    await notify({
+      organizationId: invoice.organizationId,
+      type: 'FACTURE_EN_RETARD',
+      title: `La facture ${invoice.number} a dépassé son échéance.`,
+      body: 'Le solde reste dû. Un rappel au client prend une minute.',
+      href,
+    });
+    notified += 1;
+  }
+  return { overdue: notified };
 }

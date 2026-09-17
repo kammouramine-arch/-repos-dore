@@ -65,7 +65,10 @@ describe('première ouverture', () => {
     // Et l'accueil ne porte plus de micro : la dictée a rejoint l'écran de
     // création, qui a le sien.
     expect(mobile('app/(app)/index.tsx')).not.toContain('<VoiceHero');
-    expect(mobile('app/devis/nouveau.tsx')).toContain("dicter !== '1'");
+    // Le micro s'armait tout seul à l'arrivée. Ouvrir un écran n'est pas
+    // consentir à être écouté : `?dicter=1` ne fait plus que le mettre en
+    // avant (voir build56-polish).
+    expect(mobile('app/devis/nouveau.tsx')).toContain("const invited = dicter === '1'");
   });
 
   it('n’est dû qu’après une configuration réelle, jamais déduit de l’ancienneté', () => {
@@ -173,11 +176,12 @@ describe('le « + »', () => {
     expect(bar).not.toContain('Facturer un devis');
   });
 
-  it('arme le micro à l’arrivée, et laisse une sortie vers la saisie', () => {
+  it('met le micro en avant sans l’armer, et laisse une sortie vers la saisie', () => {
     const screen = mobile('app/devis/nouveau.tsx');
-    expect(screen).toContain("dicter !== '1'");
-    // Le consentement IA passe avant toute écoute.
-    expect(screen).toContain('aiConsent.ensure().then((granted) => { if (granted) void dictation.start(); })');
+    expect(screen).toContain("const invited = dicter === '1'");
+    // Le consentement IA passe avant toute écoute — au toucher du micro,
+    // puisque c'est là qu'on se met à écouter.
+    expect(screen).toContain('void aiConsent.ensure().then((granted) => {');
     // Écrire reste possible, discrètement.
     expect(screen).toContain('Écrire plutôt que parler');
   });

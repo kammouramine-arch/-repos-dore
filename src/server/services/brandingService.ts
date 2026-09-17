@@ -198,3 +198,32 @@ export function effectiveTemplate(
 ): DocumentTemplateId {
   return advancedAvailable ? stored : FREE_TEMPLATE;
 }
+
+/**
+ * Signature de l'entreprise, recopiée sur un document au moment où il part.
+ *
+ * Le rendu PDF lisait la signature vivante du profil. Un artisan qui
+ * remplaçait la sienne changeait donc, sans le savoir, l'apparence de devis
+ * déjà reçus par ses clients — et un devis signé dont le tracé change après
+ * coup n'est plus un document, c'est une page web.
+ *
+ * L'instantané est repris à chaque envoi explicite : c'est ce geste-là qui
+ * émet le document. Entre deux envois, rien ne bouge. Un brouillon n'a pas
+ * d'instantané et suit la signature courante — il n'est parti nulle part.
+ */
+export async function issuerSignatureSnapshot(
+  organizationId: string,
+): Promise<{ issuerSignaturePath: string | null; issuerSignatureName: string | null; issuerSignatureAt: Date | null }> {
+  const profile = await prisma.businessProfile.findUnique({
+    where: { organizationId },
+    select: { signatureStrokePath: true, signatureName: true, legalName: true },
+  });
+  if (!profile?.signatureStrokePath) {
+    return { issuerSignaturePath: null, issuerSignatureName: null, issuerSignatureAt: null };
+  }
+  return {
+    issuerSignaturePath: profile.signatureStrokePath,
+    issuerSignatureName: profile.signatureName || profile.legalName,
+    issuerSignatureAt: new Date(),
+  };
+}

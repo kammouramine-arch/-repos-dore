@@ -3,11 +3,42 @@ import { safeErrorCategory } from '@/lib/safe-error';
 import { prisma } from '@/lib/prisma';
 import { notFound } from '@/lib/errors';
 import { getStorageProvider } from '@/lib/storage';
-import { renderQuotePdf, type QuotePdfInput } from '@/lib/pdf/quote-pdf';
+import { renderQuotePdf, type PdfBusinessSignature, type QuotePdfInput } from '@/lib/pdf/quote-pdf';
 import { computeQuoteTotals } from '@/lib/money';
 import { fullName } from '@/lib/utils';
 import { planHasFeature, type DocumentTemplateId } from '@devisia/shared';
 import { effectiveTemplate } from './brandingService';
+
+/**
+ * Signature de l'entreprise à porter sur un document.
+ *
+ * L'instantané pris à l'envoi prime toujours. Un document déjà parti garde la
+ * main qui l'a signé ce jour-là, même si l'artisan en a tracé une autre
+ * depuis. Sans instantané — un brouillon, un aperçu — c'est la signature
+ * courante du profil qui sert : il n'y a encore rien de figé.
+ */
+function issuerSignature(
+  document: {
+    issuerSignaturePath: string | null;
+    issuerSignatureName: string | null;
+    issuerSignatureAt: Date | null;
+  },
+  profile: { signatureStrokePath: string | null; signatureName: string | null; signatureDrawnAt: Date | null } | null | undefined,
+): PdfBusinessSignature | null {
+  if (document.issuerSignaturePath) {
+    return {
+      strokePath: document.issuerSignaturePath,
+      name: document.issuerSignatureName,
+      drawnAt: document.issuerSignatureAt,
+    };
+  }
+  if (!profile?.signatureStrokePath) return null;
+  return {
+    strokePath: profile.signatureStrokePath,
+    name: profile.signatureName,
+    drawnAt: profile.signatureDrawnAt,
+  };
+}
 
 /** Construit et rend le PDF d'un devis à partir des données enregistrées. */
 export async function buildQuotePdf(quoteId: string): Promise<{ bytes: Uint8Array; fileName: string }> {
@@ -63,13 +94,7 @@ console.error('[pdf] logo illisible', safeErrorCategory(error));
   const input: QuotePdfInput = {
     document: 'quote',
     template: effectiveTemplate((profile?.documentTemplate ?? 'MODERNE') as DocumentTemplateId, advancedBranding),
-    businessSignature: profile?.signatureStrokePath
-      ? {
-          strokePath: profile.signatureStrokePath,
-          name: profile.signatureName,
-          drawnAt: profile.signatureDrawnAt,
-        }
-      : null,
+    businessSignature: issuerSignature(quote, profile),
     signature: signature
       ? { signerName: signature.signerName, signedAt: signature.signedAt, strokePath: signature.strokePath }
       : null,
@@ -198,13 +223,7 @@ export async function buildInvoicePdf(invoiceId: string): Promise<{ bytes: Uint8
     template: effectiveTemplate((profile?.documentTemplate ?? 'MODERNE') as DocumentTemplateId, advancedBranding),
     // La facture porte la même signature d'entreprise que le devis : c'est
     // le même émetteur qui s'engage.
-    businessSignature: profile?.signatureStrokePath
-      ? {
-          strokePath: profile.signatureStrokePath,
-          name: profile.signatureName,
-          drawnAt: profile.signatureDrawnAt,
-        }
-      : null,
+    businessSignature: issuerSignature(invoice, profile),
     number: invoice.number,
     title: invoice.title,
     createdAt: invoice.issuedAt ?? invoice.createdAt,

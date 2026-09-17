@@ -41,6 +41,7 @@ import type {
 } from './contracts';
 import type { PlanId } from './plans';
 import type { FollowUpTone } from './labels';
+import type { NotificationCategory } from './notification-categories';
 
 /**
  * Client d'API DEVISERA.
@@ -567,6 +568,14 @@ export function createApiClient(options: ApiClientOptions) {
         request<{ removed: boolean }>('/api/notifications/appareils', {
           method: 'DELETE',
           json: { token },
+        }),
+      /** Catégories que l'utilisateur accepte de recevoir sur son téléphone. */
+      preferences: () =>
+        request<{ categories: Record<NotificationCategory, boolean> }>('/api/notifications/preferences'),
+      updatePreferences: (input: Partial<Record<NotificationCategory, boolean>>) =>
+        request<{ categories: Record<NotificationCategory, boolean> }>('/api/notifications/preferences', {
+          method: 'PATCH',
+          json: input,
         }),
     },
 

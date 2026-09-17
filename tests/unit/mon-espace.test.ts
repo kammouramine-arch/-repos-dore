@@ -80,7 +80,7 @@ describe('barre de navigation', () => {
     // disponible — jamais deux indicateurs superposés comme autrefois.
     expect(bar.match(/const capsuleColor =/g)?.length).toBe(1);
     expect(bar).toContain('positioned.current');
-    expect(bar).toContain('slide.value = target;');
+    expect(bar).toContain('slide.value = destination;');
   });
 
   it('garde une graisse d’étiquette constante pour ne jamais décaler la mise en page', () => {

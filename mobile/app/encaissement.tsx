@@ -26,12 +26,21 @@ import { colors, radius, spacing } from '@/theme';
 
 type State = 'ABSENT' | 'EN_COURS' | 'ACTIF' | 'RESTREINT';
 
-const TONE: Record<State, { bg: string; fg: string; icon: keyof typeof Ionicons.glyphMap }> = {
+/*
+ * Lu à chaque rendu, jamais figé au chargement du module.
+ *
+ * Un objet de couleurs évalué à l'import garde la palette du premier rendu :
+ * la bascule en mode sombre laissait des pastilles blanches au milieu de la
+ * nuit. La fonction relit `colors`, qui est muté par `applyScheme`.
+ */
+function TONE(): Record<State, { bg: string; fg: string; icon: keyof typeof Ionicons.glyphMap }> {
+  return {
   ACTIF: { bg: colors.successSoft, fg: colors.success, icon: 'checkmark-circle' },
   EN_COURS: { bg: colors.warningSoft, fg: colors.warning, icon: 'time-outline' },
   RESTREINT: { bg: colors.warningSoft, fg: colors.warning, icon: 'alert-circle-outline' },
   ABSENT: { bg: colors.surface2, fg: colors.muted, icon: 'card-outline' },
-};
+  };
+}
 
 function headline(state: State, en: boolean): { title: string; body: string } {
   switch (state) {
@@ -126,7 +135,7 @@ export default function EncaissementScreen() {
   }
 
   const state = account.status as State;
-  const tone = TONE[state];
+  const tone = TONE()[state];
   const text = headline(state, en);
   const active = state === 'ACTIF';
 

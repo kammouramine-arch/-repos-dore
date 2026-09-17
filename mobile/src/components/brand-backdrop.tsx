@@ -10,7 +10,7 @@ import Animated, {
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { spacing } from '@/theme';
+import { activeScheme, spacing } from '@/theme';
 import { GRADIENT_SPAN } from '@/theme/gradient';
 import { PremiumGradient } from './premium-gradient';
 
@@ -30,23 +30,39 @@ import { PremiumGradient } from './premium-gradient';
  *
  * ## Ce qui se passe maintenant
  *
- * Le bandeau suit le défilement, un peu plus lentement que le contenu. Il
- * s'en va donc pour de bon — plus aucun texte ne peut le traverser — et la
- * légère différence de vitesse donne la profondeur qu'on attend d'une
- * application native, sans qu'aucune animation ne se remarque.
+ * Le bandeau ne glisse plus : il se **comprime**, ancré sur le haut de
+ * l'écran. Son dégradé se referme avec lui, donc la zone de fondu remonte
+ * dans le cadre au lieu d'être la même image déplacée plus haut. Le contenu
+ * clair, lui, monte à sa vitesse propre : on voit la surface bleue se retirer
+ * pendant que la page se lève, et non deux rectangles qui coulissent.
  *
- * Trois gestes, tous dérivés d'une seule valeur (la position de défilement),
- * tous calculés sur le fil d'interface :
+ * ## La règle qui protège la lisibilité
  *
- * 1. **Parallaxe** — le bandeau monte à 0,72 fois la vitesse du contenu.
+ * La compression est calée pour que le bord bas du bandeau recule **au moins
+ * aussi vite que le contenu** : `facteur = 1 − y / hauteur`. Un intitulé gris
+ * qui est sous le bandeau au repos y reste, quelle que soit la course de
+ * défilement. C'est ce qui rend impossible le défaut constaté sur l'appareil —
+ * « CONFIDENTIALITÉ ET DONNÉES » écrit en gris au milieu du bleu. Une
+ * parallaxe plus lente ferait joli et casserait cette garantie : le bandeau
+ * s'attarderait, et le contenu finirait par le traverser.
+ *
+ * La profondeur vient donc d'ailleurs : l'en-tête blanc monte un peu plus vite
+ * que la page et se retire légèrement en arrière-plan avant de s'effacer.
+ *
+ * Deux gestes, dérivés d'une seule valeur (la position de défilement), tous
+ * deux calculés sur le fil d'interface :
+ *
+ * 1. **Compression** — vers le bas, le bandeau se referme jusqu'à disparaître.
  * 2. **Étirement** — tiré vers le bas, il s'agrandit depuis son bord haut,
- *    comme une surface élastique. C'est le seul endroit où il grandit.
- * 3. **Effacement** — il s'éclaircit sur la fin de sa course, pour que sa
- *    disparition soit finie avant qu'il ne quitte le cadre.
+ *    comme une surface élastique.
+ *
+ * Rien de tout cela ne doit se remarquer. Si l'on voit l'animation, elle est
+ * trop forte : les valeurs sont réglées pour qu'on ressente la profondeur sans
+ * pouvoir nommer ce qui bouge.
  */
 
-/** Vitesse du bandeau par rapport au contenu. 1 = collé, 0 = immobile. */
-const PARALLAX = 0.72;
+/** Part maximale d'agrandissement quand on tire vers le bas. */
+const STRETCH_MAX = 0.6;
 
 export function useBrandSurface(span: keyof typeof GRADIENT_SPAN = 'home') {
   const { height } = useWindowDimensions();
@@ -54,7 +70,7 @@ export function useBrandSurface(span: keyof typeof GRADIENT_SPAN = 'home') {
   useFocusEffect(
     React.useCallback(() => {
       setStatusBarStyle('light');
-      return () => setStatusBarStyle('dark');
+      return () => setStatusBarStyle(activeScheme() === 'dark' ? 'light' : 'dark');
     }, []),
   );
   return { gradientHeight: Math.round(height * GRADIENT_SPAN[span]), paddingTop: insets.top + spacing.lg };
@@ -89,15 +105,26 @@ export function BrandBackdrop({
   const style = useAnimatedStyle(() => {
     if (!scrollY) return {};
     const y = scrollY.value;
-    // Tiré vers le bas : on étire depuis le haut plutôt que de déplacer.
-    const stretch = y < 0 ? 1 + Math.min(-y / height, 0.6) : 1;
+    /*
+     * Un seul facteur d'échelle verticale décrit les deux sens : au-dessus de
+     * zéro il comprime, en dessous il étire. Vers le bas, `1 − y / hauteur`
+     * fait reculer le bord bas exactement à la vitesse du contenu — c'est la
+     * garantie de lisibilité décrite plus haut.
+     */
+    const factor = y < 0
+      ? 1 + Math.min(-y / height, STRETCH_MAX)
+      : Math.max(0, 1 - y / height);
     return {
-      opacity: interpolate(y, [0, height * 0.75, height], [1, 1, 0.55], 'clamp'),
+      // L'effacement se joue sur la fin de la course, quand il ne reste
+      // qu'un liseré : il ne doit pas éclaircir le bleu tant qu'il porte du
+      // texte blanc.
+      opacity: interpolate(y, [0, height * 0.8, height], [1, 1, 0.6], 'clamp'),
       transform: [
-        { translateY: y < 0 ? 0 : -y * PARALLAX },
-        { scaleY: stretch },
-        // `scaleY` grandit depuis le centre : on recentre sur le bord haut.
-        { translateY: y < 0 ? (height * (stretch - 1)) / 2 : 0 },
+        { scaleY: factor },
+        // `scaleY` travaille depuis le centre : ce décalage ramène l'ancrage
+        // sur le bord haut, sans quoi le bandeau se décollerait du sommet de
+        // l'écran en se comprimant.
+        { translateY: (height * (factor - 1)) / 2 },
       ],
     };
   });
@@ -137,7 +164,12 @@ export function BrandHeader({
     const y = Math.max(0, scrollY.value);
     return {
       opacity: interpolate(y, [0, height * 0.45], [1, 0], 'clamp'),
-      transform: [{ translateY: -y * 0.18 }],
+      transform: [
+        { translateY: -y * 0.18 },
+        // Le titre se retire légèrement en profondeur avant de s'effacer :
+        // il passe d'un plan à l'autre au lieu de simplement disparaître.
+        { scale: interpolate(y, [0, height * 0.45], [1, 0.94], 'clamp') },
+      ],
     };
   });
 

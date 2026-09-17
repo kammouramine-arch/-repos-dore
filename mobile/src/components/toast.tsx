@@ -21,11 +21,20 @@ const ICONS: Record<Tone, keyof typeof Ionicons.glyphMap> = {
   info: 'information-circle',
 };
 
-const TONE_COLORS: Record<Tone, string> = {
+/*
+ * Lu à chaque rendu, jamais figé au chargement du module.
+ *
+ * Un objet de couleurs évalué à l'import garde la palette du premier rendu :
+ * la bascule en mode sombre laissait des pastilles blanches au milieu de la
+ * nuit. La fonction relit `colors`, qui est muté par `applyScheme`.
+ */
+function TONE_COLORS(): Record<Tone, string> {
+  return {
   success: colors.success,
   error: colors.danger,
   info: colors.accent,
-};
+  };
+}
 
 /** Notifications éphémères, avec retour haptique cohérent avec le ton. */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
@@ -89,9 +98,9 @@ export function ToastProvider({ children }: { children: React.ReactNode }) {
           ]}
         >
           {current.tone === 'success' ? (
-            <SuccessCheck size={20} color={TONE_COLORS.success} />
+            <SuccessCheck size={20} color={TONE_COLORS().success} />
           ) : (
-            <Ionicons name={ICONS[current.tone]} size={20} color={TONE_COLORS[current.tone]} />
+            <Ionicons name={ICONS[current.tone]} size={20} color={TONE_COLORS()[current.tone]} />
           )}
           <View style={{ flex: 1 }}>
             <Text style={{ fontSize: 14, fontWeight: '600', color: colors.ink }}>{localizeText(locale, current.title)}</Text>

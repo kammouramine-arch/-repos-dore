@@ -7,6 +7,7 @@ import { AppError, notFound } from '@/lib/errors';
 import { nextDocumentNumber } from './numberingService';
 import { recordAudit } from './auditService';
 import { invalidateSignaturesIfChanged } from './signatureService';
+import { issuerSignatureSnapshot } from './brandingService';
 import { trackEvent } from './analyticsService';
 import { notify } from './notificationService';
 import { dec } from '../dto';
@@ -289,11 +290,15 @@ export async function deleteQuote(organizationId: string, userId: string, quoteI
 
 /** Marque un devis comme envoyé (l'envoi effectif est piloté par sendQuote). */
 export async function markQuoteSent(organizationId: string, quoteId: string, userId: string) {
+  // La signature de l'entreprise est figée sur le devis au moment où il part :
+  // la remplacer ensuite ne changera pas ce que le client a déjà reçu.
+  const signature = await issuerSignatureSnapshot(organizationId);
   const quote = await prisma.quote.update({
     where: { id: quoteId },
     data: {
       status: 'ENVOYE',
       sentAt: new Date(),
+      ...signature,
       events: { create: { type: 'ENVOYE', actor: `user:${userId}` } },
     },
   });

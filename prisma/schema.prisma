@@ -230,6 +230,7 @@ enum NotificationType {
   RELANCE_ENVOYEE
   NOUVEAU_PROSPECT
   FACTURE_PAYEE
+  FACTURE_EN_RETARD
   ABONNEMENT
   SYSTEME
 }
@@ -370,6 +371,16 @@ model User {
   emailVerifiedAt DateTime?
   isPlatformAdmin Boolean   @default(false)
   lastLoginAt     DateTime?
+
+  /**
+   * Catégories de notifications coupées par l'utilisateur.
+   *
+   * `{ "quoteViewed": false }` — seules les catégories explicitement coupées
+   * sont enregistrées. Une catégorie absente est allumée : c'est ce qui permet
+   * d'en ajouter une sans réveiller un réglage que personne n'a pris.
+   */
+  notificationPreferences Json?
+
   deletedAt       DateTime?
   createdAt       DateTime  @default(now())
   updatedAt       DateTime  @updatedAt
@@ -832,6 +843,20 @@ model Quote {
   clientMessage String?
   signatureName String?
 
+  /**
+   * Signature de l'entreprise figée au moment de l'envoi.
+   *
+   * Le rendu lisait la signature vivante du profil : remplacer sa signature
+   * changeait donc, rétroactivement, l'apparence de devis déjà reçus par des
+   * clients. Un document parti est un document arrêté. Le tracé est recopié
+   * ici à l'envoi, et c'est cette copie que le PDF porte ensuite. Un brouillon
+   * n'en a pas et suit la signature courante — il n'est encore parti nulle
+   * part.
+   */
+  issuerSignaturePath String?
+  issuerSignatureName String?
+  issuerSignatureAt   DateTime?
+
   // Provenance IA
   aiGenerated  Boolean  @default(false)
   aiConfidence Int?
@@ -1081,6 +1106,11 @@ model Invoice {
   publicToken           String    @unique
   sentAt                DateTime?
   paidAt                DateTime?
+
+  /** Signature de l'entreprise figée à l'émission. Voir `Quote`. */
+  issuerSignaturePath String?
+  issuerSignatureName String?
+  issuerSignatureAt   DateTime?
   /**
    * Dernière intention de paiement Stripe ouverte pour cette facture.
    */
