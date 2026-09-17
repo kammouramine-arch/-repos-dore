@@ -20,7 +20,7 @@ import {
 import { Logo } from '@/components/logo';
 import { markOnboardingSeen } from '@/lib/onboarding';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, motion, radius, spacing } from '@/theme';
+import { colors, motion, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Découverte du produit, avant toute demande de compte.
@@ -65,6 +65,9 @@ const PILLARS_EN: Pillar[] = [
 ];
 
 export default function DecouverteScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { status } = useAuth();
   const locale = useMobileLocale();

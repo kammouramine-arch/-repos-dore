@@ -124,3 +124,53 @@ export const DARK: Palette = {
 };
 
 export const PALETTES: Record<ColorScheme, Palette> = { light: LIGHT, dark: DARK };
+
+/**
+ * Noms sémantiques.
+ *
+ * `colors.surface2` dit *où* une couleur se trouve dans une échelle ; il ne
+ * dit pas *ce qu'elle fait*. Ces alias nomment le rôle, ce qui rend une revue
+ * possible : on peut vérifier qu'un intitulé secondaire utilise bien
+ * `labelSecondary`, on ne peut pas vérifier qu'il « utilise bien du gris ».
+ *
+ * Ce sont des alias, pas une seconde palette : ils pointent sur les mêmes
+ * valeurs, et les deux noms restent vrais en même temps. Le code existant
+ * continue de fonctionner, le nouveau se lit mieux.
+ */
+export interface SemanticTokens {
+  /** Le fond de la page. */
+  background: string;
+  /** Une surface posée dessus : carte, groupe de réglages. */
+  surface: string;
+  /** Une surface en retrait : champ au repos, pastille neutre. */
+  surfaceSunken: string;
+  /** Texte principal. */
+  labelPrimary: string;
+  /** Texte secondaire : sous-titres, intitulés de section. */
+  labelSecondary: string;
+  /** Texte tertiaire : mentions, horodatages. */
+  labelTertiary: string;
+  /** Filet de séparation. */
+  separator: string;
+  /** Le bleu DEVISERA, tel qu'il porte une action. */
+  brand: string;
+  /** Le bleu saturé de l'identité, celui du haut des écrans. */
+  brandAtmosphere: string;
+  /** Encre posée sur le bleu saturé — blanche dans les deux thèmes. */
+  onBrand: string;
+}
+
+export function semantic(palette: Palette): SemanticTokens {
+  return {
+    background: palette.surface,
+    surface: palette.canvas,
+    surfaceSunken: palette.surface2,
+    labelPrimary: palette.ink,
+    labelSecondary: palette.muted,
+    labelTertiary: palette.subtle,
+    separator: palette.line,
+    brand: palette.accent,
+    brandAtmosphere: '#2F52E8',
+    onBrand: palette.white,
+  };
+}

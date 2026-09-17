@@ -11,7 +11,7 @@ import { useAuth } from '@/lib/auth';
 import { clearWorkshopReady } from '@/lib/first-run';
 import { useMobileLocale } from '@/lib/i18n';
 import { useReducedMotion } from '@/components/motion';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { colors, radius, shadows, spacing, useThemeScheme } from '@/theme';
 
 /**
  * « Votre atelier est prêt. »
@@ -76,6 +76,9 @@ function Rise({ children, delay = 0 }: { children: React.ReactNode; delay?: numb
 }
 
 export default function PretScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';

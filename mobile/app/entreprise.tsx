@@ -1,7 +1,6 @@
 import * as React from 'react';
 import { KeyboardAvoidingView, Platform, ScrollView, View } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { useRouter } from 'expo-router';
 import { Enter } from '@/components/motion';
 import * as Haptics from 'expo-haptics';
 import { DevisiaApiError, type BusinessProfileDTO } from '@devisia/shared';
@@ -13,7 +12,6 @@ import {
   ChoiceRow,
   ErrorState,
   Field,
-  ListRow,
   LoadingState,
   Muted,
   SectionHeader,
@@ -21,8 +19,8 @@ import {
 } from '@/components/ui';
 import { useToast } from '@/components/toast';
 import { api } from '@/lib/api';
-import { colors, spacing } from '@/theme';
-import { localizeText, useMobileLocale } from '@/lib/i18n';
+import { colors, spacing, useThemeScheme } from '@/theme';
+import { useMobileLocale } from '@/lib/i18n';
 
 /**
  * Réglages de l'entreprise, natifs.
@@ -58,7 +56,9 @@ function toForm(profile: BusinessProfileDTO): Form {
 }
 
 export default function EntrepriseScreen() {
-  const router = useRouter();
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const en = locale === 'en';
   const { toast } = useToast();
@@ -296,20 +296,6 @@ export default function EntrepriseScreen() {
 
         <Button title="Enregistrer" loading={saving} haptic onPress={() => void save()} />
 
-        {/*
-          L'encaissement en ligne, là où l'artisan règle ce qui concerne son
-          entreprise. Ce n'est pas un réglage de compte : c'est la façon dont
-          il se fait payer.
-        */}
-        <Card style={{ gap: spacing.md }}>
-          <SectionHeader title={localizeText(locale, 'Paiements')} />
-          <ListRow
-            icon="card-outline"
-            title={localizeText(locale, 'Encaissement en ligne')}
-            subtitle={localizeText(locale, 'Laissez vos clients régler vos factures par carte')}
-            onPress={() => router.push('/encaissement')}
-          />
-        </Card>
       </ScrollView>
     </KeyboardAvoidingView>
   );

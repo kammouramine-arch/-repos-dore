@@ -5,7 +5,7 @@ import { Banner, Button, Card, Field, Heading, Muted, Screen } from '@/component
 import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 
 const SUPPORT_EMAIL = 'contact@devisera.fr';
 
@@ -17,6 +17,9 @@ const SUPPORT_EMAIL = 'contact@devisera.fr';
  * offre une porte de sortie. L'appel d'API et la déconnexion sont inchangés.
  */
 export default function SuppressionScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const { signOut, session } = useAuth();
   const en = useMobileLocale() === 'en';
   // Un compte Apple/Google sans mot de passe : la session authentifiée suffit.

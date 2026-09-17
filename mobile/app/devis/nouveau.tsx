@@ -46,7 +46,7 @@ import { aiConsentText } from '@/features/ai-consent';
 import { api } from '@/lib/api';
 import { isAiConsentError, useAiConsent } from '@/lib/ai-consent';
 import { recordSuccessfulQuoteAndMaybeAskForReview } from '@/lib/review';
-import { colors, motion, radius, shadows, spacing, typography } from '@/theme';
+import { colors, motion, radius, shadows, spacing, typography, useThemeScheme } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
 
@@ -129,6 +129,9 @@ function ErrorBanner({
 }
 
 export default function NouveauDevisScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const locale = useMobileLocale();
   const { customerId, source, dicter } = useLocalSearchParams<{ customerId?: string; source?: string; dicter?: string }>();

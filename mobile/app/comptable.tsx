@@ -10,7 +10,7 @@ import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Export comptable.
@@ -64,6 +64,9 @@ function Row({ label, value, strong }: { label: string; value: string; strong?: 
 }
 
 export default function ComptableScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const { toast } = useToast();
   const options = React.useMemo(() => periods(), []);

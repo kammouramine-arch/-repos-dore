@@ -58,14 +58,26 @@ describe('dégradé de marque', () => {
    * l'en-tête, et la fraction ne sert plus que de valeur de départ, le temps
    * d'une mesure.
    */
-  it('cale le bandeau de l’accueil sur l’en-tête, pas sur une fraction d’écran', async () => {
+  it('pose l’atmosphère dans le contenu, et non dans un calque séparé', async () => {
     const { readFileSync } = await import('node:fs');
     const home = readFileSync('mobile/app/(app)/index.tsx', 'utf8');
-    expect(home).toContain('setHeaderHeight(event.nativeEvent.layout.height)');
-    expect(home).toContain('surface.paddingTop + headerHeight');
-    expect(home).toContain('<BrandBackdrop height={bandHeight}');
-    // La valeur de repli reste courte : un bandeau d'en-tête, pas un demi-écran.
-    expect(GRADIENT_SPAN.home).toBeLessThanOrEqual(0.4);
+    const account = readFileSync('mobile/app/(app)/plus.tsx', 'utf8');
+    /*
+     * Le bandeau était en position absolue et le contenu défilait par-dessus :
+     * deux plans qui glissent l'un sur l'autre finissent toujours par se
+     * couper, d'où la bande bleue derrière la première carte des réglages.
+     * L'atmosphère est maintenant le premier enfant de la zone défilante.
+     */
+    for (const [name, source] of [['accueil', home], ['compte', account]] as const) {
+      // Le calque a disparu…
+      expect(source, name).not.toContain('<BrandBackdrop');
+      // …et l'atmosphère est le premier enfant de la zone défilante, donc
+      // portée par le défilement plutôt que traversée par lui.
+      const screen = source.indexOf('<Screen');
+      const atmosphere = source.indexOf('<BrandAtmosphere', screen);
+      expect(atmosphere, name).toBeGreaterThan(screen);
+      expect(source.slice(screen, atmosphere), name).not.toContain('<Card');
+    }
     // L'authentification garde son grand fondu : son texte blanc tient en haut.
     expect(GRADIENT_SPAN.auth).toBeGreaterThanOrEqual(0.55);
   });

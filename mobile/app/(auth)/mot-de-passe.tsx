@@ -4,10 +4,13 @@ import { useRouter } from 'expo-router';
 import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, TextAction } from '@/components/auth-kit';
 import { api } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
-import { spacing } from '@/theme';
+import { spacing, useThemeScheme } from '@/theme';
 
 /** Demande de lien de réinitialisation : la logique est inchangée. */
 export default function MotDePasseScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const en = useMobileLocale() === 'en';
   const [email, setEmail] = React.useState('');

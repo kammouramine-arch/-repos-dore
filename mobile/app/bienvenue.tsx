@@ -6,7 +6,7 @@ import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, St
 import { useAuth, useSession } from '@/lib/auth';
 import { useMobileLocale } from '@/lib/i18n';
 import { appEntry, markWorkshopReady } from '@/lib/first-run';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 const TRADES: { id: string; fr: string; en: string }[] = [
   { id: 'PLOMBIER', fr: 'Plomberie', en: 'Plumbing' },
@@ -33,6 +33,9 @@ const TRADES: { id: string; fr: string; en: string }[] = [
  * pré-rempli quand le fournisseur l'a transmis. L'appel serveur est inchangé.
  */
 export default function BienvenueScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const session = useSession();
   const { completeOnboarding, signOut } = useAuth();

@@ -28,10 +28,10 @@ import { api } from '@/lib/api';
 import { readToken, readDashboardSnapshot, writeDashboardSnapshot } from '@/lib/storage';
 import { cacheEpoch, readQueryCache } from '@/lib/query-cache';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
-import { BRAND_HEADER_SOLID } from '@/theme/gradient';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
-import { BrandBackdrop, BrandHeader, useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
+import { BrandAtmosphere } from '@/components/brand-atmosphere';
+import { useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
 import { Enter, Stagger } from '@/components/motion';
 import { QuoteCarousel } from '@/components/quote-carousel';
 import { QuickActions } from '@/components/quick-actions';
@@ -146,6 +146,9 @@ function HomeHeader({ eyebrow, title, subtitle, compact = false }: { eyebrow: st
 }
 
 export default function AccueilScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
@@ -153,21 +156,6 @@ export default function AccueilScreen() {
   const tabBarSpace = useTabBarSpace();
   const brandScroll = useBrandScroll();
 
-  /*
-   * Hauteur du bandeau, déduite de l'en-tête mesuré.
-   *
-   * L'en-tête doit tenir dans la part où le bleu porte encore du texte blanc
-   * (`BRAND_HEADER_SOLID`). Le reste du bandeau est le fondu, et le contenu
-   * suivant commence une fois ce fondu terminé — donc en encre sur la surface
-   * claire, jamais dans l'entre-deux pâle où tout disparaît.
-   */
-  const [headerHeight, setHeaderHeight] = React.useState<number | null>(null);
-  const headerBottom = headerHeight == null ? null : surface.paddingTop + headerHeight;
-  const bandHeight = headerBottom == null
-    ? surface.gradientHeight
-    : Math.round(headerBottom / BRAND_HEADER_SOLID);
-  /** Ce qui reste de fondu sous l'en-tête, à laisser vide. */
-  const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   /*
    * Plus de micro sur l'accueil.
    *
@@ -228,14 +216,15 @@ export default function AccueilScreen() {
      * saute quand les données arrivent.
      */
     return (
-      <View style={{ flex: 1, backgroundColor: colors.canvas }}>
-        <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
-        <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+      <View style={{ flex: 1, backgroundColor: colors.surface }}>
+        <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+          <BrandAtmosphere scrollY={brandScroll.scrollY}>
           <HomeHeader
             eyebrow={en ? 'Your workspace' : 'Votre atelier'}
             title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
             subtitle={en ? 'One moment, gathering your activity.' : 'Un instant, je rassemble votre activité.'}
           />
+          </BrandAtmosphere>
 
           <Card style={{ gap: spacing.md }}>
             <Skeleton height={13} width="45%" />
@@ -273,9 +262,12 @@ export default function AccueilScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
+      {/*
+        Aucun calque de fond : l'atmosphère est le premier enfant du contenu.
+        Elle monte donc avec lui — c'est ce qui rend toute couture impossible,
+        quelle que soit la position de défilement.
+      */}
       <Screen
-        transparent
         contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}
         onScroll={brandScroll.onScroll}
         refreshControl={
@@ -286,7 +278,7 @@ export default function AccueilScreen() {
           />
         }
       >
-        <BrandHeader scrollY={brandScroll.scrollY} height={bandHeight} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+        <BrandAtmosphere scrollY={brandScroll.scrollY}>
         <HomeHeader
           eyebrow={en ? 'Your workspace' : 'Votre atelier'}
           title={firstName ? (en ? `Hello ${firstName}.` : `Bonjour ${firstName}.`) : (en ? 'Hello.' : 'Bonjour.')}
@@ -301,9 +293,7 @@ export default function AccueilScreen() {
                   : (en ? 'Your workshop is up to date. What are we quoting today?' : 'Votre atelier est à jour. On chiffre quoi aujourd’hui ?')
           }
         />
-        </BrandHeader>
-        {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
-        {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
+        </BrandAtmosphere>
 
         {(query.loading || query.refreshing || query.error) && <Caption style={{ color: colors.muted }}>{query.error ? (en ? 'Showing latest data — connection needs a retry.' : 'Dernières données disponibles — connexion à réessayer.') : (en ? 'Latest data · refreshing…' : 'Dernières données disponibles · actualisation en cours…')}</Caption>}
 

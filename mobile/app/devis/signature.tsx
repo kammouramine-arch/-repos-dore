@@ -10,7 +10,7 @@ import { SignatureSheet } from '@/components/signature-pad';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Signature du devis sur place.
@@ -25,6 +25,9 @@ import { colors, radius, spacing } from '@/theme';
  * signature « qualifiée » ou « certifiée » — ce serait faux au sens d'eIDAS.
  */
 export default function SignatureDevisScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { id } = useLocalSearchParams<{ id?: string }>();
   const locale = useMobileLocale();

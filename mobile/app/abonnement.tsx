@@ -34,7 +34,7 @@ import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useAuth } from '@/lib/auth';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 
 const STATUS_LABELS: Record<string, string> = {
@@ -50,6 +50,9 @@ const STATUS_LABELS_EN: Record<string, string> = {
 
 /** Abonnement : conversion, changement de formule et résiliation. */
 export default function AbonnementScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   return Platform.OS === 'ios' ? <ApplePaywall /> : <WebAbonnementScreen />;
 }
 

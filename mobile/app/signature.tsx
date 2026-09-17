@@ -11,7 +11,7 @@ import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Ma signature.
@@ -48,6 +48,9 @@ function Preview({ path }: { path: string }) {
 }
 
 export default function SignatureScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const en = useMobileLocale() === 'en';
   const { toast } = useToast();

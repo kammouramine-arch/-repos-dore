@@ -31,7 +31,7 @@ import { ouvrirPdfDevis } from '@/features/pdf';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useAiConsent } from '@/lib/ai-consent';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'danger' | 'info'> = {
@@ -59,6 +59,9 @@ const LIEN_PUBLIC_VISIBLE = ['ENVOYE', 'CONSULTE', 'ACCEPTE', 'REFUSE', 'MODIFIC
 const FOLLOWABLE = ['ENVOYE', 'CONSULTE', 'MODIFICATION_DEMANDEE'];
 
 export default function DevisDetailScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const { toast } = useToast();

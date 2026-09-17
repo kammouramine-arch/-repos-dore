@@ -8,7 +8,7 @@ import { Body, Caption, PageHeader } from '@/components/ui';
 import { Enter } from '@/components/motion';
 import { useMobileLocale } from '@/lib/i18n';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { colors, radius, shadows, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Outils.
@@ -77,20 +77,6 @@ const SECONDARY: { href: Href; icon: keyof typeof Ionicons.glyphMap; title: { fr
     title: { fr: 'Chiffre d’affaires', en: 'Revenue' },
     body: { fr: 'Ce qui rentre, mois par mois', en: 'What comes in, month by month' },
   },
-  /*
-   * Cette entrée portait le bon nom et menait au mauvais écran : `/paiements`,
-   * qui est l'historique de l'abonnement DEVISERA de l'artisan. Celui qui
-   * cherchait comment se faire régler par ses clients tombait donc sur ses
-   * propres reçus — c'est pourquoi la fonction restait introuvable. Elle mène
-   * à l'activation ; l'historique d'abonnement vit dans Mon compte, où il
-   * figure déjà.
-   */
-  {
-    href: '/encaissement',
-    icon: 'card-outline',
-    title: { fr: 'Encaissement en ligne', en: 'Online payments' },
-    body: { fr: 'Laissez vos clients régler vos factures par carte', en: 'Let your clients settle your invoices by card' },
-  },
   {
     href: '/signature',
     icon: 'create-outline',
@@ -143,6 +129,9 @@ function ToolCard({ tool, en, onPress }: { tool: Tool; en: boolean; onPress: () 
 }
 
 export default function OutilsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const en = useMobileLocale() === 'en';
   const tabBarSpace = useTabBarSpace();

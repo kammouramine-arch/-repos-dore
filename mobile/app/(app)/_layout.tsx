@@ -2,7 +2,7 @@ import * as React from 'react';
 import { Tabs } from 'expo-router';
 import { View } from 'react-native';
 import * as Haptics from 'expo-haptics';
-import { colors } from '@/theme';
+import { colors, useThemeScheme } from '@/theme';
 import { TabIcon } from '@/components/tab-icon';
 import { GlassTabBar } from '@/components/glass-tab-bar';
 import { useMobileLocale } from '@/lib/i18n';
@@ -12,6 +12,9 @@ import { useMobileLocale } from '@/lib/i18n';
  * au pouce depuis n'importe quel onglet : c'est le geste qui rapporte.
  */
 export default function AppTabsLayout() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
 
   return (

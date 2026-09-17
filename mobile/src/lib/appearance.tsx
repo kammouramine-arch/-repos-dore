@@ -1,7 +1,7 @@
 import * as React from 'react';
-import { Platform, useColorScheme } from 'react-native';
+import { Appearance, Platform, useColorScheme } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
-import { activeScheme, applyScheme } from '@/theme';
+import { applyScheme, publishScheme } from '@/theme';
 import type { ColorScheme } from '@/theme/palette';
 
 /**
@@ -17,9 +17,22 @@ import type { ColorScheme } from '@/theme/palette';
  * ## Comment le thème atteint toute l'application
  *
  * La palette est un objet muté (voir `theme/index.ts`). Muter ne réveille pas
- * React : le fournisseur remonte donc l'arbre entier en changeant une clé.
- * C'est franc et sans angle mort — aucun écran ne peut rester à l'ancienne
- * palette parce qu'il aurait oublié de s'abonner.
+ * React : les écrans s'abonnent donc au thème par `useThemeScheme()`, et sont
+ * re-rendus **sans être démontés**.
+ *
+ * La première version remontait l'arbre entier en changeant une clé. Cela
+ * fonctionnait visuellement et détruisait le routeur au passage : choisir
+ * « Clair » renvoyait l'utilisateur à l'accueil, pile de navigation perdue.
+ * Un réglage ne doit jamais déplacer celui qui le règle.
+ *
+ * ## Le matériau natif suit aussi
+ *
+ * Le verre d'iOS, les claviers, les feuilles de partage et les alertes ne
+ * lisent pas notre palette : ils lisent l'apparence de la fenêtre. Sans
+ * `Appearance.setColorScheme`, un iPhone réglé en sombre gardait une barre
+ * d'onglets noire sous une application passée en clair — deux thèmes à
+ * l'écran en même temps. Ce réglage aligne ce qu'iOS dessine sur ce que
+ * DEVISERA a choisi.
  *
  * ## Le premier rendu
  *
@@ -104,6 +117,18 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
    */
   applyScheme(scheme);
 
+  /*
+   * Prévenir les abonnés est une mise à jour d'état : cela ne peut pas se
+   * faire pendant un rendu. Un effet de mise en page s'exécute après le
+   * rendu mais **avant l'affichage** — les écrans se re-rendent donc dans la
+   * même image, sans clignotement, et sans que rien ne soit démonté.
+   */
+  React.useLayoutEffect(() => {
+    publishScheme();
+    // Aligne ce qu'iOS dessine lui-même sur le thème de l'application.
+    if (Platform.OS !== 'web') Appearance.setColorScheme(scheme);
+  }, [scheme]);
+
   const setChoice = React.useCallback((next: AppearanceChoice) => {
     setStored(next);
     void writeChoice(next);
@@ -118,14 +143,7 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
   // lancement natif couvre déjà ces quelques millisecondes.
   if (choice == null) return null;
 
-  return (
-    <AppearanceContext.Provider value={value}>
-      {/*
-        La clé force le remontage à chaque bascule. C'est ce qui fait que le
-        mode sombre atteint le dernier recoin de l'application sans qu'un
-        écran ait à s'abonner à quoi que ce soit.
-      */}
-      <React.Fragment key={activeScheme()}>{children}</React.Fragment>
-    </AppearanceContext.Provider>
-  );
+  // Aucune clé, aucun remontage : les enfants gardent leur identité, donc le
+  // routeur garde son historique et les écrans leur position de défilement.
+  return <AppearanceContext.Provider value={value}>{children}</AppearanceContext.Provider>;
 }

@@ -5,7 +5,7 @@ import Ionicons from '@expo/vector-icons/Ionicons';
 import { Body, Caption, Card, Muted, Screen } from '@/components/ui';
 import { useAppearance, type AppearanceChoice } from '@/lib/appearance';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Apparence.
@@ -56,6 +56,9 @@ function Sample({ dark }: { dark: boolean }) {
 }
 
 export default function ApparenceScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const { choice, scheme, setChoice } = useAppearance();
 

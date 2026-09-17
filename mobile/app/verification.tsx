@@ -5,7 +5,7 @@ import { AuthHeading, AuthScreen, CodeInput, Entrance, Notice, PrimaryAction, Te
 import { useAuth, useSession } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { DevisiaApiError } from '@devisia/shared';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { verificationSourcePath } from '@/lib/auth-navigation';
 import { appEntry } from '@/lib/first-run';
@@ -13,6 +13,9 @@ import { recordDiagnostic } from '@/lib/diagnostics';
 
 /** The only app surface available until the account proves mailbox ownership. */
 export default function VerificationScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const params = useLocalSearchParams<{ source?: string }>();
   const session = useSession();

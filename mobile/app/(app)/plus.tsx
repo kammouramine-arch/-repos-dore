@@ -6,7 +6,8 @@ import * as WebBrowser from 'expo-web-browser';
 import { PLANS, accessStateFor } from '@devisia/shared';
 import { Button, Caption, Screen } from '@/components/ui';
 import { IdentityHeader, SettingsGroup, SettingsRow, StatusChip } from '@/components/settings';
-import { BrandBackdrop, BrandHeader, useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
+import { BrandAtmosphere } from '@/components/brand-atmosphere';
+import { useBrandScroll, useBrandSurface } from '@/components/brand-backdrop';
 import { TrialBanner } from '@/components/trial-banner';
 import { LanguageSelector } from '@/components/language-selector';
 import { Stagger } from '@/components/motion';
@@ -19,8 +20,7 @@ import { cachedAppleProducts } from '@/lib/apple-purchases';
 import { googleSignInAvailable } from '@/lib/social-auth';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
 import { useAppearance } from '@/lib/appearance';
-import { BRAND_HEADER_SOLID } from '@/theme/gradient';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 export const SUPPORT_EMAIL = 'contact@devisera.fr';
 
@@ -42,6 +42,9 @@ export const SUPPORT_EMAIL = 'contact@devisera.fr';
  * marque, comme l'accueil.
  */
 export default function PlusScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { session, signOut } = useAuth();
   const locale = useMobileLocale();
@@ -50,21 +53,6 @@ export default function PlusScreen() {
   const tabBarSpace = useTabBarSpace();
   const brandScroll = useBrandScroll();
 
-  /*
-   * Hauteur du bandeau, déduite de l'en-tête mesuré.
-   *
-   * L'en-tête doit tenir dans la part où le bleu porte encore du texte blanc
-   * (`BRAND_HEADER_SOLID`). Le reste du bandeau est le fondu, et le contenu
-   * suivant commence une fois ce fondu terminé — donc en encre sur la surface
-   * claire, jamais dans l'entre-deux pâle où tout disparaît.
-   */
-  const [headerHeight, setHeaderHeight] = React.useState<number | null>(null);
-  const headerBottom = headerHeight == null ? null : surface.paddingTop + headerHeight;
-  const bandHeight = headerBottom == null
-    ? surface.gradientHeight
-    : Math.round(headerBottom / BRAND_HEADER_SOLID);
-  /** Ce qui reste de fondu sous l'en-tête, à laisser vide. */
-  const fadeBelowHeader = headerBottom == null ? 0 : Math.max(0, Math.round(bandHeight - headerBottom - spacing.xl));
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
   const { choice: appearance } = useAppearance();
@@ -141,9 +129,17 @@ export default function PlusScreen() {
 
   return (
     <View style={{ flex: 1, backgroundColor: colors.surface }}>
-      <BrandBackdrop height={bandHeight} bottom={colors.surface} header scrollY={brandScroll.scrollY} />
-      <Screen transparent contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
-        <BrandHeader scrollY={brandScroll.scrollY} height={bandHeight} onLayout={(event) => setHeaderHeight(event.nativeEvent.layout.height)}>
+      {/*
+        Aucun calque de fond.
+
+        L'identité est portée par une atmosphère posée **dans** le contenu :
+        elle monte avec lui, se termine exactement sur la couleur de page, et
+        ne peut donc jamais dessiner une bande derrière une carte de réglages.
+        C'est la correction de fond du défaut constaté — ce n'était pas une
+        question de couleur mais d'architecture de calques.
+      */}
+      <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+        <BrandAtmosphere scrollY={brandScroll.scrollY}>
         <IdentityHeader
           centered
           greeting={en ? 'Welcome to your workshop' : 'Bienvenue dans votre atelier'}
@@ -158,9 +154,7 @@ export default function PlusScreen() {
             </>
           }
         />
-        </BrandHeader>
-        {/* Le fondu du bandeau reste vide : aucun texte ne s'y perd. */}
-        {fadeBelowHeader > 0 ? <View pointerEvents="none" style={{ height: fadeBelowHeader }} /> : null}
+        </BrandAtmosphere>
 
         <TrialBanner subscription={subscription} />
 

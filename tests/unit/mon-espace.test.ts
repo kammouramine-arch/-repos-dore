@@ -75,12 +75,14 @@ describe('en-tête des écrans poussés', () => {
 describe('barre de navigation', () => {
   const bar = read('src/components/glass-tab-bar.tsx');
 
-  it('n’a qu’un indicateur de sélection et le positionne sans animation au montage', () => {
-    // Une seule capsule, dont la couleur dépend du matériau réellement
-    // disponible — jamais deux indicateurs superposés comme autrefois.
-    expect(bar.match(/const capsuleColor =/g)?.length).toBe(1);
+  it('n’a qu’une lentille de sélection, mesurée sur les onglets réels', () => {
+    // Une seule vue de sélection, montée une fois : elle se déplace, elle
+    // n'apparaît pas à un nouvel endroit.
+    expect(bar.match(/const lensColor =/g)?.length).toBe(1);
     expect(bar).toContain('positioned.current');
-    expect(bar).toContain('slide.value = destination;');
+    expect(bar).toContain('centre.value = destination;');
+    // La position vient de la mesure de l'onglet, pas d'une largeur divisée.
+    expect(bar).toContain('slot.x + slot.width / 2');
   });
 
   it('garde une graisse d’étiquette constante pour ne jamais décaler la mise en page', () => {

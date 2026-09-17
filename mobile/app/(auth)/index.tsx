@@ -8,7 +8,7 @@ import { API_URL } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
 import { appleSignInAvailable, googleSignInAvailable } from '@/lib/social-auth';
 import { appEntry } from '@/lib/first-run';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Entrée de l'authentification : trois façons de continuer, rien d'autre.
@@ -20,6 +20,9 @@ import { colors, spacing } from '@/theme';
  * passe, code). Une annulation revient ici sans message.
  */
 export default function AuthEntryScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();

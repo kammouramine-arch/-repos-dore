@@ -9,7 +9,7 @@ import { Enter, useTouchMotion } from '@/components/motion';
 import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 
 const TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' | 'info'> = {
@@ -50,6 +50,9 @@ type Row = { kind: 'header'; id: string; group: Group; count: number } | { kind:
 
 /** Pipeline commercial : répondre vite est ce qui fait gagner le chantier. */
 export default function ProspectsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { toast } = useToast();
   const locale = useMobileLocale();

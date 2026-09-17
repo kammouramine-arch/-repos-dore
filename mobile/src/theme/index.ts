@@ -12,15 +12,30 @@
  *
  * L'objet est donc unique et ses champs sont réécrits quand le thème change
  * (`applyScheme`). Ce qui lit `colors.ink` au rendu lit la bonne valeur, sans
- * rien changer nulle part. React ne s'en apercevant pas tout seul, le
- * fournisseur de thème remonte l'arbre entier à chaque bascule : c'est franc,
- * instantané à l'échelle d'un changement de réglage, et cela garantit qu'il ne
- * reste aucun écran à l'ancienne palette.
+ * rien changer nulle part.
+ *
+ * ## Comment React l'apprend — et pourquoi ce n'est plus un remontage
+ *
+ * Muter un objet ne réveille pas React. La première version remontait donc
+ * l'arbre entier en changeant une clé. Cela marchait, et cela détruisait le
+ * routeur avec le reste : changer d'apparence renvoyait l'utilisateur à
+ * l'accueil, pile de navigation perdue. Un réglage ne doit jamais déplacer
+ * celui qui le règle.
+ *
+ * À la place, le thème est un petit magasin externe. `useThemeScheme()`
+ * abonne un composant via `useSyncExternalStore` : au changement, React le
+ * re-rend **sans le démonter**. La navigation, la position de défilement et
+ * l'état des écrans survivent, parce que rien n'est recréé.
+ *
+ * Il suffit d'abonner la racine de chaque écran : React re-rend les enfants
+ * d'un parent qui se re-rend. Les composants intermédiaires n'ont rien à
+ * savoir du thème.
  *
  * Deux conséquences à respecter : ne jamais capturer une couleur au niveau
  * module (`const BG = colors.surface`), et ne jamais la figer dans un
  * `StyleSheet.create` — les deux gèleraient la valeur du premier rendu.
  */
+import * as React from 'react';
 import { Platform } from 'react-native';
 import { LIGHT, PALETTES, type ColorScheme, type Palette } from './palette';
 import { applyGradientScheme } from './gradient';
@@ -34,6 +49,9 @@ import { applyGradientScheme } from './gradient';
 export const colors: Palette = { ...LIGHT };
 
 let current: ColorScheme = 'light';
+/** Incrémenté à chaque bascule : c'est l'instantané lu par les abonnés. */
+let version = 0;
+const listeners = new Set<() => void>();
 
 /** Le thème réellement appliqué en ce moment. */
 export function activeScheme(): ColorScheme {
@@ -41,19 +59,50 @@ export function activeScheme(): ColorScheme {
 }
 
 /**
- * Bascule la palette.
+ * Bascule la palette, sans prévenir personne.
  *
- * Renvoie `true` si quelque chose a changé, pour que l'appelant sache s'il
- * doit remonter l'arbre. Les ombres suivent : une ombre calculée pour du blanc
- * ne se voit pas sur du bleu nuit, il faut plus de noir et plus d'opacité.
+ * Séparé de la notification à dessein : la mutation doit avoir lieu **pendant**
+ * le rendu du fournisseur, pour que le tout premier montage lise déjà la bonne
+ * palette ; prévenir les abonnés pendant un rendu, en revanche, est interdit
+ * par React. Le fournisseur appelle donc `applyScheme` au rendu et
+ * `publishScheme` dans un effet de mise en page, avant l'affichage.
+ *
+ * Renvoie `true` si quelque chose a changé. Les ombres suivent : une ombre
+ * grise ne se voit pas sur du bleu nuit, il faut plus de noir et plus
+ * d'opacité.
  */
 export function applyScheme(scheme: ColorScheme): boolean {
   if (scheme === current) return false;
   current = scheme;
+  version += 1;
   Object.assign(colors, PALETTES[scheme]);
   Object.assign(shadows, shadowsFor(scheme));
   applyGradientScheme(scheme);
   return true;
+}
+
+/** Réveille les abonnés après une bascule. À appeler hors phase de rendu. */
+export function publishScheme(): void {
+  for (const listener of listeners) listener();
+}
+
+function subscribeToScheme(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
+
+/**
+ * Abonne un composant au thème.
+ *
+ * À poser à la racine de chaque écran et sur le chrome qui reste monté (barre
+ * d'onglets, en-têtes, toasts). Le composant est re-rendu à chaque bascule —
+ * et ses enfants avec lui, sans qu'aucun ne soit démonté.
+ *
+ * Renvoie le thème courant, utile quand un écran doit s'en servir directement.
+ */
+export function useThemeScheme(): ColorScheme {
+  React.useSyncExternalStore(subscribeToScheme, () => version, () => version);
+  return current;
 }
 
 export const spacing = {

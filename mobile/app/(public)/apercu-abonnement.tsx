@@ -3,7 +3,7 @@ import { View } from 'react-native';
 import { Redirect } from 'expo-router';
 import { PendingPlanNotice, PlanChangeSheet } from '@/components/plan-change-sheet';
 import { Card, Heading, Screen } from '@/components/ui';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Banc de capture des états d'abonnement.
@@ -18,6 +18,9 @@ import { colors, spacing } from '@/theme';
 const HARNESS = process.env.EXPO_PUBLIC_CAPTURE_HARNESS === '1';
 
 export default function ApercuAbonnement() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const [open, setOpen] = React.useState(true);
   // Échéance fixée à l'ouverture : pas de Date.now() dans le rendu.
   const [periodEnd] = React.useState(() => new Date(Date.now() + 18 * 86_400_000).toISOString());

@@ -29,7 +29,7 @@ import {
 } from '@/components/ui';
 import { api } from '@/lib/api';
 import { useToast } from '@/components/toast';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 import { Enter } from '@/components/motion';
 
@@ -71,6 +71,9 @@ const BLANK: Draft = {
 };
 
 export default function CatalogueScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const { toast } = useToast();
   const en = useMobileLocale() === 'en';
   const [items, setItems] = React.useState<PriceBookItemDTO[] | null>(null);

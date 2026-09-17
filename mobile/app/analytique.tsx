@@ -22,7 +22,7 @@ import {
   SectionHeader,
 } from '@/components/ui';
 import { api } from '@/lib/api';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 import { useMobileLocale } from '@/lib/i18n';
 
 /**
@@ -60,6 +60,9 @@ function Metric({
 }
 
 export default function AnalytiqueScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const router = useRouter();
   const [period, setPeriod] = React.useState<Period>('90');

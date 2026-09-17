@@ -3,13 +3,16 @@ import { View, type TextInput } from 'react-native';
 import { useRouter } from 'expo-router';
 import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, TextAction } from '@/components/auth-kit';
 import { useAuth } from '@/lib/auth';
-import { spacing } from '@/theme';
+import { spacing, useThemeScheme } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { verificationPath } from '@/lib/auth-navigation';
 import { appEntry } from '@/lib/first-run';
 
 /** Connexion par adresse e-mail et mot de passe : la logique est inchangée. */
 export default function ConnexionScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();

@@ -22,19 +22,18 @@ describe('calques qui restaient collés', () => {
     const backdrop = mobile('src/components/brand-backdrop.tsx');
     expect(backdrop).toContain('useAnimatedScrollHandler');
     expect(backdrop).toContain('export function useBrandScroll');
-    // La parallaxe a cédé la place à la compression (voir build56-polish) :
-    // le bandeau se referme ancré en haut au lieu de glisser, et son bord bas
-    // recule au moins aussi vite que le contenu.
-    expect(backdrop).toContain('Math.max(0, 1 - y / height)');
-    // Tiré vers le bas, il s'étire depuis le haut plutôt que de se déplacer.
-    expect(backdrop).toContain('const factor = y < 0');
+    // Le dégradé a quitté ce fichier au build 57 : il était en position
+    // absolue par rapport à l'écran, ce qui produisait la bande bleue derrière
+    // les cartes. Il vit dans `brand-atmosphere.tsx`, en flux.
+    expect(backdrop).not.toContain('PremiumGradient');
 
     for (const screen of ['app/(app)/index.tsx', 'app/(app)/plus.tsx']) {
       const source = mobile(screen);
       expect(source, screen).toContain('scrollY={brandScroll.scrollY}');
       expect(source, screen).toContain('onScroll={brandScroll.onScroll}');
-      // L'en-tête blanc s'efface avant d'atteindre la zone claire du fondu.
-      expect(source, screen).toContain('<BrandHeader');
+      // L'en-tête blanc vit dans l'atmosphère, qui lui réserve la part du
+      // dégradé où le bleu porte encore du texte.
+      expect(source, screen).toContain('<BrandAtmosphere');
     }
   });
 

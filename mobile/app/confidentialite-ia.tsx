@@ -10,7 +10,7 @@ import { useAiConsent } from '@/lib/ai-consent';
 import { API_URL } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
 import { aiConsentText } from '@/features/ai-consent';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * « Confidentialité et IA » : l'état de l'autorisation, ce qui part, vers qui,
@@ -20,6 +20,9 @@ import { colors, radius, spacing } from '@/theme';
  * prochaine action assistée redemande l'autorisation, avec le même texte.
  */
 export default function ConfidentialiteIaScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const en = locale === 'en';
   const { state, ensure, revoke } = useAiConsent();

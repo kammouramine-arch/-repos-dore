@@ -1,21 +1,19 @@
 import * as React from 'react';
-import { Pressable, RefreshControl, Share, Text, View } from 'react-native';
+import { Pressable, RefreshControl, Text, View } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
 import * as WebBrowser from 'expo-web-browser';
 import * as Haptics from 'expo-haptics';
-import Ionicons from '@expo/vector-icons/Ionicons';
 import {
   INVOICE_STATUS_LABELS,
   formatCents,
   type InvoiceDetailDTO,
   type InvoiceStatusId,
   type InvoiceSummaryDTO,
-  type PaymentAccountDTO,
 } from '@devisia/shared';
 import { Body, Button, Caption, Card, Divider, ErrorState, SectionHeader, Skeleton, Title } from './ui';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { localizeText, useMobileLocale } from '@/lib/i18n';
+import { useMobileLocale } from '@/lib/i18n';
 import { useToast } from './toast';
 import { colors, radius, spacing } from '@/theme';
 
@@ -122,89 +120,10 @@ export function useInvoiceBoard({ claimQuoteId }: { claimQuoteId?: string } = {}
   return { query, creating, refreshControl };
 }
 
-/**
- * Bandeau d'état de l'encaissement.
- *
- * L'artisan ne trouvait pas la fonction : elle existait, mais rien dans
- * l'écran des factures ne disait qu'elle existait. Une ligne au-dessus de la
- * liste répond à la question posée — « est-ce que mes clients peuvent me
- * payer par carte ? » — et mène à l'activation quand la réponse est non.
- *
- * Quand c'est actif, la ligne ne dit rien de plus : une fonction qui marche
- * n'a pas à s'annoncer à chaque ouverture.
- */
-function CollectionState({ account, en, onPress }: { account: PaymentAccountDTO; en: boolean; onPress: () => void }) {
-  if (account.status === 'ACTIF') return null;
-  const started = account.status === 'EN_COURS' || account.status === 'RESTREINT';
-  return (
-    <Pressable
-      accessibilityRole="button"
-      accessibilityLabel={en ? 'Set up online payments' : 'Activer l’encaissement en ligne'}
-      onPress={onPress}
-      style={({ pressed }) => ({
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: spacing.md,
-        padding: spacing.lg,
-        borderRadius: radius.lg,
-        backgroundColor: colors.accentSoft,
-        borderWidth: 1,
-        borderColor: colors.accentBorder,
-        opacity: pressed ? 0.8 : 1,
-      })}
-    >
-      <Ionicons name="card-outline" size={20} color={colors.accent} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Caption style={{ color: colors.accentHover, fontWeight: '700' }}>
-          {started
-            ? (en ? 'Online payments — almost there' : 'Encaissement en ligne — presque prêt')
-            : (en ? 'Let your clients pay by card' : 'Laissez vos clients régler par carte')}
-        </Caption>
-        <Caption style={{ color: colors.accentHover, fontWeight: '400' }}>
-          {started
-            ? (en ? 'A few details are still missing. Finish the setup.' : 'Il manque quelques informations. Terminez l’activation.')
-            : (en ? 'Every invoice gets a secure payment link.' : 'Chaque facture reçoit un lien de paiement sécurisé.')}
-        </Caption>
-      </View>
-      <Ionicons name="chevron-forward" size={17} color={colors.accent} />
-    </Pressable>
-  );
-}
-
 export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBoard>) {
   const router = useRouter();
   const locale = useMobileLocale();
   const en = locale === 'en';
-  const account = useQuery<PaymentAccountDTO>(() => api.invoicePayments.account(), [], 'payment-account');
-  const collecting = account.data?.status === 'ACTIF';
-
-  /**
-   * Envoie le lien de règlement au client.
-   *
-   * Le lien est public et porte le jeton de la facture : c'est lui qui donne
-   * accès, pas une session. Il ouvre une page aux couleurs de l'artisan, où
-   * le client paie par carte. Rien de sensible n'y transite : le montant est
-   * recalculé par le serveur, et la confirmation viendra du webhook signé.
-   *
-   * Tant que l'encaissement n'est pas actif, le lien mènerait le client à une
-   * page qui lui dit poliment de payer autrement. Envoyer cela est pire que
-   * ne rien envoyer : on ouvre l'activation à la place.
-   */
-  async function collect(invoice: InvoiceSummaryDTO) {
-    if (!collecting) {
-      void Haptics.selectionAsync().catch(() => undefined);
-      router.push('/encaissement');
-      return;
-    }
-    const url = api.invoicePayments.publicUrl(invoice.publicToken);
-    void Haptics.selectionAsync().catch(() => undefined);
-    await Share.share({
-      message: en
-        ? `Invoice ${invoice.number} — pay online: ${url}`
-        : `Facture ${invoice.number} — régler en ligne : ${url}`,
-      url,
-    }).catch(() => undefined);
-  }
   const invoices = query.data;
 
   if (query.loading && !invoices) {
@@ -249,10 +168,6 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
         <Card style={{ backgroundColor: colors.accentSoft, borderColor: colors.accentBorder }}>
           <Body style={{ color: colors.accentHover }}>{en ? 'Creating the invoice…' : 'Création de la facture…'}</Body>
         </Card>
-      ) : null}
-
-      {account.data ? (
-        <CollectionState account={account.data} en={en} onPress={() => router.push('/encaissement')} />
       ) : null}
 
       {invoices.length === 0 ? (
@@ -318,37 +233,6 @@ export function InvoiceBoard({ query, creating }: ReturnType<typeof useInvoiceBo
                   ) : null}
                 </Pressable>
 
-                {/*
-                  « Encaisser ».
-                  
-                  Proposé seulement quand il reste quelque chose à percevoir :
-                  une facture soldée n'a pas besoin d'un lien de paiement, et
-                  une facture annulée encore moins. Le lien part par la feuille
-                  de partage d'iOS — message, e-mail, ce que l'artisan veut —
-                  parce que c'est lui qui sait comment il parle à son client.
-                */}
-                {invoice.balanceCents > 0 && invoice.status !== 'ANNULEE' ? (
-                  <Pressable
-                    accessibilityRole="button"
-                    accessibilityLabel={`${localizeText(locale, 'Encaisser')} · ${invoice.number}`}
-                    onPress={() => void collect(invoice)}
-                    hitSlop={6}
-                    style={({ pressed }) => ({
-                      flexDirection: 'row',
-                      alignItems: 'center',
-                      gap: 6,
-                      alignSelf: 'flex-start',
-                      opacity: pressed ? 0.6 : 1,
-                    })}
-                  >
-                    <Ionicons name={collecting ? 'card-outline' : 'add-circle-outline'} size={15} color={colors.accent} />
-                    <Caption style={{ color: colors.accent, fontWeight: '700' }}>
-                      {collecting
-                        ? localizeText(locale, 'Encaisser')
-                        : (en ? 'Set up card payments' : 'Activer le paiement par carte')}
-                    </Caption>
-                  </Pressable>
-                ) : null}
               </View>
             ))}
           </Card>

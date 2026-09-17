@@ -3,7 +3,7 @@ import { Animated, Pressable, Text, type ColorValue } from 'react-native';
 import { useRouter } from 'expo-router';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors } from '@/theme';
+import { colors, useThemeScheme } from '@/theme';
 import { useTouchMotion } from './motion';
 import { copy, useMobileLocale } from '@/lib/i18n';
 
@@ -23,6 +23,9 @@ import { copy, useMobileLocale } from '@/lib/i18n';
  * le répertoire pour une fiche client.
  */
 export function HeaderBack({ tint = colors.accent, fallback = '/(app)' }: { tint?: ColorValue; fallback?: '/(app)' | '/(app)/devis' | '/(app)/clients' }) {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const locale = useMobileLocale();
   const touch = useTouchMotion(0.94);

@@ -13,7 +13,7 @@ import { useToast } from '@/components/toast';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Notifications.
@@ -112,6 +112,9 @@ function PermissionCard({ status, en, onRequest }: { status: Permission; en: boo
 }
 
 export default function NotificationsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const { toast } = useToast();
   const permission = usePermission();

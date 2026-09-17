@@ -46,15 +46,23 @@ describe('les raccourcis de l’accueil ne détournent plus la navigation', () =
   });
 
   /*
-   * L'entrée « Encaissement en ligne » d'Outils portait le bon nom et menait à
-   * `/paiements`, qui est l'historique de l'abonnement DEVISERA. C'est
-   * pourquoi la fonction restait introuvable.
+   * L'encaissement des factures par le client de l'artisan a été retiré de
+   * l'interface au build 57 : « mes clients » désignait les artisans abonnés à
+   * DEVISERA, pas les clients de l'artisan. L'infrastructure serveur reste,
+   * l'application n'en propose plus rien.
    */
-  it('fait mener « Encaissement en ligne » à l’activation, pas aux reçus d’abonnement', () => {
+  it('ne propose plus de faire régler une facture par carte', () => {
     const tools = mobile('app/(app)/outils.tsx');
-    const block = tools.slice(tools.indexOf('Encaissement en ligne') - 400, tools.indexOf('Encaissement en ligne'));
-    expect(block).toContain("href: '/encaissement'");
+    expect(code(tools)).not.toContain("href: '/encaissement'");
     expect(code(tools)).not.toContain("href: '/paiements'");
+
+    const board = mobile('src/components/invoice-board.tsx');
+    expect(code(board)).not.toContain('Encaisser');
+    expect(code(board)).not.toContain('invoicePayments');
+    expect(code(board)).not.toContain('pay by card');
+
+    // Et l'écran d'activation n'est plus une route de l'application.
+    expect(code(mobile('app/_layout.tsx'))).not.toContain('name="encaissement"');
   });
 });
 
@@ -121,9 +129,11 @@ describe('apparence', () => {
    * thème posée là resterait claire après une bascule en sombre.
    */
   it('ne fige aucune couleur de thème dans une feuille de styles', () => {
-    const gradient = mobile('src/components/premium-gradient.tsx');
-    const sheet = gradient.slice(gradient.indexOf('StyleSheet.create'));
-    expect(code(sheet)).not.toContain('BRAND_BOTTOM');
+    const atmosphere = mobile('src/components/brand-atmosphere.tsx');
+    expect(code(atmosphere)).not.toContain('StyleSheet.create');
+    // Les arrêts sont relus à chaque rendu, depuis la palette courante : c'est
+    // ce qui fait que le bas du dégradé vaut toujours la couleur de page.
+    expect(atmosphere).toContain('const surface = colors.surface;');
   });
 
   /*
@@ -139,7 +149,7 @@ describe('apparence', () => {
       'src/components/ui.tsx',
       'src/components/toast.tsx',
       'src/components/invoice-board.tsx',
-      'app/encaissement.tsx',
+      'src/components/glass-tab-bar.tsx',
     ];
     for (const file of files) {
       const source = code(mobile(file));
@@ -220,7 +230,7 @@ describe('barre d’onglets', () => {
   it('déduit l’état des icônes de la position de la capsule', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
     expect(bar).toContain('const presence = useDerivedValue');
-    expect(bar).toContain('Math.abs(slide.value - index * slot)');
+    expect(bar).toContain('Math.abs(centre.value - own)');
     expect(code(bar)).not.toContain('progress.value = reduced');
   });
 
@@ -228,33 +238,44 @@ describe('barre d’onglets', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
     expect(bar).toContain('const stretch = useDerivedValue');
     expect(bar).toContain('scaleX: 1 + stretch.value');
+    // Déduit de la distance restante, donc de la vitesse — jamais d'un
+    // minuteur, sans quoi une course interrompue garderait l'ancienne forme.
+    expect(bar).toContain('Math.abs(target.value - centre.value)');
   });
 
-  it('laisse la capsule être du verre quand l’appareil en a', () => {
+  /*
+   * Une vue d'effet natif imbriquée dans une autre ne suit pas une
+   * transformation animée de façon fiable : le matériau se redessine à sa
+   * position finale et la lentille « apparaît ailleurs » au lieu de glisser.
+   * La composition est donc celle d'iOS — le plateau est le verre, la lentille
+   * est une teinte posée dessus, et c'est elle qui bouge.
+   */
+  it('garde le verre pour le plateau et une teinte pour la lentille', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
-    const capsule = bar.slice(bar.indexOf('La capsule est elle-même'));
-    expect(capsule).toContain('<GlassSurface');
+    expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
+    const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
+    expect(lens).toContain('backgroundColor: lensColor');
+    expect(lens).not.toContain('<GlassSurface');
   });
 });
 
-describe('le bandeau bleu se comprime', () => {
+describe('le bleu rejoint le fond au lieu de s’arrêter dessus', () => {
   /*
-   * Il glissait vers le haut : un rectangle qui glisse reste un rectangle. Il
-   * se referme maintenant depuis son bord supérieur, dégradé compris.
+   * Le dégradé descendait vers le blanc quel que soit le thème : sur fond de
+   * nuit, il dessinait une bande lumineuse au milieu de l'écran. Et son
+   * dernier arrêt ne valait pas la couleur de page, ce qui laissait une ligne
+   * là où il n'aurait rien dû y avoir.
    */
-  it('ancre la compression en haut et suit la vitesse du contenu', () => {
-    const backdrop = mobile('src/components/brand-backdrop.tsx');
-    expect(backdrop).toContain('Math.max(0, 1 - y / height)');
-    expect(backdrop).toContain('translateY: (height * (factor - 1)) / 2');
-    // La garantie de lisibilité : plus de parallaxe lente qui laisserait le
-    // contenu rattraper le bandeau.
-    expect(code(backdrop)).not.toContain('PARALLAX');
+  it('termine exactement sur la couleur de page du thème courant', () => {
+    const atmosphere = mobile('src/components/brand-atmosphere.tsx');
+    expect(atmosphere).toContain('const surface = colors.surface;');
+    expect(atmosphere).toContain('mix(BRAND_TOP, surface, ease(fade))');
   });
 
-  it('descend vers le fond de la nuit plutôt que vers le blanc', () => {
-    const gradient = mobile('src/theme/gradient.ts');
-    expect(gradient).toContain('export function applyGradientScheme');
-    expect(gradient).toContain("BRAND_BOTTOM = dark ? '#0B0F17' : '#FFFFFF'");
+  it('réserve un fondu vide sous le contenu, pour qu’aucun intitulé n’y tombe', () => {
+    const atmosphere = mobile('src/components/brand-atmosphere.tsx');
+    expect(atmosphere).toContain('const FADE = 240');
+    expect(atmosphere).toContain('style={{ height: FADE }}');
   });
 });
 
@@ -293,11 +314,11 @@ describe('signature de l’entreprise', () => {
 });
 
 describe('encaissement et connexions, rendus vérifiables', () => {
-  it('dit sur la liste des factures si les clients peuvent payer', () => {
+  it('ne parle plus de paiement sur la liste des factures', () => {
     const board = mobile('src/components/invoice-board.tsx');
-    expect(board).toContain('function CollectionState');
-    // Sans compte actif, on n'envoie pas un lien qui mènerait à une impasse.
-    expect(board).toContain("router.push('/encaissement')");
+    expect(code(board)).not.toContain('CollectionState');
+    // La liste des factures parle des factures, et de rien d'autre.
+    expect(board).toContain('No invoices yet');
   });
 
   it('expose l’état de configuration sans divulguer de secret', () => {

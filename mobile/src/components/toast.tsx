@@ -3,7 +3,7 @@ import { Animated, StyleSheet, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
-import { colors, radius, shadows, spacing } from '@/theme';
+import { colors, radius, shadows, spacing, useThemeScheme } from '@/theme';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 import { SuccessCheck } from './motion';
 
@@ -38,6 +38,9 @@ function TONE_COLORS(): Record<Tone, string> {
 
 /** Notifications éphémères, avec retour haptique cohérent avec le ton. */
 export function ToastProvider({ children }: { children: React.ReactNode }) {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const insets = useSafeAreaInsets();
   const [current, setCurrent] = React.useState<{ title: string; description?: string; tone: Tone } | null>(

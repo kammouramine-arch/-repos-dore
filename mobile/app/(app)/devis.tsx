@@ -8,7 +8,7 @@ import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { Enter } from '@/components/motion';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, typography, useThemeScheme } from '@/theme';
 import { copy, localizeText, useMobileLocale } from '@/lib/i18n';
 import { FilterChip } from '@/components/filter-chip';
 import { Segmented } from '@/components/segmented';
@@ -46,6 +46,9 @@ function normalize(value: string) {
 }
 
 export default function DocumentsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const locale = useMobileLocale();
   const tabBarSpace = useTabBarSpace();

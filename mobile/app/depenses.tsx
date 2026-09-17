@@ -19,7 +19,7 @@ import { useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
 import { useAiConsent } from '@/lib/ai-consent';
 import { usePhotoCapture } from '@/features/photos';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Dépenses et justificatifs.
@@ -42,6 +42,9 @@ function inputToCents(value: string): number | null {
 }
 
 export default function DepensesScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const { toast } = useToast();
   const aiConsent = useAiConsent();

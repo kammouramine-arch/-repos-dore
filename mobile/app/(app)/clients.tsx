@@ -8,7 +8,7 @@ import { ClientSheet } from '@/components/client-sheet';
 import { useQuery } from '@/lib/query';
 import { api } from '@/lib/api';
 import { useTabBarSpace } from '@/components/glass-tab-bar';
-import { colors, spacing, typography } from '@/theme';
+import { colors, spacing, typography, useThemeScheme } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
 import { Enter } from '@/components/motion';
@@ -22,6 +22,9 @@ import { Enter } from '@/components/motion';
  * formulaire.
  */
 export default function ClientsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const locale = useMobileLocale();
   const tabBarSpace = useTabBarSpace();

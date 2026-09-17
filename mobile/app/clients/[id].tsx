@@ -8,7 +8,7 @@ import { Badge, Banner, Body, Button, Card, Divider, EmptyState, Heading, IconBu
 import { Stagger } from '@/components/motion';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 import { ClientForm } from '@/components/client-sheet';
 import { localizeText, useMobileLocale } from '@/lib/i18n';
 export { RouteError as ErrorBoundary } from '@/components/route-error';
@@ -27,6 +27,9 @@ const STATUS_TONES: Record<string, 'neutral' | 'accent' | 'success' | 'warning' 
 };
 
 export default function ClientProfile() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const { id } = useLocalSearchParams<{ id: string }>();
   const router = useRouter();
   const locale = useMobileLocale();

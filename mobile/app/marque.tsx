@@ -17,7 +17,7 @@ import { api, API_URL } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
 import { useToast } from '@/components/toast';
-import { colors, radius, spacing } from '@/theme';
+import { colors, radius, spacing, useThemeScheme } from '@/theme';
 
 /**
  * Marque documentaire.
@@ -155,6 +155,9 @@ function DocumentPreview({
 }
 
 export default function MarqueScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const en = useMobileLocale() === 'en';
   const router = useRouter();
   const { toast } = useToast();

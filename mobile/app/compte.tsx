@@ -10,7 +10,7 @@ import { useToast } from '@/components/toast';
 import { LanguageSelector } from '@/components/language-selector';
 import { api } from '@/lib/api';
 import { copy, useMobileLocale } from '@/lib/i18n';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 
 /**
  * « Mon compte » : les informations du compte, rien d'autre.
@@ -22,6 +22,9 @@ import { colors, spacing } from '@/theme';
  * de sécurité. Les appels d'API sont inchangés.
  */
 export default function CompteScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const session = useSession();
   const router = useRouter();
   const { refresh, signOut, adoptSession } = useAuth();

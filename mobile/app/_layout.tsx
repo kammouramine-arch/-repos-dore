@@ -14,7 +14,7 @@ import { LaunchOverlay } from '@/components/launch';
 import { HeaderBack } from '@/components/header-back';
 import { Logo } from '@/components/logo';
 import { Ionicons } from '@/components/ui';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 import { BRAND_TOP } from '@/theme/gradient';
 import { AppearanceProvider, useAppearance } from '@/lib/appearance';
 import { recordDiagnostic } from '@/lib/diagnostics';
@@ -191,7 +191,6 @@ function Navigation({ seenOnboarding }: { seenOnboarding: boolean }) {
         <Stack.Screen name="marque" options={{ headerShown: true, title: locale === 'en' ? 'My branding' : 'Ma marque', headerBackTitle: back }} />
         <Stack.Screen name="signature" options={{ headerShown: true, title: locale === 'en' ? 'My signature' : 'Ma signature', headerBackTitle: back }} />
         <Stack.Screen name="comptable" options={{ headerShown: true, title: locale === 'en' ? 'Accountant export' : 'Export comptable', headerBackTitle: back }} />
-        <Stack.Screen name="encaissement" options={{ headerShown: true, title: locale === 'en' ? 'Online payments' : 'Encaissement en ligne', headerBackTitle: back }} />
         <Stack.Screen name="devis/signature" options={{ presentation: 'modal', headerShown: true, title: locale === 'en' ? 'Client signature' : 'Signature du client', headerBackTitle: back }} />
       </Stack.Protected>
       <Stack.Protected guard={connected && !needsSetup}>
@@ -269,6 +268,9 @@ function RootNavigator() {
 }
 
 export default function RootLayout() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   return (
     /*
       L'apparence est le fournisseur le plus extérieur.

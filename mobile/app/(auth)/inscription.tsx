@@ -4,13 +4,16 @@ import { useRouter } from 'expo-router';
 import { TRIAL_DAYS, PASSWORD_HINT, passwordErrors } from '@devisia/shared';
 import { AuthField, AuthHeading, AuthScreen, Entrance, Notice, PrimaryAction, StepProgress, TextAction } from '@/components/auth-kit';
 import { useAuth } from '@/lib/auth';
-import { colors, spacing } from '@/theme';
+import { colors, spacing, useThemeScheme } from '@/theme';
 import { copy, useMobileLocale } from '@/lib/i18n';
 import { verificationPath } from '@/lib/auth-navigation';
 import { appEntry, markWorkshopReady } from '@/lib/first-run';
 
 /** Création de compte par adresse e-mail : la logique (mot de passe, code) est inchangée. */
 export default function InscriptionScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const locale = useMobileLocale();
   const en = locale === 'en';
   const router = useRouter();

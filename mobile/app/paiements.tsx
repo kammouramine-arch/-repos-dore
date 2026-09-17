@@ -10,7 +10,7 @@ import { useAuth } from '@/lib/auth';
 import { api } from '@/lib/api';
 import { useQuery } from '@/lib/query';
 import { useMobileLocale } from '@/lib/i18n';
-import { colors, radius, spacing, typography } from '@/theme';
+import { colors, radius, spacing, typography, useThemeScheme } from '@/theme';
 
 /**
  * « Paiements et factures ».
@@ -58,6 +58,9 @@ function PaymentRow({ payment, last, en, source }: { payment: BillingHistoryEntr
 }
 
 export default function PaiementsScreen() {
+  // Re-rendu à chaque bascule d'apparence, sans démontage : la navigation
+  // et la position de défilement survivent au changement de thème.
+  useThemeScheme();
   const router = useRouter();
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
