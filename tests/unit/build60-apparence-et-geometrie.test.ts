@@ -198,3 +198,31 @@ describe('la lentille se déplace, toujours', () => {
     expect(presence).toContain('Math.abs(centre.value - own)');
   });
 });
+
+describe('le verre natif ne choisit pas son camp tout seul', () => {
+  /*
+   * Constaté sur appareil, sur les captures du build 59 : en apparence claire,
+   * le plateau de la barre d'onglets ressortait **anthracite**, avec des
+   * libellés gris dessus.
+   *
+   * `UIGlassEffect` s'adapte à ce qu'il a dessous, et sous la barre il y a le
+   * bleu de marque saturé de l'accueil et de Mon compte. Le matériau suivait
+   * donc le fond plutôt que le thème. Rien ne pouvait le montrer en revue : le
+   * paquet web n'a pas de verre natif, il tombe sur la surface opaque, qui
+   * était juste.
+   *
+   * On ancre désormais la teinte sur le thème effectif.
+   */
+  it('ancre la teinte du verre sur le thème effectif', () => {
+    const glass = mobile('src/components/glass.tsx');
+    expect(glass).toContain("const ANCHOR = { light: 'rgba(255,255,255,0.52)', dark: 'rgba(18,24,36,0.48)' } as const;");
+    expect(glass).toContain('tintColor={tint ?? ANCHOR[activeScheme()]}');
+  });
+
+  it('laisse le flou et la surface opaque suivre le même thème', () => {
+    const glass = mobile('src/components/glass.tsx');
+    expect(glass).toContain("tint={dark ? 'systemChromeMaterialDark' : 'systemChromeMaterialLight'}");
+    // Et la barre se re-rend à chaque bascule, sinon la teinte resterait figée.
+    expect(mobile('src/components/glass-tab-bar.tsx')).toContain('useThemeScheme()');
+  });
+});

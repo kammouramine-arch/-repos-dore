@@ -58,6 +58,22 @@ export function useGlassKind(): GlassKind {
   }, [reduced]);
 }
 
+/**
+ * La teinte qui ancre le verre natif du côté du thème.
+ *
+ * `UIGlassEffect` s'adapte à ce qu'il a dessous. Sur l'accueil et Mon compte,
+ * ce « dessous » est un bleu de marque saturé, et le matériau y ressortait
+ * **anthracite** alors que l'application était en clair : une barre d'onglets
+ * sombre sous une interface claire, avec des libellés gris dessus. Vu sur
+ * appareil ; invisible en revue, puisqu'il n'y a pas de verre natif sur le web.
+ *
+ * On ne laisse donc plus le matériau choisir seul : une teinte translucide,
+ * prise du thème effectif, fixe son versant. Elle reste assez légère pour que
+ * la réfraction et les bords épaissis d'iOS 26 continuent de se voir — c'est
+ * un ancrage, pas un fond opaque.
+ */
+const ANCHOR = { light: 'rgba(255,255,255,0.52)', dark: 'rgba(18,24,36,0.48)' } as const;
+
 export interface GlassSurfaceProps extends ViewProps {
   /** Rayon des coins. Le verre natif le lit sur le style, pas sur une prop. */
   radius?: number;
@@ -96,7 +112,10 @@ export function GlassSurface({
       <GlassView
         {...rest}
         glassEffectStyle={effect}
-        tintColor={tint}
+        // Une teinte explicite plutôt qu'aucune : sans elle, le matériau suit
+        // ce qu'il a dessous et vire à l'anthracite au-dessus du bleu de
+        // marque, même quand l'application est en clair.
+        tintColor={tint ?? ANCHOR[activeScheme()]}
         isInteractive={interactive}
         style={[shape, style]}
       >
