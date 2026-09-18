@@ -233,37 +233,31 @@ describe('barre d’onglets', () => {
    * animations désynchronisées partaient en même temps que la capsule, ce qui
    * donnait un clignotement au lieu d'un déplacement.
    */
-  it('déduit l’état des icônes de la position de la capsule', () => {
+  /*
+   * Les icônes suivaient la position de la capsule, ce qui était juste tant
+   * qu'il y en avait une. Il n'y en a plus : elles suivent la sélection, sur
+   * une seule valeur partagée par onglet et une durée courte.
+   */
+  it('déduit l’état des icônes de la sélection, sur une durée courte', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
-    expect(bar).toContain('const presence = useDerivedValue');
-    expect(bar).toContain('Math.abs(centre.value - own)');
-    expect(code(bar)).not.toContain('progress.value = reduced');
+    const item = bar.slice(bar.indexOf('function TabItem({'), bar.indexOf('function CreateButton'));
+    expect(item).toContain('const presence = useSharedValue(active ? 1 : 0);');
+    expect(item).toContain('duration: DURATION.instant');
+    expect(item).toContain('interpolateColor(presence.value');
   });
 
   /*
-   * L'étirement était déduit de la distance restante, donc de la vitesse. Cela
-   * paraissait plus juste et donnait une capsule qui reliait deux onglets
-   * pendant tout le trajet — une bavure, pas un déplacement. Il est maintenant
-   * une séquence courte : 1,06 puis retour à 1 avant l'arrivée.
+   * Le verre appartient au plateau, et à lui seul. La capsule de sélection a
+   * été retirée : mesurée sur appareil, elle franchissait 90 % de sa course en
+   * deux images puis mettait cent millisecondes à se poser — un saut suivi
+   * d'un tassement, pas un déplacement. Les trois références fournies
+   * (Fitness Park, Strava, FotMob) n'en ont d'ailleurs aucune.
    */
-  it('étire à peine la capsule, et lui rend sa forme avant l’arrivée', () => {
-    const motion = mobile('src/components/tab-lens-motion.ts');
-    expect(motion).toContain('withTiming(1.06');
-    expect(motion).toContain('withTiming(0.985');
-    const bar = mobile('src/components/glass-tab-bar.tsx');
-    expect(bar).toContain('{ scaleX: stretchX.value }');
-    expect(bar).toContain('{ scaleY: stretchY.value }');
-  });
-
-  it('garde le verre pour le plateau et une teinte pour la lentille', () => {
+  it('garde le verre pour le plateau, et rien d’autre', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
-    const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
-    // Le matériau de la lentille est un `GlassView` monté une fois, qu'on
-    // translate — pas un `GlassSurface` imbriqué, et jamais deux pastilles
-    // dont l'une s'efface pendant que l'autre apparaît.
-    expect(lens).toContain('<GlassView');
-    expect(lens).not.toContain('<GlassSurface');
+    expect(bar).not.toContain('<GlassView');
+    expect(bar).not.toContain('lensColor');
   });
 });
 

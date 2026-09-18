@@ -68,9 +68,17 @@ describe('barre de navigation', () => {
     expect(profile).toContain('params: { id: event.quoteId }');
     expect(profile).not.toMatch(/<Ionicons[^>]*onPress=/);
   });
-  it('efface l’indicateur sur une route masquée au lieu de retomber sur Accueil', () => {
+  /*
+   * Sur une route masquée — prospects, création — aucun onglet ne doit
+   * s'allumer, et surtout pas retomber sur Accueil. Cela demandait une
+   * variable tant qu'une capsule devait être effacée ; sans capsule, c'est
+   * une conséquence directe de la comparaison : aucun nom ne correspond, donc
+   * aucun onglet n'est actif.
+   */
+  it('n’allume aucun onglet sur une route masquée', () => {
     const bar = read('src/components/glass-tab-bar.tsx');
-    expect(bar).toContain('const unselected = activeIndex < 0;');
+    expect(bar).toContain('const activeName = state.routes[state.index]?.name;');
+    expect(bar).toContain('active={item.name === activeName}');
   });
 
   /*
@@ -90,10 +98,10 @@ describe('barre de navigation', () => {
     const bar = read('src/components/glass-tab-bar.tsx');
     expect(bar).toContain('useReducedMotion');
     /*
-     * La lentille n'utilise plus de ressort : un ressort donne une durée
-     * proportionnelle à la distance, et la traversée d'un bout à l'autre de la
-     * barre y traînait. Elle suit une courbe plafonnée à 220 ms.
+     * La capsule coulissante a été retirée au build 64 : le plateau est stable
+     * et seule la couleur de l'onglet actif change, comme dans les trois
+     * références fournies.
      */
-    expect(read('src/components/tab-lens-motion.ts')).toContain('withTiming(destination');
+    expect(bar).not.toContain('<GlassView');
   });
 });

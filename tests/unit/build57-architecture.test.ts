@@ -183,43 +183,16 @@ describe('une seule lentille de sélection', () => {
    * qui *change de place* ; une seule vue qui se déplace donne une sélection
    * qui *y va*. C'est toute la différence que l'appareil montrait.
    */
-  it('rend une vue de sélection, pas une par onglet', () => {
-    const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
-    expect(lens.match(/<Animated\.View/g)?.length).toBe(1);
-    // Dans la boucle des onglets, aucun fond de sélection.
-    const loop = bar.slice(bar.indexOf('{items.map((item, index) =>'));
-    expect(loop).not.toContain('backgroundColor: lensColor');
-  });
-
-  it('prend sa position de la mesure réelle des onglets', () => {
-    expect(bar).toContain('onLayout={measure}');
-    expect(bar).toContain('slot.x + slot.width / 2');
-    // Plus de largeur divisée par cinq : un libellé plus long décalait tout.
+  it('n’anime plus aucune position dans la barre', () => {
+    const bar = mobile('src/components/glass-tab-bar.tsx');
+    expect(bar).not.toContain('translateX');
     expect(code(bar)).not.toContain('barWidth / items.length');
   });
 
-  it('se redirige en vol au lieu d’empiler les animations', () => {
-    // `withSpring` repart de la position **et de la vitesse** courantes.
-    /*
-     * `withSpring` repartait de la position et de la vitesse courantes, ce qui
-     * suffisait à rediriger. Une courbe n'a pas cette propriété : il faut
-     * annuler explicitement avant de viser ailleurs, sans quoi la lentille
-     * finirait son trajet précédent.
-     */
-    const motion = mobile('src/components/tab-lens-motion.ts');
-    const travel = motion.slice(motion.indexOf('export function travelTo'));
-    expect(travel.indexOf('cancelAnimation(lens.centre)')).toBeGreaterThan(0);
-    expect(travel.indexOf('lens.centre.value = withTiming')).toBeGreaterThan(travel.indexOf('cancelAnimation(lens.centre)'));
-  });
-
-  it('laisse le verre au plateau et une teinte à la lentille', () => {
-    // Une vue d'effet natif imbriquée dans une autre ne suit pas une
-    // transformation animée : le matériau se redessine à sa position finale.
+  it('laisse le verre au plateau, sans capsule de sélection', () => {
+    const bar = mobile('src/components/glass-tab-bar.tsx');
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
-    const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
-    expect(lens).not.toContain('<GlassSurface');
-    // Un seul matériau à l'intérieur, monté une fois et déplacé.
-    expect(lens.match(/<GlassView/g)?.length).toBe(1);
+    expect(bar).not.toContain('<GlassView');
   });
 });
 

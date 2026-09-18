@@ -75,15 +75,14 @@ describe('en-tête des écrans poussés', () => {
 describe('barre de navigation', () => {
   const bar = read('src/components/glass-tab-bar.tsx');
 
-  it('n’a qu’une lentille de sélection, mesurée sur les onglets réels', () => {
-    // Une seule vue de sélection, montée une fois : elle se déplace, elle
-    // n'apparaît pas à un nouvel endroit.
-    expect(bar.match(/const lensColor =/g)?.length).toBe(1);
-    expect(bar).toContain('positioned.current');
-    // Le placement sans mouvement du premier rendu vit dans `settleAt`.
-    expect(bar).toContain('settleAt(lensValues, slot.x + slot.width / 2');
-    // La position vient de la mesure de l'onglet, pas d'une largeur divisée.
-    expect(bar).toContain('slot.x + slot.width / 2');
+  /*
+   * Plus de capsule du tout : le plateau est stable, et seule la couleur de
+   * l'onglet actif change — comme dans les trois références fournies.
+   */
+  it('marque l’onglet actif sans capsule mobile', () => {
+    expect(bar).not.toContain('lensColor');
+    expect(bar).not.toContain('translateX');
+    expect(bar).toContain('interpolateColor(presence.value');
   });
 
   it('garde une graisse d’étiquette constante pour ne jamais décaler la mise en page', () => {

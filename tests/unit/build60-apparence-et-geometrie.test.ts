@@ -1,7 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { isPreference, migratePreference, resolveScheme } from '../../mobile/src/lib/scheme-resolver';
-import { travelDuration } from '../../mobile/src/components/tab-lens-timing';
 
 const mobile = (path: string) => readFileSync(`mobile/${path}`, 'utf8');
 /** Le fichier sans ses commentaires : ils citent les défauts corrigés. */
@@ -132,81 +131,61 @@ describe('une seule zone sûre en tête d’écran', () => {
 });
 
 
-describe('la lentille se déplace vite, et d’un seul geste', () => {
+describe('la barre d’onglets : un plateau stable, un état actif en couleur', () => {
   const bar = mobile('src/components/glass-tab-bar.tsx');
 
   /*
-   * Une seule vue de sélection, et un seul matériau à l'intérieur : deux
-   * pastilles dont l'une s'efface pendant que l'autre apparaît donnent un
-   * fondu, pas un déplacement.
+   * Pourquoi la capsule coulissante a été retirée.
+   *
+   * Six passes à la faire glisser, et l'appareil montrait toujours un état qui
+   * change de place. Mesurée au 60e sur l'enregistrement du build 63, la
+   * traversée Accueil → Compte donnait :
+   *
+   *   38 → 148 → 312 → 326 → 336 → 340 → 343
+   *
+   * soit 90 % de la distance en deux images — 35 ms — puis 100 ms à grappiller
+   * les trente derniers points. La durée était juste ; la courbe
+   * `bezier(0.22, 1, 0.36, 1)` atteint 0,9 dès le quart du temps, et ce qui se
+   * lit alors n'est pas un déplacement mais un saut suivi d'un tassement.
+   *
+   * Décision prise sur les trois références fournies — Fitness Park, Strava,
+   * FotMob. Échantillonnées sur toute leur durée, **aucune** n'a de sélecteur
+   * mobile : le plateau est fixe, et seule la couleur de l'icône et du libellé
+   * change. C'est ce qu'on fait ici.
    */
-  it('ne rend qu’une seule lentille, hors de la boucle des onglets', () => {
-    const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
-    expect(lens.match(/<Animated\.View/g)?.length).toBe(1);
-    expect(lens.match(/<GlassView/g)?.length).toBe(1);
-    const loop = bar.slice(bar.indexOf('{items.map((item, index) =>'));
-    expect(loop).not.toContain('backgroundColor: lensColor');
+  it('ne rend plus aucune capsule de sélection', () => {
+    expect(bar).not.toContain('lensColor');
+    expect(bar).not.toContain('translateX');
+    expect(bar).not.toContain('cancelAnimation');
+    // Le plateau reste, et reste seul à porter du verre.
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
+    expect(bar).not.toContain('<GlassView');
+  });
+
+  it('marque l’onglet actif par la couleur, pas par un fond', () => {
+    const item = bar.slice(bar.indexOf('function TabItem({'), bar.indexOf('function CreateButton'));
+    expect(item).toContain('interpolateColor(presence.value, [0, 1], [colors.muted, colors.accent])');
+    // Aucun fond de sélection dans l'onglet : c'était l'architecture rejetée.
+    expect(item).not.toContain('backgroundColor');
   });
 
   /*
-   * La durée, plafonnée.
-   *
-   * Le ressort précédent s'établissait en ~450 ms et mettait 0,64 s sur
-   * l'appareil : la capsule se déplaçait, mais on l'attendait. Un ressort donne
-   * en outre une durée proportionnelle à la distance, si bien qu'Accueil →
-   * Compte traînait deux fois plus qu'un onglet voisin.
+   * Court et sans esbroufe : 120 ms, et une affirmation de 3 %. Les
+   * références tiennent toutes dans cette fenêtre.
    */
-  it.each([
-    [1, 171],
-    [2, 187],
-    [3, 203],
-    [4, 219],
-  ])('%i onglet(s) franchi(s) = %i ms', (jumped, expected) => {
-    expect(travelDuration(jumped)).toBe(expected);
+  it('change d’état vite, et à peine', () => {
+    const item = bar.slice(bar.indexOf('function TabItem({'), bar.indexOf('function CreateButton'));
+    expect(item).toContain('withTiming(active ? 1 : 0, { duration: DURATION.instant, easing: EASE_OUT })');
+    expect(item).toContain('const presence = useSharedValue(active ? 1 : 0);');
+    expect(item).toContain('1 + 0.03 * presence.value');
+    expect(item).not.toContain('withSpring');
+    expect(item).not.toContain('withSequence');
   });
 
-  it('ne dépasse jamais 220 ms, quelle que soit la distance', () => {
-    for (const jumped of [5, 8, 20]) expect(travelDuration(jumped)).toBeLessThanOrEqual(220);
-    // Et reste dans la fenêtre demandée pour un onglet voisin.
-    expect(travelDuration(1)).toBeGreaterThanOrEqual(150);
-    expect(travelDuration(1)).toBeLessThanOrEqual(180);
-  });
-
-  /*
-   * `translateX` porte le déplacement, et lui seul. La largeur animée était la
-   * cause de l'étirement qui reliait deux onglets pendant plusieurs images.
-   */
-  it('n’anime que la position, jamais la largeur', () => {
-    const motion = mobile('src/components/tab-lens-motion.ts');
-    expect(motion).toContain('lens.centre.value = withTiming(destination');
-    expect(motion).toContain('lens.width.value = value;');
-    expect(motion).not.toMatch(/width\.value = with(Timing|Spring)/);
-    expect(motion).not.toContain('withSpring');
-  });
-
-  it('annule avant de viser ailleurs, pour repartir de sa position courante', () => {
-    const motion = mobile('src/components/tab-lens-motion.ts');
-    const travel = motion.slice(motion.indexOf('export function travelTo'));
-    const cancel = travel.indexOf('cancelAnimation(lens.centre)');
-    const assign = travel.indexOf('lens.centre.value = withTiming');
-    expect(cancel).toBeGreaterThan(0);
-    expect(assign).toBeGreaterThan(cancel);
-  });
-
-  /*
-   * Le mouvement part du **toucher**, pas de la route.
-   *
-   * Il était déclenché par un effet dépendant de `state.index` : la capsule
-   * n'avait le droit de bouger qu'une fois la navigation résolue, et ce délai
-   * s'ajoutait à la durée de l'animation.
-   */
-  it('part au toucher, la route ne faisant que rattraper', () => {
-    const select = bar.slice(bar.indexOf('const select = (name: string)'), bar.indexOf('const labelFor'));
-    const move = select.indexOf('moveLens(index, from)');
-    const navigate = select.indexOf('navigation.navigate');
-    expect(move).toBeGreaterThan(0);
-    expect(navigate).toBeGreaterThan(move);
+  it('respecte le mouvement réduit sans rien casser', () => {
+    const item = bar.slice(bar.indexOf('function TabItem({'), bar.indexOf('function CreateButton'));
+    expect(item).toContain('reduced');
+    expect(mobile('src/components/motion.tsx')).toContain('.catch(() => setReduced(false));');
   });
 
   it('change d’onglet par le navigateur, sans pousser d’écran', () => {
@@ -215,16 +194,15 @@ describe('la lentille se déplace vite, et d’un seul geste', () => {
     expect(select).not.toContain('router.push');
   });
 
-  it('anime quand la question posée à iOS échoue', () => {
-    expect(mobile('src/components/motion.tsx')).toContain('.catch(() => setReduced(false));');
-  });
-
   it('garde les écrans montés d’un onglet à l’autre', () => {
     const layout = mobile('app/(app)/_layout.tsx');
     expect(layout).toContain('detachInactiveScreens={false}');
     expect(layout).toContain('freezeOnBlur: false');
-    // Et la barre vit au niveau du navigateur : elle ne se remonte pas.
     expect(layout).toContain('tabBar={props => <GlassTabBar {...props} />}');
+  });
+
+  it('garde une graisse d’étiquette constante pour ne jamais décaler la mise en page', () => {
+    expect(bar).not.toMatch(/fontWeight: active \?/);
   });
 });
 

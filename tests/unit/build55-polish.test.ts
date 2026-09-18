@@ -74,14 +74,14 @@ describe('mouvement', () => {
       expect(ratio).toBeLessThanOrEqual(1.05);
     }
     /*
-     * La lentille des onglets ne prend plus de ressort du tout : un ressort
-     * donne une durée proportionnelle à la distance, et Accueil → Compte y
-     * traînait. Elle utilise une courbe plafonnée, mais reprend le même
-     * vocabulaire — `EASE_OUT` et les durées communes.
+     * La barre d'onglets n'anime plus de position du tout : la capsule
+     * coulissante a été retirée au build 64, au profit d'un plateau stable où
+     * seule la couleur de l'onglet actif change. Elle reprend néanmoins le
+     * vocabulaire commun — `EASE_OUT` et les durées partagées.
      */
-    const motionModule = mobile('src/components/tab-lens-motion.ts');
-    expect(motionModule).toContain("import { DURATION, EASE_OUT } from '@/theme/motion';");
-    expect(motionModule).not.toContain('withSpring');
+    const bar = mobile('src/components/glass-tab-bar.tsx');
+    expect(bar).toContain("import { DURATION, EASE_OUT } from '@/theme/motion';");
+    expect(bar).not.toContain('withSpring');
   });
 });
 
