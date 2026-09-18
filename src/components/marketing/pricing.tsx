@@ -44,7 +44,16 @@ export function PricingGrid({ compact = false }: { compact?: boolean }) {
 
               <p className="mt-5 flex items-baseline gap-1.5">
                 <span className={cn('text-[40px] font-bold leading-none tracking-[-0.035em] tabular', plan.recommended ? 'text-accent-hover' : 'text-ink')}>
-                  {formatCents(effectiveMonthlyPriceCents(plan.id), { compact: true })}
+                  {/*
+                    Le prix exact, centimes compris.
+
+                    Cette ligne affichait le format « compact », qui arrondit à
+                    l'euro : 29,99 € s'y écrivait « 30 € ». Un tarif n'est pas
+                    une statistique de tableau de bord — c'est un engagement
+                    contractuel, et l'arrondir fait dire à la page un montant
+                    que Stripe ne prélève pas.
+                  */}
+                  {formatCents(effectiveMonthlyPriceCents(plan.id))}
                 </span>
                 <span className="text-[13px] text-muted">HT / mois</span>
               </p>
