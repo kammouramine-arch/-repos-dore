@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024">
+  <!--
+    Icône DEVISERA.
+
+    Le D de DEVISERA dont la hampe est une onde vocale et dont la panse est une
+    page de devis, coin replié. De loin on lit un D ; de près, « la voix devient
+    un document ».
+
+    Tenu volontairement : quatre barres et une forme pleine, aucun dégradé,
+    aucun détail sous 20 px, aucune étoile d'IA. La panse garde un grand rayon
+    à droite pour que la lettre reste lisible même quand l'onde se confond.
+  -->
+  <defs>
+    <!-- Panse du D : bord gauche droit, bord droit en large arc, coin replié. -->
+    <path id="bowl" d="M 452 206 H 672 L 852 386 V 610 A 204 204 0 0 1 648 814 H 452 Z"/>
+    <clipPath id="inside"><use href="#bowl"/></clipPath>
+  </defs>
+
+  <rect width="1024" height="1024" fill="#1D4ED8"/>
+
+  <use href="#bowl" fill="#FFFFFF"/>
+  <!-- Le pli du coin, en bleu clair : il dit « papier » sans ajouter de trait. -->
+  <path d="M 672 206 L 852 386 H 672 Z" fill="#8FB0FC"/>
+
+  <!-- Trois lignes de texte, assez contrastées pour survivre à 60 px. -->
+  <g clip-path="url(#inside)" fill="#1D4ED8" opacity="0.32">
+    <rect x="524" y="486" width="230" height="30" rx="15"/>
+    <rect x="524" y="566" width="172" height="30" rx="15"/>
+    <rect x="524" y="646" width="206" height="30" rx="15"/>
+  </g>
+
+  <!-- Hampe du D écrite comme une onde vocale. -->
+  <g fill="#FFFFFF">
+    <rect x="150" y="436" width="56" height="152" rx="28"/>
+    <rect x="246" y="338" width="56" height="348" rx="28"/>
+    <rect x="342" y="246" width="56" height="532" rx="28"/>
+  </g>
+</svg>

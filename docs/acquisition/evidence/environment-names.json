@@ -1,0 +1,341 @@
+[
+  {
+    "name": "AI_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "ANTHROPIC_API_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "ANTHROPIC_MODEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "API",
+    "sourceFiles": [
+      "scripts/captures-mobile.mjs"
+    ]
+  },
+  {
+    "name": "APP_URL",
+    "sourceFiles": [
+      "src/app/layout.tsx",
+      "src/app/robots.ts",
+      "src/app/sitemap.ts",
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "APPLE_ALLOW_SANDBOX",
+    "sourceFiles": [
+      "src/server/services/appleBillingService.ts"
+    ]
+  },
+  {
+    "name": "AUTH_SECRET",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "BACKUP_DATABASE_URL",
+    "sourceFiles": [
+      "scripts/database-backup.mjs"
+    ]
+  },
+  {
+    "name": "CAPTURE_EMAIL",
+    "sourceFiles": [
+      "scripts/captures-lancement.mjs"
+    ]
+  },
+  {
+    "name": "CRON_SECRET",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "DATABASE_URL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "DIRECT_URL",
+    "sourceFiles": [
+      "scripts/migrate-production.mjs",
+      "scripts/nettoyer-donnees-test.mjs"
+    ]
+  },
+  {
+    "name": "E2E_PORT",
+    "sourceFiles": [
+      "scripts/e2e-server.mjs"
+    ]
+  },
+  {
+    "name": "EMAIL_FROM",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "EMAIL_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "EMAIL_REPLY_TO",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "EXPO_ACCESS_TOKEN",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "EXPO_PUBLIC_API_URL",
+    "sourceFiles": [
+      "mobile/src/lib/api.ts"
+    ]
+  },
+  {
+    "name": "GEMINI_API_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts",
+      "scripts/verifier-gemini.mjs"
+    ]
+  },
+  {
+    "name": "GEMINI_MODEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "GEMINI_QUOTE_MODEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "GEMINI_VISION_MODEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "MESSAGING_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "NODE_ENV",
+    "sourceFiles": [
+      "src/lib/env.ts",
+      "src/lib/prisma.ts",
+      "mobile/src/lib/api.ts",
+      "prisma/seed.ts"
+    ]
+  },
+  {
+    "name": "OUT",
+    "sourceFiles": [
+      "scripts/captures-lancement.mjs",
+      "scripts/captures-mobile.mjs"
+    ]
+  },
+  {
+    "name": "PG_BIN",
+    "sourceFiles": [
+      "scripts/database-backup.mjs"
+    ]
+  },
+  {
+    "name": "RESEND_API_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_APPROVAL",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_EXECUTE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_PROVENANCE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_TRANSACTION",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "RESET_SANDBOX_WORKSPACE",
+    "sourceFiles": [
+      "scripts/reset-disposable-sandbox.mjs"
+    ]
+  },
+  {
+    "name": "S3_ACCESS_KEY_ID",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "S3_BUCKET",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "S3_ENDPOINT",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "S3_REGION",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "S3_SECRET_ACCESS_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STORAGE_LOCAL_DIR",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STORAGE_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STRIPE_PRICE_ENTREPRISE",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STRIPE_PRICE_ESSENTIEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STRIPE_PRICE_PRO",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STRIPE_SECRET_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "STRIPE_WEBHOOK_SECRET",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "SUPABASE_ACCESS_TOKEN",
+    "sourceFiles": [
+      "scripts/lib/supabase-api.mjs"
+    ]
+  },
+  {
+    "name": "TRANSCRIPTION_API_KEY",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TRANSCRIPTION_BASE_URL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TRANSCRIPTION_MODEL",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TRANSCRIPTION_PROVIDER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TWILIO_ACCOUNT_SID",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TWILIO_AUTH_TOKEN",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "TWILIO_FROM_NUMBER",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "WHATSAPP_ACCESS_TOKEN",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  },
+  {
+    "name": "WHATSAPP_PHONE_NUMBER_ID",
+    "sourceFiles": [
+      "src/lib/env.ts"
+    ]
+  }
+]

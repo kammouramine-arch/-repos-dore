@@ -1,0 +1,9 @@
+{
+  "CFBundleDisplayName": "DEVISERA",
+  "NSMicrophoneUsageDescription": "DEVISERA utilise le micro pour que vous puissiez dicter la description de votre chantier.",
+  "NSSpeechRecognitionUsageDescription": "DEVISERA transcrit votre description de chantier pour préparer le devis à votre place.",
+  "NSCameraUsageDescription": "DEVISERA utilise l’appareil photo pour votre photo de profil et les photos de chantier.",
+  "NSPhotoLibraryUsageDescription": "DEVISERA accède aux photos choisies pour votre profil et vos devis.",
+  "NSFaceIDUsageDescription": "DEVISERA protège votre session par Face ID pour que vos devis et vos clients restent privés.",
+  "NSUserNotificationsUsageDescription": "DEVISERA vous prévient quand un client consulte un devis ou qu’une relance est prête."
+}

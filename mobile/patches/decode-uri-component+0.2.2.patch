@@ -1,0 +1,16 @@
+diff --git a/node_modules/decode-uri-component/index.js b/node_modules/decode-uri-component/index.js
+index 24e7db0..4110850 100644
+--- a/node_modules/decode-uri-component/index.js
++++ b/node_modules/decode-uri-component/index.js
+@@ -88,7 +88,9 @@ module.exports = function (encodedURI) {
+ 		// Try the built in decoder first
+ 		return decodeURIComponent(encodedURI);
+ 	} catch (err) {
+-		// Fallback to a more advanced decoder
+-		return customDecodeURIComponent(encodedURI);
++		// Preserve malformed input instead of recursively attempting partial decoding.
++		// This fallback is reached only when native UTF-8 decoding rejects the input.
++		// Avoid the unbounded recursive path described by GHSA-vcc3-ghjq-m6fr.
++		return encodedURI;
+ 	}
+ };
