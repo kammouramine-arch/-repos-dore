@@ -46,6 +46,25 @@ export const DURATION = {
 export const SPRING = {
   /** Sélection qui glisse, pastille d'onglet. Vif et net. */
   select: { damping: 22, stiffness: 260, mass: 0.7 },
+  /**
+   * Un objet qui **traverse** l'écran, et qu'on doit voir traverser.
+   *
+   * L'exception assumée à la règle des 420 ms, et elle a été mesurée plutôt
+   * que devinée. La lentille des onglets utilisait `select` : amortissement
+   * 0,81, pulsation 19,3 rad/s, donc un temps d'établissement de 254 ms — et
+   * sur l'enregistrement d'un vrai iPhone, la traversée tenait en **six
+   * images**, environ 100 ms. Elle se déplaçait réellement ; personne ne
+   * pouvait le voir. À cette vitesse, l'œil ne lit pas un déplacement, il lit
+   * un saut.
+   *
+   * La même mesure sur la référence Instagram donne 0,52 à 0,87 s, avec 32 à
+   * 53 images intermédiaires. D'où ces valeurs : amortissement 0,92 —
+   * toujours aucun rebond visible — et un établissement autour de 450 ms.
+   *
+   * La règle des 420 ms vaut pour ce qui *apparaît* ou *change d'état*. Pour
+   * ce qui *voyage*, la durée n'est pas un coût : c'est le message.
+   */
+  travel: { damping: 17, stiffness: 86, mass: 1 },
   /** Compression sous le doigt. Répond immédiatement. */
   press: { damping: 26, stiffness: 340, mass: 0.6 },
   /** Panneau ou feuille qui se pose. Plus ample, toujours sans rebond. */

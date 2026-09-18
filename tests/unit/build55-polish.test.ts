@@ -59,12 +59,22 @@ describe('mouvement', () => {
     for (const [, value] of durations.matchAll(/:\s*(\d+),/g)) {
       expect(Number(value)).toBeLessThanOrEqual(420);
     }
-    // Amortissement élevé partout : les ressorts s'arrêtent sans osciller.
-    for (const [, damping] of motion.matchAll(/damping: (\d+)/g)) {
-      expect(Number(damping)).toBeGreaterThanOrEqual(20);
+    /*
+     * « Pas de rebond » se mesure par le **taux d'amortissement**, pas par la
+     * constante d'amortissement seule : celle-ci ne veut rien dire sans la
+     * raideur et la masse qui l'accompagnent. La version précédente exigeait
+     * `damping >= 20`, ce qui interdisait par accident tout ressort lent — un
+     * ressort long a une raideur faible, donc une constante d'amortissement
+     * faible, pour un amortissement relatif identique.
+     */
+    for (const [, damping, stiffness, mass] of motion.matchAll(/damping: ([\d.]+), stiffness: ([\d.]+), mass: ([\d.]+)/g)) {
+      const ratio = Number(damping) / (2 * Math.sqrt(Number(stiffness) * Number(mass)));
+      expect(ratio, `damping ${damping} / stiffness ${stiffness} / mass ${mass}`).toBeGreaterThanOrEqual(0.8);
+      // Au-delà de 1, le ressort devient mou : il n'arrive plus, il s'échoue.
+      expect(ratio).toBeLessThanOrEqual(1.05);
     }
     // La barre reprend ce vocabulaire au lieu de régler ses propres valeurs.
-    expect(mobile('src/components/glass-tab-bar.tsx')).toContain('const SLIDE = SPRING.select;');
+    expect(mobile('src/components/glass-tab-bar.tsx')).toContain('const SLIDE = SPRING.travel;');
   });
 });
 

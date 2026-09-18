@@ -57,11 +57,7 @@ export default function PlusScreen() {
   const access = accessStateFor(session?.subscription ?? null);
   const subscription = session?.subscription ?? null;
   const { choice: appearance } = useAppearance();
-  const appearanceLabel = appearance === 'system'
-    ? (en ? 'Automatic' : 'Automatique')
-    : appearance === 'dark'
-      ? (en ? 'Dark' : 'Sombre')
-      : (en ? 'Light' : 'Clair');
+  const appearanceLabel = appearance === 'dark' ? (en ? 'Dark' : 'Sombre') : (en ? 'Light' : 'Clair');
 
   const fullName = [session?.user.firstName, session?.user.lastName].filter(Boolean).join(' ').trim();
   const business = session?.organization.name ?? '';

@@ -3,47 +3,38 @@ import { Platform } from 'react-native';
 import * as SecureStore from 'expo-secure-store';
 import { applyScheme, publishScheme } from '@/theme';
 import type { ColorScheme } from '@/theme/palette';
-import {
-  applySystemOverride,
-  resolveScheme,
-  subscribeToSystemScheme,
-  systemScheme,
-  systemSchemeVersion,
-} from './system-scheme';
+import { applySystemOverride, launchScheme, migratePreference, type ThemePreference } from './system-scheme';
 
 /**
- * Apparence de DEVISERA : automatique, clair ou sombre.
+ * Apparence de DEVISERA : clair ou sombre.
  *
- * ## Deux concepts, à ne jamais confondre
+ * ## Deux valeurs, et rien d'autre
  *
- * La **préférence** est ce que l'utilisateur a choisi : `system`, `light` ou
- * `dark`. C'est elle, et elle seule, qui est enregistrée.
+ * La préférence enregistrée **est** le thème affiché. Il n'y a plus rien à
+ * résoudre, plus de troisième valeur, plus d'écart entre ce qui est choisi et
+ * ce qui s'affiche.
  *
- * Le **thème effectif** est ce qui s'affiche. Il se calcule, à chaque instant,
- * par `resolveScheme(préférence, apparenceDuSystème)`.
+ * ## Pourquoi « Automatique » est parti
  *
- * « Automatique » n'est donc pas un thème : c'est l'absence de choix. Il suit
- * l'iPhone en direct, y compris quand celui-ci bascule tout seul au coucher du
- * soleil. « Clair » et « Sombre » sont des décisions, et elles tiennent — y
- * compris contre le système.
+ * Il portait à lui seul toute la complexité du système. Pour le servir,
+ * l'application devait lire l'apparence de l'iPhone en continu — alors même
+ * qu'elle lui imposait un thème par `Appearance.setColorScheme()`, dont la
+ * surcharge est précisément ce que les lectures renvoient ensuite. Elle lisait
+ * donc sa propre écriture, et « Automatique » finissait par rendre le
+ * contraire du mode précédent.
  *
- * ## Le défaut corrigé ici
+ * On avait d'abord corrigé cela en protégeant la valeur système derrière un
+ * magasin : évènements filtrés, drapeau pour écarter nos propres écritures,
+ * relecture au réveil. Cela marchait, et cela restait une machinerie
+ * considérable au service d'un réglage dont personne n'avait besoin. Le
+ * retirer supprime le problème au lieu de le contenir.
  *
- * La version précédente résolvait « automatique » avec `useColorScheme()`.
- * Or `Appearance.setColorScheme()` — qu'on appelle pour qu'iOS accorde son
- * verre, ses claviers et ses alertes au thème choisi — pose une **surcharge**
- * que `useColorScheme()` renvoie ensuite à la place du système.
+ * ## L'iPhone sert encore une fois, une seule
  *
- * Choisir « Clair » sur un iPhone en sombre posait donc la surcharge, puis
- * repasser en « Automatique » résolvait contre cette surcharge : l'application
- * restait claire alors que le téléphone était sombre. Vu de l'utilisateur,
- * « Automatique » semblait basculer vers le contraire du mode précédent. Ce
- * n'était pas une bascule : c'était la lecture d'un capteur sur lequel on
- * venait d'écrire.
- *
- * L'apparence du système vit maintenant dans `system-scheme.ts`, à l'abri de
- * ce que nous imposons. La surcharge est devenue une **sortie** : une
- * conséquence du thème retenu, jamais une entrée du calcul.
+ * Au premier lancement — et en migrant un ancien « Automatique » — l'apparence
+ * du téléphone donne la valeur de départ, puis elle est enregistrée. Quelqu'un
+ * qui vit en sombre ne reçoit donc pas une application blanche, et personne ne
+ * voit ensuite son thème changer tout seul.
  *
  * ## Comment le thème atteint toute l'application
  *
@@ -65,30 +56,26 @@ import {
  * l'écran de lancement natif qui est déjà affiché.
  */
 
-export type AppearanceChoice = 'system' | 'light' | 'dark';
+export type AppearanceChoice = ThemePreference;
 
 const KEY = 'devisera.appearance';
 
 /**
- * Seules trois valeurs sont acceptées.
+ * La préférence enregistrée, migrée si nécessaire.
  *
- * C'est aussi la migration : une préférence héritée qui aurait enregistré un
- * thème résolu plutôt qu'un choix, ou n'importe quelle valeur devenue
- * invalide, retombe sur « automatique » plutôt que de figer l'application
- * dans un état que l'utilisateur n'a jamais demandé.
+ * `migratePreference` est totale : une valeur héritée (`system`,
+ * `automatic`…), une valeur absente ou n'importe quoi d'inattendu se résout
+ * une fois contre l'apparence du téléphone au lancement. L'utilisateur garde
+ * le thème qu'il avait sous les yeux ; il devient simplement explicite.
  */
-function isChoice(value: unknown): value is AppearanceChoice {
-  return value === 'system' || value === 'light' || value === 'dark';
-}
-
 async function readChoice(): Promise<AppearanceChoice> {
   try {
     const raw = Platform.OS === 'web'
       ? globalThis.localStorage?.getItem(KEY)
       : await SecureStore.getItemAsync(KEY);
-    return isChoice(raw) ? raw : 'system';
+    return migratePreference(raw, launchScheme);
   } catch {
-    return 'system';
+    return launchScheme;
   }
 }
 
@@ -106,11 +93,9 @@ async function writeChoice(choice: AppearanceChoice): Promise<void> {
 }
 
 interface AppearanceValue {
-  /** Ce que l'utilisateur a choisi : `system`, `light` ou `dark`. Jamais résolu. */
+  /** Ce que l'utilisateur a choisi : `light` ou `dark`. C'est aussi le thème. */
   choice: AppearanceChoice;
-  /** L'apparence réelle de l'iPhone, indépendamment du choix. */
-  system: ColorScheme;
-  /** Le thème réellement appliqué, une fois « automatique » résolu. */
+  /** Le thème appliqué. Identique au choix ; nommé pour la lisibilité. */
   scheme: ColorScheme;
   setChoice: (choice: AppearanceChoice) => void;
 }
@@ -126,34 +111,25 @@ export function useAppearance(): AppearanceValue {
 export function AppearanceProvider({ children }: { children: React.ReactNode }) {
   const [choice, setStored] = React.useState<AppearanceChoice | null>(null);
 
-  /*
-   * L'apparence du système, lue dans le magasin qui la protège.
-   *
-   * Ce n'est volontairement pas `useColorScheme()` : celui-ci renvoie la
-   * surcharge que nous posons dès qu'un thème explicite est choisi, et
-   * « automatique » se résoudrait alors contre notre propre imposition.
-   */
-  React.useSyncExternalStore(subscribeToSystemScheme, systemSchemeVersion, systemSchemeVersion);
-  const system = systemScheme();
-
   React.useEffect(() => {
     let disposed = false;
     void readChoice().then((stored) => {
       if (disposed) return;
       applySystemOverride(stored);
       setStored(stored);
+      /*
+       * La valeur migrée est regravée : un ancien « automatique » ne doit être
+       * résolu qu'une fois. Sans cela, il serait relu et re-résolu à chaque
+       * lancement, et le thème suivrait encore le téléphone — exactement ce
+       * qu'on vient de retirer.
+       */
+      void writeChoice(stored);
     });
     return () => { disposed = true; };
   }, []);
 
-  /*
-   * Le thème effectif : une fonction pure de la préférence et du système.
-   *
-   * Aucun état antérieur n'entre dans ce calcul. Choisir « Automatique »
-   * donne le même résultat, que le réglage précédent ait été clair, sombre
-   * ou déjà automatique.
-   */
-  const scheme: ColorScheme = resolveScheme(choice ?? 'system', system);
+  // La préférence *est* le thème : plus rien à résoudre.
+  const scheme: ColorScheme = choice ?? launchScheme;
 
   /*
    * La palette est appliquée **pendant** le rendu, pas dans un effet.
@@ -176,19 +152,16 @@ export function AppearanceProvider({ children }: { children: React.ReactNode }) 
   }, [scheme]);
 
   const setChoice = React.useCallback((next: AppearanceChoice) => {
-    /*
-     * On enregistre le **choix**, jamais le thème résolu, et l'on informe iOS
-     * de ce qu'il doit dessiner. Les deux gestes sont indépendants : le thème
-     * de l'application, lui, se recalcule tout seul au rendu suivant.
-     */
+    // On informe iOS de ce qu'il doit dessiner ; le thème de l'application,
+    // lui, découle directement de la préférence au rendu suivant.
     applySystemOverride(next);
     setStored(next);
     void writeChoice(next);
   }, []);
 
   const value = React.useMemo<AppearanceValue>(
-    () => ({ choice: choice ?? 'system', system, scheme, setChoice }),
-    [choice, system, scheme, setChoice],
+    () => ({ choice: choice ?? launchScheme, scheme, setChoice }),
+    [choice, scheme, setChoice],
   );
 
   // Tant que la préférence n'est pas lue, rien ne s'affiche : l'écran de

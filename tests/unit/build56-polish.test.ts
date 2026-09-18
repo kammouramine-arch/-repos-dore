@@ -86,12 +86,18 @@ describe('le micro ne s’arme pas tout seul', () => {
 });
 
 describe('apparence', () => {
-  it('propose trois choix et les conserve', () => {
+  /*
+   * Deux choix depuis le build 62. « Automatique » obligeait l'application à
+   * observer l'iPhone tout en lui imposant un thème : elle lisait sa propre
+   * écriture, et le réglage finissait par rendre le contraire du mode
+   * précédent. Il a été retiré, et l'apparence du téléphone ne sert plus qu'à
+   * choisir la valeur de départ, une fois.
+   */
+  it('propose deux choix et les conserve', () => {
     const appearance = mobile('src/lib/appearance.tsx');
-    expect(appearance).toContain("export type AppearanceChoice = 'system' | 'light' | 'dark'");
+    expect(appearance).toContain('export type AppearanceChoice = ThemePreference;');
     expect(appearance).toContain('SecureStore.setItemAsync');
-    // « Automatique » doit suivre l'iPhone en direct.
-    expect(appearance).toContain('useColorScheme');
+    expect(appearance).not.toContain('useColorScheme');
   });
 
   /*

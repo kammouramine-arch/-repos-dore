@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
-import { resolveScheme } from '../../mobile/src/lib/scheme-resolver';
+import { isPreference, migratePreference, resolveScheme } from '../../mobile/src/lib/scheme-resolver';
 
 const mobile = (path: string) => readFileSync(`mobile/${path}`, 'utf8');
 /** Le fichier sans ses commentaires : ils citent les défauts corrigés. */
@@ -16,77 +16,83 @@ const code = (source: string) => source.replace(/\/\*[\s\S]*?\*\//g, '').replace
  * vivent réellement : dans la logique, pas dans le rendu.
  */
 
-describe('« Automatique » suit l’iPhone, et rien d’autre', () => {
+describe('Clair ou Sombre, et rien d’autre', () => {
   /*
-   * La table du sujet, écrite telle quelle.
-   *
-   * Elle n'a que six lignes et aucune n'est surprenante — c'est justement
-   * l'intérêt : la résolution doit être si simple qu'aucun état antérieur ne
-   * puisse s'y glisser. Le défaut corrigé venait de ce qu'elle n'existait pas
-   * comme fonction, mais comme enchaînement d'effets et de mémorisations.
+   * Il n'y a plus de troisième valeur : la préférence enregistrée est le thème
+   * affiché. « Automatique » obligeait l'application à lire l'apparence de
+   * l'iPhone tout en la lui imposant — donc à lire sa propre écriture — et
+   * rendait le contraire du mode précédent. Le retirer supprime le problème
+   * plutôt que de le contenir.
    */
   it.each([
-    ['light', 'system', 'light'],
-    ['dark', 'system', 'dark'],
-    ['light', 'light', 'light'],
-    ['dark', 'light', 'light'],
-    ['light', 'dark', 'dark'],
-    ['dark', 'dark', 'dark'],
-  ] as const)('système %s + préférence %s = %s', (system, preference, expected) => {
-    expect(resolveScheme(preference, system)).toBe(expected);
+    ['light', 'light'],
+    ['dark', 'dark'],
+  ] as const)('préférence %s = thème %s', (preference, expected) => {
+    expect(resolveScheme(preference)).toBe(expected);
   });
 
-  /*
-   * Le cœur du défaut signalé : « Automatique » donnait le contraire du mode
-   * précédent. La résolution ne prend pas le thème courant en argument, donc
-   * elle ne peut pas en dépendre — et l'ordre des choix ne change rien.
-   */
-  it('donne le même résultat quel que soit le réglage précédent', () => {
-    for (const system of ['light', 'dark'] as const) {
-      const depuisClair = resolveScheme('system', system);
-      const depuisSombre = resolveScheme('system', system);
-      const depuisAutomatique = resolveScheme('system', system);
-      expect(depuisClair).toBe(system);
-      expect(depuisSombre).toBe(system);
-      expect(depuisAutomatique).toBe(system);
+  it('n’accepte que deux valeurs', () => {
+    expect(isPreference('light')).toBe(true);
+    expect(isPreference('dark')).toBe(true);
+    for (const rejected of ['system', 'automatic', 'auto', '', null, undefined, 0, {}]) {
+      expect(isPreference(rejected), String(rejected)).toBe(false);
     }
   });
 
   /*
-   * La cause racine, et la règle qui la remplace.
+   * La migration, et la seule fois où l'iPhone a encore voix au chapitre.
    *
-   * `Appearance.setColorScheme()` pose une surcharge que `useColorScheme()`
-   * renvoie ensuite à la place du système. Le fournisseur lisait cette valeur
-   * pour résoudre « automatique » : il lisait sa propre écriture.
+   * Un utilisateur qui avait « Automatique » garde le thème qu'il avait sous
+   * les yeux : on le résout une fois contre l'apparence du téléphone, et il
+   * devient explicite. Un premier lancement suit exactement le même chemin.
    */
-  it('ne résout jamais le thème depuis ce que l’application impose à iOS', () => {
-    const provider = code(mobile('src/lib/appearance.tsx'));
-    expect(provider).not.toContain('useColorScheme');
-    expect(provider).not.toContain('Appearance.getColorScheme');
-    // La surcharge est une sortie : appliquée, jamais relue.
-    expect(provider).toContain('applySystemOverride');
-    expect(provider).toContain('resolveScheme(choice ?? \'system\', system)');
-  });
-
-  it('protège l’apparence du système de nos propres écritures', () => {
-    const store = mobile('src/lib/system-scheme.ts');
-    // La graine est lue avant qu'aucune surcharge n'ait pu exister.
-    expect(store).toContain('let osScheme: ColorScheme = read();');
-    // Les évènements que nous provoquons nous-mêmes sont écartés.
-    expect(store).toContain('if (applying) return;');
-    // Et l'on ne relit iOS que lorsque sa réponse est fiable.
-    expect(store).toContain("if (next === 'active' && !overridden) set(read());");
+  it.each([
+    ['light', 'light', 'light'],
+    ['dark', 'light', 'dark'],
+    ['system', 'dark', 'dark'],
+    ['system', 'light', 'light'],
+    ['automatic', 'dark', 'dark'],
+    [null, 'dark', 'dark'],
+    [undefined, 'light', 'light'],
+    ['n’importe quoi', 'dark', 'dark'],
+  ] as const)('enregistré %s + iPhone %s = %s', (stored, system, expected) => {
+    expect(migratePreference(stored, system)).toBe(expected);
   });
 
   /*
-   * On enregistre un choix, pas un thème. Enregistrer « sombre » parce que
-   * l'iPhone était sombre le jour du réglage figerait l'application dans un
-   * état que l'utilisateur n'a jamais demandé.
+   * La valeur migrée doit être **regravée**. Sans cela, un ancien
+   * « automatique » serait relu et re-résolu à chaque lancement, et le thème
+   * suivrait encore le téléphone — précisément ce qu'on vient de retirer.
    */
-  it('n’enregistre que la préférence, et rejette une valeur héritée invalide', () => {
+  it('regrave la préférence migrée, pour ne la résoudre qu’une fois', () => {
     const provider = mobile('src/lib/appearance.tsx');
-    expect(provider).toContain('void writeChoice(next);');
-    expect(provider).toContain("return isChoice(raw) ? raw : 'system';");
+    expect(provider).toContain('return migratePreference(raw, launchScheme);');
+    const read = provider.indexOf('void readChoice().then');
+    const rewrite = provider.indexOf('void writeChoice(stored);', read);
+    expect(rewrite).toBeGreaterThan(read);
+  });
+
+  /*
+   * L'apparence du téléphone est figée au lancement : la relire après qu'un
+   * thème a été imposé renverrait ce thème, pas le système.
+   */
+  it('ne lit l’apparence du téléphone qu’au chargement du module', () => {
+    const store = mobile('src/lib/system-scheme.ts');
+    expect(store).toContain("export const launchScheme: ColorScheme = Appearance.getColorScheme() === 'dark' ? 'dark' : 'light';");
+    // Plus d'écoute continue : elle n'existait que pour « Automatique ».
+    expect(store).not.toContain('addChangeListener');
+    expect(store).not.toContain('AppState');
+  });
+
+  it('ne propose que deux options à l’écran', () => {
+    // Les commentaires citent « Automatique » pour expliquer son retrait.
+    const screen = code(mobile('app/apparence.tsx'));
+    expect(screen).not.toContain("value: 'system'");
+    expect(screen).not.toContain('Automatique');
+    expect(screen).not.toContain('Automatic');
+    expect(screen).not.toContain('Follows your iPhone');
+    const options = screen.slice(screen.indexOf('const OPTIONS'), screen.indexOf('const SAMPLE'));
+    expect(options.match(/value: '/g)?.length).toBe(2);
   });
 
   it('ne déplace jamais celui qui règle l’apparence', () => {
@@ -94,16 +100,6 @@ describe('« Automatique » suit l’iPhone, et rien d’autre', () => {
     expect(provider).not.toContain('key={');
     expect(provider).not.toContain('router.replace');
     expect(provider).not.toContain('router.push');
-  });
-
-  /*
-   * La coche suit la **préférence**, pas le thème appliqué : « Automatique »
-   * reste coché même quand l'iPhone résout vers sombre.
-   */
-  it('coche la préférence et non le thème résolu', () => {
-    const screen = mobile('app/apparence.tsx');
-    expect(screen).toContain('choice');
-    expect(code(screen)).not.toContain('scheme === option.value');
   });
 });
 

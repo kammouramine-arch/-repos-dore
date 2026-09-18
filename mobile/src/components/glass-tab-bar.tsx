@@ -81,7 +81,11 @@ const CREATE_SIZE = 60;
 /** Écart entre la barre et la pastille de création. */
 const GAP = 10;
 /** La lentille reprend le ressort de sélection commun à l'application. */
-const SLIDE = SPRING.select;
+/*
+ * La lentille voyage : elle prend le ressort long, pas celui des changements
+ * d'état. Mesuré sur l'appareil, l'ancien tenait en six images.
+ */
+const SLIDE = SPRING.travel;
 /** Marge de la lentille à l'intérieur du plateau. */
 const INSET = 5;
 
@@ -433,8 +437,14 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     width: width.value,
     transform: [
       { translateX: centre.value - width.value / 2 },
-      { scaleX: 1 + stretch.value * 0.18 },
-      { scaleY: 1 - stretch.value * 0.07 },
+      /*
+       * L'étirement est réduit de 0,18 à 0,10. Avec une traversée deux fois
+       * plus longue, il n'a plus à suggérer la vitesse — et à 0,18 la capsule
+       * s'élargissait au point de couvrir deux onglets en même temps, ce qui
+       * se lit comme une bavure plutôt que comme un objet qui se déplace.
+       */
+      { scaleX: 1 + stretch.value * 0.1 },
+      { scaleY: 1 - stretch.value * 0.04 },
     ],
   }));
 
@@ -460,11 +470,19 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
    * opaque masquerait la matière et se verrait comme une vignette collée.
    */
   const dark = activeScheme() === 'dark';
+  /*
+   * Assez dense pour qu'on la voie.
+   *
+   * À 0,13 d'opacité en clair, la capsule était si discrète qu'un détecteur
+   * automatique lancé sur l'enregistrement de l'appareil n'arrivait pas à
+   * l'isoler du plateau. Un objet qu'on ne distingue pas ne peut pas être vu
+   * en train de se déplacer, quelle que soit la qualité de son animation.
+   */
   const lensColor = kind === 'solid'
     ? colors.accentSoft
     : dark
-      ? 'rgba(124, 150, 255, 0.24)'
-      : 'rgba(47, 82, 232, 0.13)';
+      ? 'rgba(142, 166, 255, 0.34)'
+      : 'rgba(47, 82, 232, 0.19)';
 
   return (
     <View

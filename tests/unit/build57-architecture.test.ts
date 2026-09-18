@@ -95,18 +95,18 @@ describe('changer de thème ne démonte rien', () => {
     expect(applied).toBeGreaterThan(read);
   });
 
-  it('rend la main au système quand le choix est « automatique »', () => {
+  /*
+   * Les deux garanties qui vivaient ici — rendre la main au système, relire au
+   * réveil — n'ont plus d'objet : « Automatique » a été retiré au build 62.
+   * Ce qui les remplace est plus simple à tenir, et vérifié dans
+   * `build60-apparence-et-geometrie` : la préférence *est* le thème, et
+   * l'apparence du téléphone n'est lue qu'une fois, au lancement.
+   */
+  it('n’observe plus l’apparence du téléphone en continu', () => {
     const store = mobile('src/lib/system-scheme.ts');
-    // `null` efface la surcharge : c'est ce que veut dire « automatique ».
-    expect(store).toContain("choice === 'system' ? null : choice");
-    // Et la résolution est une fonction pure, sans mémoire du thème courant.
-    expect(mobile('src/lib/scheme-resolver.ts')).toContain("return preference === 'system' ? system : preference;");
-  });
-
-  it('relit l’apparence du système au réveil de l’application', () => {
-    const store = mobile('src/lib/system-scheme.ts');
-    expect(store).toContain("AppState.addEventListener('change'");
-    expect(store).toContain('Appearance.getColorScheme()');
+    expect(store).not.toContain('addChangeListener');
+    expect(store).not.toContain('AppState');
+    expect(store).toContain('export const launchScheme');
   });
 
   it('ne promet plus que le thème s’appliquera au prochain lancement', () => {
@@ -114,7 +114,7 @@ describe('changer de thème ne démonte rien', () => {
     const screen = mobile('app/apparence.tsx');
     expect(screen).not.toContain('next time you open');
     expect(screen).not.toContain('prochain lancement');
-    expect(screen).toContain('Automatic follows your iPhone’s Light or Dark appearance');
+    expect(screen).toContain('Your choice applies immediately and is kept on this iPhone');
   });
 });
 
