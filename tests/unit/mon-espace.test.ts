@@ -80,7 +80,8 @@ describe('barre de navigation', () => {
     // n'apparaît pas à un nouvel endroit.
     expect(bar.match(/const lensColor =/g)?.length).toBe(1);
     expect(bar).toContain('positioned.current');
-    expect(bar).toContain('centre.value = destination;');
+    // Le placement sans mouvement du premier rendu vit dans `settleAt`.
+    expect(bar).toContain('settleAt(lensValues, slot.x + slot.width / 2');
     // La position vient de la mesure de l'onglet, pas d'une largeur divisée.
     expect(bar).toContain('slot.x + slot.width / 2');
   });

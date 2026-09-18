@@ -2,13 +2,10 @@ import * as React from 'react';
 import { Animated as RNAnimated, Keyboard, Platform, Pressable, StyleSheet, View, type LayoutChangeEvent } from 'react-native';
 import Animated, {
   interpolateColor,
-  runOnJS,
-  useAnimatedReaction,
   useAnimatedStyle,
   useDerivedValue,
   useSharedValue,
   withSequence,
-  withSpring,
   withTiming,
   type SharedValue,
 } from 'react-native-reanimated';
@@ -17,7 +14,9 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import * as Haptics from 'expo-haptics';
 import { activeScheme, colors, radius, shadows, spacing, useThemeScheme } from '@/theme';
-import { DURATION, EASE_OUT, SPRING } from '@/theme/motion';
+import { DURATION, EASE_OUT } from '@/theme/motion';
+import { GlassView } from 'expo-glass-effect';
+import { hideLens, setLensWidth, settleAt, travelTo, type Lens } from './tab-lens-motion';
 import { GlassGroup, GlassSurface, useGlassKind } from './glass';
 import { useReducedMotion, useTouchMotion } from './motion';
 import { copy, useMobileLocale } from '@/lib/i18n';
@@ -81,13 +80,9 @@ const CREATE_SIZE = 60;
 /** Écart entre la barre et la pastille de création. */
 const GAP = 10;
 /** La lentille reprend le ressort de sélection commun à l'application. */
-/*
- * La lentille voyage : elle prend le ressort long, pas celui des changements
- * d'état. Mesuré sur l'appareil, l'ancien tenait en six images.
- */
-const SLIDE = SPRING.travel;
 /** Marge de la lentille à l'intérieur du plateau. */
 const INSET = 5;
+
 
 /**
  * Place à réserver sous le contenu défilant d'un écran d'onglet.
@@ -315,14 +310,31 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
   const slots = React.useRef<Slot[]>([]);
   const [measured, setMeasured] = React.useState(false);
 
-  /** Centre de la lentille, et sa largeur. Une seule paire pour toute la barre. */
+  /**
+   * Le centre de la lentille : la **seule** grandeur animée en position.
+   *
+   * La largeur ne l'est plus. Elle suivait le même ressort, si bien que la
+   * capsule changeait de taille en route et s'étirait jusqu'à couvrir deux
+   * onglets pendant plusieurs images — ce que l'appareil montrait comme une
+   * bavure tirée d'un bout à l'autre plutôt que comme un objet qui se déplace.
+   * Elle est maintenant fixe, prise sur la largeur d'un onglet.
+   */
   const centre = useSharedValue(0);
   const width = useSharedValue(0);
-  /** Là où la lentille se rend : sert à en déduire sa vitesse. */
-  const target = useSharedValue(0);
-  const span = useSharedValue(0);
+  /** L'étirement : un soupçon pendant le trajet, et rien au repos. */
+  const stretchX = useSharedValue(1);
+  const stretchY = useSharedValue(1);
   const fade = useSharedValue(0);
   const positioned = React.useRef(false);
+  /**
+   * L'onglet que la lentille **vise**, indépendamment de la route.
+   *
+   * C'est ce qui permet de partir à l'instant du toucher. La version
+   * précédente animait dans un effet dépendant de `state.index` : la capsule
+   * n'avait le droit de bouger qu'une fois la navigation résolue, ce qui
+   * ajoutait le temps du routeur à celui de l'animation.
+   */
+  const aimed = React.useRef(-1);
 
   React.useEffect(() => {
     const show = Keyboard.addListener('keyboardDidShow', () => setKeyboardVisible(true));
@@ -341,116 +353,101 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     if (slots.current.filter(Boolean).length === items.length) setMeasured(true);
   }, []);
 
+  const lensValues = React.useMemo<Lens>(
+    () => ({ centre, width, stretchX, stretchY, fade }),
+    [centre, width, stretchX, stretchY, fade],
+  );
+
+  const moveLens = React.useCallback((index: number, from: number) => {
+    const slot = slots.current[index];
+    if (!slot) return;
+    travelTo(lensValues, slot.x + slot.width / 2, from < 0 ? 1 : Math.abs(index - from), reduced);
+  }, [lensValues, reduced]);
+
+  /*
+   * La route ne déclenche plus l'animation : elle la **rattrape**.
+   *
+   * Au toucher, `select` vise déjà la bonne destination et lance le mouvement.
+   * Cet effet ne sert donc plus qu'aux cas où personne n'a touché la barre :
+   * premier rendu, lien profond, retour arrière, changement d'onglet
+   * programmatique. S'il vise déjà le bon onglet, il ne fait rien.
+   */
   React.useEffect(() => {
     if (!measured) return;
     const slot = slots.current[Math.max(0, activeIndex)];
     if (!slot) return;
-    const destination = slot.x + slot.width / 2;
-    target.value = destination;
-    span.value = slot.width;
 
-    // Premier positionnement sans mouvement : la lentille ne doit pas
-    // traverser la barre depuis la gauche à chaque montage.
-    if (!positioned.current) {
-      positioned.current = true;
-      centre.value = destination;
-      width.value = slot.width - INSET * 2;
-      fade.value = unselected ? 0 : 1;
-      return;
+    const first = !positioned.current;
+    positioned.current = true;
+    // La largeur reste celle d'un onglet : posée, jamais animée.
+    setLensWidth(lensValues, slot.width - INSET * 2);
+
+    if (first) {
+      // Premier rendu : la lentille se pose, elle ne traverse pas la barre.
+      aimed.current = unselected ? -1 : activeIndex;
+      settleAt(lensValues, slot.x + slot.width / 2, !unselected);
+    } else if (unselected) {
+      aimed.current = -1;
+      hideLens(lensValues);
+    } else if (aimed.current !== activeIndex) {
+      const from = aimed.current;
+      aimed.current = activeIndex;
+      moveLens(activeIndex, from);
     }
-
-    /*
-     * Même en mouvement réduit, la lentille **se déplace**.
-     *
-     * La version précédente la téléportait dans ce cas : elle disparaissait
-     * d'un onglet pour réapparaître sur l'autre. C'est exactement ce que
-     * l'appareil montrait, et la cause en était plus large qu'il n'y paraît —
-     * `useReducedMotion` supposait « oui » quand la question échouait, si bien
-     * qu'une lecture ratée immobilisait toute l'application.
-     *
-     * « Réduire les animations » demande moins de mouvement, pas des sauts :
-     * un objet qui change de place sans la traverser est précisément ce que ce
-     * réglage cherche à éviter. On garde donc la traversée, en la raccourcissant
-     * et en la rendant linéaire.
-     */
-    if (reduced) {
-      centre.value = withTiming(destination, { duration: DURATION.quick, easing: EASE_OUT });
-      width.value = withTiming(slot.width - INSET * 2, { duration: DURATION.quick, easing: EASE_OUT });
-      fade.value = withTiming(unselected ? 0 : 1, { duration: DURATION.instant, easing: EASE_OUT });
-      return;
-    }
-
-    /*
-     * La largeur suit le même ressort que la position.
-     *
-     * Elle était posée d'un coup pendant que le centre glissait : la capsule
-     * changeait de taille sur place puis partait, ce qui se lit comme deux
-     * gestes au lieu d'un. Le même ressort pour les deux donne un objet unique
-     * qui se déforme en chemin.
-     */
-    width.value = withSpring(slot.width - INSET * 2, SLIDE);
-    /*
-     * `withSpring` repart de la position **et de la vitesse** courantes.
-     * Enchaîner Accueil puis Documents ne met donc rien en file d'attente :
-     * la cible change, la lentille est déjà en vol, elle se redirige.
-     */
-    centre.value = withSpring(destination, SLIDE);
-    fade.value = withTiming(unselected ? 0 : 1, { duration: DURATION.instant, easing: EASE_OUT });
-  }, [activeIndex, centre, fade, measured, reduced, span, target, unselected, width]);
+  }, [activeIndex, lensValues, measured, moveLens, unselected]);
 
   /*
-   * L'étirement.
+   * La présence, pour les icônes.
    *
-   * Un rectangle qui se déplace d'un point à un autre reste un rectangle qui
-   * se déplace. Ce qui donne à la matière son caractère, c'est qu'elle se
-   * laisse tirer : elle s'allonge dans le sens de la course et reprend sa
-   * forme en arrivant, comme une goutte.
-   *
-   * Il est déduit de l'écart qui reste à parcourir — donc de la vitesse
-   * réelle — et jamais d'un minuteur. Il est plafonné pour que la lentille ne
-   * devienne pas une traînée.
+   * Elle se déduit de la distance entre la lentille et l'onglet : c'est ce qui
+   * fait que les libellés s'allument au passage de la capsule plutôt qu'au
+   * moment où la route change.
    */
-  const stretch = useDerivedValue(() => {
-    if (span.value <= 0) return 0;
-    return Math.min(Math.abs(target.value - centre.value) / span.value, 1);
-  });
 
   /*
-   * Une petite pulsation à l'arrivée, une fois la course finie.
+   * Une petite pulsation à l'arrivée.
    *
-   * Le retour haptique au moment du toucher dit « j'ai compris » ; celui-ci
-   * dit « j'y suis ». Il n'est émis qu'au franchissement du seuil, jamais en
-   * continu, et jamais pendant une course interrompue.
+   * Le retour haptique au moment du toucher dit « j'ai compris ». Celui-ci
+   * disait « j'y suis », au franchissement d'un seuil d'étirement — mais
+   * l'étirement n'est plus dérivé de la distance restante, il est piloté par
+   * une séquence courte, et un second retour haptique sur une interaction de
+   * 180 ms se confond avec le premier. Il est retiré : un seul toucher, une
+   * seule réponse.
    */
-  const settle = React.useCallback(() => {
-    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(() => undefined);
-  }, []);
-  useAnimatedReaction(
-    () => stretch.value,
-    (now, before) => {
-      if (before != null && before > 0.06 && now <= 0.06) runOnJS(settle)();
-    },
-  );
 
   const lens = useAnimatedStyle(() => ({
     opacity: fade.value,
     width: width.value,
     transform: [
-      { translateX: centre.value - width.value / 2 },
       /*
-       * L'étirement est réduit de 0,18 à 0,10. Avec une traversée deux fois
-       * plus longue, il n'a plus à suggérer la vitesse — et à 0,18 la capsule
-       * s'élargissait au point de couvrir deux onglets en même temps, ce qui
-       * se lit comme une bavure plutôt que comme un objet qui se déplace.
+       * `translateX` est le mouvement, et le seul. La largeur est posée, pas
+       * animée ; l'étirement est un `scaleX` qui monte à 1,06 puis revient —
+       * assez pour que la matière se sente tirée, trop peu pour relier deux
+       * onglets.
        */
-      { scaleX: 1 + stretch.value * 0.1 },
-      { scaleY: 1 - stretch.value * 0.04 },
+      { translateX: centre.value - width.value / 2 },
+      { scaleX: stretchX.value },
+      { scaleY: stretchY.value },
     ],
   }));
 
+  /**
+   * Un toucher d'onglet, dans l'ordre où l'utilisateur le perçoit.
+   *
+   * La lentille part **avant** la navigation, pas après : elle visait
+   * auparavant la route, donc elle attendait que le routeur ait résolu l'écran
+   * pour se mettre en marche, et ce délai s'ajoutait à la durée de
+   * l'animation. Le mouvement est la réponse au doigt ; le contenu suit.
+   */
   const select = (name: string) => {
     const route = state.routes.find((candidate) => candidate.name === name);
     if (!route) return;
+    const index = items.findIndex((item) => item.name === name);
+    if (index >= 0 && index !== aimed.current) {
+      const from = aimed.current;
+      aimed.current = index;
+      moveLens(index, from);
+    }
     const event = navigation.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
     if (event.defaultPrevented) return;
     navigation.navigate(route.name, route.params);
@@ -535,18 +532,43 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
                 top: INSET + 1,
                 height: BAR_HEIGHT - (INSET + 1) * 2,
                 borderRadius: radius.lg,
-                backgroundColor: lensColor,
+                overflow: 'hidden',
+                // Sans verre natif, la teinte est portée par la vue elle-même.
+                backgroundColor: kind === 'liquid' ? 'transparent' : lensColor,
               },
               lens,
             ]}
-          />
+          >
+            {/*
+              Le matériau reste **monté** et se déplace avec elle.
+
+              Il n'est jamais éteint pour être rallumé ailleurs : deux pastilles
+              dont l'une s'efface pendant que l'autre apparaît donnent un fondu,
+              pas un déplacement — et le verre natif se comporte mal quand on
+              l'anime vers une opacité nulle. Il n'y a donc qu'un seul
+              `GlassView`, et c'est la vue qui le porte qu'on translate.
+
+              La seule opacité animée est celle du cas « aucune destination
+              sélectionnée » — une route masquée comme la création — qui
+              n'arrive jamais entre deux onglets.
+            */}
+            {kind === 'liquid' ? (
+              <GlassView
+                style={StyleSheet.absoluteFill}
+                glassEffectStyle="regular"
+                colorScheme={dark ? 'dark' : 'light'}
+                tintColor={lensColor}
+                isInteractive={false}
+              />
+            ) : null}
+          </Animated.View>
           {items.map((item, index) => (
             <TabItem
               key={item.name}
               item={item}
               index={index}
               centre={centre}
-              span={span}
+              span={width}
               onLayout={onSlotLayout}
               label={labelFor(item.name)}
               active={item.name === activeName}

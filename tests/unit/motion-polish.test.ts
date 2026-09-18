@@ -89,6 +89,11 @@ describe('barre de navigation', () => {
     expect(glass).not.toMatch(/borderColor:\s*'rgba\(255,\s*255,\s*255/);
     const bar = read('src/components/glass-tab-bar.tsx');
     expect(bar).toContain('useReducedMotion');
-    expect(bar).toContain('withSpring');
+    /*
+     * La lentille n'utilise plus de ressort : un ressort donne une durée
+     * proportionnelle à la distance, et la traversée d'un bout à l'autre de la
+     * barre y traînait. Elle suit une courbe plafonnée à 220 ms.
+     */
+    expect(read('src/components/tab-lens-motion.ts')).toContain('withTiming(destination');
   });
 });

@@ -73,8 +73,15 @@ describe('mouvement', () => {
       // Au-delà de 1, le ressort devient mou : il n'arrive plus, il s'échoue.
       expect(ratio).toBeLessThanOrEqual(1.05);
     }
-    // La barre reprend ce vocabulaire au lieu de régler ses propres valeurs.
-    expect(mobile('src/components/glass-tab-bar.tsx')).toContain('const SLIDE = SPRING.travel;');
+    /*
+     * La lentille des onglets ne prend plus de ressort du tout : un ressort
+     * donne une durée proportionnelle à la distance, et Accueil → Compte y
+     * traînait. Elle utilise une courbe plafonnée, mais reprend le même
+     * vocabulaire — `EASE_OUT` et les durées communes.
+     */
+    const motionModule = mobile('src/components/tab-lens-motion.ts');
+    expect(motionModule).toContain("import { DURATION, EASE_OUT } from '@/theme/motion';");
+    expect(motionModule).not.toContain('withSpring');
   });
 });
 

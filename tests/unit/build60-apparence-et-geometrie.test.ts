@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { readFileSync } from 'node:fs';
 import { isPreference, migratePreference, resolveScheme } from '../../mobile/src/lib/scheme-resolver';
+import { travelDuration } from '../../mobile/src/components/tab-lens-timing';
 
 const mobile = (path: string) => readFileSync(`mobile/${path}`, 'utf8');
 /** Le fichier sans ses commentaires : ils citent les défauts corrigés. */
@@ -130,68 +131,100 @@ describe('une seule zone sûre en tête d’écran', () => {
   });
 });
 
-describe('la lentille se déplace, toujours', () => {
+
+describe('la lentille se déplace vite, et d’un seul geste', () => {
   const bar = mobile('src/components/glass-tab-bar.tsx');
 
   /*
-   * Une seule vue de sélection. Cinq fonds qu'on ferait apparaître et
-   * disparaître donnent une sélection qui *change de place* ; une seule vue
-   * qui se déplace donne une sélection qui *y va*.
+   * Une seule vue de sélection, et un seul matériau à l'intérieur : deux
+   * pastilles dont l'une s'efface pendant que l'autre apparaît donnent un
+   * fondu, pas un déplacement.
    */
   it('ne rend qu’une seule lentille, hors de la boucle des onglets', () => {
     const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
     expect(lens.match(/<Animated\.View/g)?.length).toBe(1);
+    expect(lens.match(/<GlassView/g)?.length).toBe(1);
     const loop = bar.slice(bar.indexOf('{items.map((item, index) =>'));
     expect(loop).not.toContain('backgroundColor: lensColor');
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
   });
 
   /*
-   * Le défaut signalé sur appareil : la lentille se téléportait.
+   * La durée, plafonnée.
    *
-   * Elle ne sautait que dans un cas — mouvement réduit — mais ce cas était
-   * atteint bien plus souvent qu'il n'aurait dû, `useReducedMotion` supposant
-   * « oui » quand la question à iOS échouait. Deux corrections, donc : le
-   * doute penche du côté du mouvement, et même en mouvement réduit la capsule
-   * traverse au lieu de sauter.
+   * Le ressort précédent s'établissait en ~450 ms et mettait 0,64 s sur
+   * l'appareil : la capsule se déplaçait, mais on l'attendait. Un ressort donne
+   * en outre une durée proportionnelle à la distance, si bien qu'Accueil →
+   * Compte traînait deux fois plus qu'un onglet voisin.
    */
-  it('anime quand la question posée à iOS échoue', () => {
-    const motion = mobile('src/components/motion.tsx');
-    expect(motion).toContain('.catch(() => setReduced(false));');
+  it.each([
+    [1, 171],
+    [2, 187],
+    [3, 203],
+    [4, 219],
+  ])('%i onglet(s) franchi(s) = %i ms', (jumped, expected) => {
+    expect(travelDuration(jumped)).toBe(expected);
   });
 
-  it('traverse même en mouvement réduit, au lieu de sauter', () => {
-    const effect = bar.slice(bar.indexOf('if (!positioned.current)'));
-    const reducedBranch = effect.slice(effect.indexOf('if (reduced) {'), effect.indexOf('width.value = withSpring'));
-    expect(reducedBranch).toContain('centre.value = withTiming(destination');
-    // Le seul placement instantané reste le tout premier, au montage.
-    expect(effect.slice(0, effect.indexOf('if (reduced)'))).toContain('centre.value = destination;');
-  });
-
-  it('fait suivre la largeur au même ressort que la position', () => {
-    expect(bar).toContain('centre.value = withSpring(destination, SLIDE)');
-    expect(bar).toContain('width.value = withSpring(slot.width - INSET * 2, SLIDE)');
-  });
-
-  it('se redirige en vol au lieu d’empiler les animations', () => {
-    expect(bar).toContain('Math.abs(target.value - centre.value)');
-  });
-
-  it('prend sa position de la mesure réelle des onglets', () => {
-    expect(bar).toContain('onLayout={measure}');
-    expect(bar).toContain('slot.x + slot.width / 2');
-    expect(code(bar)).not.toContain('barWidth / items.length');
+  it('ne dépasse jamais 220 ms, quelle que soit la distance', () => {
+    for (const jumped of [5, 8, 20]) expect(travelDuration(jumped)).toBeLessThanOrEqual(220);
+    // Et reste dans la fenêtre demandée pour un onglet voisin.
+    expect(travelDuration(1)).toBeGreaterThanOrEqual(150);
+    expect(travelDuration(1)).toBeLessThanOrEqual(180);
   });
 
   /*
-   * Les icônes suivent la lentille plutôt que l'onglet actif : sans cela, la
-   * couleur sauterait pendant que la capsule glisse — ce qui se voit plus que
-   * l'animation qu'on cherchait à retirer.
+   * `translateX` porte le déplacement, et lui seul. La largeur animée était la
+   * cause de l'étirement qui reliait deux onglets pendant plusieurs images.
    */
-  it('fait suivre les icônes à la lentille, même en mouvement réduit', () => {
-    const presence = bar.slice(bar.indexOf('const presence = useDerivedValue'), bar.indexOf('const outline'));
-    expect(presence).not.toContain('if (reduced)');
-    expect(presence).toContain('Math.abs(centre.value - own)');
+  it('n’anime que la position, jamais la largeur', () => {
+    const motion = mobile('src/components/tab-lens-motion.ts');
+    expect(motion).toContain('lens.centre.value = withTiming(destination');
+    expect(motion).toContain('lens.width.value = value;');
+    expect(motion).not.toMatch(/width\.value = with(Timing|Spring)/);
+    expect(motion).not.toContain('withSpring');
+  });
+
+  it('annule avant de viser ailleurs, pour repartir de sa position courante', () => {
+    const motion = mobile('src/components/tab-lens-motion.ts');
+    const travel = motion.slice(motion.indexOf('export function travelTo'));
+    const cancel = travel.indexOf('cancelAnimation(lens.centre)');
+    const assign = travel.indexOf('lens.centre.value = withTiming');
+    expect(cancel).toBeGreaterThan(0);
+    expect(assign).toBeGreaterThan(cancel);
+  });
+
+  /*
+   * Le mouvement part du **toucher**, pas de la route.
+   *
+   * Il était déclenché par un effet dépendant de `state.index` : la capsule
+   * n'avait le droit de bouger qu'une fois la navigation résolue, et ce délai
+   * s'ajoutait à la durée de l'animation.
+   */
+  it('part au toucher, la route ne faisant que rattraper', () => {
+    const select = bar.slice(bar.indexOf('const select = (name: string)'), bar.indexOf('const labelFor'));
+    const move = select.indexOf('moveLens(index, from)');
+    const navigate = select.indexOf('navigation.navigate');
+    expect(move).toBeGreaterThan(0);
+    expect(navigate).toBeGreaterThan(move);
+  });
+
+  it('change d’onglet par le navigateur, sans pousser d’écran', () => {
+    const select = bar.slice(bar.indexOf('const select = (name: string)'), bar.indexOf('const labelFor'));
+    expect(select).toContain('navigation.navigate(route.name, route.params)');
+    expect(select).not.toContain('router.push');
+  });
+
+  it('anime quand la question posée à iOS échoue', () => {
+    expect(mobile('src/components/motion.tsx')).toContain('.catch(() => setReduced(false));');
+  });
+
+  it('garde les écrans montés d’un onglet à l’autre', () => {
+    const layout = mobile('app/(app)/_layout.tsx');
+    expect(layout).toContain('detachInactiveScreens={false}');
+    expect(layout).toContain('freezeOnBlur: false');
+    // Et la barre vit au niveau du navigateur : elle ne se remonte pas.
+    expect(layout).toContain('tabBar={props => <GlassTabBar {...props} />}');
   });
 });
 

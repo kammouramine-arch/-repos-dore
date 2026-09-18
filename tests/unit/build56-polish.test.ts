@@ -240,27 +240,29 @@ describe('barre d’onglets', () => {
     expect(code(bar)).not.toContain('progress.value = reduced');
   });
 
-  it('étire la capsule dans le sens de sa course', () => {
+  /*
+   * L'étirement était déduit de la distance restante, donc de la vitesse. Cela
+   * paraissait plus juste et donnait une capsule qui reliait deux onglets
+   * pendant tout le trajet — une bavure, pas un déplacement. Il est maintenant
+   * une séquence courte : 1,06 puis retour à 1 avant l'arrivée.
+   */
+  it('étire à peine la capsule, et lui rend sa forme avant l’arrivée', () => {
+    const motion = mobile('src/components/tab-lens-motion.ts');
+    expect(motion).toContain('withTiming(1.06');
+    expect(motion).toContain('withTiming(0.985');
     const bar = mobile('src/components/glass-tab-bar.tsx');
-    expect(bar).toContain('const stretch = useDerivedValue');
-    expect(bar).toContain('scaleX: 1 + stretch.value');
-    // Déduit de la distance restante, donc de la vitesse — jamais d'un
-    // minuteur, sans quoi une course interrompue garderait l'ancienne forme.
-    expect(bar).toContain('Math.abs(target.value - centre.value)');
+    expect(bar).toContain('{ scaleX: stretchX.value }');
+    expect(bar).toContain('{ scaleY: stretchY.value }');
   });
 
-  /*
-   * Une vue d'effet natif imbriquée dans une autre ne suit pas une
-   * transformation animée de façon fiable : le matériau se redessine à sa
-   * position finale et la lentille « apparaît ailleurs » au lieu de glisser.
-   * La composition est donc celle d'iOS — le plateau est le verre, la lentille
-   * est une teinte posée dessus, et c'est elle qui bouge.
-   */
   it('garde le verre pour le plateau et une teinte pour la lentille', () => {
     const bar = mobile('src/components/glass-tab-bar.tsx');
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
     const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
-    expect(lens).toContain('backgroundColor: lensColor');
+    // Le matériau de la lentille est un `GlassView` monté une fois, qu'on
+    // translate — pas un `GlassSurface` imbriqué, et jamais deux pastilles
+    // dont l'une s'efface pendant que l'autre apparaît.
+    expect(lens).toContain('<GlassView');
     expect(lens).not.toContain('<GlassSurface');
   });
 });

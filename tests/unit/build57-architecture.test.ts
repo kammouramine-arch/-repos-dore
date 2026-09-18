@@ -200,8 +200,16 @@ describe('une seule lentille de sélection', () => {
 
   it('se redirige en vol au lieu d’empiler les animations', () => {
     // `withSpring` repart de la position **et de la vitesse** courantes.
-    expect(bar).toContain('centre.value = withSpring(destination, SLIDE)');
-    expect(bar).toContain('Math.abs(target.value - centre.value)');
+    /*
+     * `withSpring` repartait de la position et de la vitesse courantes, ce qui
+     * suffisait à rediriger. Une courbe n'a pas cette propriété : il faut
+     * annuler explicitement avant de viser ailleurs, sans quoi la lentille
+     * finirait son trajet précédent.
+     */
+    const motion = mobile('src/components/tab-lens-motion.ts');
+    const travel = motion.slice(motion.indexOf('export function travelTo'));
+    expect(travel.indexOf('cancelAnimation(lens.centre)')).toBeGreaterThan(0);
+    expect(travel.indexOf('lens.centre.value = withTiming')).toBeGreaterThan(travel.indexOf('cancelAnimation(lens.centre)'));
   });
 
   it('laisse le verre au plateau et une teinte à la lentille', () => {
@@ -210,6 +218,8 @@ describe('une seule lentille de sélection', () => {
     expect(bar.match(/<GlassSurface/g)?.length).toBe(1);
     const lens = bar.slice(bar.indexOf('La lentille : une seule vue'));
     expect(lens).not.toContain('<GlassSurface');
+    // Un seul matériau à l'intérieur, monté une fois et déplacé.
+    expect(lens.match(/<GlassView/g)?.length).toBe(1);
   });
 });
 
