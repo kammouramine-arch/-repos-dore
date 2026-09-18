@@ -21,6 +21,7 @@ import {
   type ViewStyle,
   type RefreshControlProps,
 } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import * as Haptics from 'expo-haptics';
 import Ionicons from '@expo/vector-icons/Ionicons';
 import { formatCents } from '@devisia/shared';
@@ -604,9 +605,20 @@ export function Screen({
    */
   onScroll?: ReturnType<typeof useAnimatedScrollHandler>;
 }) {
+  const insets = useSafeAreaInsets();
+  /*
+   * La marge haute par défaut : la zone sûre, une seule fois.
+   *
+   * Un écran qui veut autre chose passe `contentStyle.paddingTop` et remplace
+   * cette valeur — c'est ce que font l'accueil et Mon compte, qui ajoutent
+   * leur propre respiration à `insets.top`.
+   */
   const content = (
     <View
-      style={[{ padding: spacing.xl, gap: spacing.xl, paddingBottom: spacing['5xl'] }, contentStyle]}
+      style={[
+        { padding: spacing.xl, gap: spacing.xl, paddingTop: insets.top + spacing.xl, paddingBottom: spacing['5xl'] },
+        contentStyle,
+      ]}
     >
       {reveal ? <ScreenReveal>{children}</ScreenReveal> : children}
     </View>
@@ -621,7 +633,23 @@ export function Screen({
   return (
     <Container
       style={{ flex: 1, backgroundColor: background }}
-      contentInsetAdjustmentBehavior={transparent ? 'never' : 'automatic'}
+      /*
+       * Une seule source pour la marge haute, et c'est l'écran.
+       *
+       * « automatic » demande à iOS d'ajouter lui-même la zone sûre au
+       * contenu. L'accueil et Mon compte l'ajoutaient **aussi**, par
+       * `useBrandSurface().paddingTop` : sur un iPhone à encoche, 59 points
+       * étaient donc comptés deux fois, plus 16 de respiration — 134 points
+       * de bleu vide avant le premier pixel d'identité.
+       *
+       * Rien ne le montrait en revue : sur le paquet web, les deux valent
+       * zéro. Il fallait un appareil, ou ce commentaire.
+       *
+       * Désormais iOS n'ajuste jamais, et chaque écran déclare sa marge —
+       * `Screen` la fournit par défaut, une fois.
+       */
+      contentInsetAdjustmentBehavior="never"
+      automaticallyAdjustContentInsets={false}
       keyboardShouldPersistTaps="handled"
       keyboardDismissMode={Platform.OS === 'ios' ? 'interactive' : 'on-drag'}
       showsVerticalScrollIndicator={false}

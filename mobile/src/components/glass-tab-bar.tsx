@@ -154,12 +154,19 @@ function TabItem({
    * mi-course laisse deux icônes à moitié allumées, ce qui est exactement
    * juste.
    */
+  /*
+   * La présence d'un onglet = la proximité de la lentille.
+   *
+   * Elle n'est plus court-circuitée en mouvement réduit : la lentille se
+   * déplace dans ce cas aussi, seulement plus vite, et les icônes doivent
+   * continuer de la suivre — sinon la couleur saute pendant que la capsule
+   * glisse, ce qui se voit davantage que l'animation qu'on voulait retirer.
+   */
   const presence = useDerivedValue(() => {
-    if (reduced) return active ? 1 : 0;
     if (!slot || span.value <= 0) return active ? 1 : 0;
     const own = slot.x + slot.width / 2;
     return Math.max(0, 1 - Math.abs(centre.value - own) / span.value);
-  }, [active, reduced, slot]);
+  }, [active, slot]);
 
   const outline = useAnimatedStyle(() => ({ opacity: 1 - presence.value }));
   const filled = useAnimatedStyle(() => ({ opacity: presence.value }));
@@ -337,16 +344,47 @@ export function GlassTabBar({ state, navigation }: BottomTabBarProps) {
     const destination = slot.x + slot.width / 2;
     target.value = destination;
     span.value = slot.width;
-    width.value = slot.width - INSET * 2;
 
     // Premier positionnement sans mouvement : la lentille ne doit pas
     // traverser la barre depuis la gauche à chaque montage.
-    if (!positioned.current || reduced) {
+    if (!positioned.current) {
       positioned.current = true;
       centre.value = destination;
+      width.value = slot.width - INSET * 2;
       fade.value = unselected ? 0 : 1;
       return;
     }
+
+    /*
+     * Même en mouvement réduit, la lentille **se déplace**.
+     *
+     * La version précédente la téléportait dans ce cas : elle disparaissait
+     * d'un onglet pour réapparaître sur l'autre. C'est exactement ce que
+     * l'appareil montrait, et la cause en était plus large qu'il n'y paraît —
+     * `useReducedMotion` supposait « oui » quand la question échouait, si bien
+     * qu'une lecture ratée immobilisait toute l'application.
+     *
+     * « Réduire les animations » demande moins de mouvement, pas des sauts :
+     * un objet qui change de place sans la traverser est précisément ce que ce
+     * réglage cherche à éviter. On garde donc la traversée, en la raccourcissant
+     * et en la rendant linéaire.
+     */
+    if (reduced) {
+      centre.value = withTiming(destination, { duration: DURATION.quick, easing: EASE_OUT });
+      width.value = withTiming(slot.width - INSET * 2, { duration: DURATION.quick, easing: EASE_OUT });
+      fade.value = withTiming(unselected ? 0 : 1, { duration: DURATION.instant, easing: EASE_OUT });
+      return;
+    }
+
+    /*
+     * La largeur suit le même ressort que la position.
+     *
+     * Elle était posée d'un coup pendant que le centre glissait : la capsule
+     * changeait de taille sur place puis partait, ce qui se lit comme deux
+     * gestes au lieu d'un. Le même ressort pour les deux donne un objet unique
+     * qui se déforme en chemin.
+     */
+    width.value = withSpring(slot.width - INSET * 2, SLIDE);
     /*
      * `withSpring` repart de la position **et de la vitesse** courantes.
      * Enchaîner Accueil puis Documents ne met donc rien en file d'attente :

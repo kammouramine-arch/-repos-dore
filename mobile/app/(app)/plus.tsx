@@ -50,7 +50,7 @@ export default function PlusScreen() {
   const { session, signOut } = useAuth();
   const locale = useMobileLocale();
   const en = locale === 'en';
-  const surface = useBrandSurface('settings');
+  useBrandSurface('settings');  // style de barre d’état ; la marge haute vient de `Screen`
   const tabBarSpace = useTabBarSpace();
   const brandScroll = useBrandScroll();
 
@@ -139,7 +139,7 @@ export default function PlusScreen() {
         C'est la correction de fond du défaut constaté — ce n'était pas une
         question de couleur mais d'architecture de calques.
       */}
-      <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+      <Screen contentStyle={{ paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
         {/*
           Une identité de profil, pas une page de couverture.
 

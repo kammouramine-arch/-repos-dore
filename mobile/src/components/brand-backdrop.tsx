@@ -1,10 +1,9 @@
 import * as React from 'react';
 import { useWindowDimensions } from 'react-native';
 import { useAnimatedScrollHandler, useSharedValue } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useFocusEffect } from 'expo-router';
 import { setStatusBarStyle } from 'expo-status-bar';
-import { activeScheme, spacing } from '@/theme';
+import { activeScheme } from '@/theme';
 import { GRADIENT_SPAN } from '@/theme/gradient';
 
 /**
@@ -21,14 +20,19 @@ import { GRADIENT_SPAN } from '@/theme/gradient';
 
 export function useBrandSurface(span: keyof typeof GRADIENT_SPAN = 'home') {
   const { height } = useWindowDimensions();
-  const insets = useSafeAreaInsets();
   useFocusEffect(
     React.useCallback(() => {
       setStatusBarStyle('light');
       return () => setStatusBarStyle(activeScheme() === 'dark' ? 'light' : 'dark');
     }, []),
   );
-  return { gradientHeight: Math.round(height * GRADIENT_SPAN[span]), paddingTop: insets.top + spacing.lg };
+  /*
+   * `paddingTop` a disparu : c'est `Screen` qui pose la zone sûre, une seule
+   * fois. La cumuler ici la comptait deux fois — iOS l'ajoutait déjà par
+   * `contentInsetAdjustmentBehavior`, ce qui donnait 134 points de bleu vide
+   * en tête d'écran sur un iPhone à encoche.
+   */
+  return { gradientHeight: Math.round(height * GRADIENT_SPAN[span]) };
 }
 
 /**

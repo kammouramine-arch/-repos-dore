@@ -29,7 +29,17 @@ export function useReducedMotion() {
   const [reduced, setReduced] = React.useState(false);
 
   React.useEffect(() => {
-    void AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => setReduced(true));
+    /*
+     * En cas d'échec, on **anime**.
+     *
+     * La version précédente supposait « mouvement réduit » quand la question
+     * échouait. C'est le mauvais côté du doute : le réglage iOS est désactivé
+     * par défaut, donc échouer à le lire immobilisait toute l'application —
+     * la lentille des onglets se téléportait, le héros ne se repliait plus —
+     * pour quelqu'un qui n'avait rien demandé de tel. On ne retire le
+     * mouvement que sur un « oui » franc.
+     */
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduced).catch(() => setReduced(false));
     const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduced);
     return () => subscription.remove();
   }, []);

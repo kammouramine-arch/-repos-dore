@@ -70,51 +70,43 @@ describe('changer de thème ne démonte rien', () => {
    * en sombre gardait une barre d'onglets noire sous une application passée en
    * clair — deux thèmes à l'écran en même temps.
    */
-  it('aligne l’apparence native sur le thème choisi dans l’application', () => {
-    expect(mobile('src/lib/appearance.tsx')).toContain('Appearance.setColorScheme(');
+  /*
+   * Ces trois garanties tiennent toujours, mais elles ont changé d'adresse au
+   * build 60 : l'apparence du système vit désormais dans `system-scheme.ts`,
+   * à l'abri de la surcharge que l'application impose à iOS.
+   *
+   * Le correctif du build 58 — ne rien imposer avant d'avoir lu la préférence —
+   * traitait le symptôme sans le fond : tant que « automatique » se résolvait
+   * en relisant `Appearance.getColorScheme()`, l'application lisait sa propre
+   * écriture, et il suffisait d'un évènement iOS manquant pour qu'elle reste
+   * claire sur un téléphone sombre.
+   */
+  it('aligne l’apparence native sur le thème choisi, comme une sortie', () => {
+    expect(mobile('src/lib/system-scheme.ts')).toContain('Appearance.setColorScheme(');
+    // Et l'application ne relit jamais ce qu'elle vient d'imposer.
+    expect(code(mobile('src/lib/appearance.tsx'))).not.toContain('Appearance.getColorScheme');
   });
 
-  /*
-   * Le piège de cet alignement, et la raison d'être de ce test.
-   *
-   * `Appearance.setColorScheme` pose une **surcharge** au niveau de
-   * l'application, et `useColorScheme()` renvoie ensuite cette surcharge — plus
-   * celle du système. La version précédente la posait dès le premier rendu,
-   * avant d'avoir lu la préférence : la surcharge valait « clair », la
-   * préférence arrivait à « automatique », et « automatique » lisait « clair ».
-   * L'iPhone avait beau être en sombre, DEVISERA restait clair pour toujours.
-   *
-   * Deux règles en découlent, et elles sont vérifiées ici parce qu'elles se
-   * cassent en silence : on ne pose rien avant de savoir, et « automatique »
-   * n'a **aucune** surcharge.
-   */
   it('n’impose rien à iOS tant que la préférence n’est pas lue', () => {
     const provider = mobile('src/lib/appearance.tsx');
-    // La surcharge est posée à la lecture de la préférence…
     const read = provider.indexOf('void readChoice().then');
-    const applied = provider.indexOf('applyNativeOverride(stored)');
+    const applied = provider.indexOf('applySystemOverride(stored)');
     expect(read).toBeGreaterThan(0);
     expect(applied).toBeGreaterThan(read);
-    // …et jamais depuis l'effet qui publie le thème, qui s'exécute avant.
-    const publish = provider.slice(provider.indexOf('React.useLayoutEffect'));
-    expect(publish.slice(0, 220)).not.toContain('setColorScheme');
   });
 
   it('rend la main au système quand le choix est « automatique »', () => {
-    const provider = mobile('src/lib/appearance.tsx');
-    // `null` efface la surcharge : c'est ce qui rend `useColorScheme()` à
-    // nouveau fiable, donc ce qui fait marcher « automatique ».
-    expect(provider).toContain("choice === 'system' ? null : choice");
-    // Et le thème effectif suit le système dans ce cas, sans le mémoriser.
-    expect(provider).toContain("choice == null || choice === 'system' ? system : choice");
+    const store = mobile('src/lib/system-scheme.ts');
+    // `null` efface la surcharge : c'est ce que veut dire « automatique ».
+    expect(store).toContain("choice === 'system' ? null : choice");
+    // Et la résolution est une fonction pure, sans mémoire du thème courant.
+    expect(mobile('src/lib/scheme-resolver.ts')).toContain("return preference === 'system' ? system : preference;");
   });
 
   it('relit l’apparence du système au réveil de l’application', () => {
-    // iOS peut basculer pendant que l'application dort, et la notification se
-    // perd parfois : au retour au premier plan, on relit.
-    const provider = mobile('src/lib/appearance.tsx');
-    expect(provider).toContain("AppState.addEventListener('change'");
-    expect(provider).toContain('Appearance.getColorScheme()');
+    const store = mobile('src/lib/system-scheme.ts');
+    expect(store).toContain("AppState.addEventListener('change'");
+    expect(store).toContain('Appearance.getColorScheme()');
   });
 
   it('ne promet plus que le thème s’appliquera au prochain lancement', () => {

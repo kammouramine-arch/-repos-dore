@@ -177,7 +177,7 @@ export default function AccueilScreen() {
   const router = useRouter();
   const { session } = useAuth();
   const en = useMobileLocale() === 'en';
-  const surface = useBrandSurface();
+  useBrandSurface();  // style de barre d’état ; la marge haute vient de `Screen`
   const tabBarSpace = useTabBarSpace();
   const brandScroll = useBrandScroll();
 
@@ -243,7 +243,7 @@ export default function AccueilScreen() {
      */
     return (
       <View style={{ flex: 1, backgroundColor: colors.surface }}>
-        <Screen contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
+        <Screen contentStyle={{ paddingBottom: tabBarSpace }} onScroll={brandScroll.onScroll}>
           <BrandAtmosphere scrollY={brandScroll.scrollY}>
             <HomeHero
               scrollY={brandScroll.scrollY}
@@ -334,7 +334,7 @@ export default function AccueilScreen() {
         quelle que soit la position de défilement.
       */}
       <Screen
-        contentStyle={{ paddingTop: surface.paddingTop, paddingBottom: tabBarSpace }}
+        contentStyle={{ paddingBottom: tabBarSpace }}
         onScroll={brandScroll.onScroll}
         refreshControl={
           <RefreshControl

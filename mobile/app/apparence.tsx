@@ -42,15 +42,51 @@ const OPTIONS: { value: AppearanceChoice; icon: keyof typeof Ionicons.glyphMap; 
 ];
 
 /** Aperçu miniature : une page, une carte, un bouton — dans le thème visé. */
-function Sample({ dark }: { dark: boolean }) {
-  const page = dark ? '#0B0F17' : '#F5F7FB';
-  const card = dark ? '#131924' : '#FFFFFF';
-  const line = dark ? '#303A4B' : '#D8DEE8';
-  const accent = dark ? '#5C7CFF' : '#2F52E8';
+const SAMPLE = {
+  light: { page: '#F5F7FB', card: '#FFFFFF', line: '#D8DEE8', accent: '#2F52E8' },
+  dark: { page: '#0B0F17', card: '#131924', line: '#303A4B', accent: '#5C7CFF' },
+} as const;
+
+function Face({ tone }: { tone: 'light' | 'dark' }) {
+  const { page, card, accent } = SAMPLE[tone];
   return (
-    <View style={{ width: 46, height: 46, borderRadius: 12, backgroundColor: page, borderWidth: 1, borderColor: line, padding: 6, gap: 4, overflow: 'hidden' }}>
+    <View style={{ width: 46, height: 46, backgroundColor: page, padding: 6, gap: 4 }}>
       <View style={{ height: 8, borderRadius: 3, backgroundColor: accent, width: '70%' }} />
-      <View style={{ flex: 1, borderRadius: 5, backgroundColor: card, borderWidth: 1, borderColor: line }} />
+      <View style={{ flex: 1, borderRadius: 5, backgroundColor: card }} />
+    </View>
+  );
+}
+
+/**
+ * L'aperçu d'une option.
+ *
+ * « Clair » et « Sombre » montrent le thème qu'ils imposent. « Automatique »
+ * n'impose rien : son aperçu est **coupé en deux**, une moitié claire et une
+ * moitié sombre. L'ancienne version lui donnait le thème résolu du moment, si
+ * bien qu'il était indiscernable de « Sombre » sur un iPhone sombre — la
+ * vignette ne disait plus ce que l'option fait, seulement ce qu'elle donne
+ * aujourd'hui.
+ */
+function Sample({ tone }: { tone: 'light' | 'dark' | 'auto' }) {
+  const border = tone === 'light' ? SAMPLE.light.line : SAMPLE.dark.line;
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={{ width: 46, height: 46, borderRadius: 12, borderWidth: 1, borderColor: border, overflow: 'hidden' }}
+    >
+      {tone === 'auto' ? (
+        <View style={{ flexDirection: 'row', width: 46, height: 46 }}>
+          {/* Deux moitiés, chacune rendue en pleine largeur puis rognée : les
+              proportions du dessin restent celles des deux autres vignettes. */}
+          <View style={{ width: 23, overflow: 'hidden' }}><Face tone="light" /></View>
+          <View style={{ width: 23, overflow: 'hidden' }}>
+            <View style={{ marginLeft: -23 }}><Face tone="dark" /></View>
+          </View>
+        </View>
+      ) : (
+        <Face tone={tone} />
+      )}
     </View>
   );
 }
@@ -60,16 +96,16 @@ export default function ApparenceScreen() {
   // et la position de défilement survivent au changement de thème.
   useThemeScheme();
   const en = useMobileLocale() === 'en';
-  const { choice, scheme, setChoice } = useAppearance();
+  const { choice, setChoice } = useAppearance();
 
   return (
     <Screen>
       <Card style={{ padding: 0, overflow: 'hidden' }}>
         {OPTIONS.map((option, index) => {
           const selected = choice === option.value;
-          // L'aperçu d'« Automatique » montre ce que le système donne en ce
-          // moment : c'est la seule réponse honnête à « ça donnera quoi ? ».
-          const previewDark = option.value === 'dark' || (option.value === 'system' && scheme === 'dark');
+          // La coche suit la **préférence**, jamais le thème résolu :
+          // « Automatique » reste coché sur un iPhone passé en sombre.
+          const tone = option.value === 'system' ? 'auto' : option.value;
           return (
             <Pressable
               key={option.value}
@@ -93,7 +129,7 @@ export default function ApparenceScreen() {
                 backgroundColor: pressed ? colors.surface2 : 'transparent',
               })}
             >
-              <Sample dark={previewDark} />
+              <Sample tone={tone} />
               <View style={{ flex: 1, gap: 2 }}>
                 <Body style={{ fontWeight: '600' }}>{en ? option.title.en : option.title.fr}</Body>
                 <Muted style={{ fontSize: 13 }}>{en ? option.body.en : option.body.fr}</Muted>
