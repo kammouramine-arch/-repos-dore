@@ -1582,3 +1582,9 @@ model AiConsent {
   @@unique([userId, organizationId])
   @@map("ai_consents")
 }
+
+// At-most-once Meta SDK handoff; opaque HMAC keys only.
+model MetaEventClaim {
+  id String @id
+  createdAt DateTime @default(now())
+}

@@ -1,0 +1,22 @@
+diff --git a/node_modules/react-native-fbsdk-next/ios/ExpoAdapterFBSDKNext/FacebookAppDelegate.swift b/node_modules/react-native-fbsdk-next/ios/ExpoAdapterFBSDKNext/FacebookAppDelegate.swift
+index 17f4c2e..ef5f159 100644
+--- a/node_modules/react-native-fbsdk-next/ios/ExpoAdapterFBSDKNext/FacebookAppDelegate.swift
++++ b/node_modules/react-native-fbsdk-next/ios/ExpoAdapterFBSDKNext/FacebookAppDelegate.swift
+@@ -3,6 +3,8 @@ import FBSDKCoreKit
+ 
+ public class FacebookAppDelegate: ExpoAppDelegateSubscriber {
+   public func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
++    // Explicit JS initialization only after both app consent and ATT authorization.
++    guard Bundle.main.object(forInfoDictionaryKey: "FacebookAutoInitEnabled") as? Bool == true else { return true }
+     ApplicationDelegate.shared.application(
+       application,
+       didFinishLaunchingWithOptions: launchOptions
+@@ -11,6 +13,8 @@ public class FacebookAppDelegate: ExpoAppDelegateSubscriber {
+   }
+ 
+   public func application(_ application: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey : Any] = [:]) -> Bool {
++    // DEVISERA uses App Events only, never Facebook Login or its URL handler.
++    guard Bundle.main.object(forInfoDictionaryKey: "FacebookAutoInitEnabled") as? Bool == true else { return false }
+     return ApplicationDelegate.shared.application(
+       application,
+       open: url,

@@ -1,3 +1,4 @@
+import { MetaConsent } from '@/components/meta-consent';
 import * as React from 'react';
 import { Linking, Text, View, useWindowDimensions } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -92,6 +93,7 @@ export default function AuthEntryScreen() {
         </Entrance>
       </View>
 
+      <MetaConsent />
       {/* Tiers bas : les trois actions, dans l'ordre Apple, Google, e-mail. */}
       <View style={{ gap: spacing.md, paddingBottom: spacing.sm }}>
         {visibleError ? (

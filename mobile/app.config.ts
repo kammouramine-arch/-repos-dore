@@ -78,6 +78,13 @@ function resolveApiUrl(): string {
 
 const API_URL = resolveApiUrl();
 
+const META_ENABLED = process.env.EXPO_PUBLIC_META_EVENTS_ENABLED === 'true';
+const META_APP_ID = process.env.EXPO_PUBLIC_META_APP_ID?.trim();
+const META_CLIENT_TOKEN = process.env.EXPO_PUBLIC_META_CLIENT_TOKEN?.trim();
+if (META_ENABLED && (!META_APP_ID || !/^\d+$/.test(META_APP_ID) || !META_CLIENT_TOKEN)) {
+  throw new Error('Meta events require a real Meta app ID and client token. Never use the app secret.');
+}
+
 const config: ExpoConfig = {
   name: 'DEVISERA',
   slug: 'devisia',
@@ -116,6 +123,9 @@ const config: ExpoConfig = {
     // et la capacité sur l'App ID (synchronisée par EAS).
     usesAppleSignIn: true,
     infoPlist: {
+      FacebookAutoInitEnabled: false,
+      FacebookAutoLogAppEventsEnabled: false,
+      FacebookAdvertiserIDCollectionEnabled: false,
       ITSAppUsesNonExemptEncryption: false,
       CFBundleDevelopmentRegion: 'fr',
       CFBundleLocalizations: ['fr', 'en'],
@@ -161,6 +171,14 @@ const config: ExpoConfig = {
   },
 
   plugins: [
+    ...(META_ENABLED ? [
+      ['react-native-fbsdk-next', {
+        appID: META_APP_ID, clientToken: META_CLIENT_TOKEN, displayName: 'DEVISERA',
+        scheme: `fb${META_APP_ID}`, isAutoInitEnabled: false,
+        autoLogAppEventsEnabled: false, advertiserIDCollectionEnabled: false,
+        iosUserTrackingPermission: 'Avec votre accord, DEVISERA partage avec Meta des événements d’inscription et d’abonnement pour mesurer ses publicités.',
+      }] as [string, Record<string, unknown>],
+    ] : []),
     'expo-iap',
     'expo-router',
     'expo-apple-authentication',
@@ -234,6 +252,7 @@ const config: ExpoConfig = {
   experiments: { typedRoutes: true },
 
   extra: {
+    metaEventsEnabled: META_ENABLED,
     googleIosClientId: GOOGLE_IOS_CLIENT_ID || null,
     storekitDiagnostics: process.env.EAS_BUILD_PROFILE === 'testflight-diagnostics',
     // Provenance visible dans l'application : profil EAS et commit source,

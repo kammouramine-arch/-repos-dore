@@ -6,6 +6,8 @@ import { Environment, SignedDataVerifier, type JWSTransactionDecodedPayload, typ
 import { planChange, planForAppleProduct, PLANS } from '@devisia/shared';
 import { prisma } from '@/lib/prisma';
 import { AppError } from '@/lib/errors';
+import { appleAcquisition } from '@devisia/shared/acquisition';
+import { claimAcquisition } from './acquisitionService';
 
 let verifiers: SignedDataVerifier[] | undefined;
 function getVerifiers() {
@@ -69,7 +71,7 @@ export async function sandboxRebindGrant(t: JWSTransactionDecodedPayload, organi
 }
 
 /** Only accepts data after Apple's signature, bundle and environment checks. */
-export async function syncAppleTransaction(signedTransaction: string, organizationId: string) {
+export async function syncAppleTransaction(signedTransaction: string, organizationId: string, metaConsent = false) {
   const transaction = await verified('transaction', (v) => v.verifyAndDecodeTransaction(signedTransaction));
   const binding = transaction.originalTransactionId
     ? await prisma.subscription.findUnique({ where: { appleOriginalTransactionId: transaction.originalTransactionId } }) : null;
@@ -130,7 +132,13 @@ export async function syncAppleTransaction(signedTransaction: string, organizati
       } }).catch((error) => console.error('[billing/apple] audit write failed', error));
     }
   }
-  return result;
+  if (!metaConsent) return result;
+  const currentReceipt = result.synced || binding?.appleSignedAt?.getTime() === transaction.signedDate;
+  const candidate = currentReceipt && !('pending' in result && result.pending)
+    ? appleAcquisition(transaction, Date.now()) : null;
+  const acquisitionEvent = candidate
+    ? await claimAcquisition(`apple:${transaction.transactionId}:${candidate.name}`, candidate) : null;
+  return { ...result, acquisitionEvent };
 }
 
 /**
