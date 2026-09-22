@@ -1,3 +1,4 @@
+import { MetaConsent } from '@/components/meta-consent';
 import * as React from 'react';
 import { Platform, Text, View } from 'react-native';
 import { useRouter } from 'expo-router';
@@ -136,6 +137,7 @@ export default function InscriptionScreen() {
             <TextAction align="left" label={showPassword ? (en ? 'Hide password' : 'Masquer le mot de passe') : (en ? 'Show password' : 'Afficher le mot de passe')} onPress={() => setShowPassword((current) => !current)} />
           </Entrance>
           <Entrance index={7}>
+            <MetaConsent />
             <PrimaryAction title={en ? 'Create my account' : 'Créer mon compte'} loading={pending} disabled={!ready} onPress={() => void submit()} />
             <Text style={{ fontSize: 12.5, lineHeight: 18, color: colors.subtle, textAlign: 'center', marginTop: spacing.md }}>
               {Platform.OS === 'ios'

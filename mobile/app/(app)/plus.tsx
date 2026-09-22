@@ -1,3 +1,4 @@
+import { MetaConsent } from '@/components/meta-consent';
 import * as React from 'react';
 import Constants from 'expo-constants';
 import { Alert, Linking, Platform, View } from 'react-native';
@@ -222,6 +223,7 @@ export default function PlusScreen() {
           le nom du destinataire, est sur l'écran qui s'ouvre.
         */}
         <SettingsGroup title={copy(locale, 'legal')}>
+          <MetaConsent />
           <SettingsRow
             icon="lock-closed-outline"
             title={en ? 'Use of your data' : 'Utilisation de vos données'}

@@ -1,5 +1,4 @@
-import { execSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import path from 'node:path';
 import { describe, expect, it } from 'vitest';
 
@@ -78,7 +77,9 @@ describe('chemin serveur', () => {
   });
 
   it('n’expose aucune route client capable de créer une autorisation', () => {
-    const routes = execSync("grep -rl 'appleSandboxRebindGrant' src/app || true", { encoding: 'utf8' }).trim();
-    expect(routes).toBe('');
+    const files = readdirSync('src/app', { recursive: true, withFileTypes: true })
+      .filter(entry => entry.isFile() && /\.(ts|tsx)$/.test(entry.name));
+    const routes = files.filter(entry => readFileSync(path.join(entry.parentPath, entry.name), 'utf8').includes('appleSandboxRebindGrant'));
+    expect(routes).toEqual([]);
   });
 });

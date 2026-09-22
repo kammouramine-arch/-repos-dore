@@ -1,4 +1,5 @@
 import * as React from 'react';
+import { recordMetaRegistration } from './meta-events';
 import { Alert, AppState, Platform } from 'react-native';
 import { listenForApplePurchases, prefetchAppleProducts, restoreApplePurchases } from './apple-purchases';
 import { DevisiaApiError, type OnboardingInput, type SessionDTO } from '@devisia/shared';
@@ -393,6 +394,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       sessionGeneration.current += 1;
       clearQueryCache();
       await writeToken(result.token);
+      void recordMetaRegistration().catch(() => undefined);
       await writeSessionSnapshot(result.token, result.session);
       rememberLocale(result.session);
       setState({ status: 'connecte', session: result.session, ...IDLE });

@@ -1,5 +1,7 @@
 import { Platform } from 'react-native';
 import { APPLE_PRODUCTS, APPLE_SUBSCRIPTION_GROUP, applePurchaseUserMessage, normalizeApplePurchaseError, planForAppleProduct, type PlanId } from '@devisia/shared';
+import { metaReady, emitMetaEvent } from './meta-events';
+import type { AcquisitionEvent } from '@devisia/shared/acquisition';
 import type { Purchase, ProductOrSubscription, ProductSubscription } from 'expo-iap';
 import { api } from './api';
 import { recordDiagnostic } from './diagnostics';
@@ -247,7 +249,11 @@ async function sync(purchase: Purchase) {
   if (syncing.has(key)) return syncing.get(key);
   const task = (async () => {
     stage('TRANSACTION_RECEIVED', purchase);
-    await api.request('/api/billing/apple', { method: 'POST', json: { signedTransaction: purchase.purchaseToken } });
+    const metaConsent = await bounded(metaReady(), 'MEASUREMENT_TIMEOUT', 1_000).catch(() => false);
+    const verified = await api.request<{ acquisitionEvent?: AcquisitionEvent | null }>('/api/billing/apple', {
+      method: 'POST', json: { signedTransaction: purchase.purchaseToken, ...(metaConsent ? { metaConsent: 'meta-v1-att-authorized' } : {}) },
+    });
+    void emitMetaEvent(verified?.acquisitionEvent).catch(() => undefined);
     stage('ENTITLEMENT_VERIFIED', purchase);
     const iap = await store();
     // Server access is already persisted. A delayed finish must not prevent

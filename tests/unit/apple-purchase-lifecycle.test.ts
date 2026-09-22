@@ -8,6 +8,7 @@ const m = vi.hoisted(() => ({
 vi.mock('../../mobile/node_modules/react-native/index.js', () => ({ Platform: { OS: 'ios' } }));
 vi.mock('../../mobile/src/lib/api', () => ({ api: { request: m.request } }));
 vi.mock('../../mobile/src/lib/diagnostics', () => ({ recordDiagnostic: m.diagnostic }));
+vi.mock('../../mobile/src/lib/meta-events', () => ({ metaReady: async () => false, emitMetaEvent: async () => {} }));
 vi.mock('../../mobile/node_modules/expo-iap/build/index.js', () => ({
   initConnection: async () => true,
   getStorefront: m.storefront,
