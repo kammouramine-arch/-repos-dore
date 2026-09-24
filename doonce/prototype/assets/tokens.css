@@ -1,0 +1,167 @@
+/* Generated from design/foundations/tokens.json — do not edit by hand. */
+:root {
+  --background-primary: #F7F7F4;
+  --background-elevated: #FFFFFF;
+  --background-sunken: #EEEEE9;
+  --background-inverse: #111210;
+  --text-primary: #111210;
+  --text-secondary: #66685F;
+  --text-tertiary: #9A9C93;
+  --text-on-signal: #111210;
+  --text-on-inverse: #F2F2EE;
+  --text-on-media: #F2F2EE;
+  --signal: #8BD400;
+  --signal-strong: #6DB400;
+  --signal-text: #3F7D00;
+  --signal-soft: #EAF7CF;
+  --success: #6DB400;
+  --warning: #D99A00;
+  --warning-soft: #FBF1D6;
+  --warning-text: #8A6100;
+  --danger: #C8392E;
+  --danger-soft: #FBE3E0;
+  --recording: #E5443A;
+  --separator: rgba(17,18,16,0.08);
+  --separator-strong: rgba(17,18,16,0.16);
+  --fill-subtle: rgba(17,18,16,0.05);
+  --fill-medium: rgba(17,18,16,0.10);
+  --fill-strong: rgba(17,18,16,0.16);
+  --glass-navigation: rgba(247,247,244,0.74);
+  --glass-control: rgba(255,255,255,0.62);
+  --glass-on-media: rgba(20,21,19,0.40);
+  --scrim-media: rgba(9,10,9,0.55);
+  --shadow: rgba(17,18,16,0.14);
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --space-16: 64px;
+  --space-gutter: 20px;
+  --radius-small: 10px;
+  --radius-medium: 16px;
+  --radius-large: 24px;
+  --radius-xlarge: 32px;
+  --radius-sheet: 38px;
+  --radius-capsule: 999px;
+  --blur-navigation: 24px;
+  --blur-control: 18px;
+  --blur-onMedia: 28px;
+  --blur-bloom: 14px;
+  --dur-instant: 120ms;
+  --dur-quick: 180ms;
+  --dur-standard: 260ms;
+  --dur-navigation: 380ms;
+  --dur-hero: 620ms;
+  --dur-recognition: 640ms;
+  --dur-launchShort: 520ms;
+  --dur-launchFull: 1100ms;
+  --ease-standard: cubic-bezier(0.2, 0, 0, 1);
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);
+  --ease-emphasized: cubic-bezier(0.32, 0.72, 0, 1);
+  --spring-snappy: cubic-bezier(0.22, 1, 0.36, 1);
+  --spring-gentle: cubic-bezier(0.32, 0.72, 0, 1);
+  --spring-lively: cubic-bezier(0.34, 1.35, 0.5, 1);
+  --elev-none: none;
+  --elev-raised: 0 1px 2px var(--shadow), 0 6px 20px -8px var(--shadow);
+  --elev-floating: 0 2px 6px var(--shadow), 0 16px 40px -12px var(--shadow);
+  --elev-hero: 0 24px 60px -20px var(--shadow);
+  --size-touch-min: 44px;
+  --size-touch-comfort: 52px;
+  --size-center-action: 64px;
+  --size-nav-height: 76px;
+  --size-record-button: 82px;
+  --size-avatar: 40px;
+  --tracking-display: -0.028em;
+  --tracking-title: -0.02em;
+  --tracking-body: 0;
+  --tracking-caption: 0.004em;
+  --press-scale: 0.985;
+  --press-card-scale: 0.97;
+}
+:root[data-theme="dark"] {
+  --background-primary: #090A09;
+  --background-elevated: #161715;
+  --background-sunken: #040504;
+  --background-inverse: #F2F2EE;
+  --text-primary: #F2F2EE;
+  --text-secondary: #9C9E96;
+  --text-tertiary: #6A6C65;
+  --text-on-signal: #111210;
+  --text-on-inverse: #111210;
+  --text-on-media: #F2F2EE;
+  --signal: #CFF25A;
+  --signal-strong: #DDFF7A;
+  --signal-text: #CFF25A;
+  --signal-soft: #1E2A0B;
+  --success: #CFF25A;
+  --warning: #F2B63C;
+  --warning-soft: #2C230C;
+  --warning-text: #F2B63C;
+  --danger: #F0645A;
+  --danger-soft: #2E1412;
+  --recording: #FF5A4E;
+  --separator: rgba(242,242,238,0.10);
+  --separator-strong: rgba(242,242,238,0.18);
+  --fill-subtle: rgba(242,242,238,0.06);
+  --fill-medium: rgba(242,242,238,0.11);
+  --fill-strong: rgba(242,242,238,0.18);
+  --glass-navigation: rgba(18,19,17,0.68);
+  --glass-control: rgba(38,39,36,0.58);
+  --glass-on-media: rgba(9,10,9,0.44);
+  --scrim-media: rgba(9,10,9,0.62);
+  --shadow: rgba(0,0,0,0.55);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --background-primary: #090A09;
+    --background-elevated: #161715;
+    --background-sunken: #040504;
+    --background-inverse: #F2F2EE;
+    --text-primary: #F2F2EE;
+    --text-secondary: #9C9E96;
+    --text-tertiary: #6A6C65;
+    --text-on-signal: #111210;
+    --text-on-inverse: #111210;
+    --text-on-media: #F2F2EE;
+    --signal: #CFF25A;
+    --signal-strong: #DDFF7A;
+    --signal-text: #CFF25A;
+    --signal-soft: #1E2A0B;
+    --success: #CFF25A;
+    --warning: #F2B63C;
+    --warning-soft: #2C230C;
+    --warning-text: #F2B63C;
+    --danger: #F0645A;
+    --danger-soft: #2E1412;
+    --recording: #FF5A4E;
+    --separator: rgba(242,242,238,0.10);
+    --separator-strong: rgba(242,242,238,0.18);
+    --fill-subtle: rgba(242,242,238,0.06);
+    --fill-medium: rgba(242,242,238,0.11);
+    --fill-strong: rgba(242,242,238,0.18);
+    --glass-navigation: rgba(18,19,17,0.68);
+    --glass-control: rgba(38,39,36,0.58);
+    --glass-on-media: rgba(9,10,9,0.44);
+    --scrim-media: rgba(9,10,9,0.62);
+    --shadow: rgba(0,0,0,0.55);
+  }
+}
+.t-display { font-size: 40px; line-height: 44px; font-weight: 800; letter-spacing: -0.028em; }
+.t-largeTitle { font-size: 34px; line-height: 40px; font-weight: 700; letter-spacing: -0.02em; }
+.t-title1 { font-size: 28px; line-height: 34px; font-weight: 700; letter-spacing: -0.02em; }
+.t-title2 { font-size: 22px; line-height: 28px; font-weight: 600; letter-spacing: -0.02em; }
+.t-title3 { font-size: 20px; line-height: 25px; font-weight: 600; letter-spacing: -0.02em; }
+.t-headline { font-size: 17px; line-height: 22px; font-weight: 600; letter-spacing: 0; }
+.t-body { font-size: 17px; line-height: 22px; font-weight: 400; letter-spacing: 0; }
+.t-callout { font-size: 16px; line-height: 21px; font-weight: 400; letter-spacing: 0; }
+.t-subheadline { font-size: 15px; line-height: 20px; font-weight: 400; letter-spacing: 0; }
+.t-footnote { font-size: 13px; line-height: 18px; font-weight: 400; letter-spacing: 0.004em; }
+.t-caption { font-size: 12px; line-height: 16px; font-weight: 500; letter-spacing: 0.004em; }
+.t-label { font-size: 11px; line-height: 13px; font-weight: 600; letter-spacing: 0.06em; }
+.t-numeral { font-size: 56px; line-height: 60px; font-weight: 700; letter-spacing: -0.028em; }
+.t-numeral, .tnum { font-variant-numeric: tabular-nums; }

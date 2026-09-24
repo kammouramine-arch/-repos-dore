@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DoOnce — interactive prototype</title>
+<meta name="description" content="Golden-path prototype of DoOnce at iPhone size. Open directly from disk; no build step.">
+<link rel="stylesheet" href="assets/tokens.css">
+<link rel="stylesheet" href="assets/styles.css">
+<link rel="icon" href="../design/brand/app-icon.svg">
+</head>
+<body>
+<div class="stage">
+  <aside class="review" aria-label="Reviewer controls">
+    <div class="review__brand"><svg viewBox="0 0 100 100" width="22" height="22"><path d="M 21 51.5 C 27 53.5, 32.5 58.5, 37.6 64.4 A 26 26 0 1 0 32.4 35.0" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg> DoOnce prototype</div>
+    <p class="review__hint">Golden path: tap through, or jump. Haptics and voice are simulated and shown here.</p>
+    <div class="review__row">
+      <button data-theme-toggle>Theme: auto</button>
+      <button data-motion-toggle>Motion: full</button>
+    </div>
+    <label class="review__label">Jump to</label>
+    <select data-jump></select>
+    <div class="review__haptic" data-haptic-log aria-live="polite"></div>
+    <div class="review__voice" data-voice-sim hidden>
+      <span>Simulate voice:</span>
+      <button data-say="next">“Next”</button><button data-say="back">“Back”</button><button data-say="repeat">“Repeat”</button><button data-say="what did he say">“What did he say?”</button><button data-say="I'm done">“I'm done”</button>
+    </div>
+  </aside>
+
+  <div class="phone" data-phone>
+    <div class="phone__screen" data-root></div>
+    <div class="phone__island" aria-hidden="true"><div class="island__content" data-island></div></div>
+    <div class="phone__status" aria-hidden="true">
+      <span class="status__time">9:41</span>
+      <span class="status__right">
+        <svg width="17" height="11" viewBox="0 0 17 11"><rect x="0" y="7" width="3" height="4" rx=".8" fill="currentColor"/><rect x="4.5" y="5" width="3" height="6" rx=".8" fill="currentColor"/><rect x="9" y="2.5" width="3" height="8.5" rx=".8" fill="currentColor"/><rect x="13.5" y="0" width="3" height="11" rx=".8" fill="currentColor"/></svg>
+        <svg width="16" height="11" viewBox="0 0 16 11"><path d="M8 10.5 5.9 8.4a3 3 0 0 1 4.2 0zM3.2 5.7a6.8 6.8 0 0 1 9.6 0l-1.4 1.4a4.8 4.8 0 0 0-6.8 0zM.4 2.9a10.8 10.8 0 0 1 15.2 0l-1.4 1.4a8.8 8.8 0 0 0-12.4 0z" fill="currentColor"/></svg>
+        <svg width="27" height="12" viewBox="0 0 27 12"><rect x=".5" y=".5" width="23" height="11" rx="3" fill="none" stroke="currentColor" stroke-opacity=".4"/><rect x="2" y="2" width="20" height="8" rx="1.8" fill="currentColor"/><path d="M25 4v4a2 2 0 0 0 0-4z" fill="currentColor" fill-opacity=".4"/></svg>
+      </span>
+    </div>
+    <div class="phone__home" aria-hidden="true"></div>
+  </div>
+</div>
+
+<script src="assets/strings.js"></script>
+<script src="assets/data.js"></script>
+<script src="assets/app.js"></script>
+<script src="assets/screens/launch.js"></script>
+<script src="assets/screens/memory.js"></script>
+<script src="assets/screens/look.js"></script>
+<script src="assets/screens/teach.js"></script>
+<script src="assets/screens/do.js"></script>
+<script src="assets/screens/you.js"></script>
+<script>DO.start();</script>
+</body>
+</html>

@@ -1,0 +1,172 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DoOnce — Foundations, components, states</title>
+<meta name="description" content="Design system sheet rendered from tokens.json: colour, type, spacing, radius, motion, haptics, every component in every state, light and dark.">
+<link rel="stylesheet" href="../prototype/assets/tokens.css">
+<link rel="stylesheet" href="../prototype/assets/styles.css">
+<style>
+  body { background: var(--background-primary); color: var(--text-primary); padding: 40px 48px 80px; font-family: -apple-system, Inter, system-ui, sans-serif; }
+  .ds-sheet { max-width: 1180px; margin: 0 auto; }
+  .ds-sheet h1 { font-size: 40px; font-weight: 800; letter-spacing: -0.028em; }
+  .ds-sheet h2 { font-size: 22px; font-weight: 700; letter-spacing: -0.02em; margin: 56px 0 18px; padding-top: 24px; border-top: 1px solid var(--separator); }
+  .ds-sheet h3 { font-size: 13px; font-weight: 600; letter-spacing: .06em; text-transform: uppercase; color: var(--text-tertiary); margin: 28px 0 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+  .swatch { border-radius: 16px; overflow: hidden; border: 1px solid var(--separator); }
+  .swatch i { display: block; height: 64px; }
+  .swatch b { display: block; font-size: 13px; padding: 8px 10px 2px; }
+  .swatch span { display: block; font-size: 11px; color: var(--text-tertiary); padding: 0 10px 10px; font-family: ui-monospace, Menlo, monospace; }
+  .row-demo { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+  .type-row { display: grid; grid-template-columns: 140px 1fr 200px; gap: 16px; align-items: baseline; padding: 10px 0; border-bottom: 1px solid var(--separator); }
+  .type-row small { font-size: 12px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; }
+  .phone-ish { width: 353px; position: relative; }
+  .media-demo { position: relative; height: 220px; border-radius: 24px; overflow: hidden; }
+  .media-demo img { width: 100%; height: 100%; object-fit: cover; }
+  .spec { font-size: 14px; color: var(--text-secondary); line-height: 21px; max-width: 720px; }
+  .two { display: grid; grid-template-columns: 1fr 1fr; gap: 24px; }
+  .dark-panel { background: #090A09; border-radius: 24px; padding: 24px; }
+  .motion-demo { display: flex; gap: 24px; align-items: center; flex-wrap: wrap; }
+  .motion-card { width: 220px; padding: 16px; border-radius: 16px; background: var(--background-elevated); box-shadow: var(--elev-raised); }
+  .motion-card b { display: block; font-size: 15px; } .motion-card span { font-size: 12px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; }
+  .bar { height: 6px; border-radius: 3px; background: var(--fill-medium); margin-top: 10px; overflow: hidden; } .bar i { display: block; height: 100%; width: 100%; background: var(--signal); transform-origin: left; transform: scaleX(0); animation: grow 2.4s infinite; }
+  @keyframes grow { 0% { transform: scaleX(0) } 40% { transform: scaleX(1) } 100% { transform: scaleX(1) } }
+  .m-standard i { animation-timing-function: var(--ease-standard); } .m-snappy i { animation-timing-function: var(--spring-snappy); } .m-gentle i { animation-timing-function: var(--spring-gentle); } .m-lively i { animation-timing-function: var(--spring-lively); }
+  table { border-collapse: collapse; font-size: 14px; } td, th { text-align: left; padding: 8px 12px; border-bottom: 1px solid var(--separator); vertical-align: top; } th { color: var(--text-tertiary); font-weight: 600; font-size: 12px; text-transform: uppercase; letter-spacing: .05em; }
+  .states { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 16px; }
+  .state { padding: 16px; border-radius: 20px; background: var(--background-elevated); box-shadow: var(--elev-raised); }
+  .state h4 { margin: 0 0 12px; font-size: 13px; color: var(--text-tertiary); font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="ds-sheet">
+  <div style="display:flex;align-items:center;gap:14px"><svg viewBox="0 0 100 100" width="44" height="44"><path d="M 21 51.5 C 27 53.5, 32.5 58.5, 37.6 64.4 A 26 26 0 1 0 32.4 35.0" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/></svg><h1>DoOnce design system</h1></div>
+  <p class="spec">Rendered live from <code>design/foundations/tokens.json</code>. Toggle your OS appearance to see dark mode; every value below is a semantic token, so there is nothing to invert by hand. The same tokens generate <code>Tokens.swift</code> and <code>DSColors.swift</code> for the iOS app.</p>
+
+  <h2>01 · Colour</h2>
+  <h3>Surfaces</h3>
+  <div class="grid">
+    <div class="swatch"><i style="background:var(--background-primary)"></i><b>backgroundPrimary</b><span>porcelain / near-black</span></div>
+    <div class="swatch"><i style="background:var(--background-elevated)"></i><b>backgroundElevated</b><span>sheets, lists</span></div>
+    <div class="swatch"><i style="background:var(--background-sunken)"></i><b>backgroundSunken</b><span>placeholders, launch</span></div>
+    <div class="swatch"><i style="background:var(--background-inverse)"></i><b>backgroundInverse</b><span>primary button</span></div>
+  </div>
+  <h3>Text</h3>
+  <div class="grid">
+    <div class="swatch"><i style="background:var(--text-primary)"></i><b>textPrimary</b><span>ink / bone</span></div>
+    <div class="swatch"><i style="background:var(--text-secondary)"></i><b>textSecondary</b><span>≥ 4.5:1</span></div>
+    <div class="swatch"><i style="background:var(--text-tertiary)"></i><b>textTertiary</b><span>eyebrows, hints</span></div>
+    <div class="swatch"><i style="background:var(--text-on-media)"></i><b>textOnMedia</b><span>always bone</span></div>
+    <div class="swatch"><i style="background:var(--text-on-inverse)"></i><b>textOnInverse</b><span>on primary button</span></div>
+  </div>
+  <h3>Signal — "DoOnce knows this"</h3>
+  <div class="grid">
+    <div class="swatch"><i style="background:var(--signal)"></i><b>signal</b><span>recognition, capture, success</span></div>
+    <div class="swatch"><i style="background:var(--signal-strong)"></i><b>signalStrong</b><span>toggles</span></div>
+    <div class="swatch"><i style="background:var(--signal-text)"></i><b>signalText</b><span>text-safe ≥ 4.5:1</span></div>
+    <div class="swatch"><i style="background:var(--signal-soft)"></i><b>signalSoft</b><span>chips, callouts</span></div>
+  </div>
+  <h3>Semantic</h3>
+  <div class="grid">
+    <div class="swatch"><i style="background:var(--warning)"></i><b>warning</b><span>fills only</span></div>
+    <div class="swatch"><i style="background:var(--warning-text)"></i><b>warningText</b><span>text-safe</span></div>
+    <div class="swatch"><i style="background:var(--danger)"></i><b>danger</b><span>real failure, high risk</span></div>
+    <div class="swatch"><i style="background:var(--recording)"></i><b>recording</b><span>record core</span></div>
+    <div class="swatch"><i style="background:var(--glass-navigation)"></i><b>glassNavigation</b><span>+ blur 24</span></div>
+    <div class="swatch"><i style="background:var(--glass-on-media)"></i><b>glassOnMedia</b><span>+ blur 28</span></div>
+  </div>
+
+  <h2>02 · Typography</h2>
+  <p class="spec">SF Pro on device (Inter here as a stand-in). Hierarchy through scale and weight, not containers. Numerals use tabular figures.</p>
+  <div class="type-row"><small>display 40/44 800</small><div class="t-display">Turn the blue valve slowly.</div><small>Do instruction, onboarding</small></div>
+  <div class="type-row"><small>largeTitle 34/40 700</small><div class="t-largeTitle">Your world remembers.</div><small>Screen title</small></div>
+  <div class="type-row"><small>title1 28/34 700</small><div class="t-title1">Repressurise boiler</div><small>Sheet title</small></div>
+  <div class="type-row"><small>title2 22/28 600</small><div class="t-title2">Recently around you</div><small>Section</small></div>
+  <div class="type-row"><small>headline 17/22 600</small><div class="t-headline">Clean group head</div><small>Row title</small></div>
+  <div class="type-row"><small>body 17/22 400</small><div class="t-body">Pull it from the bottom edge. It clips off.</div><small>Detail</small></div>
+  <div class="type-row"><small>subheadline 15/20</small><div class="t-subheadline muted">Taught by Julien · 18 Mar</div><small>Row subtitle</small></div>
+  <div class="type-row"><small>footnote 13/18</small><div class="t-footnote faint">Version 1 · Last confirmed 18 March 2026</div><small>Meta</small></div>
+  <div class="type-row"><small>label 11/13 600</small><div class="eyebrow">Most relevant</div><small>Eyebrow, rare</small></div>
+  <div class="type-row"><small>numeral 56/60 700</small><div class="t-numeral tnum">2 of 5</div><small>Counters, gauges</small></div>
+
+  <h2>03 · Spacing, radius, elevation</h2>
+  <div class="row-demo" data-gen-spacing></div>
+  <h2>04 · Motion</h2>
+  <div class="motion-demo">
+    <div class="motion-card m-standard"><b>standard</b><span>cubic-bezier(0.2, 0, 0, 1) · 260 ms</span><div class="bar"><i></i></div></div>
+    <div class="motion-card m-snappy"><b>snappy</b><span>spring 0.32 / 0.86 · press, chips</span><div class="bar"><i></i></div></div>
+    <div class="motion-card m-gentle"><b>gentle</b><span>spring 0.50 / 0.88 · navigation, sheets</span><div class="bar"><i></i></div></div>
+    <div class="motion-card m-lively"><b>lively</b><span>spring 0.42 / 0.72 · bloom, recognition</span><div class="bar"><i></i></div></div>
+  </div>
+  <table style="margin-top:18px"><tr><th>Budget</th><th>Duration</th><th>Used for</th></tr>
+    <tr><td>instant</td><td>120 ms</td><td>press state, toggles</td></tr><tr><td>quick</td><td>180 ms</td><td>chips, list rows</td></tr><tr><td>standard</td><td>260 ms</td><td>sheet content, menus</td></tr><tr><td>navigation</td><td>380 ms</td><td>push, matched expand</td></tr><tr><td>hero</td><td>620 ms</td><td>save, recognition, procedure start</td></tr><tr><td>launch</td><td>520 / 1100 ms</td><td>normal / first launch</td></tr></table>
+
+  <h2>05 · Haptics</h2>
+  <table><tr><th>Intent</th><th>Fires on</th></tr>
+    <tr><td>selection</td><td>picker move, snap, retarget object, scrub, step confirmed</td></tr><tr><td>light</td><td>button commit, card locks, centre menu opens, recording stops</td></tr><tr><td>medium</td><td>recording starts, object recognised, procedure starts</td></tr><tr><td>rigid</td><td>logo loop closes</td></tr><tr><td>success</td><td>memory created, procedure completed, object linked</td></tr><tr><td>warning</td><td>dangerous step, incomplete recognition</td></tr><tr><td>error</td><td>real failure only</td></tr></table>
+
+  <h2>06 · Buttons</h2>
+  <div class="row-demo">
+    <button class="btn btn--primary">Primary</button><button class="btn btn--signal">Signal · Remember</button><button class="btn btn--secondary">Secondary</button><button class="btn btn--ghost">Ghost</button><button class="btn btn--glass">Glass</button><button class="btn btn--primary is-pressed">Pressed</button><button class="btn btn--primary" disabled>Disabled</button><button class="btn btn--secondary btn--small">Small</button><button class="btn btn--glass btn--icon">×</button>
+  </div>
+  <div class="media-demo" style="margin-top:16px;width:520px"><img src="../prototype/assets/photos/pipes-gauges.jpg" alt=""><div style="position:absolute;left:16px;top:16px;display:flex;gap:10px;align-items:center"><button class="btn btn--onmedia btn--icon">×</button><button class="btn btn--onmedia btn--small">On media</button><span class="chip chip--onmedia">Chip on media</span><span class="status-pill"><i></i>Looking…</span></div></div>
+
+  <h2>07 · Chips, avatars, search</h2>
+  <div class="row-demo">
+    <span class="chip">Neutral</span><span class="chip is-selected">Selected</span><span class="chip chip--signal">✓ Observed</span><span class="chip chip--warning">Warning set</span><span class="chip chip--danger">Care</span><span class="chip chip--photo"><img src="../prototype/assets/photos/coffee-kitchen.jpg" alt="">Kitchen</span><span class="avatar">D</span><span class="avatar avatar--lg">J</span>
+  </div>
+  <div class="phone-ish" style="margin-top:16px"><div class="search"><span class="search__label">Find anything</span><span class="search__actions"><span class="btn btn--icon">🎙</span><span class="btn btn--icon">📷</span></span></div></div>
+
+  <h2>08 · Cards and rows</h2>
+  <div class="row-demo" style="align-items:flex-start">
+    <div class="card card--object"><img class="card__img" src="../prototype/assets/photos/pipes-gauges.jpg" style="object-position:48% 42%" alt=""><div class="card__scrim"></div><div class="card__body"><div class="card__title">Boiler</div><div class="card__sub">3 memories · 2 weeks ago</div></div></div>
+    <div class="phone-ish"><div class="card card--continue"><img class="card__img" src="../prototype/assets/photos/coffee-kitchen.jpg" style="object-position:70% 45%" alt=""><div class="card__scrim"></div><div class="card__body"><div class="card__title">Clean espresso machine</div><div class="card__sub">2 of 7 steps done</div><div class="progress"><i style="width:28%"></i></div></div></div>
+      <div class="row" style="margin-top:12px"><img class="row__thumb" src="../prototype/assets/photos/pipes-gauges.jpg" alt=""><div class="row__body"><div class="row__title">Repressurise boiler</div><div class="row__sub">Taught by Julien · 18 Mar</div></div><span class="row__trail"><span class="chip chip--danger" style="height:24px;font-size:12px;padding:0 8px">Care</span> ›</span></div>
+      <div class="row"><span class="avatar">D</span><div class="row__body"><div class="row__title">Dad</div><div class="row__sub">Family · 6 memories</div></div><span class="row__trail">›</span></div>
+    </div>
+  </div>
+
+  <h2>09 · Callouts and provenance</h2>
+  <div class="phone-ish" style="display:flex;flex-direction:column;gap:10px">
+    <div class="callout">⚠ <div><b>Take care.</b> Never go above 2 bar.</div></div>
+    <div class="callout callout--danger">⚠ <div>This involves gas or mains. If unsure, call a qualified professional.</div></div>
+    <div class="callout callout--signal">✓ <div><b>Remembered.</b> Next time, just look at the boiler.</div></div>
+    <div class="callout callout--neutral">? <div>This part wasn't clearly captured.</div></div>
+    <div class="step__foot"><span class="chip chip--signal">Observed</span><span class="chip">Inferred</span><span class="chip">Unclear</span></div>
+  </div>
+
+  <h2>10 · Navigation, centre action, bloom</h2>
+  <div class="two">
+    <div class="phone-ish" style="height:160px;background:var(--background-sunken);border-radius:24px"><nav class="tabbar" style="bottom:24px"><button class="tab is-active"><svg class="icon" viewBox="0 0 100 100"><path d="M 21 51.5 C 27 53.5, 32.5 58.5, 37.6 64.4 A 26 26 0 1 0 32.4 35.0" stroke-width="12"/></svg><span>Memory</span></button><button class="center-action"></button><button class="tab"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6"/></svg><span>You</span></button></nav></div>
+    <div class="phone-ish" style="height:160px;background:var(--background-sunken);border-radius:24px"><nav class="tabbar" style="bottom:24px"><button class="tab"><svg class="icon" viewBox="0 0 100 100"><path d="M 21 51.5 C 27 53.5, 32.5 58.5, 37.6 64.4 A 26 26 0 1 0 32.4 35.0" stroke-width="12"/></svg><span>Memory</span></button><button class="center-action is-open"><span class="close-glyph"><svg class="icon" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg></span></button><button class="tab"><svg class="icon" viewBox="0 0 24 24"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-3.5 3.6-6 8-6s8 2.5 8 6"/></svg><span>You</span></button></nav></div>
+  </div>
+
+  <h2>11 · Recording control and recognition</h2>
+  <div class="row-demo">
+    <div class="media-demo" style="width:200px;display:flex;align-items:center;justify-content:center;background:#222"><button class="record"><span class="record__ring"></span><span class="record__core"></span></button></div>
+    <div class="media-demo" style="width:200px;display:flex;align-items:center;justify-content:center;background:#222"><button class="record is-recording"><span class="record__pulse"></span><span class="record__ring"></span><span class="record__core"></span></button></div>
+    <div class="media-demo" style="width:353px"><img src="../prototype/assets/photos/pipes-gauges.jpg" style="object-position:48% 42%" alt=""><div class="recog"><svg class="recog__contour" viewBox="0 0 100 100" preserveAspectRatio="none"><path d="M 27 8 C 38.7 7.3, 50.8 3.7, 62 6 C 66.2 6.9, 69.8 15.5, 70 20 C 70.4 29.3, 69.7 39.3, 68 48 C 67 53.3, 63.8 56.7, 60 60 C 55.4 63.9, 45.6 65.1, 40 62 C 35.2 59.4, 28.9 55.2, 26 50 C 22 42.9, 21.3 32.2, 22 24 C 22.4 19.4, 24.3 8.9, 27 8 Z" style="opacity:1;stroke-dashoffset:0" vector-effect="non-scaling-stroke"/></svg><div class="recog__label" style="left:46%;top:40%;opacity:1;transform:translate(-50%,0)"><b>Vaillant ecoTEC Plus</b><span>3 memories</span></div></div></div>
+  </div>
+
+  <h2>12 · States</h2>
+  <div class="states">
+    <div class="state"><h4>Loading — skeleton, never a spinner</h4><div class="row"><div class="row__thumb skeleton"></div><div class="row__body"><div class="skeleton" style="height:16px;width:60%"></div><div class="skeleton" style="height:12px;width:40%;margin-top:8px"></div></div></div></div>
+    <div class="state"><h4>Processing — real stage only</h4><div class="proc__status" style="margin:0"><i></i><span>Finding steps…</span></div></div>
+    <div class="state"><h4>Empty</h4><div class="empty" style="padding:8px"><div class="empty__title" style="font-size:18px">Nothing remembered yet.</div><div class="empty__sub" style="font-size:14px">Show DoOnce one thing around you.</div></div></div>
+    <div class="state"><h4>Offline</h4><div class="banner"><div><b>You're offline.</b><span>Saved memories still work.</span></div></div></div>
+    <div class="state"><h4>Error — calm, actionable</h4><b style="font-size:17px">Couldn't recognise this yet.</b><p class="muted" style="font-size:14px;margin-top:4px">Try moving closer or getting more light.</p><div style="display:flex;gap:8px;margin-top:10px"><button class="btn btn--primary btn--small">Try again</button><button class="btn btn--secondary btn--small">Choose manually</button></div></div>
+    <div class="state"><h4>Recognised · uncertain · unknown</h4><div style="display:flex;flex-direction:column;gap:8px;font-size:15px"><span><b class="signal-text">●</b> Found your espresso machine.</span><span><b style="color:var(--warning)">●</b> Is this your espresso machine?</span><span><b class="faint">●</b> I don't know this yet.</span></div></div>
+    <div class="state"><h4>Toggle, segmented</h4><div style="display:flex;gap:12px;align-items:center"><span class="toggle is-on"></span><span class="toggle"></span></div><div class="segmented" style="margin-top:12px"><button class="is-selected">Full</button><button>Reduced</button><button>Off</button></div></div>
+    <div class="state"><h4>Auto-completion chip</h4><span class="autochip is-in" style="position:static;transform:none">✓ Looks good — 1.5 bar</span></div>
+  </div>
+</div>
+<script>
+  const host = document.querySelector('[data-gen-spacing]');
+  const sp = [4,8,12,16,20,24,32,40,48].map(n => `<div style="width:${n}px;height:${n}px;background:var(--signal-soft);border:1px solid var(--signal)"></div>`).join('');
+  const ra = [['small',10],['medium',16],['large',24],['xlarge',32],['sheet',38]].map(([n,r]) => `<div style="width:64px;height:64px;background:var(--background-elevated);box-shadow:var(--elev-raised);border-radius:${r}px;display:flex;align-items:flex-end;justify-content:center;font-size:11px;color:var(--text-tertiary);padding-bottom:6px">${n}</div>`).join('');
+  const el = ['raised','floating','hero'].map(n => `<div style="width:90px;height:64px;border-radius:16px;background:var(--background-elevated);box-shadow:var(--elev-${n});display:flex;align-items:center;justify-content:center;font-size:12px;color:var(--text-tertiary)">${n}</div>`).join('');
+  host.innerHTML = `<div><div style="display:flex;gap:8px;align-items:flex-end">${sp}</div><small class="faint">4-pt rhythm · gutter 20</small></div><div style="display:flex;gap:12px;align-items:flex-end;margin-left:32px">${ra}</div><div style="display:flex;gap:16px;margin-left:32px">${el}</div>`;
+</script>
+</body>
+</html>

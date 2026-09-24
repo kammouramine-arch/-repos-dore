@@ -1,0 +1,13 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024" width="1024" height="1024" role="img" aria-label="DoOnce app icon">
+  <!-- iOS masks the corners; keep the mark centred with generous optical margin. -->
+  <defs>
+    <radialGradient id="g" cx="50%" cy="38%" r="75%">
+      <stop offset="0" stop-color="#1A1C18"/>
+      <stop offset="1" stop-color="#090A09"/>
+    </radialGradient>
+  </defs>
+  <rect width="1024" height="1024" fill="url(#g)"/>
+  <!-- the stroke -->
+  <path d="M 215 527.4 C 276.5 547.9, 332.8 599.1, 385 659.5 A 266.2 266.2 0 1 0 331.6 358.4"
+        fill="none" stroke="#CFF25A" stroke-width="122.9" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
