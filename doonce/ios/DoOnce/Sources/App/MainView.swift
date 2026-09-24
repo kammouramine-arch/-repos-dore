@@ -27,7 +27,11 @@ struct MainView: View {
         }
         .ignoresSafeArea(.keyboard)
         .fullScreenCover(item: $router.fullScreen) { route in
-            FullScreenRouteView(route: route).environment(app).environment(router)
+            FullScreenRouteView(route: route)
+                .environment(app).environment(router)
+                .sheet(item: $router.coverSheet) { sheet in
+                    SheetRouteView(route: sheet).environment(app).environment(router)
+                }
         }
         .sheet(item: $router.sheet) { route in
             SheetRouteView(route: route).environment(app).environment(router)

@@ -13,6 +13,10 @@ struct DoOnceApp: App {
                 .environment(router)
                 .tint(DSColor.signalText)
                 .background(DSColor.backgroundPrimary)
+                .onOpenURL { url in
+                    guard appState.phase == .main else { return }
+                    router.open(url: url, app: appState)
+                }
         }
     }
 }

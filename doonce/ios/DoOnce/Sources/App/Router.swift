@@ -50,7 +50,10 @@ final class Router {
     var memoryPath = NavigationPath()
     var youPath = NavigationPath()
     var fullScreen: FullScreenRoute?
+    /// A sheet over the tab shell.
     var sheet: SheetRoute?
+    /// A sheet over a full-screen surface (camera, Do): SwiftUI can only present from the cover itself.
+    var coverSheet: SheetRoute?
     var isBloomOpen = false
 
     func push(_ route: Route) {
@@ -69,6 +72,25 @@ final class Router {
         memoryPath = NavigationPath(); youPath = NavigationPath()
     }
     func present(_ route: FullScreenRoute) { isBloomOpen = false; fullScreen = route }
-    func dismissFullScreen() { fullScreen = nil }
-    func show(_ route: SheetRoute) { sheet = route }
+    func dismissFullScreen() { coverSheet = nil; fullScreen = nil }
+    /// Shows a sheet wherever the user is: over the cover when one is up, else over the shell.
+    func show(_ route: SheetRoute) {
+        if fullScreen != nil { coverSheet = route } else { sheet = route }
+    }
+    /// After the current cover dismisses, present the next one (SwiftUI needs the gap).
+    func replaceFullScreen(with route: FullScreenRoute) {
+        dismissFullScreen()
+        Task { @MainActor in
+            try? await Task.sleep(for: .seconds(Tokens.Duration.navigation))
+            present(route)
+        }
+    }
+    /// doonce://do/<memoryID> from the Live Activity or the Continue widget.
+    func open(url: URL, app: AppState) {
+        guard url.scheme == "doonce", url.host == "do",
+              let id = UUID(uuidString: url.lastPathComponent), app.memory(id) != nil else { return }
+        let next = app.progress.first { $0.memoryID == id }?.nextStepOrder ?? 1
+        if fullScreen != nil { replaceFullScreen(with: .doMode(memoryID: id, startStep: next)) }
+        else { present(.doMode(memoryID: id, startStep: next)) }
+    }
 }
