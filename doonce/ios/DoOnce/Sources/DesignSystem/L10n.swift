@@ -11,9 +11,17 @@ enum L10n {
 
     static func string(_ key: String, _ args: [String: String] = [:]) -> String {
         // Prefer the app's String Catalog (Xcode localisation), fall back to the core table.
+        // Placeholders are named (`{object}`) in both, so any number of them can be filled.
         let catalog = String(localized: String.LocalizationValue(key))
-        if catalog != key { return args.reduce(catalog) { $0.replacingOccurrences(of: "{\($1.key)}", with: $1.value).replacingOccurrences(of: "%@", with: $1.value) } }
+        if catalog != key { return fillPlaceholders(catalog, args) }
         return table?.string(key, args) ?? key
+    }
+
+    /// Same as `string`; kept for call sites that read better as "fill".
+    static func fill(_ key: String, _ args: [String: String]) -> String { string(key, args) }
+
+    private static func fillPlaceholders(_ template: String, _ args: [String: String]) -> String {
+        args.reduce(template) { $0.replacingOccurrences(of: "{\($1.key)}", with: $1.value) }
     }
 
     static func plural(_ key: String, n: Int, _ args: [String: String] = [:]) -> String {

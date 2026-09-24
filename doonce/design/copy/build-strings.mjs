@@ -15,18 +15,19 @@ const js = `// Generated from design/copy/strings.json — do not edit by hand.\
 fs.mkdirSync(path.join(root, 'prototype', 'assets'), { recursive: true });
 fs.writeFileSync(path.join(root, 'prototype', 'assets', 'strings.js'), js);
 
-// iOS: .xcstrings (String Catalog). Arrays become key.0, key.1…; plurals become variations.
+// iOS: .xcstrings (String Catalog). Named `{placeholders}` are kept verbatim and filled by L10n at
+// runtime; arrays become key.0, key.1…; plurals become variations with %lld for the count.
 const strings = {};
 const add = (key, lang, value) => {
   strings[key] ??= { extractionState: 'manual', localizations: {} };
   if (typeof value === 'string') {
-    strings[key].localizations[lang] = { stringUnit: { state: 'translated', value: value.replace(/\{(\w+)\}/g, '%@') } };
+    strings[key].localizations[lang] = { stringUnit: { state: 'translated', value } };
   } else if (Array.isArray(value)) {
     value.forEach((v, i) => add(`${key}.${i}`, lang, v));
     delete strings[key];
   } else if (value && typeof value === 'object') {
     const plural = {};
-    for (const [form, v] of Object.entries(value)) plural[form] = { stringUnit: { state: 'translated', value: v.replace(/\{n\}/g, '%lld').replace(/\{(\w+)\}/g, '%@') } };
+    for (const [form, v] of Object.entries(value)) plural[form] = { stringUnit: { state: 'translated', value: v.replace(/\{n\}/g, '%lld') } };
     strings[key].localizations[lang] = { variations: { plural } };
   }
 };

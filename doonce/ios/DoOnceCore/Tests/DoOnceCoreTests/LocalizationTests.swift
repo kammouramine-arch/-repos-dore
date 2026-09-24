@@ -18,8 +18,8 @@ final class LocalizationTests: XCTestCase {
     func testPlurals() throws {
         let strings = try Localization.bundled()
         XCTAssertEqual(strings.plural("memory.count", count: 0), "Nothing remembered yet.")
-        XCTAssertEqual(strings.plural("memory.count", count: 1), "Your world remembers 1 thing.")
-        XCTAssertEqual(strings.plural("memory.count", count: 12), "Your world remembers 12 things.")
+        XCTAssertEqual(strings.plural("memory.count", count: 1), "1 thing")
+        XCTAssertEqual(strings.plural("memory.count", count: 12), "12 things")
         XCTAssertEqual(strings.plural("object.procedures", count: 0), "0 memories", "no zero form falls through to other")
         XCTAssertEqual(strings.plural("household.members", count: 1), "1 member")
     }

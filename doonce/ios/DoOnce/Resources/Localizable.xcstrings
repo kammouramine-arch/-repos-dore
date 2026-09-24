@@ -479,7 +479,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ of %@ steps done"
+            "value": "{done} of {total} steps done"
           }
         }
       }
@@ -590,7 +590,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last used %@"
+            "value": "Last used {when}"
           }
         }
       }
@@ -718,7 +718,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Found your %@."
+            "value": "Found your {object}."
           }
         }
       }
@@ -729,7 +729,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Is this your %@?"
+            "value": "Is this your {object}?"
           }
         }
       }
@@ -1092,7 +1092,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Original clip %@–%@"
+            "value": "Original clip {from}–{to}"
           }
         }
       }
@@ -1224,7 +1224,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Looks like a %@."
+            "value": "Looks like a {object}."
           }
         }
       }
@@ -1257,7 +1257,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Just \"%@\""
+            "value": "Just \"{category}\""
           }
         }
       }
@@ -1296,7 +1296,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next time, just look at the %@."
+            "value": "Next time, just look at the {object}."
           }
         }
       }
@@ -1318,7 +1318,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ of %@"
+            "value": "{i} of {n}"
           }
         }
       }
@@ -1395,7 +1395,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Looks good — %@"
+            "value": "Looks good — {value}"
           }
         }
       }
@@ -1406,7 +1406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ showed you this · %@"
+            "value": "{person} showed you this · {date}"
           }
         }
       }
@@ -1533,7 +1533,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Step %@ of %@. %@"
+            "value": "Step {i} of {n}. {instruction}"
           }
         }
       }
@@ -1577,7 +1577,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From the original · %@"
+            "value": "From the original · {time}"
           }
         }
       }
@@ -1588,7 +1588,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ said: “%@”"
+            "value": "{person} said: “{quote}”"
           }
         }
       }
@@ -1599,7 +1599,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ didn't say anything about that."
+            "value": "{person} didn't say anything about that."
           }
         }
       }
@@ -1654,7 +1654,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Which %@?"
+            "value": "Which {object}?"
           }
         }
       }
@@ -1665,7 +1665,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "How many %@?"
+            "value": "How many {unit}?"
           }
         }
       }
@@ -1687,7 +1687,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What %@?"
+            "value": "What {unit}?"
           }
         }
       }
@@ -1764,7 +1764,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Step %@"
+            "value": "Step {i}"
           }
         }
       }
@@ -1885,7 +1885,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Last confirmed %@"
+            "value": "Last confirmed {date}"
           }
         }
       }
@@ -1907,7 +1907,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Need %@ again?"
+            "value": "Need {person} again?"
           }
         }
       }
@@ -1973,7 +1973,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Taught by %@"
+            "value": "Taught by {person}"
           }
         }
       }
@@ -2029,7 +2029,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Share %@"
+            "value": "Share {thing}"
           }
         }
       }
@@ -2371,7 +2371,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ / month"
+            "value": "{price} / month"
           }
         }
       }
@@ -2382,7 +2382,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ / year"
+            "value": "{price} / year"
           }
         }
       }
@@ -2855,7 +2855,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ · %@ · step %@"
+            "value": "{person} · {title} · step {n}"
           }
         }
       }
@@ -2932,7 +2932,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Delete %@ and its memories?"
+            "value": "Delete {object} and its memories?"
           }
         }
       }
@@ -2965,7 +2965,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Version %@"
+            "value": "Version {n}"
           }
         }
       }
@@ -3022,7 +3022,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ s"
+            "value": "{n} s"
           }
         }
       }
@@ -3044,7 +3044,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "What %@ showed you"
+            "value": "What {name} showed you"
           }
         }
       }
@@ -3088,7 +3088,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Leave %@?"
+            "value": "Leave {household}?"
           }
         }
       }
@@ -3177,7 +3177,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "They'll see %@ without needing an account."
+            "value": "They'll see {memories} without needing an account."
           }
         }
       }
@@ -3265,7 +3265,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "The customer scans this. The object and %@'s contact arrive together."
+            "value": "The customer scans this. The object and {person}'s contact arrive together."
           }
         }
       }
@@ -3309,7 +3309,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "From %@ · %@"
+            "value": "From {person} · {role}"
           }
         }
       }
@@ -3353,7 +3353,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Your %@ memory is %@ months old."
+            "value": "Your {object} memory is {n} months old."
           }
         }
       }
@@ -3364,7 +3364,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ recommended checking it yearly."
+            "value": "{person} recommended checking it yearly."
           }
         }
       }
@@ -3375,7 +3375,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ added “%@” to %@."
+            "value": "{person} added “{title}” to {household}."
           }
         }
       }
@@ -3386,7 +3386,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ cleaning is due."
+            "value": "{object} cleaning is due."
           }
         }
       }
@@ -3397,7 +3397,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Every two weeks · %@'s schedule"
+            "value": "Every two weeks · {person}'s schedule"
           }
         }
       }
@@ -3834,7 +3834,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@ of %@ memories used"
+            "value": "{used} of {n} memories used"
           }
         }
       }
@@ -3944,7 +3944,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "%@% uploaded · will resume automatically"
+            "value": "{n}% uploaded · will resume automatically"
           }
         }
       }
@@ -4109,7 +4109,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Look at %@ instead"
+            "value": "Look at {object} instead"
           }
         }
       }
@@ -4197,7 +4197,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "“%@” · Important"
+            "value": "“{quote}” · Important"
           }
         }
       }
