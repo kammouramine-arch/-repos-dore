@@ -20,7 +20,9 @@ struct ReviewView: View {
     @State private var showsTitleEditor = false
     @State private var showsObjectCreate = false
     @State private var frameToReplace: Step?
-    @State private var originalAt: TimeInterval?
+    @State private var original: OriginalRequest?
+
+    struct OriginalRequest: Identifiable { let id = UUID(); let time: TimeInterval }
 
     init(memory: Memory, mode: Mode, recognition: RecognitionResult? = nil) {
         original = memory
@@ -50,9 +52,9 @@ struct ReviewView: View {
         .sheet(isPresented: $showsTitleEditor) {
             ReviewTitleSheet(title: $draft.title).presentationDetents([.height(220)]).presentationCornerRadius(DS.Radius.sheet)
         }
-        .sheet(item: $originalAt) { at in
+        .sheet(item: $original) { request in
             // Presented here rather than through the router: Review lives inside the Teach cover or an edit sheet.
-            SeeOriginalView(memoryID: draft.id, at: at)
+            SeeOriginalView(memoryID: draft.id, at: request.time)
                 .presentationDetents([.medium]).presentationCornerRadius(DS.Radius.sheet)
         }
         .sheet(item: $frameToReplace) { step in
@@ -104,7 +106,7 @@ struct ReviewView: View {
                     canMoveUp: index > 0,
                     canMoveDown: index < steps.count - 1,
                     canCombine: index < steps.count - 1,
-                    onSeeOriginal: { at in originalAt = at },
+                    onSeeOriginal: { at in original = OriginalRequest(time: at) },
                     onAction: { perform($0, on: step) }
                 )
                 if index < steps.count - 1 { DSSeparator() }
@@ -214,8 +216,4 @@ struct ReviewMetaGrid: View {
             value.font(.system(size: 17, weight: .medium)).foregroundStyle(DSColor.textPrimary)
         }
     }
-}
-
-extension TimeInterval: @retroactive Identifiable {
-    public var id: Double { self }
 }
