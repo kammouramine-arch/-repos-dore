@@ -56,26 +56,33 @@ for a real service · **BLOCKED** needs something this environment does not have
   resumable upload that never loses the local file, auth, subscription (free = 5 memories),
   haptics policy, analytics funnel, localisation.
 - Sample content: household, spaces, objects, people, 12 memories, the boiler transcript.
-- `swift build` + `swift test`: **80 tests, 0 failures** (Swift 6.1, language mode 6, strict concurrency).
+- `swift build` + `swift test`: **80 tests, 0 failures** (Swift 6.1, language mode 6, strict concurrency), re-run after integration.
 
-### iOS — DoOnce app — PARTIAL (written, not compiled here)
-- Design system in SwiftUI (`DSColor`, `.dsText`, `DSMotion` with Reduce Motion, buttons, cards,
+### iOS — DoOnce app — PARTIAL (written and statically reviewed, not compiled here)
+- SwiftUI design system (`DSColor`, `.dsText`, `DSMotion` with Reduce Motion, buttons, cards,
   rows, chips, glass with Liquid Glass on iOS 26, the Loop as a `Shape`, Core Haptics patterns),
-  app shell (launch phases, floating tab bar with the ◉ centre action, bloom, router, state),
-  feature screens for every surface in the inventory, device services (AVFoundation camera and
-  recorder, Speech transcription and voice commands, Vision feature-print recognition, processing
-  pipeline, background upload transport, Live Activity).
-- **BLOCKED on verification:** SwiftUI, AVFoundation and Vision cannot compile on this Linux
-  container. Every file passes `swiftc -parse`; type-checking and running on device need Xcode.
-  Expect a round of compile fixes in Xcode before first run. See `ios/DoOnce/ARCHITECTURE.md` and
-  the per-feature notes in `ios/DoOnce/STATUS.md` for what is real vs simulated.
-- **MOCKED in the app by default:** procedure generation (deterministic assembler over the real
-  transcript, no LLM), object recognition embeddings (Vision feature prints, an honest first
-  approximation), gauge-based auto-completion, sign in with Apple result, purchases, uploads
-  (no endpoint configured), sharing links.
-- **BLOCKED (external dependencies):** backend (storage, transcription at scale, LLM-based
-  procedure generation, household sync), Apple developer account for signing, Live Activities on
-  device, real photography.
+  app shell (launch phases, floating tab bar with the ◉ centre action, bloom, router with cover
+  sheets and `doonce://` deep links, state), every surface in the inventory (launch, onboarding,
+  first run, Memory, search, object passport, procedure, Look, Teach, processing, review/edit,
+  object creation, save moment, Do, hands-free, Ask, See original, completion, spaces, people,
+  household, share, QR, notifications, profile, settings, privacy, haptics, subscription,
+  paywall, permission education, offline and error states), device services (AVFoundation
+  camera and recorder, Speech transcription and voice commands, Vision feature-print
+  recognition, processing pipeline, background upload transport, Live Activity and widget).
+- The golden path is wired end to end: Teach → record → processing → review → object creation →
+  save moment → Memory shows the object → Look → recognition → Start → Do → completion.
+- **Verified here:** every file passes `swiftc -parse` (128 files); API usage cross-checked
+  against DoOnceCore, the router and the token set; `ios/DoOnce/STATUS.md` records what is real
+  and what is simulated, service by service.
+- **BLOCKED on verification:** SwiftUI, AVFoundation and Vision cannot type-check or run on this
+  Linux container. Expect a round of compile fixes in Xcode before first run.
+- **DEMO by default:** procedure generation (deterministic assembler over the real transcript, no
+  language model), transcription and recognition are wired to their mocks so sample content works
+  without a microphone or camera (the real services exist and swap in `AppState.init`),
+  gauge-based auto-completion (timer), Sign in with Apple result, purchases, uploads (no
+  endpoint), share links, persistence (in-memory repositories).
+- **BLOCKED (external):** backend (storage/sync, transcription at scale, grounded LLM
+  generation), Apple developer account for signing and capabilities, real photography.
 
 ### Not started (later phases)
 Household sync, sharing backend, professional handoff (QR generation is local only), offline

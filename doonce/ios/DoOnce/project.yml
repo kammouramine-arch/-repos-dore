@@ -26,8 +26,11 @@ targets:
     sources:
       - path: Sources
       - path: Resources
+      # ActivityKit attributes + the Continue widget's store, compiled into app and extension alike.
+      - path: Widgets/Shared
     dependencies:
       - package: DoOnceCore
+      - target: DoOnceWidgets
     info:
       path: Resources/Info.plist
       properties:
@@ -44,12 +47,49 @@ targets:
         NSPhotoLibraryUsageDescription: Import a video you already have.
         NSSupportsLiveActivities: true
         UIBackgroundModes: [audio]
+        # doonce://do/<memoryID> from the Live Activity and the Continue widget.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.doonce.ios
+            CFBundleURLSchemes: [doonce]
+    entitlements:
+      path: Resources/DoOnce.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.doonce]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.doonce.ios
         TARGETED_DEVICE_FAMILY: "1"
         INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
         CODE_SIGN_STYLE: Automatic
+  DoOnceWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets/DoOnceWidgets
+      - path: Widgets/Shared
+      # Design tokens only (no components): the extension paints with the same DSColor values.
+      - path: Sources/DesignSystem/Generated/Tokens.swift
+      - path: Sources/DesignSystem/Generated/DSColors.swift
+      - path: Sources/DesignSystem/DSColor+SwiftUI.swift
+      - path: Resources/Localizable.xcstrings
+    info:
+      path: Widgets/DoOnceWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: DoOnce
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Widgets/DoOnceWidgets/DoOnceWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.doonce]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.doonce.ios.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
   DoOnceTests:
     type: bundle.unit-test
     platform: iOS
@@ -66,7 +106,7 @@ targets:
 schemes:
   DoOnce:
     build:
-      targets: { DoOnce: all, DoOnceTests: [test], DoOnceUITests: [test] }
+      targets: { DoOnce: all, DoOnceWidgets: all, DoOnceTests: [test], DoOnceUITests: [test] }
     run:
       config: Debug
       environmentVariables:

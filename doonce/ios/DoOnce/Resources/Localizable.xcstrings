@@ -4411,52 +4411,6 @@
         }
       }
     },
-    "review.stepsCount": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "1 step"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld steps"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "review.minutes": {
-      "extractionState": "manual",
-      "localizations": {
-        "en": {
-          "variations": {
-            "plural": {
-              "one": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "1 min"
-                }
-              },
-              "other": {
-                "stringUnit": {
-                  "state": "translated",
-                  "value": "%lld min"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "review.replaceFrame.title": {
       "extractionState": "manual",
       "localizations": {
@@ -4607,6 +4561,17 @@
           "stringUnit": {
             "state": "translated",
             "value": "Remember it"
+          }
+        }
+      }
+    },
+    "error.camera.interrupted": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "The camera is paused."
           }
         }
       }

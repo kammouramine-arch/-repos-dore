@@ -426,14 +426,6 @@
     "review.moveDown": "Move down",
     "review.warningSet": "Warning set",
     "review.unclearChip": "Unclear",
-    "review.stepsCount": {
-      "one": "1 step",
-      "other": "{n} steps"
-    },
-    "review.minutes": {
-      "one": "1 min",
-      "other": "{n} min"
-    },
     "review.replaceFrame.title": "Choose a frame",
     "review.replaceFrame.hint": "Drag to the moment that shows this step best.",
     "review.editTitle.placeholder": "What is this memory called?",
@@ -447,7 +439,8 @@
     "objectCreate.newSpace.placeholder": "Kitchen, garage…",
     "objectCreate.unknown.title": "What is it?",
     "objectCreate.unknown.sub": "Give it the name you'd say out loud.",
-    "objectCreate.confirm": "Remember it"
+    "objectCreate.confirm": "Remember it",
+    "error.camera.interrupted": "The camera is paused."
   },
   "fr": {
     "app.name": "DoOnce",

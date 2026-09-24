@@ -23,7 +23,7 @@ Tests/            DoOnceTests (view models), DoOnceUITests (golden path)
 4. **Haptics through `HapticsService.shared.play(_:)`** with a `HapticsIntent` from DoOnceCore, fired at the frame the visible change lands. Signature moments: `playRecognitionLock()`, `playSaveSettle()`, `playLoopClose()`. `DSButtonStyle` already plays `.light` on commit, so don't double-fire.
 5. **Buttons:** `.buttonStyle(.dsPrimary)` (ink), `.dsSignal` (the one "DoOnce knows this" action), `.dsSecondary`, `.dsGhost`, `.dsSmall`, `.dsGlassIcon`, `.dsOnMediaIcon`, `.dsOnMediaSmall`, or `.ds(kind, size:, fullWidth:)`. Cards and rows use `.buttonStyle(.dsPressable)` / `.dsRowPressable`.
 6. **Components:** `DSPhotoCard` (photo is the UI), `DSRow`, `DSList`, `DSSeparator`, `DSCallout`, `DSChip`, `DSAvatar` (initials only), `DSStatusPill`, `DSSegments`, `DSSectionHeader`, `DSEyebrow`, `DSTopBar` (+ `.dsTopBarInset()`), `DSSearchField`, `DSLoopMark` / `DSLoopShape(progress:)`, `DSGlass` / `.dsGlassCapsule()`.
-7. **Navigation:** `@Environment(Router.self)`. Push with `router.push(.object(id))`; camera/Do surfaces with `router.present(.look)`; sheets with `router.show(.paywall)`. Every pushed screen hides the system bar (`MainView` does it) and draws its own `DSTopBar`.
+7. **Navigation:** `@Environment(Router.self)`. Push with `router.push(.object(id))`; camera/Do surfaces with `router.present(.look)`; sheets with `router.show(.paywall)` (the router presents over the cover when one is up). To go from one cover to another use `router.replaceFullScreen(with:)`. A view that lives inside a sheet presents its own follow-up sheets (see `ReviewView`). Every pushed screen hides the system bar (`MainView` does it) and draws its own `DSTopBar` via `PushedScreen`. `doonce://do/<memoryID>` opens Do mode at the next step.
 8. **State:** `@Environment(AppState.self)`. Read `app.objects`, `app.memories`, `app.memories(for:)`, `app.person(id)`; write with `try await app.save(memory)`. Services live in `app.services` (all protocols from DoOnceCore; mocks by default). Feature view models are `@MainActor @Observable final class` created with `@State` in the view.
 9. **Photos and media:** objects and steps carry `MediaRef`s. Use `MediaView(ref:)` (Features/Shared) which resolves local files, remote URLs and `sample:` names from the asset catalog. Placeholders are `DSColor.backgroundSunken`, never a spinner.
 10. **Accessibility:** every control has a label; Dynamic Type through `.ds` fonts; Reduce Motion through `DSMotion`; colour is never the only state signal (pair signal colour with a symbol or text).
@@ -39,7 +39,7 @@ Tests/            DoOnceTests (view models), DoOnceUITests (golden path)
 | First run | phase | `FirstRunView` |
 | Memory | root | `MemoryHomeView`, `SearchView(initialQuery:)`, `TimelineSection` |
 | Object | `.object(id)` | `ObjectDetailView(objectID:)`, `ObjectCreateView` |
-| Procedure | `.procedure(id)` | `ProcedureDetailView(memoryID:)`, `ReviewView` (generated / edit) |
+| Procedure | `.procedure(id)` | `ProcedureDetailView(memoryID:)` (pencil → `ReviewView(mode: .edit)` as a sheet), `ReviewView` (generated, inside the Teach cover) |
 | Look | `.look` | `LookView`, `RecognitionOverlay`, `RecognisedObjectSheet` |
 | Teach | `.teach(objectID:)` | `TeachView`, `RecordButton`, `LiveIntelligenceLayer`, `ProcessingView(recordingID:)`, `SaveMomentView` |
 | Add | `.addObject` | `AddObjectView` |
@@ -59,3 +59,8 @@ cd doonce/ios/DoOnce && xcodegen generate && open DoOnce.xcodeproj
 ```
 
 Sample content is on by default (`DOONCE_SAMPLE_CONTENT=1` in the scheme). Set it to `0` for an empty household.
+
+## Status
+
+`STATUS.md` lists, surface by surface and service by service, what is real, what is simulated and
+what still needs a device or credentials.
