@@ -42,3 +42,41 @@ struct ContinueMemoryStore {
     func clear(memoryID: UUID) {}
     var entry: Entry? { nil }
 }
+
+// MARK: - Recording / media stand-ins for `ProcessingPipeline`
+
+/// Mirrors `Services/Recording/StepClipExporter.swift`'s protocol (AVFoundation export on device).
+protocol StepClipExporting: Sendable {
+    func clip(of recording: Recording, stepOrder: Int, range: ClosedRange<TimeInterval>) async throws -> MediaRef
+}
+
+/// Mirrors `Services/Transcription/SpeechTranscriptionService.swift`'s protocol (Speech on device).
+protocol PartialTranscriptionService: TranscriptionService {
+    func transcribe(_ recording: Recording, partial: @escaping @Sendable (Transcript) -> Void) async throws -> Transcript
+}
+
+/// Mirrors `Services/Recording/MovieRecorder.swift`'s `RecordingFiles` facade: a `MediaLibrary`
+/// under a temporary root instead of Application Support.
+enum RecordingFiles {
+    nonisolated(unsafe) static var library = MediaLibrary(root: FileManager.default.temporaryDirectory.appending(path: "doonce-linux-media"))
+}
+
+/// Mirrors `KeyFrames` (AVAssetImageGenerator on device). There is no decoder here, so it throws.
+enum KeyFrames {
+    struct Unavailable: Error {}
+    static func frame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef { throw Unavailable() }
+}
+
+/// Mirrors the extension in `Services/Storage/AppDirectories.swift`.
+extension MediaLibrary {
+    func playableOriginalURL(for recording: Recording) -> URL? {
+        let candidates = [recording.localURL, originalURL(recording.id)]
+        return candidates.first { $0.isFileURL && FileManager.default.fileExists(atPath: $0.path) }
+    }
+}
+
+/// Mirrors the extension in `App/AppState.swift`.
+extension Memory {
+    static let draftTag = "draft"
+    var isDraft: Bool { tags.contains(Self.draftTag) }
+}

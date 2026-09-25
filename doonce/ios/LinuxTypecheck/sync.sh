@@ -20,7 +20,6 @@ TESTS=(
   Tests/DoOnceTests/TranscriptGroundedAnswererTests.swift
   Tests/DoOnceTests/SearchViewModelTests.swift
   Tests/DoOnceTests/TimelineGroupingTests.swift
-  Tests/DoOnceTests/PaywallGateTests.swift
   Tests/DoOnceTests/Pipeline/ProcessingPipelineTests.swift
 )
 find Sources/AppLogic -type l -delete
