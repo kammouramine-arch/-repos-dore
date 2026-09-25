@@ -5,9 +5,11 @@ import SwiftUI
 import UniformTypeIdentifiers
 
 /// Picks one video from Photos (out of process, so no library access is granted to the app) and
-/// copies it into Recordings so it becomes an ordinary `Recording`.
+/// copies it into the media library as a recording's original, so it becomes an ordinary
+/// `Recording`. The result carries the recording id the file was stored under.
 struct VideoImportPicker: UIViewControllerRepresentable {
-    var onPicked: (Result<URL, any Error>) -> Void
+    struct Imported { let id: UUID; let url: URL }
+    var onPicked: (Result<Imported, any Error>) -> Void
     var onCancel: () -> Void
 
     func makeUIViewController(context: Context) -> PHPickerViewController {
@@ -24,9 +26,9 @@ struct VideoImportPicker: UIViewControllerRepresentable {
     func makeCoordinator() -> Coordinator { Coordinator(onPicked: onPicked, onCancel: onCancel) }
 
     final class Coordinator: NSObject, PHPickerViewControllerDelegate {
-        let onPicked: (Result<URL, any Error>) -> Void
+        let onPicked: (Result<Imported, any Error>) -> Void
         let onCancel: () -> Void
-        init(onPicked: @escaping (Result<URL, any Error>) -> Void, onCancel: @escaping () -> Void) {
+        init(onPicked: @escaping (Result<Imported, any Error>) -> Void, onCancel: @escaping () -> Void) {
             self.onPicked = onPicked
             self.onCancel = onCancel
         }
@@ -36,16 +38,17 @@ struct VideoImportPicker: UIViewControllerRepresentable {
                 onCancel()
                 return
             }
-            let destination = RecordingFiles.movieURL(UUID())
+            let id = UUID()
+            let destination = RecordingFiles.movieURL(id)
             let onPicked = onPicked
             // The provider's file is temporary; copy it before the completion returns.
             provider.loadFileRepresentation(forTypeIdentifier: UTType.movie.identifier) { url, error in
-                let result: Result<URL, any Error>
+                let result: Result<Imported, any Error>
                 if let url {
                     do {
-                        try FileManager.default.createDirectory(at: destination.deletingLastPathComponent(), withIntermediateDirectories: true)
+                        try RecordingFiles.library.ensureDirectories(for: id)
                         try FileManager.default.copyItem(at: url, to: destination)
-                        result = .success(destination)
+                        result = .success(Imported(id: id, url: destination))
                     } catch { result = .failure(error) }
                 } else {
                     result = .failure(error ?? CocoaError(.fileNoSuchFile))
@@ -57,9 +60,8 @@ struct VideoImportPicker: UIViewControllerRepresentable {
 }
 
 extension Recording {
-    /// A `Recording` for a video file already in Recordings/, with its real size and duration.
-    static func imported(from url: URL, householdID: UUID) async -> Recording {
-        let id = UUID(uuidString: url.deletingPathExtension().lastPathComponent) ?? UUID()
+    /// A `Recording` for a video file already in the media library, with its real size and duration.
+    static func imported(from url: URL, id: UUID, householdID: UUID) async -> Recording {
         let bytes = (try? FileManager.default.attributesOfItem(atPath: url.path)[.size] as? Int64) ?? 0
         let duration = (try? await AVURLAsset(url: url).load(.duration).seconds) ?? 0
         return Recording(id: id, householdID: householdID, localURL: url, byteCount: bytes, duration: duration)

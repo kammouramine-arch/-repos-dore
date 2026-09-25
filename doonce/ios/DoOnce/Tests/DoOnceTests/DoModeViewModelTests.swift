@@ -26,13 +26,13 @@ final class DoModeViewModelTests: XCTestCase {
         func stop() {}
     }
 
-    private func makeModel(startStep: Int = 1, recorder: ProgressRecorder? = nil, monitor: StepCompletionMonitor = ManualCompletionMonitor()) -> DoModeViewModel {
-        let vm = DoModeViewModel(memory: memory, userID: user, startStep: startStep, progressStore: recorder, monitor: monitor)
+    private func makeModel(startStep: Int = 1, recorder: ProgressRecorder? = nil, monitor: StepCompletionMonitor? = nil) -> DoModeViewModel {
+        let vm = DoModeViewModel(memory: memory, userID: user, startStep: startStep, progressStore: recorder, monitor: monitor ?? ManualCompletionMonitor())
         vm.appear()
         return vm
     }
 
-    func testStartStepClamps() {
+    func testStartStepClamps() async {
         XCTAssertEqual(makeModel(startStep: 1).index, 0)
         XCTAssertEqual(makeModel(startStep: 0).index, 0)
         XCTAssertEqual(makeModel(startStep: -4).index, 0)
@@ -40,7 +40,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertEqual(makeModel(startStep: 99).index, memory.steps.count - 1)
     }
 
-    func testNextAndBackStayInBounds() {
+    func testNextAndBackStayInBounds() async {
         let vm = makeModel()
         vm.back()
         XCTAssertEqual(vm.index, 0, "back on the first step is a no-op")
@@ -55,7 +55,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.index, memory.steps.count - 1, "nothing moves after completion")
     }
 
-    func testProgressIsPersistedOnEveryStep() throws {
+    func testProgressIsPersistedOnEveryStep() async throws {
         let recorder = ProgressRecorder()
         let vm = makeModel(recorder: recorder)
         XCTAssertEqual(recorder.saved.count, 1, "opening persists where the user is")
@@ -71,7 +71,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertTrue(recorder.cleared.isEmpty)
     }
 
-    func testFinishClearsProgress() {
+    func testFinishClearsProgress() async {
         let recorder = ProgressRecorder()
         let vm = makeModel(startStep: memory.steps.count, recorder: recorder)
         vm.next()
@@ -79,7 +79,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertEqual(recorder.cleared, [memory.id])
     }
 
-    func testVoiceIntentsMapToActions() {
+    func testVoiceIntentsMapToActions() async {
         let vm = makeModel(startStep: 2)
         vm.handle(.next)
         XCTAssertEqual(vm.index, 2)
@@ -107,7 +107,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertEqual(vm.index, 1, "voice does nothing after completion")
     }
 
-    func testAutomaticCompletionOffersButNeverAdvances() {
+    func testAutomaticCompletionOffersButNeverAdvances() async {
         let monitor = ImmediateGaugeMonitor()
         let vm = makeModel(startStep: 3, monitor: monitor)
         XCTAssertNil(vm.autoCompletedValue, "step 3 has no gauge rule")
@@ -123,7 +123,7 @@ final class DoModeViewModelTests: XCTestCase {
         XCTAssertFalse(vm.isDoneHighlighted)
     }
 
-    func testHandsFreeWithoutAListenerFallsBackQuietly() {
+    func testHandsFreeWithoutAListenerFallsBackQuietly() async {
         let vm = makeModel()
         vm.setHandsFree(true)
         XCTAssertTrue(vm.isHandsFree)

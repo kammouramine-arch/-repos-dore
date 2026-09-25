@@ -1,8 +1,8 @@
 # DoOnce iOS — what is real, what is simulated
 
-Every service sits behind a protocol from `DoOnceCore`; `AppState.Services` wires the defaults.
-Views never know which implementation they talk to. Swap a mock for a live service in
-`AppState.init` and nothing else changes.
+Every service sits behind a protocol from `DoOnceCore`; `AppState.init` wires them from
+`ServiceConfiguration` (see "Service modes" below) and `AppState.serviceStatus` reports the
+result in Settings → Services. Views never know which implementation they talk to.
 
 Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverified on device ·
 **DEMO** stands in for a real service · **BLOCKED** needs macOS/Xcode, a device or credentials.
@@ -12,7 +12,7 @@ Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverif
 | Check | Result |
 |---|---|
 | `DoOnceCore` — `swift build` + `swift test` (Linux, Swift 6.1, language mode 6) | DONE — 80 tests, 0 failures |
-| App, widgets, tests — `swiftc -parse` on every file (128 files, 11 k lines) | DONE — no syntax errors |
+| App, widgets, tests — `swiftc -parse` on every file | DONE — no syntax errors |
 | App — type-check, Xcode build, simulator, device | BLOCKED — no macOS/Xcode here; expect a round of compile fixes on first Xcode build |
 | Visual review | DONE for the prototype (106 captures, two passes); the native app is reviewed by inspection only |
 
@@ -22,7 +22,7 @@ Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverif
 |---|---|---|
 | Launch (logo forms, echo, skip, Reduce Motion) | DONE | `LaunchView`, Core Haptics loop-close pattern |
 | Onboarding 1–4 + auth page | DONE | Live demos in scenes 2–4 are local animations (not the camera) |
-| Sign in with Apple | DEMO | `SignInWithAppleButton` is shown; the result is not verified against a backend, onboarding always continues |
+| Sign in with Apple | PARTIAL | Live: `AppleSignInService` keeps the credential in the Keychain, restores it at launch (`getCredentialState`), cancel is silent, failure shows a calm inline error; a signed-out live build lands on the auth page. Demo: the mock accepts anything. Token verification is the gateway's job |
 | First-use introduction | DONE | Hosts its own presenters; enters the shell after the first save |
 | Memory home, timeline, search | DONE | Search is `DoOnceCore.SearchIndex`, real ranking over local data |
 | Object passport, procedure detail | DONE | Rename / move / delete write through the repositories |
@@ -30,38 +30,67 @@ Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverif
 | Look: camera, recognition sequence, sheets | PARTIAL | Camera and Vision are real; recognition quality depends on feature prints (see Services) |
 | Teach: pre-record, recording, markers, live captions, chips, ribbon, stop | PARTIAL | Real AVFoundation + Speech; unverified on device |
 | Import a video | PARTIAL | `PHPickerViewController`; the imported file becomes a Recording |
-| Processing (staged reveal from real pipeline stages) | DONE | No invented percentages; retry re-runs the pipeline |
+| Processing (secured → transcribing → moments → understanding → creating steps → preparing) | DONE | Resumable: a `ProcessingJob` is saved at every stage; a recording that never reached review shows as "Finish remembering" on Memory home and resumes from its checkpoint. A failed transcription fails the job with a clear message (never a stand-in transcript) |
 | Review / edit (reorder, split, combine, remove, warning, replace frame, rename) | DONE | Edits of a saved memory go through `MemoryVersioning` |
-| Object creation (suggest / correct / edit / generic, spaces) | DONE | Embeds reference images with Vision |
+| Object creation (suggest / correct / edit / generic, spaces) | DONE | Embeds reference images with Vision; "Add angle" from the passport appends photos and embeddings |
 | Save moment (memory absorbed by the object) | DONE | Core Haptics settle pattern |
-| Do mode (one step per screen, swipe, progress, warnings, provenance) | DONE | Progress persisted as `MemoryProgress` |
+| Do mode (one step per screen, swipe, progress, warnings, provenance) | DONE | Progress persisted as `MemoryProgress` through the store; screen stays awake during a procedure; steps loop their real clip when one was cut |
 | Hands-free (voice intents, spoken steps) | PARTIAL | Real `SFSpeechRecognizer` + `AVSpeechSynthesizer`; unverified on device |
 | Automatic step completion ("Looks good — 1.5 bar") | DEMO | `GaugeCompletionMonitor` fires on a timer; the Vision gauge reader is not written |
 | Ask within memory | DONE | `TranscriptGroundedAnswerer`: local, cites a timestamp, never invents |
-| See original | PARTIAL | Plays the local recording at the exact time when the file exists; key-frame fallback otherwise |
+| See original | PARTIAL | Plays the original at the exact time from the recording's path or the media library's; key-frame fallback otherwise |
 | Completion (loop resolves, accuracy question) | DONE | |
 | Spaces, people, household, share, QR import, notifications | PARTIAL | Local only; share links point at a placeholder domain, QR scanning is a placeholder frame |
-| Profile, settings, privacy, haptics, subscription, paywall | PARTIAL | Paywall purchase is `MockSubscriptionService`; prices are placeholders |
+| Profile, settings, privacy, haptics, subscription, paywall | PARTIAL | Live: StoreKit 2 prices and trial, skeleton while loading, "not available yet" without products. Demo: mock plans marked "Demo". Settings has Services, real Sign out and Delete account |
 | Permission education → system prompt | DONE | Contextual, never at launch |
 | Offline banner, error states, empty states | DONE | |
 | Live Activity + Continue widget | PARTIAL | Written against ActivityKit/WidgetKit; needs the app group entitlement and a device |
 
 ## Services
 
-| Service | Implementation | Status |
-|---|---|---|
-| Camera | `CameraSession` / `CaptureEngine` (AVFoundation, 1080p, torch, focus, interruption + background recovery, first-frame gate) | PARTIAL — real, unverified on device |
-| Recording | `MovieRecorder` (movie output, storage guard, audio metering, markers, key frames via `AVAssetImageGenerator`) | PARTIAL — real, unverified on device |
-| Transcription | `SpeechTranscriptionService` + `LiveTranscriber` (`SFSpeechRecognizer`, on-device when supported) | PARTIAL — real; **default wiring uses `MockTranscriptionService`** (the boiler transcript) so sample content works without a microphone. Switch in `AppState.init`. |
-| AI analysis | `ProcessingPipeline` + `MomentDetector` (pauses, markers, important statements) + `DoOnceCore.ProcedureAssembler` via `MockProcedureGenerationService` | DEMO for generation quality — deterministic heuristics, no language model; provenance and observed/inferred/unclear are real |
-| Object recognition | `VisionRecognitionService` (feature prints + saliency) + `LiveRecogniser` (2-hit rule, category/unknown after 2.5 s) + `DoOnceCore.RecognitionMatcher` | PARTIAL — real but a first approximation of "my boiler vs a boiler"; **default wiring uses `MockObjectRecognitionService`** for sample content |
-| Storage | `InMemory*` repositories seeded from `SampleData` | DEMO — no persistence across launches yet (SwiftData/CloudKit boundary is the repository protocols) |
-| Upload | `BackgroundUploadTransport` (background `URLSession`, resumable, never deletes the local file) | PARTIAL — no endpoint configured (`DoOnceUploadEndpoint` in Info.plist); uploads stay pending |
-| Authentication | `MockAuthService` | DEMO |
-| Subscriptions | `MockSubscriptionService` (free = 5 memories) | DEMO — StoreKit not integrated |
-| Haptics | `HapticsService` (UIKit generators + Core Haptics patterns, Full/Reduced/Off) | DONE |
-| Analytics | `InMemoryAnalytics` behind `Analytics` | DEMO — no backend; events carry no content |
-| Question answering | `TranscriptGroundedAnswerer` | DONE (local); `LLMQuestionAnswerer` is a stub that must stay grounded and cite a timestamp |
+Status is per mode: **live** (`DoOnceServiceMode: live`) and **demo** (the shipped default).
+
+| Service | Implementation | Live | Demo |
+|---|---|---|---|
+| Storage | `DoOnceCore.FileStore` (one JSON document, atomic writes) in `Application Support/DoOnce/store`; media in `…/media` (excluded from backup); one instance behind every repository, progress and job slot | DONE | DONE — seeded with `SampleData` on first run when `DOONCE_SAMPLE_CONTENT=1` |
+| Camera | `CameraSession` / `CaptureEngine` (AVFoundation, 1080p, torch, focus, interruption + background recovery, first-frame gate) | PARTIAL — unverified on device | same |
+| Recording | `MovieRecorder` records straight into `MediaLibrary.originalURL` (no second copy); `KeyFrames` writes frames and the thumbnail into the library; `StepClipExporter` cuts per-step mp4 clips (`AVAssetExportSession`, medium quality) | PARTIAL — unverified on device | same |
+| Transcription | `SpeechTranscriptionService` + `LiveTranscriber` (`SFSpeechRecognizer`, on-device when supported) | PARTIAL — real; a failure fails the processing job, never substitutes a transcript | DEMO — `MockTranscriptionService` (the boiler transcript) |
+| AI analysis | `ProcessingPipeline` + `MomentDetector` → `AnalysisBackedGenerationService` (validator + mapper) over `GatewayProcedureAnalysisService` (`POST /v1/analyze`, retries, idempotency key) | PARTIAL with `DoOnceGatewayURL`; **BLOCKED** without one: `UnconfiguredProcedureAnalysisService` throws `GatewayError.notConfigured` and Teach says so | DEMO — `DeterministicProcedureAnalysisService` (the assembler; no language model) |
+| Object recognition | `VisionRecognitionService` (feature prints + saliency) + `LiveRecogniser` + `RecognitionMatcher` | PARTIAL — a first approximation of "my boiler vs a boiler" | DEMO — `MockObjectRecognitionService` |
+| Authentication | `AppleSignInService` + `KeychainSessionStore` (`kSecClassGenericPassword`, service `app.doonce.session`, after first unlock) | PARTIAL — real session; `deleteAccount` calls `DELETE /v1/account` (BLOCKED without a gateway); email sign-in has no backend | DEMO — `MockAuthService` + `FileSessionStore` |
+| Subscriptions | `StoreKitSubscriptionService` (`Product.products`, `purchase`, `AppStore.sync`, `Transaction.currentEntitlements`, `Transaction.updates` listener) | PARTIAL with `DoOnceProductIDs`; BLOCKED without (paywall shows "not available yet") | DEMO — `MockSubscriptionService` (free = 5 memories) |
+| Upload | `BackgroundUploadTransport` (background `URLSession`, resumable, never deletes the local file) | PARTIAL — no endpoint configured (`DoOnceUploadEndpoint`); uploads stay pending | same |
+| Haptics | `HapticsService` (UIKit generators + Core Haptics patterns, Full/Reduced/Off) | DONE | DONE |
+| Analytics | `InMemoryAnalytics` behind `Analytics` | DEMO — no backend; events carry no content | DEMO |
+| Question answering | `TranscriptGroundedAnswerer` | DONE (local) | DONE |
+
+## Service modes
+
+`DoOnceCore.ServiceConfiguration.resolve(environment:info:)` runs once in `AppState.init`.
+Environment variables win over Info.plist keys, so a scheme can override a build.
+
+| Setting | Info.plist key (`project.yml` → `targets.DoOnce.info.properties`) | Environment override | Shipped default |
+|---|---|---|---|
+| Mode | `DoOnceServiceMode` (`demo` / `live`) | `DOONCE_SERVICE_MODE` | `demo` until a gateway exists; unset with a gateway URL means `live` |
+| Gateway | `DoOnceGatewayURL` (base URL; `/v1/analyze`, `/v1/account`) | `DOONCE_GATEWAY_URL` | empty |
+| Products | `DoOnceProductIDs` (array of App Store product IDs) | — | `[]` |
+| Upload | `DoOnceUploadEndpoint` | `DOONCE_UPLOAD_ENDPOINT` | empty |
+| Sample content | — | `DOONCE_SAMPLE_CONTENT` (`1`/`0`; the scheme sets `1`) | on in demo, off in live |
+
+**Demo** (default): `FileStore` persistence, sample household seeded once into an empty store,
+mock transcription / recognition / auth / subscription, deterministic analysis. Everything works
+offline and on the simulator; the paywall says "Demo" on its prices.
+
+**Live path**: set `DoOnceServiceMode: live`, `DoOnceGatewayURL`, `DoOnceProductIDs`, add the Sign in
+with Apple capability and StoreKit products. Then transcription is on-device Speech, recognition
+is Vision, analysis goes to the gateway, sign-in is Apple with the session in the Keychain, and
+purchases are StoreKit 2. Without a gateway URL, live mode is honest: Teach stops at "Understanding"
+with a clear message and Settings → Services shows the service as not configured. Live mode never
+falls back to the deterministic assembler.
+
+`ServiceStatusEntry.table(for:storageOnDisk:)` derives the Settings → Services page from the same
+configuration, so the labels there are the wiring, not a hope.
 
 ## What a real backend adds
 
@@ -88,5 +117,5 @@ protocol and a call site already.
 
 - Apple developer team for signing (`DEVELOPMENT_TEAM` in `project.yml`), App Groups capability
   `group.app.doonce`, Sign in with Apple capability, Live Activities.
-- `DoOnceUploadEndpoint` (Info.plist) for uploads.
-- Nothing is committed that resembles a secret.
+- `DoOnceGatewayURL`, `DoOnceProductIDs`, `DoOnceUploadEndpoint` (Info.plist) — see "Service modes".
+- Nothing is committed that resembles a secret; the device session lives in the Keychain.

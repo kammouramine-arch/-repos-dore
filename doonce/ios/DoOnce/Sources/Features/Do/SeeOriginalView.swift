@@ -89,13 +89,13 @@ struct SeeOriginalView: View {
 
     private var fraction: CGFloat { duration > 0 ? CGFloat(min(1, at / duration)) : 0 }
 
-    /// Plays only a file that is actually here; a path that never existed on this phone falls back.
+    /// Plays only a file that is actually here: the recording's own path, or the media library's
+    /// original for it (the container path moves between installs). Anything else falls back.
     private func load() async {
         defer { loaded = true }
         guard let id = memory?.sourceRecordingID, let recording = try? await app.services.recordings.recording(id: id) else { return }
         self.recording = recording
-        let url = recording.localURL
-        guard url.isFileURL, FileManager.default.fileExists(atPath: url.path) else { return }
+        guard let url = app.media.playableOriginalURL(for: recording) else { return }
         let player = AVPlayer(url: url)
         _ = await player.seek(to: CMTime(seconds: at, preferredTimescale: 600), toleranceBefore: .zero, toleranceAfter: .zero)
         player.play()

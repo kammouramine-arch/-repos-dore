@@ -42,8 +42,15 @@ struct DoModeView: View {
                 missing
             }
         }
-        .onAppear(perform: makeModel)
-        .onDisappear { vm?.disappear() }
+        .onAppear {
+            makeModel()
+            // Hands are busy and the phone is propped up: never let the screen sleep mid-procedure.
+            UIApplication.shared.isIdleTimerDisabled = true
+        }
+        .onDisappear {
+            vm?.disappear()
+            UIApplication.shared.isIdleTimerDisabled = false
+        }
         .onChange(of: app.soundsEnabled, initial: true) { _, on in prompter.soundsEnabled = on }
         .sheet(item: $ask) { request in
             if let vm {

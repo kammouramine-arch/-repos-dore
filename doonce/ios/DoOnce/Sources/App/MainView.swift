@@ -114,7 +114,7 @@ struct BloomOverlay: View {
     private var items: [Item] {[
         Item(id: 0, title: L10n.string("center.look"), subtitle: L10n.string("center.look.sub"), symbol: "viewfinder", offset: CGSize(width: -118, height: -118), signal: false, route: .look, permission: .camera),
         Item(id: 1, title: L10n.string("center.teach"), subtitle: L10n.string("center.teach.sub"), symbol: "record.circle", offset: CGSize(width: 0, height: -176), signal: true, route: .teach(objectID: nil), permission: .camera),
-        Item(id: 2, title: L10n.string("center.add"), subtitle: L10n.string("center.add.sub"), symbol: "plus.square", offset: CGSize(width: 118, height: -118), signal: false, route: .addObject, permission: .camera),
+        Item(id: 2, title: L10n.string("center.add"), subtitle: L10n.string("center.add.sub"), symbol: "plus.square", offset: CGSize(width: 118, height: -118), signal: false, route: .addObject(existingObjectID: nil), permission: .camera),
     ]}
 
     var body: some View {

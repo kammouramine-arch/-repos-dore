@@ -9,6 +9,8 @@ struct ErrorStateView: View {
     var kind: Kind
     var media: MediaRef? = nil
     var progress: Double = 0.62
+    /// What exactly went wrong, when the pipeline knows (transcription, gateway); shown under the title.
+    var detail: String? = nil
     var retry: () -> Void
 
     @Environment(\.dismiss) private var dismiss
@@ -27,7 +29,7 @@ struct ErrorStateView: View {
                     Text(L10n.string(kind == .upload ? "error.upload.title" : "error.generic.title"))
                         .dsText(.title1).foregroundStyle(DSColor.textPrimary)
                         .padding(.top, DS.Space.s6)
-                    Text(L10n.string(kind == .upload ? "error.upload.sub" : "error.generic.sub"))
+                    Text(detail ?? L10n.string(kind == .upload ? "error.upload.sub" : "error.generic.sub"))
                         .dsText(.body).foregroundStyle(DSColor.textSecondary)
                         .padding(.top, DS.Space.s2)
                     DSCallout(.neutral, systemImage: "lock", L10n.string("error.saved"))

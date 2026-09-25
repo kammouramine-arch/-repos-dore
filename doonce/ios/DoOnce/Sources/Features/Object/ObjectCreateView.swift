@@ -170,7 +170,9 @@ struct ObjectCreateView: View {
                 if var memory {
                     memory.objectID = object.id
                     memory.spaceID = selectedSpaceID
-                    try await app.save(memory)
+                    // The draft becomes a memory; its processing job is finished.
+                    try await app.remember(memory)
+                    memory.tags.removeAll { $0 == Memory.draftTag }
                     withDSAnimation(DSMotion.crossfade) { saved = (memory, object) }
                 } else {
                     app.haptics.play(.success)

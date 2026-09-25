@@ -21,8 +21,10 @@ struct DoOnceApp: App {
     }
 }
 
-/// Launch → onboarding → first run → main. The launch screen storyboard already paints
-/// `backgroundPrimary`, so there is never a white flash.
+/// Launch → onboarding (ends on the auth page) → first run → main; a signed-out live build lands
+/// on the auth page instead. The launch screen storyboard already paints `backgroundPrimary`, so
+/// there is never a white flash. The store loads under the launch animation (`bootstrap`), and
+/// the app enters only when both are done.
 struct RootView: View {
     @Environment(AppState.self) private var app
     @Environment(\.scenePhase) private var scenePhase
@@ -32,20 +34,22 @@ struct RootView: View {
             DSColor.backgroundPrimary.ignoresSafeArea()
             switch app.phase {
             case .launching:
-                LaunchView(full: app.launchCount == 0 || app.launchCount % 5 == 0) {
-                    app.launchCount += 1
-                    withDSAnimation(DSMotion.gentle) { app.phase = app.isOnboarded ? (app.hasSavedFirstMemory ? .main : .firstRun) : .onboarding }
+                LaunchView(full: app.launchCount == 0 || app.launchCount % 5 == 0) { app.finishLaunch() }
+                    .transition(.opacity)
+            case .onboarding:
+                OnboardingView {
+                    withDSAnimation(DSMotion.gentle) { app.isOnboarded = true; app.phase = app.hasSavedFirstMemory ? .main : .firstRun }
                 }
                 .transition(.opacity)
-            case .onboarding:
-                OnboardingView { withDSAnimation(DSMotion.gentle) { app.isOnboarded = true; app.phase = .firstRun } }
-                    .transition(.opacity)
+            case .auth:
+                AuthView().transition(.opacity)
             case .firstRun:
                 FirstRunView().transition(.opacity)
             case .main:
                 MainView().transition(.opacity)
             }
         }
+        .task { await app.bootstrap() }
         .onChange(of: scenePhase) { _, phase in
             if phase == .active { app.haptics.prepare() }
         }

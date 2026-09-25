@@ -27,7 +27,10 @@ struct MemoryHomeView: View {
                 .padding(.top, DS.Space.s5)
 
                 if app.objects.isEmpty {
-                    emptyState.padding(.top, 80)
+                    if !app.pendingJobs.isEmpty {
+                        PendingProcessingSection(jobs: app.pendingJobs).padding(.top, 28)
+                    }
+                    emptyState.padding(.top, app.pendingJobs.isEmpty ? 80 : 40)
                 } else {
                     sections
                 }
@@ -38,6 +41,7 @@ struct MemoryHomeView: View {
         .background(DSColor.backgroundPrimary.ignoresSafeArea())
         .toolbar(.hidden, for: .navigationBar)
         .onAppear { ZoomTransition.namespace = zoom }
+        .task { await app.refresh() }
     }
 
     private var header: some View {
@@ -57,6 +61,9 @@ struct MemoryHomeView: View {
 
     private var sections: some View {
         VStack(alignment: .leading, spacing: 28) {
+            if !app.pendingJobs.isEmpty {
+                PendingProcessingSection(jobs: app.pendingJobs)
+            }
             if let current = app.inProgress {
                 ContinueSection(memory: current.memory, progress: current.progress)
             }

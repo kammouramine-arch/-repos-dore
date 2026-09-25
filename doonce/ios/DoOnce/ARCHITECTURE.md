@@ -24,7 +24,7 @@ Tests/            DoOnceTests (view models), DoOnceUITests (golden path)
 5. **Buttons:** `.buttonStyle(.dsPrimary)` (ink), `.dsSignal` (the one "DoOnce knows this" action), `.dsSecondary`, `.dsGhost`, `.dsSmall`, `.dsGlassIcon`, `.dsOnMediaIcon`, `.dsOnMediaSmall`, or `.ds(kind, size:, fullWidth:)`. Cards and rows use `.buttonStyle(.dsPressable)` / `.dsRowPressable`.
 6. **Components:** `DSPhotoCard` (photo is the UI), `DSRow`, `DSList`, `DSSeparator`, `DSCallout`, `DSChip`, `DSAvatar` (initials only), `DSStatusPill`, `DSSegments`, `DSSectionHeader`, `DSEyebrow`, `DSTopBar` (+ `.dsTopBarInset()`), `DSSearchField`, `DSLoopMark` / `DSLoopShape(progress:)`, `DSGlass` / `.dsGlassCapsule()`.
 7. **Navigation:** `@Environment(Router.self)`. Push with `router.push(.object(id))`; camera/Do surfaces with `router.present(.look)`; sheets with `router.show(.paywall)` (the router presents over the cover when one is up). To go from one cover to another use `router.replaceFullScreen(with:)`. A view that lives inside a sheet presents its own follow-up sheets (see `ReviewView`). Every pushed screen hides the system bar (`MainView` does it) and draws its own `DSTopBar` via `PushedScreen`. `doonce://do/<memoryID>` opens Do mode at the next step.
-8. **State:** `@Environment(AppState.self)`. Read `app.objects`, `app.memories`, `app.memories(for:)`, `app.person(id)`; write with `try await app.save(memory)`. Services live in `app.services` (all protocols from DoOnceCore; mocks by default). Feature view models are `@MainActor @Observable final class` created with `@State` in the view.
+8. **State:** `@Environment(AppState.self)`. Read `app.objects`, `app.memories` (drafts excluded), `app.memories(for:)`, `app.person(id)`; write with `try await app.save(memory)`. Services live in `app.services` (all protocols from DoOnceCore), wired from `app.configuration` (`ServiceConfiguration`: demo or live) over one `FileStore`; `app.media` is the `MediaLibrary`, `app.jobs` the processing jobs. Feature view models are `@MainActor @Observable final class` created with `@State` in the view.
 9. **Photos and media:** objects and steps carry `MediaRef`s. Use `MediaView(ref:)` (Features/Shared) which resolves local files, remote URLs and `sample:` names from the asset catalog. Placeholders are `DSColor.backgroundSunken`, never a spinner.
 10. **Accessibility:** every control has a label; Dynamic Type through `.ds` fonts; Reduce Motion through `DSMotion`; colour is never the only state signal (pair signal colour with a symbol or text).
 11. **Safe copy:** confidence-aware. `look.found` / `look.maybe` / `look.unknown.title`. Provenance is always visible: "Julien said…", `review.observed` / `review.inferred` / `review.unclear`. Never invent a step.
@@ -34,19 +34,20 @@ Tests/            DoOnceTests (view models), DoOnceUITests (golden path)
 
 | Feature | Route | Views |
 |---|---|---|
-| Launch | phase | `LaunchView(full:onFinished:)` |
-| Onboarding | phase | `OnboardingView(onFinished:)`, `AuthView` |
+| Launch | phase | `LaunchView(full:onFinished:)`; the store loads underneath (`AppState.bootstrap`) |
+| Onboarding | phase | `OnboardingView(onFinished:)` (ends on `AuthContent`) |
+| Auth | phase | `AuthView` — a live build without a session, or after sign out |
 | First run | phase | `FirstRunView` |
-| Memory | root | `MemoryHomeView`, `SearchView(initialQuery:)`, `TimelineSection` |
+| Memory | root | `MemoryHomeView`, `PendingProcessingSection` ("Finish remembering"), `SearchView(initialQuery:)`, `TimelineSection` |
 | Object | `.object(id)` | `ObjectDetailView(objectID:)`, `ObjectCreateView` |
 | Procedure | `.procedure(id)` | `ProcedureDetailView(memoryID:)` (pencil → `ReviewView(mode: .edit)` as a sheet), `ReviewView` (generated, inside the Teach cover) |
 | Look | `.look` | `LookView`, `RecognitionOverlay`, `RecognisedObjectSheet` |
 | Teach | `.teach(objectID:)` | `TeachView`, `RecordButton`, `LiveIntelligenceLayer`, `ProcessingView(recordingID:)`, `SaveMomentView` |
-| Add | `.addObject` | `AddObjectView` |
+| Add | `.addObject(existingObjectID:)` | `AddObjectView` (new object, or "Add angle" for an existing one) |
 | Do | `.doMode(memoryID:startStep:)` | `DoModeView`, `HandsFreeBar`, `AskSheet`, `CompletionView`, `SeeOriginalView(memoryID:at:)` |
 | Spaces / People | `.spaces`, `.space(id)`, `.people`, `.person(id)` | `SpacesView`, `SpaceDetailView`, `PeopleView`, `PersonDetailView` |
 | Household / Share | `.household`, sheet `.share` | `HouseholdView`, `ShareView(objectID:memoryID:)`, `QRImportView` |
-| You | root | `ProfileView`, `SettingsView`, `PrivacyView`, `HapticsSettingsView`, `NotificationsView`, `SubscriptionView`, `PaywallView` |
+| You | root | `ProfileView`, `SettingsView`, `ServiceStatusView` (`.services`), `PrivacyView`, `HapticsSettingsView`, `NotificationsView`, `SubscriptionView`, `PaywallView` |
 | States | — | `OfflineBanner`, `ErrorStateView`, `PermissionEducationView(kind:then:)`, `EmptyState` |
 
 The interactive prototype at `../../prototype/` is the visual spec: same screens, same copy, same motion. Screenshots of every screen in light and dark are in `../../prototype/review/shots/`.

@@ -5,6 +5,7 @@ import UIKit
 /// Video becoming a structured memory (motion spec §7). The frozen last frame is the hero; under
 /// it the status names only the stage that is running, the ribbon fills with the transcript,
 /// words stream in, ticks mark what mattered, and frames lift into the step sequence.
+/// Reopened from Memory home's "Finish remembering", it resumes where the job stopped.
 @MainActor
 struct ProcessingView: View {
     var recordingID: UUID
@@ -51,8 +52,8 @@ struct ProcessingView: View {
                 .padding(.top, 70)
                 .padding(.bottom, DS.Size.tabBarClearance)
             }
-            if case .failed = model.status {
-                ErrorStateView(kind: .generic, media: model.hero, retry: { model.retry(app: app, recordingID: recordingID, objectID: objectID) })
+            if case .failed(let message) = model.status {
+                ErrorStateView(kind: .generic, media: model.hero, detail: message, retry: { model.retry(app: app, recordingID: recordingID, objectID: objectID) })
                     .transition(.opacity)
             }
             VStack {
@@ -94,10 +95,12 @@ struct ProcessingView: View {
 
     private var statusText: String {
         switch model.status {
-        case .listening: L10n.string("processing.listening")
-        case .steps: L10n.string("processing.steps")
-        case .object: L10n.string("processing.object")
-        case .guide: L10n.string("processing.guide")
+        case .secured: L10n.string("processing.secured")
+        case .transcribing: L10n.string("processing.transcribing")
+        case .moments: L10n.string("processing.moments")
+        case .understanding: L10n.string("processing.understanding")
+        case .creatingSteps: L10n.string("processing.creatingSteps")
+        case .preparing: L10n.string("processing.preparing")
         case .ready: L10n.string("processing.ready")
         case .failed(let message): message
         }

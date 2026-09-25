@@ -4,8 +4,8 @@ import Foundation
 import Observation
 import UIKit
 
-/// Records through the camera session's movie output into Application Support and turns the
-/// result into a `Recording` saved in the store.
+/// Records through the camera session's movie output straight into the media library (one
+/// file, no second copy) and turns the result into a `Recording` saved in the store.
 ///
 /// Why here and not in the view: recording outlives the record button (a phone call can end it),
 /// and the file must be kept and registered whatever happens, because the local file is the
@@ -71,7 +71,7 @@ final class MovieRecorder {
         let id = UUID()
         currentID = id
         let url = RecordingFiles.movieURL(id)
-        try FileManager.default.createDirectory(at: url.deletingLastPathComponent(), withIntermediateDirectories: true)
+        try RecordingFiles.library.ensureDirectories(for: id)
         markers = []
         elapsed = 0
         let engine = camera.engine
@@ -158,19 +158,25 @@ private final class RecordingDelegate: NSObject, AVCaptureFileOutputRecordingDel
     }
 }
 
-/// Where recordings and derived images live. Everything is under Application Support so it is
-/// backed up and never purged behind the user's back.
+/// Paths for recordings and derived images, all through the one `MediaLibrary` under
+/// `AppDirectories.default.media` (so `AppState.media` and these static helpers agree). Kept as a
+/// facade because recording, import, key frames and Add all need a path without an `AppState`.
 enum RecordingFiles {
-    static var root: URL {
-        FileManager.default.urls(for: .applicationSupportDirectory, in: .userDomainMask)[0]
+    nonisolated(unsafe) static var directories: AppDirectories = .default
+    static var library: MediaLibrary { directories.library }
+
+    /// The original video's path. The recording directory is created if needed.
+    static func movieURL(_ id: UUID) -> URL {
+        try? library.ensureDirectories(for: id)
+        return library.originalURL(id)
     }
-    static func movieURL(_ id: UUID) -> URL { root.appending(path: "Recordings/\(id.uuidString).mov") }
-    static func framesDirectory(_ recordingID: UUID) -> URL { root.appending(path: "Frames/\(recordingID.uuidString)") }
-    static func frameURL(_ recordingID: UUID, at seconds: TimeInterval) -> URL {
-        framesDirectory(recordingID).appending(path: "\(Int(seconds.rounded())).jpg")
+    static func frameURL(_ recordingID: UUID, at seconds: TimeInterval) -> URL { library.frameURL(recordingID, at: seconds) }
+    static func lastFrameURL(_ recordingID: UUID) -> URL { library.thumbnailURL(recordingID) }
+    static func clipURL(_ recordingID: UUID, stepOrder: Int) -> URL { library.clipURL(recordingID, stepOrder: stepOrder) }
+    /// Reference photos taken in Add live beside the recordings, not inside one.
+    static func objectImageURL(_ objectID: UUID, index: Int) -> URL {
+        directories.media.appending(path: "objects/\(objectID.uuidString)-\(index).jpg")
     }
-    static func lastFrameURL(_ recordingID: UUID) -> URL { framesDirectory(recordingID).appending(path: "last.jpg") }
-    static func objectImageURL(_ objectID: UUID, index: Int) -> URL { root.appending(path: "Images/\(objectID.uuidString)-\(index).jpg") }
 }
 
 /// Pulls stills out of a recording with `AVAssetImageGenerator`.
@@ -185,21 +191,27 @@ enum KeyFrames {
         return UIImage(cgImage: cgImage)
     }
 
+    /// The original file for a recording, wherever it is on this phone.
+    static func sourceURL(of recording: Recording) throws -> URL {
+        guard let url = RecordingFiles.library.playableOriginalURL(for: recording) else { throw CocoaError(.fileNoSuchFile) }
+        return url
+    }
+
     /// Writes (or reuses) the frame at `seconds` and returns a `MediaRef` pointing at it.
     static func frame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef {
         let url = RecordingFiles.frameURL(recording.id, at: seconds)
         if !FileManager.default.fileExists(atPath: url.path) {
-            let image = try await image(from: recording.localURL, at: seconds)
+            let image = try await image(from: try sourceURL(of: recording), at: seconds)
             try FrameImage.writeJPEG(image, to: url)
         }
         return MediaRef(kind: .image, localURL: url, sourceOffset: seconds)
     }
 
-    /// The frozen last frame used as the Processing hero.
+    /// The frozen last frame used as the Processing hero and the recording's thumbnail.
     static func lastFrame(of recording: Recording) async throws -> MediaRef {
         let url = RecordingFiles.lastFrameURL(recording.id)
         if !FileManager.default.fileExists(atPath: url.path) {
-            let image = try await image(from: recording.localURL, at: max(0, recording.duration - 0.3))
+            let image = try await image(from: try sourceURL(of: recording), at: max(0, recording.duration - 0.3))
             try FrameImage.writeJPEG(image, to: url)
         }
         return MediaRef(kind: .image, localURL: url, sourceOffset: recording.duration)

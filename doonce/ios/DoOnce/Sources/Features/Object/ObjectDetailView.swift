@@ -113,7 +113,8 @@ struct ObjectDetailView: View {
     }
 }
 
-/// Rename, move to a space, delete. Lives behind the ellipsis so the page stays about the object.
+/// Rename, add an angle, move to a space, delete. Lives behind the ellipsis so the page stays
+/// about the object.
 @MainActor
 struct ObjectMenu: View {
     var object: PhysicalObject
@@ -121,10 +122,12 @@ struct ObjectMenu: View {
     var onDelete: () -> Void
 
     @Environment(AppState.self) private var app
+    @Environment(Router.self) private var router
 
     var body: some View {
         Menu {
             Button(L10n.string("common.rename"), systemImage: "pencil", action: onRename)
+            Button(L10n.string("object.addAngle"), systemImage: "camera.viewfinder") { addAngle() }
             Menu(L10n.string("object.move"), systemImage: "arrow.right.square") {
                 ForEach(app.spaces) { space in
                     Button(space.name) { move(to: space) }
@@ -143,5 +146,14 @@ struct ObjectMenu: View {
         var updated = object
         updated.spaceID = space.id
         Task { try? await app.save(updated) }
+    }
+
+    /// More reference photos for recognition; the camera asks for permission the contextual way.
+    private func addAngle() {
+        let route = FullScreenRoute.addObject(existingObjectID: object.id)
+        Task {
+            if await PermissionsService.status(.camera) == .granted { router.present(route) }
+            else { router.show(.permission(.camera, then: route)) }
+        }
     }
 }

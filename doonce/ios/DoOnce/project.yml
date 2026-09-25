@@ -47,6 +47,19 @@ targets:
         NSPhotoLibraryUsageDescription: Import a video you already have.
         NSSupportsLiveActivities: true
         UIBackgroundModes: [audio]
+        # Service modes (read by DoOnceCore.ServiceConfiguration; see STATUS.md → "Service modes").
+        # demo: FileStore persistence + mock transcription/recognition/auth/subscription and the
+        #       deterministic analysis; sample content when DOONCE_SAMPLE_CONTENT=1.
+        # live: on-device Speech + Vision, Sign in with Apple, StoreKit 2, and the gateway below.
+        DoOnceServiceMode: demo
+        # Base URL of the DoOnce gateway (procedure analysis, account deletion). Empty = not configured:
+        # in live mode Teach fails at "Understanding" with a clear message instead of a demo result.
+        DoOnceGatewayURL: ""
+        # App Store product identifiers for DoOnce+ (an array: yearly, monthly). Empty = the paywall
+        # shows "Subscriptions aren't available yet".
+        DoOnceProductIDs: []
+        # Base URL for resumable recording uploads (BackgroundUploadTransport). Empty = uploads stay pending.
+        DoOnceUploadEndpoint: ""
         # doonce://do/<memoryID> from the Live Activity and the Continue widget.
         CFBundleURLTypes:
           - CFBundleURLName: app.doonce.ios

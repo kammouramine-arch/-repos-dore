@@ -20,6 +20,7 @@ struct RouteView: View {
         case .haptics: HapticsSettingsView()
         case .subscription: SubscriptionView()
         case .qrImport: QRImportView()
+        case .services: ServiceStatusView()
         }
     }
 }
@@ -31,7 +32,7 @@ struct FullScreenRouteView: View {
         switch route {
         case .look: LookView()
         case .teach(let objectID): TeachView(objectID: objectID)
-        case .addObject: AddObjectView()
+        case .addObject(let existingObjectID): AddObjectView(existingObjectID: existingObjectID)
         case .doMode(let memoryID, let startStep): DoModeView(memoryID: memoryID, startStep: startStep)
         case .processing(let recordingID): ProcessingView(recordingID: recordingID)
         }

@@ -18,13 +18,15 @@ enum Route: Hashable {
     case haptics
     case subscription
     case qrImport
+    case services
 }
 
 /// Full-screen surfaces that replace the tab shell: camera modes and Do mode.
 enum FullScreenRoute: Identifiable, Hashable {
     case look
     case teach(objectID: UUID?)
-    case addObject
+    /// `existingObjectID` set: "Add angle" from a passport, appending photos to that object.
+    case addObject(existingObjectID: UUID?)
     case doMode(memoryID: UUID, startStep: Int)
     case processing(recordingID: UUID)
     var id: Self { self }

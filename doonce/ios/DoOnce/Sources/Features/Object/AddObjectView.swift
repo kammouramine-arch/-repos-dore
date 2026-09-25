@@ -4,7 +4,12 @@ import UIKit
 
 /// Add: remember an object without a procedure. Two captures from two angles (they become the
 /// reference images and embeddings), then the same creation screen as after Teach.
+///
+/// With `existingObjectID` ("Add angle" from a passport) the captures are appended to that
+/// object's reference images and embeddings instead: as many angles as the user likes, then Done.
 struct AddObjectView: View {
+    var existingObjectID: UUID? = nil
+
     @Environment(AppState.self) private var app
     @Environment(Router.self) private var router
     @State private var camera = CameraSession()
@@ -13,7 +18,10 @@ struct AddObjectView: View {
     @State private var toast: String?
     @State private var create = false
     @State private var denied = false
+    @State private var saving = false
     private let batch = UUID()
+
+    private var existing: PhysicalObject? { app.object(existingObjectID) }
 
     var body: some View {
         ZStack {
@@ -38,16 +46,29 @@ struct AddObjectView: View {
                     LocalToast(text: toast).transition(.opacity.combined(with: .offset(y: 8)))
                 }
                 VStack(spacing: 6) {
-                    Text(L10n.string("addObject.hint")).dsText(.title2).foregroundStyle(DSColor.textOnMedia)
-                    Text(L10n.string("addObject.hintSub")).dsText(.subheadline).foregroundStyle(DSColor.textOnMedia.opacity(0.8))
+                    if let existing {
+                        Text(L10n.string("addObject.angle.hint", ["object": existing.name.lowercased()])).dsText(.title2).foregroundStyle(DSColor.textOnMedia)
+                        Text(L10n.string("addObject.angle.sub")).dsText(.subheadline).foregroundStyle(DSColor.textOnMedia.opacity(0.8))
+                    } else {
+                        Text(L10n.string("addObject.hint")).dsText(.title2).foregroundStyle(DSColor.textOnMedia)
+                        Text(L10n.string("addObject.hintSub")).dsText(.subheadline).foregroundStyle(DSColor.textOnMedia.opacity(0.8))
+                    }
                 }
                 .multilineTextAlignment(.center)
                 .shadow(color: .black.opacity(0.5), radius: 12, y: 1)
                 RecordButton(isRecording: false, capture: true) { capture() }
-                    .padding(.bottom, 46)
+                    .padding(.bottom, existing != nil ? DS.Space.s3 : 46)
+                if existing != nil {
+                    Button(L10n.plural("addObject.angle.done", n: captures.count)) { appendToExisting() }
+                        .buttonStyle(.dsOnMediaSmall)
+                        .disabled(captures.isEmpty || saving)
+                        .opacity(captures.isEmpty ? 0 : 1)
+                        .padding(.bottom, 30)
+                }
             }
             .padding(.horizontal, DS.Space.gutter)
             .dsAnimation(DSMotion.standard(0.2), value: toast)
+            .dsAnimation(DSMotion.standard(0.2), value: captures.count)
             DSTopBar(leading: .close, onMedia: true, onLeading: { router.dismissFullScreen() })
             if denied {
                 TeachErrorView(title: L10n.string("permission.camera.title"), sub: L10n.string("look.denied.sub"),
@@ -61,7 +82,7 @@ struct AddObjectView: View {
         switch await PermissionsService.status(.camera) {
         case .undetermined:
             router.dismissFullScreen()
-            router.show(.permission(.camera, then: .addObject))
+            router.show(.permission(.camera, then: .addObject(existingObjectID: existingObjectID)))
         case .denied:
             denied = true
         case .granted:
@@ -79,12 +100,41 @@ struct AddObjectView: View {
         let url = RecordingFiles.objectImageURL(batch, index: captures.count)
         guard (try? FrameImage.writeJPEG(image, to: url)) != nil else { return }
         captures.append(MediaRef(kind: .image, localURL: url))
-        if captures.count == 1 {
+        if existing != nil {
+            // Any number of angles; Done is the way out.
+            if captures.count == 1 {
+                toast = L10n.string("addObject.oneMore")
+                Task { try? await Task.sleep(for: .milliseconds(1400)); toast = nil }
+            }
+        } else if captures.count == 1 {
             toast = L10n.string("addObject.oneMore")
             Task { try? await Task.sleep(for: .milliseconds(1400)); toast = nil }
         } else {
             camera.stop()
             withDSAnimation(DSMotion.crossfade) { create = true }
+        }
+    }
+
+    /// "Add angle": embed the captures and append them to the object's passport.
+    private func appendToExisting() {
+        guard var object = existing, !captures.isEmpty, !saving else { return }
+        saving = true
+        Task {
+            let embedder = VisionRecognitionService()
+            var embeddings: [Embedding] = []
+            for image in captures { if let e = try? await embedder.embed(image) { embeddings.append(e) } }
+            object.images.append(contentsOf: captures)
+            object.visualEmbeddings.append(contentsOf: embeddings)
+            object.lastUsedAt = Date()
+            do {
+                try await app.save(object)
+                app.haptics.play(.success)
+                camera.stop()
+                router.dismissFullScreen()
+            } catch {
+                app.haptics.play(.error)
+                saving = false
+            }
         }
     }
 }

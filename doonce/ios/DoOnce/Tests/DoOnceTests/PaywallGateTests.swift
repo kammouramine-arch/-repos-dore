@@ -25,9 +25,21 @@ final class PaywallGateTests: XCTestCase {
         XCTAssertEqual(tier, .plus)
     }
 
+    /// A demo-mode `AppState` on a throwaway store directory.
+    @MainActor
+    private func makeApp(sample: Bool) async -> AppState {
+        let configuration = ServiceConfiguration.resolve(
+            environment: ["DOONCE_SAMPLE_CONTENT": sample ? "1" : "0"],
+            info: ["DoOnceServiceMode": "demo"]
+        )
+        let app = AppState(configuration: configuration, directories: .temporary())
+        await app.bootstrap()
+        return app
+    }
+
     @MainActor
     func testSampleHouseholdIsOverTheFreeLimit() async {
-        let app = AppState(sample: true)
+        let app = await makeApp(sample: true)
         XCTAssertGreaterThan(app.memories.count, MemoryQuota.freeLimit)
         let allowed = await app.canCreateMemory()
         XCTAssertFalse(allowed, "The sample household has more memories than the free limit, so Teach must show the paywall.")
@@ -35,7 +47,7 @@ final class PaywallGateTests: XCTestCase {
 
     @MainActor
     func testEmptyHouseholdCanCreate() async {
-        let app = AppState(sample: false)
+        let app = await makeApp(sample: false)
         let allowed = await app.canCreateMemory()
         XCTAssertTrue(allowed)
     }

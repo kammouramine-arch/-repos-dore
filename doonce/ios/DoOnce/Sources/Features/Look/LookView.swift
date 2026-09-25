@@ -74,7 +74,7 @@ struct LookView: View {
             LookUncertainSheet(object: object, space: app.space(object.spaceID), onYes: { model.confirm() }, onNo: { model.deny() })
                 .presentationDetents([.height(236)])
         case .unknown:
-            LookUnknownSheet(onRemember: { model.sheet = nil; present(.addObject) }, onSearch: { open(.search(initialQuery: model.suggestedCategory ?? "")) })
+            LookUnknownSheet(onRemember: { model.sheet = nil; present(.addObject(existingObjectID: nil)) }, onSearch: { open(.search(initialQuery: model.suggestedCategory ?? "")) })
                 .presentationDetents([.height(290)])
         case .error:
             LookErrorSheet(onRetry: { model.retry() }, onManual: { open(.search(initialQuery: "")) })

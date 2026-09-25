@@ -131,15 +131,15 @@ final class TeachModel {
 
     // MARK: Import
 
-    func imported(_ result: Result<URL, any Error>) {
+    func imported(_ result: Result<VideoImportPicker.Imported, any Error>) {
         showsImporter = false
         guard let app else { return }
         switch result {
         case .failure:
             phase = .error(title: L10n.string("error.import.title"), sub: L10n.string("error.import.sub"))
-        case .success(let url):
+        case .success(let file):
             Task {
-                let recording = await Recording.imported(from: url, householdID: app.household.id)
+                let recording = await Recording.imported(from: file.url, id: file.id, householdID: app.household.id)
                 try? await app.services.recordings.save(recording)
                 if let last = try? await KeyFrames.lastFrame(of: recording), let localURL = last.localURL {
                     frozenFrame = UIImage(contentsOfFile: localURL.path)

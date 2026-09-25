@@ -6,12 +6,15 @@ import SwiftUI
 /// Drives Processing: consumes the pipeline's stages and turns them into what the screen shows.
 /// The status line only ever names the stage that is running; the ribbon fill is transcript
 /// progress; ticks and frames appear when the data behind them exists.
+///
+/// Resumable: the recording's `ProcessingJob` (from `app.jobs`) says how far an earlier run got,
+/// and the pipeline skips what is already saved (transcript, moments, draft memory, frames).
 @MainActor
 @Observable
 final class ProcessingModel {
-    enum Status: Equatable { case listening, steps, object, guide, ready, failed(String) }
+    enum Status: Equatable { case secured, transcribing, moments, understanding, creatingSteps, preparing, ready, failed(String) }
 
-    private(set) var status: Status = .listening
+    private(set) var status: Status = .secured
     private(set) var recording: Recording?
     private(set) var hero: MediaRef?
     /// The segment being streamed in, word by word.
@@ -42,7 +45,7 @@ final class ProcessingModel {
     func retry(app: AppState, recordingID: UUID, objectID: UUID?) {
         pipelineTask?.cancel()
         pipelineTask = nil
-        status = .listening
+        status = .secured
         shownText = ""; highlights = []; fill = 0; ticks = []; revealedSteps = []
         memory = nil; recognition = nil; isReady = false
         shownSegments = 0; revealQueue = []; revealing = false
@@ -57,49 +60,71 @@ final class ProcessingModel {
         self.recording = recording
         hero = try? await KeyFrames.lastFrame(of: recording)
 
+        // The job: an earlier run's checkpoint, or a new one. Teach's object choice wins over the job's.
+        var job = (try? await app.jobs.job(recordingID: recordingID)) ?? ProcessingJob(recordingID: recordingID, objectID: objectID)
+        if let objectID { job.objectID = objectID }
+        var draft: Memory?
+        if let memoryID = job.memoryID, let existing = try? await app.services.memories.memory(id: memoryID) {
+            draft = existing
+        }
+
         let pipeline = ProcessingPipeline(
             transcription: app.services.transcription,
             generation: app.services.generation,
             recognition: app.services.recognition,
             recordings: app.services.recordings,
+            memories: app.services.memories,
+            jobs: app.jobs,
             analytics: app.services.analytics,
-            frames: AssetKeyFrameExtractor()
+            frames: AssetKeyFrameExtractor(),
+            clips: StepClipExporter()
         )
-        let object = app.object(objectID)
+        let object = app.object(job.objectID)
         let context = GenerationContext(
             householdID: app.household.id,
             creatorID: app.currentUser.id,
-            objectID: objectID,
+            objectID: job.objectID,
             spaceID: object?.spaceID,
             demonstratorID: app.people.first(where: { $0.isSelf })?.id
         )
         do {
-            for try await stage in pipeline.run(recording: recording, context: context, objects: app.objects) {
+            for try await stage in pipeline.run(job: job, recording: recording, draft: draft, context: context, objects: app.objects) {
                 apply(stage, recording: recording)
             }
+            await app.refresh()
+        } catch is CancellationError {
+            // Left the screen; the job resumes from Memory home.
+        } catch let failure as ProcessingFailure {
+            status = .failed(L10n.string(failure.messageKey))
+            await app.refresh()
         } catch {
             status = .failed(L10n.string("processing.failed"))
+            await app.refresh()
         }
     }
 
     private func apply(_ stage: ProcessingStage, recording: Recording) {
         switch stage {
-        case .listening(let transcript):
-            status = .listening
+        case .secured:
+            status = .secured
+        case .transcribing(let transcript):
+            if status == .secured { setStatus(.transcribing) }
             enqueue(Array(transcript.segments.dropFirst(shownSegments)))
-        case .findingSteps(let moments):
-            setStatus(.steps)
+        case .findingMoments(let moments):
+            setStatus(.moments)
             Task { @MainActor in
-                for moment in moments {
+                for moment in moments where !ticks.contains(where: { abs($0.at - moment.time) < 0.01 }) {
                     ticks.append(RibbonTick(at: moment.time, kind: moment.kind == .userMarked ? .marked : .step))
                     if !UIAccessibility.isReduceMotionEnabled { try? await Task.sleep(for: .milliseconds(140)) }
                 }
             }
-        case .matchingObject(let result):
-            recognition = result
-            setStatus(.object)
-        case .creatingGuide:
-            setStatus(.guide)
+        case .understanding(let result):
+            if let result { recognition = result }
+            setStatus(.understanding)
+        case .creatingSteps:
+            setStatus(.creatingSteps)
+        case .preparing:
+            setStatus(.preparing)
         case .done(let memory):
             self.memory = memory
             Task { @MainActor in await finish(memory) }
