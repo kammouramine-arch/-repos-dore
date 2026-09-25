@@ -73,7 +73,7 @@ for a real service · **BLOCKED** needs something this environment does not have
 - `npm run typecheck` + `npm test`: **11 tests, 0 failures**. The model API key never enters the
   app; `npm run smoke` and the deploy workflow need credentials this environment does not have.
 
-### iOS — DoOnce app — PARTIAL (written, logic tested on Linux, not compiled with Xcode)
+### iOS — DoOnce app — PARTIAL (compiles and runs on real Xcode/simulator CI; no physical device yet)
 - SwiftUI design system (`DSColor`, `.dsText`, `DSMotion` with Reduce Motion, buttons, cards,
   rows, chips, glass with Liquid Glass on iOS 26, the Loop as a `Shape`, Core Haptics patterns),
   app shell (launch phases, floating tab bar with the ◉ centre action, bloom, router with cover
@@ -92,14 +92,26 @@ for a real service · **BLOCKED** needs something this environment does not have
   remembering" section for interrupted recordings; per-step clips cut from the original; Sign in
   with Apple with a Keychain session; StoreKit 2 with real prices; a Services page in Settings
   that reports what each service really does; account deletion through the gateway.
-- **Verified here:** every file passes `swiftc -parse` (136 files); the Apple-free logic
+- **Verified on Linux:** every file passes `swiftc -parse` (137 files); the Apple-free logic
   (processing pipeline over a real FileStore, Do-mode and search view models, grounded answers,
   timeline grouping) compiles against DoOnceCore and passes **29 tests** in `ios/LinuxTypecheck`;
   `ios/DoOnce/STATUS.md` records what is real and what is simulated, service by service.
-- **BLOCKED BY ENVIRONMENT:** Xcode build, simulator, device runs, screen recordings, TestFlight.
-  SwiftUI, AVFoundation, Vision, Speech, StoreKit and ActivityKit cannot compile on this Linux
-  container. Expect a round of compile fixes in Xcode before first run; nothing
-  hardware-dependent (camera, recording, speech, recognition, haptics) is verified.
+- **Verified on real Apple tooling, in CI:** the GitHub Actions workflow
+  `.github/workflows/doonce-ios.yml` (`doonce/ios/ci.sh`, a GitHub-hosted macOS runner, Xcode
+  26.6) generates the Xcode project with XcodeGen, builds the actual `DoOnce` app and
+  `DoOnceWidgets` extension for the iOS 26.5 Simulator SDK unsigned
+  (`CODE_SIGNING_ALLOWED=NO`), installs and launches it on an iPhone 17 Pro simulator, and runs
+  the real XCTest suites: **44 unit tests** and **14 UI tests** (7 in light appearance, 7 in
+  dark, including the golden path end to end), all passing. A screenshot walk of the native
+  SwiftUI app (not the prototype) captures every major surface in both appearances as a CI
+  artifact; several native-only regressions the Linux build could not see (SwiftUI API misuse,
+  a photo card that grew to its image's own size in a horizontal scroll, the floating tab bar
+  covering a pushed page's own action, a self-taught memory's grounded answer reading "Me
+  didn't say anything about that") were found this way and fixed.
+- **BLOCKED BY ENVIRONMENT (this session's container):** a physical iPhone, TestFlight, and
+  anything that needs real hardware — camera, microphone, Vision recognition quality, haptics,
+  Live Activities on a device. The CI simulator has no camera; Look and Teach are exercised in
+  their real "camera unavailable" state, which the design also renders correctly.
 - **Service modes:** `DoOnceServiceMode` is `demo` by default (deterministic analysis, mock
   transcription/recognition/auth/subscription, sample content). `live` wires Speech, Vision,
   the gateway (or an explicit "not configured" error when `DoOnceGatewayURL` is empty), Sign in
@@ -133,6 +145,10 @@ cd doonce/backend && npm install && npm test                    # 11 tests, no c
 # App (macOS)
 brew install xcodegen
 cd doonce/ios/DoOnce && xcodegen generate && open DoOnce.xcodeproj
+
+# The same steps, plus a real simulator build, XCTest and a native screenshot walk, run in CI on
+# every push under doonce/ios/**: .github/workflows/doonce-ios.yml (doonce/ios/ci.sh). It needs
+# no secrets and no signing — the app builds and runs in its demo configuration.
 ```
 
 ## The one sentence

@@ -14,9 +14,10 @@ Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverif
 | `DoOnceCore` — `swift build` + `swift test` (Linux, Swift 6.1, language mode 6) | DONE — 134 tests, 0 failures |
 | App logic on Linux — `ios/LinuxTypecheck` (pipeline, Do-mode and search view models, grounded answers, timeline grouping, against DoOnceCore with stubbed device services) | DONE — 29 tests, 0 failures |
 | Backend gateway — `doonce/backend` `npm run typecheck` + `npm test` | DONE — 11 tests, 0 failures; the live model call is BLOCKED BY CREDENTIALS |
-| App, widgets, tests — `swiftc -parse` on every file (136 files) | DONE — no syntax errors |
-| App — type-check, Xcode build, simulator, device, TestFlight | BLOCKED — no macOS/Xcode here; expect a round of compile fixes on first Xcode build. Nothing hardware-dependent is verified |
-| Visual review | DONE for the prototype (106 captures, two passes); the native app is reviewed by inspection only |
+| App, widgets, tests — `swiftc -parse` on every file (137 files) | DONE — no syntax errors |
+| **App — real Xcode project generation, build, simulator, XCTest** (`.github/workflows/doonce-ios.yml`, GitHub-hosted macOS runner, Xcode 26.6, iOS 26.5 Simulator SDK, unsigned) | **DONE** — XcodeGen generates the project; `DoOnce` + `DoOnceWidgets` build for `iphonesimulator`; installs and launches on an iPhone 17 Pro simulator; `DoOnceTests` **44/44**, `DoOnceUITests` **7/7 light + 7/7 dark** (incl. the golden path). See `ios/ci.sh` |
+| App — physical device, TestFlight, Apple signing | BLOCKED BY ENVIRONMENT — needs an Apple developer team and a physical iPhone, neither available in CI or this session |
+| Visual review | DONE for the prototype (106 captures, two passes); DONE for the native app — a CI screenshot walk of the real SwiftUI app (not the prototype) in light and dark, reviewed and iterated on (see "Native visual QA" below) |
 
 ## Product surfaces
 
@@ -93,6 +94,41 @@ falls back to the deterministic assembler.
 
 `ServiceStatusEntry.table(for:storageOnDisk:)` derives the Settings → Services page from the same
 configuration, so the labels there are the wiring, not a hope.
+
+## Native visual QA (CI screenshot walk)
+
+`.github/workflows/doonce-ios.yml` runs `DoOnceUITests` in both appearances and exports a
+screenshot of every major surface (launch, onboarding, Memory, the centre bloom, Look, Teach,
+object passport, procedure detail, Do mode, Ask, completion, You, paywall, Settings, Services,
+Privacy, search) as a CI artifact — the first time the real SwiftUI implementation, not the HTML
+prototype, has been seen rendered. Reviewing it against the approved design found and fixed:
+
+- **Photo cards sizing to their image instead of their frame.** `MediaView` aspect-filled without
+  a bound, so inside the "Recently around you" horizontal scroll (an unbounded proposal) each
+  object card grew to its photo's own size and bled off both edges. Fixed by having the view take
+  the size it is offered and overlay the image inside it (`MediaView.swift`).
+- **The floating tab bar covering a pushed page's own action.** The prototype mounts the tab bar
+  only on the two root pages; the native shell kept it visible everywhere, so it sat on top of the
+  procedure page's Start button. The tab bar now shows only at `Router.isAtRoot` and slides away
+  on push (`MainView.swift`, `Router.swift`).
+- **A stray sheet behind the camera's own error state.** Look additionally raised its recognition
+  error sheet when the camera itself had failed to start, duplicating the camera surface's own
+  "The camera couldn't start" notice. The surface's own message is now the only one
+  (`LookView.swift`).
+- **A self-taught memory's grounded answer read "Me didn't say anything about that."** The
+  household represents the current user as a Person named "Me" (for "Taught by Me" rows); three
+  call sites (`AskSheet`, `StepBody`, `SeeOriginalView`) passed that raw record into the natural-
+  language answerer instead of resolving it the way `TaughtByLine` already did
+  (`AppState.demonstratorName`: self → the current user's real display name). All three now go
+  through the same resolution, so the answer reads "Amine didn't say anything about that."
+- **A UI-test-only bug**, not a product one: the light and dark appearance passes share one
+  simulator and installed app; without a reinstall between them, the second pass inherited the
+  first pass's already-completed golden-path memory and found no "Continue" card. `ci.sh` now
+  reinstalls the built app fresh before each appearance's test run.
+
+No other regressions were found: onboarding, the object passport, procedure detail, Do mode,
+completion, paywall, Settings/Services/Privacy and search all matched the approved design in both
+light and dark, materials and dark-mode contrast included.
 
 ## What a real backend adds
 
