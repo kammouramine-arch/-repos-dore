@@ -17,11 +17,17 @@ final class ContourPathTests: XCTestCase {
         let elements = elements(of: path)
 
         guard case .move(let start) = elements.first else { return XCTFail("path must start with a move") }
-        XCTAssertEqual(start, points[0])
+        assertSamePoint(start, points[0])
         let curves = elements.filter { if case .curve = $0 { return true } else { return false } }
         XCTAssertEqual(curves.count, points.count)
         guard case .closeSubpath = elements.last else { return XCTFail("path must be closed") }
-        if case .curve(let to, _, _) = curves.last { XCTAssertEqual(to, points[0], "the last cubic returns to the first point") }
+        if case .curve(let to, _, _) = curves.last { assertSamePoint(to, points[0], "the last cubic returns to the first point") }
+    }
+
+    /// `Path` stores its points in single precision, so compare with a tolerance rather than `==`.
+    private func assertSamePoint(_ a: CGPoint, _ b: CGPoint, _ message: String = "", file: StaticString = #filePath, line: UInt = #line) {
+        XCTAssertEqual(a.x, b.x, accuracy: 0.001, message, file: file, line: line)
+        XCTAssertEqual(a.y, b.y, accuracy: 0.001, message, file: file, line: line)
     }
 
     func testFewerThanThreePointsGivesEmptyPath() {
@@ -38,12 +44,19 @@ final class ContourPathTests: XCTestCase {
     }
 
     func testPreviewGeometryAspectFillMapping() {
-        // 1080×1920 frame into a 390×844 view: width fits, height overflows and is centred.
+        // A 1080×2400 frame (taller than 390×844) into the view: width fits, height overflows and is centred.
         let view = CGSize(width: 390, height: 844)
-        let full = PreviewGeometry.rect(for: CGRect(x: 0, y: 0, width: 1, height: 1), frameSize: CGSize(width: 1080, height: 1920), in: view)
-        XCTAssertEqual(full.minX, 0, accuracy: 0.01)
-        XCTAssertEqual(full.width, 390, accuracy: 0.01)
-        XCTAssertEqual(full.midY, 422, accuracy: 0.01)
-        XCTAssertGreaterThan(full.height, 844)
+        let tall = PreviewGeometry.rect(for: CGRect(x: 0, y: 0, width: 1, height: 1), frameSize: CGSize(width: 1080, height: 2400), in: view)
+        XCTAssertEqual(tall.minX, 0, accuracy: 0.01)
+        XCTAssertEqual(tall.width, 390, accuracy: 0.01)
+        XCTAssertEqual(tall.midY, 422, accuracy: 0.01)
+        XCTAssertGreaterThan(tall.height, 844)
+
+        // A 9:16 frame is wider than the view: height fits, width overflows and is centred.
+        let wide = PreviewGeometry.rect(for: CGRect(x: 0, y: 0, width: 1, height: 1), frameSize: CGSize(width: 1080, height: 1920), in: view)
+        XCTAssertEqual(wide.minY, 0, accuracy: 0.01)
+        XCTAssertEqual(wide.height, 844, accuracy: 0.01)
+        XCTAssertEqual(wide.midX, 195, accuracy: 0.01)
+        XCTAssertGreaterThan(wide.width, 390)
     }
 }

@@ -51,6 +51,7 @@ struct FloatingTabBar: View {
                 app.haptics.play(.light)
                 withDSAnimation(DSMotion.lively) { router.isBloomOpen.toggle() }
             }
+            .accessibilityIdentifier("center.action")
             .padding(.horizontal, 8)
             tab(.you, label: L10n.string("nav.you")) { Image(systemName: "person").font(.system(size: 24, weight: .regular)) }
         }
@@ -76,6 +77,7 @@ struct FloatingTabBar: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(DSPressableStyle(scale: 0.94))
+        .accessibilityIdentifier(t == .memory ? "tab.memory" : "tab.you")
     }
 }
 
@@ -143,6 +145,7 @@ struct BloomOverlay: View {
                         }
                     }
                     .buttonStyle(DSPressableStyle(scale: 0.94))
+                    .accessibilityIdentifier(["center.look", "center.teach", "center.add"][item.id])
                     .offset(shown ? item.offset : .zero)
                     .scaleEffect(shown ? 1 : 0.5)
                     .opacity(shown ? 1 : 0)

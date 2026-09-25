@@ -61,17 +61,17 @@ final class ScreenshotUITests: XCTestCase {
         shoot("11-memory-scrolled")
         app.swipeDown(); settle()
 
-        if tapIfExists(button(labelled: "Look, Teach or Add"), "centre action button") {
+        if tapIfExists(app.buttons["center.action"], "centre action button") {
             settle()
             shoot("12-centre-bloom")
-            if tapIfExists(app.buttons["Look"], "Look in the bloom") {
+            if tapIfExists(app.buttons["center.look"], "Look in the bloom") {
                 settle(2.0)
                 shoot("13-look")
                 dismissCameraSurface()
             }
-            if tapIfExists(button(labelled: "Look, Teach or Add"), "centre action button again") {
+            if tapIfExists(app.buttons["center.action"], "centre action button again") {
                 settle()
-                if tapIfExists(app.buttons["Teach"], "Teach in the bloom") {
+                if tapIfExists(app.buttons["center.teach"], "Teach in the bloom") {
                     settle(2.0)
                     shoot("14-teach")
                     dismissCameraSurface()
@@ -136,7 +136,7 @@ final class ScreenshotUITests: XCTestCase {
 
     func test05YouPaywallSettings() {
         launchIntoShell()
-        guard tapIfExists(app.buttons["You"], timeout: 8, "You tab") else { return }
+        guard tapIfExists(app.buttons["tab.you"], timeout: 8, "You tab") else { return }
         settle()
         shoot("40-you")
         if tapIfExists(button(labelled: "DoOnce+"), "DoOnce+ row") {
@@ -145,15 +145,15 @@ final class ScreenshotUITests: XCTestCase {
             if app.buttons["Not now"].exists { app.buttons["Not now"].firstMatch.tap() } else { app.swipeDown() }
             settle()
         }
-        if tapIfExists(app.buttons["Settings"], "Settings row") {
+        if tapIfExists(button(labelled: "Settings"), "Settings row") {
             settle()
             shoot("42-settings")
-            if tapIfExists(app.buttons["Services"], "Services row") {
+            if tapIfExists(button(labelled: "Services"), "Services row") {
                 settle()
                 shoot("43-services")
                 if app.buttons["Back"].exists { app.buttons["Back"].firstMatch.tap(); settle() }
             }
-            if tapIfExists(app.buttons["Privacy"], "Privacy row") {
+            if tapIfExists(button(labelled: "Privacy"), "Privacy row") {
                 settle()
                 shoot("44-privacy")
             }
@@ -178,11 +178,12 @@ final class ScreenshotUITests: XCTestCase {
     private func launchIntoShell() {
         app.launchArguments += ["-onboarded", "1", "-firstMemorySaved", "1", "-launchCount", "1"]
         app.launch()
-        XCTAssertTrue(app.buttons["You"].waitForExistence(timeout: 15), "The shell appears after launch")
+        XCTAssertTrue(app.buttons["tab.you"].waitForExistence(timeout: 15), "The shell appears after launch")
         settle()
     }
 
     private func dismissCameraSurface() {
+        if app.buttons["Allow"].firstMatch.exists { shoot("permission-education") }
         for label in ["Close", "Not now", "Cancel"] where app.buttons[label].firstMatch.exists {
             app.buttons[label].firstMatch.tap(); settle(); return
         }
