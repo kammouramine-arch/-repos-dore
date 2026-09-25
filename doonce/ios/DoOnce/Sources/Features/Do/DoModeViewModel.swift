@@ -56,7 +56,7 @@ final class DoModeViewModel {
         startStep: Int = 1,
         handsFree: Bool = false,
         progressStore: DoProgressStore? = nil,
-        monitor: StepCompletionMonitor = GaugeCompletionMonitor(),
+        monitor: StepCompletionMonitor? = nil,
         listener: VoiceIntentSource? = nil,
         speaker: StepSpeaking? = nil,
         activity: ProcedureActivityController? = nil,
@@ -67,7 +67,9 @@ final class DoModeViewModel {
         self.userID = userID
         self.index = max(0, min(startStep - 1, max(steps.count - 1, 0)))
         self.progressStore = progressStore
-        self.monitor = monitor
+        // Resolved here rather than as a default argument: the monitor is main-actor isolated and
+        // default arguments are not (Swift 5 mode).
+        self.monitor = monitor ?? GaugeCompletionMonitor()
         self.listener = listener
         self.speaker = speaker
         self.activity = activity

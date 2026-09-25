@@ -12,8 +12,10 @@ enum L10n {
     static func string(_ key: String, _ args: [String: String] = [:]) -> String {
         // Prefer the app's String Catalog (Xcode localisation), fall back to the core table.
         // Placeholders are named (`{object}`) in both, so any number of them can be filled.
+        #if canImport(Darwin)
         let catalog = String(localized: String.LocalizationValue(key))
         if catalog != key { return fillPlaceholders(catalog, args) }
+        #endif
         return table?.string(key, args) ?? key
     }
 

@@ -8,7 +8,13 @@ Sources/DoOnceCore/
   Domain/         ProcedureAssembler, SearchIndex, RecognitionMatcher, FreshnessPolicy,
                   VoiceCommandParser, MemoryVersioning, and the text heuristics they share
   Services/       Repository and service protocols, in-memory actors, upload, auth,
-                  subscription gating, haptics policy, analytics events, Localization
+                  subscription gating, haptics policy, analytics events, Localization,
+                  ServiceConfiguration (live/demo resolution), AuthSession + SessionStore
+    Persistence/  FileStore (one atomic store.json), FileSessionStore, ProgressStore,
+                  ProcessingJobStore
+    Media/        MediaLibrary: where originals, frames, clips and thumbnails live on disk
+    Analysis/     The AI contract: ProcedureAnalysisRequest/Response, AnalysisValidator,
+                  MemoryMapper, the deterministic and gateway providers, HTTPTransport
   SampleContent/  SampleData: the "Home" household with boiler, espresso machine, Julien and Dad
   Mocks/          Mock transcription, procedure generation and object recognition
   Resources/      strings.json, copied from design/copy (source of truth)
@@ -36,6 +42,37 @@ A generated step exists only where the recording supports it. `ProcedureAssemble
 - `.unclear`: a moment with no usable speech. Shown as "This part wasn't clearly captured." rather than filled in.
 
 The assembler never adds a step beyond those moments and never rewrites what was said; it only tidies the instruction sentence (drops "so", "okay", capitalises, adds a full stop). Warnings come from important statements the demonstrator actually made ("never", "always", "careful", "remember", "important") and completion rules only from spoken values ("stop when it reaches 1.5 bar").
+
+## Persistence
+
+`FileStore` keeps the whole household as one `MemoryStoreSnapshot` in `store.json`, wrapped in a
+`StoreDocument` with a `schemaVersion`. Every mutation writes the complete document to a temporary
+sibling and renames it into place, so the file on disk is always valid. Dates are ISO-8601, keys
+are sorted, so backups diff cleanly. A document from a newer schema is refused (`incompatibleSchema`);
+a corrupt one is moved to `store.corrupt-<timestamp>.json` and the store starts empty. The device
+session lives apart in `session.json` (`FileSessionStore`), never in the household document.
+`ProcessingJob` records where each recording is in the pipeline so processing resumes after a kill.
+
+## Media rules
+
+`MediaLibrary` owns the layout under one directory per recording: `original.mov`, `thumbnail.jpg`,
+`frames/00022.500.jpg`, `clips/step-03.mp4`. Originals are never duplicated; frames, clips and
+thumbnails are disposable (`purgeDerived`); the original goes only on explicit user deletion, and
+when its upload is not confirmed only with `force`.
+
+## The AI contract
+
+Every provider (`GatewayProcedureAnalysisService`, `DeterministicProcedureAnalysisService`, or
+an on-device model later) answers a `ProcedureAnalysisRequest` with a `ProcedureAnalysisResponse`,
+camelCase JSON with ISO-8601 dates. Nothing a provider says reaches the user until
+`AnalysisValidator` has run: it clamps source ranges into the recording, marks steps without speech
+behind them as inferred, turns low-confidence or empty steps into "This part wasn't clearly
+captured.", flags numbers nobody said, never lets the risk level fall below what `RiskClassifier`
+reads in the words, and never allows more steps than moments plus transcript segments.
+`MemoryMapper` then produces the `Memory`; `AnalysisBackedGenerationService` runs the three in order.
+The gateway client retries 5xx, timeouts and dropped connections with an idempotency key, and
+treats 4xx as final. `ServiceConfiguration.resolve` picks live or demo mode from the environment,
+the Info.plist, or the presence of a gateway URL.
 
 ## Analytics and privacy
 

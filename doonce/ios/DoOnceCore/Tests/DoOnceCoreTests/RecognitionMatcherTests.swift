@@ -40,10 +40,54 @@ final class RecognitionMatcherTests: XCTestCase {
         XCTAssertEqual(result.candidates.map(\.confidence), result.candidates.map(\.confidence).sorted(by: >))
     }
 
+    /// Changed with the multi-reference scoring: a second reference view that contradicts the match
+    /// now costs confidence (0.6 × best + 0.4 × mean), so a boiler taught from two unrelated angles is
+    /// asked about ("Is this your boiler?") rather than asserted. Two agreeing views stay exact.
     func testUsesBestOfSeveralReferenceImages() {
         var boiler = object("Boiler", [1, 0, 0])
         boiler.visualEmbeddings.append(Embedding([0, 0, 1]))
+        let contradicted = matcher.match(Embedding([0, 0.1, 0.99]), against: [boiler])
+        XCTAssertEqual(contradicted.level, .category)
+        XCTAssertEqual(contradicted.best?.objectID, boiler.id)
+
+        boiler.visualEmbeddings = [Embedding([0, 0, 1]), Embedding([0, 0.3, 0.954])]
         XCTAssertEqual(matcher.match(Embedding([0, 0.1, 0.99]), against: [boiler]).level, .exact)
+    }
+
+    func testObjectTaughtFromSeveralAnglesBeatsSinglePhotoOnRotatedQuery() {
+        var multi = object("Boiler", [1, 0, 0])
+        multi.visualEmbeddings += [Embedding([0.8, 0.6, 0]), Embedding([0.6, 0.8, 0])]
+        let single = object("Heater", [1, 0, 0])
+        let rotated = Embedding([0.75, 0.66, 0])
+        let result = matcher.match(rotated, against: [single, multi])
+        XCTAssertEqual(result.level, .exact)
+        XCTAssertEqual(result.best?.objectID, multi.id)
+        XCTAssertGreaterThan(matcher.score(multi, query: rotated), matcher.score(single, query: rotated) + 0.1)
+    }
+
+    func testLookAlikeObjectsWithoutMarginAreCategoryNotExact() {
+        let left = object("Left radiator", [1, 0, 0])
+        let right = object("Right radiator", [0.99, 0.141, 0])
+        let result = matcher.match(Embedding([0.999, 0.045, 0]), against: [left, right])
+        XCTAssertEqual(result.level, .category, "both score above exact but within the margin")
+        XCTAssertEqual(result.candidates.count, 2)
+        XCTAssertEqual(result.candidates.map(\.confidence), result.candidates.map(\.confidence).sorted(by: >))
+
+        let lenient = RecognitionMatcher(minMargin: 0)
+        XCTAssertEqual(lenient.match(Embedding([0.999, 0.045, 0]), against: [left, right]).level, .exact)
+    }
+
+    func testMultiFrameVotingStabilisesAnAmbiguousFrame() {
+        let boiler = object("Boiler", [1, 0, 0])
+        let heater = object("Heater", [0, 1, 0])
+        let ambiguous = Embedding([0.72, 0.69, 0])
+        let clear = Embedding([0.98, 0.2, 0])
+        XCTAssertEqual(matcher.match(ambiguous, against: [boiler, heater]).level, .category)
+
+        let voted = matcher.match([ambiguous, clear, clear, clear], against: [boiler, heater])
+        XCTAssertEqual(voted.level, .exact)
+        XCTAssertEqual(voted.best?.objectID, boiler.id)
+        XCTAssertEqual(matcher.match([], against: [boiler, heater]).level, .unknown)
     }
 
     func testSampleEmbeddingsSeparateHouseholdObjects() {
