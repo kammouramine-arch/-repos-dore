@@ -151,9 +151,79 @@ protocol and a call site already.
 - Presenting a sheet from inside a full-screen cover goes through `router.coverSheet`; confirm the
   permission and paywall sheets appear over Teach and Look.
 
+## App identity (Phase 3)
+
+| Field | Value |
+|---|---|
+| Bundle ID (app) | `app.doonce.ios` |
+| Bundle ID (widget extension) | `app.doonce.ios.widgets` |
+| App Group | `group.app.doonce` |
+| Display name | DoOnce |
+| Marketing version | `MARKETING_VERSION` in `project.yml`, currently `1.0.0` — bump deliberately, never automatically |
+| Build number | `CURRENT_PROJECT_VERSION`; the TestFlight workflow overrides it with the CI run number, so every upload is unique and always higher than the last one Apple received |
+| Entitlements | `com.apple.security.application-groups` (the widget's Continue store and Live Activity share data with the app), `com.apple.developer.applesignin` (the app calls `ASAuthorizationAppleIDProvider`; this was missing before Phase 3 — a real signed build would have been provisioned without the capability and Sign in with Apple would have failed on device) |
+| Capabilities deliberately not enabled | Push Notifications (only *local* notifications are used — `UNUserNotificationCenter`, no APNs/remote registration), Associated Domains (no universal links), a Keychain access group (the session is app-only, no sharing with the extension) |
+
+`Info.plist`'s `CFBundleShortVersionString`/`CFBundleVersion` reference `$(MARKETING_VERSION)`/
+`$(CURRENT_PROJECT_VERSION)` rather than hardcoded strings, so Xcode substitutes them at build
+time and the TestFlight workflow can override just the build number per run without editing the
+project.
+
+## TestFlight release pipeline
+
+`.github/workflows/doonce-testflight.yml` — manual dispatch only (Actions tab → "DoOnce —
+TestFlight release" → Run workflow). It never runs on an ordinary push; `doonce-ios.yml` (unsigned,
+simulator, every push) is unchanged. On dispatch it, on a macOS runner:
+
+1. generates the Xcode project (`ci.sh generate`, the same step normal CI uses);
+2. builds a real, signed Release archive (`xcodebuild archive`) using automatic signing driven by
+   the App Store Connect API key (`-allowProvisioningUpdates -authenticationKeyPath/-ID/-IssuerID`
+   — no Apple ID password, no interactive 2FA, ever);
+3. verifies the archive's own bundle id, version, build number and signing team before trusting it;
+4. exports a real App Store IPA locally and verifies its identity again (a distinct check — export
+   success is never assumed from archive success);
+5. uploads it to App Store Connect (`xcodebuild -exportArchive` with `destination: upload`);
+6. finds or creates the DoOnce app record in App Store Connect (`doonce/ios/appstoreconnect.py`,
+   the same API key, JWT-authenticated — no separate login);
+7. polls App Store Connect until Apple finishes processing the build (`VALID`, not just "upload
+   returned success") or reports why it didn't;
+8. attaches the processed build to an Internal Testing group, adding every App Store Connect user
+   on the team it can see as a tester.
+
+### Required repository secrets
+
+None of these are committed, logged, or written anywhere outside a runner-local temp file this
+same workflow job deletes when it finishes. Add them at **GitHub → this repository → Settings →
+Secrets and variables → Actions → New repository secret**:
+
+| Secret | What it is | Where to get it |
+|---|---|---|
+| `APPLE_TEAM_ID` | The Apple Developer Program team ID (10 characters) | [developer.apple.com/account](https://developer.apple.com/account) → Membership |
+| `ASC_KEY_ID` | App Store Connect API key ID | [appstoreconnect.apple.com/access/api](https://appstoreconnect.apple.com/access/api) → Keys → Team Keys → **Generate API Key** (name it, role **App Manager** or **Admin**) |
+| `ASC_ISSUER_ID` | App Store Connect API issuer ID | Same page, shown above the key list |
+| `ASC_PRIVATE_KEY` | The full contents of the downloaded `AuthKey_<ASC_KEY_ID>.p8` file, pasted verbatim (including the `-----BEGIN/END PRIVATE KEY-----` lines) | Downloaded once, when the key is generated — Apple does not let you download it again, so save it somewhere safe before leaving that page |
+
+Generating the API key is the only click-through Apple requires; everything after that (signing,
+archiving, exporting, uploading, waiting for processing, enabling Internal Testing) is automatic.
+
+### What is genuinely untested
+
+None of the App Store Connect API calls in `appstoreconnect.py` have been exercised against Apple's
+real API — this environment has no Apple credentials and no macOS. The JWT it signs was verified
+independently (a real OpenSSL-generated P-256 key/signature round-tripped correctly through the
+DER→raw conversion the ES256 JWT format requires, and the resulting token's header/payload/
+signature shape matches Apple's documented format exactly), and the `xcodebuild`/security/PlistBuddy
+commands follow Apple's current documented flags, but the first real dispatch of this workflow is
+the first real test of the whole chain end to end. If the App Store Connect app-creation call
+(`POST /v1/apps`) needs a field Apple's API has since renamed, the workflow fails loudly with
+Apple's own error body rather than silently misbehaving — never a false "success."
+
 ## Credentials and configuration still required
 
-- Apple developer team for signing (`DEVELOPMENT_TEAM` in `project.yml`), App Groups capability
-  `group.app.doonce`, Sign in with Apple capability, Live Activities.
+- App Store Connect API credentials for the TestFlight pipeline above (`APPLE_TEAM_ID`,
+  `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_PRIVATE_KEY` as GitHub repository secrets) — this is the one
+  blocker between the current state and a real device install.
 - `DoOnceGatewayURL`, `DoOnceProductIDs`, `DoOnceUploadEndpoint` (Info.plist) — see "Service modes".
+  None of these block getting a build onto a physical iPhone; they gate live AI, live pricing and
+  cloud sync respectively, all independent of TestFlight distribution.
 - Nothing is committed that resembles a secret; the device session lives in the Keychain.

@@ -1,0 +1,291 @@
+name: DoOnce — TestFlight release
+
+# Signs a real Release archive of DoOnce with the Apple Developer team's own certificate/profile
+# (fetched automatically via the App Store Connect API key — no Apple ID password, no interactive
+# 2FA), exports a real App Store IPA, uploads it to App Store Connect, waits for Apple to finish
+# processing it, and makes it available to Internal Testing. Manual dispatch only — this never
+# runs on an ordinary push (that stays on doonce-ios.yml, unsigned, simulator only).
+#
+# Required repository secrets (Settings → Secrets and variables → Actions → New repository
+# secret). None of these are ever committed, logged, or written anywhere outside a runner-local
+# temp file that a later step in this same job deletes:
+#   APPLE_TEAM_ID          Apple Developer Program team ID (10 characters, e.g. ABCDE12345)
+#   ASC_KEY_ID              App Store Connect API key ID
+#   ASC_ISSUER_ID           App Store Connect API issuer ID
+#   ASC_PRIVATE_KEY         The contents of the downloaded AuthKey_<ASC_KEY_ID>.p8 file, verbatim
+#                            (including the -----BEGIN/END PRIVATE KEY----- lines)
+#
+# See doonce/ios/STATUS.md → "TestFlight release pipeline" for where to get these and exactly
+# what they unlock.
+on:
+  workflow_dispatch:
+    inputs:
+      marketing_version:
+        description: "App version (CFBundleShortVersionString), e.g. 1.0.0. Leave blank to keep the project default."
+        required: false
+        default: ""
+
+concurrency:
+  group: doonce-testflight
+  cancel-in-progress: false
+
+jobs:
+  release:
+    name: Archive, sign, export, upload
+    runs-on: macos-26
+    timeout-minutes: 90
+    defaults:
+      run:
+        working-directory: doonce/ios
+    env:
+      BUNDLE_ID: app.doonce.ios
+      APP_NAME: DoOnce
+      APP_SKU: doonce-ios
+      INTERNAL_GROUP_NAME: "DoOnce Internal"
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Check the required secrets are present
+        run: |
+          missing=0
+          for name in APPLE_TEAM_ID ASC_KEY_ID ASC_ISSUER_ID ASC_PRIVATE_KEY; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set. See doonce/ios/STATUS.md → TestFlight release pipeline."; missing=1; fi
+          done
+          [ "$missing" = "0" ] || exit 1
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+
+      - name: Resolve the app version
+        id: version
+        run: |
+          v="${{ inputs.marketing_version }}"
+          echo "marketing_version=${v:-1.0.0}" >> "$GITHUB_OUTPUT"
+          echo "build_number=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
+
+      - name: Write the App Store Connect API key to a runner-local temp file
+        run: |
+          KEY_PATH="$RUNNER_TEMP/asc_key.p8"
+          umask 077
+          printf '%s' "$ASC_PRIVATE_KEY" > "$KEY_PATH"
+          echo "ASC_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
+        env:
+          ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
+
+      - name: Generate the Xcode project
+        run: ./ci.sh generate
+
+      - name: Real signed Release archive
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          xcodebuild archive \
+            -project DoOnce/DoOnce.xcodeproj -scheme DoOnce -configuration Release \
+            -archivePath build/DoOnce.xcarchive \
+            -destination 'generic/platform=iOS' \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            DEVELOPMENT_TEAM="$APPLE_TEAM_ID" \
+            MARKETING_VERSION="${{ steps.version.outputs.marketing_version }}" \
+            CURRENT_PROJECT_VERSION="${{ steps.version.outputs.build_number }}" \
+            | tee build/archive.log | grep -E "^(\*\* |error:|warning: .*[Ss]ign)" || true
+          test -d build/DoOnce.xcarchive || { echo "::error::No archive was produced."; tail -n 200 build/archive.log; exit 1; }
+          echo "- Archive: PASS" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify the archive's identity
+        run: |
+          set -euo pipefail
+          APP="build/DoOnce.xcarchive/Products/Applications/DoOnce.app"
+          test -d "$APP" || { echo "::error::Archive has no DoOnce.app"; exit 1; }
+          bundle_id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist")
+          build=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")
+          team=$(security cms -D -i "$APP/embedded.mobileprovision" 2>/dev/null | /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /dev/stdin)
+          echo "bundle id: $bundle_id"
+          echo "version: $version"
+          echo "build: $build"
+          echo "signing team: $team"
+          codesign -dvvv "$APP" 2>&1 | grep -E "Authority|TeamIdentifier" || true
+          {
+            echo "### Archive identity"
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Bundle ID | \`$bundle_id\` |"
+            echo "| Version | $version ($build) |"
+            echo "| Signing team | \`$team\` |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$bundle_id" = "$BUNDLE_ID" ] || { echo "::error::Archive bundle id '$bundle_id' does not match expected '$BUNDLE_ID'"; exit 1; }
+          [ "$version" = "${{ steps.version.outputs.marketing_version }}" ] || { echo "::error::Archive version mismatch"; exit 1; }
+          [ "$build" = "${{ steps.version.outputs.build_number }}" ] || { echo "::error::Archive build number mismatch"; exit 1; }
+          [ "$team" = "$APPLE_TEAM_ID" ] || { echo "::error::Archive signed with team '$team', expected '$APPLE_TEAM_ID'"; exit 1; }
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Write the export options
+        run: |
+          python3 - <<'PY'
+          import plistlib, os
+          team = os.environ["APPLE_TEAM_ID"]
+          base = {
+              "method": "app-store-connect",
+              "teamID": team,
+              "signingStyle": "automatic",
+              "uploadSymbols": True,
+              "compileBitcode": False,
+          }
+          plistlib.dump(base, open("ExportOptions-export.plist", "wb"))
+          plistlib.dump({**base, "destination": "upload"}, open("ExportOptions-upload.plist", "wb"))
+          PY
+        env:
+          APPLE_TEAM_ID: ${{ secrets.APPLE_TEAM_ID }}
+
+      - name: Export a real App Store IPA (local, not yet uploaded)
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          xcodebuild -exportArchive \
+            -archivePath build/DoOnce.xcarchive \
+            -exportPath build/export \
+            -exportOptionsPlist ExportOptions-export.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            | tee build/export.log | grep -E "^(\*\* |error:)" || true
+          IPA=$(find build/export -maxdepth 1 -name '*.ipa' | head -n 1)
+          [ -n "$IPA" ] || { echo "::error::Export did not produce an .ipa"; tail -n 200 build/export.log; exit 1; }
+          echo "IPA_PATH=$IPA" >> "$GITHUB_ENV"
+          echo "- Export: PASS ($IPA)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Verify the exported IPA's identity
+        run: |
+          set -euo pipefail
+          rm -rf build/ipa-check && mkdir -p build/ipa-check
+          unzip -q "$IPA_PATH" -d build/ipa-check
+          APP=$(find build/ipa-check/Payload -maxdepth 1 -name '*.app' | head -n 1)
+          bundle_id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
+          version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist")
+          build=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")
+          codesign -dvvv "$APP" 2>&1 | tee build/ipa-codesign.log | grep -E "Authority|TeamIdentifier" || true
+          echo "--- entitlements ---"
+          codesign -d --entitlements :- "$APP" 2>/dev/null || true
+          {
+            echo "### Exported IPA identity"
+            echo "| Field | Value |"
+            echo "|---|---|"
+            echo "| Bundle ID | \`$bundle_id\` |"
+            echo "| Version | $version ($build) |"
+          } >> "$GITHUB_STEP_SUMMARY"
+          [ "$bundle_id" = "$BUNDLE_ID" ] || { echo "::error::Exported IPA bundle id mismatch: $bundle_id"; exit 1; }
+          [ "$version" = "${{ steps.version.outputs.marketing_version }}" ] || { echo "::error::Exported IPA version mismatch"; exit 1; }
+          [ "$build" = "${{ steps.version.outputs.build_number }}" ] || { echo "::error::Exported IPA build number mismatch"; exit 1; }
+
+      - name: Upload the build to App Store Connect
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          # `set -euo pipefail` (below) already fails this step on a non-zero xcodebuild exit,
+          # which is the authoritative pass/fail signal for the upload itself. The "EXPORT
+          # SUCCEEDED" banner is xcodebuild's own long-stable completion message for
+          # -exportArchive (with `destination: upload` in the plist, that action includes the
+          # upload) — checked here as a fast local sanity check. The real confirmation that Apple
+          # accepted and is processing the build is the API poll in the next step, not this log.
+          set +o pipefail
+          xcodebuild -exportArchive \
+            -archivePath build/DoOnce.xcarchive \
+            -exportPath build/export-upload \
+            -exportOptionsPlist ExportOptions-upload.plist \
+            -allowProvisioningUpdates \
+            -authenticationKeyPath "$ASC_KEY_PATH" \
+            -authenticationKeyID "$ASC_KEY_ID" \
+            -authenticationKeyIssuerID "$ASC_ISSUER_ID" \
+            2>&1 | tee build/upload.log
+          status=${PIPESTATUS[0]}
+          set -o pipefail
+          [ "$status" -eq 0 ] && grep -q "EXPORT SUCCEEDED" build/upload.log || {
+            echo "::error::xcodebuild export/upload did not succeed (exit $status)."
+            tail -n 200 build/upload.log
+            exit 1
+          }
+          echo "- Upload to App Store Connect: PASS (xcodebuild exit 0)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Find or create the App Store Connect app record
+        id: app
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          out=$(python3 appstoreconnect.py --key-id "$ASC_KEY_ID" --issuer-id "$ASC_ISSUER_ID" --key-path "$ASC_KEY_PATH" \
+            find-or-create-app --bundle-id "$BUNDLE_ID" --name "$APP_NAME" --sku "$APP_SKU")
+          echo "$out"
+          app_id=$(python3 -c "import json,sys; print(json.load(sys.stdin)['id'])" <<<"$out")
+          echo "app_id=$app_id" >> "$GITHUB_OUTPUT"
+          echo "- App Store Connect app: \`$app_id\` ($([ "$(python3 -c "import json,sys; print(json.load(sys.stdin)['created'])" <<<"$out")" = "True" ] && echo created || echo existing))" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Wait for Apple to finish processing the build
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          out=$(python3 appstoreconnect.py --key-id "$ASC_KEY_ID" --issuer-id "$ASC_ISSUER_ID" --key-path "$ASC_KEY_PATH" \
+            wait-build --app-id "${{ steps.app.outputs.app_id }}" \
+            --version "${{ steps.version.outputs.marketing_version }}" --build "${{ steps.version.outputs.build_number }}" \
+            --timeout-seconds 1800 --interval-seconds 30)
+          echo "$out"
+          build_id=$(python3 -c "import json,sys; print(json.load(sys.stdin)['id'])" <<<"$out")
+          echo "BUILD_ID=$build_id" >> "$GITHUB_ENV"
+          echo "- Apple processing: VALID (build \`$build_id\`)" >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Make the build available to Internal Testing
+        env:
+          ASC_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          ASC_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+        run: |
+          set -euo pipefail
+          out=$(python3 appstoreconnect.py --key-id "$ASC_KEY_ID" --issuer-id "$ASC_ISSUER_ID" --key-path "$ASC_KEY_PATH" \
+            ensure-internal-group --app-id "${{ steps.app.outputs.app_id }}" --group-name "$INTERNAL_GROUP_NAME")
+          echo "$out"
+          group_id=$(python3 -c "import json,sys; print(json.load(sys.stdin)['groupId'])" <<<"$out")
+          testers=$(python3 -c "import json,sys; print(json.load(sys.stdin)['testersAdded'])" <<<"$out")
+          python3 appstoreconnect.py --key-id "$ASC_KEY_ID" --issuer-id "$ASC_ISSUER_ID" --key-path "$ASC_KEY_PATH" \
+            attach-build --group-id "$group_id" --build-id "$BUILD_ID"
+          {
+            echo "### TestFlight"
+            echo "Build ${{ steps.version.outputs.marketing_version }} (${{ steps.version.outputs.build_number }}) is attached to Internal Testing group \`$INTERNAL_GROUP_NAME\`."
+            echo "Testers added this run: $testers."
+            if [ "$testers" = "0" ]; then
+              echo ""
+              echo "No App Store Connect users were added automatically — most likely this is the very first"
+              echo "run and your own Apple ID is not yet listed under Users and Access. Open App Store Connect →"
+              echo "Apps → DoOnce → TestFlight → Internal Testing → \"$INTERNAL_GROUP_NAME\" → add your Apple ID,"
+              echo "then re-run this workflow (or wait a moment and refresh — it is a one-time step)."
+            fi
+            echo ""
+            echo "Install: open the TestFlight app on the iPhone signed in with the Apple ID that was added,"
+            echo "accept the DoOnce invite (email or the TestFlight app's own list), then Install."
+          } >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Remove the temporary signing key
+        if: always()
+        run: rm -f "$RUNNER_TEMP/asc_key.p8"
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doonce-testflight-logs
+          path: doonce/ios/build/*.log
+          if-no-files-found: ignore

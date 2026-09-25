@@ -108,9 +108,15 @@ for a real service · **BLOCKED** needs something this environment does not have
   a photo card that grew to its image's own size in a horizontal scroll, the floating tab bar
   covering a pushed page's own action, a self-taught memory's grounded answer reading "Me
   didn't say anything about that") were found this way and fixed.
-- **BLOCKED BY ENVIRONMENT (this session's container):** a physical iPhone, TestFlight, and
-  anything that needs real hardware — camera, microphone, Vision recognition quality, haptics,
-  Live Activities on a device. The CI simulator has no camera; Look and Teach are exercised in
+- **A real signed release pipeline exists** (`.github/workflows/doonce-testflight.yml`, manual
+  dispatch): archives, signs, exports and uploads a real IPA to App Store Connect and TestFlight
+  using an App Store Connect API key (no Apple ID password, no interactive 2FA), waits for Apple
+  to finish processing it, and enables Internal Testing. See `ios/DoOnce/STATUS.md` →
+  "TestFlight release pipeline" for the four repository secrets it needs and exactly where to get
+  them — that is the one thing this environment cannot provide itself.
+- **BLOCKED BY ENVIRONMENT (this session's container):** a physical iPhone, and anything that
+  needs real hardware — camera, microphone, Vision recognition quality, haptics, Live Activities
+  on a device. The CI simulator has no camera; Look and Teach are exercised in
   their real "camera unavailable" state, which the design also renders correctly.
 - **Service modes:** `DoOnceServiceMode` is `demo` by default (deterministic analysis, mock
   transcription/recognition/auth/subscription, sample content). `live` wires Speech, Vision,
