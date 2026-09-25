@@ -1,0 +1,4 @@
+.build/
+Sources/AppLogic/*.swift
+!Sources/AppLogic/Stubs.swift
+Tests/AppLogicTests/

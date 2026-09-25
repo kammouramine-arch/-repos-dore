@@ -1,5 +1,7 @@
 # RÉVA — Site premium de récupération &amp; bien-être
 
+> Ce dépôt contient aussi **DoOnce** (`doonce/`), une application iPhone indépendante : voir `doonce/README.md`.
+
 Site e-commerce vitrine complet en HTML / CSS / JavaScript natif, sans aucune dépendance,
 pensé pour être intégré tel quel dans un thème Shopify.
 

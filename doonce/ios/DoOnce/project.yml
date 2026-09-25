@@ -1,0 +1,129 @@
+# XcodeGen spec. Generate the project with:  xcodegen generate   (brew install xcodegen)
+# Then open DoOnce.xcodeproj. Requires Xcode 16+ / iOS 17+ deployment.
+name: DoOnce
+options:
+  bundleIdPrefix: app.doonce
+  deploymentTarget:
+    iOS: "17.0"
+  xcodeVersion: "16.0"
+  createIntermediateGroups: true
+  generateEmptyDirectories: true
+packages:
+  DoOnceCore:
+    path: ../DoOnceCore
+settings:
+  base:
+    SWIFT_VERSION: "5.10"
+    SWIFT_STRICT_CONCURRENCY: targeted
+    ENABLE_USER_SCRIPT_SANDBOXING: YES
+    ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+    ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: Signal
+    DEVELOPMENT_TEAM: ""
+targets:
+  DoOnce:
+    type: application
+    platform: iOS
+    sources:
+      - path: Sources
+      - path: Resources
+      # ActivityKit attributes + the Continue widget's store, compiled into app and extension alike.
+      - path: Widgets/Shared
+    dependencies:
+      - package: DoOnceCore
+      - target: DoOnceWidgets
+    info:
+      path: Resources/Info.plist
+      properties:
+        CFBundleDisplayName: DoOnce
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        UILaunchStoryboardName: LaunchScreen
+        UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
+        UIUserInterfaceStyle: Automatic
+        ITSAppUsesNonExemptEncryption: false
+        NSCameraUsageDescription: DoOnce uses the camera to look at objects and to record demonstrations. Nothing is recorded until you press record.
+        NSMicrophoneUsageDescription: The microphone hears the explanation while you record. What's said becomes the steps.
+        NSSpeechRecognitionUsageDescription: Speech recognition turns the demonstration into steps and lets you say “next” in hands-free mode.
+        NSPhotoLibraryUsageDescription: Import a video you already have.
+        NSSupportsLiveActivities: true
+        UIBackgroundModes: [audio]
+        # Service modes (read by DoOnceCore.ServiceConfiguration; see STATUS.md → "Service modes").
+        # demo: FileStore persistence + mock transcription/recognition/auth/subscription and the
+        #       deterministic analysis; sample content when DOONCE_SAMPLE_CONTENT=1.
+        # live: on-device Speech + Vision, Sign in with Apple, StoreKit 2, and the gateway below.
+        DoOnceServiceMode: demo
+        # Base URL of the DoOnce gateway (procedure analysis, account deletion). Empty = not configured:
+        # in live mode Teach fails at "Understanding" with a clear message instead of a demo result.
+        DoOnceGatewayURL: ""
+        # App Store product identifiers for DoOnce+ (an array: yearly, monthly). Empty = the paywall
+        # shows "Subscriptions aren't available yet".
+        DoOnceProductIDs: []
+        # Base URL for resumable recording uploads (BackgroundUploadTransport). Empty = uploads stay pending.
+        DoOnceUploadEndpoint: ""
+        # doonce://do/<memoryID> from the Live Activity and the Continue widget.
+        CFBundleURLTypes:
+          - CFBundleURLName: app.doonce.ios
+            CFBundleURLSchemes: [doonce]
+    entitlements:
+      path: Resources/DoOnce.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.doonce]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.doonce.ios
+        TARGETED_DEVICE_FAMILY: "1"
+        INFOPLIST_KEY_UIApplicationSceneManifest_Generation: YES
+        CODE_SIGN_STYLE: Automatic
+  DoOnceWidgets:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: Widgets/DoOnceWidgets
+      - path: Widgets/Shared
+      # Design tokens only (no components): the extension paints with the same DSColor values.
+      - path: Sources/DesignSystem/Generated/Tokens.swift
+      - path: Sources/DesignSystem/Generated/DSColors.swift
+      - path: Sources/DesignSystem/DSColor+SwiftUI.swift
+      - path: Resources/Localizable.xcstrings
+    info:
+      path: Widgets/DoOnceWidgets/Info.plist
+      properties:
+        CFBundleDisplayName: DoOnce
+        CFBundleShortVersionString: "0.1.0"
+        CFBundleVersion: "1"
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    entitlements:
+      path: Widgets/DoOnceWidgets/DoOnceWidgets.entitlements
+      properties:
+        com.apple.security.application-groups: [group.app.doonce]
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: app.doonce.ios.widgets
+        TARGETED_DEVICE_FAMILY: "1"
+        CODE_SIGN_STYLE: Automatic
+        SKIP_INSTALL: YES
+  DoOnceTests:
+    type: bundle.unit-test
+    platform: iOS
+    sources: [Tests/DoOnceTests]
+    dependencies:
+      - target: DoOnce
+      - package: DoOnceCore
+  DoOnceUITests:
+    type: bundle.ui-testing
+    platform: iOS
+    sources: [Tests/DoOnceUITests]
+    dependencies:
+      - target: DoOnce
+schemes:
+  DoOnce:
+    build:
+      targets: { DoOnce: all, DoOnceWidgets: all, DoOnceTests: [test], DoOnceUITests: [test] }
+    run:
+      config: Debug
+      environmentVariables:
+        DOONCE_SAMPLE_CONTENT: "1"
+    test:
+      config: Debug
+      targets: [DoOnceTests, DoOnceUITests]

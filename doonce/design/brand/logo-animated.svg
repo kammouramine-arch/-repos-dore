@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" width="200" height="200" role="img" aria-label="DoOnce">
+  <!--
+    Launch animation, ~1100 ms, skip-safe (the static mark is the final frame).
+    0–780 ms   the stroke travels: one gesture, once around  (ease: 0.2,0,0,1)
+    780 ms     loop closes → tiny scale snap 1.00 → 1.035 → 1.00 (rigid haptic here)
+    820–1100   a short echo trail fades in just past the stroke end (the memory)
+    Reduce Motion: crossfade the final frame in 200 ms; no draw-on.
+  -->
+  <style>
+    .stroke { stroke-dasharray: 186; stroke-dashoffset: 186; animation: draw 780ms cubic-bezier(0.2,0,0,1) forwards; }
+    .mark   { transform-origin: 50% 50%; animation: snap 240ms cubic-bezier(0.34,1.35,0.5,1) 780ms; }
+    .echo   { opacity: 0; animation: echo 320ms ease-out 820ms forwards; }
+    @keyframes draw { to { stroke-dashoffset: 0; } }
+    @keyframes snap { 0% { transform: scale(1); } 45% { transform: scale(1.035); } 100% { transform: scale(1); } }
+    @keyframes echo { to { opacity: 0.32; } }
+    @media (prefers-reduced-motion: reduce) {
+      .stroke { animation: none; stroke-dashoffset: 0; }
+      .mark { animation: none; }
+      .echo { animation: fade 200ms ease-out forwards; }
+      @keyframes fade { to { opacity: 0.32; } }
+    }
+  </style>
+  <g class="mark">
+    <path class="echo" d="M 32.4 35.0 A 26 26 0 0 0 30.7 40.2" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round"/>
+    <path class="stroke" d="M 21 51.5 C 27 53.5, 32.5 58.5, 37.6 64.4 A 26 26 0 1 0 32.4 35.0" fill="none" stroke="currentColor" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+  </g>
+</svg>

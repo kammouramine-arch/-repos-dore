@@ -1,0 +1,99 @@
+{
+  "recordingID": "6f1b2c3d-4e5f-4a6b-8c7d-9e0f1a2b3c4d",
+  "duration": 48,
+  "locale": "en",
+  "transcript": {
+    "language": "en",
+    "keyPhrases": [
+      "1.5 bar",
+      "slowly"
+    ],
+    "segments": [
+      {
+        "start": 1.2,
+        "end": 4.8,
+        "text": "Okay so, when the pressure drops below one bar the boiler will lock out."
+      },
+      {
+        "start": 5,
+        "end": 11,
+        "text": "First open the lower panel, pull it from the bottom edge, it just clips off."
+      },
+      {
+        "start": 12.4,
+        "end": 18.9,
+        "text": "Find the blue filling valve, it's the one on the left here."
+      },
+      {
+        "start": 19.8,
+        "end": 26.4,
+        "text": "Important, turn it slowly. It gets stiff near the end, don't force it."
+      },
+      {
+        "start": 27,
+        "end": 33.5,
+        "text": "Keep an eye on the gauge and stop when it reaches 1.5 bar."
+      },
+      {
+        "start": 34.5,
+        "end": 40.2,
+        "text": "Never go above 2 bar, that's the red zone. Close the valve fully."
+      },
+      {
+        "start": 41,
+        "end": 47.5,
+        "text": "Then press reset once and it'll fire back up in about a minute."
+      }
+    ]
+  },
+  "markers": [
+    21
+  ],
+  "moments": [
+    {
+      "time": 5,
+      "kind": "speechCue",
+      "confidence": 0.8,
+      "label": "open the lower panel"
+    },
+    {
+      "time": 21,
+      "kind": "userMarked",
+      "confidence": 1,
+      "label": null
+    },
+    {
+      "time": 27,
+      "kind": "importantStatement",
+      "confidence": 0.9,
+      "label": "stop at 1.5 bar"
+    }
+  ],
+  "keyFrames": [
+    {
+      "id": "f1",
+      "time": 6,
+      "jpegBase64": null,
+      "url": null
+    },
+    {
+      "id": "f2",
+      "time": 13,
+      "jpegBase64": null,
+      "url": null
+    },
+    {
+      "id": "f3",
+      "time": 28,
+      "jpegBase64": null,
+      "url": null
+    }
+  ],
+  "objectHint": {
+    "name": "Boiler",
+    "category": "Boiler",
+    "brand": "Vaillant",
+    "model": "ecoTEC Plus"
+  },
+  "demonstratorName": "Julien"
+}

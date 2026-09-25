@@ -1,0 +1,10 @@
+# Build products and local tooling
+.build/
+.swiftpm/
+*.xcodeproj
+*.xcworkspace
+DerivedData/
+node_modules
+package-lock.json
+.DS_Store
+ios/build/
