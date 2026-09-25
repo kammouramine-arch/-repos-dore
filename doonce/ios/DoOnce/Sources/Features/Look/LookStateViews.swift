@@ -89,5 +89,6 @@ struct LookSheetFrame<Content: View>: View {
             .padding(.top, DS.Space.s6)
             .padding(.bottom, DS.Space.s8)
             .background(DSColor.backgroundElevated)
+            .presentationBackground(DSColor.backgroundElevated)
     }
 }

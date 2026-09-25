@@ -57,6 +57,9 @@ final class Router {
     /// A sheet over a full-screen surface (camera, Do): SwiftUI can only present from the cover itself.
     var coverSheet: SheetRoute?
     var isBloomOpen = false
+    /// True while the active tab shows its root page; pushed pages hide the floating tab bar,
+    /// as in the prototype, so their own bottom actions never collide with it.
+    var isAtRoot: Bool { tab == .memory ? memoryPath.isEmpty : youPath.isEmpty }
 
     func push(_ route: Route) {
         switch tab {

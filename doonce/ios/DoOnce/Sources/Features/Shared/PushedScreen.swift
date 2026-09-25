@@ -1,7 +1,7 @@
 import SwiftUI
 
 /// The frame every pushed page shares: the system bar is hidden by `MainView`, so the page draws
-/// its own floating `DSTopBar` over a scroll view and leaves room under the floating tab bar.
+/// its own floating `DSTopBar` over a scroll view. The floating tab bar is hidden on pushed pages.
 /// `onMedia` pages (a photographic hero) let the scroll content run under the status bar.
 @MainActor
 struct PushedScreen<Content: View, Trailing: View>: View {
@@ -18,14 +18,14 @@ struct PushedScreen<Content: View, Trailing: View>: View {
             DSColor.backgroundPrimary.ignoresSafeArea()
             if onMedia {
                 ScrollView(showsIndicators: false) {
-                    content().padding(.bottom, DS.Size.tabBarClearance)
+                    content().padding(.bottom, DS.Space.s8)
                 }
                 .ignoresSafeArea(edges: .top)
             } else {
                 ScrollView(showsIndicators: false) {
                     content()
                         .dsTopBarInset()
-                        .padding(.bottom, DS.Size.tabBarClearance)
+                        .padding(.bottom, DS.Space.s8)
                 }
             }
             DSTopBar(leading: close ? .close : .back, onMedia: onMedia, onLeading: { (onBack ?? router.pop)() }, trailing: trailing)

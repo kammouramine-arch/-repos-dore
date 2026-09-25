@@ -23,6 +23,7 @@ struct ObjectCardView: View {
         }
         .buttonStyle(.dsPressable)
         .zoomSource(id: object.id)
+        .accessibilityIdentifier("object.card")
         .accessibilityLabel(object.name)
         .accessibilityValue(subtitle)
     }

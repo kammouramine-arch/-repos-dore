@@ -23,8 +23,13 @@ struct MainView: View {
             if router.isBloomOpen {
                 BloomOverlay().transition(.opacity).zIndex(1)
             }
-            FloatingTabBar().zIndex(2)
+            if router.isAtRoot {
+                FloatingTabBar()
+                    .transition(.move(edge: .bottom).combined(with: .opacity))
+                    .zIndex(2)
+            }
         }
+        .animation(DSMotion.gentle, value: router.isAtRoot)
         .ignoresSafeArea(.keyboard)
         .fullScreenCover(item: $router.fullScreen) { route in
             FullScreenRouteView(route: route)

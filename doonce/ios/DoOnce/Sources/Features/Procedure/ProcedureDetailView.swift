@@ -40,7 +40,7 @@ struct ProcedureDetailView: View {
             VStack(alignment: .leading, spacing: 14) {
                 TaughtByLine(memory: memory)
                 if memory.riskLevel == .high {
-                    DSCallout(.danger, systemImage: "exclamationmark.triangle", Text(L10n.string("do.warning")).bold() + Text(" ") + Text(L10n.string("procedure.takeCare")))
+                    DSCallout(.danger, systemImage: "exclamationmark.triangle", Text(L10n.string("procedure.takeCare")))
                 }
                 if !memory.summary.isEmpty {
                     Text(memory.summary).dsText(.body).foregroundStyle(DSColor.textPrimary).lineSpacing(3)

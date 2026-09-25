@@ -31,7 +31,7 @@ struct SearchView: View {
                     }
                     .padding(.horizontal, DS.Space.gutter)
                     .padding(.top, DS.Space.s1)
-                    .padding(.bottom, DS.Size.tabBarClearance)
+                    .padding(.bottom, DS.Space.s8)
                 }
                 .scrollDismissesKeyboard(.interactively)
             }

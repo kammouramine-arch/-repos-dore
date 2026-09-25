@@ -181,7 +181,8 @@ final class LookModel {
             while !Task.isCancelled {
                 try? await Task.sleep(for: .milliseconds(60))
                 guard let self, let recogniser = self.recogniser else { return }
-                if case .failed = self.camera.state, self.sheet == nil, self.target == nil { self.sheet = .error }
+                // A camera that could not start is reported by the camera surface itself (with
+                // its own retry); the sheets are for what the camera saw.
                 let output = recogniser.output
                 guard output != seen else { continue }
                 seen = output

@@ -89,7 +89,7 @@ final class ScreenshotUITests: XCTestCase {
 
     func test03ObjectAndProcedure() {
         launchIntoShell()
-        if tapIfExists(button(labelled: "Boiler"), timeout: 8, "Boiler object card") {
+        if tapIfExists(app.buttons["object.card"].firstMatch, timeout: 8, "an object card") {
             settle()
             shoot("20-object")
             if tapIfExists(app.buttons["memory.row"].firstMatch, "a memory row on the object") {
@@ -109,7 +109,7 @@ final class ScreenshotUITests: XCTestCase {
         if card.waitForExistence(timeout: 6) {
             card.tap()
         } else {
-            guard tapIfExists(button(labelled: "Boiler"), timeout: 5, "Boiler object card"),
+            guard tapIfExists(app.buttons["object.card"].firstMatch, timeout: 5, "an object card"),
                   tapIfExists(app.buttons["memory.row"].firstMatch, timeout: 5, "a memory row"),
                   tapIfExists(app.buttons["procedure.start"], timeout: 5, "Start on the procedure") else { return }
         }
@@ -195,9 +195,13 @@ final class ScreenshotUITests: XCTestCase {
 
     private func dismissCameraSurface() {
         if app.buttons["Allow"].firstMatch.exists { shoot("permission-education") }
-        for label in ["Close", "Not now", "Cancel"] where app.buttons[label].firstMatch.exists {
-            app.buttons[label].firstMatch.tap(); settle(); return
+        for label in ["Close", "Not now", "Cancel"] {
+            let button = app.buttons[label].firstMatch
+            if button.exists, button.isHittable { button.tap(); settle(); return }
         }
+        // A sheet may cover the surface's own controls: swipe it away, then close.
         app.swipeDown(); settle()
+        let close = app.buttons["Close"].firstMatch
+        if close.exists, close.isHittable { close.tap(); settle() }
     }
 }
