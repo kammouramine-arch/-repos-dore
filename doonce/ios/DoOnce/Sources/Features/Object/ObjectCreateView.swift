@@ -42,7 +42,7 @@ struct ObjectCreateView: View {
             name = suggestedObject?.makeAndModel ?? suggestedCategory ?? ""
         }
         .sheet(isPresented: $showsNameSheet) {
-            NameSheet(title: L10n.string("objectCreate.name"), placeholder: L10n.string("objectCreate.namePlaceholder"), text: $name) { confirm(named: name, linkExisting: false) }
+            NameSheet(title: L10n.string("objectCreate.name"), placeholder: L10n.string("objectCreate.namePlaceholder"), text: $name) { confirm(named: $0, linkExisting: false) }
                 .presentationDetents([.height(220)]).presentationCornerRadius(DS.Radius.sheet)
         }
         .sheet(isPresented: $showsSpaceSheet) {
