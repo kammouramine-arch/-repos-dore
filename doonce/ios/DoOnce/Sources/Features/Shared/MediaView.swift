@@ -7,19 +7,23 @@ struct MediaView: View {
     var ref: MediaRef?
     var contentMode: ContentMode = .fill
 
+    /// The container takes the size it is offered and the image fills (or fits) inside it, so a
+    /// photo never dictates the size of a card. In a horizontal scroll the proposal is unbounded
+    /// and a bare aspect-fill image would otherwise grow the card to the photo's own size.
     var body: some View {
-        Group {
-            if let image = bundledImage {
-                Image(uiImage: image).resizable().aspectRatio(contentMode: contentMode)
-            } else if let url = ref?.localURL ?? ref?.remoteURL {
-                AsyncImage(url: url, transaction: Transaction(animation: DSMotion.crossfade)) { phase in
-                    if let img = phase.image { img.resizable().aspectRatio(contentMode: contentMode) } else { placeholder }
+        Color.clear
+            .overlay {
+                if let image = bundledImage {
+                    Image(uiImage: image).resizable().aspectRatio(contentMode: contentMode)
+                } else if let url = ref?.localURL ?? ref?.remoteURL {
+                    AsyncImage(url: url, transaction: Transaction(animation: DSMotion.crossfade)) { phase in
+                        if let img = phase.image { img.resizable().aspectRatio(contentMode: contentMode) } else { placeholder }
+                    }
+                } else {
+                    placeholder
                 }
-            } else {
-                placeholder
             }
-        }
-        .clipped()
+            .clipped()
     }
 
     /// Sample content points at files that only exist on device after a real Teach; in sample
