@@ -11,11 +11,11 @@ enum DSFormat {
         return f
     }
 
-    nonisolated(unsafe) private static let shortDayFormatter = formatter("d MMM")
-    nonisolated(unsafe) private static let longDayFormatter = formatter("d MMMM yyyy")
-    nonisolated(unsafe) private static let dayMonthFormatter = formatter("d MMMM")
-    nonisolated(unsafe) private static let monthFormatter = formatter("MMMM")
-    nonisolated(unsafe) private static let monthYearFormatter = formatter("MMMM yyyy")
+    private static let shortDayFormatter = formatter("d MMM")
+    private static let longDayFormatter = formatter("d MMMM yyyy")
+    private static let dayMonthFormatter = formatter("d MMMM")
+    private static let monthFormatter = formatter("MMMM")
+    private static let monthYearFormatter = formatter("MMMM yyyy")
 
     /// "18 Mar"
     static func shortDay(_ date: Date) -> String { shortDayFormatter.string(from: date) }

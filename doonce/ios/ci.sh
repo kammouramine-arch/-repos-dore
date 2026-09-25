@@ -92,16 +92,15 @@ do_build() {
   local udid; udid=$(sim_udid)
   log "Simulator: $(sim_name) ($(sim_runtime)) $udid"
   log "xcodebuild build-for-testing"
-  set +e
+  local status=0
   xcodebuild build-for-testing \
     -project "$PROJECT" -scheme "$SCHEME" -configuration Debug \
     -destination "platform=iOS Simulator,id=$udid" \
     -derivedDataPath "$DERIVED" \
     CODE_SIGNING_ALLOWED=NO CODE_SIGNING_REQUIRED=NO CODE_SIGN_IDENTITY="" \
     COMPILER_INDEX_STORE_ENABLE=NO \
-    2>&1 | tee "$OUT/build.log" | grep -E "^(=== |\*\* |error:|warning:|.*: error:|.*: warning:|Build |Compiling|Ld )" | grep -vE "warning: .*(DEVELOPMENT_TEAM|deprecated in iOS 1[0-6])" || true
-  local status=${PIPESTATUS[0]}
-  set -e
+    > "$OUT/build.log" 2>&1 || status=$?
+  grep -E "^(=== |\*\* |Build |Ld )" "$OUT/build.log" || true
   log "Diagnostics (unique)"
   grep -E ": (error|warning):" "$OUT/build.log" | sed -E 's#^.*/doonce/ios/#doonce/ios/#' | sort -u | tee "$OUT/diagnostics.txt" || true
   echo "errors: $(grep -cE ': error:' "$OUT/diagnostics.txt" || true), warnings: $(grep -cE ': warning:' "$OUT/diagnostics.txt" || true)"
@@ -136,16 +135,15 @@ do_unit() {
   local udid; udid=$(sim_udid)
   log "DoOnceTests"
   rm -rf "$OUT/UnitTests.xcresult"
-  set +e
+  local status=0
   xcodebuild test-without-building \
     -project "$PROJECT" -scheme "$SCHEME" \
     -destination "platform=iOS Simulator,id=$udid" \
     -derivedDataPath "$DERIVED" \
     -only-testing:DoOnceTests \
     -resultBundlePath "$OUT/UnitTests.xcresult" \
-    2>&1 | tee "$OUT/unit.log" | grep -E "(Test Case|Test Suite|Executed|error:|\*\* TEST)" || true
-  local status=${PIPESTATUS[0]}
-  set -e
+    > "$OUT/unit.log" 2>&1 || status=$?
+  grep -E "(Test Case .* (passed|failed)|Test Suite .* (passed|failed)|Executed|error:|\*\* TEST)" "$OUT/unit.log" | sort -u | head -n 120 || true
   return "$status"
 }
 
@@ -161,16 +159,15 @@ do_ui() {
   # views show their real "camera unavailable" state instead of a permission sheet.
   for p in camera microphone; do xcrun simctl privacy "$udid" grant "$p" "$BUNDLE_ID" 2>/dev/null || true; done
   rm -rf "$OUT/UITests-$appearance.xcresult"
-  set +e
+  local status=0
   TEST_RUNNER_DOONCE_APPEARANCE="$appearance" xcodebuild test-without-building \
     -project "$PROJECT" -scheme "$SCHEME" \
     -destination "platform=iOS Simulator,id=$udid" \
     -derivedDataPath "$DERIVED" \
     -only-testing:DoOnceUITests \
     -resultBundlePath "$OUT/UITests-$appearance.xcresult" \
-    2>&1 | tee "$OUT/ui-$appearance.log" | grep -E "(Test Case|Test Suite|Executed|error:|\*\* TEST)" || true
-  local status=${PIPESTATUS[0]}
-  set -e
+    > "$OUT/ui-$appearance.log" 2>&1 || status=$?
+  grep -E "(Test Case .* (passed|failed)|Test Suite .* (passed|failed)|Executed|error:|\*\* TEST)" "$OUT/ui-$appearance.log" | sort -u | head -n 120 || true
   export_screenshots "$OUT/UITests-$appearance.xcresult" "$OUT/screenshots/$appearance"
   return "$status"
 }
