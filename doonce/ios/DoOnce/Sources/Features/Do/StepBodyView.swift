@@ -5,7 +5,9 @@ import DoOnceCore
 @MainActor
 struct StepBody: View {
     var step: Step
-    var person: Person?
+    /// Resolved by the caller (`AppState.demonstratorName`), never a raw `Person`, so a
+    /// self-taught step reads the current user's real name rather than the household's "Me" label.
+    var demonstratorName: String
     var taughtAt: Date
 
     var body: some View {
@@ -25,8 +27,8 @@ struct StepBody: View {
             }
             Spacer(minLength: 0)
             HStack(spacing: 6) {
-                DSAvatar(initials: DSFormat.initials(person), size: 22)
-                Text(L10n.string("do.taughtBy", ["person": DSFormat.firstName(person), "date": DSFormat.shortDay(taughtAt)]))
+                DSAvatar(initials: demonstratorName.initials, size: 22)
+                Text(L10n.string("do.taughtBy", ["person": DSFormat.firstName(demonstratorName), "date": DSFormat.shortDay(taughtAt)]))
                     .dsText(.footnote).foregroundStyle(DSColor.textTertiary)
             }
             .accessibilityElement(children: .combine)

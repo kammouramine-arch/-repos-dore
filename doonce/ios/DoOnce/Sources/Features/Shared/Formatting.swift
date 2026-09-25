@@ -52,7 +52,14 @@ extension DSFormat {
     /// "Julien" from "Julien Martin"; the copy speaks about people the way the household does.
     static func firstName(_ person: Person?) -> String {
         guard let person else { return L10n.string("ask.unknownPerson") }
-        return person.displayName.split(separator: " ").first.map(String.init) ?? person.displayName
+        return firstName(person.displayName)
+    }
+
+    /// "Julien" from "Julien Martin". For the demonstrator's own memories, pass the resolved
+    /// display name (`AppState.demonstratorName`, "Amine" rather than the household's "Me" label
+    /// for that person) rather than a raw `Person`, so a grounded answer never reads "Me said…".
+    static func firstName(_ displayName: String) -> String {
+        displayName.split(separator: " ").first.map(String.init) ?? displayName
     }
 
     /// Initials for a small avatar; "?" when the person is unknown.

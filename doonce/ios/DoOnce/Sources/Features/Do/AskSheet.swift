@@ -113,7 +113,10 @@ struct AskSheet: View {
         input = ""
         focused = false
         question = trimmed
-        let answerer = TranscriptGroundedAnswerer(transcript: transcript, speaker: DSFormat.firstName(person))
+        // `person` may be the household's "Me" record for the current user's own memories; resolve
+        // through `demonstratorName` (as the procedure page's "Taught by" line does) so the answer
+        // reads "Amine said…", never "Me said…" or "Me didn't say anything about that."
+        let answerer = TranscriptGroundedAnswerer(transcript: transcript, speaker: DSFormat.firstName(app.demonstratorName(for: memory)))
         answer = await answerer.answer(trimmed, memory: memory, currentStep: step)
     }
 

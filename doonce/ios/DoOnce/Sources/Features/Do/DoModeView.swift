@@ -89,13 +89,13 @@ struct DoModeView: View {
                         .frame(height: geo.size.height * 0.54)
                     ZStack(alignment: .topLeading) {
                         if let step = vm.step {
-                            StepBody(step: step, person: app.person(vm.memory.demonstratorID), taughtAt: vm.memory.createdAt)
+                            StepBody(step: step, demonstratorName: app.demonstratorName(for: vm.memory), taughtAt: vm.memory.createdAt)
                                 .id(vm.index)
                                 .transition(incoming(vm.direction))
                         }
                         if let outgoing {
                             OutgoingStep(direction: outgoing.direction, onDone: { self.outgoing = nil }) {
-                                StepBody(step: outgoing.step, person: app.person(vm.memory.demonstratorID), taughtAt: vm.memory.createdAt)
+                                StepBody(step: outgoing.step, demonstratorName: app.demonstratorName(for: vm.memory), taughtAt: vm.memory.createdAt)
                             }
                             .id(outgoing.id)
                             .transition(.identity)

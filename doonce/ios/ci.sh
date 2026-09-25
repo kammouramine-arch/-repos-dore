@@ -151,10 +151,19 @@ do_ui() {
   select_xcode
   local appearance="${1:-light}"
   local udid; udid=$(sim_udid)
+  local app="$DERIVED/Build/Products/Debug-iphonesimulator/DoOnce.app"
   log "DoOnceUITests ($appearance)"
   xcrun simctl boot "$udid" 2>/dev/null || true
   xcrun simctl bootstatus "$udid" -b
   xcrun simctl ui "$udid" appearance "$appearance"
+  # Reinstall fresh: the light and dark passes share one simulator, and the app persists its
+  # store on disk (Application Support, not wiped between xcodebuild invocations). Without this,
+  # sample-content seeding and progress from an earlier pass (light's own golden-path run, or the
+  # `install` step's launch) leak into the next one — e.g. the golden-path memory already
+  # completed and its progress cleared, so "Continue" no longer exists for the next pass to find.
+  xcrun simctl terminate "$udid" "$BUNDLE_ID" 2>/dev/null || true
+  xcrun simctl uninstall "$udid" "$BUNDLE_ID" 2>/dev/null || true
+  xcrun simctl install "$udid" "$app"
   # The camera surfaces need the permission granted up front; the simulator has no camera, so the
   # views show their real "camera unavailable" state instead of a permission sheet.
   for p in camera microphone; do xcrun simctl privacy "$udid" grant "$p" "$BUNDLE_ID" 2>/dev/null || true; done

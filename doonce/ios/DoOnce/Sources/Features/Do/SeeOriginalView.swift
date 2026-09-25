@@ -18,7 +18,9 @@ struct SeeOriginalView: View {
     @State private var loaded = false
 
     private var memory: Memory? { app.memory(memoryID) }
-    private var person: Person? { app.person(memory?.demonstratorID) }
+    /// Resolved so a self-taught memory reads the current user's real name, never the
+    /// household's "Me" label (`AppState.demonstratorName`; matches `TaughtByLine`).
+    private var demonstratorName: String? { memory.map { app.demonstratorName(for: $0) } }
     /// The step this moment belongs to, for its key frame and remembered words.
     private var step: Step? {
         memory?.orderedSteps.first { $0.sourceRange?.contains(at) == true } ?? memory?.orderedSteps.first
@@ -40,7 +42,7 @@ struct SeeOriginalView: View {
             if loaded, player == nil {
                 Text(L10n.string("seeOriginal.missing")).dsText(.footnote).foregroundStyle(DSColor.textTertiary)
             }
-            Text("\(L10n.string("ask.source", ["time": DSFormat.clock(at)])) · \(DSFormat.firstName(person))")
+            Text("\(L10n.string("ask.source", ["time": DSFormat.clock(at)])) · \(demonstratorName.map(DSFormat.firstName) ?? L10n.string("ask.unknownPerson"))")
                 .dsText(.subheadline).foregroundStyle(DSColor.textSecondary)
             Spacer(minLength: 0)
         }
