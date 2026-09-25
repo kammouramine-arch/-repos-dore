@@ -61,7 +61,7 @@ struct SeeOriginalView: View {
                     .font(.system(size: 24, weight: .bold))
                     .foregroundStyle(DSColor.textOnMedia)
                     .frame(width: 64, height: 64)
-                    .background(DSGlass(style: .onMedia), in: Circle())
+                    .background { DSGlass(style: .onMedia).clipShape(Circle()) }
                     .frame(maxHeight: .infinity, alignment: .center)
                     .accessibilityLabel(L10n.string("seeOriginal.play"))
                 scrubber.padding(DS.Space.s3)

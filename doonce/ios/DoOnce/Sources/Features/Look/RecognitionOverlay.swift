@@ -140,7 +140,7 @@ struct RecognitionOverlay: View {
             Text(subtitle).font(.system(size: 13, weight: .semibold)).foregroundStyle(DSColor.signal)
         }
         .padding(.leading, 12).padding(.trailing, 14).padding(.vertical, 8)
-        .background(DSGlass(style: .onMedia), in: RoundedRectangle(cornerRadius: 14, style: .continuous))
+        .background { DSGlass(style: .onMedia).clipShape(RoundedRectangle(cornerRadius: 14, style: .continuous)) }
         .overlay(RoundedRectangle(cornerRadius: 14, style: .continuous).strokeBorder(DSColor.textOnMedia.opacity(0.18), lineWidth: 0.5))
         .fixedSize()
         .position(x: region.midX, y: region.maxY + 28)

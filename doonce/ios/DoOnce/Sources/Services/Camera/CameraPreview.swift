@@ -82,7 +82,7 @@ struct CameraSurface: View {
         }
         .padding(DS.Space.s6)
         .frame(maxWidth: 320)
-        .background(DSGlass(style: .onMedia), in: RoundedRectangle(cornerRadius: DS.Radius.large, style: .continuous))
+        .background { DSGlass(style: .onMedia).clipShape(RoundedRectangle(cornerRadius: DS.Radius.large, style: .continuous)) }
         .padding(DS.Space.gutter)
         .transition(.opacity)
     }

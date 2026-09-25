@@ -142,7 +142,7 @@ actor AppleSignInService: AuthService {
         switch response.status {
         case 200..<300, 404: break
         case 401, 403: throw AuthError.invalidToken
-        default: throw Failure.server(status)
+        default: throw Failure.server(response.status)
         }
         try? await sessions.clear()
         session = nil
