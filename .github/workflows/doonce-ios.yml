@@ -1,0 +1,75 @@
+name: DoOnce — iOS build and test
+
+# Real Apple tooling on a GitHub-hosted macOS runner: XcodeGen → xcodebuild (iOS Simulator SDK,
+# unsigned) → XCTest unit + UI suites → native screenshots in light and dark.
+# No signing, no secrets: the app runs in its demo configuration. See doonce/ios/ci.sh.
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - "doonce/ios/**"
+      - ".github/workflows/doonce-ios.yml"
+
+concurrency:
+  group: doonce-ios-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  ios:
+    name: Xcode build, simulator tests, screenshots
+    runs-on: macos-26
+    timeout-minutes: 75
+    defaults:
+      run:
+        working-directory: doonce/ios
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate the Xcode project
+        run: ./ci.sh generate
+
+      - name: Build the app for the simulator (unsigned)
+        run: ./ci.sh build
+
+      - name: Install and launch in the simulator
+        run: ./ci.sh install
+
+      - name: Unit tests (DoOnceTests)
+        run: ./ci.sh unit
+
+      - name: UI tests and screenshots — light
+        run: ./ci.sh ui light
+
+      - name: UI tests and screenshots — dark
+        run: ./ci.sh ui dark
+
+      - name: Test totals
+        if: always()
+        run: ./ci.sh summary
+
+      - name: Upload native screenshots
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doonce-native-screenshots
+          path: doonce/ios/build/screenshots
+          if-no-files-found: ignore
+
+      - name: Upload test result bundles
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doonce-xcresults
+          path: |
+            doonce/ios/build/*.xcresult
+            doonce/ios/build/*.json
+            doonce/ios/build/diagnostics.txt
+          if-no-files-found: ignore
+
+      - name: Upload build logs
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: doonce-build-logs
+          path: doonce/ios/build/*.log
+          if-no-files-found: ignore
