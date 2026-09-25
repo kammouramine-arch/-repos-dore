@@ -23,7 +23,11 @@ final class ScreenshotUITests: XCTestCase {
     }
 
     private func tapIfExists(_ element: XCUIElement, timeout: TimeInterval = 3, _ what: String) -> Bool {
-        guard element.waitForExistence(timeout: timeout) else { XCTFail("Missing: \(what)"); return false }
+        guard element.waitForExistence(timeout: timeout) else {
+            shoot("missing-" + what.lowercased().replacingOccurrences(of: " ", with: "-"))
+            XCTFail("Missing: \(what)")
+            return false
+        }
         element.tap()
         return true
     }
@@ -69,9 +73,10 @@ final class ScreenshotUITests: XCTestCase {
                 shoot("13-look")
                 dismissCameraSurface()
             }
-            if tapIfExists(app.buttons["center.action"], "centre action button again") {
+            // The bloom may still be open after the camera surface goes away.
+            if app.buttons["center.teach"].waitForExistence(timeout: 2) || tapIfExists(app.buttons["center.action"], timeout: 5, "centre action button again") {
                 settle()
-                if tapIfExists(app.buttons["center.teach"], "Teach in the bloom") {
+                if tapIfExists(app.buttons["center.teach"], timeout: 5, "Teach in the bloom") {
                     settle(2.0)
                     shoot("14-teach")
                     dismissCameraSurface()
@@ -87,8 +92,7 @@ final class ScreenshotUITests: XCTestCase {
         if tapIfExists(button(labelled: "Boiler"), timeout: 8, "Boiler object card") {
             settle()
             shoot("20-object")
-            let row = app.buttons.matching(NSPredicate(format: "label CONTAINS[c] 'pressure' OR label CONTAINS[c] 'restart' OR label CONTAINS[c] 'bleed'")).firstMatch
-            if tapIfExists(row, "a memory row on the object") {
+            if tapIfExists(app.buttons["memory.row"].firstMatch, "a memory row on the object") {
                 settle()
                 shoot("21-procedure")
             }
@@ -99,9 +103,16 @@ final class ScreenshotUITests: XCTestCase {
 
     func test04DoModeToCompletion() {
         launchIntoShell()
-        let identified = app.buttons["memory.continue"]
-        let card = identified.waitForExistence(timeout: 8) ? identified : button(labelled: "Continue")
-        guard tapIfExists(card, "Continue card") else { return }
+        // The Continue card exists only while a memory is in progress; the golden-path test may have
+        // finished it (progress is persisted), so fall back to opening a procedure and starting it.
+        let card = app.buttons["memory.continue"]
+        if card.waitForExistence(timeout: 6) {
+            card.tap()
+        } else {
+            guard tapIfExists(button(labelled: "Boiler"), timeout: 5, "Boiler object card"),
+                  tapIfExists(app.buttons["memory.row"].firstMatch, timeout: 5, "a memory row"),
+                  tapIfExists(app.buttons["procedure.start"], timeout: 5, "Start on the procedure") else { return }
+        }
         let done = app.buttons["do.done"]
         XCTAssertTrue(done.waitForExistence(timeout: 6), "Do mode opens")
         settle()

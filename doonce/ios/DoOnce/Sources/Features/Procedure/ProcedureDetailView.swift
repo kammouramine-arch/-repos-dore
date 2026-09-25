@@ -71,6 +71,7 @@ struct ProcedureDetailView: View {
                 Label(L10n.string("look.start"), systemImage: "play.fill")
             }
             .buttonStyle(.dsPrimary)
+            .accessibilityIdentifier("procedure.start")
             .shadow(color: DSColor.shadow, radius: 16, y: 8)
             if let objectID = memory.objectID {
                 Button {

@@ -182,14 +182,25 @@ import json, os, sys
 dest = sys.argv[1]
 manifest = os.path.join(dest, "manifest.json")
 if not os.path.exists(manifest): sys.exit(0)
+import re
+seen = {}
 for entry in json.load(open(manifest)):
     for a in entry.get("attachments", []):
         src = os.path.join(dest, a["exportedFileName"])
+        if not os.path.exists(src): continue
+        ext = os.path.splitext(a["exportedFileName"])[1].lower()
+        if ext not in (".png", ".jpg", ".jpeg", ".heic"):
+            os.remove(src)  # XCTest's failure diagnostics (UI hierarchies, debug descriptions)
+            continue
         name = a.get("suggestedHumanReadableName") or a["exportedFileName"]
-        if not name.lower().endswith(".png"): name += ".png"
-        if os.path.exists(src): os.replace(src, os.path.join(dest, name))
+        name = re.sub(r"_\d+_[0-9A-Fa-f-]{36}", "", os.path.splitext(name)[0])
+        name = re.sub(r"[^A-Za-z0-9._-]+", "-", name).strip("-") or "screenshot"
+        n = seen.get(name, 0); seen[name] = n + 1
+        final = f"{name}{'' if n == 0 else f'-{n}'}{ext}"
+        os.replace(src, os.path.join(dest, final))
+os.remove(manifest)
 PY
-  ls "$dest" | grep -v manifest | sed 's/^/  /'
+  ls "$dest" | sed 's/^/  /'
 }
 
 do_summary() {

@@ -30,6 +30,7 @@ struct MemoryRowView: View {
             .foregroundStyle(DSColor.textPrimary)
         }
         .buttonStyle(.dsRowPressable)
+        .accessibilityIdentifier("memory.row")
         .accessibilityLabel(accessibilityText)
     }
 

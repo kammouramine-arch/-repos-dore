@@ -29,6 +29,7 @@ jobs:
         run: ./ci.sh generate
 
       - name: Build the app for the simulator (unsigned)
+        id: build
         run: ./ci.sh build
 
       - name: Install and launch in the simulator
@@ -41,6 +42,7 @@ jobs:
         run: ./ci.sh ui light
 
       - name: UI tests and screenshots — dark
+        if: ${{ !cancelled() && steps.build.outcome == 'success' }}
         run: ./ci.sh ui dark
 
       - name: Test totals
