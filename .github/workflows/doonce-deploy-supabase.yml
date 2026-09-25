@@ -1,0 +1,60 @@
+name: DoOnce — deploy gateway
+
+# Deploys the DoOnce AI gateway (Supabase Edge Function) after its tests pass.
+# Required repository secrets:
+#   SUPABASE_ACCESS_TOKEN   Supabase dashboard → Account → Access Tokens
+#   SUPABASE_PROJECT_REF    The project ref from the project's URL
+# The model key and the Apple audience are set on the function itself:
+#   supabase secrets set ANTHROPIC_API_KEY=… DOONCE_APPLE_AUDIENCE=app.doonce.ios
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["doonce/backend/**"]
+
+defaults:
+  run:
+    working-directory: doonce/backend
+
+jobs:
+  test:
+    name: Test gateway
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22 }
+      - run: npm ci || npm install
+      - run: npm run typecheck
+      - run: npm test
+
+  deploy:
+    name: Deploy to Supabase
+    needs: test
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    env:
+      SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check the secrets are present
+        run: |
+          missing=0
+          for name in SUPABASE_ACCESS_TOKEN PROJECT_REF; do
+            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set."; missing=1; fi
+          done
+          [ "$missing" = "0" ] || exit 1
+      - uses: supabase/setup-cli@v1
+        with: { version: latest }
+      - name: Deploy the gateway function
+        working-directory: doonce/backend/supabase
+        run: supabase functions deploy doonce-analyze --project-ref "$PROJECT_REF"
+      - name: Summary
+        run: |
+          {
+            echo "### DoOnce gateway deployed"
+            echo ""
+            echo "Set the app's DoOnceGatewayURL to https://$PROJECT_REF.supabase.co/functions/v1/doonce-analyze"
+            echo "and make sure ANTHROPIC_API_KEY and DOONCE_APPLE_AUDIENCE are set on the function."
+          } >> "$GITHUB_STEP_SUMMARY"

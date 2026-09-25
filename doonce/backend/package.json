@@ -1,0 +1,25 @@
+{
+  "name": "doonce-gateway",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "DoOnce AI gateway: the only place that holds the model API key. The iPhone app never talks to the model directly.",
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json",
+    "test": "node --test --import tsx gateway/test/*.test.ts",
+    "dev": "tsx gateway/src/server-node.ts",
+    "smoke": "tsx gateway/scripts/smoke.ts"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.128.0",
+    "zod": "^4.6.5"
+  },
+  "devDependencies": {
+    "@types/node": "^26.6.2",
+    "tsx": "^4.23.15",
+    "typescript": "^7.0.2"
+  }
+}

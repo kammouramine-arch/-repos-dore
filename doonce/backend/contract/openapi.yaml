@@ -1,0 +1,182 @@
+openapi: 3.1.0
+info:
+  title: DoOnce Gateway
+  version: 0.1.0
+  description: |
+    The only server the DoOnce iPhone app talks to for intelligence and account operations.
+    The model API key lives here and nowhere else. Every request carries a Sign in with Apple
+    identity token; the gateway verifies it against Apple's JWKS (audience = the app bundle id).
+
+    Phase 3 additions planned on the same base: `/v1/recordings/{id}/upload` (resumable media),
+    `/v1/sync` (household snapshot sync), `/v1/ask` (grounded question answering with the same
+    provenance rules), `/v1/entitlements` (server-side receipt validation).
+servers:
+  - url: https://<project-ref>.supabase.co/functions/v1/doonce-analyze
+    description: Supabase Edge Function deployment (see backend/README.md)
+  - url: http://localhost:8787
+    description: Local Node dev server
+security:
+  - appleIdentityToken: []
+paths:
+  /health:
+    get:
+      security: []
+      summary: Liveness
+      responses:
+        "200": { description: ok }
+  /v1/analyze:
+    post:
+      summary: Turn one recorded demonstration into a validated procedural memory
+      description: |
+        Idempotent per recording (`Idempotency-Key: <recordingID>`). The gateway applies the safety
+        validator before responding; the app applies it again. Frames are optional JPEGs (base64)
+        at most 24 per request; the body is capped at 12 MB.
+      parameters:
+        - in: header
+          name: Idempotency-Key
+          schema: { type: string, format: uuid }
+        - in: header
+          name: X-DoOnce-Client
+          schema: { type: string, example: ios/0.1.0 }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: "#/components/schemas/AnalysisRequest" }
+      responses:
+        "200":
+          description: The validated procedure
+          headers:
+            x-doonce-model: { schema: { type: string }, description: The model that served the analysis }
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AnalysisResponse" }
+        "400": { $ref: "#/components/responses/Error" }
+        "401": { $ref: "#/components/responses/Error" }
+        "403": { $ref: "#/components/responses/Error" }
+        "413": { $ref: "#/components/responses/Error" }
+        "422": { description: The demonstration could not be analysed (model refusal), $ref: "#/components/responses/Error" }
+        "429": { $ref: "#/components/responses/Error" }
+        "502": { description: Malformed or truncated model output, $ref: "#/components/responses/Error" }
+        "503": { description: Model temporarily unavailable; the app keeps the recording and retries, $ref: "#/components/responses/Error" }
+  /v1/account:
+    delete:
+      summary: Request deletion of the caller's account and all server-side data
+      responses:
+        "202": { description: Accepted; deletion completes asynchronously }
+        "401": { $ref: "#/components/responses/Error" }
+components:
+  securitySchemes:
+    appleIdentityToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (Apple identity token, RS256, aud = app bundle id)
+  responses:
+    Error:
+      description: Error
+      content:
+        application/json:
+          schema:
+            type: object
+            required: [error]
+            properties:
+              error:
+                type: object
+                required: [code, message]
+                properties:
+                  code: { type: string, enum: [invalid_request, unauthorized, rate_limited, too_large, refused, truncated, malformed_model_output, model_unavailable, internal, not_found] }
+                  message: { type: string }
+  schemas:
+    RiskLevel: { type: string, enum: [low, medium, high] }
+    Provenance: { type: string, enum: [observed, inferred, unclear] }
+    TranscriptSegment:
+      type: object
+      required: [start, end, text]
+      properties:
+        id: { type: string }
+        start: { type: number, description: seconds }
+        end: { type: number }
+        text: { type: string }
+        words:
+          type: array
+          items: { type: object, required: [text, start, end], properties: { text: { type: string }, start: { type: number }, end: { type: number } } }
+    Transcript:
+      type: object
+      required: [segments]
+      properties:
+        segments: { type: array, items: { $ref: "#/components/schemas/TranscriptSegment" } }
+        keyPhrases: { type: array, items: { type: string } }
+        language: { type: string, default: en }
+    DetectedMoment:
+      type: object
+      required: [time, kind]
+      properties:
+        id: { type: string }
+        time: { type: number }
+        kind: { type: string, description: userMarked | importantStatement | speechCue | pause | visualChange }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        label: { type: [string, "null"] }
+    KeyFrameReference:
+      type: object
+      required: [id, time]
+      properties:
+        id: { type: string }
+        time: { type: number }
+        jpegBase64: { type: [string, "null"] }
+        url: { type: [string, "null"], format: uri }
+    ObjectHint:
+      type: object
+      properties:
+        name: { type: [string, "null"] }
+        category: { type: [string, "null"] }
+        brand: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+    AnalysisRequest:
+      type: object
+      required: [recordingID, duration, transcript]
+      properties:
+        recordingID: { type: string, format: uuid }
+        duration: { type: number, description: seconds }
+        locale: { type: string, default: en }
+        transcript: { $ref: "#/components/schemas/Transcript" }
+        markers: { type: array, items: { type: number }, description: seconds at which the user tapped "Remember this" }
+        moments: { type: array, items: { $ref: "#/components/schemas/DetectedMoment" } }
+        keyFrames: { type: array, maxItems: 24, items: { $ref: "#/components/schemas/KeyFrameReference" } }
+        objectHint: { $ref: "#/components/schemas/ObjectHint" }
+        demonstratorName: { type: [string, "null"] }
+    AnalyzedStep:
+      type: object
+      required: [order, instruction, confidence, provenance]
+      properties:
+        order: { type: integer, minimum: 1 }
+        instruction: { type: string, description: Short imperative sentence; exactly "This part wasn't clearly captured." when provenance is unclear }
+        detail: { type: [string, "null"] }
+        sourceStart: { type: [number, "null"] }
+        sourceEnd: { type: [number, "null"] }
+        sourceTranscript: { type: [string, "null"], description: The demonstrator's words, verbatim }
+        keyFrameReference: { type: [string, "null"], description: id of a KeyFrameReference from the request }
+        warning: { type: [string, "null"] }
+        confidence: { type: number, minimum: 0, maximum: 1 }
+        provenance: { $ref: "#/components/schemas/Provenance" }
+    ObjectCandidate:
+      type: object
+      required: [name, category, confidence]
+      properties:
+        name: { type: string }
+        category: { type: string }
+        brand: { type: [string, "null"] }
+        model: { type: [string, "null"] }
+        confidence: { type: number }
+    AnalysisResponse:
+      type: object
+      required: [title, shortDescription, tools, warnings, riskLevel, steps, uncertainties]
+      properties:
+        title: { type: string }
+        shortDescription: { type: string }
+        objectCandidate: { oneOf: [{ $ref: "#/components/schemas/ObjectCandidate" }, { type: "null" }] }
+        durationEstimate: { type: [number, "null"] }
+        tools: { type: array, items: { type: string } }
+        warnings: { type: array, items: { type: string } }
+        riskLevel: { $ref: "#/components/schemas/RiskLevel" }
+        steps: { type: array, items: { $ref: "#/components/schemas/AnalyzedStep" } }
+        uncertainties: { type: array, items: { type: string } }
