@@ -12,9 +12,11 @@ golden-path prototype (the visual and motion spec), and the iOS codebase.
 doonce/
   design/       tokens (source of truth), brand + logo, motion + haptic specs, copy, component sheet, App Store set
   prototype/    interactive iPhone-sized golden path; Playwright review harness + screenshots of every screen
+  backend/      the AI gateway: contract (OpenAPI), safety validator, Apple token auth, Supabase Edge Function, tests
   ios/
-    DoOnceCore/ Swift package: models, domain logic, service contracts, mocks, sample content — builds + tests on Linux
-    DoOnce/     SwiftUI app (XcodeGen spec): design system, app shell, features, device services
+    DoOnceCore/ Swift package: models, domain logic, persistence, media, AI contract + gateway client, mocks — builds + tests on Linux
+    DoOnce/     SwiftUI app (XcodeGen spec): design system, app shell, features, device services, live/demo wiring
+    LinuxTypecheck/ runs the app's Apple-free logic and its tests on Linux against DoOnceCore
 ```
 
 ## Status — what is real, what is not
@@ -56,9 +58,22 @@ for a real service · **BLOCKED** needs something this environment does not have
   resumable upload that never loses the local file, auth, subscription (free = 5 memories),
   haptics policy, analytics funnel, localisation.
 - Sample content: household, spaces, objects, people, 12 memories, the boiler transcript.
-- `swift build` + `swift test`: **80 tests, 0 failures** (Swift 6.1, language mode 6, strict concurrency), re-run after integration.
+- Phase 2: `FileStore` (atomic JSON document, every repository + progress + processing jobs),
+  `MediaLibrary` (originals, frames, clips as file references), the procedure-analysis contract
+  with `AnalysisValidator` and `MemoryMapper`, `GatewayProcedureAnalysisService` (retries,
+  idempotency, typed errors), `ServiceConfiguration`, `AuthSession`, multi-frame
+  `RecognitionMatcher` scoring.
+- `swift build` + `swift test`: **134 tests, 0 failures** (Swift 6.1, language mode 6, strict concurrency), re-run after integration.
 
-### iOS — DoOnce app — PARTIAL (written and statically reviewed, not compiled here)
+### Backend — AI gateway — DONE (tested with a stubbed model), live call BLOCKED BY CREDENTIALS
+- `backend/`: `POST /v1/analyze` turns a transcript + timings + key frames into a validated
+  procedure through the model with a frozen safety prompt and a strict output schema; Apple
+  identity tokens verified against Apple's JWKS; rate limit, size cap, error mapping;
+  `DELETE /v1/account`. Same handler as a Supabase Edge Function and a local Node server.
+- `npm run typecheck` + `npm test`: **11 tests, 0 failures**. The model API key never enters the
+  app; `npm run smoke` and the deploy workflow need credentials this environment does not have.
+
+### iOS — DoOnce app — PARTIAL (written, logic tested on Linux, not compiled with Xcode)
 - SwiftUI design system (`DSColor`, `.dsText`, `DSMotion` with Reduce Motion, buttons, cards,
   rows, chips, glass with Liquid Glass on iOS 26, the Loop as a `Shape`, Core Haptics patterns),
   app shell (launch phases, floating tab bar with the ◉ centre action, bloom, router with cover
@@ -71,18 +86,29 @@ for a real service · **BLOCKED** needs something this environment does not have
   recognition, processing pipeline, background upload transport, Live Activity and widget).
 - The golden path is wired end to end: Teach → record → processing → review → object creation →
   save moment → Memory shows the object → Look → recognition → Start → Do → completion.
-- **Verified here:** every file passes `swiftc -parse` (128 files); API usage cross-checked
-  against DoOnceCore, the router and the token set; `ios/DoOnce/STATUS.md` records what is real
-  and what is simulated, service by service.
-- **BLOCKED on verification:** SwiftUI, AVFoundation and Vision cannot type-check or run on this
-  Linux container. Expect a round of compile fixes in Xcode before first run.
-- **DEMO by default:** procedure generation (deterministic assembler over the real transcript, no
-  language model), transcription and recognition are wired to their mocks so sample content works
-  without a microphone or camera (the real services exist and swap in `AppState.init`),
-  gauge-based auto-completion (timer), Sign in with Apple result, purchases, uploads (no
-  endpoint), share links, persistence (in-memory repositories).
-- **BLOCKED (external):** backend (storage/sync, transcription at scale, grounded LLM
-  generation), Apple developer account for signing and capabilities, real photography.
+- Phase 2 (real services): one on-disk `FileStore` in both modes; media as file references;
+  resumable processing with checkpointed stages ("Recording secured / Transcribing / Finding key
+  moments / Understanding the demonstration / Creating steps / Preparing memory") and a "Finish
+  remembering" section for interrupted recordings; per-step clips cut from the original; Sign in
+  with Apple with a Keychain session; StoreKit 2 with real prices; a Services page in Settings
+  that reports what each service really does; account deletion through the gateway.
+- **Verified here:** every file passes `swiftc -parse` (136 files); the Apple-free logic
+  (processing pipeline over a real FileStore, Do-mode and search view models, grounded answers,
+  timeline grouping) compiles against DoOnceCore and passes **29 tests** in `ios/LinuxTypecheck`;
+  `ios/DoOnce/STATUS.md` records what is real and what is simulated, service by service.
+- **BLOCKED BY ENVIRONMENT:** Xcode build, simulator, device runs, screen recordings, TestFlight.
+  SwiftUI, AVFoundation, Vision, Speech, StoreKit and ActivityKit cannot compile on this Linux
+  container. Expect a round of compile fixes in Xcode before first run; nothing
+  hardware-dependent (camera, recording, speech, recognition, haptics) is verified.
+- **Service modes:** `DoOnceServiceMode` is `demo` by default (deterministic analysis, mock
+  transcription/recognition/auth/subscription, sample content). `live` wires Speech, Vision,
+  the gateway (or an explicit "not configured" error when `DoOnceGatewayURL` is empty), Sign in
+  with Apple and StoreKit. No mode ever substitutes a mock silently; Settings → Services shows it.
+- **BLOCKED BY CREDENTIALS:** the live model call (Anthropic API key on the gateway), the
+  gateway deployment (Supabase secrets), StoreKit products (App Store Connect), Apple signing
+  and capabilities (developer team). Not committed: any certificate, key or secret.
+- **Still DEMO in every mode:** gauge-based automatic step completion (timer), analytics
+  (in-memory), share links and QR scanning (placeholders), upload (no endpoint).
 
 ### Not started (later phases)
 Household sync, sharing backend, professional handoff (QR generation is local only), offline
@@ -96,7 +122,13 @@ open doonce/prototype/index.html            # or: cd doonce/prototype && python3
 node doonce/prototype/review/shoot.mjs      # requires: npm i playwright
 
 # Core package (macOS or Linux)
-cd doonce/ios/DoOnceCore && swift build && swift test
+cd doonce/ios/DoOnceCore && swift build && swift test          # 134 tests
+
+# App logic on Linux (no Xcode)
+cd doonce/ios/LinuxTypecheck && ./sync.sh && swift test         # 29 tests
+
+# Backend gateway
+cd doonce/backend && npm install && npm test                    # 11 tests, no credentials needed
 
 # App (macOS)
 brew install xcodegen

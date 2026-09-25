@@ -11,9 +11,11 @@ Legend: **DONE** real and reviewed · **PARTIAL** real but incomplete or unverif
 
 | Check | Result |
 |---|---|
-| `DoOnceCore` — `swift build` + `swift test` (Linux, Swift 6.1, language mode 6) | DONE — 80 tests, 0 failures |
-| App, widgets, tests — `swiftc -parse` on every file | DONE — no syntax errors |
-| App — type-check, Xcode build, simulator, device | BLOCKED — no macOS/Xcode here; expect a round of compile fixes on first Xcode build |
+| `DoOnceCore` — `swift build` + `swift test` (Linux, Swift 6.1, language mode 6) | DONE — 134 tests, 0 failures |
+| App logic on Linux — `ios/LinuxTypecheck` (pipeline, Do-mode and search view models, grounded answers, timeline grouping, against DoOnceCore with stubbed device services) | DONE — 29 tests, 0 failures |
+| Backend gateway — `doonce/backend` `npm run typecheck` + `npm test` | DONE — 11 tests, 0 failures; the live model call is BLOCKED BY CREDENTIALS |
+| App, widgets, tests — `swiftc -parse` on every file (136 files) | DONE — no syntax errors |
+| App — type-check, Xcode build, simulator, device, TestFlight | BLOCKED — no macOS/Xcode here; expect a round of compile fixes on first Xcode build. Nothing hardware-dependent is verified |
 | Visual review | DONE for the prototype (106 captures, two passes); the native app is reviewed by inspection only |
 
 ## Product surfaces
