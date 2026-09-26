@@ -66,10 +66,34 @@ jobs:
           echo "build_number=${GITHUB_RUN_NUMBER}" >> "$GITHUB_OUTPUT"
 
       - name: Write the App Store Connect API key to a runner-local temp file
+        # Rebuilds a canonical PEM from whatever was pasted into the secret (CRLF line endings,
+        # missing or mangled BEGIN/END lines, re-wrapped or single-line base64, stray whitespace)
+        # so xcodebuild's strict PEM parser accepts it, then checks it with OpenSSL. Only shapes and
+        # lengths are ever printed, never any of the key material.
         run: |
           KEY_PATH="$RUNNER_TEMP/asc_key.p8"
           umask 077
-          printf '%s' "$ASC_PRIVATE_KEY" > "$KEY_PATH"
+          KEY_PATH="$KEY_PATH" python3 - <<'PY'
+          import base64, os, re, sys
+          raw = os.environ["ASC_PRIVATE_KEY"].replace("\r", "").strip()
+          had_header = "BEGIN" in raw
+          body = re.sub(r"-----(BEGIN|END)[^-]*-----", "", raw)
+          body = re.sub(r"\s+", "", body)
+          try:
+              der = base64.b64decode(body, validate=True)
+          except Exception:
+              print(f"::error::ASC_PRIVATE_KEY is not a base64 PEM key (BEGIN line present: {had_header}, "
+                    f"{len(body)} body characters). Paste the full contents of AuthKey_<ASC_KEY_ID>.p8 into the secret.")
+              sys.exit(1)
+          lines = [body[i:i + 64] for i in range(0, len(body), 64)]
+          pem = "-----BEGIN PRIVATE KEY-----\n" + "\n".join(lines) + "\n-----END PRIVATE KEY-----\n"
+          with open(os.environ["KEY_PATH"], "w") as f:
+              f.write(pem)
+          print(f"Key normalised: BEGIN line present in secret: {had_header}; decoded length {len(der)} bytes.")
+          PY
+          openssl pkey -in "$KEY_PATH" -noout 2>/dev/null || {
+            echo "::error::ASC_PRIVATE_KEY decodes but is not a valid private key. Re-paste the full contents of AuthKey_<ASC_KEY_ID>.p8 into the secret."
+            rm -f "$KEY_PATH"; exit 1; }
           echo "ASC_KEY_PATH=$KEY_PATH" >> "$GITHUB_ENV"
         env:
           ASC_PRIVATE_KEY: ${{ secrets.ASC_PRIVATE_KEY }}
