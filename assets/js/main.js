@@ -18,24 +18,56 @@
   /* ------------------------------------------------------------------ */
   /* 01. Chargement de page                                             */
   /* ------------------------------------------------------------------ */
-  window.addEventListener('load', function () {
+  // Deux temps volontaires : on rend d'abord les transitions au document
+  // (.preload retiré), puis, à la frame suivante, on déclenche la séquence
+  // d'ouverture du hero. Sans cet ordre, l'animation naîtrait pendant que
+  // .preload la neutralise encore et le contenu apparaîtrait d'un bloc.
+  requestAnimationFrame(function () {
     document.body.classList.remove('preload');
+    requestAnimationFrame(function () {
+      document.body.classList.add('is-loaded');
+    });
   });
-  // Sécurité : si "load" tarde, on libère les transitions rapidement.
-  setTimeout(function () { document.body.classList.remove('preload'); }, 600);
+  // Filet de sécurité si les frames tardent (onglet en arrière-plan).
+  setTimeout(function () {
+    document.body.classList.remove('preload');
+    document.body.classList.add('is-loaded');
+  }, 900);
 
   /* ------------------------------------------------------------------ */
-  /* 02. Header — état au scroll                                        */
+  /* 02. Header — état et direction du scroll                           */
   /* ------------------------------------------------------------------ */
   (function header() {
     var el = $('[data-header]');
     if (!el) return;
 
-    var onScroll = function () {
-      el.classList.toggle('is-scrolled', window.scrollY > 12);
+    var last = window.scrollY;
+    var ticking = false;
+    // Seuil de 6 px : un tremblement de trackpad ne doit jamais faire
+    // clignoter le header.
+    var THRESHOLD = 6;
+
+    var update = function () {
+      var y = window.scrollY;
+      el.classList.toggle('is-scrolled', y > 12);
+
+      var delta = y - last;
+      if (Math.abs(delta) > THRESHOLD) {
+        // On ne masque qu'au-delà de deux hauteurs de header : près du haut
+        // de page, le header doit rester visible.
+        var far = y > el.offsetHeight * 2;
+        el.classList.toggle('is-hidden', far && delta > 0 && !document.body.classList.contains('is-locked'));
+        last = y;
+      }
+      ticking = false;
     };
-    onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
+
+    update();
+    window.addEventListener('scroll', function () {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(update);
+    }, { passive: true });
   })();
 
   /* ------------------------------------------------------------------ */
@@ -465,14 +497,18 @@
     var fill = function (bar) { bar.style.width = bar.getAttribute('data-bar') + '%'; };
     if (!('IntersectionObserver' in window)) { bars.forEach(fill); return; }
 
+    // On observe la piste, jamais la barre : celle-ci démarre à width:0 donc
+    // avec une aire nulle, et un observateur ne franchit jamais un seuil sur
+    // une cible sans surface — les barres resteraient vides indéfiniment.
     var io = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) {
         if (!e.isIntersecting) return;
-        fill(e.target);
+        $$('[data-bar]', e.target).forEach(fill);
         io.unobserve(e.target);
       });
     }, { threshold: 0.4 });
-    bars.forEach(function (b) { io.observe(b); });
+
+    bars.forEach(function (b) { io.observe(b.parentNode || b); });
   })();
 
   /* ------------------------------------------------------------------ */
@@ -618,28 +654,54 @@
       });
     }
 
-    // Newsletter
+    // Newsletter — le bouton peut être une icône : on ne touche jamais à son
+    // contenu, la confirmation passe par un message dédié (role="status").
     $$('[data-newsletter]').forEach(function (nl) {
+      var input = $('input[type="email"]', nl) || $('.input', nl);
+      var btn = $('button[type="submit"]', nl) || $('button', nl);
+      var msg = $('[data-newsletter-msg]', nl);
+      var field = input && input.parentNode;
+      var reset = null;
+
       nl.addEventListener('submit', function (e) {
         e.preventDefault();
-        var input = $('.input', nl);
-        var btn = $('button', nl);
+        if (!input) return;
+        if (reset) { clearTimeout(reset); reset = null; }
+
         if (!emailRe.test(input.value.trim())) {
-          input.style.borderColor = '#B4402F';
+          if (field) field.style.borderBottomColor = '#B4402F';
+          input.setAttribute('aria-invalid', 'true');
+          if (msg) {
+            msg.textContent = 'Cette adresse ne semble pas valide.';
+            msg.classList.add('is-visible', 'is-error');
+          }
           input.focus();
           return;
         }
-        input.style.borderColor = '';
-        btn.textContent = 'Merci';
-        btn.disabled = true;
+
+        if (field) field.style.borderBottomColor = '';
+        input.removeAttribute('aria-invalid');
         input.value = '';
-        input.placeholder = 'Inscription confirmée';
-        setTimeout(function () {
-          btn.textContent = 'S’inscrire';
-          btn.disabled = false;
-          input.placeholder = 'Votre e-mail';
-        }, 3200);
+        if (btn) btn.disabled = true;
+        if (msg) {
+          msg.textContent = 'Merci — votre inscription est confirmée.';
+          msg.classList.remove('is-error');
+          msg.classList.add('is-visible');
+        }
+
+        reset = setTimeout(function () {
+          if (btn) btn.disabled = false;
+          if (msg) msg.classList.remove('is-visible');
+          reset = null;
+        }, 5000);
       });
+
+      if (input) {
+        input.addEventListener('input', function () {
+          if (field) field.style.borderBottomColor = '';
+          input.removeAttribute('aria-invalid');
+        });
+      }
     });
   })();
 
