@@ -131,7 +131,18 @@ jobs:
           bundle_id=$(/usr/libexec/PlistBuddy -c "Print :CFBundleIdentifier" "$APP/Info.plist")
           version=$(/usr/libexec/PlistBuddy -c "Print :CFBundleShortVersionString" "$APP/Info.plist")
           build=$(/usr/libexec/PlistBuddy -c "Print :CFBundleVersion" "$APP/Info.plist")
-          team=$(security cms -D -i "$APP/embedded.mobileprovision" 2>/dev/null | /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /dev/stdin)
+          # The code signature is the authoritative record of who signed the app. The embedded
+          # profile is only reported: `security cms` can return nothing on some runner images,
+          # and export re-signs with the App Store profile anyway (checked on the IPA below).
+          team=$(codesign -dvvv "$APP" 2>&1 | sed -n 's/^TeamIdentifier=//p' | head -n 1)
+          if [ -f "$APP/embedded.mobileprovision" ]; then
+            profile_team=$( (security cms -D -i "$APP/embedded.mobileprovision" 2>/dev/null \
+              || openssl smime -inform der -verify -noverify -in "$APP/embedded.mobileprovision" 2>/dev/null) \
+              | /usr/libexec/PlistBuddy -c "Print :TeamIdentifier:0" /dev/stdin 2>/dev/null || true)
+            echo "embedded profile team: ${profile_team:-unreadable}"
+          else
+            echo "::warning::The archive has no embedded.mobileprovision."
+          fi
           echo "bundle id: $bundle_id"
           echo "version: $version"
           echo "build: $build"

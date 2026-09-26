@@ -162,7 +162,12 @@ def cmd_ensure_internal_group(token: str, args: argparse.Namespace) -> dict[str,
         group_id = made["data"]["id"]
         created = True
 
-    users = call(token, "GET", "/users?limit=200")
+    try:
+        users = call(token, "GET", "/users?limit=200")
+    except urllib.error.HTTPError:
+        # Listing team users needs an Admin key; an App Manager key can still run everything
+        # else. Testers are then added once by hand (the workflow summary says how).
+        users = {"data": []}
     added = 0
     for user in users.get("data", []):
         email = user["attributes"].get("email")
@@ -183,10 +188,14 @@ def cmd_ensure_internal_group(token: str, args: argparse.Namespace) -> dict[str,
 
 
 def cmd_attach_build(token: str, args: argparse.Namespace) -> dict[str, Any]:
+    group = call(token, "GET", f"/betaGroups/{args.group_id}?fields[betaGroups]=hasAccessToAllBuilds")
+    if group.get("data", {}).get("attributes", {}).get("hasAccessToAllBuilds"):
+        # Apple refuses explicit build assignment for such groups; every valid build is already in.
+        return {"attached": True, "via": "hasAccessToAllBuilds"}
     call(token, "POST", f"/betaGroups/{args.group_id}/relationships/builds", {
         "data": [{"type": "builds", "id": args.build_id}]
     })
-    return {"attached": True}
+    return {"attached": True, "via": "explicit"}
 
 
 def main() -> None:
