@@ -199,7 +199,7 @@ Secrets and variables → Actions → New repository secret**:
 | Secret | What it is | Where to get it |
 |---|---|---|
 | `APPLE_TEAM_ID` | The Apple Developer Program team ID (10 characters) | [developer.apple.com/account](https://developer.apple.com/account) → Membership |
-| `ASC_KEY_ID` | App Store Connect API key ID | [appstoreconnect.apple.com/access/api](https://appstoreconnect.apple.com/access/api) → Keys → Team Keys → **Generate API Key** (name it, role **App Manager** or **Admin**) |
+| `ASC_KEY_ID` | App Store Connect API key ID | [appstoreconnect.apple.com/access/api](https://appstoreconnect.apple.com/access/api) → Keys → Team Keys → **Generate API Key** (name it, role **Admin** — App Store export uses Apple's cloud-managed distribution certificate, which App Manager keys are refused with "Cloud signing permission error") |
 | `ASC_ISSUER_ID` | App Store Connect API issuer ID | Same page, shown above the key list |
 | `ASC_PRIVATE_KEY` | The full contents of the downloaded `AuthKey_<ASC_KEY_ID>.p8` file, pasted verbatim (including the `-----BEGIN/END PRIVATE KEY-----` lines) | Downloaded once, when the key is generated — Apple does not let you download it again, so save it somewhere safe before leaving that page |
 
