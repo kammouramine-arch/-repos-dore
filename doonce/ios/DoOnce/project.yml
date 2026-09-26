@@ -18,7 +18,17 @@ settings:
     ENABLE_USER_SCRIPT_SANDBOXING: YES
     ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
     ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: Signal
+    # Never a real team ID here (this file is public). The TestFlight workflow passes
+    # DEVELOPMENT_TEAM=$APPLE_TEAM_ID on the xcodebuild command line for the signed archive only;
+    # every other build (CI simulator, local `xcodegen generate`) stays unsigned/automatic.
     DEVELOPMENT_TEAM: ""
+    # The source of truth for the app's version. Info.plist below references these by name, so
+    # Xcode substitutes them at build time; the TestFlight workflow overrides both on the
+    # xcodebuild command line for the real archive (MARKETING_VERSION stays 1.0.0 until changed
+    # deliberately; CURRENT_PROJECT_VERSION becomes the CI run number, so it is always unique and
+    # always higher than the last build uploaded to App Store Connect).
+    MARKETING_VERSION: "1.0.0"
+    CURRENT_PROJECT_VERSION: "1"
 targets:
   DoOnce:
     type: application
@@ -35,8 +45,8 @@ targets:
       path: Resources/Info.plist
       properties:
         CFBundleDisplayName: DoOnce
-        CFBundleShortVersionString: "0.1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         UILaunchStoryboardName: LaunchScreen
         UISupportedInterfaceOrientations: [UIInterfaceOrientationPortrait]
         UIUserInterfaceStyle: Automatic
@@ -68,6 +78,10 @@ targets:
       path: Resources/DoOnce.entitlements
       properties:
         com.apple.security.application-groups: [group.app.doonce]
+        # AppleSignInService (Sources/Services/Authentication) uses ASAuthorizationAppleIDProvider;
+        # without this entitlement a real signed build is provisioned without the capability and
+        # Sign in with Apple fails on device.
+        com.apple.developer.applesignin: [Default]
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: app.doonce.ios
@@ -89,8 +103,8 @@ targets:
       path: Widgets/DoOnceWidgets/Info.plist
       properties:
         CFBundleDisplayName: DoOnce
-        CFBundleShortVersionString: "0.1.0"
-        CFBundleVersion: "1"
+        CFBundleShortVersionString: "$(MARKETING_VERSION)"
+        CFBundleVersion: "$(CURRENT_PROJECT_VERSION)"
         NSExtension:
           NSExtensionPointIdentifier: com.apple.widgetkit-extension
     entitlements:
