@@ -22,7 +22,7 @@ export default function AboutPage() {
         crumbs={[{ name: "À propos", path: "/a-propos" }]}
         label="À propos"
         lines={[{ text: "Un studio digital" }, { accent: "au service de la façon dont vous travaillez." }]}
-        lead="AMYN conçoit des sites, des applications et des outils pour les entreprises qui veulent autre chose qu'une présence digitale générique : une solution qui colle à leur activité réelle."
+        lead="Des sites, des applications et des outils qui collent à l'activité réelle de chaque entreprise."
       />
 
       <Section tone="ink-2" labelledBy="philosophie-titre">
@@ -40,20 +40,12 @@ export default function AboutPage() {
           </div>
           <div className="prose-amyn lead space-y-6 text-fg-2 lg:col-span-6 lg:col-start-7">
             <p data-reveal>
-              La plupart des entreprises n&apos;ont pas besoin de « plus de digital ».
-              Elles ont besoin que les demandes n&apos;attendent plus, que les
-              réservations se prennent seules, que les nouveaux clients sachent quoi
-              faire, que leur travail soit enfin bien montré.
+              La plupart des entreprises n&apos;ont pas besoin de « plus de digital ». Elles ont
+              besoin que les demandes n&apos;attendent plus et que les clients sachent quoi faire.
             </p>
             <p data-reveal style={delay(80)}>
-              C&apos;est pour cela que nous commençons toujours par regarder comment
-              l&apos;entreprise fonctionne vraiment. Le site, l&apos;application ou
-              l&apos;outil ne viennent qu&apos;ensuite — et seulement ce qui est utile.
-            </p>
-            <p data-reveal style={delay(160)}>
-              Nous préférons montrer plutôt que promettre. C&apos;est le sens du premier
-              aperçu : avant de vous demander de nous faire confiance, nous vous
-              montrons concrètement une première piste, quand le projet s&apos;y prête.
+              Nous regardons d&apos;abord comment vous travaillez. L&apos;outil vient ensuite — et
+              seulement s&apos;il est utile. Nous préférons montrer plutôt que promettre.
             </p>
           </div>
         </Container>

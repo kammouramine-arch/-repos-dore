@@ -6,7 +6,7 @@ import {
 import { receivedAt, renderRequestEmail } from "@/lib/server/email";
 import { handleForm } from "@/lib/server/handle-form";
 
-/** Réception des demandes de premier aperçu. */
+/** Réception des demandes de premier aperçu — le seul formulaire du site. */
 export async function POST(request: Request) {
   return handleForm<FirstLookValues>(request, {
     sanitize: sanitizeFirstLook,
@@ -21,14 +21,15 @@ export async function POST(request: Request) {
           ["Entreprise", v.company],
           ["E-mail", v.email],
           ["Téléphone", v.phone || "—"],
-          ["Site actuel", v.website || "—"],
-          ["Autre présence", v.presence || "—"],
-          ["À regarder", v.areas.join(", ")],
+          ["Présence en ligne", v.presence || "—"],
+          ["Services", v.services.join(", ")],
+          ["Besoin principal", v.need],
+          ["Échéance", v.timeline],
           ["Origine", outreach ? "Lien d'un message envoyé par AMYN" : "Site amyn.agency"],
           ["Reçue le", receivedAt()],
         ],
-        message: v.notes || undefined,
-        messageLabel: "Précisions",
+        message: v.description,
+        messageLabel: "Activité et projet",
         footer: `Répondez directement à cet e-mail pour écrire à ${v.name}.`,
       });
       return { subject, html, text };

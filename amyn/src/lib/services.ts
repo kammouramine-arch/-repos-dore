@@ -32,6 +32,10 @@ export type Service = {
   short: string;
   /** Une phrase, centrée sur le bénéfice. */
   summary: string;
+  /** Cinq ou six mots, pour les listes qu'on scanne. */
+  tagline: string;
+  /** Écran qui illustre le service (voir visuals.ts). */
+  shot: string;
   visual: VisualKey;
   pricing: Pricing;
 
@@ -58,6 +62,8 @@ export const services: Service[] = [
     short: "Site web / refonte",
     summary:
       "Un site professionnel, rapide et lisible sur mobile, construit autour de ce que vos clients viennent y chercher.",
+    tagline: "Un site qui donne envie d’appeler.",
+    shot: "site-cabinet-aurel",
     visual: "website",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -142,6 +148,8 @@ export const services: Service[] = [
     short: "Suivi demandes & devis",
     summary:
       "Un tableau simple pour savoir, à tout moment, quelles demandes attendent une réponse, un devis ou une relance.",
+    tagline: "Plus aucune demande oubliée.",
+    shot: "quotes",
     visual: "quotes",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -222,6 +230,8 @@ export const services: Service[] = [
     short: "Application mobile",
     summary:
       "Une application iOS ou Android conçue pour un usage précis : vos clients, votre équipe, votre terrain.",
+    tagline: "Votre service, dans leur poche.",
+    shot: "app",
     visual: "app",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -303,6 +313,8 @@ export const services: Service[] = [
     short: "Réservation en ligne",
     summary:
       "Vos clients réservent quand ils y pensent, même à 23 h. Vous gardez la main sur vos disponibilités.",
+    tagline: "Des réservations, même à 23 h.",
+    shot: "booking",
     visual: "booking",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -384,6 +396,8 @@ export const services: Service[] = [
     short: "Google Business",
     summary:
       "Une fiche d'établissement complète, exacte et soignée : ce que beaucoup de clients voient avant votre site.",
+    tagline: "La première impression, soignée.",
+    shot: "profile",
     visual: "profile",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -463,6 +477,8 @@ export const services: Service[] = [
     short: "Onboarding client",
     summary:
       "Un parcours d'accueil clair pour que chaque nouveau client sache quoi faire, quoi envoyer et à quoi s'attendre.",
+    tagline: "Chaque nouveau client, guidé.",
+    shot: "onboarding",
     visual: "onboarding",
     pricing: DEFAULT_PRICING,
     hero: {
@@ -536,6 +552,8 @@ export const services: Service[] = [
     short: "Portfolio & contenu",
     summary:
       "Votre vrai travail, présenté comme il le mérite : projets, galeries, études de cas et services.",
+    tagline: "Votre travail, enfin mis en valeur.",
+    shot: "portfolio",
     visual: "portfolio",
     pricing: DEFAULT_PRICING,
     hero: {

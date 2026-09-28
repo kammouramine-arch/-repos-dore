@@ -1,17 +1,15 @@
-import Link from "next/link";
+import { AmynMark } from "@/components/layout/Logo";
 import { ButtonLink } from "@/components/ui/Button";
-import { ArrowRight, Mail } from "@/components/ui/Icons";
-import { Container, Heading, Label, Section, SectionIntro, delay } from "@/components/ui/Layout";
-import { BrowserFrame, PhoneFrame } from "@/components/visuals/Frames";
-import { AppMock, BookingMock, OnboardingMock, QuoteBoardMock } from "@/components/visuals/Mocks";
+import { ArrowRight } from "@/components/ui/Icons";
+import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
+import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
 import { ProjectCard } from "@/components/work/ProjectCard";
 import { method, principles } from "@/lib/method";
 import { CONCEPT_NOTICE, projectBySlug } from "@/lib/projects";
-import { serviceBySlug, servicePath } from "@/lib/services";
 import { cta, site } from "@/lib/site";
 
 /* ==========================================================================
-   Section 5 — Réalisations
+   Réalisations
    ========================================================================== */
 
 export function Work() {
@@ -20,225 +18,142 @@ export function Work() {
   );
 
   return (
-    <Section labelledBy="realisations-titre">
+    <Section labelledBy="realisations-titre" className="seam">
       <Container>
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <SectionIntro
-            number="04"
-            label="Réalisations"
-            id="realisations-titre"
-            lines={[{ text: "Des concepts, pour montrer" }, { accent: "une direction." }]}
-            lead="Chaque concept part d'un métier et d'un problème précis. Ce sont des démonstrations de notre façon de travailler, présentées comme telles."
-          />
-          <ButtonLink href="/realisations" variant="text" className="shrink-0">
-            Toutes les réalisations
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div data-reveal="fade">
+              <Label number="04">Réalisations</Label>
+            </div>
+            <Heading
+              id="realisations-titre"
+              className="mt-7"
+              lines={[{ text: "Des concepts" }, { text: "qui se", accent: "voient." }]}
+            />
+          </div>
+          <ButtonLink href={cta.work.href} variant="secondary" className="self-start lg:self-auto">
+            {cta.work.label}
           </ButtonLink>
         </div>
 
-        <div className="mt-16 sm:mt-20">
+        <div className="mt-14 sm:mt-20">
           <ProjectCard project={first} layout="wide" />
         </div>
-
-        <div className="mt-20 grid gap-20 md:grid-cols-2 md:gap-10 lg:gap-14">
+        <div className="mt-14 grid gap-14 md:grid-cols-2 md:gap-8 lg:gap-10">
           <ProjectCard project={second} />
           <ProjectCard project={third} />
         </div>
 
-        <p className="label mt-16 max-w-2xl text-fg-3">{CONCEPT_NOTICE}</p>
+        <p className="label mt-12 max-w-2xl text-bone-3">{CONCEPT_NOTICE}</p>
       </Container>
     </Section>
   );
 }
 
 /* ==========================================================================
-   Section 6 — Méthode
+   Au-delà du site : les outils, en images
+   ========================================================================== */
+
+export function Tools() {
+  return (
+    <Section tone="ink-2" labelledBy="outils-titre" className="seam overflow-hidden">
+      <Container>
+        <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
+          <div className="lg:col-span-7">
+            <div data-reveal="fade">
+              <Label number="05">Au-delà du site</Label>
+            </div>
+            <Heading
+              id="outils-titre"
+              className="mt-7"
+              lines={[{ text: "Les outils" }, { text: "qui font", accent: "tourner." }]}
+            />
+          </div>
+          <p data-reveal className="lead text-bone-2 lg:col-span-5">
+            Demandes, devis, réservations, nouveaux clients : ce qui se gère encore à la
+            main peut tenir dans un écran.
+          </p>
+        </div>
+
+        <div className="relative mt-14 grid grid-cols-12 items-end gap-4 sm:mt-20 sm:gap-6">
+          <figure data-reveal className="col-span-12 lg:col-span-8">
+            <BrowserShot id="quote-detail" sizes="(min-width: 1024px) 60vw, 95vw" />
+            <figcaption className="label mt-4 text-bone-3">
+              <span className="text-gold">02</span> Suivi des demandes & devis
+            </figcaption>
+          </figure>
+          <figure data-reveal style={delay(120)} className="col-span-6 sm:col-span-4 lg:col-span-2">
+            <PhoneShot id="technician" sizes="(min-width: 1024px) 14vw, 45vw" />
+            <figcaption className="label mt-4 text-bone-3">
+              <span className="text-gold">03</span> Appli terrain
+            </figcaption>
+          </figure>
+          <figure data-reveal style={delay(200)} className="col-span-6 sm:col-span-4 lg:col-span-2">
+            <PhoneShot id="booking" sizes="(min-width: 1024px) 14vw, 45vw" />
+            <figcaption className="label mt-4 text-bone-3">
+              <span className="text-gold">04</span> Réservation
+            </figcaption>
+          </figure>
+        </div>
+      </Container>
+    </Section>
+  );
+}
+
+/* ==========================================================================
+   Méthode
    ========================================================================== */
 
 export function Method() {
   return (
-    <Section tone="ink-2" labelledBy="methode-titre">
+    <Section labelledBy="methode-titre" className="seam">
       <Container>
-        <div className="flex flex-col gap-8 lg:flex-row lg:items-end lg:justify-between">
-          <SectionIntro
-            number="05"
-            label="Méthode"
-            id="methode-titre"
-            lines={[{ text: "Quatre étapes," }, { accent: "et aucune surprise." }]}
-          />
-          <ButtonLink href="/methode" variant="text" className="shrink-0">
-            Notre méthode en détail
+        <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
+          <div>
+            <div data-reveal="fade">
+              <Label number="06">Méthode</Label>
+            </div>
+            <Heading
+              id="methode-titre"
+              className="mt-7"
+              lines={[{ text: "Quatre étapes." }, { accent: "Aucune surprise." }]}
+            />
+          </div>
+          <ButtonLink href="/methode" variant="text">
+            La méthode en détail
           </ButtonLink>
         </div>
 
-        <ol className="mt-16 grid gap-px border-y border-line bg-line sm:-mx-6 sm:grid-cols-2 lg:mt-20 lg:grid-cols-4">
+        <ol className="mt-14 grid gap-4 sm:mt-20 sm:grid-cols-2 lg:grid-cols-4">
           {method.map((step, i) => (
-            <li key={step.number} className="bg-canvas py-8 sm:px-6 sm:py-10">
-              <div data-reveal style={delay(i * 90)}>
-                <span className="label text-accent">{step.number}</span>
-                <p className="display-sm mt-6">{step.title}</p>
-                <p className="mt-4 text-[0.9375rem] leading-relaxed text-fg-2">{step.summary}</p>
-              </div>
+            <li
+              key={step.number}
+              data-reveal
+              style={delay(i * 90)}
+              className="lift-card group relative overflow-hidden rounded-[1.25rem] border border-[rgb(242_238_230/0.1)] bg-[rgb(242_238_230/0.025)] p-7"
+            >
+              <span className="block text-[4.5rem] font-semibold leading-none tracking-[-0.06em] text-transparent [-webkit-text-stroke:1px_rgb(198_167_106/0.55)] transition-colors duration-500 group-hover:text-gold/20">
+                {step.number}
+              </span>
+              <p className="mt-6 text-[1.5rem] font-semibold tracking-[-0.03em] text-bone">{step.title}</p>
+              <p className="mt-2 text-[0.9375rem] text-bone-2">{step.summary}</p>
             </li>
           ))}
         </ol>
-      </Container>
-    </Section>
-  );
-}
 
-/* ==========================================================================
-   Section 7 — Plus qu'un site
-   ========================================================================== */
-
-const problems: { quote: string; slug: string }[] = [
-  { quote: "Nous perdons des demandes.", slug: "suivi-demandes-devis" },
-  { quote: "Nos réservations sont gérées à la main.", slug: "reservation-en-ligne" },
-  { quote: "Nos clients ne savent pas quoi faire ensuite.", slug: "onboarding-client" },
-  { quote: "Notre portfolio est éparpillé.", slug: "portfolio-contenu" },
-  { quote: "Notre suivi interne est désorganisé.", slug: "suivi-demandes-devis" },
-  { quote: "Sur téléphone, c'est compliqué.", slug: "application-mobile" },
-];
-
-export function BeyondWebsites() {
-  return (
-    <Section labelledBy="au-dela-titre">
-      <Container>
-        <SectionIntro
-          number="06"
-          label="Au-delà du site"
-          id="au-dela-titre"
-          className="max-w-4xl"
-          lines={[
-            { text: "Parfois, le problème n'est pas" },
-            { accent: "« il nous faut un site »." },
-          ]}
-          lead="C'est souvent quelque chose de plus précis. Nous construisons la solution digitale qui y répond — et seulement celle-là."
-        />
-
-        <ul className="mt-14 grid gap-px border-y border-line bg-line sm:-mx-6 sm:grid-cols-2 lg:-mx-8 lg:mt-20 lg:grid-cols-3">
-          {problems.map((item, i) => {
-            const service = serviceBySlug(item.slug)!;
-            return (
-              <li key={item.quote} className="bg-canvas">
-                <Link
-                  href={servicePath(item.slug)}
-                  data-reveal
-                  style={delay((i % 3) * 80)}
-                  className="group flex h-full flex-col justify-between gap-8 py-8 sm:px-6 lg:px-8"
-                >
-                  <p className="accent text-[1.65rem] leading-tight text-fg">« {item.quote} »</p>
-                  <span className="flex items-center gap-2 text-[0.875rem] text-fg-2 transition-colors group-hover:text-fg">
-                    <span className="label text-accent">{service.number}</span>
-                    {service.name}
-                    <ArrowRight className="nudge size-4" />
-                  </span>
-                </Link>
-              </li>
-            );
-          })}
-        </ul>
-
-        <div className="mt-20 grid grid-cols-12 gap-x-4 gap-y-14 sm:gap-x-6 lg:mt-28">
-          <Example className="col-span-12 lg:col-span-8" number="02" caption="Suivi des demandes & devis">
-            <BrowserFrame
-              url="app.thermia-services.fr/demandes"
-              width={1280}
-              height={800}
-              label="Illustration : tableau de suivi des demandes et des devis."
-            >
-              <QuoteBoardMock />
-            </BrowserFrame>
-          </Example>
-          <Example
-            className="col-span-8 col-start-3 sm:col-span-6 sm:col-start-4 lg:col-span-3 lg:col-start-10"
-            number="04"
-            caption="Réservation en ligne"
-          >
-            <PhoneFrame label="Illustration : réservation en ligne sur téléphone.">
-              <BookingMock />
-            </PhoneFrame>
-          </Example>
-          <Example
-            className="col-span-8 col-start-3 hidden sm:col-span-6 sm:col-start-4 sm:block lg:col-span-3 lg:col-start-1 lg:-mt-10"
-            number="03"
-            caption="Application mobile"
-          >
-            <PhoneFrame label="Illustration : application cliente, prochain rendez-vous et notifications.">
-              <AppMock />
-            </PhoneFrame>
-          </Example>
-          <Example className="col-span-12 hidden sm:block lg:col-span-8 lg:col-start-5" number="06" caption="Onboarding client">
-            <BrowserFrame
-              url="espace.cabinet-aurel.fr/bienvenue"
-              width={1280}
-              height={800}
-              label="Illustration : parcours d'accueil d'un nouveau client."
-            >
-              <OnboardingMock />
-            </BrowserFrame>
-          </Example>
-        </div>
-      </Container>
-    </Section>
-  );
-}
-
-function Example({
-  number,
-  caption,
-  className = "",
-  children,
-}: {
-  number: string;
-  caption: string;
-  className?: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <figure data-reveal className={className}>
-      {children}
-      <figcaption className="label mt-4 flex gap-3 text-fg-3">
-        <span className="text-accent">{number}</span>
-        {caption} — illustration
-      </figcaption>
-    </figure>
-  );
-}
-
-/* ==========================================================================
-   Section 8 — Pourquoi AMYN
-   ========================================================================== */
-
-export function WhyAmyn() {
-  return (
-    <Section tone="ink-2" labelledBy="pourquoi-titre">
-      <Container className="grid gap-14 lg:grid-cols-12 lg:gap-12">
-        <div className="lg:col-span-4">
-          <div data-reveal="fade">
-            <Label number="07">Pourquoi AMYN</Label>
-          </div>
-          <Heading
-            id="pourquoi-titre"
-            size="md"
-            className="mt-8"
-            lines={[{ text: "Ce que vous pouvez" }, { accent: "attendre de nous." }]}
-          />
-          <p data-reveal className="mt-8 text-fg-2" style={delay(150)}>
-            Pas de chiffres gonflés ni de promesses de classement. Des engagements
-            simples, que vous pouvez vérifier à chaque étape.
-          </p>
-        </div>
-
-        <ul className="grid gap-x-10 border-t border-line sm:grid-cols-2 lg:col-span-7 lg:col-start-6">
-          {principles.map((item, i) => (
-            <li
-              key={item.title}
-              data-reveal
-              style={delay((i % 2) * 90)}
-              className="border-b border-line py-7"
-            >
-              <p className="title">{item.title}</p>
-              <p className="mt-2 text-[0.9375rem] leading-relaxed text-fg-2">{item.body}</p>
+        <ul
+          aria-label="Nos engagements"
+          className="mt-4 grid gap-px overflow-hidden rounded-[1.25rem] border border-[rgb(242_238_230/0.1)] bg-[rgb(242_238_230/0.1)] sm:grid-cols-2 lg:grid-cols-4"
+        >
+          {principles.slice(0, 4).map((p, i) => (
+            <li key={p.title} className="bg-[#0d0d0d] px-7 py-6">
+              <div data-reveal style={delay(i * 70)}>
+                <p className="flex items-center gap-2.5 text-[1.05rem] font-semibold tracking-[-0.02em] text-bone">
+                  <span aria-hidden className="size-1.5 rounded-full bg-gold" />
+                  {p.title}
+                </p>
+                <p className="mt-2 text-[0.9375rem] text-bone-3">{p.body}</p>
+              </div>
             </li>
           ))}
         </ul>
@@ -248,15 +163,19 @@ export function WhyAmyn() {
 }
 
 /* ==========================================================================
-   Section 10 — Appel final
+   Appel final
    ========================================================================== */
 
 export function FinalCta({ number }: { number?: string }) {
   return (
-    <Section labelledBy="final-titre" className="overflow-hidden">
+    <Section labelledBy="final-titre" className="seam overflow-hidden">
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-[80%] bg-[radial-gradient(55%_60%_at_50%_100%,rgb(198_167_106/0.08),transparent_70%)]"
+        className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-[radial-gradient(55%_60%_at_50%_100%,rgb(198_167_106/0.14),transparent_70%)]"
+      />
+      <AmynMark
+        className="pointer-events-none absolute -bottom-24 left-1/2 size-[34rem] -translate-x-1/2 text-[rgb(242_238_230/0.025)]"
+        accent="rgb(198 167 106 / 0.1)"
       />
       <Container className="relative text-center">
         <div data-reveal="fade" className="flex justify-center">
@@ -264,25 +183,17 @@ export function FinalCta({ number }: { number?: string }) {
         </div>
         <Heading
           id="final-titre"
+          size="xl"
           className="mx-auto mt-8 max-w-5xl"
-          lines={[
-            { text: "Montrez-nous votre entreprise." },
-            { accent: "Nous vous montrerons ce que nous améliorerions." },
-          ]}
+          lines={[{ text: "Montrez-nous" }, { text: "votre", accent: "entreprise." }]}
         />
-        <p data-reveal className="lead mx-auto mt-8 max-w-2xl text-fg-2" style={delay(150)}>
-          Un site, un parcours client, une réservation, un portfolio ou un processus
-          interne : commencez par nous montrer votre situation actuelle.
+        <p data-reveal className="lead mx-auto mt-8 max-w-xl text-bone-2" style={delay(150)}>
+          On vous montre d&apos;abord ce que nous changerions.
         </p>
 
-        <div
-          data-reveal
-          style={delay(250)}
-          className="mt-11 flex flex-col items-stretch justify-center gap-3 sm:flex-row sm:items-center sm:gap-4"
-        >
-          <ButtonLink href={cta.firstLook.href}>{cta.firstLook.label}</ButtonLink>
-          <ButtonLink href={cta.project.href} variant="secondary">
-            {cta.project.label}
+        <div data-reveal style={delay(250)} className="mt-11 flex justify-center">
+          <ButtonLink href={cta.firstLook.href} className="!min-h-16 !px-9 text-[1.05rem]">
+            {cta.firstLook.label}
           </ButtonLink>
         </div>
 
@@ -290,10 +201,10 @@ export function FinalCta({ number }: { number?: string }) {
           href={`mailto:${site.email}`}
           data-reveal
           style={delay(320)}
-          className="mt-10 inline-flex min-h-11 items-center gap-2.5 text-fg-2 transition-colors hover:text-fg"
+          className="mt-8 inline-flex min-h-11 items-center gap-2 text-bone-3 transition-colors hover:text-bone"
         >
-          <Mail className="size-4" />
-          <span className="link-line">{site.email}</span>
+          ou {site.email}
+          <ArrowRight className="size-4" />
         </a>
       </Container>
     </Section>

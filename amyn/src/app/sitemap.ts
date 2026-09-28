@@ -32,7 +32,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...projects.map((p) => entry(projectPath(p.slug), 0.5)),
     entry("/methode", 0.6),
     entry("/a-propos", 0.6),
-    entry("/contact", 0.7),
     entry("/cookies", 0.2, "yearly"),
     ...legal,
   ];

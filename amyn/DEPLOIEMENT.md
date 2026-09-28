@@ -47,7 +47,7 @@ absentes du plan du site.
 
 ## Activer l'envoi des formulaires
 
-Les deux formulaires arrivent dans la boîte existante **contact@amyn.agency**,
+Le formulaire « Recevoir un premier aperçu » arrive dans la boîte existante **contact@amyn.agency**,
 par le serveur d'envoi d'OVHcloud (`ssl0.ovh.net`, port 465). Le domaine
 publie déjà SPF (`include:mx.ovh.com`), DKIM OVH et DMARC : aucun service
 tiers, aucune nouvelle adresse, aucun changement DNS.
@@ -56,7 +56,7 @@ tiers, aucune nouvelle adresse, aucun changement DNS.
    `SMTP_PASSWORD` = mot de passe de la boîte contact@amyn.agency,
    type **Sensitive**, environnements **Production** et **Preview**.
 2. Redéployer la preview, envoyer une demande de test depuis
-   `/premier-apercu` et depuis `/contact`, vérifier leur arrivée dans la
+   `/premier-apercu` (`/contact` y redirige), vérifier son arrivée dans la
    boîte (expéditeur « Site AMYN », « Répondre » écrit au demandeur).
 
 > Si le mot de passe de la boîte change, mettre à jour la variable.

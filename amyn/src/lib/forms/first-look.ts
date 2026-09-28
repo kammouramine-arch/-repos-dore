@@ -5,54 +5,62 @@ import {
   cleanChoices,
   cleanLine,
   cleanText,
-  isWebAddress,
   type Errors,
 } from "./shared.ts";
 
 /**
- * Formulaire « Premier aperçu ».
+ * Formulaire unique : « Recevoir un premier aperçu ».
  *
- * Le parcours le plus léger du site : on demande de quoi regarder
- * l'entreprise, rien de plus. Pas de budget, pas de délai : ce n'est pas
- * encore un projet.
+ * Un seul parcours pour tous les visiteurs, en trois étapes : vous, ce que
+ * vous voulez améliorer, le projet. Pas de budget : le prix se discute
+ * après l'analyse du besoin, jamais avant.
  */
 
-export const AREAS = [
-  "Site web",
-  "Présence sur Google",
-  "Réservation",
-  "Expérience sur mobile",
-  "Gestion des demandes et devis",
-  "Accueil des nouveaux clients",
-  "Portfolio et contenus",
-  "Autre fonctionnement interne",
+export const SERVICE_OPTIONS = [
+  "Site web / refonte",
+  "Suivi demandes & devis",
+  "Application mobile",
+  "Réservation en ligne",
+  "Google Business",
+  "Onboarding client",
+  "Portfolio & contenu",
+  "Je ne sais pas encore",
 ] as const;
-export type Area = (typeof AREAS)[number];
+export type ServiceOption = (typeof SERVICE_OPTIONS)[number];
+
+/** Pré-sélection depuis une page de service (`?besoin=` ou `?service=`). */
+export const SERVICE_BY_SLUG: Record<string, ServiceOption> = {
+  "site-web": "Site web / refonte",
+  "suivi-demandes-devis": "Suivi demandes & devis",
+  "application-mobile": "Application mobile",
+  "reservation-en-ligne": "Réservation en ligne",
+  "google-business": "Google Business",
+  "onboarding-client": "Onboarding client",
+  "portfolio-contenu": "Portfolio & contenu",
+};
+
+export const TIMELINES = [
+  "Dès que possible",
+  "Moins d'un mois",
+  "1 à 3 mois",
+  "Plus tard, en réflexion",
+] as const;
+export type Timeline = (typeof TIMELINES)[number];
 
 /** Origine de la visite, déclarée par le lien — jamais déduite. */
 export const SOURCES = ["site", "outreach"] as const;
 export type Source = (typeof SOURCES)[number];
-
-/** Pré-sélection depuis une page de service (`?besoin=<slug>`). */
-export const AREA_BY_SERVICE: Record<string, Area> = {
-  "site-web": "Site web",
-  "suivi-demandes-devis": "Gestion des demandes et devis",
-  "application-mobile": "Expérience sur mobile",
-  "reservation-en-ligne": "Réservation",
-  "google-business": "Présence sur Google",
-  "onboarding-client": "Accueil des nouveaux clients",
-  "portfolio-contenu": "Portfolio et contenus",
-};
 
 export type FirstLookValues = {
   name: string;
   company: string;
   email: string;
   phone: string;
-  website: string;
   presence: string;
-  areas: Area[];
-  notes: string;
+  services: ServiceOption[];
+  need: string;
+  timeline: Timeline | "";
+  description: string;
   privacy: boolean;
   source: Source;
 };
@@ -64,13 +72,23 @@ export const EMPTY_FIRST_LOOK: FirstLookValues = {
   company: "",
   email: "",
   phone: "",
-  website: "",
   presence: "",
-  areas: [],
-  notes: "",
+  services: [],
+  need: "",
+  timeline: "",
+  description: "",
   privacy: false,
   source: "site",
 };
+
+/** Les trois étapes et les champs que chacune valide. */
+export const STEPS: { title: string; fields: FirstLookField[] }[] = [
+  { title: "Parlez-nous de vous", fields: ["name", "company", "email", "phone", "presence"] },
+  { title: "Que souhaitez-vous améliorer ?", fields: ["services", "need", "timeline"] },
+  { title: "Parlez-nous du projet", fields: ["description", "privacy"] },
+];
+
+export const FIRST_LOOK_ORDER: FirstLookField[] = STEPS.flatMap((s) => s.fields);
 
 /** Nettoie une saisie brute (navigateur ou requête) champ par champ. */
 export function sanitizeFirstLook(raw: Record<string, unknown>): FirstLookValues {
@@ -79,10 +97,11 @@ export function sanitizeFirstLook(raw: Record<string, unknown>): FirstLookValues
     company: cleanLine(raw.company, LIMITS.company),
     email: cleanLine(raw.email, LIMITS.email).toLowerCase(),
     phone: cleanLine(raw.phone, LIMITS.phone),
-    website: cleanLine(raw.website, LIMITS.url),
     presence: cleanLine(raw.presence, LIMITS.url),
-    areas: cleanChoices(raw.areas, AREAS),
-    notes: cleanText(raw.notes, LIMITS.text),
+    services: cleanChoices(raw.services, SERVICE_OPTIONS),
+    need: cleanLine(raw.need, LIMITS.line),
+    timeline: cleanChoice(raw.timeline, TIMELINES),
+    description: cleanText(raw.description, LIMITS.text),
     privacy: raw.privacy === true,
     source: cleanChoice(raw.source, SOURCES) || "site",
   };
@@ -91,24 +110,20 @@ export function sanitizeFirstLook(raw: Record<string, unknown>): FirstLookValues
 export function validateFirstLook(v: FirstLookValues): Errors<FirstLookField> {
   const errors: Record<string, string> = {};
   checkIdentity(v, errors);
-  if (v.website && !isWebAddress(v.website))
-    errors.website = "Indiquez une adresse du type monsite.fr.";
-  if (v.areas.length === 0)
-    errors.areas = "Choisissez au moins un point à regarder.";
+  if (v.services.length === 0)
+    errors.services = "Choisissez au moins un service, ou « Je ne sais pas encore ».";
+  if (v.need.length < 5) errors.need = "Dites-nous en quelques mots ce que vous voulez améliorer.";
+  if (!v.timeline) errors.timeline = "Choisissez une échéance.";
+  if (v.description.length < 15)
+    errors.description = "Décrivez votre activité et votre projet en quelques phrases.";
   if (!v.privacy)
     errors.privacy = "Merci de confirmer avoir pris connaissance de la politique de confidentialité.";
   return errors;
 }
 
-/** Ordre des champs, pour placer le focus sur la première erreur. */
-export const FIRST_LOOK_ORDER: FirstLookField[] = [
-  "name",
-  "company",
-  "email",
-  "phone",
-  "website",
-  "presence",
-  "areas",
-  "notes",
-  "privacy",
-];
+/** Erreurs limitées aux champs d'une étape. */
+export function validateStep(v: FirstLookValues, step: number): Errors<FirstLookField> {
+  const all = validateFirstLook(v);
+  const fields = new Set(STEPS[step].fields);
+  return Object.fromEntries(Object.entries(all).filter(([k]) => fields.has(k as FirstLookField)));
+}

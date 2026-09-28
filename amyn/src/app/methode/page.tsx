@@ -19,8 +19,8 @@ export default function MethodPage() {
       <PageHero
         crumbs={[{ name: "Méthode", path: "/methode" }]}
         label="Méthode"
-        lines={[{ text: "Un projet clair," }, { accent: "du premier échange à la mise en ligne." }]}
-        lead="Quatre étapes, toujours dans le même ordre. Vous savez à chaque moment ce qui se passe, ce que nous attendons de vous et ce qui vient ensuite."
+        lines={[{ text: "Un projet clair," }, { accent: "du début à la fin." }]}
+        lead="Quatre étapes, toujours dans le même ordre. Vous savez à chaque instant où en est votre projet."
       />
 
       <Section spacing="none" className="pb-20 sm:pb-28">
@@ -89,7 +89,7 @@ export default function MethodPage() {
             ))}
           </ul>
           <div data-reveal className="lg:col-span-12">
-            <ButtonLink href={cta.project.href}>{cta.project.label}</ButtonLink>
+            <ButtonLink href={cta.firstLook.href}>{cta.firstLook.label}</ButtonLink>
           </div>
         </Container>
       </Section>

@@ -32,6 +32,9 @@ npm run check:launch  # échoue tant que les mentions légales sont incomplètes
 | Mentions légales, conditions, durées de conservation | `src/lib/legal.ts` |
 | Inventaire des cookies et traceurs | `src/lib/trackers.ts` |
 | Couleurs, typographie, animations | `src/app/globals.css` |
+| Logo (monogramme) | `src/components/layout/Logo.tsx`, `src/app/icon.svg` |
+| Photos (Unsplash) et leurs crédits | `public/photos/`, `src/lib/photos.ts` |
+| Captures des concepts | `src/lib/visuals.ts`, `public/visuals/` |
 
 ### Changer un prix
 
@@ -66,9 +69,33 @@ externe doit être déclaré dans `src/lib/trackers.ts` et, s'il n'est pas
 strictement nécessaire, ne se charger qu'après consentement (accepter /
 refuser / personnaliser, et un lien « Gérer mes cookies » permanent).
 
+## Visuels
+
+Deux sources d'images, toutes deux libres d'utilisation :
+
+- **Photos** (`public/photos/`) : banque Unsplash, licence Unsplash
+  (usage commercial autorisé, sans attribution obligatoire). Chaque
+  fichier et son auteur sont listés dans `src/lib/photos.ts`.
+- **Captures des concepts** (`public/visuals/`) : écrans conçus par AMYN
+  en HTML (`src/components/visuals/`) puis figés en images. Après une
+  modification d'une maquette :
+
+  ```bash
+  npm run dev                          # premier terminal
+  npm i --no-save playwright-core      # une fois
+  node scripts/capture-visuals.mjs     # tous les écrans, ou des ids précis
+  ```
+
+  La route `/capture/[id]` qui sert de support n'existe qu'en
+  développement (404 en production, exclue du robots.txt).
+
+Aucune image n'est reprise d'un moteur de recherche.
+
 ## Formulaires
 
-`/premier-apercu` → `POST /api/premier-apercu` · `/contact` → `POST /api/projet`.
+Un seul parcours : `/premier-apercu` (formulaire en trois étapes, sans
+question de budget) → `POST /api/premier-apercu`. L'ancienne adresse
+`/contact` redirige (301) vers `/premier-apercu`.
 Remise à la boîte contact@amyn.agency par le serveur d'envoi OVHcloud, côté serveur uniquement (voir `DEPLOIEMENT.md`).
 Sans `SMTP_PASSWORD` : la demande est écrite dans la console en
 développement ; en production, le formulaire affiche un message invitant

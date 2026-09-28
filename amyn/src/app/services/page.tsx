@@ -2,12 +2,13 @@ import Link from "next/link";
 import { FinalCta } from "@/components/home/Sections";
 import { PageHero } from "@/components/layout/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
-import { Container, Section, Tag, delay } from "@/components/ui/Layout";
-import { ServiceVisual } from "@/components/visuals/ServiceVisual";
+import { Container, Section, delay } from "@/components/ui/Layout";
+import { Shot } from "@/components/visuals/Shots";
 import { priceLabel } from "@/lib/pricing";
 import { pageMetadata } from "@/lib/seo";
 import { services, servicePath } from "@/lib/services";
 import { cta } from "@/lib/site";
+import { shot } from "@/lib/visuals";
 
 export const metadata = pageMetadata({
   title: "Services",
@@ -16,14 +17,18 @@ export const metadata = pageMetadata({
   path: "/services",
 });
 
+/**
+ * Services — sept blocs, chacun avec son écran. On voit ce que c'est avant
+ * de lire quoi que ce soit ; le détail est sur la page du service.
+ */
 export default function ServicesPage() {
   return (
     <>
       <PageHero
         crumbs={[{ name: "Services", path: "/services" }]}
         label="Sept services · Sur devis"
-        lines={[{ text: "Ce que nous construisons," }, { accent: "et pourquoi." }]}
-        lead="Chaque service répond à un problème précis d'entreprise. Beaucoup de projets en combinent plusieurs : un site et une réservation, un outil de suivi et un parcours d'accueil. Chaque projet est cadré selon vos besoins, vos objectifs et les fonctionnalités nécessaires."
+        lines={[{ text: "Ce que nous" }, { accent: "construisons." }]}
+        lead="Du site à l'application, des outils qui servent vraiment. Souvent combinés, toujours cadrés sur devis."
       >
         <nav aria-label="Aller à un service">
           <ol className="flex flex-wrap gap-2">
@@ -31,9 +36,9 @@ export default function ServicesPage() {
               <li key={s.slug}>
                 <a
                   href={`#${s.slug}`}
-                  className="inline-flex min-h-10 items-center gap-2 rounded-full border border-line px-4 text-[0.875rem] text-fg-2 transition-colors hover:border-line-strong hover:text-fg"
+                  className="inline-flex min-h-11 items-center gap-2 rounded-full border border-[rgb(242_238_230/0.14)] bg-[rgb(242_238_230/0.03)] px-4 text-[0.875rem] text-bone-2 transition-[color,border-color,transform] duration-300 hover:border-gold/50 hover:text-bone active:scale-95"
                 >
-                  <span className="label text-accent">{s.number}</span>
+                  <span className="font-mono text-[0.75rem] text-gold">{s.number}</span>
                   {s.short}
                 </a>
               </li>
@@ -44,80 +49,56 @@ export default function ServicesPage() {
 
       {services.map((service, index) => {
         const price = priceLabel(service.pricing);
+        const phone = shot(service.shot).kind === "phone";
+        const flip = index % 2 === 1;
         return (
           <Section
             key={service.slug}
             id={service.slug}
-            tone={index % 2 === 0 ? "ink-2" : "ink"}
+            tone={flip ? "ink-2" : "ink"}
             labelledBy={`${service.slug}-titre`}
-            className="scroll-mt-[var(--header-h)]"
+            className="seam scroll-mt-[var(--header-h)]"
           >
-            <Container className="grid gap-14 lg:grid-cols-12 lg:gap-10">
-              <div className="lg:col-span-6">
-                <div data-reveal="fade" className="flex flex-wrap items-center gap-3">
-                  <span className="label text-accent">{service.number}</span>
-                  {price && <Tag>{price}</Tag>}
+            <Container className="grid items-center gap-12 lg:grid-cols-12 lg:gap-10">
+              <div className={`lg:col-span-6 ${flip ? "lg:order-2 lg:col-start-7" : ""}`}>
+                <div data-reveal="fade" className="flex items-center gap-4">
+                  <span className="font-mono text-[0.875rem] text-gold">{service.number}</span>
+                  <span aria-hidden className="h-px w-10 bg-[rgb(242_238_230/0.2)]" />
+                  {price && <span className="label text-bone-3">{price}</span>}
                 </div>
-                <h2 id={`${service.slug}-titre`} data-reveal className="display-md mt-6">
+                <h2 id={`${service.slug}-titre`} data-reveal className="display-lg mt-6">
                   {service.name}
                 </h2>
-                <p data-reveal className="lead mt-6 text-fg-2" style={delay(100)}>
-                  {service.summary}
+                <p data-reveal style={delay(80)} className="mt-5 text-[1.35rem] font-medium tracking-[-0.02em] text-bone-2">
+                  {service.tagline}
                 </p>
 
-                <dl className="mt-12 grid gap-10 sm:grid-cols-2">
-                  <div data-reveal>
-                    <dt className="label text-fg-3">Le problème</dt>
-                    <dd className="mt-3 text-fg-2">{service.problem.title}</dd>
-                  </div>
-                  <div data-reveal style={delay(80)}>
-                    <dt className="label text-fg-3">Notre réponse</dt>
-                    <dd className="mt-3 text-fg-2">{service.solution.title}</dd>
-                  </div>
-                  <div data-reveal className="sm:col-span-2">
-                    <dt className="label text-fg-3">Ce que cela peut inclure</dt>
-                    <dd className="mt-4">
-                      <ul className="grid gap-x-8 gap-y-2.5 text-[0.9375rem] text-fg sm:grid-cols-2">
-                        {service.deliverables.slice(0, 6).map((d) => (
-                          <li key={d} className="flex gap-3">
-                            <span aria-hidden className="mt-[0.7em] h-px w-3 shrink-0 bg-accent" />
-                            {d}
-                          </li>
-                        ))}
-                      </ul>
-                    </dd>
-                  </div>
-                  <div data-reveal>
-                    <dt className="label text-fg-3">Pour qui</dt>
-                    <dd className="mt-3 text-[0.9375rem] text-fg-2">
-                      {service.useCases.map((u) => u.who).join(", ")}, et bien d&apos;autres.
-                    </dd>
-                  </div>
-                  <div data-reveal style={delay(80)}>
-                    <dt className="label text-fg-3">Ce qui fait varier le devis</dt>
-                    <dd className="mt-3 text-[0.9375rem] text-fg-2">
-                      {service.scope.slice(0, 3).join(" · ")}
-                    </dd>
-                  </div>
-                </dl>
+                <ul data-reveal style={delay(140)} className="mt-8 flex flex-wrap gap-2">
+                  {service.deliverables.slice(0, 5).map((d) => (
+                    <li key={d} className="rounded-full border border-[rgb(242_238_230/0.12)] px-3.5 py-1.5 text-[0.875rem] text-bone-2">
+                      {d}
+                    </li>
+                  ))}
+                </ul>
 
-                <div data-reveal className="mt-12 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-6">
+                <div data-reveal style={delay(200)} className="mt-10 flex flex-wrap items-center gap-3">
                   <ButtonLink href={servicePath(service.slug)} variant="secondary">
-                    Découvrir le service
+                    Découvrir
                   </ButtonLink>
                   <Link
                     href={`${cta.firstLook.href}?besoin=${service.slug}`}
-                    className="link-line text-[0.9375rem] text-fg-2 transition-colors hover:text-fg"
+                    className="hit-area inline-flex min-h-11 items-center px-3 text-[0.9375rem] text-bone-2 underline-offset-4 hover:text-bone hover:underline"
                   >
                     {cta.firstLook.label}
                   </Link>
                 </div>
               </div>
 
-              <div className="lg:col-span-5 lg:col-start-8">
-                <div data-reveal className="lg:sticky lg:top-[calc(var(--header-h)+3rem)]">
-                  <ServiceVisual visual={service.visual} />
-                  <p className="label mt-4 text-fg-3">Illustration — {service.name}</p>
+              <div className={`lg:col-span-6 ${flip ? "lg:order-1 lg:col-start-1" : ""}`}>
+                <div data-reveal className={phone ? "mx-auto w-[58%] max-w-[18rem]" : ""}>
+                  <Link href={servicePath(service.slug)} tabIndex={-1} aria-hidden className="block transition-transform duration-700 ease-[var(--ease-out)] hover:-translate-y-1.5">
+                    <Shot id={service.shot} sizes={phone ? "(min-width: 1024px) 18rem, 58vw" : "(min-width: 1024px) 48vw, 92vw"} />
+                  </Link>
                 </div>
               </div>
             </Container>

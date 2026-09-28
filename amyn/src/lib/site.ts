@@ -26,11 +26,12 @@ export const social: { label: string; href: string }[] = [
   // { label: "Instagram", href: "https://www.instagram.com/…" },
 ];
 
-/* Les trois actions du site, dans cet ordre de priorité. */
+/* Une seule action commerciale, partout : le premier aperçu. Les autres
+   liens sont des explorations. */
 export const cta = {
   firstLook: { label: "Recevoir un premier aperçu", href: "/premier-apercu" },
-  project: { label: "Parler de votre projet", href: "/contact" },
-  services: { label: "Découvrir nos services", href: "/services" },
+  services: { label: "Voir les services", href: "/services" },
+  work: { label: "Voir les réalisations", href: "/realisations" },
 } as const;
 
 export const mainNav = [

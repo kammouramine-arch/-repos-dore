@@ -23,14 +23,33 @@ export const COMPACT = { width: 430, height: 780 } as const;
 function Art({
   concept,
   variant = 0,
+  photo,
+  position = "center",
   className = "",
   style,
 }: {
   concept: Concept;
   variant?: number;
+  /** Photo sous licence libre (voir src/lib/photos.ts) ; sinon composition CSS. */
+  photo?: string;
+  position?: string;
   className?: string;
   style?: React.CSSProperties;
 }) {
+  if (photo) {
+    return (
+      <div aria-hidden className={`relative overflow-hidden ${className}`} style={style}>
+        {/* eslint-disable-next-line @next/next/no-img-element -- rendu à l'échelle, capturé en image */}
+        <img
+          src={photo}
+          alt=""
+          className="absolute inset-0 h-full w-full object-cover"
+          style={{ objectPosition: position }}
+        />
+      </div>
+    );
+  }
+
   const [a, b, c] = concept.art;
 
   /* Une source de lumière franche, une masse sombre, un fond dégradé : de
@@ -76,9 +95,12 @@ function Art({
 export function ConceptSite({
   concept,
   compact = false,
+  height,
 }: {
   concept: Concept;
   compact?: boolean;
+  /** Hauteur imposée (ex. écran de téléphone). */
+  height?: number;
 }) {
   const p = concept.palette;
   const font =
@@ -86,7 +108,8 @@ export function ConceptSite({
       ? "Georgia, 'Iowan Old Style', 'Times New Roman', serif"
       : "var(--font-geist), 'Helvetica Neue', Arial, sans-serif";
 
-  const dims = compact ? COMPACT : WIDE;
+  const base = compact ? COMPACT : WIDE;
+  const dims = { width: base.width, height: height ?? base.height };
 
   return (
     <div
@@ -227,7 +250,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
   if (compact) {
     return (
       <section className="shrink-0">
-        <Art concept={concept} variant={0} style={{ height: 210 }} />
+        <Art concept={concept} variant={0} photo={concept.photos?.hero} position={concept.photos?.position} style={{ height: 210 }} />
         <div className="flex flex-col gap-4 px-6 py-7">
           {Eyebrow}
           {Title}
@@ -245,7 +268,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
             plutôt qu'en lui ajoutant `absolute`, que Tailwind ferait
             perdre face à `relative`. */}
         <div className="absolute inset-0">
-          <Art concept={concept} variant={3} className="h-full w-full" />
+          <Art concept={concept} variant={3} photo={concept.photos?.hero} position={concept.photos?.position} className="h-full w-full" />
         </div>
         <div
           className="absolute inset-0"
@@ -277,7 +300,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
           </p>
           {Buttons}
         </div>
-        <Art concept={concept} variant={1} style={{ height: 226 }} />
+        <Art concept={concept} variant={1} photo={concept.photos?.hero} position={concept.photos?.position} style={{ height: 226 }} />
       </section>
     );
   }
@@ -291,7 +314,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
         {Tagline}
         {Buttons}
       </div>
-      <Art concept={concept} variant={1} className="w-[48%]" />
+      <Art concept={concept} variant={1} photo={concept.photos?.hero} position={concept.photos?.position} className="w-[48%]" />
     </section>
   );
 }
@@ -349,7 +372,7 @@ function Block({ concept, compact }: { concept: Concept; compact: boolean }) {
           {concept.entries.map((entry, i) => (
             <div key={entry.name} style={{ background: p.bg }} className="overflow-hidden">
               {concept.block === "grid" && (
-                <Art concept={concept} variant={i} style={{ height: compact ? 74 : 132 }} />
+                <Art concept={concept} variant={i} photo={concept.photos?.gallery?.[i]} style={{ height: compact ? 74 : 132 }} />
               )}
               <div className={compact ? "p-3.5" : "p-5"}>
                 <p style={{ fontSize: compact ? 14 : 17 }} className="font-medium">
@@ -371,7 +394,7 @@ function Block({ concept, compact }: { concept: Concept; compact: boolean }) {
         <div className={`grid gap-5 ${compact ? "grid-cols-2" : "grid-cols-3"}`}>
           {concept.entries.map((entry, i) => (
             <figure key={entry.name}>
-              <Art concept={concept} variant={i} style={{ height: compact ? 78 : 158 }} />
+              <Art concept={concept} variant={i} photo={concept.photos?.gallery?.[i]} style={{ height: compact ? 78 : 158 }} />
               <figcaption
                 style={{ color: p.muted, fontSize: compact ? 11 : 14 }}
                 className="mt-2.5"

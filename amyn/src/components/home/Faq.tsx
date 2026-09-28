@@ -22,7 +22,7 @@ export function Faq({
           <Heading id="faq-titre" size="md" className="mt-8" lines={title} />
           <p data-reveal className="mt-8 text-fg-2">
             Une question qui n&apos;est pas ici ?{" "}
-            <Link href={cta.project.href} className="text-fg underline underline-offset-4">
+            <Link href={cta.firstLook.href} className="text-fg underline underline-offset-4">
               Écrivez-nous
             </Link>{" "}
             ou directement à{" "}

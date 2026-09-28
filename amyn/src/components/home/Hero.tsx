@@ -1,165 +1,154 @@
 import { Fragment } from "react";
 import { ButtonLink } from "@/components/ui/Button";
+import { Check } from "@/components/ui/Icons";
 import { Container, delay } from "@/components/ui/Layout";
-import { COMPACT, ConceptSite, WIDE } from "@/components/visuals/ConceptSite";
-import { BrowserFrame, PhoneFrame } from "@/components/visuals/Frames";
-import { BookingMock, QuoteBoardMock } from "@/components/visuals/Mocks";
-import { projectBySlug } from "@/lib/projects";
+import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
 import { cta } from "@/lib/site";
 
 /**
- * Hero.
+ * Hero — compris en trois secondes : ce que fait AMYN (sites, apps,
+ * systèmes), pour qui (les entreprises), et la preuve à droite, en images.
  *
- * En cinq secondes : ce que fait AMYN (le repère et le chapeau), pour qui
- * (les entreprises), et en quoi c'est différent (du sur-mesure, et une
- * première piste avant tout engagement).
- *
- * L'entrée est animée en CSS pur : elle démarre avec la page, sans attendre
- * le JavaScript.
+ * Le texte arrive en CSS pur dès la première image ; la scène flotte,
+ * s'incline vers le curseur (Interactions.tsx) et glisse au défilement.
  */
 export function Hero() {
-  const lines = [
-    { text: "Votre entreprise mérite" },
-    { text: "mieux qu\u2019une présence" },
-    { text: "digitale ", accent: "générique." },
-  ];
+  const words = [{ text: "Sites." }, { text: "Apps." }, { text: "Systèmes.", accent: true }];
 
   return (
     <section
       aria-labelledby="hero-title"
-      className="tone-ink relative overflow-hidden pb-20 pt-[calc(var(--header-h)+3rem)] sm:pb-28 sm:pt-[calc(var(--header-h)+4.5rem)] lg:pb-32 lg:pt-[calc(var(--header-h)+5.5rem)]"
+      className="tone-ink relative flex min-h-[100svh] items-center overflow-hidden pb-16 pt-[calc(var(--header-h)+2.5rem)] lg:pb-20"
     >
-      {/* Lumière rasante, très basse : elle donne une profondeur au noir
-          sans devenir un dégradé décoratif. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[80vh] bg-[radial-gradient(55%_60%_at_78%_10%,rgb(198_167_106/0.08),transparent_70%)]"
-      />
-
-      <Container className="relative grid items-center gap-16 lg:grid-cols-12 lg:gap-10">
-        <div className="lg:col-span-7">
-          <p className="label rise text-fg-3" style={delay(0)}>
-            Studio digital — sites web, applications, outils sur mesure
+      <Container className="relative grid items-center gap-14 lg:grid-cols-12 lg:gap-8">
+        <div className="relative z-10 lg:col-span-6">
+          <p
+            className="rise inline-flex items-center gap-2 rounded-full border border-[rgb(242_238_230/0.12)] bg-[rgb(242_238_230/0.04)] py-1.5 pl-2 pr-3.5 text-[0.8125rem] text-bone-2 backdrop-blur-md"
+            style={delay(0)}
+          >
+            <span className="relative flex size-2">
+              <span className="absolute inset-0 animate-ping rounded-full bg-gold/60 motion-reduce:hidden" />
+              <span className="relative size-2 rounded-full bg-gold" />
+            </span>
+            Studio digital pour les entreprises
           </p>
 
-          <h1
-            id="hero-title"
-            className="mt-7 font-serif text-[clamp(2.6rem,6.1vw,6rem)] font-normal leading-[0.98] tracking-[-0.022em] sm:mt-9"
-          >
-            {lines.map((line, i) => (
-              <Fragment key={i}>
-                <span className="rise-line" style={delay(i * 70)}>
-                  <span>
-                    {line.text}
-                    {line.accent && <em className="accent text-fg-2">{line.accent}</em>}
-                  </span>
+          <h1 id="hero-title" className="display-hero mt-7 sm:mt-9">
+            {words.map((w, i) => (
+              <Fragment key={w.text}>
+                <span className="rise-line" style={delay(60 + i * 110)}>
+                  {w.accent ? <em className="accent pr-[0.08em]">{w.text}</em> : w.text}
                 </span>
-                {i < lines.length - 1 ? " " : null}
+                {i < words.length - 1 ? " " : null}
               </Fragment>
             ))}
           </h1>
 
-          <p className="lead rise mt-9 max-w-[34rem] text-fg-2 sm:mt-11" style={delay(200)}>
-            AMYN conçoit des sites web, des applications et des outils digitaux —
-            réservation, suivi des demandes, accueil client — autour de la façon
-            dont votre entreprise fonctionne réellement.
+          <p className="lead rise mt-8 max-w-[30rem] text-bone-2 sm:mt-10" style={delay(420)}>
+            Sites web, applications et systèmes digitaux conçus autour de votre activité.
           </p>
 
-          <div className="rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" style={delay(280)}>
-            <ButtonLink href={cta.firstLook.href}>{cta.firstLook.label}</ButtonLink>
-            <ButtonLink href={cta.services.href} variant="secondary">
-              {cta.services.label}
+          <div className="rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center" style={delay(500)}>
+            <ButtonLink href={cta.firstLook.href} className="!min-h-14 !px-7 text-[1rem]">
+              {cta.firstLook.label}
+            </ButtonLink>
+            <ButtonLink href={cta.work.href} variant="secondary" className="!min-h-14">
+              {cta.work.label}
             </ButtonLink>
           </div>
 
-          <p className="rise mt-6 max-w-md text-[0.875rem] leading-relaxed text-fg-3" style={delay(340)}>
-            Sans engagement. Selon le projet, nous pouvons vous montrer une première
-            piste avant toute prestation payante.
-          </p>
+          <ul className="rise mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[0.875rem] text-bone-3" style={delay(580)}>
+            {["Sans engagement", "Une première piste avant tout devis"].map((t) => (
+              <li key={t} className="flex items-center gap-2">
+                <Check className="size-3.5 text-gold" />
+                {t}
+              </li>
+            ))}
+          </ul>
         </div>
 
-        <HeroComposition />
+        <HeroStage />
       </Container>
+
+      {/* Invitation à défiler */}
+      <div aria-hidden className="absolute bottom-6 left-1/2 hidden -translate-x-1/2 lg:block">
+        <span className="block h-10 w-px overflow-hidden bg-[rgb(242_238_230/0.12)]">
+          <span className="scroll-cue block h-1/2 w-full bg-gold" />
+        </span>
+      </div>
     </section>
   );
 }
 
 /**
- * Trois solutions, trois supports : un site, une réservation sur téléphone,
- * un tableau de suivi. Composées comme une planche, avec leurs légendes —
- * pas comme des captures flottantes.
+ * La scène : un site au centre, un tableau de bord derrière, une
+ * réservation au premier plan, et deux notifications qui flottent. Chaque
+ * plan a sa profondeur : ils ne bougent pas à la même vitesse.
  */
-function HeroComposition() {
-  const project = projectBySlug("maison-elan")!;
-  const siteLabel = "Illustration : page d'accueil d'un restaurant, concept créé par AMYN.";
-
+function HeroStage() {
   return (
-    <div className="rise relative lg:col-span-5" style={delay(380)}>
-      <div className="relative pb-[18%] pl-[14%] sm:pl-[22%] lg:pl-[10%]">
-        {/* Site web */}
-        <figure>
-          <Caption number="01" title="Site web" className="mb-3 mt-0 text-right" />
-          <BrowserFrame
-            url={project.domain}
-            width={COMPACT.width}
-            height={COMPACT.height}
-            label={siteLabel}
-            className="sm:hidden"
-          >
-            <ConceptSite concept={project} compact />
-          </BrowserFrame>
-          <BrowserFrame
-            url={project.domain}
-            width={WIDE.width}
-            height={WIDE.height}
-            label={siteLabel}
-            className="hidden sm:block"
-          >
-            <ConceptSite concept={project} />
-          </BrowserFrame>
-        </figure>
+    <div className="rise relative lg:col-span-6" style={delay(360)}>
+      <div
+        data-tilt=""
+        className="stage relative mx-auto aspect-[1/0.86] w-full max-w-[40rem] lg:max-w-none"
+      >
+        {/* Arrière-plan : le tableau de suivi. */}
+        <div className="plane absolute right-0 top-0 w-[70%] opacity-70 [--depth:-30px]">
+          <div className="float-c">
+            <BrowserShot id="quotes" sizes="(min-width: 1024px) 30vw, 70vw" />
+          </div>
+        </div>
 
-        {/* Suivi des demandes — masqué sur téléphone pour garder la planche
-            lisible. */}
-        <figure className="drift absolute bottom-0 right-0 hidden w-[62%] sm:block" style={{ "--drift-from": "1.5rem", "--drift-to": "-1.5rem" } as React.CSSProperties}>
-          <BrowserFrame
-            url="app.thermia-services.fr"
-            width={1280}
-            height={800}
-            label="Illustration : tableau de suivi des demandes et des devis."
-          >
-            <QuoteBoardMock />
-          </BrowserFrame>
-          <Caption number="03" title="Suivi des demandes" />
-        </figure>
+        {/* Centre : le site. */}
+        <div className="plane absolute left-0 top-[16%] w-[84%] [--depth:10px]">
+          <div className="float-a">
+            <BrowserShot id="site-maison-elan" eager sizes="(min-width: 1024px) 40vw, 84vw" />
+          </div>
+        </div>
 
-        {/* Réservation */}
-        <figure
-          className="drift absolute bottom-[-2%] left-0 w-[34%] sm:w-[27%] lg:w-[31%]"
-          style={{ "--drift-from": "3rem", "--drift-to": "-2rem" } as React.CSSProperties}
-        >
-          <PhoneFrame label="Illustration : réservation en ligne sur téléphone.">
-            <BookingMock />
-          </PhoneFrame>
-          <Caption number="02" title="Réservation" />
-        </figure>
+        {/* Premier plan : la réservation sur téléphone. */}
+        <div className="plane absolute bottom-0 right-[3%] w-[31%] [--depth:50px]">
+          <div className="float-b">
+            <PhoneShot id="table-booking" eager sizes="(min-width: 1024px) 14vw, 31vw" />
+          </div>
+        </div>
+
+        {/* Notifications */}
+        <Notice className="left-[-2%] top-[4%] [--depth:70px] float-b" title="Réservation confirmée" detail="2 pers. · ce soir 20:30" />
+        <Notice className="bottom-[10%] left-[8%] [--depth:80px] float-c" title="Nouvelle demande de devis" detail="Rénovation · infos complètes" tone="gold" />
       </div>
+      <div aria-hidden className="pointer-events-none absolute inset-x-[10%] bottom-[-6%] h-24 rounded-[50%] bg-[radial-gradient(closest-side,rgb(198_167_106/0.22),transparent)] blur-2xl" />
     </div>
   );
 }
 
-function Caption({
-  number,
+function Notice({
   title,
+  detail,
   className = "",
+  tone = "light",
 }: {
-  number: string;
   title: string;
+  detail: string;
   className?: string;
+  tone?: "light" | "gold";
 }) {
   return (
-    <figcaption className={`label mt-3 text-[0.6875rem] text-fg-3 ${className}`}>
-      <span className="text-accent">{number}</span> {title}
-    </figcaption>
+    <div
+      aria-hidden
+      className={`plane absolute hidden items-center gap-3 rounded-2xl border px-3.5 py-3 shadow-[0_20px_50px_-20px_rgb(0_0_0/0.9)] backdrop-blur-xl sm:flex ${
+        tone === "gold"
+          ? "border-gold/40 bg-[rgb(28_24_18/0.82)]"
+          : "border-[rgb(242_238_230/0.14)] bg-[rgb(20_20_20/0.78)]"
+      } ${className}`}
+    >
+      <span className={`flex size-8 items-center justify-center rounded-full ${tone === "gold" ? "bg-gold text-ink" : "bg-[#1F3B2F] text-bone"}`}>
+        <Check className="size-4" />
+      </span>
+      <span>
+        <span className="block text-[0.8125rem] font-medium text-bone">{title}</span>
+        <span className="block text-[0.75rem] text-bone-3">{detail}</span>
+      </span>
+    </div>
   );
 }

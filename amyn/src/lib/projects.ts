@@ -1,4 +1,5 @@
 import type { VisualKey } from "./services";
+import { photo } from "./photos.ts";
 
 /**
  * Réalisations.
@@ -50,6 +51,8 @@ export type Project = {
   services: string[];
   /** Second écran présenté à côté du site. */
   companion: VisualKey;
+  /** Écrans supplémentaires de l'étude de cas (voir visuals.ts). */
+  screens: string[];
 
   /* --- Le site présenté (rendu par ConceptSite) ------------------------- */
   palette: {
@@ -75,6 +78,8 @@ export type Project = {
   entries: { name: string; detail: string }[];
   /** Trois teintes qui composent les visuels du site. */
   art: [string, string, string];
+  /** Photos sous licence libre (voir photos.ts). */
+  photos?: { hero: string; position?: string; gallery?: string[] };
 };
 
 export const projects: Project[] = [
@@ -94,6 +99,7 @@ export const projects: Project[] = [
     features: ["Carte actualisable", "Réservation en ligne", "Horaires et accès", "Galerie"],
     services: ["site-web", "reservation-en-ligne", "google-business"],
     companion: "booking",
+    screens: ["menu", "table-booking"],
     palette: {
       bg: "#14110F",
       surface: "#1C1815",
@@ -120,6 +126,7 @@ export const projects: Project[] = [
       { name: "Accord mets & vins", detail: "sur demande" },
     ],
     art: ["#3A2A20", "#7A4A2C", "#C2703F"],
+    photos: { hero: photo("restaurant-plat"), position: "70% 50%", gallery: [photo("restaurant-table"), photo("restaurant-salle")] },
   },
   {
     slug: "institut-lys",
@@ -137,6 +144,7 @@ export const projects: Project[] = [
     features: ["Soins détaillés", "Réservation par soin", "Espace cliente", "Rappels de rendez-vous"],
     services: ["site-web", "reservation-en-ligne", "application-mobile"],
     companion: "app",
+    screens: ["app", "booking"],
     palette: {
       bg: "#FAF7F5",
       surface: "#F1EBE7",
@@ -163,6 +171,7 @@ export const projects: Project[] = [
       { name: "Rituel complet", detail: "90 min" },
     ],
     art: ["#E4D5D8", "#C39BA6", "#9B6A78"],
+    photos: { hero: photo("institut-salon"), position: "50% 55%", gallery: [photo("institut-calme")] },
   },
   {
     slug: "barberie-aubin",
@@ -180,6 +189,7 @@ export const projects: Project[] = [
     features: ["Prestations et durées", "Réservation par barbier", "Fiche d'établissement complète", "Accès et horaires"],
     services: ["reservation-en-ligne", "google-business", "site-web"],
     companion: "profile",
+    screens: ["booking", "profile"],
     palette: {
       bg: "#EEEBE4",
       surface: "#E3DFD6",
@@ -206,6 +216,7 @@ export const projects: Project[] = [
       { name: "Coupe & barbe", detail: "45 min" },
     ],
     art: ["#CFC8BA", "#6E7E72", "#1F3B2F"],
+    photos: { hero: photo("barbier-salon"), position: "50% 45%" },
   },
   {
     slug: "bois-et-ligne",
@@ -223,6 +234,7 @@ export const projects: Project[] = [
     features: ["Galerie de réalisations", "Demande de devis guidée", "Suivi des devis", "Zone d'intervention"],
     services: ["site-web", "portfolio-contenu", "suivi-demandes-devis"],
     companion: "portfolio",
+    screens: ["portfolio", "quotes"],
     palette: {
       bg: "#F3EFE8",
       surface: "#E7E0D4",
@@ -249,6 +261,7 @@ export const projects: Project[] = [
       { name: "Escalier suspendu", detail: "Rénovation complète" },
     ],
     art: ["#C9B99C", "#A98A5F", "#8A6A3F"],
+    photos: { hero: photo("menuiserie-sejour"), position: "50% 60%", gallery: [photo("menuiserie-cuisine"), photo("menuiserie-sejour"), photo("artisan-plans")] },
   },
   {
     slug: "thermia",
@@ -266,6 +279,7 @@ export const projects: Project[] = [
     features: ["Urgence ou projet dès l'accueil", "Formulaire qualifiant", "Tableau des demandes", "Relances de devis"],
     services: ["site-web", "suivi-demandes-devis"],
     companion: "quotes",
+    screens: ["quotes", "quote-detail", "technician"],
     palette: {
       bg: "#0F1418",
       surface: "#161D23",
@@ -292,6 +306,7 @@ export const projects: Project[] = [
       { name: "Salle de bain", detail: "Rénovation complète" },
     ],
     art: ["#1D2932", "#3E5768", "#E39B5B"],
+    photos: { hero: photo("plomberie-reseau"), position: "50% 50%" },
   },
   {
     slug: "cabinet-aurel",
@@ -309,6 +324,7 @@ export const projects: Project[] = [
     features: ["Expertises détaillées", "Prise de contact qualifiée", "Parcours d'accueil", "Collecte de documents"],
     services: ["site-web", "onboarding-client"],
     companion: "onboarding",
+    screens: ["onboarding"],
     palette: {
       bg: "#FFFFFF",
       surface: "#F2F5F8",
@@ -335,6 +351,7 @@ export const projects: Project[] = [
       { name: "Transmission", detail: "Cession et reprise" },
     ],
     art: ["#D5DEE7", "#8098AE", "#2F4A63"],
+    photos: { hero: photo("cabinet-bureaux"), position: "50% 50%", gallery: [photo("cabinet-couloir")] },
   },
 ];
 

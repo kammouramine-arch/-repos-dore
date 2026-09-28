@@ -2,6 +2,8 @@ import type { Metadata, Viewport } from "next";
 import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
+import { Ambient } from "@/components/ui/Ambient";
+import { Interactions } from "@/components/ui/Interactions";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { RevealObserver } from "@/components/ui/RevealObserver";
 import { organizationSchema } from "@/lib/seo";
@@ -73,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       className={`${geist.variable} ${geistMono.variable} ${instrument.variable}`}
     >
       <body>
+        <Ambient />
         <a
           href="#contenu"
           className="fixed left-4 top-3 z-[60] -translate-y-24 rounded-full bg-bone px-5 py-3 text-[0.9375rem] font-medium text-ink transition-transform focus:translate-y-0"
@@ -85,6 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         </main>
         <SiteFooter />
         <RevealObserver />
+        <Interactions />
         <JsonLd data={organizationSchema()} />
       </body>
     </html>

@@ -1,85 +1,78 @@
 import Link from "next/link";
 import { ArrowUpRight } from "@/components/ui/Icons";
-import { Tag } from "@/components/ui/Layout";
-import { ConceptWindow } from "@/components/visuals/ServiceVisual";
+import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
 import { KIND_LABEL, projectPath, type Project } from "@/lib/projects";
-import { serviceBySlug } from "@/lib/services";
 
 /**
- * Un projet présenté comme une petite étude de cas : la nature du projet
- * (toujours visible), le contexte, le problème, la direction.
+ * Une réalisation, présentée comme une vitrine : le site en grand, l'écran
+ * mobile ou l'outil au premier plan, la nature du projet toujours visible.
+ * Toute la carte est cliquable ; elle se soulève au survol.
  */
 export function ProjectCard({
   project,
   layout = "stacked",
   headingLevel: H = "h3",
+  eager = false,
 }: {
   project: Project;
   layout?: "stacked" | "wide";
   headingLevel?: "h2" | "h3";
+  eager?: boolean;
 }) {
   const href = projectPath(project.slug);
-  const services = project.services.map((slug) => serviceBySlug(slug)!.short);
+  const wide = layout === "wide";
 
   return (
-    <article data-reveal className="group">
-      <Link href={href} tabIndex={-1} aria-hidden className="block">
-        <div className="transition-transform duration-700 ease-[var(--ease-out)] group-hover:-translate-y-1">
-          <ConceptWindow project={project} />
-        </div>
-      </Link>
-
-      <div
-        className={
-          layout === "wide"
-            ? "mt-8 grid gap-8 lg:grid-cols-12 lg:gap-12"
-            : "mt-7"
-        }
-      >
-        <div className={layout === "wide" ? "lg:col-span-5" : undefined}>
-          <div className="flex flex-wrap items-center gap-3">
-            <Tag>{KIND_LABEL[project.kind]}</Tag>
-            <span className="label text-fg-3">{project.sector}</span>
-          </div>
-          <H className="display-sm mt-5">
-            <Link href={href} className="link-line">
-              {project.brand}
-            </Link>
-          </H>
-          <p className="mt-3 max-w-xl text-fg-2">{project.summary}</p>
-        </div>
-
-        <dl
-          className={
-            layout === "wide"
-              ? "grid gap-6 text-[0.9375rem] sm:grid-cols-2 lg:col-span-7"
-              : "mt-6 grid gap-5 text-[0.9375rem]"
-          }
+    <article data-reveal className="group relative">
+      <Link href={href} className="block rounded-[1.25rem] focus-visible:outline-offset-8">
+        <div
+          className={`lift-card relative overflow-hidden rounded-[1.25rem] border border-[rgb(242_238_230/0.1)] bg-[linear-gradient(160deg,rgb(242_238_230/0.06),rgb(242_238_230/0.01))] ${
+            wide ? "px-5 pt-10 sm:px-12 sm:pt-16" : "px-5 pt-8 sm:px-8 sm:pt-10"
+          }`}
         >
-          <div>
-            <dt className="label text-fg-3">Problème</dt>
-            <dd className="mt-2 text-fg-2">{project.problem}</dd>
+          {/* Lumière de la marque, derrière les écrans. */}
+          <div
+            aria-hidden
+            className="absolute inset-0 opacity-60 transition-opacity duration-700 group-hover:opacity-100"
+            style={{ background: `radial-gradient(70% 60% at 50% 100%, ${project.palette.accent}33, transparent 70%)` }}
+          />
+          <div className="relative transition-transform duration-[900ms] ease-[var(--ease-out)] group-hover:-translate-y-2">
+            <BrowserShot
+              id={`site-${project.slug}`}
+              eager={eager}
+              sizes={wide ? "(min-width: 1024px) 70vw, 92vw" : "(min-width: 768px) 42vw, 92vw"}
+              className={`${wide ? "w-[82%]" : "w-[86%]"} rounded-b-none border-b-0`}
+            />
           </div>
-          <div>
-            <dt className="label text-fg-3">Direction</dt>
-            <dd className="mt-2 text-fg-2">{project.direction}</dd>
+          <div
+            className={`absolute bottom-0 right-[4%] transition-transform duration-[900ms] ease-[var(--ease-spring)] group-hover:-translate-y-5 ${
+              wide ? "w-[22%]" : "w-[27%]"
+            }`}
+          >
+            <PhoneShot id={`mobile-${project.slug}`} sizes="(min-width: 768px) 14vw, 28vw" className="translate-y-[18%]" />
           </div>
-          {layout === "wide" && (
-            <div className="sm:col-span-2">
-              <dt className="label text-fg-3">Services mobilisés</dt>
-              <dd className="mt-2 text-fg-2">{services.join(" · ")}</dd>
-            </div>
-          )}
-        </dl>
-      </div>
+        </div>
 
-      <Link
-        href={href}
-        className="mt-7 inline-flex min-h-11 items-center gap-2 text-[0.9375rem] text-fg"
-      >
-        <span className="link-line">Voir le concept</span>
-        <ArrowUpRight className="nudge-up size-4" />
-        <span className="sr-only"> {project.brand}</span>
+        <div className={`mt-6 flex items-start justify-between gap-6 ${wide ? "sm:mt-8" : ""}`}>
+          <div>
+            <div className="flex flex-wrap items-center gap-3">
+              <span className="label rounded-full border border-gold/40 px-2.5 py-1 text-[0.6875rem] text-gold">
+                {KIND_LABEL[project.kind]}
+              </span>
+              <span className="label text-bone-3">{project.sector}</span>
+            </div>
+            <H className={`mt-4 font-semibold tracking-[-0.04em] text-bone ${wide ? "text-[clamp(1.9rem,3.6vw,3.2rem)]" : "text-[clamp(1.6rem,2.4vw,2.2rem)]"} leading-none`}>
+              {project.brand}
+            </H>
+            <p className="mt-3 max-w-xl text-bone-2">{project.summary}</p>
+          </div>
+          <span
+            aria-hidden
+            className="mt-1 hidden size-12 shrink-0 items-center justify-center rounded-full border border-[rgb(242_238_230/0.18)] text-bone-2 transition-[background-color,color,border-color,transform] duration-500 ease-[var(--ease-spring)] group-hover:rotate-45 group-hover:border-gold group-hover:bg-gold group-hover:text-ink sm:flex"
+          >
+            <ArrowUpRight className="size-5" />
+          </span>
+        </div>
       </Link>
     </article>
   );

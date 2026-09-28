@@ -46,6 +46,8 @@
   /* --- Mouvement ---------------------------------------------------------- */
   --ease-out: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-in-out: cubic-bezier(0.65, 0, 0.35, 1);
+  /* Ressort : léger dépassement, comme une touche qui rebondit. */
+  --ease-spring: cubic-bezier(0.34, 1.56, 0.64, 1);
 }
 
 /* --------------------------------------------------------------------------
@@ -111,11 +113,28 @@
   --btn-hover-fg: var(--color-bone);
 }
 
+/* Les sections sombres laissent voir le fond vivant (voir « Ambiance ») ;
+   la section relevée n'en voile qu'une partie. Le papier reste opaque. */
 .tone-ink,
 .tone-ink-2,
 .tone-paper {
-  background-color: var(--canvas);
   color: var(--fg);
+}
+
+.tone-ink {
+  background-color: transparent;
+}
+
+.tone-ink-2 {
+  background-color: rgb(17 17 17 / 0.72);
+}
+
+.tone-paper {
+  background-color: var(--canvas);
+}
+
+.tone-paper .accent {
+  background-image: linear-gradient(100deg, #1a1712 0%, #7d6230 70%, #9c7a3c 100%);
 }
 
 /* --------------------------------------------------------------------------
@@ -195,48 +214,63 @@ html.menu-open {
    Typographie
    -------------------------------------------------------------------------- */
 
-/* Titres éditoriaux — le serif porte la voix de la marque. */
+/* Titres : un sans-serif serré et affirmé. Le serif italique n'apparaît
+   que sur le mot d'accent — le contraste fait la personnalité. */
+@utility display-hero {
+  font-family: var(--font-sans);
+  font-weight: 640;
+  font-size: clamp(3.9rem, 11vw, 10.5rem);
+  line-height: 0.86;
+  letter-spacing: -0.058em;
+}
+
 @utility display-xl {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(2.75rem, 7.2vw, 7rem);
-  line-height: 0.98;
-  letter-spacing: -0.022em;
+  font-family: var(--font-sans);
+  font-weight: 620;
+  font-size: clamp(2.7rem, 7.4vw, 7.25rem);
+  line-height: 0.92;
+  letter-spacing: -0.05em;
   text-wrap: balance;
 }
 
 @utility display-lg {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(2.35rem, 5.2vw, 4.75rem);
-  line-height: 1.02;
-  letter-spacing: -0.02em;
+  font-family: var(--font-sans);
+  font-weight: 620;
+  font-size: clamp(2.3rem, 5.4vw, 5.25rem);
+  line-height: 0.95;
+  letter-spacing: -0.045em;
   text-wrap: balance;
 }
 
 @utility display-md {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(1.9rem, 3.4vw, 3rem);
-  line-height: 1.08;
-  letter-spacing: -0.015em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(1.9rem, 3.6vw, 3.4rem);
+  line-height: 1;
+  letter-spacing: -0.04em;
   text-wrap: balance;
 }
 
 @utility display-sm {
-  font-family: var(--font-serif);
-  font-weight: 400;
-  font-size: clamp(1.55rem, 2.3vw, 2.1rem);
-  line-height: 1.15;
-  letter-spacing: -0.01em;
+  font-family: var(--font-sans);
+  font-weight: 600;
+  font-size: clamp(1.45rem, 2.3vw, 2.1rem);
+  line-height: 1.08;
+  letter-spacing: -0.03em;
   text-wrap: balance;
 }
 
-/* Mot d'accent : l'italique du serif. Un seul par titre. */
+/* Mot d'accent : le serif italique, dans une lumière laiton. */
 @utility accent {
   font-family: var(--font-serif);
   font-style: italic;
-  letter-spacing: -0.01em;
+  font-weight: 400;
+  letter-spacing: -0.015em;
+  padding-right: 0.06em;
+  background-image: linear-gradient(100deg, #f2eee6 0%, #e6d3a6 45%, #c6a76a 100%);
+  background-clip: text;
+  -webkit-background-clip: text;
+  color: transparent;
 }
 
 /* Intitulés en sans-serif. */
@@ -339,8 +373,9 @@ html.menu-open {
   .mask-line {
     display: block;
     overflow: clip;
-    padding-bottom: 0.08em;
-    margin-bottom: -0.08em;
+    /* Place pour les jambages du serif italique (p, q, g). */
+    padding-bottom: 0.2em;
+    margin-bottom: -0.2em;
   }
 
   .mask-line > span {
@@ -493,4 +528,541 @@ html.menu-open {
 @utility grain {
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
   opacity: 0.05;
+}
+
+
+/* ==========================================================================
+   AMBIANCE — le fond vivant
+
+   Quatre couches fixes derrière tout le site : une grille technique très
+   fine, deux lumières diffuses, du grain. Les lumières glissent avec le
+   défilement (animation liée au scroll, sans JavaScript) et respirent très
+   lentement. Tout est en transform/opacity : rien ne recalcule la mise en
+   page.
+   ========================================================================== */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  overflow: hidden;
+  pointer-events: none;
+  background: var(--color-ink);
+}
+
+.ambient-grid {
+  position: absolute;
+  inset: -2px;
+  background-image:
+    linear-gradient(to right, rgb(242 238 230 / 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgb(242 238 230 / 0.045) 1px, transparent 1px);
+  background-size: 96px 96px;
+  mask-image: radial-gradient(90% 70% at 50% 30%, #000 20%, transparent 75%);
+}
+
+.ambient-light {
+  position: absolute;
+  border-radius: 50%;
+  will-change: transform;
+}
+
+/* Lumière chaude, haute et à droite. */
+.ambient-light.a {
+  width: 70vmax;
+  height: 70vmax;
+  right: -22vmax;
+  top: -30vmax;
+  background: radial-gradient(closest-side, rgb(198 167 106 / 0.13), rgb(198 167 106 / 0.04) 55%, transparent 72%);
+}
+
+/* Lumière froide, basse et à gauche : elle donne de la profondeur au noir. */
+.ambient-light.b {
+  width: 60vmax;
+  height: 60vmax;
+  left: -24vmax;
+  bottom: -30vmax;
+  background: radial-gradient(closest-side, rgb(120 140 170 / 0.08), transparent 70%);
+}
+
+.ambient-grain {
+  position: absolute;
+  inset: 0;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
+  opacity: 0.045;
+  mix-blend-mode: overlay;
+}
+
+/* Le fil AMYN : un trait laiton qui se trace avec la lecture de la page. */
+.thread {
+  position: fixed;
+  top: 0;
+  bottom: 0;
+  left: max(1.25rem, calc((100vw - 88rem) / 2 + 0.75rem));
+  width: 1px;
+  z-index: 1;
+  pointer-events: none;
+  background: linear-gradient(to bottom, transparent, rgb(242 238 230 / 0.07) 12%, rgb(242 238 230 / 0.07) 88%, transparent);
+}
+
+.thread-fill {
+  position: absolute;
+  inset: 0;
+  transform-origin: top;
+  transform: scaleY(0.08);
+  background: linear-gradient(to bottom, transparent, rgb(198 167 106 / 0.8));
+}
+
+.thread-dot {
+  position: absolute;
+  left: -2px;
+  top: 8%;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: var(--color-gold-2);
+  box-shadow: 0 0 12px 3px rgb(198 167 106 / 0.45);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .ambient-light.a {
+    animation: breathe 18s ease-in-out infinite alternate;
+  }
+  .ambient-light.b {
+    animation: breathe 23s ease-in-out infinite alternate-reverse;
+  }
+
+  @supports (animation-timeline: scroll()) {
+    .ambient-light.a {
+      animation:
+        breathe 18s ease-in-out infinite alternate,
+        drift-a linear both;
+      animation-timeline: auto, scroll(root);
+    }
+    .ambient-light.b {
+      animation:
+        breathe 23s ease-in-out infinite alternate-reverse,
+        drift-b linear both;
+      animation-timeline: auto, scroll(root);
+    }
+    .ambient-grid {
+      animation: grid-scroll linear both;
+      animation-timeline: scroll(root);
+    }
+    .thread-fill {
+      animation: thread-fill linear both;
+      animation-timeline: scroll(root);
+    }
+    .thread-dot {
+      animation: thread-dot linear both;
+      animation-timeline: scroll(root);
+    }
+  }
+}
+
+@keyframes breathe {
+  from { opacity: 0.75; }
+  to { opacity: 1; }
+}
+@keyframes drift-a {
+  from { translate: 0 0; }
+  to { translate: -38vw 95vh; }
+}
+@keyframes drift-b {
+  from { translate: 0 0; }
+  to { translate: 30vw -80vh; }
+}
+@keyframes grid-scroll {
+  from { background-position: 0 0; }
+  to { background-position: 0 -480px; }
+}
+@keyframes thread-fill {
+  from { transform: scaleY(0.08); }
+  to { transform: scaleY(1); }
+}
+@keyframes thread-dot {
+  from { top: 8%; }
+  to { top: calc(100% - 6px); }
+}
+
+/* Couture entre deux sections : un filet de lumière qui s'éteint sur les
+   bords, plutôt qu'une rupture sèche. */
+.seam {
+  position: relative;
+}
+.seam::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(198 167 106 / 0.35), transparent);
+  pointer-events: none;
+}
+
+/* ==========================================================================
+   BOUTONS — sensation d'application
+
+   Au survol : lumière qui suit le curseur, halo, bord éclairé, léger
+   décollement (et attraction magnétique, pilotée par Interactions.tsx).
+   À l'appui : enfoncement court, puis retour en ressort, avec un éclat.
+   Au doigt : le même enfoncement, en 100–180 ms.
+   ========================================================================== */
+
+.btn {
+  --lift: 0px;
+  position: relative;
+  isolation: isolate;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  min-height: 3rem;
+  padding: 0 1.6rem;
+  border-radius: 999px;
+  font-size: 0.9375rem;
+  font-weight: 560;
+  letter-spacing: -0.01em;
+  white-space: nowrap;
+  cursor: pointer;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transform: translate3d(var(--mx, 0px), calc(var(--my, 0px) + var(--lift)), 0) scale(var(--press, 1));
+  transition:
+    transform 0.55s var(--ease-spring),
+    box-shadow 0.45s var(--ease-out),
+    background-color 0.3s,
+    border-color 0.3s,
+    color 0.3s;
+}
+
+/* Lumière qui suit le curseur à l'intérieur du bouton. */
+.btn::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  border-radius: inherit;
+  background: radial-gradient(140px circle at var(--px, 50%) var(--py, 50%), rgb(255 255 255 / 0.55), transparent 65%);
+  opacity: 0;
+  transition: opacity 0.35s;
+}
+
+/* Éclat à l'appui. */
+.btn::after {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: inherit;
+  pointer-events: none;
+  opacity: 0;
+}
+
+.btn:active {
+  --press: 0.955;
+  transition-duration: 0.09s, 0.09s, 0.2s, 0.2s, 0.2s;
+}
+
+.btn:active::after {
+  animation: press-flash 0.55s var(--ease-out);
+}
+
+@keyframes press-flash {
+  0% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 rgb(220 197 146 / 0.55);
+  }
+  100% {
+    opacity: 0;
+    box-shadow: 0 0 0 14px rgb(220 197 146 / 0);
+  }
+}
+
+.btn-primary {
+  color: #0a0a0a;
+  background: linear-gradient(180deg, #faf7f1 0%, #e9e2d5 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.9),
+    inset 0 -1px 0 rgb(0 0 0 / 0.14),
+    0 1px 2px rgb(0 0 0 / 0.5),
+    0 10px 30px -12px rgb(198 167 106 / 0.45);
+}
+
+.btn-secondary {
+  color: var(--fg);
+  background: rgb(242 238 230 / 0.045);
+  border: 1px solid rgb(242 238 230 / 0.2);
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.06);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.btn-secondary::before {
+  background: radial-gradient(140px circle at var(--px, 50%) var(--py, 50%), rgb(220 197 146 / 0.22), transparent 65%);
+}
+
+.btn-sm {
+  min-height: 2.5rem;
+  padding: 0 1.15rem;
+  font-size: 0.875rem;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .btn:hover {
+    --lift: -2px;
+  }
+  .btn:hover::before {
+    opacity: 1;
+  }
+  .btn-primary:hover {
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.9),
+      inset 0 -1px 0 rgb(0 0 0 / 0.14),
+      0 0 0 1px rgb(220 197 146 / 0.75),
+      0 2px 4px rgb(0 0 0 / 0.5),
+      0 18px 44px -12px rgb(198 167 106 / 0.7);
+  }
+  .btn-secondary:hover {
+    border-color: rgb(220 197 146 / 0.55);
+    background: rgb(242 238 230 / 0.08);
+    box-shadow:
+      inset 0 1px 0 rgb(255 255 255 / 0.08),
+      0 14px 40px -16px rgb(198 167 106 / 0.5);
+  }
+}
+
+.btn-primary:active {
+  box-shadow:
+    inset 0 2px 7px rgb(0 0 0 / 0.28),
+    0 0 0 1px rgb(220 197 146 / 0.6);
+}
+
+/* Sur fond clair, le bouton principal s'inverse. */
+.tone-paper .btn-primary {
+  color: #f2eee6;
+  background: linear-gradient(180deg, #2a2723 0%, #0f0e0c 100%);
+  box-shadow:
+    inset 0 1px 0 rgb(255 255 255 / 0.12),
+    0 1px 2px rgb(0 0 0 / 0.3),
+    0 12px 30px -14px rgb(0 0 0 / 0.55);
+}
+
+.tone-paper .btn-primary::before {
+  background: radial-gradient(140px circle at var(--px, 50%) var(--py, 50%), rgb(220 197 146 / 0.35), transparent 65%);
+}
+
+.tone-paper .btn-secondary {
+  color: var(--fg);
+  background: rgb(10 10 10 / 0.03);
+  border-color: rgb(10 10 10 / 0.22);
+}
+
+/* Carte cliquable : elle se soulève et s'éclaire sous le curseur. */
+.lift-card {
+  transition:
+    transform 0.6s var(--ease-spring),
+    box-shadow 0.6s var(--ease-out),
+    border-color 0.4s;
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .lift-card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 30px 70px -30px rgb(0 0 0 / 0.9), 0 0 0 1px rgb(220 197 146 / 0.25);
+  }
+}
+
+.lift-card:active {
+  transform: scale(0.985);
+  transition-duration: 0.12s;
+}
+
+/* Halo du curseur — ordinateur seulement. */
+.cursor-halo {
+  position: fixed;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  width: 520px;
+  height: 520px;
+  margin: -260px 0 0 -260px;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(closest-side, rgb(198 167 106 / 0.08), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.6s;
+  will-change: transform;
+}
+
+html.has-pointer .cursor-halo {
+  opacity: 1;
+}
+
+@media (hover: none), (pointer: coarse), (prefers-reduced-motion: reduce) {
+  .cursor-halo {
+    display: none;
+  }
+}
+
+/* ==========================================================================
+   Transitions de page : le contenu arrive, un trait laiton balaie le haut.
+   ========================================================================== */
+
+@media (prefers-reduced-motion: no-preference) {
+  .page-enter {
+    animation: page-enter 0.55s var(--ease-out) both;
+  }
+  .page-sweep {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    z-index: 70;
+    height: 2px;
+    pointer-events: none;
+    transform-origin: left;
+    background: linear-gradient(90deg, transparent, var(--color-gold-2), var(--color-gold));
+    animation: page-sweep 0.9s var(--ease-out) both;
+  }
+}
+
+@keyframes page-enter {
+  from {
+    opacity: 0.001;
+    transform: translate3d(0, 14px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes page-sweep {
+  0% {
+    transform: scaleX(0);
+    opacity: 1;
+  }
+  60% {
+    transform: scaleX(1);
+    opacity: 1;
+  }
+  100% {
+    transform: scaleX(1);
+    opacity: 0;
+  }
+}
+
+/* Flottement lent des visuels du hero. */
+@media (prefers-reduced-motion: no-preference) {
+  .float-a {
+    animation: float 7s ease-in-out infinite;
+  }
+  .float-b {
+    animation: float 8.5s ease-in-out -2s infinite;
+  }
+  .float-c {
+    animation: float 9.5s ease-in-out -4s infinite;
+  }
+}
+
+@keyframes float {
+  0%,
+  100% {
+    translate: 0 0;
+  }
+  50% {
+    translate: 0 -10px;
+  }
+}
+
+/* ==========================================================================
+   Scène 3D du hero : chaque plan a sa profondeur (--depth). La scène
+   s'incline vers le curseur (--rx, --ry posés par Interactions.tsx) et les
+   plans glissent à des vitesses différentes au défilement.
+   ========================================================================== */
+
+.stage {
+  perspective: 1600px;
+  transform-style: preserve-3d;
+  transform: rotateX(var(--rx, 0deg)) rotateY(var(--ry, 0deg));
+  transition: transform 0.9s var(--ease-out);
+}
+
+.stage .plane {
+  transform: translateZ(var(--depth, 0px));
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .stage .plane {
+      animation: plane-drift linear both;
+      animation-timeline: view();
+      animation-range: exit 0% exit 100%;
+    }
+  }
+  .scroll-cue {
+    animation: scroll-cue 2.2s var(--ease-in-out) infinite;
+  }
+}
+
+@keyframes plane-drift {
+  from {
+    transform: translateZ(var(--depth, 0px)) translateY(0);
+  }
+  to {
+    transform: translateZ(var(--depth, 0px)) translateY(calc(var(--depth, 0px) * -2.2));
+  }
+}
+
+@keyframes scroll-cue {
+  from {
+    transform: translateY(-100%);
+  }
+  to {
+    transform: translateY(200%);
+  }
+}
+
+/* Étapes du formulaire : l'étape suivante arrive par la droite, la
+   précédente par la gauche. */
+@media (prefers-reduced-motion: no-preference) {
+  .step-in-next {
+    animation: step-next 0.5s var(--ease-out) both;
+  }
+  .step-in-back {
+    animation: step-back 0.5s var(--ease-out) both;
+  }
+  .chip-pop {
+    animation: chip-pop 0.4s var(--ease-spring);
+  }
+}
+
+@keyframes step-next {
+  from { opacity: 0; transform: translateX(24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes step-back {
+  from { opacity: 0; transform: translateX(-24px); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes chip-pop {
+  0% { transform: scale(0.92); }
+  60% { transform: scale(1.04); }
+  100% { transform: scale(1); }
+}
+
+/* Défilement horizontal infini (bande des métiers). */
+@media (prefers-reduced-motion: no-preference) {
+  .marquee {
+    animation: marquee 48s linear infinite;
+  }
+  .marquee-host:hover .marquee {
+    animation-play-state: paused;
+  }
+}
+
+@keyframes marquee {
+  from { transform: translate3d(0, 0, 0); }
+  to { transform: translate3d(-50%, 0, 0); }
 }

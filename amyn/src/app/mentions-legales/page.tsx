@@ -64,6 +64,14 @@ export default function LegalNoticePage() {
           Les polices de caractères utilisées (Geist, Geist Mono, Instrument Serif)
           sont distribuées sous licence libre SIL Open Font License.
         </p>
+        <p>
+          Les photographies qui illustrent les concepts proviennent de la banque{" "}
+          <a href="https://unsplash.com/license" rel="noopener noreferrer" target="_blank">
+            Unsplash
+          </a>{" "}
+          et sont utilisées selon sa licence. Elles ne représentent aucun client
+          d&apos;AMYN.
+        </p>
       </LegalSection>
 
       <LegalSection title="Projets présentés">

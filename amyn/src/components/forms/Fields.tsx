@@ -208,9 +208,9 @@ export function ChoiceGroup<T extends string>({
             <label
               key={option}
               htmlFor={inputId}
-              className={`relative inline-flex min-h-11 cursor-pointer items-center gap-2 rounded-full border px-4 text-[0.9375rem] transition-colors duration-300 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
+              className={`relative inline-flex min-h-11 cursor-pointer select-none items-center gap-2 rounded-full border px-4 text-[0.9375rem] transition-[background-color,border-color,color,transform] duration-300 active:scale-95 has-[:focus-visible]:outline has-[:focus-visible]:outline-2 has-[:focus-visible]:outline-offset-2 has-[:focus-visible]:outline-accent ${
                 on
-                  ? "border-fg bg-fg text-canvas"
+                  ? "chip-pop border-fg bg-fg text-canvas shadow-[0_8px_24px_-12px_rgb(198_167_106/0.6)]"
                   : `${error ? "border-error" : "border-line-strong"} text-fg-2 hover:border-fg hover:text-fg`
               } ${disabled ? "pointer-events-none opacity-60" : ""}`}
             >

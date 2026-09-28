@@ -7,17 +7,18 @@ import { buttonClass } from "@/components/ui/Button";
 import { ArrowRight } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Layout";
 import { cta, mainNav, site } from "@/lib/site";
-import { Logo } from "./Logo";
+import { AmynMark, Logo } from "./Logo";
 
 /**
- * En-tête du site.
+ * En-tête.
  *
- * Transparent en haut de page ; dès qu'on défile, un voile flou et un filet
- * le détachent du contenu. Une seule action forte : le premier aperçu.
+ * Transparent en haut de page ; dès qu'on défile, il devient une barre de
+ * verre (flou, filet, ombre douce). Une seule action : le premier aperçu.
  *
- * Sur téléphone, le menu occupe l'écran. Il se referme avec Échap, au
- * changement de page, et garde le focus clavier à l'intérieur tant qu'il
- * est ouvert.
+ * Sur téléphone, le menu s'ouvre en cercle depuis le bouton, comme une
+ * application : grands liens numérotés, arrivée en cascade, action en bas
+ * à portée du pouce. Il se referme avec Échap, au changement de page, et
+ * garde le focus clavier à l'intérieur tant qu'il est ouvert.
  */
 export function SiteHeader() {
   const pathname = usePathname();
@@ -46,18 +47,16 @@ export function SiteHeader() {
     document.documentElement.classList.toggle("menu-open", open);
     if (!open) return;
 
-    /* Le panneau devient visible pendant sa transition : on attend une
-       image avant de placer le focus sur le premier lien. */
+    /* Le panneau s'ouvre pendant sa transition : on attend avant de placer
+       le focus sur le premier lien. */
     const focusTimer = window.setTimeout(
       () => panel.current?.querySelector<HTMLElement>("a")?.focus(),
-      60,
+      120,
     );
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") return close();
       if (event.key !== "Tab" || !panel.current) return;
-
-      /* Le focus tourne entre le bouton de fermeture et les liens du menu. */
       const focusables = [
         toggle.current,
         ...panel.current.querySelectorAll<HTMLElement>("a"),
@@ -81,27 +80,25 @@ export function SiteHeader() {
     };
   }, [open, close]);
 
-  const isActive = (href: string) =>
-    pathname === href || pathname.startsWith(`${href}/`);
-
-  const solid = scrolled || open;
+  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const solid = scrolled && !open;
 
   return (
     <>
       <header
-        className={`tone-ink fixed inset-x-0 top-0 z-50 border-b transition-[background-color,border-color,backdrop-filter] duration-500 ${
+        className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ${
           solid
-            ? "border-line bg-[rgb(10_10_10/0.82)] backdrop-blur-xl"
-            : "border-transparent bg-transparent"
+            ? "border-b border-[rgb(242_238_230/0.08)] bg-[rgb(10_10_10/0.62)] shadow-[0_10px_40px_-20px_rgb(0_0_0/0.9)] backdrop-blur-2xl backdrop-saturate-150"
+            : "border-b border-transparent bg-transparent"
         }`}
       >
         <Container className="flex h-[var(--header-h)] items-center justify-between gap-6">
-          <Link href="/" aria-label={`${site.name} — accueil`} className="-m-2 p-2">
+          <Link href="/" aria-label={`${site.name} — accueil`} className="-m-2 p-2 text-bone">
             <Logo />
           </Link>
 
           <nav aria-label="Navigation principale" className="hidden lg:block">
-            <ul className="flex items-center gap-9">
+            <ul className="flex items-center gap-1 rounded-full border border-[rgb(242_238_230/0.08)] bg-[rgb(242_238_230/0.03)] p-1 backdrop-blur-md">
               {mainNav.map((item) => {
                 const active = isActive(item.href);
                 return (
@@ -109,17 +106,13 @@ export function SiteHeader() {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative py-2 text-[0.9375rem] transition-colors duration-300 ${
-                        active ? "text-fg" : "text-fg-2 hover:text-fg"
+                      className={`relative block rounded-full px-4 py-2 text-[0.875rem] font-medium transition-[background-color,color] duration-300 active:scale-[0.97] ${
+                        active
+                          ? "bg-[rgb(242_238_230/0.1)] text-bone"
+                          : "text-bone-2 hover:bg-[rgb(242_238_230/0.06)] hover:text-bone"
                       }`}
                     >
                       {item.label}
-                      <span
-                        aria-hidden
-                        className={`absolute inset-x-0 -bottom-0.5 h-px origin-left bg-accent transition-transform duration-500 ease-[var(--ease-out)] ${
-                          active ? "scale-x-100" : "scale-x-0"
-                        }`}
-                      />
                     </Link>
                   </li>
                 );
@@ -127,18 +120,9 @@ export function SiteHeader() {
             </ul>
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-6">
-            <Link
-              href={cta.project.href}
-              className="link-line hidden text-[0.9375rem] text-fg-2 transition-colors hover:text-fg xl:inline"
-            >
-              {cta.project.label}
-            </Link>
+          <div className="flex items-center gap-2">
             <span className="hidden md:block">
-              <Link
-                href={cta.firstLook.href}
-                className={buttonClass("primary", "!min-h-10 !px-5 text-[0.875rem]")}
-              >
+              <Link href={cta.firstLook.href} data-magnetic="" className={buttonClass("primary", "", "sm")}>
                 {cta.firstLook.label}
                 <ArrowRight className="nudge size-4" />
               </Link>
@@ -153,17 +137,17 @@ export function SiteHeader() {
               }}
               aria-expanded={open}
               aria-controls="menu-mobile"
-              className="-mr-2 flex min-h-11 items-center gap-3 px-2 text-[0.9375rem] text-fg lg:hidden"
+              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+              className="relative -mr-1 flex size-11 items-center justify-center rounded-full border border-[rgb(242_238_230/0.14)] bg-[rgb(242_238_230/0.05)] text-bone backdrop-blur-md transition-transform duration-150 active:scale-90 lg:hidden"
             >
-              <span>{open ? "Fermer" : "Menu"}</span>
-              <span aria-hidden className="relative block h-3 w-5">
+              <span aria-hidden className="relative block h-3 w-[18px]">
                 <span
-                  className={`absolute left-0 top-0.5 h-px w-5 bg-current transition-transform duration-500 ease-[var(--ease-out)] ${
+                  className={`absolute left-0 top-0.5 h-[1.5px] w-full rounded bg-current transition-transform duration-500 ease-[var(--ease-spring)] ${
                     open ? "translate-y-[4px] rotate-45" : ""
                   }`}
                 />
                 <span
-                  className={`absolute bottom-0.5 left-0 h-px w-5 bg-current transition-transform duration-500 ease-[var(--ease-out)] ${
+                  className={`absolute bottom-0.5 left-0 h-[1.5px] w-full rounded bg-current transition-transform duration-500 ease-[var(--ease-spring)] ${
                     open ? "-translate-y-[4px] -rotate-45" : ""
                   }`}
                 />
@@ -173,9 +157,7 @@ export function SiteHeader() {
         </Container>
       </header>
 
-      {/* Menu mobile. Toujours présent dans le DOM pour animer son entrée,
-          mais retiré du parcours clavier et des lecteurs d'écran quand il
-          est fermé. */}
+      {/* Menu mobile : il s'ouvre en cercle depuis le bouton. */}
       <div
         id="menu-mobile"
         ref={panel}
@@ -183,50 +165,65 @@ export function SiteHeader() {
         aria-modal="true"
         aria-label="Menu"
         inert={!open}
-        className={`tone-ink fixed inset-0 z-40 flex flex-col overflow-y-auto pt-[var(--header-h)] transition-[opacity,visibility] duration-500 ease-[var(--ease-out)] lg:hidden ${
-          open ? "visible opacity-100" : "invisible opacity-0"
+        style={{
+          clipPath: open
+            ? "circle(150% at calc(100% - 2.4rem) 2.1rem)"
+            : "circle(0% at calc(100% - 2.4rem) 2.1rem)",
+        }}
+        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto bg-[#0b0b0b] pt-[var(--header-h)] transition-[clip-path,visibility] duration-[650ms] ease-[var(--ease-in-out)] motion-reduce:transition-none lg:hidden ${
+          open ? "visible" : "invisible"
         }`}
       >
-        <Container className="flex flex-1 flex-col justify-between gap-12 pb-10 pt-8">
+        <div aria-hidden className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute -right-24 -top-24 size-[28rem] rounded-full bg-[radial-gradient(closest-side,rgb(198_167_106/0.18),transparent_70%)]" />
+          <AmynMark className="absolute -bottom-10 -left-10 size-72 text-[rgb(242_238_230/0.035)]" accent="rgb(198 167 106 / 0.12)" />
+        </div>
+
+        <Container className="relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6">
           <nav aria-label="Menu principal">
-            <ul className="divide-y divide-line border-y border-line">
-              {[...mainNav, { label: "Contact", href: cta.project.href }].map((item, i) => (
+            <ul>
+              {[...mainNav, { label: "Premier aperçu", href: cta.firstLook.href }].map((item, i) => (
                 <li
                   key={item.href}
                   className={`transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${
-                    open ? "translate-y-0 opacity-100" : "translate-y-3 opacity-0"
+                    open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
                   }`}
-                  style={{ transitionDelay: open ? `${80 + i * 50}ms` : "0ms" }}
+                  style={{ transitionDelay: open ? `${120 + i * 55}ms` : "0ms" }}
                 >
                   <Link
                     href={item.href}
                     onClick={() => close(false)}
                     aria-current={isActive(item.href) ? "page" : undefined}
-                    className="flex items-center justify-between py-4 font-serif text-[2rem] leading-tight text-fg"
+                    className="group flex items-baseline gap-4 border-b border-[rgb(242_238_230/0.08)] py-4 active:opacity-70"
                   >
-                    {item.label}
-                    <ArrowRight className="size-5 text-fg-3" />
+                    <span className="label w-7 text-gold">0{i + 1}</span>
+                    <span className="display-md flex-1 text-bone group-aria-[current=page]:text-gold-2">
+                      {item.label}
+                    </span>
+                    <ArrowRight className="size-5 translate-y-0.5 text-bone-3" />
                   </Link>
                 </li>
               ))}
             </ul>
           </nav>
 
-          <div className="flex flex-col gap-3">
+          <div
+            className={`flex flex-col gap-4 transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${
+              open ? "translate-y-0 opacity-100" : "translate-y-6 opacity-0"
+            }`}
+            style={{ transitionDelay: open ? "420ms" : "0ms" }}
+          >
             <Link
               href={cta.firstLook.href}
               onClick={() => close(false)}
-              className={buttonClass("primary", "w-full")}
+              className={buttonClass("primary", "w-full !min-h-14 text-[1rem]")}
             >
               {cta.firstLook.label}
               <ArrowRight className="nudge size-4" />
             </Link>
-            <p className="mt-3 text-center text-[0.875rem] text-fg-3">
-              Ou écrivez-nous :{" "}
-              <a href={`mailto:${site.email}`} className="text-fg-2 underline underline-offset-4">
-                {site.email}
-              </a>
-            </p>
+            <a href={`mailto:${site.email}`} className="text-center text-[0.9375rem] text-bone-2">
+              {site.email}
+            </a>
           </div>
         </Container>
       </div>

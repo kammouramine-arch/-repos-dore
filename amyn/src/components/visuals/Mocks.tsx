@@ -317,15 +317,14 @@ export function AppMock({
 /* Aucune marque de moteur de recherche, aucune note, aucun avis.           */
 /* ------------------------------------------------------------------------ */
 
-export function ProfileMock() {
+export function ProfileMock({ photo }: { photo?: string }) {
   return (
     <div className="flex h-full w-full flex-col" style={{ background: "#FFFFFF", color: ui.ink }}>
-      <div className="grid h-[200px] grid-cols-3 gap-[3px]">
-        <div className="col-span-2" style={{ background: "linear-gradient(150deg,#6E7E72,#1F3B2F)" }} />
-        <div className="grid grid-rows-2 gap-[3px]">
-          <div style={{ background: "linear-gradient(200deg,#CFC8BA,#8E958B)" }} />
-          <div style={{ background: "linear-gradient(20deg,#3F5448,#A8B0A2)" }} />
-        </div>
+      <div className="h-[220px] overflow-hidden" style={{ background: "linear-gradient(150deg,#6E7E72,#1F3B2F)" }}>
+        {photo && (
+          // eslint-disable-next-line @next/next/no-img-element -- capturé en image
+          <img src={photo} alt="" className="h-full w-full object-cover" />
+        )}
       </div>
 
       <div className="px-6 pt-5">
@@ -481,7 +480,7 @@ export function OnboardingMock() {
 /* Portfolio — 1280 × 800                                                    */
 /* ------------------------------------------------------------------------ */
 
-export function PortfolioMock() {
+export function PortfolioMock({ photos }: { photos?: string[] }) {
   const tone = (a: string, b: string, angle = 160) => ({
     background: `radial-gradient(60% 55% at 30% 30%, ${b} 0%, transparent 70%), linear-gradient(${angle}deg, ${a}, ${b})`,
   });
@@ -523,10 +522,214 @@ export function PortfolioMock() {
         </div>
 
         <div className="grid grid-cols-2 grid-rows-[1.5fr_1fr] gap-3">
-          <div className="col-span-2 rounded-md" style={tone("#A98A5F", "#E3D4B8")} />
-          <div className="rounded-md" style={tone("#8A6A3F", "#C9B99C", 20)} />
-          <div className="rounded-md" style={tone("#6E5635", "#B8A07A", 200)} />
+          {[0, 1, 2].map((i) =>
+            photos?.[i] ? (
+              // eslint-disable-next-line @next/next/no-img-element -- capturé en image
+              <img key={i} src={photos[i]} alt="" className={`h-full w-full rounded-md object-cover ${i === 0 ? "col-span-2" : ""}`} />
+            ) : (
+              <div key={i} className={`rounded-md ${i === 0 ? "col-span-2" : ""}`} style={tone(["#A98A5F", "#8A6A3F", "#6E5635"][i], ["#E3D4B8", "#C9B99C", "#B8A07A"][i], [160, 20, 200][i])} />
+            ),
+          )}
         </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Maison Élan — carte (1280 × 800)                                          */
+/* ------------------------------------------------------------------------ */
+
+export function MenuMock({ photo }: { photo?: string }) {
+  const c = { bg: "#14110F", ink: "#F3EBE0", muted: "#A79A8B", line: "#332C26", accent: "#C2703F" };
+  const sections: [string, [string, string][]][] = [
+    ["Pour commencer", [["Velouté de potimarron, noisettes torréfiées", "Du moment"], ["Truite fumée maison, crème crue", "Du marché"]]],
+    ["Plats", [["Joue de bœuf confite, carottes glacées", "Du moment"], ["Merlu de ligne, beurre blanc aux herbes", "Arrivage"], ["Risotto de petit épeautre, champignons", "Végétarien"]]],
+    ["Desserts", [["Poire rôtie, sablé breton", "Maison"], ["Chocolat noir, sel fumé", "Maison"]]],
+  ];
+  return (
+    <div className="flex h-full w-full font-serif" style={{ background: c.bg, color: c.ink, fontFamily: "Georgia, serif" }}>
+      <div className="relative w-[42%] shrink-0 overflow-hidden">
+        {photo && (
+          // eslint-disable-next-line @next/next/no-img-element -- capturé en image
+          <img src={photo} alt="" className="absolute inset-0 h-full w-full object-cover" />
+        )}
+        <div className="absolute inset-0" style={{ background: "linear-gradient(90deg, transparent 55%, #14110F 100%)" }} />
+        <span className="absolute left-10 top-9 text-[15px] font-semibold uppercase tracking-[0.24em]">Maison Élan</span>
+      </div>
+      <div className="flex flex-1 flex-col px-14 py-12">
+        <div className="flex items-baseline justify-between">
+          <p className="text-[13px] uppercase tracking-[0.24em]" style={{ color: c.accent }}>La carte · semaine 42</p>
+          <span className="rounded-full px-5 py-2.5 text-[14px]" style={{ background: c.accent, color: c.bg }}>Réserver</span>
+        </div>
+        <p className="mt-5 text-[44px] leading-tight">La carte du moment</p>
+        <p className="mt-2 text-[16px]" style={{ color: c.muted }}>Elle change chaque semaine, selon ce que les producteurs apportent.</p>
+        <div className="mt-8 grid flex-1 gap-7">
+          {sections.map(([title, items]) => (
+            <div key={title}>
+              <p className="text-[13px] uppercase tracking-[0.2em]" style={{ color: c.muted }}>{title}</p>
+              {items.map(([dish, tag]) => (
+                <div key={dish} className="mt-3 flex items-baseline justify-between border-b pb-3" style={{ borderColor: c.line }}>
+                  <span className="text-[19px]">{dish}</span>
+                  <span className="text-[13px] italic" style={{ color: c.muted }}>{tag}</span>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Maison Élan — réservation d'une table, téléphone (390 × 800)             */
+/* ------------------------------------------------------------------------ */
+
+export function TableBookingMock() {
+  const c = { bg: "#14110F", panel: "#1C1815", ink: "#F3EBE0", muted: "#A79A8B", line: "#332C26", accent: "#C2703F" };
+  const times = ["19:00", "19:30", "20:00", "20:30", "21:00", "21:30"];
+  return (
+    <div className="flex h-full w-full flex-col" style={{ background: c.bg, color: c.ink }}>
+      <div className="px-6 pt-12">
+        <p className="text-center text-[14px] font-semibold uppercase tracking-[0.24em]" style={{ fontFamily: "Georgia, serif" }}>Maison Élan</p>
+        <p className="mt-8 text-[13px]" style={{ color: c.muted }}>Réserver une table</p>
+        <p className="mt-1 text-[28px] leading-tight" style={{ fontFamily: "Georgia, serif" }}>Ce soir, à quelle heure ?</p>
+      </div>
+      <div className="mx-6 mt-6 flex items-center justify-between rounded-2xl border px-5 py-4" style={{ borderColor: c.line, background: c.panel }}>
+        <div>
+          <p className="text-[12px]" style={{ color: c.muted }}>Couverts</p>
+          <p className="mt-0.5 text-[20px] font-medium">2 personnes</p>
+        </div>
+        <div className="flex gap-2">
+          <span className="flex size-9 items-center justify-center rounded-full border text-[18px]" style={{ borderColor: c.line }}>−</span>
+          <span className="flex size-9 items-center justify-center rounded-full border text-[18px]" style={{ borderColor: c.line }}>+</span>
+        </div>
+      </div>
+      <div className="mx-6 mt-3 flex gap-2 text-[14px]">
+        {["Ce soir", "Demain", "Sam. 18"].map((d, i) => (
+          <span key={d} className="flex-1 rounded-xl border py-2.5 text-center" style={i === 0 ? { background: c.ink, color: c.bg, borderColor: c.ink } : { borderColor: c.line, color: c.muted }}>{d}</span>
+        ))}
+      </div>
+      <div className="mx-6 mt-5 grid grid-cols-3 gap-2">
+        {times.map((t) => (
+          <span key={t} className="rounded-xl border py-3 text-center text-[16px]" style={t === "20:30" ? { background: c.accent, borderColor: c.accent, color: c.bg, fontWeight: 600 } : t === "20:00" ? { borderColor: c.line, color: "#6b625a", textDecoration: "line-through" } : { borderColor: c.line }}>{t}</span>
+        ))}
+      </div>
+      <p className="mx-6 mt-4 text-[13px] leading-snug" style={{ color: c.muted }}>Une table en terrasse reste disponible à 20:30.</p>
+      <div className="mt-auto px-6 pb-9">
+        <div className="rounded-2xl py-4 text-center text-[16px] font-semibold" style={{ background: c.accent, color: c.bg }}>Confirmer · 20:30, 2 pers.</div>
+        <p className="mt-3 text-center text-[12px]" style={{ color: c.muted }}>Confirmation immédiate par e-mail</p>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Thermia — fiche d'une demande (1280 × 800)                                */
+/* ------------------------------------------------------------------------ */
+
+export function QuoteDetailMock() {
+  const steps = ["Reçue", "Qualifiée", "Visite", "Devis envoyé", "Accepté"];
+  return (
+    <div className="flex h-full w-full" style={{ background: ui.bg, color: ui.ink }}>
+      <aside className="flex w-[232px] shrink-0 flex-col gap-1 border-r px-5 py-7" style={{ borderColor: ui.line }}>
+        <div className="mb-8 flex items-center gap-2.5">
+          <span className="size-7 rounded-md" style={{ background: ui.brand }} />
+          <span className="text-[16px] font-semibold">Thermia</span>
+        </div>
+        {["Demandes", "Clients", "Devis", "Relances", "Planning"].map((item, i) => (
+          <span key={item} className="rounded-md px-3 py-2.5 text-[15px]" style={i === 0 ? { background: ui.soft, fontWeight: 500 } : { color: ui.muted }}>{item}</span>
+        ))}
+      </aside>
+      <div className="flex flex-1 flex-col px-10 py-8">
+        <p className="text-[13px]" style={{ color: ui.muted }}>Demandes / DEM-0142</p>
+        <div className="mt-2 flex items-end justify-between">
+          <p className="text-[30px] font-semibold tracking-[-0.02em]">Rénovation salle de bain</p>
+          <span className="rounded-lg px-4 py-2.5 text-[14px] font-medium text-white" style={{ background: ui.brand }}>Préparer le devis</span>
+        </div>
+        <div className="mt-6 flex items-center gap-2">
+          {steps.map((s, i) => (
+            <div key={s} className="flex flex-1 items-center gap-2">
+              <span className="flex size-6 items-center justify-center rounded-full text-[12px] font-semibold" style={i < 2 ? { background: ui.brand, color: "#fff" } : i === 2 ? { border: `2px solid ${ui.brand}`, color: ui.brand } : { border: `1.5px solid ${ui.line}`, color: ui.faint }}>{i < 2 ? "✓" : i + 1}</span>
+              <span className="text-[13px]" style={{ color: i <= 2 ? ui.ink : ui.muted }}>{s}</span>
+              {i < steps.length - 1 && <span className="h-px flex-1" style={{ background: i < 2 ? ui.brand : ui.line }} />}
+            </div>
+          ))}
+        </div>
+        <div className="mt-8 grid flex-1 grid-cols-[1.25fr_1fr] gap-6">
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl border p-5" style={{ background: ui.panel, borderColor: ui.line }}>
+              <p className="text-[14px] font-medium">Demande du client</p>
+              <p className="mt-2 text-[15px] leading-relaxed" style={{ color: "#3B3833" }}>Remplacer la baignoire par une douche à l&apos;italienne, reprendre le carrelage et changer le meuble vasque. Appartement au 3ᵉ étage, sans ascenseur.</p>
+              <div className="mt-4 flex flex-wrap gap-2 text-[13px]">
+                {["Formulaire du site", "Photos jointes : 4", "Surface : 6 m²"].map((t) => (
+                  <span key={t} className="rounded-md px-2.5 py-1" style={{ background: ui.soft }}>{t}</span>
+                ))}
+              </div>
+            </div>
+            <div className="rounded-xl border p-5" style={{ background: ui.panel, borderColor: ui.line }}>
+              <p className="text-[14px] font-medium">Notes internes</p>
+              <p className="mt-2 text-[14px]" style={{ color: ui.muted }}>Évacuation à vérifier sur place. Prévoir un créneau de visite en fin de matinée.</p>
+            </div>
+          </div>
+          <div className="flex flex-col gap-4">
+            <div className="rounded-xl p-5" style={{ background: ui.warnSoft }}>
+              <p className="text-[14px] font-medium" style={{ color: ui.warn }}>Informations manquantes</p>
+              <ul className="mt-2 space-y-1.5 text-[14px]" style={{ color: "#6a3a22" }}>
+                <li>• Dimensions exactes de la pièce</li>
+                <li>• Type de chauffage actuel</li>
+              </ul>
+              <p className="mt-3 text-[13px] font-medium" style={{ color: ui.warn }}>Relance envoyée automatiquement hier</p>
+            </div>
+            <div className="rounded-xl border p-5" style={{ background: ui.panel, borderColor: ui.line }}>
+              <p className="text-[14px] font-medium">Prochaine action</p>
+              <p className="mt-2 text-[20px] font-semibold">Visite jeudi 14 · 11:00</p>
+              <p className="mt-1 text-[13px]" style={{ color: ui.muted }}>Technicien : Karim · rappel la veille</p>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+/* ------------------------------------------------------------------------ */
+/* Thermia — interventions du jour, téléphone (390 × 800)                    */
+/* ------------------------------------------------------------------------ */
+
+export function TechnicianMock() {
+  const jobs: [string, string, string, boolean][] = [
+    ["08:30", "Entretien chaudière", "Rue des Tanneurs", true],
+    ["10:15", "Fuite sous évier", "Place du Marché", true],
+    ["11:00", "Visite · salle de bain", "Avenue Foch, 3ᵉ ét.", false],
+    ["14:30", "Remplacement ballon", "Chemin des Vignes", false],
+  ];
+  return (
+    <div className="flex h-full w-full flex-col" style={{ background: "#0F1418", color: "#EDF1F4" }}>
+      <div className="px-6 pt-12">
+        <div className="flex items-center justify-between">
+          <span className="text-[14px] font-semibold uppercase tracking-[0.22em]">Thermia</span>
+          <span className="rounded-full px-3 py-1 text-[12px]" style={{ background: "#1d2932", color: "#93A2AD" }}>Karim</span>
+        </div>
+        <p className="mt-8 text-[13px]" style={{ color: "#93A2AD" }}>Jeudi 14</p>
+        <p className="mt-1 text-[28px] font-semibold leading-tight tracking-[-0.02em]">4 interventions</p>
+      </div>
+      <div className="mx-6 mt-6 flex flex-col gap-3">
+        {jobs.map(([t, what, where, done]) => (
+          <div key={t} className="flex gap-4 rounded-2xl border px-4 py-4" style={{ borderColor: "#25303A", background: done ? "#121a20" : "#161D23", opacity: done ? 0.65 : 1 }}>
+            <span className="text-[15px] font-semibold" style={{ color: done ? "#93A2AD" : "#E39B5B" }}>{t}</span>
+            <div className="flex-1">
+              <p className="text-[15px] font-medium">{what}</p>
+              <p className="text-[13px]" style={{ color: "#93A2AD" }}>{where}</p>
+            </div>
+            <span className="text-[12px]" style={{ color: done ? "#6fb58a" : "#93A2AD" }}>{done ? "Fait" : "À venir"}</span>
+          </div>
+        ))}
+      </div>
+      <div className="mt-auto px-6 pb-9">
+        <div className="rounded-2xl py-4 text-center text-[16px] font-semibold" style={{ background: "#E39B5B", color: "#0F1418" }}>Démarrer la visite de 11:00</div>
+        <p className="mt-3 text-center text-[12px]" style={{ color: "#93A2AD" }}>Photos, mesures et signature sur place</p>
       </div>
     </div>
   );

@@ -55,16 +55,10 @@ export default function PrivacyPage() {
             </thead>
             <tbody>
               <tr>
-                <th scope="row" className={`${cell} font-medium text-fg`}>Formulaire « Premier aperçu »</th>
-                <td className={cell}>Nom, entreprise, e-mail, téléphone et adresses web facultatifs, points à améliorer, précisions</td>
-                <td className={cell}>Étudier votre activité et vous répondre</td>
+                <th scope="row" className={`${cell} font-medium text-fg`}>Formulaire « Recevoir un premier aperçu »</th>
+                <td className={cell}>Nom, entreprise, e-mail, téléphone et présence en ligne facultatifs, services souhaités, besoin principal, échéance, description du projet</td>
+                <td className={cell}>Étudier votre activité, vous répondre et, si vous le souhaitez, préparer un devis</td>
                 <td className={cell}>Mesures précontractuelles prises à votre demande (art. 6.1.b RGPD)</td>
-              </tr>
-              <tr>
-                <th scope="row" className={`${cell} font-medium text-fg`}>Formulaire « Parler de votre projet »</th>
-                <td className={cell}>Nom, entreprise, e-mail, téléphone et site facultatifs, services, situation, objectif, budget, échéance, description</td>
-                <td className={cell}>Répondre à votre demande et préparer un devis</td>
-                <td className={cell}>Mesures précontractuelles (art. 6.1.b)</td>
               </tr>
               <tr>
                 <th scope="row" className={`${cell} font-medium text-fg`}>E-mails échangés</th>

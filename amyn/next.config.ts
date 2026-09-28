@@ -23,6 +23,18 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  /* Écrans et photos servis en AVIF (WebP en repli), à la bonne taille.
+     Les captures d'interface gardent une qualité plus haute : du texte y
+     est lisible. */
+  images: {
+    formats: ["image/avif", "image/webp"],
+    qualities: [70, 82],
+  },
+  /* Un seul parcours : l'ancienne page de contact mène au premier aperçu
+     (les paramètres de l'adresse, comme ?service=, sont conservés). */
+  async redirects() {
+    return [{ source: "/contact", destination: "/premier-apercu", permanent: true }];
+  },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

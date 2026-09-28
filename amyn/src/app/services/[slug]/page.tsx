@@ -8,7 +8,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { ArrowRight } from "@/components/ui/Icons";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Container, Heading, Label, Section, Tag, delay } from "@/components/ui/Layout";
-import { ServiceVisual } from "@/components/visuals/ServiceVisual";
+import { Shot } from "@/components/visuals/Shots";
+import { shot } from "@/lib/visuals";
 import { QUOTE_LABEL, priceLabel } from "@/lib/pricing";
 import { pageMetadata, serviceSchema } from "@/lib/seo";
 import { serviceBySlug, servicePath, services } from "@/lib/services";
@@ -66,26 +67,29 @@ export default async function ServicePage({
         size="lg"
         lines={[{ text: service.hero.title }, { accent: service.hero.accent }]}
         lead={service.hero.intro}
-        aside={<ServiceVisual visual={service.visual} />}
+        aside={
+          <div className={shot(service.shot).kind === "phone" ? "mx-auto w-[62%] max-w-[19rem]" : ""}>
+            <div className="float-a">
+              <Shot id={service.shot} eager sizes="(min-width: 1024px) 40vw, 92vw" />
+            </div>
+          </div>
+        }
       >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4">
           <ButtonLink href={`${cta.firstLook.href}?besoin=${service.slug}`}>
             {cta.firstLook.label}
           </ButtonLink>
-          <ButtonLink href={`${cta.project.href}?service=${service.slug}`} variant="secondary">
-            {cta.project.label}
-          </ButtonLink>
         </div>
       </PageHero>
 
       {/* Le problème */}
-      <Section tone="ink-2" labelledBy="probleme-titre">
+      <Section tone="ink-2" labelledBy="probleme-titre" className="seam">
         <Container className="grid gap-12 lg:grid-cols-12 lg:gap-10">
           <div className="lg:col-span-6">
             <div data-reveal="fade">
               <Label>Le problème</Label>
             </div>
-            <Heading id="probleme-titre" size="md" className="mt-8" lines={[{ text: service.problem.title }]} />
+            <Heading id="probleme-titre" className="mt-8" lines={[{ text: service.problem.title }]} />
             <p data-reveal className="lead mt-8 text-fg-2" style={delay(120)}>
               {service.problem.body}
             </p>
@@ -112,14 +116,14 @@ export default async function ServicePage({
       </Section>
 
       {/* La réponse */}
-      <Section labelledBy="reponse-titre">
+      <Section labelledBy="reponse-titre" className="seam">
         <Container>
           <div className="grid gap-12 lg:grid-cols-12 lg:gap-10">
             <div className="lg:col-span-6">
               <div data-reveal="fade">
                 <Label>Notre réponse</Label>
               </div>
-              <Heading id="reponse-titre" size="md" className="mt-8" lines={[{ text: service.solution.title }]} />
+              <Heading id="reponse-titre" className="mt-8" lines={[{ text: service.solution.title }]} />
             </div>
             <p data-reveal className="lead text-fg-2 lg:col-span-5 lg:col-start-8 lg:mt-16">
               {service.solution.body}
@@ -179,7 +183,7 @@ export default async function ServicePage({
       </Section>
 
       {/* Déroulement et périmètre */}
-      <Section labelledBy="deroulement-titre">
+      <Section labelledBy="deroulement-titre" className="seam">
         <Container>
           <div data-reveal="fade">
             <Label>Déroulement</Label>

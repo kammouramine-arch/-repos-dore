@@ -9,7 +9,6 @@ const studio = [
   { label: "Méthode", href: "/methode" },
   { label: "À propos", href: "/a-propos" },
   { label: "Premier aperçu", href: cta.firstLook.href },
-  { label: "Contact", href: cta.project.href },
 ];
 
 export function SiteFooter() {
