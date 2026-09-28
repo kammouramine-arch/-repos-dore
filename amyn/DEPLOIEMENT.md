@@ -39,7 +39,7 @@ La commande liste tout ce qui manque. Aujourd'hui :
 4. **Durées de conservation** — `retention` : valider les durées
    annoncées dans la politique de confidentialité, puis les appliquer dans
    la boîte mail et l'outil de prospection.
-5. **Envoi des formulaires** — voir ci-dessous.
+5. **Envoi des formulaires** — voir ci-dessous (`SMTP_PASSWORD`).
 
 Tant que les mentions légales sont incomplètes, les pages concernées
 affichent des emplacements « [À COMPLÉTER — …] », sont en `noindex` et
@@ -47,25 +47,20 @@ absentes du plan du site.
 
 ## Activer l'envoi des formulaires
 
-Les deux formulaires envoient les demandes par l'API HTTP de **Resend**.
+Les deux formulaires arrivent dans la boîte existante **contact@amyn.agency**,
+par le serveur d'envoi d'OVHcloud (`ssl0.ovh.net`, port 465). Le domaine
+publie déjà SPF (`include:mx.ovh.com`), DKIM OVH et DMARC : aucun service
+tiers, aucune nouvelle adresse, aucun changement DNS.
 
-1. Créer une clé sur <https://resend.com> (API Keys).
-2. Vercel → Project → Settings → Environment Variables :
+1. Vercel → Project → Settings → Environment Variables → ajouter
+   `SMTP_PASSWORD` = mot de passe de la boîte contact@amyn.agency,
+   type **Sensitive**, environnements **Production** et **Preview**.
+2. Redéployer la preview, envoyer une demande de test depuis
+   `/premier-apercu` et depuis `/contact`, vérifier leur arrivée dans la
+   boîte (expéditeur « Site AMYN », « Répondre » écrit au demandeur).
 
-   | Nom | Valeur | Portée |
-   |---|---|---|
-   | `RESEND_API_KEY` | la clé `re_…` | Production + Preview |
-   | `CONTACT_TO_EMAIL` | l'adresse qui reçoit les demandes (défaut : contact@amyn.agency) | Production + Preview |
-   | `CONTACT_FROM_EMAIL` | *(facultatif)* expéditeur vérifié, ex. `AMYN <contact@send.amyn.agency>` | — |
-
-3. Redéployer, puis envoyer une demande de test depuis `/premier-apercu`
-   et depuis `/contact`.
-
-Pour un expéditeur à votre nom, vérifier un **sous-domaine** chez Resend
-(`send.amyn.agency`) : les MX OVH du domaine racine restent intacts.
-
-> Ne jamais committer de clé. `.env*` est ignoré par git (sauf
-> `.env.example`, sans valeur).
+> Si le mot de passe de la boîte change, mettre à jour la variable.
+> Ne jamais committer de secret : `.env*` est ignoré par git.
 
 ## Après la mise en ligne
 

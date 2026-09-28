@@ -14,7 +14,8 @@ export const metadata = pageMetadata({
 
 /**
  * Politique de confidentialité — décrit les traitements RÉELS :
- *   - les deux formulaires du site (envoi par e-mail via Resend) ;
+ *   - les deux formulaires du site, remis à la boîte contact@amyn.agency
+ *     par le serveur d'envoi d'OVHcloud (aucun service d'envoi tiers) ;
  *   - les échanges par e-mail (boîte hébergée chez OVH, constatée par les
  *     enregistrements MX du domaine) ;
  *   - la prospection B2B menée avec l'outil interne AMYN Outreach, qui ne
@@ -144,11 +145,8 @@ export default function PrivacyPage() {
             (États-Unis) ;
           </li>
           <li>
-            <span className="text-fg">Resend</span> — acheminement des e-mails envoyés
-            par les formulaires (États-Unis) ;
-          </li>
-          <li>
-            <span className="text-fg">OVHcloud</span> — messagerie professionnelle
+            <span className="text-fg">OVHcloud</span> — messagerie professionnelle,
+            y compris la réception des demandes envoyées par les formulaires
             (France) ;
           </li>
           <li>

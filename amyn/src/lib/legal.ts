@@ -30,8 +30,17 @@ export type LegalInfo = {
   insurance: string | null;
 };
 
+/*
+ * Éditeur : personne physique Amine Kammour, déjà confirmée comme éditeur
+ * et directeur de la publication dans la documentation juridique du dépôt
+ * (docs/acquisition, branche DEVISERA). Aucune immatriculation n'existe
+ * encore (création d'entreprise prévue) : SIREN, SIRET, forme juridique et
+ * mention TVA restent vides. L'adresse personnelle ne doit pas être publiée
+ * (décision consignée dans la même documentation) : il faut une adresse
+ * professionnelle ou une domiciliation.
+ */
 export const legal: LegalInfo = {
-  publisherName: null,
+  publisherName: "Amine Kammour",
   legalForm: null,
   shareCapital: null,
   siren: null,
@@ -40,7 +49,7 @@ export const legal: LegalInfo = {
   address: null,
   vatNumber: null,
   vatMention: null,
-  publicationDirector: null,
+  publicationDirector: "Amine Kammour",
   phone: null,
   insurance: null,
 };
@@ -48,16 +57,14 @@ export const legal: LegalInfo = {
 /**
  * Hébergeur — constaté sur l'infrastructure : les en-têtes HTTP de
  * amyn.agency (`server: Vercel`, `x-vercel-id`) et l'adresse DNS
- * (216.198.79.1) désignent Vercel. L'adresse postale ci-dessous est celle
- * que Vercel publie dans ses conditions ; à revérifier au moment de la mise
- * en ligne.
+ * (216.198.79.1) désignent Vercel. Adresse postale vérifiée le 28 septembre
+ * 2026 sur la page officielle vercel.com/legal/dmca-policy.
  */
 export const hosting = {
   name: "Vercel Inc.",
   address: "440 N Barranca Ave #4133, Covina, CA 91723, États-Unis",
   website: "https://vercel.com",
-  /* Mis à `true` une fois l'adresse vérifiée par l'éditeur. */
-  verified: false,
+  verified: true,
 } as const;
 
 /**

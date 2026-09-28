@@ -20,7 +20,9 @@ const problems: string[] = [
   ...missingLegalFields().map((k) => `Mentions légales — ${LEGAL_LABELS[k]}`),
   ...missingTerms().map((k) => `Conditions des services — ${TERMS_LABELS[k]}`),
   ...(hosting.verified ? [] : ["Hébergeur — adresse à vérifier (hosting.verified)"]),
-  ...(process.env.RESEND_API_KEY ? [] : ["Formulaires — RESEND_API_KEY absente de cet environnement"]),
+  ...(process.env.SMTP_PASSWORD
+    ? []
+    : ["Formulaires — SMTP_PASSWORD (mot de passe de contact@amyn.agency) absente de cet environnement"]),
 ];
 
 if (problems.length) {

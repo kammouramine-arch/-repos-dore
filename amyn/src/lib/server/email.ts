@@ -1,18 +1,24 @@
 import "server-only";
 
+import { sendSmtp } from "./smtp";
+
 /**
- * Envoi des e-mails de demande, par l'API HTTP de Resend.
+ * Envoi des e-mails de demande par la messagerie existante d'AMYN.
  *
- * Tout se passe côté serveur : la clé n'est lue que dans `process.env` et
- * ne traverse jamais le navigateur. Sans clé, en développement, la demande
- * est écrite dans la console du serveur ; en production, l'envoi est refusé
- * proprement.
+ * Le domaine amyn.agency est hébergé chez OVHcloud (MX Plan / Zimbra) : MX
+ * mx*.mail.ovh.net, SPF « include:mx.ovh.com », signature DKIM OVH. Le site
+ * s'authentifie donc comme la boîte contact@amyn.agency sur le serveur SMTP
+ * d'OVH et s'y envoie la demande. Aucun service tiers, aucune nouvelle
+ * adresse, aucun changement DNS. Le Reply-To porte l'adresse du demandeur :
+ * « Répondre » lui écrit directement.
+ *
+ * Seul secret : SMTP_PASSWORD (mot de passe de la boîte), lu uniquement ici,
+ * côté serveur, depuis les variables d'environnement Vercel. Sans lui, en
+ * développement la demande est écrite dans la console ; ailleurs, l'envoi
+ * est refusé proprement (le visiteur est invité à écrire directement).
  */
 
-const TO = process.env.CONTACT_TO_EMAIL || "contact@amyn.agency";
-/* Expéditeur technique : il n'est vu que dans la boîte d'AMYN. Le Reply-To
-   porte l'adresse du demandeur. */
-const FROM = process.env.CONTACT_FROM_EMAIL || "AMYN <onboarding@resend.dev>";
+const env = (key: string, fallback: string) => process.env[key]?.trim() || fallback;
 
 export type SendResult = "sent" | "console" | "unavailable" | "failed";
 
@@ -27,35 +33,41 @@ export async function sendRequestEmail({
   text: string;
   replyTo: string;
 }): Promise<SendResult> {
-  const apiKey = process.env.RESEND_API_KEY;
+  const pass = process.env.SMTP_PASSWORD;
+  const user = env("SMTP_USER", "contact@amyn.agency");
 
-  if (!apiKey) {
+  if (!pass) {
     if (process.env.NODE_ENV !== "production") {
       console.info(`\n[formulaire] ${subject} (mode développement, non envoyé)\n${text}\n`);
       return "console";
     }
-    console.error("[formulaire] RESEND_API_KEY manquante : envoi impossible.");
+    console.error("[formulaire] SMTP_PASSWORD manquante : envoi impossible.");
     return "unavailable";
   }
 
   try {
-    const response = await fetch("https://api.resend.com/emails", {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${apiKey}`,
-        "Content-Type": "application/json",
+    await sendSmtp(
+      {
+        host: env("SMTP_HOST", "ssl0.ovh.net"),
+        port: Number(env("SMTP_PORT", "465")),
+        secure: env("SMTP_SECURE", "true") !== "false",
+        user,
+        pass,
       },
-      body: JSON.stringify({ from: FROM, to: [TO], reply_to: replyTo, subject, html, text }),
-      signal: AbortSignal.timeout(10_000),
-    });
-
-    if (!response.ok) {
-      console.error(`[formulaire] Envoi refusé (${response.status}) : ${await response.text()}`);
-      return "failed";
-    }
+      {
+        /* L'expéditeur est la boîte authentifiée elle-même : SPF et DKIM
+           restent alignés sur amyn.agency. */
+        from: { name: "Site AMYN", address: user },
+        to: env("CONTACT_TO_EMAIL", "contact@amyn.agency"),
+        replyTo,
+        subject,
+        text,
+        html,
+      },
+    );
     return "sent";
   } catch (error) {
-    console.error("[formulaire] Envoi impossible :", error);
+    console.error("[formulaire] Envoi impossible :", error instanceof Error ? error.message : error);
     return "failed";
   }
 }
