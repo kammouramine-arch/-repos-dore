@@ -15,7 +15,7 @@ export type PricingMode = "quote" | "startingFrom" | "fixed";
 
 export type Pricing = {
   mode: PricingMode;
-  /** Montant pour `fixed` ou `startingFrom`, en unités (ex. 1490). */
+  /** Montant pour `fixed` ou `startingFrom`, en unités (ex. 1200). */
   amount?: number;
   currency?: "EUR";
   /** Mention fiscale validée (« HT », « TTC »…). Vide tant qu'elle ne l'est pas. */

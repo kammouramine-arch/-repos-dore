@@ -1,4 +1,4 @@
-import type { CSSProperties, ElementType, ReactNode } from "react";
+import { Fragment, type CSSProperties, type ElementType, type ReactNode } from "react";
 
 /**
  * Primitives de mise en page. Une largeur de contenu, un rythme vertical,
@@ -48,7 +48,7 @@ export function Section({
     <section
       id={id}
       aria-labelledby={labelledBy}
-      className={`tone-${tone} relative ${pad} ${className}`}
+      className={`tone-${tone} defer-render relative ${pad} ${className}`}
     >
       {children}
     </section>
@@ -83,6 +83,10 @@ export const delay = (ms: number) => ({ "--delay": ms }) as CSSProperties;
 
 export type HeadingLine = { text?: string; accent?: string };
 
+/* Apostrophe typographique dans les titres : l'apostrophe droite paraît
+   décollée dans le serif italique. */
+const typo = (text?: string) => text?.replace(/'/g, "\u2019");
+
 /* Noms de classes écrits en entier : Tailwind ne génère que ce qu'il lit. */
 const DISPLAY = {
   xl: "display-xl",
@@ -112,13 +116,17 @@ export function Heading({
   return (
     <Tag id={id} data-reveal="mask" className={`${DISPLAY[size]} ${className}`}>
       {lines.map((line, i) => (
-        <span key={i} className="mask-line" style={delay(i * 90)}>
-          <span>
-            {line.text}
-            {line.text && line.accent ? " " : null}
-            {line.accent && <em className="accent text-fg-2">{line.accent}</em>}
+        <Fragment key={i}>
+          <span className="mask-line" style={delay(i * 90)}>
+            <span>
+              {typo(line.text)}
+              {line.text && line.accent ? " " : null}
+              {line.accent && <em className="accent text-fg-2">{typo(line.accent)}</em>}
+            </span>
           </span>
-        </span>
+          {/* Espace entre les lignes pour les lecteurs d'écran. */}
+          {i < lines.length - 1 ? " " : null}
+        </Fragment>
       ))}
     </Tag>
   );
@@ -137,13 +145,16 @@ export function PageTitle({
   return (
     <h1 className={`${DISPLAY[size]} ${className}`}>
       {lines.map((line, i) => (
-        <span key={i} className="rise-mask mask-line" style={delay(60 + i * 90)}>
-          <span>
-            {line.text}
-            {line.text && line.accent ? " " : null}
-            {line.accent && <em className="accent text-fg-2">{line.accent}</em>}
+        <Fragment key={i}>
+          <span className="rise-line" style={delay(60 + i * 90)}>
+            <span>
+              {typo(line.text)}
+              {line.text && line.accent ? " " : null}
+              {line.accent && <em className="accent text-fg-2">{typo(line.accent)}</em>}
+            </span>
           </span>
-        </span>
+          {i < lines.length - 1 ? " " : null}
+        </Fragment>
       ))}
     </h1>
   );

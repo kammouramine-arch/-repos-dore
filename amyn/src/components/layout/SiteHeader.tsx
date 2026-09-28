@@ -46,7 +46,12 @@ export function SiteHeader() {
     document.documentElement.classList.toggle("menu-open", open);
     if (!open) return;
 
-    panel.current?.querySelector<HTMLElement>("a")?.focus();
+    /* Le panneau devient visible pendant sa transition : on attend une
+       image avant de placer le focus sur le premier lien. */
+    const focusTimer = window.setTimeout(
+      () => panel.current?.querySelector<HTMLElement>("a")?.focus(),
+      60,
+    );
 
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") return close();
@@ -70,6 +75,7 @@ export function SiteHeader() {
 
     window.addEventListener("keydown", onKey);
     return () => {
+      window.clearTimeout(focusTimer);
       window.removeEventListener("keydown", onKey);
       document.documentElement.classList.remove("menu-open");
     };
@@ -128,13 +134,15 @@ export function SiteHeader() {
             >
               {cta.project.label}
             </Link>
-            <Link
-              href={cta.firstLook.href}
-              className={buttonClass("primary", "hidden !min-h-10 !px-5 text-[0.875rem] md:inline-flex")}
-            >
-              {cta.firstLook.label}
-              <ArrowRight className="nudge size-4" />
-            </Link>
+            <span className="hidden md:block">
+              <Link
+                href={cta.firstLook.href}
+                className={buttonClass("primary", "!min-h-10 !px-5 text-[0.875rem]")}
+              >
+                {cta.firstLook.label}
+                <ArrowRight className="nudge size-4" />
+              </Link>
+            </span>
 
             <button
               ref={toggle}

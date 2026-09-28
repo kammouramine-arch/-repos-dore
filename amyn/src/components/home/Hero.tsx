@@ -1,3 +1,4 @@
+import { Fragment } from "react";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, delay } from "@/components/ui/Layout";
 import { COMPACT, ConceptSite, WIDE } from "@/components/visuals/ConceptSite";
@@ -19,7 +20,7 @@ import { cta } from "@/lib/site";
 export function Hero() {
   const lines = [
     { text: "Votre entreprise mérite" },
-    { text: "mieux qu'une présence" },
+    { text: "mieux qu\u2019une présence" },
     { text: "digitale ", accent: "générique." },
   ];
 
@@ -46,29 +47,32 @@ export function Hero() {
             className="mt-7 font-serif text-[clamp(2.6rem,6.1vw,6rem)] font-normal leading-[0.98] tracking-[-0.022em] sm:mt-9"
           >
             {lines.map((line, i) => (
-              <span key={i} className="rise-mask mask-line" style={delay(80 + i * 90)}>
-                <span>
-                  {line.text}
-                  {line.accent && <em className="accent text-fg-2">{line.accent}</em>}
+              <Fragment key={i}>
+                <span className="rise-line" style={delay(i * 70)}>
+                  <span>
+                    {line.text}
+                    {line.accent && <em className="accent text-fg-2">{line.accent}</em>}
+                  </span>
                 </span>
-              </span>
+                {i < lines.length - 1 ? " " : null}
+              </Fragment>
             ))}
           </h1>
 
-          <p className="lead rise mt-9 max-w-[34rem] text-fg-2 sm:mt-11" style={delay(420)}>
+          <p className="lead rise mt-9 max-w-[34rem] text-fg-2 sm:mt-11" style={delay(200)}>
             AMYN conçoit des sites web, des applications et des outils digitaux —
             réservation, suivi des demandes, accueil client — autour de la façon
             dont votre entreprise fonctionne réellement.
           </p>
 
-          <div className="rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" style={delay(520)}>
+          <div className="rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center sm:gap-4" style={delay(280)}>
             <ButtonLink href={cta.firstLook.href}>{cta.firstLook.label}</ButtonLink>
             <ButtonLink href={cta.services.href} variant="secondary">
               {cta.services.label}
             </ButtonLink>
           </div>
 
-          <p className="rise mt-6 max-w-md text-[0.875rem] leading-relaxed text-fg-3" style={delay(600)}>
+          <p className="rise mt-6 max-w-md text-[0.875rem] leading-relaxed text-fg-3" style={delay(340)}>
             Sans engagement. Selon le projet, nous pouvons vous montrer une première
             piste avant toute prestation payante.
           </p>
@@ -90,7 +94,7 @@ function HeroComposition() {
   const siteLabel = "Illustration : page d'accueil d'un restaurant, concept créé par AMYN.";
 
   return (
-    <div className="rise relative lg:col-span-5" style={delay(640)}>
+    <div className="rise relative lg:col-span-5" style={delay(380)}>
       <div className="relative pb-[18%] pl-[14%] sm:pl-[22%] lg:pl-[10%]">
         {/* Site web */}
         <figure>

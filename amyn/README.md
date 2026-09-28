@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# AMYN — site public (amyn.agency)
 
-## Getting Started
+Site vitrine d'AMYN Agency : sites web, applications et outils digitaux
+conçus autour de la façon dont chaque entreprise fonctionne.
 
-First, run the development server:
+Next.js 16 (App Router), React 19, TypeScript, Tailwind CSS 4. Aucune
+dépendance d'exécution en dehors de Next et React : pas de bibliothèque
+d'animation, pas d'analytics, pas de script tiers.
+
+## Commandes
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+npm install
+npm run dev           # http://localhost:3000
+npm run build         # build de production
+npm run lint
+npm run typecheck
+npm test              # tests unitaires (node --test)
+npm run check:launch  # échoue tant que les mentions légales sont incomplètes
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## Où modifier quoi
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+| Sujet | Fichier |
+|---|---|
+| Nom, e-mail, navigation, réseaux sociaux | `src/lib/site.ts` |
+| Les sept services et le contenu de leurs pages | `src/lib/services.ts` |
+| Prix (devis / à partir de / fixe) | `pricing` de chaque service, formats dans `src/lib/pricing.ts` |
+| Réalisations (et leur nature : concept, client…) | `src/lib/projects.ts` |
+| FAQ de l'accueil | `src/lib/faq.ts` |
+| Méthode et engagements | `src/lib/method.ts` |
+| Mentions légales, conditions, durées de conservation | `src/lib/legal.ts` |
+| Inventaire des cookies et traceurs | `src/lib/trackers.ts` |
+| Couleurs, typographie, animations | `src/app/globals.css` |
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+### Changer un prix
 
-## Learn More
+Chaque service porte un objet `pricing`. Au lancement, tous sont
+`{ mode: "quote", visible: true }` et affichent « Sur devis ». Pour
+afficher « À partir de 1 200 € HT » :
 
-To learn more about Next.js, take a look at the following resources:
+```ts
+pricing: { mode: "startingFrom", amount: 1200, taxLabel: "HT", visible: true },
+```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+Aucune page n'est à retoucher.
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+### Publier une réalisation client
 
-## Deploy on Vercel
+Ajouter un objet à `projects` avec `kind: "client"` — uniquement avec
+l'accord du client, et sans résultat chiffré non vérifié.
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+## Règles de contenu
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+- Aucun faux client, témoignage, avis, logo, chiffre ou résultat.
+- Aucune promesse de classement Google, de trafic, d'avis ou
+  d'acceptation sur les stores. Les tests (`tests/content.test.mts`)
+  échouent si ces formulations apparaissent.
+- Les projets conceptuels sont toujours présentés comme tels.
+
+## Cookies
+
+Le site ne dépose aucun cookie et ne charge aucune ressource tierce
+(vérifié en navigateur). Tout ajout d'outil de mesure ou de contenu
+externe doit être déclaré dans `src/lib/trackers.ts` et, s'il n'est pas
+strictement nécessaire, ne se charger qu'après consentement (accepter /
+refuser / personnaliser, et un lien « Gérer mes cookies » permanent).
+
+## Formulaires
+
+`/premier-apercu` → `POST /api/premier-apercu` · `/contact` → `POST /api/projet`.
+Envoi par l'API Resend, côté serveur uniquement (voir `DEPLOIEMENT.md`).
+Sans `RESEND_API_KEY` : la demande est écrite dans la console en
+développement ; en production, le formulaire affiche un message invitant
+à écrire à contact@amyn.agency.
+
+Liens de campagne : `/premier-apercu?source=outreach` signale qu'on arrive
+d'un message d'AMYN ; `&business=Nom` pré-remplit l'entreprise ;
+`&besoin=<slug de service>` pré-coche le besoin. Ne jamais placer de
+donnée personnelle dans une adresse.

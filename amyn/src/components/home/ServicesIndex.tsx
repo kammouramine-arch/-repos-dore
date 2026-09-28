@@ -91,6 +91,9 @@ export function ServicesIndex({
             {previews.map((preview, i) => (
               <div
                 key={rows[i].slug}
+                /* Les aperçus inactifs restent dans la page mais ne sont pas
+                   rendus : aucun coût tant qu'on ne les affiche pas. */
+                style={{ contentVisibility: i === active ? "visible" : "hidden" }}
                 className={`transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${
                   i === active
                     ? "relative opacity-100"

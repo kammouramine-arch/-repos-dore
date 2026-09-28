@@ -159,7 +159,7 @@ export function BeyondWebsites() {
             </PhoneFrame>
           </Example>
           <Example
-            className="col-span-8 col-start-3 sm:col-span-6 sm:col-start-4 lg:col-span-3 lg:col-start-1 lg:-mt-10"
+            className="col-span-8 col-start-3 hidden sm:col-span-6 sm:col-start-4 sm:block lg:col-span-3 lg:col-start-1 lg:-mt-10"
             number="03"
             caption="Application mobile"
           >
@@ -167,7 +167,7 @@ export function BeyondWebsites() {
               <AppMock />
             </PhoneFrame>
           </Example>
-          <Example className="col-span-12 lg:col-span-8 lg:col-start-5" number="06" caption="Onboarding client">
+          <Example className="col-span-12 hidden sm:block lg:col-span-8 lg:col-start-5" number="06" caption="Onboarding client">
             <BrowserFrame
               url="espace.cabinet-aurel.fr/bienvenue"
               width={1280}

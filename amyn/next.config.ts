@@ -13,7 +13,7 @@ const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   {
     key: "Permissions-Policy",
-    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=(), interest-cohort=()",
+    value: "camera=(), microphone=(), geolocation=(), payment=(), usb=()",
   },
   {
     key: "Content-Security-Policy",

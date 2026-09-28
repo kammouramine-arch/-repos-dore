@@ -168,6 +168,19 @@ body {
   border-radius: var(--radius-xs);
 }
 
+/* Une colonne de grille ne s'élargit jamais au-delà de son conteneur à
+   cause d'un contenu trop long (maquettes, adresses, mots composés). */
+:where(.grid) > * {
+  min-width: 0;
+}
+
+/* Sections sous la ligne de flottaison : le navigateur ne calcule leur
+   rendu qu'à l'approche de l'écran. */
+.defer-render {
+  content-visibility: auto;
+  contain-intrinsic-size: auto 1000px;
+}
+
 /* Menu ouvert : la page ne défile plus derrière. */
 html.menu-open {
   overflow: hidden;
@@ -346,9 +359,12 @@ html.menu-open {
     animation-delay: calc(var(--delay, 0) * 1ms);
   }
 
-  .rise-mask > span {
+  /* Titres au chargement : fondu et montée courte. Le texte est peint dès
+     la première image (il n'est jamais caché derrière un masque), ce qui
+     garde le plus grand élément de la page rapide à afficher. */
+  .rise-line {
     display: block;
-    animation: rise-mask 1.1s var(--ease-out) both;
+    animation: rise-line 0.9s var(--ease-out) both;
     animation-delay: calc(var(--delay, 0) * 1ms);
   }
 
@@ -374,11 +390,13 @@ html.menu-open {
   }
 }
 
-@keyframes rise-mask {
+@keyframes rise-line {
   from {
-    transform: translate3d(0, 105%, 0);
+    opacity: 0.001;
+    transform: translate3d(0, 0.28em, 0);
   }
   to {
+    opacity: 1;
     transform: none;
   }
 }

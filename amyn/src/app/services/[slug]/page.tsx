@@ -222,7 +222,7 @@ export default async function ServicePage({
             </div>
 
             {service.limits && (
-              <aside data-reveal style={delay(100)} className="rounded-[var(--radius-sm)] border border-line p-7 lg:col-span-5 lg:col-start-8 sm:p-9">
+              <aside data-reveal style={delay(100)} className="self-start rounded-[var(--radius-sm)] border border-line p-7 sm:p-9 lg:col-span-5 lg:col-start-8">
                 <p className="label text-accent">Ce que nous ne promettons pas</p>
                 <p className="mt-4 text-fg-2">{service.limits}</p>
               </aside>

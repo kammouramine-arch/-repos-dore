@@ -175,7 +175,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
   );
 
   const Title = (
-    <h1
+    <div
       style={{ fontSize: titleSize, lineHeight: 1.06, letterSpacing: "-0.02em" }}
       className="font-medium"
     >
@@ -184,7 +184,7 @@ function Hero({ concept, compact }: { concept: Concept; compact: boolean }) {
           {line}
         </span>
       ))}
-    </h1>
+    </div>
   );
 
   const Tagline = (
@@ -304,12 +304,12 @@ function Block({ concept, compact }: { concept: Concept; compact: boolean }) {
 
   const Heading = (
     <div className="flex items-baseline justify-between">
-      <h2
+      <div
         style={{ fontSize: compact ? 20 : 30, letterSpacing: "-0.01em" }}
         className="font-medium"
       >
         {concept.blockTitle}
-      </h2>
+      </div>
       {!compact && (
         <span style={{ color: concept.palette.accent, fontSize: 14 }}>
           Tout voir

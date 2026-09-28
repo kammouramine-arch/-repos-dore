@@ -15,7 +15,7 @@ const ui = {
   soft: "#F3F1EC",
   ink: "#161512",
   muted: "#6E6A62",
-  faint: "#A29E95",
+  faint: "#77736B",
   line: "#E7E3DB",
   brand: "#1F3B2F",
   brandSoft: "#E3EAE5",

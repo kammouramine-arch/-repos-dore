@@ -40,7 +40,7 @@ export const metadata: Metadata = {
     template: "%s · AMYN",
   },
   description:
-    "AMYN conçoit des sites web, des applications et des outils digitaux — réservation, suivi des demandes, accueil client — autour de la façon dont votre entreprise fonctionne réellement.",
+    "AMYN conçoit des sites web, des applications et des outils digitaux — réservation, suivi des demandes, accueil client — autour de votre façon de travailler.",
   applicationName: site.name,
   alternates: { canonical: "/" },
   openGraph: {
