@@ -70,7 +70,7 @@ refuser / personnaliser, et un lien « Gérer mes cookies » permanent).
 
 `/premier-apercu` → `POST /api/premier-apercu` · `/contact` → `POST /api/projet`.
 Remise à la boîte contact@amyn.agency par le serveur d'envoi OVHcloud, côté serveur uniquement (voir `DEPLOIEMENT.md`).
-Sans `RESEND_API_KEY` : la demande est écrite dans la console en
+Sans `SMTP_PASSWORD` : la demande est écrite dans la console en
 développement ; en production, le formulaire affiche un message invitant
 à écrire à contact@amyn.agency.
 
