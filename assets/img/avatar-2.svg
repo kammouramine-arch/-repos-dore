@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" fill="none" role="img" aria-label="Portrait d’un client RÉVA">
+  <defs>
+    <linearGradient id="avatar2b" x1="18" y1="10" x2="102" y2="112" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#F1F1F0"/><stop offset="1" stop-color="#D8D8D6"/>
+    </linearGradient>
+    <linearGradient id="avatar2f" x1="34" y1="34" x2="88" y2="120" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#93949A"/><stop offset="1" stop-color="#67686E"/>
+    </linearGradient>
+    <radialGradient id="avatar2l" cx="0" cy="0" r="1" gradientTransform="translate(38 30) scale(64)" gradientUnits="userSpaceOnUse">
+      <stop stop-color="#FFFFFF" stop-opacity=".62"/><stop offset="1" stop-color="#FFFFFF" stop-opacity="0"/>
+    </radialGradient>
+    <clipPath id="avatar2c"><circle cx="60" cy="60" r="60"/></clipPath>
+  </defs>
+  <g clip-path="url(#avatar2c)">
+    <rect width="120" height="120" fill="url(#avatar2b)"/>
+    <rect width="120" height="120" fill="url(#avatar2l)"/>
+    <path d="M21.5 120V102.0C21.5 88.0 38.8 80.0 60 80.0C81.2 80.0 98.5 88.0 98.5 102.0V120Z" fill="url(#avatar2f)"/>
+    <circle cx="60" cy="51.0" r="20.0" fill="url(#avatar2f)"/>
+  </g>
+  <circle cx="60" cy="60" r="59.5" stroke="#08080A" stroke-opacity=".06" fill="none"/>
+</svg>
