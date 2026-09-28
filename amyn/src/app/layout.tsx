@@ -1,94 +1,91 @@
 import type { Metadata, Viewport } from "next";
-import { CursorGlow } from "@/components/ui/CursorGlow";
-import { SmoothScroll } from "@/components/layout/SmoothScroll";
-import { Frame } from "@/components/ui/Frame";
-import { Grain } from "@/components/ui/Grain";
-import { Inter, Instrument_Serif, Manrope } from "next/font/google";
-import { site } from "@/lib/content";
+import { Geist, Geist_Mono, Instrument_Serif } from "next/font/google";
+import { SiteFooter } from "@/components/layout/SiteFooter";
+import { SiteHeader } from "@/components/layout/SiteHeader";
+import { JsonLd } from "@/components/ui/JsonLd";
+import { RevealObserver } from "@/components/ui/RevealObserver";
+import { organizationSchema } from "@/lib/seo";
+import { site } from "@/lib/site";
 import "./globals.css";
 
-/* Manrope : les titres. Inter : le texte courant. */
-const manrope = Manrope({
-  variable: "--font-manrope",
+/*
+ * Polices sous licence libre (SIL Open Font License), téléchargées au
+ * moment du build et servies par le site lui-même : aucune requête vers un
+ * service tiers quand un visiteur ouvre une page.
+ */
+const geist = Geist({
+  variable: "--font-geist",
   subsets: ["latin"],
   display: "swap",
 });
 
-const inter = Inter({
-  variable: "--font-inter",
+const geistMono = Geist_Mono({
+  variable: "--font-geist-mono",
   subsets: ["latin"],
   display: "swap",
 });
 
-/* Instrument Serif : uniquement les mots d'accent en italique. Rien d'autre. */
 const instrument = Instrument_Serif({
   variable: "--font-instrument",
   subsets: ["latin"],
   weight: "400",
-  style: "italic",
+  style: ["normal", "italic"],
   display: "swap",
 });
 
 export const metadata: Metadata = {
-  /* Base de toutes les URL absolues (Open Graph, canonique, sitemap). */
-  metadataBase: new URL(`https://${site.domain}`),
-  alternates: { canonical: "/" },
+  metadataBase: new URL(site.url),
   title: {
-    default: "AMYN — Création de sites web sur mesure",
+    default: "AMYN — Sites web, applications et outils digitaux sur mesure",
     template: "%s · AMYN",
   },
   description:
-    "AMYN est un studio web : nous créons des sites professionnels, modernes et sur mesure, conçus autour de votre activité.",
-  applicationName: "AMYN",
-  authors: [{ name: "AMYN" }],
-  creator: "AMYN",
-  publisher: "AMYN",
-  keywords: [
-    "création de site web",
-    "studio web",
-    "site internet sur mesure",
-    "site vitrine professionnel",
-    "refonte de site",
-    "site web entreprise",
-  ],
+    "AMYN conçoit des sites web, des applications et des outils digitaux — réservation, suivi des demandes, accueil client — autour de la façon dont votre entreprise fonctionne réellement.",
+  applicationName: site.name,
+  alternates: { canonical: "/" },
   openGraph: {
     type: "website",
-    locale: "fr_FR",
+    locale: site.locale,
+    siteName: site.name,
     url: "/",
-    siteName: "AMYN",
-    title: "AMYN — Création de sites web sur mesure",
+    title: "AMYN — Sites web, applications et outils digitaux sur mesure",
     description:
-      "Des sites web professionnels, conçus sur mesure pour votre entreprise.",
+      "Montrez-nous votre entreprise. Nous vous montrerons d'abord ce que nous changerions.",
   },
   twitter: {
     card: "summary_large_image",
-    title: "AMYN — Création de sites web sur mesure",
+    title: "AMYN — Sites web, applications et outils digitaux sur mesure",
     description:
-      "Des sites web professionnels, conçus sur mesure pour votre entreprise.",
+      "Montrez-nous votre entreprise. Nous vous montrerons d'abord ce que nous changerions.",
   },
-  robots: {
-    index: true,
-    follow: true,
-    googleBot: { index: true, follow: true, "max-image-preview": "large" },
-  },
+  formatDetection: { telephone: false, email: false, address: false },
 };
 
 export const viewport: Viewport = {
-  themeColor: "#08080a",
+  themeColor: "#0a0a0a",
+  colorScheme: "dark",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
     <html
       lang="fr"
-      className={`${manrope.variable} ${inter.variable} ${instrument.variable} h-full antialiased`}
+      className={`${geist.variable} ${geistMono.variable} ${instrument.variable}`}
     >
-      <body className="min-h-full flex flex-col bg-ink text-bone">
-        <SmoothScroll />
-        <Frame />
-        <Grain />
-        <CursorGlow />
-        {children}
+      <body>
+        <a
+          href="#contenu"
+          className="fixed left-4 top-3 z-[60] -translate-y-24 rounded-full bg-bone px-5 py-3 text-[0.9375rem] font-medium text-ink transition-transform focus:translate-y-0"
+        >
+          Aller au contenu
+        </a>
+        <SiteHeader />
+        <main id="contenu" tabIndex={-1} className="outline-none">
+          {children}
+        </main>
+        <SiteFooter />
+        <RevealObserver />
+        <JsonLd data={organizationSchema()} />
       </body>
     </html>
   );
