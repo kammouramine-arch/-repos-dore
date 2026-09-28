@@ -42,6 +42,7 @@ import subprocess
 import sys
 import time
 import urllib.error
+import urllib.parse
 import urllib.request
 from typing import Any
 
@@ -101,7 +102,7 @@ def call(token: str, method: str, path: str, body: dict[str, Any] | None = None)
 
 
 def cmd_find_or_create_app(token: str, args: argparse.Namespace) -> dict[str, Any]:
-    found = call(token, "GET", f"/apps?filter[bundleId]={args.bundle_id}")
+    found = call(token, "GET", "/apps?" + urllib.parse.urlencode({"filter[bundleId]": args.bundle_id}))
     if found.get("data"):
         return {"id": found["data"][0]["id"], "created": False}
     created = call(token, "POST", "/apps", {
@@ -147,9 +148,15 @@ def cmd_wait_build(token: str, args: argparse.Namespace) -> dict[str, Any]:
 
 
 def cmd_ensure_internal_group(token: str, args: argparse.Namespace) -> dict[str, Any]:
-    groups = call(token, "GET", f"/apps/{args.app_id}/betaGroups?filter[isInternalGroup]=true&filter[name]={args.group_name}")
-    if groups.get("data"):
-        group_id = groups["data"][0]["id"]
+    query = urllib.parse.urlencode({
+        "filter[app]": args.app_id,
+        "filter[isInternalGroup]": "true",
+        "filter[name]": args.group_name,
+    })
+    groups = call(token, "GET", f"/betaGroups?{query}")
+    match = [g for g in groups.get("data", []) if g["attributes"].get("name") == args.group_name]
+    if match:
+        group_id = match[0]["id"]
         created = False
     else:
         made = call(token, "POST", "/betaGroups", {
