@@ -73,7 +73,7 @@ export function Positioning() {
                       <li key={slug}>
                         <Link
                           href={servicePath(slug)}
-                          className="label link-line text-fg-3 transition-colors hover:text-fg"
+                          className="label link-line hit-area text-fg-3 transition-colors [--hit-y:4px] hover:text-fg"
                         >
                           <span className="text-accent">{service.number}</span> {service.short}
                         </Link>

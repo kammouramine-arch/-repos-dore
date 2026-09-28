@@ -50,7 +50,7 @@ export function PageHero({
                     </span>
                   ) : (
                     <>
-                      <Link href={crumb.path} className="transition-colors hover:text-fg">
+                      <Link href={crumb.path} className="hit-area transition-colors hover:text-fg">
                         {crumb.name}
                       </Link>
                       <span aria-hidden>/</span>

@@ -62,7 +62,7 @@ export function SiteFooter() {
                   href={item.href}
                   rel="noopener noreferrer"
                   target="_blank"
-                  className="text-[0.9375rem] text-fg-2 transition-colors hover:text-fg"
+                  className="hit-area text-[0.9375rem] text-fg-2 transition-colors hover:text-fg"
                 >
                   {item.label}
                 </a>
@@ -102,7 +102,7 @@ function FooterColumn({
 function FooterLink({ href, children }: { href: string; children: React.ReactNode }) {
   return (
     <li>
-      <Link href={href} className="text-[0.9375rem] text-fg-2 transition-colors hover:text-fg">
+      <Link href={href} className="hit-area text-[0.9375rem] text-fg-2 transition-colors hover:text-fg">
         {children}
       </Link>
     </li>

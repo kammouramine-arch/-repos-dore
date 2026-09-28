@@ -428,6 +428,19 @@ html.menu-open {
   }
 }
 
+/* Zone de toucher agrandie sans rien déplacer : les petits liens texte
+   (fil d'Ariane, pied de page, services associés) restent faciles à
+   atteindre au doigt. `--hit-y` règle la marge verticale. */
+@utility hit-area {
+  position: relative;
+
+  &::after {
+    content: "";
+    position: absolute;
+    inset: calc(var(--hit-y, 6px) * -1) -4px;
+  }
+}
+
 /* Flèche qui avance au survol du parent `group`. */
 .group:hover .nudge,
 .group:focus-visible .nudge {
