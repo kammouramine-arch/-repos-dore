@@ -70,30 +70,54 @@ export const hosting = {
 /**
  * Conditions commerciales. Elles relèvent du contrat : aucune n'est
  * rédigée à la place de l'éditeur. Tant qu'une valeur vaut `null`, la page
- * « Conditions des services » affiche un emplacement et reste hors index.
+ * « Conditions des services » affiche un emplacement « à valider », reste
+ * hors index, et `npm run check:launch` échoue. Chaque texte doit être
+ * validé par l'éditeur — idéalement avec un conseil juridique — AVANT la
+ * mise en production.
  */
 export type Terms = {
   payment: string | null;
+  deposit: string | null;
   intellectualProperty: string | null;
+  deadlines: string | null;
+  clientObligations: string | null;
+  revisions: string | null;
+  cancellation: string | null;
   liability: string | null;
+  maintenance: string | null;
   termination: string | null;
   law: string | null;
+  disputes: string | null;
 };
 
 export const terms: Terms = {
   payment: null,
+  deposit: null,
   intellectualProperty: null,
+  deadlines: null,
+  clientObligations: null,
+  revisions: null,
+  cancellation: null,
   liability: null,
+  maintenance: null,
   termination: null,
   law: null,
+  disputes: null,
 };
 
 export const TERMS_LABELS: Record<keyof Terms, string> = {
-  payment: "Conditions de paiement (acomptes, échéances, pénalités de retard)",
-  intellectualProperty: "Propriété intellectuelle et cession des droits",
-  liability: "Garanties et responsabilité",
+  payment: "Conditions de paiement (échéances, moyens, pénalités de retard, indemnité de recouvrement)",
+  deposit: "Acompte (montant ou pourcentage, moment du versement)",
+  intellectualProperty: "Propriété intellectuelle et cession des droits sur les livrables",
+  deadlines: "Délais de réalisation et conséquences d'un retard",
+  clientObligations: "Obligations du client (contenus, accès, validations, délais de réponse)",
+  revisions: "Nombre de révisions incluses et facturation des révisions supplémentaires",
+  cancellation: "Annulation d'une commande par le client ou par AMYN",
+  liability: "Garanties et limitation de responsabilité",
+  maintenance: "Maintenance, hébergement et support après livraison",
   termination: "Suspension et résiliation",
-  law: "Droit applicable et juridiction compétente",
+  law: "Droit applicable",
+  disputes: "Règlement des litiges (tentative amiable, juridiction compétente)",
 };
 
 export const missingTerms = (t: Terms = terms) =>

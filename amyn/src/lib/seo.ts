@@ -2,6 +2,16 @@ import type { Metadata } from "next";
 import type { Service } from "./services";
 import { site } from "./site";
 
+/* Image de partage commune (src/app/opengraph-image.png). Une page qui
+   définit son propre `openGraph` remplace celui du layout : l'image doit
+   donc être redonnée ici, sinon les pages intérieures n'en ont aucune. */
+const SHARE_IMAGE = {
+  url: "/opengraph-image.png",
+  width: 1200,
+  height: 630,
+  alt: "AMYN — sites web, applications et outils digitaux sur mesure",
+};
+
 /**
  * Métadonnées d'une page : titre, description, URL canonique, Open Graph
  * et carte sociale — toujours cohérents entre eux.
@@ -28,11 +38,13 @@ export function pageMetadata({
       url: path,
       title: `${title} · ${site.name}`,
       description,
+      images: [SHARE_IMAGE],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} · ${site.name}`,
       description,
+      images: [SHARE_IMAGE.url],
     },
     ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };

@@ -16,9 +16,10 @@ export const metadata = pageMetadata({
  * Conditions des services.
  *
  * Seul ce qui décrit le fonctionnement réel d'AMYN est rédigé ici. Tout ce
- * qui relève d'un choix contractuel (paiement, cession des droits,
- * responsabilité, résiliation, droit applicable) reste en emplacement tant
- * que l'éditeur ne l'a pas fixé — idéalement avec un conseil juridique.
+ * qui relève d'un choix contractuel (paiement, acompte, délais, révisions,
+ * cession des droits, maintenance, responsabilité, annulation, résiliation,
+ * droit applicable, litiges) reste en emplacement tant que l'éditeur ne l'a
+ * pas fixé et validé — idéalement avec un conseil juridique.
  */
 export default function TermsPage() {
   const clause = (key: keyof typeof terms) =>
@@ -90,7 +91,13 @@ export default function TermsPage() {
         </p>
       </LegalSection>
 
-      <LegalSection title="Paiement">{clause("payment")}</LegalSection>
+      <LegalSection title="Prix, acompte et paiement">
+        {clause("payment")}
+        {clause("deposit")}
+      </LegalSection>
+      <LegalSection title="Délais">{clause("deadlines")}</LegalSection>
+      <LegalSection title="Engagements du client">{clause("clientObligations")}</LegalSection>
+      <LegalSection title="Révisions">{clause("revisions")}</LegalSection>
       <LegalSection title="Propriété intellectuelle">
         <p>
           Les conditions de propriété et de cession des droits sur les livrables sont
@@ -98,9 +105,12 @@ export default function TermsPage() {
         </p>
         {clause("intellectualProperty")}
       </LegalSection>
+      <LegalSection title="Maintenance et suivi">{clause("maintenance")}</LegalSection>
       <LegalSection title="Responsabilité">{clause("liability")}</LegalSection>
+      <LegalSection title="Annulation">{clause("cancellation")}</LegalSection>
       <LegalSection title="Suspension et résiliation">{clause("termination")}</LegalSection>
       <LegalSection title="Droit applicable">{clause("law")}</LegalSection>
+      <LegalSection title="Litiges">{clause("disputes")}</LegalSection>
 
       <LegalSection title="Contact">
         <p>

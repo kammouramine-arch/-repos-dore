@@ -162,10 +162,15 @@ body {
   color: var(--color-ink);
 }
 
-:focus-visible {
-  outline: 2px solid var(--accent);
-  outline-offset: 3px;
-  border-radius: var(--radius-xs);
+/* Anneau de focus clavier. Il suit l'arrondi de chaque élément (pastilles,
+   champs) : ne jamais forcer de border-radius ici, sinon les boutons
+   ronds deviennent carrés au focus. En couche `base`, les utilitaires
+   peuvent l'ajuster localement. */
+@layer base {
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+  }
 }
 
 /* Une colonne de grille ne s'élargit jamais au-delà de son conteneur à

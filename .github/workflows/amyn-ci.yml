@@ -1,0 +1,42 @@
+name: AMYN — contrôles
+
+# Lint, types, tests et build de production du site AMYN (dossier amyn/).
+# Ne déploie rien : Vercel reste seul responsable des déploiements.
+on:
+  push:
+    branches: [claude/amyn-redesign-preview]
+    paths: ["amyn/**", ".github/workflows/amyn-ci.yml"]
+  pull_request:
+    paths: ["amyn/**"]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: amyn-ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    defaults:
+      run:
+        working-directory: amyn
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: amyn/package-lock.json
+      - run: npm ci
+      - name: Lint
+        run: npm run lint
+      - name: Types
+        run: npm run typecheck
+      - name: Tests
+        run: npm test
+      - name: Build de production
+        run: npm run build

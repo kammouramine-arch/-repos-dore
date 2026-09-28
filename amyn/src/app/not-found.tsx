@@ -6,6 +6,9 @@ import { cta, mainNav } from "@/lib/site";
 
 export const metadata: Metadata = {
   title: "Page introuvable",
+  description: "Cette page n'existe pas ou plus sur amyn.agency.",
+  /* Une page d'erreur n'a pas d'adresse canonique : on n'hérite pas de « / ». */
+  alternates: { canonical: null },
   robots: { index: false, follow: true },
 };
 

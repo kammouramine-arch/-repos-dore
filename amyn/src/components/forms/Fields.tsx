@@ -16,7 +16,7 @@ import { HONEYPOT_FIELD } from "@/lib/forms/shared";
  */
 
 const fieldBase =
-  "mt-2.5 block w-full rounded-[var(--radius-sm)] border bg-surface px-4 py-3.5 text-[1rem] text-fg outline-none transition-colors duration-300 placeholder:text-fg-3/70 focus:border-accent disabled:opacity-60";
+  "mt-2.5 block w-full rounded-[var(--radius-sm)] border bg-surface px-4 py-3.5 text-[1rem] text-fg transition-colors duration-300 placeholder:text-fg-3/70 focus:border-accent disabled:opacity-60";
 
 function Hint({ id, error, hint }: { id: string; error?: string; hint?: string }) {
   if (error)
