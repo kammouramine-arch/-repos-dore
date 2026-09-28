@@ -116,7 +116,7 @@ export default async function ProjectPage({
                 <ul className="space-y-2.5">
                   {services.map((s) => (
                     <li key={s.slug}>
-                      <Link href={servicePath(s.slug)} className="link-line text-fg">
+                      <Link href={servicePath(s.slug)} className="link-line hit-area text-fg [--hit-y:5px]">
                         <span className="label mr-2 text-accent">{s.number}</span>
                         {s.name}
                       </Link>

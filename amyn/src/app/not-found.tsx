@@ -33,7 +33,7 @@ export default function NotFound() {
         <ul className="mt-14 flex flex-wrap gap-x-8 gap-y-3 text-fg-2">
           {mainNav.map((item) => (
             <li key={item.href}>
-              <Link href={item.href} className="link-line hover:text-fg">
+              <Link href={item.href} className="link-line hit-area hover:text-fg">
                 {item.label}
               </Link>
             </li>
