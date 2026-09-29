@@ -1,4 +1,7 @@
 // Supabase Edge Function: POST /v1/analyze and DELETE /v1/account behind Sign in with Apple.
+// Deployed with verify_jwt = false (supabase/config.toml, --no-verify-jwt): the platform's check only
+// accepts Supabase JWTs, and this function verifies the Apple identity token itself. Supabase passes
+// the path with the function name in front (/doonce-analyze/v1/analyze); makeHandler strips it.
 // Secrets live in the function's environment (supabase secrets set), never in the app.
 //   ANTHROPIC_API_KEY        model access (required)
 //   DOONCE_APPLE_AUDIENCE    the app's bundle identifier, e.g. app.doonce.ios (required)

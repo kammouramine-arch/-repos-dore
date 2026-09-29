@@ -4,7 +4,8 @@ import Foundation
 ///
 /// A model may be fluent and wrong; the recording is the only ground truth. Whatever the provider
 /// says, the validator makes sure every step points inside the recording, that anything not
-/// backed by speech or a detected moment is marked as such, that numbers nobody said are never
+/// backed by speech or a detected moment is marked as such, that words shown as the demonstrator's
+/// are words the demonstrator actually said, that numbers nobody said are never
 /// presented as fact, that the risk level is never lower than the words warrant, and that there
 /// are never more steps than the recording can support. It corrects rather than rejects, and
 /// reports every correction so tests and logs can see what a provider tried to do.
@@ -22,6 +23,9 @@ public enum AnalysisValidator {
         public enum Rule: String, Hashable, Sendable {
             case clampedSourceRange
             case markedInferred
+            /// `sourceTranscript` was not a verbatim run of the transcript; replaced by the words
+            /// spoken in the step's range, or removed. Same rule as the gateway's `sourceTranscriptNotVerbatim`.
+            case sourceTranscriptNotVerbatim
             case markedUnclear
             case unheardValue
             case droppedExtraStep
@@ -54,9 +58,11 @@ public enum AnalysisValidator {
         var adjustments: [Adjustment] = []
         let heardValues = Set(NumericValueExtractor.extract(from: request.transcript.fullText).map { "\($0.value) \($0.unit)" })
         let knownKeyFrames = Set(request.keyFrames.map(\.id))
+        let quotableTranscript = normalisedForQuoting(request.transcript.fullText)
 
         for index in output.steps.indices {
             validateSourceRange(&output.steps[index], duration: request.duration, adjustments: &adjustments)
+            validateQuote(&output.steps[index], transcript: request.transcript, quotable: quotableTranscript, adjustments: &adjustments)
             validateSpeechSupport(&output.steps[index], transcript: request.transcript, adjustments: &adjustments)
             validateClarity(&output.steps[index], adjustments: &adjustments)
             validateValues(&output.steps[index], heard: heardValues, uncertainties: &output.uncertainties, adjustments: &adjustments)
@@ -97,6 +103,71 @@ public enum AnalysisValidator {
             adjustments.append(Adjustment(rule: .clampedSourceRange, stepOrder: step.order, detail: "\(String(describing: step.sourceStart))–\(String(describing: step.sourceEnd)) → \(corrected.0)–\(corrected.1)"))
             step.sourceStart = corrected.0
             step.sourceEnd = corrected.1
+        }
+    }
+
+    /// `sourceTranscript` is shown under "What <name> said" as the demonstrator's own words, so it
+    /// must be a contiguous run of whole words of the transcript (after `normalisedForQuoting`).
+    /// A paraphrase is replaced by the segments spoken in the step's range, verbatim, or removed
+    /// when the range holds no speech. A blank quote becomes nil.
+    private static func validateQuote(_ step: inout AnalyzedStep, transcript: Transcript, quotable: String, adjustments: inout [Adjustment]) {
+        guard let quote = step.sourceTranscript else { return }
+        if quote.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            step.sourceTranscript = nil
+            return
+        }
+        guard !isVerbatimQuote(quote, in: quotable) else { return }
+        let spoken = step.sourceRange.map { range in
+            transcript.segments(in: range)
+                .map { $0.text.trimmingCharacters(in: .whitespacesAndNewlines) }
+                .filter { !$0.isEmpty }
+                .joined(separator: " ")
+        }
+        let replacement = (spoken?.isEmpty ?? true) ? nil : spoken
+        adjustments.append(Adjustment(rule: .sourceTranscriptNotVerbatim, stepOrder: step.order, detail: replacement == nil ? "removed; no range to quote from" : "replaced with the words spoken in the step's range"))
+        step.sourceTranscript = replacement
+    }
+
+    /// Apostrophes and single quotes in every form: straight, curly, reversed, modifier letter, grave, acute, prime.
+    private static let apostrophes: Set<Unicode.Scalar> = ["\u{27}", "\u{2018}", "\u{2019}", "\u{201B}", "\u{2BC}", "\u{60}", "\u{B4}", "\u{2032}"]
+
+    /// The form in which a quote is compared with the transcript: canonical composition, lower case
+    /// (final sigma folded), apostrophes removed, every run of anything that is not a letter, mark or
+    /// digit (punctuation, double quotes, symbols, whitespace) collapsed to one space, trimmed.
+    /// The gateway's `normaliseForQuoting` (validate.ts) is the same function; change both together.
+    static func normalisedForQuoting(_ text: String) -> String {
+        var output = String.UnicodeScalarView()
+        var pendingSpace = false
+        for scalar in text.precomposedStringWithCanonicalMapping.lowercased().unicodeScalars {
+            if apostrophes.contains(scalar) { continue }
+            guard isWordScalar(scalar) else {
+                pendingSpace = true
+                continue
+            }
+            if pendingSpace, !output.isEmpty { output.append(" ") }
+            pendingSpace = false
+            output.append(scalar == "\u{3C2}" ? "\u{3C3}" : scalar)
+        }
+        return String(output)
+    }
+
+    /// True when `quote` is a run of whole words that appears, in order and unbroken, in `quotable`
+    /// (a transcript already passed through `normalisedForQuoting`).
+    static func isVerbatimQuote(_ quote: String, in quotable: String) -> Bool {
+        let normalised = normalisedForQuoting(quote)
+        guard !normalised.isEmpty else { return false }
+        return (" " + quotable + " ").range(of: " " + normalised + " ", options: .literal) != nil
+    }
+
+    /// Letters, marks and numbers: Unicode general categories L*, M* and N*, as `\p{L}\p{M}\p{N}` in JavaScript.
+    private static func isWordScalar(_ scalar: Unicode.Scalar) -> Bool {
+        switch scalar.properties.generalCategory {
+        case .uppercaseLetter, .lowercaseLetter, .titlecaseLetter, .modifierLetter, .otherLetter,
+             .nonspacingMark, .spacingMark, .enclosingMark,
+             .decimalNumber, .letterNumber, .otherNumber:
+            true
+        default:
+            false
         }
     }
 

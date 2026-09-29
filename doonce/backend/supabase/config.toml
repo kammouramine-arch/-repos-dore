@@ -1,0 +1,14 @@
+# Supabase CLI configuration for the DoOnce gateway. Only what deployment needs; no secrets here
+# (ANTHROPIC_API_KEY and DOONCE_APPLE_AUDIENCE are set on the function with `supabase secrets set`).
+
+# Local project identifier required by the CLI. It is NOT the remote project ref: deployment
+# always names the target explicitly with --project-ref (see .github/workflows/doonce-deploy-supabase.yml).
+project_id = "doonce"
+
+[functions.doonce-analyze]
+# The platform's JWT check expects a Supabase-issued JWT and would reject the Sign in with Apple
+# identity token the app sends as its bearer. The function verifies that token itself
+# (_shared/auth.ts: RS256 against Apple's keys, audience, issuer, expiry), so the platform check is off.
+verify_jwt = false
+# One import map shared by the functions (paths are relative to this file).
+import_map = "./functions/deno.json"
