@@ -26,6 +26,7 @@ export async function POST(request: Request) {
           ["Besoin principal", v.need],
           ["Échéance", v.timeline],
           ["Origine", outreach ? "Lien d'un message envoyé par AMYN" : "Site amyn.agency"],
+          ["Langue", v.lang === "en" ? "Anglais — répondre en anglais" : "Français"],
           ["Reçue le", receivedAt()],
         ],
         message: v.description,

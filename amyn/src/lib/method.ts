@@ -1,3 +1,5 @@
+import type { Locale } from "./i18n/config.ts";
+
 /**
  * La méthode AMYN — quatre étapes, reprises par l'accueil et la page
  * Méthode (qui les détaille).
@@ -64,3 +66,68 @@ export const principles = [
     body: "Chaque élément doit servir vos clients ou votre équipe. Le reste n'est pas construit.",
   },
 ] as const;
+
+export const methodEn = [
+  {
+    number: "01",
+    title: "Understand",
+    summary: "Your business, your goal, where you stand today.",
+    detail:
+      "Before talking solutions, we look at how your business actually runs: who your customers are, how they find you, how a request is handled, what wastes your time. That's usually where the real answer is.",
+    outputs: ["Discovery conversation", "Review of your current presence", "A clearly stated goal"],
+  },
+  {
+    number: "02",
+    title: "Scope",
+    summary: "Scope, features, timeline, quote.",
+    detail:
+      "We turn the goal into a precise scope: what will be done, what won't, what we need from you and in what order. The quote reflects that scope. Nothing starts without your written agreement.",
+    outputs: ["Detailed scope", "Staged timeline", "Quote"],
+  },
+  {
+    number: "03",
+    title: "Build",
+    summary: "Design, development, configuration.",
+    detail:
+      "We design, build and configure in stages, showing you progress regularly. Important decisions are made with you at the right time — not discovered at the end.",
+    outputs: ["Approved designs", "Work-in-progress versions", "Content in place"],
+  },
+  {
+    number: "04",
+    title: "Launch & support",
+    summary: "Testing, go-live, handover, optional follow-up.",
+    detail:
+      "Everything is tested on phone and desktop before going live. We hand over the access and show you how to use what we've built. Ongoing support after launch can be included in the quote, if you want it.",
+    outputs: ["Testing and sign-off", "Go-live", "Handover", "Optional support"],
+  },
+] as const;
+
+export const principlesEn = [
+  {
+    title: "Built around your business",
+    body: "We start from how you actually work, not from a template to fill in.",
+  },
+  {
+    title: "Designed for the phone first",
+    body: "That's where most of your customers discover you. Everything is designed to be simple there.",
+  },
+  {
+    title: "A clear scope",
+    body: "You know what's included, what isn't, and why, before you commit.",
+  },
+  {
+    title: "Direct communication",
+    body: "You talk to the people who design and build your project.",
+  },
+  {
+    title: "Modern, restrained technology",
+    body: "Current tools, chosen for speed, reliability and easy maintenance.",
+  },
+  {
+    title: "No pointless features",
+    body: "Every element has to serve your customers or your team. Everything else doesn't get built.",
+  },
+] as const;
+
+export const getMethod = (locale: Locale = "fr") => (locale === "en" ? methodEn : method);
+export const getPrinciples = (locale: Locale = "fr") => (locale === "en" ? principlesEn : principles);

@@ -1,7 +1,9 @@
 import Link from "next/link";
 import { ArrowUpRight } from "@/components/ui/Icons";
 import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
-import { KIND_LABEL, projectPath, type Project } from "@/lib/projects";
+import type { Locale } from "@/lib/i18n/config";
+import { projectPath } from "@/lib/i18n/routes";
+import { KIND_LABELS, type Project } from "@/lib/projects";
 
 /**
  * Une réalisation, présentée comme une vitrine : le site en grand, l'écran
@@ -9,17 +11,19 @@ import { KIND_LABEL, projectPath, type Project } from "@/lib/projects";
  * Toute la carte est cliquable ; elle se soulève au survol.
  */
 export function ProjectCard({
+  locale,
   project,
   layout = "stacked",
   headingLevel: H = "h3",
   eager = false,
 }: {
+  locale: Locale;
   project: Project;
   layout?: "stacked" | "wide";
   headingLevel?: "h2" | "h3";
   eager?: boolean;
 }) {
-  const href = projectPath(project.slug);
+  const href = projectPath(project.slug, locale);
   const wide = layout === "wide";
 
   return (
@@ -39,6 +43,7 @@ export function ProjectCard({
           <div className="relative transition-transform duration-[900ms] ease-[var(--ease-out)] group-hover:-translate-y-2">
             <BrowserShot
               id={`site-${project.slug}`}
+              locale={locale}
               eager={eager}
               sizes={wide ? "(min-width: 1024px) 70vw, 92vw" : "(min-width: 768px) 42vw, 92vw"}
               className={`${wide ? "w-[82%]" : "w-[86%]"} rounded-b-none border-b-0`}
@@ -49,7 +54,7 @@ export function ProjectCard({
               wide ? "w-[22%]" : "w-[27%]"
             }`}
           >
-            <PhoneShot id={`mobile-${project.slug}`} sizes="(min-width: 768px) 14vw, 28vw" className="translate-y-[18%]" />
+            <PhoneShot id={`mobile-${project.slug}`} locale={locale} sizes="(min-width: 768px) 14vw, 28vw" className="translate-y-[18%]" />
           </div>
         </div>
 
@@ -57,7 +62,7 @@ export function ProjectCard({
           <div>
             <div className="flex flex-wrap items-center gap-3">
               <span className="label rounded-full border border-gold/40 px-2.5 py-1 text-[0.6875rem] text-gold">
-                {KIND_LABEL[project.kind]}
+                {KIND_LABELS[locale][project.kind]}
               </span>
               <span className="label text-bone-3">{project.sector}</span>
             </div>

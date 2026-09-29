@@ -1,5 +1,7 @@
-import type { VisualKey } from "./services";
+import type { Locale } from "./i18n/config.ts";
 import { photo } from "./photos.ts";
+import { projectsEn } from "./projects.en.ts";
+import type { VisualKey } from "./services.ts";
 
 /**
  * Réalisations.
@@ -22,12 +24,23 @@ import { photo } from "./photos.ts";
 
 export type ProjectKind = "client" | "concept" | "demonstration" | "exploratory";
 
-export const KIND_LABEL: Record<ProjectKind, string> = {
-  client: "Projet client",
-  concept: "Concept",
-  demonstration: "Démonstration",
-  exploratory: "Projet exploratoire",
+export const KIND_LABELS: Record<Locale, Record<ProjectKind, string>> = {
+  fr: {
+    client: "Projet client",
+    concept: "Concept",
+    demonstration: "Démonstration",
+    exploratory: "Projet exploratoire",
+  },
+  en: {
+    client: "Client project",
+    concept: "Concept",
+    demonstration: "Demonstration",
+    exploratory: "Exploratory project",
+  },
 };
+
+/** Libellés français (rétrocompatibilité). */
+export const KIND_LABEL = KIND_LABELS.fr;
 
 /** Composition du bloc principal, sous la navigation du site présenté. */
 export type HeroLayout = "overlay" | "split" | "centered";
@@ -355,11 +368,23 @@ export const projects: Project[] = [
   },
 ];
 
-export const projectBySlug = (slug: string) =>
-  projects.find((project) => project.slug === slug);
+/** Ce qui se traduit dans une étude de cas (le site présenté reste en français). */
+export type ProjectText = Pick<Project, "sector" | "summary" | "context" | "problem" | "direction" | "features">;
 
-export const projectPath = (slug: string) => `/realisations/${slug}`;
+const byLocale: Record<Locale, Project[]> = {
+  fr: projects,
+  en: projects.map((project) => ({ ...project, ...projectsEn[project.slug] })),
+};
+
+export const getProjects = (locale: Locale = "fr") => byLocale[locale];
+
+export const projectBySlug = (slug: string, locale: Locale = "fr") =>
+  byLocale[locale].find((project) => project.slug === slug);
 
 /** Mention affichée sous toute sélection de projets conceptuels. */
-export const CONCEPT_NOTICE =
-  "Projets conceptuels créés par AMYN pour montrer une direction. Les marques sont fictives ; aucun client réel n'est représenté.";
+export const CONCEPT_NOTICES: Record<Locale, string> = {
+  fr: "Projets conceptuels créés par AMYN pour montrer une direction. Les marques sont fictives ; aucun client réel n'est représenté.",
+  en: "Concept projects created by AMYN to show a direction. The brands are fictional; no real client is represented.",
+};
+
+export const CONCEPT_NOTICE = CONCEPT_NOTICES.fr;

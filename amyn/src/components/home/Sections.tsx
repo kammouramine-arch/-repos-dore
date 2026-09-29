@@ -5,17 +5,23 @@ import { ArrowRight } from "@/components/ui/Icons";
 import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
 import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
 import { ProjectCard } from "@/components/work/ProjectCard";
-import { method, principles } from "@/lib/method";
-import { CONCEPT_NOTICE, projectBySlug } from "@/lib/projects";
-import { cta, site } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { ctas } from "@/lib/i18n/nav";
+import { href } from "@/lib/i18n/routes";
+import { getMethod, getPrinciples } from "@/lib/method";
+import { CONCEPT_NOTICES, projectBySlug } from "@/lib/projects";
+import { site } from "@/lib/site";
 
 /* ==========================================================================
    Réalisations
    ========================================================================== */
 
-export function Work() {
+export function Work({ locale, number }: { locale: Locale; number?: string }) {
+  const t = getDictionary(locale).home.work;
+  const cta = ctas(locale);
   const [first, second, third] = ["maison-elan", "thermia", "cabinet-aurel"].map(
-    (slug) => projectBySlug(slug)!,
+    (slug) => projectBySlug(slug, locale)!,
   );
 
   return (
@@ -24,13 +30,9 @@ export function Work() {
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div data-reveal="fade">
-              <Label number="04">Réalisations</Label>
+              <Label number={number}>{t.label}</Label>
             </div>
-            <Heading
-              id="realisations-titre"
-              className="mt-7"
-              lines={[{ text: "Des concepts" }, { text: "qui se", accent: "voient." }]}
-            />
+            <Heading id="realisations-titre" className="mt-7" lines={t.title} />
           </div>
           <ButtonLink href={cta.work.href} variant="secondary" className="self-start lg:self-auto">
             {cta.work.label}
@@ -38,14 +40,14 @@ export function Work() {
         </div>
 
         <div className="mt-14 sm:mt-20">
-          <ProjectCard project={first} layout="wide" />
+          <ProjectCard locale={locale} project={first} layout="wide" />
         </div>
         <div className="mt-14 grid gap-14 md:grid-cols-2 md:gap-8 lg:gap-10">
-          <ProjectCard project={second} />
-          <ProjectCard project={third} />
+          <ProjectCard locale={locale} project={second} />
+          <ProjectCard locale={locale} project={third} />
         </div>
 
-        <p className="label mt-12 max-w-2xl text-bone-3">{CONCEPT_NOTICE}</p>
+        <p className="label mt-12 max-w-2xl text-bone-3">{CONCEPT_NOTICES[locale]}</p>
       </Container>
     </Section>
   );
@@ -55,44 +57,40 @@ export function Work() {
    Au-delà du site : les outils, en images
    ========================================================================== */
 
-export function Tools() {
+export function Tools({ locale, number }: { locale: Locale; number?: string }) {
+  const t = getDictionary(locale).home.tools;
   return (
     <Section tone="ink-2" labelledBy="outils-titre" className="seam overflow-hidden">
       <Container>
         <div className="grid gap-8 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7">
             <div data-reveal="fade">
-              <Label number="05">Au-delà du site</Label>
+              <Label number={number}>{t.label}</Label>
             </div>
-            <Heading
-              id="outils-titre"
-              className="mt-7"
-              lines={[{ text: "Les outils" }, { text: "qui font", accent: "tourner." }]}
-            />
+            <Heading id="outils-titre" className="mt-7" lines={t.title} />
           </div>
           <p data-reveal className="lead text-bone-2 lg:col-span-5">
-            Demandes, devis, réservations, nouveaux clients : ce qui se gère encore à la
-            main peut tenir dans un écran.
+            {t.lead}
           </p>
         </div>
 
         <div className="relative mt-14 grid grid-cols-12 items-end gap-4 sm:mt-20 sm:gap-6">
           <figure data-reveal className="col-span-12 lg:col-span-8">
-            <BrowserShot id="quote-detail" sizes="(min-width: 1024px) 60vw, 95vw" />
+            <BrowserShot id="quote-detail" locale={locale} sizes="(min-width: 1024px) 60vw, 95vw" />
             <figcaption className="label mt-4 text-bone-3">
-              <span className="text-gold">02</span> Suivi des demandes & devis
+              <span className="text-gold">02</span> {t.captions[0]}
             </figcaption>
           </figure>
           <figure data-reveal style={delay(120)} className="col-span-6 sm:col-span-4 lg:col-span-2">
-            <PhoneShot id="technician" sizes="(min-width: 1024px) 14vw, 45vw" />
+            <PhoneShot id="technician" locale={locale} sizes="(min-width: 1024px) 14vw, 45vw" />
             <figcaption className="label mt-4 text-bone-3">
-              <span className="text-gold">03</span> Appli terrain
+              <span className="text-gold">03</span> {t.captions[1]}
             </figcaption>
           </figure>
           <figure data-reveal style={delay(200)} className="col-span-6 sm:col-span-4 lg:col-span-2">
-            <PhoneShot id="booking" sizes="(min-width: 1024px) 14vw, 45vw" />
+            <PhoneShot id="booking" locale={locale} sizes="(min-width: 1024px) 14vw, 45vw" />
             <figcaption className="label mt-4 text-bone-3">
-              <span className="text-gold">04</span> Réservation
+              <span className="text-gold">04</span> {t.captions[2]}
             </figcaption>
           </figure>
         </div>
@@ -105,23 +103,22 @@ export function Tools() {
    Méthode
    ========================================================================== */
 
-export function Method() {
+export function Method({ locale, number }: { locale: Locale; number?: string }) {
+  const t = getDictionary(locale).home.method;
+  const method = getMethod(locale);
+  const principles = getPrinciples(locale);
   return (
     <Section labelledBy="methode-titre" className="seam">
       <Container>
         <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
           <div>
             <div data-reveal="fade">
-              <Label number="06">Méthode</Label>
+              <Label number={number}>{t.label}</Label>
             </div>
-            <Heading
-              id="methode-titre"
-              className="mt-7"
-              lines={[{ text: "Quatre étapes." }, { accent: "Aucune surprise." }]}
-            />
+            <Heading id="methode-titre" className="mt-7" lines={t.title} />
           </div>
-          <ButtonLink href="/methode" variant="text">
-            La méthode en détail
+          <ButtonLink href={href("method", locale)} variant="text">
+            {t.link}
           </ButtonLink>
         </div>
 
@@ -143,7 +140,7 @@ export function Method() {
         </ol>
 
         <ul
-          aria-label="Nos engagements"
+          aria-label={t.commitmentsAria}
           className="mt-4 grid gap-px overflow-hidden rounded-[1.25rem] border border-[rgb(242_238_230/0.1)] bg-[rgb(242_238_230/0.1)] sm:grid-cols-2 lg:grid-cols-4"
         >
           {principles.slice(0, 4).map((p, i) => (
@@ -167,7 +164,9 @@ export function Method() {
    Appel final
    ========================================================================== */
 
-export function FinalCta({ number }: { number?: string }) {
+export function FinalCta({ locale, number }: { locale: Locale; number?: string }) {
+  const t = getDictionary(locale);
+  const cta = ctas(locale);
   return (
     <Section labelledBy="final-titre" className="seam overflow-hidden">
       <Atmosphere variant="finale" />
@@ -177,16 +176,16 @@ export function FinalCta({ number }: { number?: string }) {
       />
       <Container className="relative text-center">
         <div data-reveal="fade" className="flex justify-center">
-          <Label number={number}>Commencer</Label>
+          <Label number={number}>{t.home.final.label}</Label>
         </div>
         <Heading
           id="final-titre"
           size="xl"
           className="mx-auto mt-8 max-w-5xl"
-          lines={[{ text: "Montrez-nous" }, { text: "votre", accent: "entreprise." }]}
+          lines={t.home.final.title}
         />
         <p data-reveal className="lead mx-auto mt-8 max-w-xl text-bone-2" style={delay(150)}>
-          On vous montre d&apos;abord ce que nous changerions.
+          {t.home.final.lead}
         </p>
 
         <div data-reveal style={delay(250)} className="mt-11 flex justify-center">
@@ -201,7 +200,7 @@ export function FinalCta({ number }: { number?: string }) {
           style={delay(320)}
           className="mt-8 inline-flex min-h-11 items-center gap-2 text-bone-3 transition-colors hover:text-bone"
         >
-          ou {site.email}
+          {t.common.or} {site.email}
           <ArrowRight className="size-4" />
         </a>
       </Container>

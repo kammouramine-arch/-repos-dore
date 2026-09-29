@@ -8,6 +8,10 @@
 
 export type Errors<K extends string> = Partial<Record<K, string>>;
 
+/** Langue des messages (miroir de `Locale`, sans import : module autonome). */
+export type FormLocale = "fr" | "en";
+export const FORM_LOCALES: readonly FormLocale[] = ["fr", "en"];
+
 export const hasErrors = (errors: object) => Object.keys(errors).length > 0;
 
 /* ---------------------------------------------------------------------------
@@ -110,14 +114,33 @@ export const LIMITS = {
   text: 3000,
 } as const;
 
+const IDENTITY_MESSAGES = {
+  fr: {
+    name: "Indiquez votre nom.",
+    company: "Indiquez le nom de votre entreprise.",
+    emailMissing: "Indiquez votre adresse e-mail professionnelle.",
+    emailInvalid: "Cette adresse e-mail ne semble pas valide.",
+    phone: "Ce numéro ne semble pas valide.",
+  },
+  en: {
+    name: "Please enter your name.",
+    company: "Please enter your company name.",
+    emailMissing: "Please enter your work email address.",
+    emailInvalid: "This email address doesn't look valid.",
+    phone: "This phone number doesn't look valid.",
+  },
+} as const;
+
 /** Règles communes aux champs d'identité. */
 export function checkIdentity(
   v: { name: string; company: string; email: string; phone: string },
   errors: Record<string, string>,
+  locale: FormLocale = "fr",
 ) {
-  if (v.name.length < 2) errors.name = "Indiquez votre nom.";
-  if (v.company.length < 2) errors.company = "Indiquez le nom de votre entreprise.";
-  if (!v.email) errors.email = "Indiquez votre adresse e-mail professionnelle.";
-  else if (!EMAIL.test(v.email)) errors.email = "Cette adresse e-mail ne semble pas valide.";
-  if (v.phone && !PHONE.test(v.phone)) errors.phone = "Ce numéro ne semble pas valide.";
+  const m = IDENTITY_MESSAGES[locale];
+  if (v.name.length < 2) errors.name = m.name;
+  if (v.company.length < 2) errors.company = m.company;
+  if (!v.email) errors.email = m.emailMissing;
+  else if (!EMAIL.test(v.email)) errors.email = m.emailInvalid;
+  if (v.phone && !PHONE.test(v.phone)) errors.phone = m.phone;
 }

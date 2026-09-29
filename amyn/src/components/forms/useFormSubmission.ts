@@ -21,7 +21,13 @@ export function useFormSubmission<V extends object, F extends string>({
   sanitize,
   validate,
   order,
+  messages = {
+    failed: "L'envoi a échoué. Réessayez dans un instant.",
+    offline: "Connexion impossible. Vérifiez votre réseau, puis réessayez.",
+  },
 }: {
+  /** Messages génériques, dans la langue du visiteur. */
+  messages?: { failed: string; offline: string };
   formId: string;
   endpoint: string;
   initial: V;
@@ -92,7 +98,7 @@ export function useFormSubmission<V extends object, F extends string>({
           if (first) focusField(first);
         }
         setServerError(
-          typeof data.error === "string" ? data.error : "L'envoi a échoué. Réessayez dans un instant.",
+          typeof data.error === "string" ? data.error : messages.failed,
         );
         setStatus("idle");
         return;
@@ -100,7 +106,7 @@ export function useFormSubmission<V extends object, F extends string>({
 
       setStatus("sent");
     } catch {
-      setServerError("Connexion impossible. Vérifiez votre réseau, puis réessayez.");
+      setServerError(messages.offline);
       setStatus("idle");
     }
   }

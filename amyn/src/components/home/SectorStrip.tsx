@@ -1,4 +1,6 @@
 import Image from "next/image";
+import type { Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionary";
 import { photo } from "@/lib/photos";
 
 /**
@@ -7,21 +9,23 @@ import { photo } from "@/lib/photos";
  * le visiteur a demandé moins d'animations (on peut alors la faire défiler
  * à la main).
  */
-const sectors = [
-  { label: "Restaurants", img: "restaurant-salle" },
-  { label: "Artisans", img: "menuiserie-cuisine" },
-  { label: "Salons", img: "institut-salon" },
-  { label: "Barbiers", img: "barbier-salon" },
-  { label: "Entreprises", img: "cabinet-bureaux" },
-  { label: "Dépannage", img: "plomberie-reseau" },
-  { label: "Cuisine", img: "restaurant-plat" },
-  { label: "Architecture", img: "artisan-plans" },
+const images = [
+  "restaurant-salle",
+  "menuiserie-cuisine",
+  "institut-salon",
+  "barbier-salon",
+  "cabinet-bureaux",
+  "plomberie-reseau",
+  "restaurant-plat",
+  "artisan-plans",
 ];
 
-export function SectorStrip() {
+export function SectorStrip({ locale }: { locale: Locale }) {
+  const t = getDictionary(locale).sectors;
+  const sectors = images.map((img, i) => ({ img, label: t.items[i] }));
   const loop = [...sectors, ...sectors];
   return (
-    <section aria-label="Les métiers que nous accompagnons" className="marquee-host relative overflow-x-auto py-10 [scrollbar-width:none] motion-safe:overflow-hidden sm:py-14">
+    <section aria-label={t.aria} className="marquee-host relative overflow-x-auto py-10 [scrollbar-width:none] motion-safe:overflow-hidden sm:py-14">
       <div aria-hidden className="pointer-events-none absolute inset-y-0 left-0 z-10 w-16 bg-gradient-to-r from-ink to-transparent sm:w-40" />
       <div aria-hidden className="pointer-events-none absolute inset-y-0 right-0 z-10 w-16 bg-gradient-to-l from-ink to-transparent sm:w-40" />
       <ul className="marquee flex w-max gap-4 sm:gap-5">

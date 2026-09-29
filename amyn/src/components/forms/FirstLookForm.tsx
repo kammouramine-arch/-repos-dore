@@ -12,6 +12,7 @@ import {
   SERVICE_OPTIONS,
   STEPS,
   TIMELINES,
+  optionLabel,
   sanitizeFirstLook,
   validateFirstLook,
   validateStep,
@@ -21,7 +22,10 @@ import {
   type Timeline,
 } from "@/lib/forms/first-look";
 import { LIMITS, hasErrors } from "@/lib/forms/shared";
-import { retention } from "@/lib/legal";
+import type { Locale } from "@/lib/i18n/config";
+import { href } from "@/lib/i18n/routes";
+import { getUi } from "@/lib/i18n/ui";
+import { retention, retentionEn } from "@/lib/legal";
 import { ChoiceGroup, Honeypot, PrivacyCheck, SentState, TextArea, TextField } from "./Fields";
 import { useFormSubmission } from "./useFormSubmission";
 
@@ -35,7 +39,7 @@ const FORM = "apercu";
  *   ?besoin=<slug> / ?service=   → pré-coche le service correspondant.
  * Aucune donnée personnelle ne transite par l'adresse.
  */
-function useInitialValues(): FirstLookValues {
+function useInitialValues(locale: Locale): FirstLookValues {
   const params = useSearchParams();
   const service = SERVICE_BY_SLUG[params.get("besoin") ?? params.get("service") ?? ""];
   return sanitizeFirstLook({
@@ -43,19 +47,20 @@ function useInitialValues(): FirstLookValues {
     company: params.get("business") ?? "",
     services: service ? [service] : [],
     source: params.get("source") ?? "site",
+    lang: locale,
   });
 }
 
-export function FirstLookForm() {
+export function FirstLookForm({ locale }: { locale: Locale }) {
   return (
-    <Suspense fallback={<Form initial={EMPTY_FIRST_LOOK} />}>
-      <FormWithParams />
+    <Suspense fallback={<Form locale={locale} initial={{ ...EMPTY_FIRST_LOOK, lang: locale }} />}>
+      <FormWithParams locale={locale} />
     </Suspense>
   );
 }
 
-function FormWithParams() {
-  return <Form initial={useInitialValues()} />;
+function FormWithParams({ locale }: { locale: Locale }) {
+  return <Form locale={locale} initial={useInitialValues(locale)} />;
 }
 
 /**
@@ -63,7 +68,8 @@ function FormWithParams() {
  * la suivante ; on peut revenir en arrière sans rien perdre. L'envoi n'a
  * lieu qu'à la dernière étape.
  */
-function Form({ initial }: { initial: FirstLookValues }) {
+function Form({ locale, initial }: { locale: Locale; initial: FirstLookValues }) {
+  const t = getUi(locale).form;
   const { values, set, errors, status, serverError, submit, honeypot } = useFormSubmission<
     FirstLookValues,
     FirstLookField
@@ -74,6 +80,7 @@ function Form({ initial }: { initial: FirstLookValues }) {
     sanitize: sanitizeFirstLook,
     validate: validateFirstLook,
     order: FIRST_LOOK_ORDER,
+    messages: { failed: t.failed, offline: t.offline },
   });
 
   const [step, setStep] = useState(0);
@@ -123,12 +130,10 @@ function Form({ initial }: { initial: FirstLookValues }) {
 
   if (status === "sent") {
     return (
-      <SentState title="Merci. Nous regardons d'abord votre activité.">
-        <p>Avant de vous proposer quoi que ce soit, nous étudions ce que vous nous avez transmis.</p>
-        <p>
-          Si le projet s&apos;y prête, nous revenons vers vous avec une première piste concrète.
-          Sinon, nous vous le disons simplement. Vous n&apos;êtes engagé à rien.
-        </p>
+      <SentState title={t.sentTitle} locale={locale}>
+        {t.sentBody.map((p) => (
+          <p key={p}>{p}</p>
+        ))}
       </SentState>
     );
   }
@@ -150,11 +155,11 @@ function Form({ initial }: { initial: FirstLookValues }) {
       noValidate
       className="relative"
     >
-      <Honeypot inputRef={honeypot} />
+      <Honeypot inputRef={honeypot} locale={locale} />
 
       {/* Progression */}
       <div ref={top} className="scroll-mt-[calc(var(--header-h)+1.5rem)]">
-        <ol className="grid grid-cols-3 gap-2" aria-label="Étapes du formulaire">
+        <ol className="grid grid-cols-3 gap-2" aria-label={t.steps}>
           {STEPS.map((s, i) => (
             <li key={s.title}>
               <button
@@ -175,7 +180,7 @@ function Form({ initial }: { initial: FirstLookValues }) {
                     i === step ? "text-gold" : i < step ? "text-fg-2 group-hover:text-fg" : "text-fg-3"
                   }`}
                 >
-                  Étape {i + 1}
+                  {t.step} {i + 1}
                 </span>
               </button>
             </li>
@@ -183,7 +188,7 @@ function Form({ initial }: { initial: FirstLookValues }) {
         </ol>
 
         <h2 className="display-sm mt-8" aria-live="polite">
-          {STEPS[step].title}
+          {locale === "en" ? STEPS[step].titleEn : STEPS[step].title}
         </h2>
       </div>
 
@@ -193,15 +198,16 @@ function Form({ initial }: { initial: FirstLookValues }) {
       >
         {step === 0 && (
           <>
-            <TextField id={id("name")} label="Nom" value={values.name} onChange={(v) => update("name", v)} error={e("name")} autoComplete="name" maxLength={LIMITS.name} disabled={sending} />
-            <TextField id={id("company")} label="Entreprise" value={values.company} onChange={(v) => update("company", v)} error={e("company")} autoComplete="organization" maxLength={LIMITS.company} disabled={sending} />
-            <TextField id={id("email")} label="E-mail professionnel" type="email" inputMode="email" value={values.email} onChange={(v) => update("email", v)} error={e("email")} autoComplete="email" maxLength={LIMITS.email} disabled={sending} />
-            <TextField id={id("phone")} label="Téléphone" type="tel" inputMode="tel" optional value={values.phone} onChange={(v) => update("phone", v)} error={e("phone")} autoComplete="tel" maxLength={LIMITS.phone} disabled={sending} />
+            <TextField locale={locale} id={id("name")} label={t.name} value={values.name} onChange={(v) => update("name", v)} error={e("name")} autoComplete="name" maxLength={LIMITS.name} disabled={sending} />
+            <TextField locale={locale} id={id("company")} label={t.company} value={values.company} onChange={(v) => update("company", v)} error={e("company")} autoComplete="organization" maxLength={LIMITS.company} disabled={sending} />
+            <TextField locale={locale} id={id("email")} label={t.email} type="email" inputMode="email" value={values.email} onChange={(v) => update("email", v)} error={e("email")} autoComplete="email" maxLength={LIMITS.email} disabled={sending} />
+            <TextField locale={locale} id={id("phone")} label={t.phone} type="tel" inputMode="tel" optional value={values.phone} onChange={(v) => update("phone", v)} error={e("phone")} autoComplete="tel" maxLength={LIMITS.phone} disabled={sending} />
             <TextField
+              locale={locale}
               id={id("presence")}
-              label="Votre site, Instagram ou fiche Google"
+              label={t.presence}
               optional
-              placeholder="monsite.fr, @moncompte…"
+              placeholder={t.presencePlaceholder}
               value={values.presence}
               onChange={(v) => update("presence", v)}
               error={e("presence")}
@@ -215,8 +221,10 @@ function Form({ initial }: { initial: FirstLookValues }) {
         {step === 1 && (
           <>
             <ChoiceGroup<ServiceOption>
+              locale={locale}
+              labelFor={(o) => optionLabel(o, locale)}
               id={id("services")}
-              legend="Les services qui vous intéressent"
+              legend={t.services}
               options={SERVICE_OPTIONS}
               multiple
               value={values.services}
@@ -226,9 +234,10 @@ function Form({ initial }: { initial: FirstLookValues }) {
               className="sm:col-span-2"
             />
             <TextField
+              locale={locale}
               id={id("need")}
-              label="Votre besoin principal, en une phrase"
-              placeholder="Ex. recevoir des réservations sans décrocher le téléphone"
+              label={t.need}
+              placeholder={t.needPlaceholder}
               value={values.need}
               onChange={(v) => update("need", v)}
               error={e("need")}
@@ -237,8 +246,10 @@ function Form({ initial }: { initial: FirstLookValues }) {
               className="sm:col-span-2"
             />
             <ChoiceGroup<Timeline>
+              locale={locale}
+              labelFor={(o) => optionLabel(o, locale)}
               id={id("timeline")}
-              legend="Échéance souhaitée"
+              legend={t.timeline}
               options={TIMELINES}
               value={values.timeline}
               onChange={(v) => update("timeline", v as Timeline)}
@@ -252,10 +263,11 @@ function Form({ initial }: { initial: FirstLookValues }) {
         {step === 2 && (
           <>
             <TextArea
+              locale={locale}
               id={id("description")}
-              label="Votre activité et votre projet"
+              label={t.description}
               rows={6}
-              placeholder="Ce que fait votre entreprise, ce qui ne fonctionne pas aujourd'hui, ce que vous imaginez…"
+              placeholder={t.descriptionPlaceholder}
               value={values.description}
               onChange={(v) => update("description", v)}
               error={e("description")}
@@ -264,7 +276,7 @@ function Form({ initial }: { initial: FirstLookValues }) {
               className="sm:col-span-2"
             />
             <div className="sm:col-span-2">
-              <PrivacyCheck id={id("privacy")} checked={values.privacy} onChange={(v) => update("privacy", v)} error={e("privacy")} disabled={sending} />
+              <PrivacyCheck locale={locale} id={id("privacy")} checked={values.privacy} onChange={(v) => update("privacy", v)} error={e("privacy")} disabled={sending} />
             </div>
           </>
         )}
@@ -287,10 +299,10 @@ function Form({ initial }: { initial: FirstLookValues }) {
             data-magnetic=""
             className={buttonClass("secondary", "w-full sm:w-auto")}
           >
-            Retour
+            {t.back}
           </button>
         ) : (
-          <span className="text-[0.8125rem] text-fg-3">Deux minutes · Sans engagement</span>
+          <span className="text-[0.8125rem] text-fg-3">{t.intro}</span>
         )}
         <button
           type="submit"
@@ -298,7 +310,7 @@ function Form({ initial }: { initial: FirstLookValues }) {
           data-magnetic=""
           className={buttonClass("primary", "w-full !min-h-14 sm:w-auto disabled:cursor-wait disabled:opacity-80")}
         >
-          {sending ? "Envoi en cours…" : last ? "Recevoir un premier aperçu" : "Continuer"}
+          {sending ? t.sending : last ? t.submit : t.continue}
           {sending ? (
             <span aria-hidden className="size-4 animate-spin rounded-full border-[1.5px] border-current border-t-transparent motion-reduce:animate-none" />
           ) : (
@@ -309,10 +321,9 @@ function Form({ initial }: { initial: FirstLookValues }) {
 
       {last && (
         <p className="mt-6 text-[0.8125rem] leading-relaxed text-fg-3">
-          Vos informations servent uniquement à étudier et à répondre à votre demande. Elles sont
-          conservées {retention.requests}.{" "}
-          <Link href="/confidentialite" className="underline underline-offset-4">
-            En savoir plus
+          {t.privacyNoteBefore} {locale === "en" ? retentionEn.requests : retention.requests}.{" "}
+          <Link href={href("privacy", locale)} className="underline underline-offset-4">
+            {t.privacyNoteLink}
           </Link>
           .
         </p>
@@ -322,24 +333,25 @@ function Form({ initial }: { initial: FirstLookValues }) {
 }
 
 /** Mention affichée en tête de page quand on arrive par un message d'AMYN. */
-export function OutreachNotice() {
+export function OutreachNotice({ locale }: { locale: Locale }) {
   return (
     <Suspense fallback={null}>
-      <OutreachNoticeInner />
+      <OutreachNoticeInner locale={locale} />
     </Suspense>
   );
 }
 
-function OutreachNoticeInner() {
+function OutreachNoticeInner({ locale }: { locale: Locale }) {
   const params = useSearchParams();
+  const t = getUi(locale).form;
   if (params.get("source") !== "outreach") return null;
   return (
     <div className="rounded-[var(--radius-md)] border border-gold/30 bg-[rgb(198_167_106/0.06)] px-5 py-4 text-[0.9375rem] text-fg-2 sm:max-w-xl">
-      <p className="label text-gold">Vous arrivez depuis un message d&apos;AMYN</p>
+      <p className="label text-gold">{t.outreachTitle}</p>
       <p className="mt-2">
-        Bienvenue. Voici qui nous sommes — sans obligation.{" "}
+        {t.outreachBody}{" "}
         <a href="#message" className="text-fg underline underline-offset-4">
-          Pourquoi ce message ?
+          {t.outreachLink}
         </a>
       </p>
     </div>

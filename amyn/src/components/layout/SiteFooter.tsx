@@ -1,29 +1,40 @@
 import Link from "next/link";
 import { Container } from "@/components/ui/Layout";
-import { services, servicePath } from "@/lib/services";
-import { cta, legalNav, site, social } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { href, servicePath } from "@/lib/i18n/routes";
+import { getUi } from "@/lib/i18n/ui";
+import { getServices } from "@/lib/services";
+import { site, social } from "@/lib/site";
 import { Logo } from "./Logo";
 
-const studio = [
-  { label: "Réalisations", href: "/realisations" },
-  { label: "Méthode", href: "/methode" },
-  { label: "À propos", href: "/a-propos" },
-  { label: "Premier aperçu", href: cta.firstLook.href },
-];
-
-export function SiteFooter() {
+export function SiteFooter({ locale }: { locale: Locale }) {
   const year = new Date().getFullYear();
+  const t = getDictionary(locale);
+  const n = getUi(locale).nav;
+  const studio = [
+    { label: n.work, href: href("work", locale) },
+    { label: n.method, href: href("method", locale) },
+    { label: n.about, href: href("about", locale) },
+    { label: n.firstLook, href: href("firstLook", locale) },
+  ];
+  const legalNav = [
+    { label: t.legalNav.legalNotice, href: href("legalNotice", locale) },
+    { label: t.legalNav.privacy, href: href("privacy", locale) },
+    { label: t.legalNav.cookies, href: href("cookies", locale) },
+    { label: t.legalNav.terms, href: href("terms", locale) },
+  ];
 
   return (
     <footer className="tone-ink border-t border-line pb-10 pt-16 sm:pt-20">
       <Container>
         <div className="grid gap-12 lg:grid-cols-12">
           <div className="lg:col-span-4">
-            <Link href="/" aria-label={`${site.name} — accueil`} className="inline-block">
+            <Link href={href("home", locale)} aria-label={`${site.name} — ${t.common.homeAria}`} className="inline-block">
               <Logo />
             </Link>
             <p className="mt-6 max-w-sm text-[0.9375rem] leading-relaxed text-fg-2">
-              {site.tagline}
+              {t.meta.tagline}
             </p>
             <a
               href={`mailto:${site.email}`}
@@ -33,15 +44,15 @@ export function SiteFooter() {
             </a>
           </div>
 
-          <FooterColumn title="Services" className="lg:col-span-3 lg:col-start-6">
-            {services.map((s) => (
-              <FooterLink key={s.slug} href={servicePath(s.slug)}>
+          <FooterColumn title={t.footer.services} className="lg:col-span-3 lg:col-start-6">
+            {getServices(locale).map((s) => (
+              <FooterLink key={s.slug} href={servicePath(s.slug, locale)}>
                 {s.short}
               </FooterLink>
             ))}
           </FooterColumn>
 
-          <FooterColumn title="Studio" className="lg:col-span-2">
+          <FooterColumn title={t.footer.studio} className="lg:col-span-2">
             {studio.map((item) => (
               <FooterLink key={item.href} href={item.href}>
                 {item.label}
@@ -49,7 +60,7 @@ export function SiteFooter() {
             ))}
           </FooterColumn>
 
-          <FooterColumn title="Informations" className="lg:col-span-2">
+          <FooterColumn title={t.footer.info} className="lg:col-span-2">
             {legalNav.map((item) => (
               <FooterLink key={item.href} href={item.href}>
                 {item.label}
@@ -74,7 +85,7 @@ export function SiteFooter() {
           <p>
             © {year} {site.legalBrand}
           </p>
-          <p>Studio digital — France</p>
+          <p>{t.common.studio}</p>
         </div>
       </Container>
     </footer>

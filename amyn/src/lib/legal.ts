@@ -63,6 +63,7 @@ export const legal: LegalInfo = {
 export const hosting = {
   name: "Vercel Inc.",
   address: "440 N Barranca Ave #4133, Covina, CA 91723, États-Unis",
+  addressEn: "440 N Barranca Ave #4133, Covina, CA 91723, United States",
   website: "https://vercel.com",
   verified: true,
 } as const;
@@ -120,6 +121,21 @@ export const TERMS_LABELS: Record<keyof Terms, string> = {
   disputes: "Règlement des litiges (tentative amiable, juridiction compétente)",
 };
 
+export const TERMS_LABELS_EN: Record<keyof Terms, string> = {
+  payment: "Payment terms (instalments, methods, late payment penalties, recovery fee)",
+  deposit: "Deposit (amount or percentage, when it is paid)",
+  intellectualProperty: "Intellectual property and transfer of rights in the deliverables",
+  deadlines: "Delivery timelines and consequences of delay",
+  clientObligations: "Client obligations (content, access, approvals, response times)",
+  revisions: "Number of included revisions and billing of additional revisions",
+  cancellation: "Cancellation of an order by the client or by AMYN",
+  liability: "Warranties and limitation of liability",
+  maintenance: "Maintenance, hosting and support after delivery",
+  termination: "Suspension and termination",
+  law: "Governing law",
+  disputes: "Dispute resolution (amicable settlement, competent court)",
+};
+
 export const missingTerms = (t: Terms = terms) =>
   (Object.keys(t) as (keyof Terms)[]).filter((k) => !t[k]?.trim());
 
@@ -137,6 +153,21 @@ export const LEGAL_LABELS: Record<keyof LegalInfo, string> = {
   publicationDirector: "Directeur de la publication",
   phone: "Téléphone",
   insurance: "Assurance professionnelle",
+};
+
+export const LEGAL_LABELS_EN: Record<keyof LegalInfo, string> = {
+  publisherName: "Publisher name",
+  legalForm: "Legal form",
+  shareCapital: "Share capital (companies only)",
+  siren: "SIREN number",
+  siret: "SIRET number",
+  registration: "Registration (RCS / RNE)",
+  address: "Registered address",
+  vatNumber: "EU VAT number",
+  vatMention: "VAT statement if not VAT-registered",
+  publicationDirector: "Publication director",
+  phone: "Phone",
+  insurance: "Professional insurance",
 };
 
 /**
@@ -171,5 +202,14 @@ export const retention = {
     "la durée de la relation contractuelle, puis les durées imposées par la loi (par exemple 10 ans pour les pièces comptables)",
 } as const;
 
+export const retentionEn = {
+  requests: "3 years from our last exchange",
+  prospects: "3 years from our last contact",
+  optOut: "3 years from your objection, so that we can keep honouring it",
+  clients:
+    "the length of the contractual relationship, then the periods required by law (for example 10 years for accounting records)",
+} as const;
+
 /** Date de dernière mise à jour affichée sur les pages légales. */
 export const LEGAL_UPDATED = "28 septembre 2026";
+export const LEGAL_UPDATED_EN = "28 September 2026";

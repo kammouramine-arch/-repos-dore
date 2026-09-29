@@ -23,6 +23,9 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  /* Deux racines (une par langue) : une adresse inconnue reçoit une page
+     404 bilingue (app/global-not-found.tsx). */
+  experimental: { globalNotFound: true },
   /* Écrans et photos servis en AVIF (WebP en repli), à la bonne taille.
      Les captures d'interface gardent une qualité plus haute : du texte y
      est lisible. */
@@ -31,9 +34,16 @@ const nextConfig: NextConfig = {
     qualities: [70, 82],
   },
   /* Un seul parcours : l'ancienne page de contact mène au premier aperçu
-     (les paramètres de l'adresse, comme ?service=, sont conservés). */
+     (les paramètres de l'adresse, comme ?service=, sont conservés).
+     Le français n'a pas de préfixe : /fr renvoie aux adresses sans préfixe,
+     pour qu'une même page n'existe jamais à deux adresses. */
   async redirects() {
-    return [{ source: "/contact", destination: "/premier-apercu", permanent: true }];
+    return [
+      { source: "/contact", destination: "/premier-apercu", permanent: true },
+      { source: "/en/contact", destination: "/en/first-look", permanent: true },
+      { source: "/fr", destination: "/", permanent: true },
+      { source: "/fr/:path*", destination: "/:path*", permanent: true },
+    ];
   },
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];

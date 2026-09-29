@@ -1,5 +1,6 @@
 import Image from "next/image";
-import { shot, shotSrc } from "@/lib/visuals";
+import type { Locale } from "@/lib/i18n/config";
+import { shot, shotAlt, shotSrc } from "@/lib/visuals";
 
 /**
  * Écrans présentés en image : une fenêtre de navigateur ou un téléphone,
@@ -13,12 +14,14 @@ export function BrowserShot({
   eager = false,
   className = "",
   chrome = true,
+  locale = "fr",
 }: {
   id: string;
   sizes?: string;
   eager?: boolean;
   className?: string;
   chrome?: boolean;
+  locale?: Locale;
 }) {
   const s = shot(id);
   return (
@@ -32,7 +35,7 @@ export function BrowserShot({
             <span className="size-2 rounded-full bg-[#febc2e]/70" />
             <span className="size-2 rounded-full bg-[#28c840]/70" />
           </span>
-          <span className="mx-auto max-w-[70%] truncate rounded-md bg-[rgb(242_238_230/0.06)] px-3 py-1 font-mono text-[0.625rem] tracking-wide text-bone-3">
+          <span className="mx-auto max-w-[70%] truncate rounded-md bg-[rgb(242_238_230/0.06)] px-3 py-1 font-mono text-[0.625rem] tracking-wide text-bone-2">
             {s.url}
           </span>
           <span className="w-[34px] shrink-0" />
@@ -42,7 +45,7 @@ export function BrowserShot({
         src={shotSrc(id)}
         width={s.width}
         height={s.height}
-        alt={s.alt}
+        alt={shotAlt(id, locale)}
         sizes={sizes}
         quality={82}
         loading={eager ? "eager" : "lazy"}
@@ -58,11 +61,13 @@ export function PhoneShot({
   sizes = "(min-width: 1024px) 18vw, 45vw",
   eager = false,
   className = "",
+  locale = "fr",
 }: {
   id: string;
   sizes?: string;
   eager?: boolean;
   className?: string;
+  locale?: Locale;
 }) {
   const s = shot(id);
   /* Rayons, bord et îlot proportionnels à la largeur : le même téléphone
@@ -75,7 +80,7 @@ export function PhoneShot({
             src={shotSrc(id)}
             width={s.width}
             height={s.height}
-            alt={s.alt}
+            alt={shotAlt(id, locale)}
             sizes={sizes}
             quality={82}
             loading={eager ? "eager" : "lazy"}
@@ -91,6 +96,6 @@ export function PhoneShot({
 }
 
 /** Le bon cadre selon le type d'écran. */
-export function Shot(props: { id: string; sizes?: string; eager?: boolean; className?: string }) {
+export function Shot(props: { id: string; sizes?: string; eager?: boolean; className?: string; locale?: Locale }) {
   return shot(props.id).kind === "phone" ? <PhoneShot {...props} /> : <BrowserShot {...props} />;
 }

@@ -55,7 +55,11 @@ export function Section({
   );
 }
 
-/** Repère mono : « 02 — Services ». */
+/**
+ * Repère de chapitre : « 02 —— SERVICES ». Il doit se voir en faisant
+ * défiler la page sans lire : numéro en laiton, filet, intitulé contrasté.
+ * Même dessin sur toutes les pages.
+ */
 export function Label({
   children,
   number,
@@ -66,14 +70,14 @@ export function Label({
   className?: string;
 }) {
   return (
-    <p className={`label flex items-center gap-3 text-fg-3 ${className}`}>
+    <p className={`chapter ${className}`}>
       {number && (
         <>
-          <span className="text-accent">{number}</span>
-          <span aria-hidden className="h-px w-6 bg-line-strong" />
+          <span className="chapter-number">{number}</span>
+          <span aria-hidden className="chapter-rule" />
         </>
       )}
-      <span>{children}</span>
+      <span className="chapter-name">{children}</span>
     </p>
   );
 }

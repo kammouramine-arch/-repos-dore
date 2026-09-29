@@ -26,24 +26,5 @@ export const social: { label: string; href: string }[] = [
   // { label: "Instagram", href: "https://www.instagram.com/…" },
 ];
 
-/* Une seule action commerciale, partout : le premier aperçu. Les autres
-   liens sont des explorations. */
-export const cta = {
-  firstLook: { label: "Recevoir un premier aperçu", href: "/premier-apercu" },
-  services: { label: "Voir les services", href: "/services" },
-  work: { label: "Voir les réalisations", href: "/realisations" },
-} as const;
-
-export const mainNav = [
-  { label: "Services", href: "/services" },
-  { label: "Réalisations", href: "/realisations" },
-  { label: "Méthode", href: "/methode" },
-  { label: "À propos", href: "/a-propos" },
-] as const;
-
-export const legalNav = [
-  { label: "Mentions légales", href: "/mentions-legales" },
-  { label: "Confidentialité", href: "/confidentialite" },
-  { label: "Cookies", href: "/cookies" },
-  { label: "Conditions des services", href: "/conditions-services" },
-] as const;
+/* Navigation, appels à l'action et liens légaux : voir `i18n/nav.ts` et
+   `i18n/routes.ts` (une adresse par langue). */

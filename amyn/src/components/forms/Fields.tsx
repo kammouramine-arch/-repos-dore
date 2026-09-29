@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useEffect, useRef, type ReactNode, type RefObject } from "react";
-import { ArrowRight, Check } from "@/components/ui/Icons";
-import { buttonClass } from "@/components/ui/Button";
+import { Check } from "@/components/ui/Icons";
 import { HONEYPOT_FIELD } from "@/lib/forms/shared";
+import type { Locale } from "@/lib/i18n/config";
+import { href } from "@/lib/i18n/routes";
+import { getUi } from "@/lib/i18n/ui";
 
 /**
  * Champs de formulaire.
@@ -34,8 +36,8 @@ function Hint({ id, error, hint }: { id: string; error?: string; hint?: string }
   return null;
 }
 
-function Optional() {
-  return <span className="ml-1.5 text-fg-3">(facultatif)</span>;
+function Optional({ locale }: { locale: Locale }) {
+  return <span className="ml-1.5 text-fg-3">{getUi(locale).form.optional}</span>;
 }
 
 export function TextField({
@@ -53,6 +55,7 @@ export function TextField({
   disabled,
   maxLength,
   className = "",
+  locale = "fr",
 }: {
   id: string;
   label: string;
@@ -68,13 +71,14 @@ export function TextField({
   disabled?: boolean;
   maxLength?: number;
   className?: string;
+  locale?: Locale;
 }) {
   const described = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
     <div className={className}>
       <label htmlFor={id} className="text-[0.9375rem] font-medium text-fg">
         {label}
-        {optional && <Optional />}
+        {optional && <Optional locale={locale} />}
       </label>
       <input
         id={id}
@@ -110,6 +114,7 @@ export function TextArea({
   placeholder,
   disabled,
   className = "",
+  locale = "fr",
 }: {
   id: string;
   label: string;
@@ -123,13 +128,14 @@ export function TextArea({
   placeholder?: string;
   disabled?: boolean;
   className?: string;
+  locale?: Locale;
 }) {
   const described = error ? `${id}-error` : hint ? `${id}-hint` : undefined;
   return (
     <div className={className}>
       <label htmlFor={id} className="text-[0.9375rem] font-medium text-fg">
         {label}
-        {optional && <Optional />}
+        {optional && <Optional locale={locale} />}
       </label>
       <textarea
         id={id}
@@ -166,6 +172,8 @@ export function ChoiceGroup<T extends string>({
   hint,
   disabled,
   className = "",
+  locale = "fr",
+  labelFor = (option: T) => option,
 }: {
   id: string;
   legend: string;
@@ -177,6 +185,9 @@ export function ChoiceGroup<T extends string>({
   hint?: string;
   disabled?: boolean;
   className?: string;
+  locale?: Locale;
+  /** Libellé affiché d'une option (la valeur envoyée ne change pas). */
+  labelFor?: (option: T) => string;
 }) {
   const selected = (option: T) =>
     Array.isArray(value) ? value.includes(option) : value === option;
@@ -198,7 +209,7 @@ export function ChoiceGroup<T extends string>({
     >
       <legend className="text-[0.9375rem] font-medium text-fg">
         {legend}
-        {multiple && <span className="ml-1.5 text-fg-3">(plusieurs choix possibles)</span>}
+        {multiple && <span className="ml-1.5 text-fg-3">{getUi(locale).form.multiple}</span>}
       </legend>
       <div className="mt-3 flex flex-wrap gap-2">
         {options.map((option, i) => {
@@ -225,7 +236,7 @@ export function ChoiceGroup<T extends string>({
                 className="sr-only"
               />
               {on && multiple && <Check className="size-3.5" />}
-              {option}
+              {labelFor(option)}
             </label>
           );
         })}
@@ -242,13 +253,16 @@ export function PrivacyCheck({
   onChange,
   error,
   disabled,
+  locale = "fr",
 }: {
   id: string;
   checked: boolean;
   onChange: (value: boolean) => void;
   error?: string;
   disabled?: boolean;
+  locale?: Locale;
 }) {
+  const t = getUi(locale).form;
   return (
     <div>
       <label htmlFor={id} className="flex cursor-pointer items-start gap-3.5">
@@ -269,9 +283,9 @@ export function PrivacyCheck({
           <Check className="pointer-events-none absolute inset-0 m-auto hidden size-3.5 text-canvas peer-checked:block" />
         </span>
         <span className="text-[0.9375rem] leading-relaxed text-fg-2">
-          J&apos;ai pris connaissance de la{" "}
-          <Link href="/confidentialite" target="_blank" className="text-fg underline underline-offset-4">
-            politique de confidentialité
+          {t.privacyBefore}{" "}
+          <Link href={href("privacy", locale)} target="_blank" className="text-fg underline underline-offset-4">
+            {t.privacyLink}
           </Link>
           .
         </span>
@@ -282,60 +296,31 @@ export function PrivacyCheck({
 }
 
 /** Champ-piège : hors écran, hors clavier, masqué aux lecteurs d'écran. */
-export function Honeypot({ inputRef }: { inputRef: RefObject<HTMLInputElement | null> }) {
+export function Honeypot({
+  inputRef,
+  locale = "fr",
+}: {
+  inputRef: RefObject<HTMLInputElement | null>;
+  locale?: Locale;
+}) {
   return (
     <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
-      <label htmlFor={HONEYPOT_FIELD}>Ne pas remplir</label>
+      <label htmlFor={HONEYPOT_FIELD}>{getUi(locale).form.honeypot}</label>
       <input ref={inputRef} id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
     </div>
   );
 }
 
-export function SubmitBar({
-  sending,
-  label,
-  serverError,
-  note,
-}: {
-  sending: boolean;
-  label: string;
-  serverError: string | null;
-  note: ReactNode;
-}) {
-  return (
-    <div className="flex flex-col gap-5">
-      <div aria-live="polite" className="min-h-0">
-        {serverError && (
-          <p className="rounded-[var(--radius-sm)] border border-error/50 px-4 py-3 text-[0.9375rem] text-error">
-            {serverError}
-          </p>
-        )}
-      </div>
-      <div className="flex flex-col gap-5 sm:flex-row sm:items-center sm:gap-8">
-        <button
-          type="submit"
-          disabled={sending}
-          aria-disabled={sending}
-          className={buttonClass("primary", "disabled:cursor-wait disabled:opacity-80")}
-        >
-          {sending ? "Envoi en cours…" : label}
-          {sending ? (
-            <span
-              aria-hidden
-              className="size-4 animate-spin rounded-full border-[1.5px] border-current border-t-transparent motion-reduce:animate-none"
-            />
-          ) : (
-            <ArrowRight className="nudge size-4" />
-          )}
-        </button>
-        <p className="max-w-md text-[0.8125rem] leading-relaxed text-fg-3">{note}</p>
-      </div>
-    </div>
-  );
-}
-
 /** État « envoyé » : annoncé et mis au focus pour les lecteurs d'écran. */
-export function SentState({ title, children }: { title: string; children: ReactNode }) {
+export function SentState({
+  title,
+  children,
+  locale = "fr",
+}: {
+  title: string;
+  children: ReactNode;
+  locale?: Locale;
+}) {
   const heading = useRef<HTMLHeadingElement>(null);
   useEffect(() => {
     heading.current?.focus();
@@ -350,8 +335,8 @@ export function SentState({ title, children }: { title: string; children: ReactN
         {title}
       </h2>
       <div className="mt-6 max-w-xl space-y-4 text-fg-2">{children}</div>
-      <Link href="/" className="link-line mt-10 inline-flex min-h-11 items-center text-fg">
-        Retour à l&apos;accueil
+      <Link href={href("home", locale)} className="link-line mt-10 inline-flex min-h-11 items-center text-fg">
+        {getUi(locale).form.backHome}
       </Link>
     </div>
   );

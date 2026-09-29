@@ -4,7 +4,9 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Check } from "@/components/ui/Icons";
 import { Container, delay } from "@/components/ui/Layout";
 import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
-import { cta } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import { getDictionary } from "@/lib/i18n/dictionary";
+import { ctas } from "@/lib/i18n/nav";
 
 /**
  * Hero — compris en trois secondes : ce que fait AMYN (sites, apps,
@@ -13,8 +15,10 @@ import { cta } from "@/lib/site";
  * Le texte arrive en CSS pur dès la première image ; la scène flotte,
  * s'incline vers le curseur (Interactions.tsx) et glisse au défilement.
  */
-export function Hero() {
-  const words = [{ text: "Sites." }, { text: "Apps." }, { text: "Systèmes.", accent: true }];
+export function Hero({ locale }: { locale: Locale }) {
+  const t = getDictionary(locale).hero;
+  const cta = ctas(locale);
+  const words = t.words.map((text, i) => ({ text, accent: i === t.words.length - 1 }));
 
   return (
     <section
@@ -32,7 +36,7 @@ export function Hero() {
               <span className="absolute inset-0 animate-ping rounded-full bg-gold/60 motion-reduce:hidden" />
               <span className="relative size-2 rounded-full bg-gold" />
             </span>
-            Studio digital pour les entreprises
+            {t.badge}
           </p>
 
           <h1 id="hero-title" className="display-hero mt-7 sm:mt-9">
@@ -47,7 +51,7 @@ export function Hero() {
           </h1>
 
           <p className="lead rise mt-8 max-w-[30rem] text-bone-2 sm:mt-10" style={delay(420)}>
-            Sites web, applications et systèmes digitaux conçus autour de votre activité.
+            {t.lead}
           </p>
 
           <div className="rise mt-9 flex flex-col gap-3 sm:flex-row sm:items-center" style={delay(500)}>
@@ -60,16 +64,16 @@ export function Hero() {
           </div>
 
           <ul className="rise mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[0.875rem] text-bone-3" style={delay(580)}>
-            {["Sans engagement", "Une première piste avant tout devis"].map((t) => (
-              <li key={t} className="flex items-center gap-2">
+            {t.checks.map((check) => (
+              <li key={check} className="flex items-center gap-2">
                 <Check className="size-3.5 text-gold" />
-                {t}
+                {check}
               </li>
             ))}
           </ul>
         </div>
 
-        <HeroStage />
+        <HeroStage locale={locale} />
       </Container>
 
       {/* Invitation à défiler */}
@@ -87,7 +91,8 @@ export function Hero() {
  * réservation au premier plan, et deux notifications qui flottent. Chaque
  * plan a sa profondeur : ils ne bougent pas à la même vitesse.
  */
-function HeroStage() {
+function HeroStage({ locale }: { locale: Locale }) {
+  const [booked, quote] = getDictionary(locale).hero.notices;
   return (
     <div className="rise relative lg:col-span-6" style={delay(360)}>
       <div
@@ -97,27 +102,27 @@ function HeroStage() {
         {/* Arrière-plan : le tableau de suivi. */}
         <div className="plane absolute right-0 top-0 w-[70%] opacity-70 [--depth:-30px]">
           <div className="float-c">
-            <BrowserShot id="quotes" sizes="(min-width: 1024px) 30vw, 70vw" />
+            <BrowserShot id="quotes" locale={locale} sizes="(min-width: 1024px) 30vw, 70vw" />
           </div>
         </div>
 
         {/* Centre : le site. */}
         <div className="plane absolute left-0 top-[16%] w-[84%] [--depth:10px]">
           <div className="float-a">
-            <BrowserShot id="site-maison-elan" eager sizes="(min-width: 1024px) 40vw, 84vw" />
+            <BrowserShot id="site-maison-elan" locale={locale} eager sizes="(min-width: 1024px) 40vw, 84vw" />
           </div>
         </div>
 
         {/* Premier plan : la réservation sur téléphone. */}
         <div className="plane absolute bottom-0 right-[3%] w-[31%] [--depth:50px]">
           <div className="float-b">
-            <PhoneShot id="table-booking" eager sizes="(min-width: 1024px) 14vw, 31vw" />
+            <PhoneShot id="table-booking" locale={locale} eager sizes="(min-width: 1024px) 14vw, 31vw" />
           </div>
         </div>
 
         {/* Notifications */}
-        <Notice className="left-[-2%] top-[4%] [--depth:70px] float-b" title="Réservation confirmée" detail="2 pers. · ce soir 20:30" />
-        <Notice className="bottom-[10%] left-[8%] [--depth:80px] float-c" title="Nouvelle demande de devis" detail="Rénovation · infos complètes" tone="gold" />
+        <Notice className="left-[-2%] top-[4%] [--depth:70px] float-b" title={booked.title} detail={booked.detail} />
+        <Notice className="bottom-[10%] left-[8%] [--depth:80px] float-c" title={quote.title} detail={quote.detail} tone="gold" />
       </div>
       <div aria-hidden className="pointer-events-none absolute inset-x-[10%] bottom-[-6%] h-24 rounded-[50%] bg-[radial-gradient(closest-side,rgb(198_167_106/0.22),transparent)] blur-2xl" />
     </div>

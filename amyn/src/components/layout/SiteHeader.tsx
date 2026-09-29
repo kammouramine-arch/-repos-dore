@@ -6,7 +6,12 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { buttonClass } from "@/components/ui/Button";
 import { ArrowRight } from "@/components/ui/Icons";
 import { Container } from "@/components/ui/Layout";
-import { cta, mainNav, site } from "@/lib/site";
+import type { Locale } from "@/lib/i18n/config";
+import { ctas, mainNav } from "@/lib/i18n/nav";
+import { href } from "@/lib/i18n/routes";
+import { getUi } from "@/lib/i18n/ui";
+import { site } from "@/lib/site";
+import { LanguageSwitcher } from "./LanguageSwitcher";
 import { AmynMark, Logo } from "./Logo";
 
 /**
@@ -19,9 +24,15 @@ import { AmynMark, Logo } from "./Logo";
  * application : grands liens numérotés, arrivée en cascade, action en bas
  * à portée du pouce. Il se referme avec Échap, au changement de page, et
  * garde le focus clavier à l'intérieur tant qu'il est ouvert.
+ *
+ * Le sélecteur de langue reste visible à toutes les tailles, à côté du
+ * bouton de menu sur téléphone.
  */
-export function SiteHeader() {
+export function SiteHeader({ locale }: { locale: Locale }) {
   const pathname = usePathname();
+  const t = getUi(locale).header;
+  const nav = mainNav(locale);
+  const cta = ctas(locale);
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
   const [openedAt, setOpenedAt] = useState(pathname);
@@ -80,7 +91,7 @@ export function SiteHeader() {
     };
   }, [open, close]);
 
-  const isActive = (href: string) => pathname === href || pathname.startsWith(`${href}/`);
+  const isActive = (target: string) => pathname === target || pathname.startsWith(`${target}/`);
   const solid = scrolled && !open;
 
   return (
@@ -93,13 +104,13 @@ export function SiteHeader() {
         }`}
       >
         <Container className="flex h-[var(--header-h)] items-center justify-between gap-6">
-          <Link href="/" aria-label={`${site.name} — accueil`} className="-m-2 p-2 text-bone">
+          <Link href={href("home", locale)} aria-label={t.homeAria} className="-m-2 p-2 text-bone">
             <Logo />
           </Link>
 
-          <nav aria-label="Navigation principale" className="hidden lg:block">
+          <nav aria-label={t.mainNav} className="hidden lg:block">
             <ul className="flex items-center gap-1 rounded-full border border-[rgb(242_238_230/0.08)] bg-[rgb(242_238_230/0.03)] p-1 backdrop-blur-md">
-              {mainNav.map((item) => {
+              {nav.map((item) => {
                 const active = isActive(item.href);
                 return (
                   <li key={item.href}>
@@ -121,6 +132,7 @@ export function SiteHeader() {
           </nav>
 
           <div className="flex items-center gap-2">
+            <LanguageSwitcher locale={locale} />
             <span className="hidden md:block">
               <Link href={cta.firstLook.href} data-magnetic="" className={buttonClass("primary", "", "sm")}>
                 {cta.firstLook.label}
@@ -137,7 +149,7 @@ export function SiteHeader() {
               }}
               aria-expanded={open}
               aria-controls="menu-mobile"
-              aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+              aria-label={open ? t.closeMenu : t.openMenu}
               className="relative -mr-1 flex size-11 items-center justify-center rounded-full border border-[rgb(242_238_230/0.14)] bg-[rgb(242_238_230/0.05)] text-bone backdrop-blur-md transition-transform duration-150 active:scale-90 lg:hidden"
             >
               <span aria-hidden className="relative block h-3 w-[18px]">
@@ -163,7 +175,7 @@ export function SiteHeader() {
         ref={panel}
         role="dialog"
         aria-modal="true"
-        aria-label="Menu"
+        aria-label={t.menu}
         inert={!open}
         style={{
           clipPath: open
@@ -180,9 +192,9 @@ export function SiteHeader() {
         </div>
 
         <Container className="relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6">
-          <nav aria-label="Menu principal">
+          <nav aria-label={t.menuNav}>
             <ul>
-              {[...mainNav, { label: "Premier aperçu", href: cta.firstLook.href }].map((item, i) => (
+              {[...nav, { label: getUi(locale).nav.firstLook, href: cta.firstLook.href }].map((item, i) => (
                 <li
                   key={item.href}
                   className={`transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${

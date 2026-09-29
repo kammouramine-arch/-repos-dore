@@ -1,50 +1,70 @@
 import type { Metadata } from "next";
-import type { Service } from "./services";
-import { site } from "./site";
+import { OG_LOCALE, type Locale } from "./i18n/config.ts";
+import type { Alternates } from "./i18n/routes.ts";
+import { servicePath } from "./i18n/routes.ts";
+import type { Service } from "./services.ts";
+import { site } from "./site.ts";
 
-/* Image de partage commune (src/app/opengraph-image.png). Une page qui
-   définit son propre `openGraph` remplace celui du layout : l'image doit
-   donc être redonnée ici, sinon les pages intérieures n'en ont aucune. */
-const SHARE_IMAGE = {
-  url: "/opengraph-image.png",
-  width: 1200,
-  height: 630,
-  alt: "AMYN — sites web, applications et outils digitaux sur mesure",
-};
+/* Image de partage de chaque langue (`public/og/`), à une adresse stable.
+   Une page qui définit son propre `openGraph` remplace celui du layout :
+   l'image doit donc être redonnée. */
+export function shareImage(locale: Locale) {
+  return {
+    url: locale === "en" ? "/og/amyn-en.png" : "/og/amyn-fr.png",
+    width: 1200,
+    height: 630,
+    alt:
+      locale === "en"
+        ? "AMYN — bespoke websites, apps and digital tools"
+        : "AMYN — sites web, applications et outils digitaux sur mesure",
+  };
+}
 
 /**
- * Métadonnées d'une page : titre, description, URL canonique, Open Graph
- * et carte sociale — toujours cohérents entre eux.
+ * Métadonnées d'une page : titre, description, URL canonique, versions
+ * dans l'autre langue (hreflang), Open Graph et carte sociale — toujours
+ * cohérents entre eux.
+ *
+ * Chaque langue est canonique pour elle-même ; `x-default` désigne la
+ * version française, marché principal.
  */
 export function pageMetadata({
   title,
   description,
-  path,
+  locale,
+  alternates,
   noindex = false,
 }: {
   title: string;
   description: string;
-  path: string;
+  locale: Locale;
+  alternates: Alternates;
   noindex?: boolean;
 }): Metadata {
+  const path = alternates[locale];
+  const image = shareImage(locale);
   return {
     title,
     description,
-    alternates: { canonical: path },
+    alternates: {
+      canonical: path,
+      languages: { fr: alternates.fr, en: alternates.en, "x-default": alternates.fr },
+    },
     openGraph: {
       type: "website",
-      locale: site.locale,
+      locale: OG_LOCALE[locale],
+      alternateLocale: [OG_LOCALE[locale === "fr" ? "en" : "fr"]],
       siteName: site.name,
       url: path,
       title: `${title} · ${site.name}`,
       description,
-      images: [SHARE_IMAGE],
+      images: [image],
     },
     twitter: {
       card: "summary_large_image",
       title: `${title} · ${site.name}`,
       description,
-      images: [SHARE_IMAGE.url],
+      images: [image.url],
     },
     ...(noindex ? { robots: { index: false, follow: true } } : {}),
   };
@@ -59,7 +79,12 @@ export function pageMetadata({
 
 const ORG_ID = `${site.url}/#organisation`;
 
-export function organizationSchema() {
+const TAGLINE: Record<Locale, string> = {
+  fr: site.tagline,
+  en: "Websites, apps and digital tools designed around the way your business actually works.",
+};
+
+export function organizationSchema(locale: Locale = "fr") {
   return {
     "@context": "https://schema.org",
     "@type": "ProfessionalService",
@@ -68,19 +93,20 @@ export function organizationSchema() {
     alternateName: site.name,
     url: site.url,
     email: site.email,
-    description: site.tagline,
+    description: TAGLINE[locale],
     areaServed: { "@type": "Country", name: "France" },
-    knowsLanguage: "fr",
+    knowsLanguage: ["fr", "en"],
   };
 }
 
-export function serviceSchema(service: Service) {
+export function serviceSchema(service: Service, locale: Locale = "fr") {
   return {
     "@context": "https://schema.org",
     "@type": "Service",
     name: service.name,
     description: service.seo.description,
-    url: `${site.url}/services/${service.slug}`,
+    url: `${site.url}${servicePath(service.slug, locale)}`,
+    inLanguage: locale,
     provider: { "@id": ORG_ID },
     areaServed: { "@type": "Country", name: "France" },
   };

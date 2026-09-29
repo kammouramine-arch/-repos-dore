@@ -1,4 +1,6 @@
+import type { Locale } from "./i18n/config.ts";
 import { DEFAULT_PRICING, type Pricing } from "./pricing.ts";
+import { servicesEn } from "./services.en.ts";
 
 /**
  * Les sept services d'AMYN.
@@ -13,6 +15,9 @@ import { DEFAULT_PRICING, type Pricing } from "./pricing.ts";
  * - aucune garantie de classement, d'approbation par les stores, de trafic
  *   ou d'avis ;
  * - chaque page est écrite pour son service : pas de paragraphe recopié.
+ *
+ * La version anglaise des textes est dans `services.en.ts` ; la structure
+ * (identifiant, numéro, visuel, tarification, services liés) reste ici.
  */
 
 export type VisualKey =
@@ -53,6 +58,25 @@ export type Service = {
   seo: { title: string; description: string };
   related: string[];
 };
+
+/** Tout ce qui se traduit dans un service. */
+export type ServiceText = Pick<
+  Service,
+  | "name"
+  | "short"
+  | "summary"
+  | "tagline"
+  | "hero"
+  | "problem"
+  | "solution"
+  | "deliverables"
+  | "useCases"
+  | "scope"
+  | "process"
+  | "limits"
+  | "faq"
+  | "seo"
+>;
 
 export const services: Service[] = [
   {
@@ -623,7 +647,13 @@ export const services: Service[] = [
   },
 ];
 
-export const serviceBySlug = (slug: string) =>
-  services.find((service) => service.slug === slug);
+const byLocale: Record<Locale, Service[]> = {
+  fr: services,
+  en: services.map((service) => ({ ...service, ...servicesEn[service.slug] })),
+};
 
-export const servicePath = (slug: string) => `/services/${slug}`;
+/** Les services dans une langue. `slug` reste l'identifiant interne. */
+export const getServices = (locale: Locale = "fr") => byLocale[locale];
+
+export const serviceBySlug = (slug: string, locale: Locale = "fr") =>
+  byLocale[locale].find((service) => service.slug === slug);

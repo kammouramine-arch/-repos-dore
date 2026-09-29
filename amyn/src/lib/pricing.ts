@@ -24,13 +24,14 @@ export type Pricing = {
   visible: boolean;
 };
 
-export const QUOTE_LABEL = "Sur devis";
+export const QUOTE_LABELS = { fr: "Sur devis", en: "Priced on quote" } as const;
+export const QUOTE_LABEL = QUOTE_LABELS.fr;
 
 /** Le prix par défaut de tout service : sur devis, affiché comme tel. */
 export const DEFAULT_PRICING: Pricing = { mode: "quote", visible: true };
 
-const formatAmount = (amount: number, currency = "EUR") =>
-  new Intl.NumberFormat("fr-FR", {
+const formatAmount = (amount: number, currency = "EUR", locale: "fr" | "en" = "fr") =>
+  new Intl.NumberFormat(locale === "en" ? "en-GB" : "fr-FR", {
     style: "currency",
     currency,
     maximumFractionDigits: 0,
@@ -46,13 +47,12 @@ const formatAmount = (amount: number, currency = "EUR") =>
  * Un mode incomplet (montant absent) retombe sur « Sur devis » plutôt que
  * d'afficher un prix vide ou faux.
  */
-export function priceLabel(pricing: Pricing): string | null {
+export function priceLabel(pricing: Pricing, locale: "fr" | "en" = "fr"): string | null {
   if (!pricing.visible) return null;
-  if (pricing.mode === "quote" || pricing.amount == null) return QUOTE_LABEL;
+  if (pricing.mode === "quote" || pricing.amount == null) return QUOTE_LABELS[locale];
 
-  const amount = formatAmount(pricing.amount, pricing.currency);
+  const amount = formatAmount(pricing.amount, pricing.currency, locale);
   const tax = pricing.taxLabel ? ` ${pricing.taxLabel}` : "";
-  return pricing.mode === "startingFrom"
-    ? `À partir de ${amount}${tax}`
-    : `${amount}${tax}`;
+  if (pricing.mode !== "startingFrom") return `${amount}${tax}`;
+  return locale === "en" ? `From ${amount}${tax}` : `À partir de ${amount}${tax}`;
 }
