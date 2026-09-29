@@ -43,6 +43,8 @@ public struct ServiceConfiguration: Sendable, Equatable {
         public static let gatewayURL = "DoOnceGatewayURL"
         public static let uploadEndpoint = "DoOnceUploadEndpoint"
         public static let productIDs = "DoOnceProductIDs"
+        /// YES/NO. Seeds the labelled examples, which hide themselves after the first real memory.
+        public static let sampleContent = "DoOnceSampleContent"
     }
 
     /// Resolves the configuration from `environment` (highest precedence) and `info` (the Info.plist).
@@ -50,7 +52,7 @@ public struct ServiceConfiguration: Sendable, Equatable {
     /// - mode: `DOONCE_SERVICE_MODE` > `DoOnceServiceMode` > live when a gateway URL exists, else demo.
     /// - gateway: `DOONCE_GATEWAY_URL` > `DoOnceGatewayURL`; upload: `DOONCE_UPLOAD_ENDPOINT` > `DoOnceUploadEndpoint`.
     /// - products: `DoOnceProductIDs` (array of strings).
-    /// - sampleContent: `DOONCE_SAMPLE_CONTENT == "1"`, else false in live and true in demo.
+    /// - sampleContent: `DOONCE_SAMPLE_CONTENT == "1"` > `DoOnceSampleContent` (YES/NO) > true in demo, false in live.
     public static func resolve(environment: [String: String], info: [String: Any]) -> ServiceConfiguration {
         let gatewayURL = url(environment[EnvironmentKey.gatewayURL]) ?? url(info[InfoKey.gatewayURL] as? String)
         let uploadEndpoint = url(environment[EnvironmentKey.uploadEndpoint]) ?? url(info[InfoKey.uploadEndpoint] as? String)
@@ -63,6 +65,8 @@ public struct ServiceConfiguration: Sendable, Equatable {
         let sampleContent: Bool
         if let flag = environment[EnvironmentKey.sampleContent] {
             sampleContent = flag == "1"
+        } else if let flag = bool(info[InfoKey.sampleContent]) {
+            sampleContent = flag
         } else {
             sampleContent = mode == .demo
         }
@@ -74,6 +78,16 @@ public struct ServiceConfiguration: Sendable, Equatable {
             subscriptionProductIDs: products,
             sampleContent: sampleContent
         )
+    }
+
+    /// A plist flag: a Bool, or YES/NO/1/0/true/false text; blank or anything else is unset.
+    private static func bool(_ value: Any?) -> Bool? {
+        if let flag = value as? Bool { return flag }
+        switch (value as? String)?.trimmingCharacters(in: .whitespaces).lowercased() {
+        case "yes", "1", "true": return true
+        case "no", "0", "false": return false
+        default: return nil
+        }
     }
 
     /// A URL from a string, ignoring blanks and strings that do not parse.

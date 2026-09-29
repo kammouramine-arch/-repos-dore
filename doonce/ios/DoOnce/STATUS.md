@@ -59,9 +59,9 @@ Status is per mode: **live** (`DoOnceServiceMode: live`) and **demo** (the shipp
 | Camera | `CameraSession` / `CaptureEngine` (AVFoundation, 1080p, torch, focus, interruption + background recovery, first-frame gate) | PARTIAL — unverified on device | same |
 | Recording | `MovieRecorder` records straight into `MediaLibrary.originalURL` (no second copy); `KeyFrames` writes frames and the thumbnail into the library; `StepClipExporter` cuts per-step mp4 clips (`AVAssetExportSession`, medium quality) | PARTIAL — unverified on device | same |
 | Transcription | `SpeechTranscriptionService` + `LiveTranscriber` (`SFSpeechRecognizer`, on-device when supported) | PARTIAL — real; a failure fails the processing job, never substitutes a transcript | DEMO — `MockTranscriptionService` (the boiler transcript) |
-| AI analysis | `ProcessingPipeline` + `MomentDetector` → `AnalysisBackedGenerationService` (validator + mapper) over `GatewayProcedureAnalysisService` (`POST /v1/analyze`, retries, idempotency key) | PARTIAL with `DoOnceGatewayURL`; **BLOCKED** without one: `UnconfiguredProcedureAnalysisService` throws `GatewayError.notConfigured` and Teach says so | DEMO — `DeterministicProcedureAnalysisService` (the assembler; no language model) |
+| AI analysis | `ProcessingPipeline` + `MomentDetector` → up to ten real key frames (`AnalysisFrameSampler`: markers, then moments, then an even spread; ~768 px JPEG) → `AnalysisBackedGenerationService` (validator + mapper; "what they said" must be verbatim transcript) over `GatewayProcedureAnalysisService` (`POST /v1/analyze`, retries, idempotency key) | PARTIAL with `DoOnceGatewayURL`; without one `UnconfiguredProcedureAnalysisService` throws `GatewayError.notConfigured`, Processing says "AI isn't connected" and offers **Make steps on this iPhone** (the assembler over the real transcript), labelled in Review "Made on this iPhone · no AI". Never silent | DEMO — `DeterministicProcedureAnalysisService` (the assembler; no language model) |
 | Object recognition | `VisionRecognitionService` (feature prints + saliency) + `LiveRecogniser` + `RecognitionMatcher` | PARTIAL — a first approximation of "my boiler vs a boiler" | DEMO — `MockObjectRecognitionService` |
-| Authentication | `AppleSignInService` + `KeychainSessionStore` (`kSecClassGenericPassword`, service `app.doonce.session`, after first unlock) | PARTIAL — real session; `deleteAccount` calls `DELETE /v1/account` (BLOCKED without a gateway); email sign-in has no backend | DEMO — `MockAuthService` + `FileSessionStore` |
+| Authentication | `AppleSignInService` + `KeychainSessionStore` (`kSecClassGenericPassword`, service `app.doonce.session`, after first unlock); the Apple identity token (valid minutes) is traded at `POST /v1/session` for a 30-day gateway session (`GatewaySessionExchange`) | PARTIAL — real session; an expired session makes Processing ask to confirm with Apple in place, then retry; `deleteAccount` calls `DELETE /v1/account` (BLOCKED without a gateway); email sign-in has no backend | DEMO — `MockAuthService` + `FileSessionStore` |
 | Subscriptions | `StoreKitSubscriptionService` (`Product.products`, `purchase`, `AppStore.sync`, `Transaction.currentEntitlements`, `Transaction.updates` listener) | PARTIAL with `DoOnceProductIDs`; BLOCKED without (paywall shows "not available yet") | DEMO — `MockSubscriptionService` (free = 5 memories) |
 | Upload | `BackgroundUploadTransport` (background `URLSession`, resumable, never deletes the local file) | PARTIAL — no endpoint configured (`DoOnceUploadEndpoint`); uploads stay pending | same |
 | Haptics | `HapticsService` (UIKit generators + Core Haptics patterns, Full/Reduced/Off) | DONE | DONE |
@@ -79,7 +79,14 @@ Environment variables win over Info.plist keys, so a scheme can override a build
 | Gateway | `DoOnceGatewayURL` (base URL; `/v1/analyze`, `/v1/account`) | `DOONCE_GATEWAY_URL` | empty |
 | Products | `DoOnceProductIDs` (array of App Store product IDs) | — | `[]` |
 | Upload | `DoOnceUploadEndpoint` | `DOONCE_UPLOAD_ENDPOINT` | empty |
-| Sample content | — | `DOONCE_SAMPLE_CONTENT` (`1`/`0`; the scheme sets `1`) | on in demo, off in live |
+| Sample content | `DoOnceSampleContent` (`YES`/`NO`) | `DOONCE_SAMPLE_CONTENT` (`1`/`0`; the scheme sets `1`) | on in demo, off in live unless the plist says YES. Examples carry an "Example" label and disappear after the first real memory |
+
+The Info.plist values are build settings (`DOONCE_SERVICE_MODE`, `DOONCE_GATEWAY_URL`,
+`DOONCE_SAMPLE_CONTENT` in `project.yml`): local and CI simulator builds are demo; the TestFlight
+workflow archives **live** (input `service_mode`, default `live`) with the gateway URL from the
+`gateway_url` input, the repository variable `DOONCE_GATEWAY_URL`, or the secret
+`DOONCE_SUPABASE_PROJECT_REF`, and examples on. The archive step fails if the mode did not land in
+the built Info.plist.
 
 **Demo** (default): `FileStore` persistence, sample household seeded once into an empty store,
 mock transcription / recognition / auth / subscription, deterministic analysis. Everything works
@@ -219,6 +226,17 @@ the first real test of the whole chain end to end. If the App Store Connect app-
 Apple's own error body rather than silently misbehaving — never a false "success."
 
 ## Credentials and configuration still required
+
+- **The AI gateway deployment**, the one thing between this build and real AI steps. It needs two
+  GitHub repository secrets:
+  - `DOONCE_SUPABASE_PROJECT_REF`: the ref of a Supabase project for DoOnce, in the same account
+    as `SUPABASE_ACCESS_TOKEN`.
+  - `DOONCE_ANTHROPIC_API_KEY`: the model key.
+
+  Then run "DoOnce — deploy gateway". It copies the key into the function's secrets, sets
+  `DOONCE_APPLE_AUDIENCE`, creates `DOONCE_SESSION_SECRET`, deploys and smoke-checks. Next, run the
+  TestFlight workflow, which derives the gateway URL from the project ref. The model key lives only
+  in GitHub's encrypted secrets and the function's environment, never in the app or a file.
 
 - App Store Connect API credentials for the TestFlight pipeline above (`APPLE_TEAM_ID`,
   `ASC_KEY_ID`, `ASC_ISSUER_ID`, `ASC_PRIVATE_KEY` as GitHub repository secrets) — this is the one

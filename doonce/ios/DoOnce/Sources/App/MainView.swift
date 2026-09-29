@@ -105,7 +105,7 @@ struct CenterActionButton: View {
             .animation(DSMotion.gentle, value: isOpen)
         }
         .buttonStyle(DSPressableStyle(scale: 0.92))
-        .accessibilityLabel(isOpen ? L10n.string("common.close") : "Look, Teach or Add")
+        .accessibilityLabel(isOpen ? L10n.string("common.close") : L10n.string("center.action"))
     }
 }
 
@@ -116,12 +116,13 @@ struct BloomOverlay: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
     @State private var shown = false
 
-    private struct Item: Identifiable { let id: Int; let title: String; let subtitle: String; let symbol: String; let offset: CGSize; let signal: Bool; let route: FullScreenRoute; let permission: PermissionKind }
+    /// The two things DoOnce is for, as equals: show it how something is done, or look at something
+    /// to get that back. Saving an object without instructions is a quieter, secondary action.
+    private struct Primary: Identifiable { let id: Int; let identifier: String; let title: String; let subtitle: String; let symbol: String; let offset: CGSize; let signal: Bool; let route: FullScreenRoute }
 
-    private var items: [Item] {[
-        Item(id: 0, title: L10n.string("center.look"), subtitle: L10n.string("center.look.sub"), symbol: "viewfinder", offset: CGSize(width: -118, height: -118), signal: false, route: .look, permission: .camera),
-        Item(id: 1, title: L10n.string("center.teach"), subtitle: L10n.string("center.teach.sub"), symbol: "record.circle", offset: CGSize(width: 0, height: -176), signal: true, route: .teach(objectID: nil), permission: .camera),
-        Item(id: 2, title: L10n.string("center.add"), subtitle: L10n.string("center.add.sub"), symbol: "plus.square", offset: CGSize(width: 118, height: -118), signal: false, route: .addObject(existingObjectID: nil), permission: .camera),
+    private var primaries: [Primary] {[
+        Primary(id: 0, identifier: "center.teach", title: L10n.string("center.teach"), subtitle: L10n.string("center.teach.sub"), symbol: "record.circle", offset: CGSize(width: -86, height: -150), signal: true, route: .teach(objectID: nil)),
+        Primary(id: 1, identifier: "center.look", title: L10n.string("center.look"), subtitle: L10n.string("center.look.sub"), symbol: "viewfinder", offset: CGSize(width: 86, height: -150), signal: false, route: .look),
     ]}
 
     var body: some View {
@@ -130,37 +131,76 @@ struct BloomOverlay: View {
                 .background(.ultraThinMaterial.opacity(shown ? 1 : 0))
                 .onTapGesture { withDSAnimation(DSMotion.snappy) { router.isBloomOpen = false } }
             ZStack {
-                ForEach(items) { item in
-                    Button {
-                        app.haptics.play(.selection)
-                        Task {
-                            let granted = await PermissionsService.status(item.permission) == .granted
-                            if granted { router.present(item.route) }
-                            else { router.isBloomOpen = false; router.show(.permission(item.permission, then: item.route)) }
-                        }
-                    } label: {
+                ForEach(primaries) { item in
+                    Button { open(item.route) } label: {
                         VStack(spacing: 8) {
-                            Image(systemName: item.symbol).font(.system(size: 28, weight: .medium))
+                            Image(systemName: item.symbol).font(.system(size: 32, weight: .medium))
                                 .foregroundStyle(item.signal ? DSColor.textOnSignal : DSColor.textPrimary)
-                                .frame(width: 72, height: 72)
+                                .frame(width: 84, height: 84)
                                 .background(item.signal ? DSColor.signal : DSColor.backgroundElevated, in: Circle())
                                 .shadow(color: DSColor.shadow, radius: 16, y: 8)
-                            Text(item.title).font(.system(size: 15, weight: .semibold)).foregroundStyle(DSColor.textOnMedia)
-                            Text(item.subtitle).font(.system(size: 12)).foregroundStyle(DSColor.textOnMedia.opacity(0.7)).multilineTextAlignment(.center).frame(width: 110)
+                            Text(item.title).font(.system(size: 17, weight: .semibold)).foregroundStyle(DSColor.textOnMedia)
+                            Text(item.subtitle).font(.system(size: 13)).foregroundStyle(DSColor.textOnMedia.opacity(0.75))
+                                .multilineTextAlignment(.center).frame(width: 140)
+                                .fixedSize(horizontal: false, vertical: true)
                         }
                     }
                     .buttonStyle(DSPressableStyle(scale: 0.94))
-                    .accessibilityIdentifier(["center.look", "center.teach", "center.add"][item.id])
-                    .offset(shown ? item.offset : .zero)
-                    .scaleEffect(shown ? 1 : 0.5)
-                    .opacity(shown ? 1 : 0)
-                    .blur(radius: shown || reduceMotion ? 0 : 8)
-                    .animation((reduceMotion ? DSMotion.crossfade : DSMotion.lively).delay(Double(item.id) * 0.04), value: shown)
+                    .accessibilityIdentifier(item.identifier)
+                    .accessibilityHint(item.subtitle)
+                    .modifier(BloomEntrance(shown: shown, offset: item.offset, delay: Double(item.id) * 0.04, reduceMotion: reduceMotion))
                 }
+                saveObjectOnly
+                    .modifier(BloomEntrance(shown: shown, offset: CGSize(width: 0, height: -24), delay: 0.1, reduceMotion: reduceMotion))
             }
             .padding(.bottom, DS.Size.navHeight + 40)
         }
         .onAppear { shown = true }
         .onDisappear { shown = false }
+    }
+
+    /// Secondary: "Save object only — save something now, add instructions later."
+    private var saveObjectOnly: some View {
+        Button { open(.addObject(existingObjectID: nil)) } label: {
+            HStack(spacing: 10) {
+                Image(systemName: "plus.square").font(.system(size: 17, weight: .medium))
+                VStack(alignment: .leading, spacing: 1) {
+                    Text(L10n.string("center.add")).font(.system(size: 15, weight: .semibold))
+                    Text(L10n.string("center.add.sub")).font(.system(size: 12)).opacity(0.75)
+                }
+            }
+            .foregroundStyle(DSColor.textOnMedia)
+            .padding(.leading, 14).padding(.trailing, 18).padding(.vertical, 10)
+            .background { DSGlass(style: .onMedia).clipShape(Capsule()) }
+        }
+        .buttonStyle(DSPressableStyle(scale: 0.96))
+        .accessibilityIdentifier("center.add")
+        .accessibilityHint(L10n.string("center.add.sub"))
+    }
+
+    private func open(_ route: FullScreenRoute) {
+        app.haptics.play(.selection)
+        Task {
+            let granted = await PermissionsService.status(.camera) == .granted
+            if granted { router.present(route) }
+            else { router.isBloomOpen = false; router.show(.permission(.camera, then: route)) }
+        }
+    }
+}
+
+/// Items leave the centre button and settle into place; a crossfade under Reduce Motion.
+private struct BloomEntrance: ViewModifier {
+    var shown: Bool
+    var offset: CGSize
+    var delay: Double
+    var reduceMotion: Bool
+
+    func body(content: Content) -> some View {
+        content
+            .offset(shown ? offset : .zero)
+            .scaleEffect(shown ? 1 : 0.5)
+            .opacity(shown ? 1 : 0)
+            .blur(radius: shown || reduceMotion ? 0 : 8)
+            .animation((reduceMotion ? DSMotion.crossfade : DSMotion.lively).delay(delay), value: shown)
     }
 }

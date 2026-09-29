@@ -1,10 +1,13 @@
 // Runtime-neutral request handling built on the Fetch API (Node 20+ and Deno both provide it).
 import Anthropic from "@anthropic-ai/sdk";
 import { analyze, AnalyzeError, type AnalyzeDeps } from "./analyze.ts";
-import { authenticate, AuthError, type TokenVerifier } from "./auth.ts";
+import { authenticate, AuthError, type SessionSetup, type TokenVerifier } from "./auth.ts";
 
 export interface GatewayConfig {
+  /** Verifies the bearer on /v1/analyze and /v1/account (Apple or gateway session token). */
   verifier: TokenVerifier;
+  /** Gateway session issuance for POST /v1/session; absent (no secret) → that route answers 503. */
+  session?: SessionSetup;
   anthropic: Anthropic;
   model?: string;
   /** Max JSON body in bytes; frames are base64 JPEGs, ~300 KB each at 1080p/0.7. */
@@ -14,6 +17,8 @@ export interface GatewayConfig {
   /** Where account deletion requests go until the data store exists. */
   onAccountDeletion?: (subject: string) => Promise<void>;
   log?: AnalyzeDeps["log"];
+  /** The Supabase function name, stripped from the front of the path. Defaults to "doonce-analyze". */
+  functionName?: string;
 }
 
 const JSON_HEADERS = { "content-type": "application/json; charset=utf-8", "cache-control": "no-store" };
@@ -37,16 +42,45 @@ export class RateLimiter {
   }
 }
 
+/**
+ * The gateway route of a request path, whatever is mounted in front of it.
+ *
+ * Deployed on Supabase, the function sees its own name in the path (`/doonce-analyze/v1/analyze`),
+ * and some proxies pass the public prefix through too (`/functions/v1/doonce-analyze/v1/analyze`);
+ * the local Node server sees the bare route (`/v1/analyze`). All three map to `/v1/analyze`
+ * (likewise `/v1/session`, `/v1/account` and `/health`).
+ */
+export function routeOf(pathname: string, functionName = "doonce-analyze"): string {
+  let path = pathname.replace(/\/{2,}/g, "/").replace(/\/+$/, "");
+  for (const prefix of ["/functions/v1", `/${functionName}`]) {
+    if (path === prefix) path = "";
+    else if (path.startsWith(`${prefix}/`)) path = path.slice(prefix.length);
+  }
+  return path || "/";
+}
+
 export function makeHandler(config: GatewayConfig): (request: Request) => Promise<Response> {
   const limiter = new RateLimiter(config.analyzePerMinute ?? 10);
   const maxBody = config.maxBodyBytes ?? 12 * 1024 * 1024;
 
   return async (request: Request): Promise<Response> => {
-    const url = new URL(request.url);
-    const path = url.pathname.replace(/\/+$/, "");
+    const path = routeOf(new URL(request.url).pathname, config.functionName);
 
-    if (request.method === "GET" && path.endsWith("/health")) {
+    if (request.method === "GET" && path === "/health") {
       return new Response(JSON.stringify({ ok: true, service: "doonce-gateway" }), { headers: JSON_HEADERS });
+    }
+
+    if (request.method === "POST" && path === "/v1/session") {
+      if (!config.session) return errorResponse(503, "session_unavailable", "Sessions are not available on this gateway; keep using the Sign in with Apple token.");
+      let caller;
+      try {
+        // Only the Apple identity token (config.session.verifier) opens this route: a session cannot mint another.
+        caller = await authenticate(request.headers, config.session.verifier);
+      } catch (error) {
+        if (error instanceof AuthError) return errorResponse(error.status, "unauthorized", error.message);
+        return errorResponse(401, "unauthorized", "Could not verify the caller.");
+      }
+      return new Response(JSON.stringify(config.session.issuer.issue(caller)), { headers: JSON_HEADERS });
     }
 
     let identity;
@@ -57,7 +91,7 @@ export function makeHandler(config: GatewayConfig): (request: Request) => Promis
       return errorResponse(401, "unauthorized", "Could not verify the caller.");
     }
 
-    if (request.method === "POST" && path.endsWith("/v1/analyze")) {
+    if (request.method === "POST" && path === "/v1/analyze") {
       if (!limiter.allow(identity.subject)) return errorResponse(429, "rate_limited", "Too many analyses; try again in a minute.");
       const length = Number(request.headers.get("content-length") ?? "0");
       if (length > maxBody) return errorResponse(413, "too_large", "The request is too large; send fewer frames.");
@@ -77,7 +111,7 @@ export function makeHandler(config: GatewayConfig): (request: Request) => Promis
       }
     }
 
-    if (request.method === "DELETE" && path.endsWith("/v1/account")) {
+    if (request.method === "DELETE" && path === "/v1/account") {
       await config.onAccountDeletion?.(identity.subject);
       // 202: the request is recorded; media and rows are removed asynchronously once a data store exists.
       return new Response(JSON.stringify({ accepted: true }), { status: 202, headers: JSON_HEADERS });

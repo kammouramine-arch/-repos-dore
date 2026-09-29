@@ -36,13 +36,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Some things you only learn once."
+            "value": "Someone shows you once."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Certaines choses ne s'apprennent qu'une fois."
+            "value": "Quelqu'un vous montre, une fois."
           }
         }
       }
@@ -53,7 +53,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "DoOnce remembers how they're done."
+            "value": "On the real thing, explaining as they go."
           }
         },
         "fr": {
@@ -70,13 +70,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show it once."
+            "value": "DoOnce remembers."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Montrez-le une fois."
+            "value": "DoOnce s’en souvient."
           }
         }
       }
@@ -87,7 +87,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "DoOnce watches, listens and turns the demonstration into a memory."
+            "value": "The steps, their exact words, and the original video."
           }
         }
       }
@@ -98,13 +98,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Find it by looking."
+            "value": "Look at it later."
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Retrouvez-le en regardant."
+            "value": "Regardez-le plus tard."
           }
         }
       }
@@ -115,7 +115,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Point your phone at something you've remembered."
+            "value": "Point your phone at the same thing."
           }
         }
       }
@@ -143,7 +143,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "One step at a time, hands free if you like."
+            "value": "The exact instructions come back, one step at a time."
           }
         }
       }
@@ -215,7 +215,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teach DoOnce something."
+            "value": "Show DoOnce something."
           }
         }
       }
@@ -226,7 +226,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Anything around you works."
+            "value": "Record someone doing it once, explaining out loud. Anything around you works."
           }
         }
       }
@@ -556,7 +556,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teach DoOnce"
+            "value": "Show DoOnce something"
           }
         }
       }
@@ -640,7 +640,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recognise something"
+            "value": "Find memories by looking at something."
           }
         }
       }
@@ -651,13 +651,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Teach"
+            "value": "Show DoOnce"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Montrer"
+            "value": "Montrer à DoOnce"
           }
         }
       }
@@ -668,7 +668,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Show DoOnce how it's done"
+            "value": "Record how something is done."
           }
         }
       }
@@ -679,13 +679,13 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Add"
+            "value": "Save object only"
           }
         },
         "fr": {
           "stringUnit": {
             "state": "translated",
-            "value": "Ajouter"
+            "value": "Enregistrer l’objet"
           }
         }
       }
@@ -696,7 +696,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remember an object"
+            "value": "Save something now, add instructions later."
           }
         }
       }
@@ -751,7 +751,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Remember it"
+            "value": "Save this object"
           }
         }
       }
@@ -894,7 +894,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Explain naturally while you do it."
+            "value": "Explain out loud while you do it."
           }
         }
       }
@@ -1296,7 +1296,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Next time, just look at the {object}."
+            "value": "Next time, just look at it."
           }
         }
       }
@@ -1406,7 +1406,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "{person} showed you this · {date}"
+            "value": "Shown by {person} · {date}"
           }
         }
       }
@@ -1599,7 +1599,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "{person} didn't say anything about that."
+            "value": "That wasn't clearly mentioned in the recording."
           }
         }
       }
@@ -1962,7 +1962,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "People appear when you save who taught a memory."
+            "value": "People appear when you record who showed you something."
           }
         }
       }
@@ -1973,7 +1973,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Taught by {person}"
+            "value": "Shown by {person}"
           }
         }
       }
@@ -4582,7 +4582,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Recording saved."
+            "value": "Recording secured"
           }
         }
       }
@@ -4593,7 +4593,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Listening…"
+            "value": "Listening"
           }
         }
       }
@@ -4604,7 +4604,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Finding the moments…"
+            "value": "Finding important moments"
           }
         }
       }
@@ -4615,7 +4615,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Understanding what was shown…"
+            "value": "Creating steps"
           }
         }
       }
@@ -4626,7 +4626,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Creating the steps…"
+            "value": "Linking original clips"
           }
         }
       }
@@ -4637,7 +4637,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Preparing…"
+            "value": "Ready to review"
           }
         }
       }
@@ -4659,7 +4659,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "Turning this into steps needs the DoOnce gateway, which isn't set up on this build."
+            "value": "AI isn't connected on this build yet. Your recording is safe on this phone."
           }
         }
       }
@@ -5213,7 +5213,7 @@
         "en": {
           "stringUnit": {
             "state": "translated",
-            "value": "No gateway URL set. Teach can't finish until there is one."
+            "value": "AI isn't connected on this build. Steps can still be made on this iPhone, without AI."
           }
         }
       }
@@ -5413,6 +5413,281 @@
           "stringUnit": {
             "state": "translated",
             "value": "{live} of {total} live"
+          }
+        }
+      }
+    },
+    "people.shownByYou": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown by you"
+          }
+        }
+      }
+    },
+    "do.shownByYou": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Shown by you · {date}"
+          }
+        }
+      }
+    },
+    "said.you": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What you said"
+          }
+        }
+      }
+    },
+    "said.person": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What {person} said"
+          }
+        }
+      }
+    },
+    "said.they": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What they said"
+          }
+        }
+      }
+    },
+    "seeOriginal.at": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "See original · {time}"
+          }
+        }
+      }
+    },
+    "seeOriginal.segment": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "{from}–{to} of the original"
+          }
+        }
+      }
+    },
+    "seeOriginal.replay": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Replay this moment"
+          }
+        }
+      }
+    },
+    "seeOriginal.keepWatching": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Keep watching"
+          }
+        }
+      }
+    },
+    "example.badge": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Example"
+          }
+        }
+      }
+    },
+    "memory.examples.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "These are examples. They disappear after your first memory."
+          }
+        }
+      }
+    },
+    "processing.onDevice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Make steps on this iPhone"
+          }
+        }
+      }
+    },
+    "processing.onDevice.note": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Without AI, steps come only from what was said, split at pauses and your markers."
+          }
+        }
+      }
+    },
+    "processing.signInAgain": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Confirm it’s you to finish. Your recording is safe."
+          }
+        }
+      }
+    },
+    "review.madeOnDevice": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Made on this iPhone · no AI"
+          }
+        }
+      }
+    },
+    "person.you": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "You"
+          }
+        }
+      }
+    },
+    "do.recorded": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Recorded {date}"
+          }
+        }
+      }
+    },
+    "review.whoShowed": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Who showed this?"
+          }
+        }
+      }
+    },
+    "review.whoShowed.me": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Me"
+          }
+        }
+      }
+    },
+    "review.whoShowed.someoneNew": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Someone else"
+          }
+        }
+      }
+    },
+    "review.whoShowed.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Their name, e.g. Dad or Julien"
+          }
+        }
+      }
+    },
+    "review.whoShowed.unknown": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Not set"
+          }
+        }
+      }
+    },
+    "center.action": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Show DoOnce or Look"
+          }
+        }
+      }
+    },
+    "review.addStep": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a missing step after this"
+          }
+        }
+      }
+    },
+    "review.step.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to do, e.g. Close the valve."
           }
         }
       }

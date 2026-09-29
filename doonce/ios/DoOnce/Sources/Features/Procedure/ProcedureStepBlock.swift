@@ -1,8 +1,8 @@
 import SwiftUI
 import DoOnceCore
 
-/// One step as read on the page: its frame with the number and a way back to the original,
-/// the instruction, the exact words that were said, and any caution or gap in the capture.
+/// One step as read on the page, in three layers: the instruction (what to do), the exact words
+/// that were said (what they said), and See original (what actually happened, at that moment).
 @MainActor
 struct ProcedureStepBlock: View {
     var step: Step
@@ -16,9 +16,12 @@ struct ProcedureStepBlock: View {
             media
             Text(step.instruction).dsText(.title2).foregroundStyle(DSColor.textPrimary)
                 .fixedSize(horizontal: false, vertical: true)
-            if let quote = step.sourceTranscript, !quote.isEmpty {
-                Text("\u{201C}" + quote + "\u{201D}").dsText(.subheadline).foregroundStyle(DSColor.textSecondary).lineSpacing(3)
+            if let details = step.details, !details.isEmpty {
+                Text(details).dsText(.body).foregroundStyle(DSColor.textSecondary)
                     .fixedSize(horizontal: false, vertical: true)
+            }
+            OriginalWordsBlock(label: app.saidLabel(for: memory), quote: step.sourceTranscript, range: step.sourceRange) { at in
+                router.show(.seeOriginal(memoryID: memory.id, at: at))
             }
             if let warning = step.warning {
                 DSCallout(warning.severity == .high ? .danger : .warning, systemImage: "exclamationmark.triangle", warning.text)
@@ -44,16 +47,6 @@ struct ProcedureStepBlock: View {
                 .background(DSColor.backgroundInverse, in: Circle())
                 .padding(12)
                 .accessibilityLabel(L10n.fill("do.of", ["i": String(step.order), "n": String(memory.stepCount)]))
-            if let range = step.sourceRange {
-                Button {
-                    router.show(.seeOriginal(memoryID: memory.id, at: range.lowerBound))
-                } label: {
-                    Label(L10n.string("review.seeOriginal"), systemImage: "play.fill")
-                }
-                .buttonStyle(.dsOnMediaSmall)
-                .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .bottomTrailing)
-                .padding(10)
-            }
         }
         .frame(height: 200)
         .background(DSColor.backgroundSunken)

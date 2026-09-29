@@ -33,6 +33,9 @@ public enum GatewayError: Swift.Error, Equatable {
 public struct GatewayProcedureAnalysisService: ProcedureAnalysisService {
     public static let analyzePath = "v1/analyze"
 
+    /// The model sees the frames: what the hands did, not only what was said.
+    public var readsKeyFrames: Bool { true }
+
     public var baseURL: URL
     public var transport: any HTTPTransport
     public var credentials: any GatewayCredentials

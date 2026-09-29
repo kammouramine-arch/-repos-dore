@@ -37,7 +37,12 @@ struct ReviewView: View {
             ScrollView {
                 VStack(alignment: .leading, spacing: 0) {
                     hero
-                    ReviewMetaGrid(memory: draft, recognition: recognition).padding(.top, 6)
+                    ReviewMetaGrid(memory: draft, recognition: recognition, demonstratorID: $draft.demonstratorID).padding(.top, 6)
+                    if draft.isMadeOnDevice {
+                        DSCallout(.warning, systemImage: "iphone", L10n.string("review.madeOnDevice"))
+                            .padding(.horizontal, DS.Space.gutter).padding(.top, 14)
+                            .accessibilityIdentifier("review.madeOnDevice")
+                    }
                     DSCallout(.neutral, systemImage: "eye", explainer)
                         .padding(.horizontal, DS.Space.gutter).padding(.top, 14)
                     stepsList.padding(.horizontal, DS.Space.gutter).padding(.top, DS.Space.s2)
@@ -101,6 +106,7 @@ struct ReviewView: View {
             ForEach(Array(steps.enumerated()), id: \.element.id) { index, step in
                 ReviewStepCard(
                     step: step,
+                    saidLabel: app.saidLabel(for: draft),
                     isEditing: isEditing,
                     instruction: editor.instructionBinding(for: step.id),
                     canMoveUp: index > 0,
@@ -148,6 +154,7 @@ struct ReviewView: View {
         case .moveDown: app.haptics.play(.selection); editor.move(step.id, by: 1)
         case .split: editor.split(step.id)
         case .combine: editor.combineWithNext(step.id)
+        case .addAfter: app.haptics.play(.selection); editor.insert(after: step.id)
         case .remove: editor.remove(step.id)
         case .replaceFrame: frameToReplace = step
         }
@@ -164,7 +171,8 @@ struct ReviewView: View {
         Task {
             let user = app.currentUser.id
             let renamed = draft.title != original.title ? MemoryVersioning.rename(original, to: draft.title, by: user) : original
-            let versioned = MemoryVersioning.replaceSteps(draft.steps, in: renamed, by: user)
+            var versioned = MemoryVersioning.replaceSteps(draft.steps, in: renamed, by: user)
+            versioned.demonstratorID = draft.demonstratorID
             do {
                 try await app.save(versioned)
                 app.haptics.play(.success)
@@ -176,6 +184,7 @@ struct ReviewView: View {
     }
 
     private func remember() {
+        editor.renumber()
         Task {
             if await app.canCreateMemory() { showsObjectCreate = true } else { router.show(.paywall) }
         }
@@ -186,21 +195,85 @@ struct ReviewView: View {
     }
 }
 
-/// Object · Demonstrated by · Duration · Steps. "Probably" in signal when the object is inferred.
+/// Object · Who showed this · Duration · Steps. "Probably" in signal when the object is inferred.
+/// "Who showed this?" is a picker: the phone's owner is usually filming someone else, so nobody
+/// is assumed — the user says whether it was them, someone already saved, or someone new.
 @MainActor
 struct ReviewMetaGrid: View {
     let memory: Memory
     var recognition: RecognitionResult?
+    @Binding var demonstratorID: UUID?
     @Environment(AppState.self) private var app
+    @State private var asksNewName = false
+    @State private var newName = ""
 
     var body: some View {
         LazyVGrid(columns: [GridItem(.flexible(), alignment: .topLeading), GridItem(.flexible(), alignment: .topLeading)], alignment: .leading, spacing: 12) {
             item(L10n.string("review.object"), objectText)
-            item(L10n.string("review.demonstratedBy"), Text(app.person(memory.demonstratorID)?.displayName ?? app.currentUser.displayName))
+            demonstratorPicker
             item(L10n.string("review.duration"), Text(DSFormat.duration(memory.duration)))
             item(L10n.string("review.steps"), Text(String(memory.stepCount)))
         }
         .padding(.horizontal, DS.Space.gutter)
+        .alert(L10n.string("review.whoShowed"), isPresented: $asksNewName) {
+            TextField(L10n.string("review.whoShowed.placeholder"), text: $newName)
+                .textInputAutocapitalization(.words)
+            Button(L10n.string("common.save")) { addPerson(named: newName) }
+            Button(L10n.string("common.cancel"), role: .cancel) {}
+        }
+    }
+
+    private var demonstratorPicker: some View {
+        Menu {
+            Button(L10n.string("review.whoShowed.me")) { chooseSelf() }
+            let others = app.people.filter { !$0.isSelf }
+            ForEach(others) { person in
+                Button(person.displayName) { choose(person) }
+            }
+            Button(L10n.string("review.whoShowed.someoneNew"), systemImage: "person.badge.plus") {
+                newName = ""
+                asksNewName = true
+            }
+        } label: {
+            VStack(alignment: .leading, spacing: 2) {
+                DSEyebrow(text: L10n.string("review.whoShowed"))
+                HStack(spacing: 4) {
+                    Text(currentName).font(.system(size: 17, weight: .medium))
+                        .foregroundStyle(demonstratorID == nil ? DSColor.signalText : DSColor.textPrimary)
+                    Image(systemName: "chevron.up.chevron.down").font(.system(size: 12, weight: .semibold))
+                        .foregroundStyle(DSColor.textTertiary)
+                }
+            }
+        }
+        .accessibilityIdentifier("review.whoShowed")
+    }
+
+    private var currentName: String {
+        switch app.demonstrator(for: memory) {
+        case .you: L10n.string("review.whoShowed.me")
+        case .person(let name): name
+        case .unknown: L10n.string("review.whoShowed.unknown")
+        }
+    }
+
+    private func choose(_ person: Person) {
+        app.haptics.play(.selection)
+        demonstratorID = person.id
+    }
+
+    /// The user's own person record, created the first time it is needed.
+    private func chooseSelf() {
+        if let me = app.people.first(where: { $0.isSelf }) { return choose(me) }
+        let me = Person(householdID: app.household.id, displayName: app.currentUser.displayName, isSelf: true, userID: app.currentUser.id)
+        Task { try? await app.save(me); choose(me) }
+    }
+
+    private func addPerson(named name: String) {
+        let trimmed = name.trimmingCharacters(in: .whitespacesAndNewlines)
+        guard !trimmed.isEmpty else { return }
+        if let existing = app.people.first(where: { $0.displayName.caseInsensitiveCompare(trimmed) == .orderedSame }) { return choose(existing) }
+        let person = Person(householdID: app.household.id, displayName: trimmed)
+        Task { try? await app.save(person); choose(person) }
     }
 
     private var objectText: Text {

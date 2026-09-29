@@ -51,7 +51,9 @@ test("a good model output passes through validation with the contract shape", as
   assert.ok(system[0].cache_control);
   const content = (p.messages as Array<{ content: Array<{ type: string; text?: string }> }>)[0].content;
   assert.ok(content[0].text?.includes("[00:27.0–00:33.5] Keep an eye on the gauge"));
-  assert.ok(content.some((b) => b.text?.startsWith("Frame f3 at")));
+  // The fixture's frames carry no pixels, so none is offered to the model as citable.
+  assert.ok(!content.some((b) => b.text?.startsWith("Frame ")));
+  assert.ok(content[0].text?.includes("No frames were sent"));
 });
 
 test("frames with base64 become image blocks", async () => {

@@ -4,8 +4,12 @@ info:
   version: 0.1.0
   description: |
     The only server the DoOnce iPhone app talks to for intelligence and account operations.
-    The model API key lives here and nowhere else. Every request carries a Sign in with Apple
-    identity token; the gateway verifies it against Apple's JWKS (audience = the app bundle id).
+    The model API key lives here and nowhere else. The app trades its Sign in with Apple identity
+    token (valid ~10 minutes; verified against Apple's JWKS, audience = the app bundle id) at
+    `POST /v1/session` for a gateway session token valid for 30 days, and sends that token as the
+    bearer on every other call. `/v1/analyze` and `/v1/account` also still accept the Apple token.
+    The session token is signed with the function secret `DOONCE_SESSION_SECRET` (>= 32 bytes);
+    without it `/v1/session` answers 503 `session_unavailable` and the app keeps using the Apple token.
 
     Phase 3 additions planned on the same base: `/v1/recordings/{id}/upload` (resumable media),
     `/v1/sync` (household snapshot sync), `/v1/ask` (grounded question answering with the same
@@ -16,6 +20,7 @@ servers:
   - url: http://localhost:8787
     description: Local Node dev server
 security:
+  - sessionToken: []
   - appleIdentityToken: []
 paths:
   /health:
@@ -24,6 +29,26 @@ paths:
       summary: Liveness
       responses:
         "200": { description: ok }
+  /v1/session:
+    post:
+      summary: Trade a Sign in with Apple identity token for a 30-day gateway session token
+      description: |
+        Accepts only a Sign in with Apple identity token as the bearer; a gateway session token is
+        refused with 401 (a session cannot mint another session). The request body is ignored
+        (the app sends `{}`). The token is an HS256 JWT with claims `iss: doonce-gateway`,
+        `aud: doonce-app`, `sub` (Apple subject), `prv: apple`, `iat`, `exp = iat + 30 days`.
+        Rotating the server secret invalidates every session (calls then get 401).
+      security:
+        - appleIdentityToken: []
+      responses:
+        "200":
+          description: A new session
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Session" }
+        "401": { description: "Missing, malformed, expired or forged Apple token, or a session token was sent", $ref: "#/components/responses/Error" }
+        "403": { description: Apple token issued for another audience, $ref: "#/components/responses/Error" }
+        "503": { description: "Sessions are disabled on this gateway (no usable DOONCE_SESSION_SECRET); keep using the Apple token. Code: session_unavailable", $ref: "#/components/responses/Error" }
   /v1/analyze:
     post:
       summary: Turn one recorded demonstration into a validated procedural memory
@@ -67,6 +92,10 @@ paths:
         "401": { $ref: "#/components/responses/Error" }
 components:
   securitySchemes:
+    sessionToken:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT (gateway session token from POST /v1/session, HS256, iss = doonce-gateway, aud = doonce-app, 30 days)
     appleIdentityToken:
       type: http
       scheme: bearer
@@ -84,9 +113,16 @@ components:
                 type: object
                 required: [code, message]
                 properties:
-                  code: { type: string, enum: [invalid_request, unauthorized, rate_limited, too_large, refused, truncated, malformed_model_output, model_unavailable, internal, not_found] }
+                  code: { type: string, enum: [invalid_request, unauthorized, rate_limited, too_large, refused, truncated, malformed_model_output, model_unavailable, internal, not_found, session_unavailable] }
                   message: { type: string }
   schemas:
+    Session:
+      type: object
+      required: [accessToken, expiresAt, tokenType]
+      properties:
+        accessToken: { type: string, description: "The gateway session token (JWT); send as `Authorization: Bearer <accessToken>`" }
+        expiresAt: { type: string, format: date-time, description: "UTC, no fractional seconds, e.g. 2026-10-29T12:00:00Z (30 days after issue)" }
+        tokenType: { type: string, enum: [Bearer] }
     RiskLevel: { type: string, enum: [low, medium, high] }
     Provenance: { type: string, enum: [observed, inferred, unclear] }
     TranscriptSegment:

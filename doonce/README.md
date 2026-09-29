@@ -24,6 +24,30 @@ doonce/
 Legend: **DONE** verified here · **PARTIAL** written, not fully verified · **MOCKED** stands in
 for a real service · **BLOCKED** needs something this environment does not have.
 
+### Core intelligence pass — the purpose is obvious, the AI is real (branch `claude/doonce-core-intelligence`)
+- **Words:** "Teach" is now **Show DoOnce**; "Taught by" is **Shown by**. The centre action offers
+  Show DoOnce and Look, with "Save object only" secondary. Onboarding is four short beats: Someone
+  shows you once / DoOnce remembers / Look at it later / Do it without remembering, ending with
+  "Show DoOnce something".
+- **Examples** are labelled "Example" and disappear after the first real memory. They never count
+  toward the free limit.
+- **Every step has three layers:** the instruction; **What Julien said**, which must be verbatim,
+  with the validator on both the app and the gateway rejecting anything that is not a whole-word
+  run of the transcript; and **See original**, which plays exactly that segment and pauses at its
+  end. Ask answers only from the recording, and otherwise says "That wasn't clearly mentioned in
+  the recording."
+- **Processing** runs Recording secured → Listening → Finding important moments → Creating steps →
+  Linking original clips. After saving: "Remembered. Next time, just look at it." Review lets you
+  say who showed it.
+- **Real AI path:** up to ten real frames from the recording go to the model with the
+  transcript. The gateway (Supabase Edge Function) holds the model key and trades the
+  short-lived Apple token for a 30-day session. The TestFlight archive is **live** (on-device
+  Speech, Vision, camera, Sign in with Apple). When AI can't be reached, the app says so and
+  offers steps made on the iPhone, labelled "Made on this iPhone · no AI". It never falls back
+  to demo silently.
+- Verified here: DoOnceCore **158 tests**, app logic on Linux **31 tests**, gateway **38 tests**;
+  Xcode CI builds and runs the app, its unit tests and its UI tests.
+
 ### Design foundation (Phase 1) — DONE
 - Brand and logo ("the Loop": one gesture, once around, nearly closed), static + monochrome + app
   icon + animated reference; verified at 16 px to 1024 px in both appearances.

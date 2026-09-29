@@ -112,6 +112,58 @@ final class AnalysisValidatorTests: XCTestCase {
         XCTAssertEqual(adjustments.filter { $0.rule == .droppedUnknownKeyFrame }.map(\.detail), ["kf-404"])
     }
 
+    // MARK: - Verbatim provenance (same rule as the gateway's validate.ts)
+
+    func testQuoteNormalisationMatchesTheGateway() {
+        XCTAssertEqual(AnalysisValidator.normalisedForQuoting("  It\u{2019}s the ONE on the \u{201C}left\u{201D},   here! "), "its the one on the left here")
+        XCTAssertEqual(AnalysisValidator.normalisedForQuoting("don't"), AnalysisValidator.normalisedForQuoting("don\u{2019}t"))
+        XCTAssertEqual(AnalysisValidator.normalisedForQuoting("1.5 bar"), "1 5 bar")
+        XCTAssertEqual(AnalysisValidator.normalisedForQuoting("...!"), "")
+        XCTAssertEqual(AnalysisValidator.normalisedForQuoting("Cafe\u{301} ΟΔΟΣ"), "café οδοσ", "composed, lower case, final sigma folded")
+    }
+
+    func testVerbatimQuotesPassWhateverTheirCasingOrPunctuation() {
+        let quotable = AnalysisValidator.normalisedForQuoting(transcript.fullText)
+        XCTAssertTrue(AnalysisValidator.isVerbatimQuote("first, OPEN this black valve on the left", in: quotable))
+        XCTAssertTrue(AnalysisValidator.isVerbatimQuote("Blue first, always. Check the gauge holds.", in: quotable), "contiguous across segments")
+        XCTAssertTrue(AnalysisValidator.isVerbatimQuote("That\u{2019}s it.", in: quotable), "curly apostrophe")
+        XCTAssertFalse(AnalysisValidator.isVerbatimQuote("Open the black valve on the left.", in: quotable), "paraphrase")
+        XCTAssertFalse(AnalysisValidator.isVerbatimQuote("pen this black val", in: quotable), "cut through words")
+        XCTAssertFalse(AnalysisValidator.isVerbatimQuote("Turn the blue valve slowly. Close the blue valve first.", in: quotable), "distant sentences merged")
+        XCTAssertFalse(AnalysisValidator.isVerbatimQuote(" ", in: quotable))
+    }
+
+    func testParaphrasedQuoteIsReplacedByTheWordsSpokenInTheRange() {
+        let (response, adjustments) = validate([step(1, "Open the black valve.", start: 14, end: 26, spoken: "Open the black valve a quarter turn; it's fine to open it all the way.")], risk: .medium)
+        XCTAssertEqual(response.steps[0].sourceTranscript, "First, open this black valve on the left. Turn it a quarter turn until it stops. That one's fine to open fully, it just lets the water through to the loop.")
+        XCTAssertEqual(adjustments.filter { $0.rule == .sourceTranscriptNotVerbatim }.map(\.stepOrder), [1])
+        XCTAssertEqual(response.steps[0].provenance, .observed, "still grounded in speech")
+    }
+
+    func testParaphrasedQuoteWithoutARangeIsRemoved() {
+        let (response, adjustments) = validate([step(1, "Open the black valve.", spoken: "Open the black valve.")], risk: .medium)
+        XCTAssertNil(response.steps[0].sourceTranscript)
+        XCTAssertEqual(response.steps[0].provenance, .inferred, "nothing said supports it any more")
+        XCTAssertTrue(adjustments.contains { $0.rule == .sourceTranscriptNotVerbatim && $0.stepOrder == 1 })
+
+        let silent = Transcript(segments: [TranscriptSegment(start: 0, end: 10, text: "Open the lid and take the filter out now.")])
+        let outside = validate([step(1, "Rinse it.", start: 20, end: 30, spoken: "Give it a rinse.")], request: request(transcript: silent)).response
+        XCTAssertNil(outside.steps[0].sourceTranscript, "a range with no speech has nothing to quote")
+    }
+
+    func testOneEndedRangeQuotesTheSegmentAroundIt() {
+        let response = validate([step(1, "Open the black valve.", start: 16, spoken: "Open the black one.")], risk: .medium).response
+        XCTAssertEqual(response.steps[0].sourceTranscript, "First, open this black valve on the left. Turn it a quarter turn until it stops.")
+    }
+
+    func testBlankQuoteBecomesNilWithoutAnAdjustment() {
+        for quote in [nil, "", "  \n"] as [String?] {
+            let (response, adjustments) = validate([step(1, "Open the black valve.", start: 14, end: 19, spoken: quote)], risk: .medium)
+            XCTAssertNil(response.steps[0].sourceTranscript)
+            XCTAssertFalse(adjustments.contains { $0.rule == .sourceTranscriptNotVerbatim })
+        }
+    }
+
     func testDeterministicProviderOutputNeedsNoCorrection() async throws {
         let request = request()
         let response = try await DeterministicProcedureAnalysisService().analyze(request)

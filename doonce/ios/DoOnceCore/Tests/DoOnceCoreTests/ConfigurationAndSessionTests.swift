@@ -124,4 +124,20 @@ final class AuthSessionTests: XCTestCase {
         let after = await mock.currentUser()
         XCTAssertNil(after)
     }
+
+    func testInfoPlistBuildSettingsDriveTheTestFlightBuild() {
+        let info: [String: Any] = ["DoOnceServiceMode": "live", "DoOnceGatewayURL": "https://ref.supabase.co/functions/v1/doonce-analyze", "DoOnceSampleContent": "YES"]
+        let config = ServiceConfiguration.resolve(environment: [:], info: info)
+        XCTAssertTrue(config.isLive)
+        XCTAssertEqual(config.gatewayURL?.absoluteString, "https://ref.supabase.co/functions/v1/doonce-analyze")
+        XCTAssertTrue(config.sampleContent, "labelled examples can be seeded in a live build")
+
+        let noGateway = ServiceConfiguration.resolve(environment: [:], info: ["DoOnceServiceMode": "live", "DoOnceGatewayURL": "", "DoOnceSampleContent": ""])
+        XCTAssertTrue(noGateway.isLive, "live stays live without a gateway; analysis then says it is not connected")
+        XCTAssertNil(noGateway.gatewayURL)
+        XCTAssertFalse(noGateway.sampleContent)
+
+        let envWins = ServiceConfiguration.resolve(environment: ["DOONCE_SAMPLE_CONTENT": "0"], info: info)
+        XCTAssertFalse(envWins.sampleContent)
+    }
 }

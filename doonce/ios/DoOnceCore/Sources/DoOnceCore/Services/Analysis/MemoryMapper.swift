@@ -69,7 +69,7 @@ public enum MemoryMapper {
 /// The production `ProcedureGenerationService`: request → provider → validator → mapper.
 ///
 /// Whatever provider is plugged in, the memory the app stores has passed the validator.
-public struct AnalysisBackedGenerationService: ProcedureGenerationService {
+public struct AnalysisBackedGenerationService: ProcedureGenerationService, KeyFrameAwareGeneration {
     public var analysis: any ProcedureAnalysisService
     public var locale: String
     /// Frames already extracted for the recording, sent with the request.
@@ -90,6 +90,20 @@ public struct AnalysisBackedGenerationService: ProcedureGenerationService {
         self.keyFrames = keyFrames
         self.keyFrameMedia = keyFrameMedia
         self.untitledFallback = untitledFallback
+    }
+
+    /// This service with frames to send; the frames are chosen and extracted by the app.
+    public func sending(keyFrames: [KeyFrameReference], media: [String: MediaRef]) -> AnalysisBackedGenerationService {
+        var copy = self
+        copy.keyFrames = keyFrames
+        copy.keyFrameMedia = media
+        return copy
+    }
+
+    public var wantsKeyFrames: Bool { analysis.readsKeyFrames }
+
+    public func withKeyFrames(_ frames: [KeyFrameReference], media: [String: MediaRef]) -> any ProcedureGenerationService {
+        sending(keyFrames: frames, media: media)
     }
 
     public func generateMemory(from recording: Recording, transcript: Transcript, analysis detected: Analysis?, context: GenerationContext) async throws -> Memory {

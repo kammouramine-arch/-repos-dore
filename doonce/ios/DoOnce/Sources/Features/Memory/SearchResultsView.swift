@@ -74,6 +74,6 @@ struct BestAnswerCard: View {
     }
 
     private var provenance: String {
-        L10n.plural("search.hitLine", n: answer.step.order, ["person": app.demonstratorName(for: answer.memory), "title": answer.memory.title])
+        L10n.plural("search.hitLine", n: answer.step.order, ["person": app.answerSpeaker(for: answer.memory) ?? L10n.string("ask.unknownPerson"), "title": answer.memory.title])
     }
 }

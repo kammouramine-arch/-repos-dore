@@ -21,6 +21,7 @@ struct MemoryRowView: View {
                     .clipShape(RoundedRectangle(cornerRadius: DS.Radius.medium, style: .continuous))
             } trailing: {
                 HStack(spacing: DS.Space.s2) {
+                    if app.isExample(memory) { ExampleChip() }
                     if memory.riskLevel == .high {
                         DSChip(text: L10n.string("memory.care"), systemImage: "exclamationmark.triangle", tone: .danger)
                     }
@@ -37,7 +38,7 @@ struct MemoryRowView: View {
     private var subtitle: String {
         var parts: [String] = []
         if showObject, let object = app.object(memory.objectID) { parts.append(object.name) }
-        parts.append(L10n.string("people.taughtBy", ["person": app.demonstratorName(for: memory)]))
+        if let shownBy = app.shownBy(for: memory) { parts.append(shownBy) }
         parts.append(DSFormat.shortDay(memory.createdAt))
         return parts.joined(separator: " · ")
     }

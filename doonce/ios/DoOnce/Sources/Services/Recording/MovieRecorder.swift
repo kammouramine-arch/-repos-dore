@@ -207,6 +207,20 @@ enum KeyFrames {
         return MediaRef(kind: .image, localURL: url, sourceOffset: seconds)
     }
 
+    /// A still for the model to look at: the cached frame (kept as the step picture if the model
+    /// pins a step to it) plus a smaller JPEG for the request, about 768 px on the long side.
+    static func analysisFrame(of recording: Recording, at seconds: TimeInterval, longSide: CGFloat = 768, quality: CGFloat = 0.6) async throws -> (MediaRef, Data) {
+        let ref = try await frame(of: recording, at: seconds)
+        guard let url = ref.localURL, let image = UIImage(contentsOfFile: url.path) else { throw CocoaError(.fileReadCorruptFile) }
+        let scale = min(1, longSide / max(image.size.width, image.size.height, 1))
+        let size = CGSize(width: (image.size.width * scale).rounded(), height: (image.size.height * scale).rounded())
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let small = UIGraphicsImageRenderer(size: size, format: format).image { _ in image.draw(in: CGRect(origin: .zero, size: size)) }
+        guard let data = small.jpegData(compressionQuality: quality) else { throw CocoaError(.fileWriteUnknown) }
+        return (ref, data)
+    }
+
     /// The frozen last frame used as the Processing hero and the recording's thumbnail.
     static func lastFrame(of recording: Recording) async throws -> MediaRef {
         let url = RecordingFiles.lastFrameURL(recording.id)

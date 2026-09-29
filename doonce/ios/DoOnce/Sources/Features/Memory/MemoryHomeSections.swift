@@ -19,6 +19,7 @@ struct ContinueSection: View {
                 DSPhotoCard(title: memory.title, subtitle: progressLine, progress: fraction) {
                     MediaView(ref: app.thumbnail(for: memory))
                 }
+                .overlay(alignment: .topLeading) { if app.isExample(memory) { ExampleChip(onMedia: true).padding(12) } }
                 .frame(height: 210)
             }
             .buttonStyle(.dsPressable)

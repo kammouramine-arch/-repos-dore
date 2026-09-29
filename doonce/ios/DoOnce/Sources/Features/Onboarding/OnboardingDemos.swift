@@ -1,7 +1,8 @@
 import SwiftUI
 
-/// Scene 2: live intelligence around the object while someone explains. A corner frame, observation
-/// chips that land one after another, and the transcript with the value that matters in signal.
+/// Scene 2, "DoOnce remembers.": the recording becomes a memory in three layers, landing one after
+/// another on glass — the step (what to do), what the person said (their exact words), and the way
+/// back to the original moment. The whole idea of a memory, in one card.
 @MainActor
 struct OnboardingTeachDemo: View {
     var isActive: Bool
@@ -11,44 +12,56 @@ struct OnboardingTeachDemo: View {
     @State private var shown = 0
     @State private var ran = false
 
-    private struct Chip { let label: String; let x: CGFloat; let y: CGFloat }
-    private var chips: [Chip] {
-        let labels = L10n.list("onboarding.demo.chips")
-        let positions: [(CGFloat, CGFloat)] = [(0.24, 0.40), (0.56, 0.26), (0.60, 0.36)]
-        return zip(labels, positions).map { Chip(label: $0, x: $1.0, y: $1.1) }
-    }
-
     var body: some View {
-        ZStack(alignment: .topLeading) {
-            CornerFrame()
-                .frame(width: size.width * 0.6, height: size.height * 0.42)
-                .offset(x: size.width * 0.2, y: size.height * 0.18)
-            ForEach(Array(chips.enumerated()), id: \.offset) { index, chip in
-                ObservationChip(text: chip.label)
-                    .offset(x: size.width * chip.x, y: size.height * chip.y)
-                    .opacity(index < shown ? 1 : 0)
-                    .offset(y: index < shown || reduceMotion ? 0 : 8)
-                    .scaleEffect(index < shown || reduceMotion ? 1 : 0.96, anchor: .leading)
+        VStack(alignment: .leading, spacing: 14) {
+            layer(1) {
+                VStack(alignment: .leading, spacing: 4) {
+                    eyebrow(L10n.fill("do.of", ["i": "1", "n": "4"]))
+                    Text(L10n.string("onboarding.demo.do.instruction")).font(.ds(.title3)).fontWeight(.bold)
+                }
             }
-            MarkedText.text(L10n.string("onboarding.demo.transcript"))
-                .font(.ds(.callout)).fontWeight(.medium)
-                .foregroundStyle(DSColor.textOnMedia)
-                .shadow(color: DSColor.shadow, radius: 8, y: 1)
-                .padding(.horizontal, DS.Space.gutter)
-                .offset(y: size.height * 0.51)
-                .opacity(shown > 0 ? 1 : 0)
+            layer(2) {
+                VStack(alignment: .leading, spacing: 4) {
+                    eyebrow(L10n.fill("said.person", ["person": L10n.string("onboarding.demo.do.person")]))
+                    MarkedText.text("\u{201C}" + L10n.string("onboarding.demo.transcript") + "\u{201D}")
+                        .font(.ds(.callout)).fontWeight(.medium)
+                }
+            }
+            layer(3) {
+                Label(L10n.fill("seeOriginal.at", ["time": "0:24–0:31"]), systemImage: "play.fill")
+                    .font(.system(size: 14, weight: .semibold)).monospacedDigit()
+                    .padding(.horizontal, 12).padding(.vertical, 7)
+                    .background(DSColor.textOnMedia.opacity(0.16), in: Capsule())
+            }
         }
+        .foregroundStyle(DSColor.textOnMedia)
+        .padding(18)
+        .frame(width: min(size.width - 56, 360), alignment: .leading)
+        .background { DSGlass(style: .onMedia).clipShape(RoundedRectangle(cornerRadius: DS.Radius.large, style: .continuous)) }
+        .opacity(shown > 0 ? 1 : 0)
+        .frame(maxWidth: .infinity)
+        .offset(y: size.height * 0.2)
         .allowsHitTesting(false)
         .accessibilityHidden(true)
         .task(id: isActive) { await run() }
     }
 
+    private func eyebrow(_ text: String) -> some View {
+        Text(text.uppercased()).font(.system(size: 11, weight: .semibold)).tracking(0.66).opacity(0.75)
+    }
+
+    private func layer<Content: View>(_ index: Int, @ViewBuilder content: () -> Content) -> some View {
+        content()
+            .opacity(index <= shown ? 1 : 0)
+            .offset(y: index <= shown || reduceMotion ? 0 : 8)
+    }
+
     private func run() async {
         guard isActive, !ran else { return }
         ran = true
-        for index in 1...max(chips.count, 1) {
-            withAnimation(reduceMotion ? DSMotion.crossfade : DSMotion.standard(0.22)) { shown = index }
-            if !reduceMotion { try? await Task.sleep(for: .milliseconds(90)) }
+        for index in 1...3 {
+            withAnimation(reduceMotion ? DSMotion.crossfade : DSMotion.standard(0.26)) { shown = index }
+            if !reduceMotion { try? await Task.sleep(for: .milliseconds(380)) }
         }
     }
 }
@@ -67,22 +80,6 @@ struct CornerFrame: View {
             }
             .stroke(DSColor.textOnMedia.opacity(0.85), style: StrokeStyle(lineWidth: 2, lineCap: .round))
         }
-    }
-}
-
-/// A live observation: signal dot plus label on glass.
-@MainActor
-struct ObservationChip: View {
-    var text: String
-    var body: some View {
-        HStack(spacing: DS.Space.s2) {
-            Circle().fill(DSColor.signal).frame(width: 8, height: 8)
-            Text(text).font(.ds(.subheadline)).fontWeight(.semibold).foregroundStyle(DSColor.textOnMedia)
-        }
-        .padding(.leading, 10).padding(.trailing, 12)
-        .frame(height: 36)
-        .background(DSGlass(style: .onMedia))
-        .clipShape(Capsule())
     }
 }
 

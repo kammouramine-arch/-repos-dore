@@ -159,7 +159,9 @@ final class AppState {
     /// user is and fills the read model. Called once from `RootView`; safe to call again.
     func bootstrap() async {
         guard !isBootstrapped else { return }
-        if !configuration.isLive, configuration.sampleContent {
+        // Examples are labelled and hide themselves after the first real memory, so a live build
+        // may seed them too when its Info.plist asks (DoOnceSampleContent).
+        if configuration.sampleContent {
             _ = try? await store.seedIfEmpty(SampleData.snapshot)
         }
         await restoreSession()
@@ -313,6 +315,9 @@ final class AppState {
             snapshot.people = try await services.people.allPeople()
             snapshot.spaces = try await services.spaces.allSpaces()
             snapshot.progress = try await progressStore.allProgress()
+            // Examples (demo builds) are labelled while they are all there is, and drop away the
+            // moment the user has remembered something real — they must never pass for real data.
+            snapshot = snapshot.hidingExamplesOnceReal(draftTag: Memory.draftTag)
             pendingJobs = try await jobs.allJobs().filter { $0.stage != .done }.sorted { $0.updatedAt > $1.updatedAt }
         } catch {
             // Read model keeps its last good state; the failure is surfaced by the caller.
@@ -320,13 +325,24 @@ final class AppState {
     }
 
     /// Free tier: 5 memories. Returns false (and the caller shows the paywall) when the gate is closed.
+    /// Examples are not the user's and never count toward the limit.
     func canCreateMemory() async -> Bool {
-        await services.subscription.canCreateMemory(existingCount: memories.count).isAllowed
+        let own = memories.filter { !SampleData.isExample($0) }.count
+        return await services.subscription.canCreateMemory(existingCount: own).isAllowed
     }
+
+    /// True for sample content shown as a demonstration (demo builds only).
+    func isExample(_ memory: Memory) -> Bool { SampleData.isExample(memory) }
+    func isExample(_ object: PhysicalObject) -> Bool { SampleData.isExample(object) }
+    /// The Memory home is currently showing the demonstration household.
+    var isShowingExamples: Bool { snapshot.memories.contains(where: SampleData.isExample) }
 }
 
 extension Memory {
     /// Tag carried by a memory the pipeline generated but the user has not reviewed yet.
     static let draftTag = "draft"
     var isDraft: Bool { tags.contains(Self.draftTag) }
+    /// Steps made on this iPhone without AI, after the AI could not be reached. Shown, never hidden.
+    static let onDeviceTag = "made-on-device"
+    var isMadeOnDevice: Bool { tags.contains(Self.onDeviceTag) }
 }

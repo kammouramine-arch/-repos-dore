@@ -1,11 +1,33 @@
 name: DoOnce — deploy gateway
 
-# Deploys the DoOnce AI gateway (Supabase Edge Function) after its tests pass.
+# Deploys the DoOnce AI gateway (Supabase Edge Function `doonce-analyze`) after its tests pass.
+# Deployment only runs when started by hand (workflow_dispatch); pushes to main only run the tests.
+#
 # Required repository secrets:
-#   SUPABASE_ACCESS_TOKEN   Supabase dashboard → Account → Access Tokens
-#   SUPABASE_PROJECT_REF    The project ref from the project's URL
-# The model key and the Apple audience are set on the function itself:
-#   supabase secrets set ANTHROPIC_API_KEY=… DOONCE_APPLE_AUDIENCE=app.doonce.ios
+#   SUPABASE_ACCESS_TOKEN          Supabase dashboard → Account → Access Tokens (account-level).
+#   DOONCE_SUPABASE_PROJECT_REF    The ref of DoOnce's OWN Supabase project (from its URL,
+#                                  https://<ref>.supabase.co). Deliberately a DoOnce-specific name:
+#                                  SUPABASE_PROJECT_REF in this repository belongs to another product
+#                                  (LifeOS) and must never receive this function. The workflow fails
+#                                  if the DoOnce secret is missing or equals that ref.
+#
+# The model key reaches the function one of two ways, never the repository files or the app:
+#   - the repository secret DOONCE_ANTHROPIC_API_KEY: when present, this workflow copies it into the
+#     function's secrets (masked) on every deploy, together with DOONCE_APPLE_AUDIENCE; or
+#   - set once by hand on the DoOnce project:
+#     supabase secrets set ANTHROPIC_API_KEY=<model key> DOONCE_APPLE_AUDIENCE=app.doonce.ios --project-ref <doonce ref>
+# DOONCE_AUTH_MODE must never be set to "dev" on a deployed function.
+#
+# DOONCE_SESSION_SECRET (HMAC key for the gateway's 30-day session tokens, POST /v1/session) is
+# created by this workflow on the first deploy if the project does not have it yet: generated on the
+# runner with `openssl rand -base64 48`, masked, and set with `supabase secrets set`. It is never
+# printed and never regenerated once it exists (a new value would sign every user out). To rotate
+# it deliberately: supabase secrets unset DOONCE_SESSION_SECRET --project-ref <doonce ref>, then redeploy.
+#
+# The function is deployed with --no-verify-jwt (also `verify_jwt = false` in
+# doonce/backend/supabase/config.toml): the platform's JWT check only accepts Supabase-issued JWTs
+# and would reject the Sign in with Apple identity token the app sends; the function verifies that
+# token itself.
 on:
   workflow_dispatch:
   push:
@@ -29,32 +51,114 @@ jobs:
       - run: npm test
 
   deploy:
-    name: Deploy to Supabase
+    name: Deploy to DoOnce's Supabase project
     needs: test
     if: github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     env:
       SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
-      PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+      DOONCE_PROJECT_REF: ${{ secrets.DOONCE_SUPABASE_PROJECT_REF }}
+      # Read only to refuse deploying into the other product's project; never deployed to.
+      OTHER_PRODUCT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
     steps:
       - uses: actions/checkout@v4
-      - name: Check the secrets are present
+      - name: Check the deploy target
         run: |
           missing=0
-          for name in SUPABASE_ACCESS_TOKEN PROJECT_REF; do
-            if [ -z "${!name}" ]; then echo "::error::Repository secret $name is not set."; missing=1; fi
-          done
+          if [ -z "$SUPABASE_ACCESS_TOKEN" ]; then
+            echo "::error::Repository secret SUPABASE_ACCESS_TOKEN is not set."
+            missing=1
+          fi
+          if [ -z "$DOONCE_PROJECT_REF" ]; then
+            echo "::error::Repository secret DOONCE_SUPABASE_PROJECT_REF is not set. Set it to the ref of DoOnce's own Supabase project. SUPABASE_PROJECT_REF is deliberately not used: it belongs to another product."
+            missing=1
+          fi
           [ "$missing" = "0" ] || exit 1
+          if ! printf '%s' "$DOONCE_PROJECT_REF" | grep -Eq '^[a-z0-9]+$'; then
+            echo "::error::DOONCE_SUPABASE_PROJECT_REF must be a bare project ref (lowercase letters and digits), not a URL."
+            exit 1
+          fi
+          if [ -n "$OTHER_PRODUCT_REF" ] && [ "$DOONCE_PROJECT_REF" = "$OTHER_PRODUCT_REF" ]; then
+            echo "::error::DOONCE_SUPABASE_PROJECT_REF is the same project as SUPABASE_PROJECT_REF (another product's production project). Refusing to deploy."
+            exit 1
+          fi
       - uses: supabase/setup-cli@v1
         with: { version: latest }
+      - name: Copy the model key into the function's secrets
+        # Only when the repository secret exists; otherwise the key set by hand on the project stays.
+        env:
+          MODEL_KEY: ${{ secrets.DOONCE_ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$MODEL_KEY" ]; then
+            echo "DOONCE_ANTHROPIC_API_KEY is not a repository secret; relying on ANTHROPIC_API_KEY already set on the project."
+            exit 0
+          fi
+          echo "::add-mask::$MODEL_KEY"
+          supabase secrets set ANTHROPIC_API_KEY="$MODEL_KEY" DOONCE_APPLE_AUDIENCE=app.doonce.ios --project-ref "$DOONCE_PROJECT_REF" > /dev/null
+          echo "Model key and audience set on the function (values not shown)."
+      - name: Ensure the session-signing secret exists
+        # Lists only secret names and digests; the value is generated here once and never echoed.
+        run: |
+          if ! names="$(supabase secrets list --project-ref "$DOONCE_PROJECT_REF")"; then
+            echo "::error::Could not list the function secrets of the DoOnce project."
+            exit 1
+          fi
+          if grep -Eq '(^|[^A-Z0-9_])DOONCE_SESSION_SECRET([^A-Z0-9_]|$)' <<< "$names"; then
+            echo "DOONCE_SESSION_SECRET already exists on the project; leaving it unchanged."
+            exit 0
+          fi
+          value="$(openssl rand -base64 48 | tr -d '\n')"
+          if [ "${#value}" -lt 32 ]; then
+            echo "::error::Could not generate DOONCE_SESSION_SECRET."
+            exit 1
+          fi
+          echo "::add-mask::$value"
+          supabase secrets set DOONCE_SESSION_SECRET="$value" --project-ref "$DOONCE_PROJECT_REF" > /dev/null
+          unset value
+          echo "Created DOONCE_SESSION_SECRET on the project (value not shown)."
       - name: Deploy the gateway function
-        working-directory: doonce/backend/supabase
-        run: supabase functions deploy doonce-analyze --project-ref "$PROJECT_REF"
+        # Runs from doonce/backend so the CLI picks up supabase/config.toml (verify_jwt, import map).
+        run: supabase functions deploy doonce-analyze --project-ref "$DOONCE_PROJECT_REF" --no-verify-jwt
+      - name: Smoke check /health
+        run: |
+          url="https://$DOONCE_PROJECT_REF.supabase.co/functions/v1/doonce-analyze/health"
+          for attempt in 1 2 3 4 5 6; do
+            if curl -fsS --max-time 20 "$url"; then
+              echo
+              echo "Health check passed on attempt $attempt."
+              exit 0
+            fi
+            echo "Attempt $attempt failed; retrying in 10 s."
+            sleep 10
+          done
+          echo "::error::$url did not answer 200. Check the function logs in the Supabase dashboard and that ANTHROPIC_API_KEY is set on the function (it refuses to start without it)."
+          exit 1
+      - name: Smoke check /v1/session is routed
+        # Without a bearer the route must answer 401 (it exists and refuses anonymous callers).
+        # 404 means the deployed code predates the route; 503 means DOONCE_SESSION_SECRET is not reaching the function.
+        run: |
+          url="https://$DOONCE_PROJECT_REF.supabase.co/functions/v1/doonce-analyze/v1/session"
+          status=""
+          for attempt in 1 2 3 4 5 6; do
+            status="$(curl -sS -o /dev/null -w '%{http_code}' --max-time 20 -X POST -H 'content-type: application/json' -d '{}' "$url" || true)"
+            if [ "$status" = "401" ]; then
+              echo "Session route check passed on attempt $attempt (401 without a bearer)."
+              exit 0
+            fi
+            echo "Attempt $attempt answered ${status:-no response}; retrying in 10 s."
+            sleep 10
+          done
+          echo "::error::POST $url answered ${status:-nothing}, expected 401. 503 means DOONCE_SESSION_SECRET is missing or shorter than 32 bytes on the function; 404 means the route is not deployed."
+          exit 1
       - name: Summary
         run: |
           {
-            echo "### DoOnce gateway deployed"
+            echo "### DoOnce gateway"
             echo ""
-            echo "Set the app's DoOnceGatewayURL to https://$PROJECT_REF.supabase.co/functions/v1/doonce-analyze"
-            echo "and make sure ANTHROPIC_API_KEY and DOONCE_APPLE_AUDIENCE are set on the function."
+            echo "Gateway URL for the app (\`DoOnceGatewayURL\`):"
+            echo ""
+            echo "    https://$DOONCE_PROJECT_REF.supabase.co/functions/v1/doonce-analyze"
+            echo ""
+            echo "The app trades its Apple identity token at \`{gateway}/v1/session\` for a 30-day session token, then calls \`{gateway}/v1/analyze\` and \`{gateway}/v1/account\`; \`{gateway}/health\` is open."
+            echo "The function needs \`ANTHROPIC_API_KEY\` and \`DOONCE_APPLE_AUDIENCE=app.doonce.ios\` set with \`supabase secrets set\`; \`DOONCE_SESSION_SECRET\` is created by this workflow when absent."
           } >> "$GITHUB_STEP_SUMMARY"

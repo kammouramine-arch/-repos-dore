@@ -29,6 +29,12 @@ settings:
     # always higher than the last build uploaded to App Store Connect).
     MARKETING_VERSION: "1.0.0"
     CURRENT_PROJECT_VERSION: "1"
+    # Service mode, gateway and examples for this build, substituted into Info.plist below. Local
+    # and CI simulator builds keep demo; the TestFlight workflow passes live, the deployed gateway
+    # URL and DOONCE_SAMPLE_CONTENT=YES on the xcodebuild archive command line.
+    DOONCE_SERVICE_MODE: demo
+    DOONCE_GATEWAY_URL: ""
+    DOONCE_SAMPLE_CONTENT: ""
 targets:
   DoOnce:
     type: application
@@ -61,10 +67,12 @@ targets:
         # demo: FileStore persistence + mock transcription/recognition/auth/subscription and the
         #       deterministic analysis; sample content when DOONCE_SAMPLE_CONTENT=1.
         # live: on-device Speech + Vision, Sign in with Apple, StoreKit 2, and the gateway below.
-        DoOnceServiceMode: demo
+        DoOnceServiceMode: "$(DOONCE_SERVICE_MODE)"
         # Base URL of the DoOnce gateway (procedure analysis, account deletion). Empty = not configured:
         # in live mode Teach fails at "Understanding" with a clear message instead of a demo result.
-        DoOnceGatewayURL: ""
+        DoOnceGatewayURL: "$(DOONCE_GATEWAY_URL)"
+        # YES seeds the labelled examples (they hide after the first real memory). Empty = demo only.
+        DoOnceSampleContent: "$(DOONCE_SAMPLE_CONTENT)"
         # App Store product identifiers for DoOnce+ (an array: yearly, monthly). Empty = the paywall
         # shows "Subscriptions aren't available yet".
         DoOnceProductIDs: []
