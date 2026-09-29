@@ -768,22 +768,16 @@ html.menu-open {
   background: radial-gradient(50% 50% at 50% 70%, rgb(214 180 116 / 0.22), rgb(198 167 106 / 0.06) 55%, transparent 76%);
 }
 
-/* Hero : faisceau et halo derrière la scène, à droite sur grand écran. */
-@media (min-width: 1024px) {
-  .atmos-hero .atmos-beam {
-    left: 71%;
-  }
-  .atmos-hero .atmos-halo {
-    left: 71%;
-    top: 50%;
-    width: 900px;
-    margin-left: -450px;
-  }
-}
-
-/* Appel final : l'horizon remonte sous le titre, comme un lever de jour. */
+/* Appel final : l'horizon remonte sous le titre, comme un lever de jour,
+   et son sol porte la grille du hero, à peine tracée. */
 .atmos-finale {
   --eclipse-rise: 7rem;
+}
+.atmos-finale .eclipse {
+  background:
+    linear-gradient(to right, rgb(222 196 146 / 0.07) 1px, transparent 1px) 50% 0 / 72px 36px,
+    linear-gradient(to bottom, rgb(222 196 146 / 0.07) 1px, transparent 1px) 50% 0 / 72px 36px,
+    radial-gradient(60% 40% at 50% 0%, #17130d 0%, #0a0909 55%, #080808 100%);
 }
 .atmos-finale .atmos-halo {
   top: 55%;
@@ -827,14 +821,6 @@ html.menu-open {
   /* Aucune boucle continue : la lumière ne bouge qu'avec le défilement,
      donc rien ne tourne quand la page est immobile. */
   @supports (animation-timeline: scroll()) {
-    /* En quittant le hero, sa lumière monte et s'efface, comme un plan de
-       cinéma qui change. */
-    .atmos-hero .atmos-beam,
-    .atmos-hero .atmos-halo {
-      animation: atmos-leave linear both;
-      animation-timeline: scroll(root);
-      animation-range: 0 100vh;
-    }
     .thread-fill {
       animation: thread-fill linear both;
       animation-timeline: scroll(root);
@@ -846,10 +832,6 @@ html.menu-open {
   }
 }
 
-@keyframes atmos-leave {
-  from { translate: 0 0; opacity: 1; }
-  to { translate: 0 -18vh; opacity: 0.25; }
-}
 @keyframes thread-fill {
   from { transform: scaleY(0.08); }
   to { transform: scaleY(1); }
@@ -860,8 +842,8 @@ html.menu-open {
 }
 
 /* --------------------------------------------------------------------------
-   Coutures entre sections : un filet de lumière, plus vif au centre, et
-   une aura qui s'allume quand la couture passe dans l'écran.
+   Coutures entre sections : un filet de lumière en arc, plus vif au
+   centre, et une aura qui s'allume quand la couture passe dans l'écran.
    -------------------------------------------------------------------------- */
 
 .seam {
@@ -876,9 +858,16 @@ html.menu-open {
   top: 0;
   pointer-events: none;
 }
+/* Le filet est un arc — l'écho de l'horizon du hero : bombé au centre,
+   il retombe et s'efface sur les côtés. Un bord supérieur arrondi en
+   ellipse s'amincit de lui-même vers les extrémités. */
 .seam::before {
-  height: 1px;
-  background: linear-gradient(90deg, transparent 4%, rgb(242 238 230 / 0.08) 28%, rgb(226 202 150 / 0.4) 50%, rgb(242 238 230 / 0.08) 72%, transparent 96%);
+  left: 3%;
+  right: 3%;
+  height: clamp(1.5rem, 3.2vw, 3rem);
+  border-top: 1px solid rgb(226 202 150 / 0.42);
+  border-radius: 50% 50% 0 0 / 100% 100% 0 0;
+  mask-image: linear-gradient(90deg, transparent, rgb(0 0 0 / 0.3) 24%, #000 50%, rgb(0 0 0 / 0.3) 76%, transparent);
 }
 .seam::after {
   left: 20%;
@@ -1179,12 +1168,17 @@ html.has-pointer .cursor-halo {
 }
 
 /* ==========================================================================
-   HERO — l'environnement
+   HERO — paysage de nuit
 
-   Le site est « posé » dans un lieu, pas sur un fond noir : graphite aux
-   nuances chaudes, lumière de scène derrière les maquettes, sol quadrillé
-   qui se perd dans l'ombre, dalles de verre au loin, et le fil AMYN qui
-   relie site, application et tableau de bord. Voir HeroScene.tsx.
+   Du plus lointain au plus proche (voir HeroScene.tsx) : noir profond,
+   poussière de lumière, planète sombre au liseré doré derrière les
+   maquettes, orbites fines, reliefs à gauche, horizon numérique (courbe
+   lumineuse, sol quadrillé), voile de lecture sous le texte, lueur qui suit
+   le curseur, quatre repères discrets.
+
+   Coût : deux images WebP (≈ 45 Ko), un SVG d'horizon dessiné une fois, et
+   des mouvements qui n'animent que opacity, translate, rotate et transform
+   — composés par le GPU, sans flou ni masque animé.
 
    --hx et --hy (-1 à 1) viennent du curseur (HeroLight) : chaque calque se
    décale de quelques pixels, les plus lointains le moins.
@@ -1198,114 +1192,240 @@ html.has-pointer .cursor-halo {
 }
 .hero-scene {
   overflow: hidden;
+  /* Taille de la planète : le reste de la scène s'y accroche. */
+  --planet-w: 43vw;
 }
 
-/* Graphite, avec une chaleur derrière les maquettes et une ombre froide
-   en bas à gauche. */
-.hero-base {
+.hero-scene > * {
   position: absolute;
+}
+
+/* Noir profond, un peu plus chaud sous la planète. Rien ne s'assombrit
+   en bas : le hero se fond dans la section suivante, sans bord. */
+.hero-base {
   inset: 0;
   background:
-    radial-gradient(52% 62% at 74% 46%, rgb(40 31 20 / 0.55), transparent 72%),
-    radial-gradient(40% 50% at 6% 100%, rgb(18 20 24 / 0.55), transparent 70%),
-    linear-gradient(180deg, rgb(10 9 8 / 0) 60%, rgb(8 8 8 / 0.45));
+    radial-gradient(46% 58% at 88% 18%, rgb(38 29 18 / 0.5), transparent 70%),
+    radial-gradient(40% 50% at 6% 100%, rgb(16 17 20 / 0.6), transparent 70%),
+    linear-gradient(180deg, rgb(7 7 7 / 0.55), rgb(7 7 7 / 0) 30%);
 }
 
-/* Profondeur tonale derrière le texte : une chaleur à peine perceptible,
-   qui détache le titre sans rien lui retirer en contraste. */
-.hero-text-depth {
-  position: absolute;
-  left: -12%;
-  top: 4%;
-  width: 64%;
-  height: 96%;
-  background: radial-gradient(48% 44% at 44% 46%, rgb(46 36 24 / 0.34), transparent 72%);
-  translate: calc(var(--hx, 0) * -6px) calc(var(--hy, 0) * -4px);
+/* Poussière de lumière : deux tuiles de points, deux vitesses. */
+.hero-dust {
+  inset: -60px;
+}
+.hero-dust-far {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340'%3E%3Ccircle cx='110' cy='51' r='0.8' fill='%23f5e4be' fill-opacity='0.20'/%3E%3Ccircle cx='124' cy='20' r='0.7' fill='%23f5e4be' fill-opacity='0.19'/%3E%3Ccircle cx='24' cy='31' r='0.7' fill='%23f5e4be' fill-opacity='0.40'/%3E%3Ccircle cx='76' cy='213' r='0.9' fill='%23f5e4be' fill-opacity='0.34'/%3E%3Ccircle cx='332' cy='16' r='0.8' fill='%23f5e4be' fill-opacity='0.26'/%3E%3Ccircle cx='40' cy='105' r='0.8' fill='%23f5e4be' fill-opacity='0.23'/%3E%3Ccircle cx='217' cy='127' r='0.7' fill='%23f5e4be' fill-opacity='0.20'/%3E%3Ccircle cx='70' cy='231' r='0.7' fill='%23f5e4be' fill-opacity='0.26'/%3E%3Ccircle cx='154' cy='102' r='0.8' fill='%23f5e4be' fill-opacity='0.37'/%3E%3Ccircle cx='195' cy='179' r='0.9' fill='%23f5e4be' fill-opacity='0.38'/%3E%3Ccircle cx='333' cy='40' r='0.7' fill='%23f5e4be' fill-opacity='0.38'/%3E%3Ccircle cx='166' cy='13' r='0.8' fill='%23f5e4be' fill-opacity='0.39'/%3E%3Ccircle cx='298' cy='107' r='0.8' fill='%23f5e4be' fill-opacity='0.34'/%3E%3Ccircle cx='155' cy='286' r='0.9' fill='%23f2eee6' fill-opacity='0.31'/%3E%3Ccircle cx='21' cy='239' r='0.8' fill='%23f2eee6' fill-opacity='0.45'/%3E%3Ccircle cx='97' cy='131' r='0.8' fill='%23f5e4be' fill-opacity='0.19'/%3E%3Ccircle cx='57' cy='40' r='0.5' fill='%23f5e4be' fill-opacity='0.39'/%3E%3Ccircle cx='84' cy='133' r='0.8' fill='%23f5e4be' fill-opacity='0.20'/%3E%3C/svg%3E");
+}
+.hero-dust-near {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560'%3E%3Ccircle cx='253' cy='313' r='1.5' fill='%23f5e4be' fill-opacity='0.41'/%3E%3Ccircle cx='329' cy='103' r='1.2' fill='%23f2eee6' fill-opacity='0.47'/%3E%3Ccircle cx='53' cy='170' r='1.0' fill='%23f2eee6' fill-opacity='0.53'/%3E%3Ccircle cx='23' cy='550' r='1.5' fill='%23f2eee6' fill-opacity='0.48'/%3E%3Ccircle cx='88' cy='8' r='1.2' fill='%23f5e4be' fill-opacity='0.27'/%3E%3Ccircle cx='135' cy='17' r='1.2' fill='%23f2eee6' fill-opacity='0.40'/%3E%3Ccircle cx='291' cy='359' r='1.2' fill='%23f5e4be' fill-opacity='0.48'/%3E%3Ccircle cx='156' cy='559' r='1.5' fill='%23f2eee6' fill-opacity='0.54'/%3E%3Ccircle cx='177' cy='129' r='1.1' fill='%23f2eee6' fill-opacity='0.27'/%3E%3C/svg%3E");
+  opacity: 0.8;
 }
 
-/* Dalles de verre, loin derrière : un voile aux bords fondus et une
-   arête de lumière qui s'éteint aux deux bouts. Aucun filtre de flou :
-   le calque ne coûte rien à déplacer. */
-.hero-slab {
+/* La planète : image détourée, corps opaque, liseré doré. La boîte
+   reprend les proportions du recadrage (692 × 540) ; le centre du disque
+   est à (101,2 %, 113,3 %) de la boîte, son rayon à 101,7 % de sa largeur. */
+.hero-cosmos {
+  right: 0;
+  top: 3.5rem;
+  width: var(--planet-w);
+  aspect-ratio: 692 / 540;
+}
+.hero-planet {
   position: absolute;
-  border-radius: 32px;
-  background: radial-gradient(72% 64% at 42% 34%, rgb(242 238 230 / 0.05), rgb(242 238 230 / 0.015) 50%, transparent 74%);
-  translate: calc(var(--hx, 0) * var(--p)) calc(var(--hy, 0) * var(--p));
-  rotate: var(--r);
+  inset: 0;
+  background: url("/hero/planet.webp") center / 100% 100% no-repeat;
+  translate: calc(var(--hx, 0) * -5px) calc(var(--hy, 0) * -4px);
 }
-.hero-slab::before {
-  content: "";
+/* L'éclat du liseré, sur une couche à part : c'est elle qui respire. */
+.hero-planet-glow {
   position: absolute;
-  top: 0;
-  left: 8%;
-  right: 24%;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgb(242 238 230 / 0.16) 35%, rgb(236 214 168 / 0.12) 65%, transparent);
-}
-.hero-slab-a {
-  --p: -14px;
-  --r: -8deg;
-  right: -5%;
-  top: 16%;
-  width: 30vw;
-  height: 54vh;
-}
-.hero-slab-b {
-  --p: -24px;
-  --r: 6deg;
-  right: 31%;
-  bottom: 9%;
-  width: 18vw;
-  height: 24vh;
-  opacity: 0.7;
+  inset: -20% 0 -30% -20%;
+  background: radial-gradient(
+    circle at 101% 88.9%,
+    transparent calc(var(--planet-w) * 0.99),
+    rgb(240 208 146 / 0.2) calc(var(--planet-w) * 1.017),
+    rgb(214 180 116 / 0.07) calc(var(--planet-w) * 1.06),
+    transparent calc(var(--planet-w) * 1.17)
+  );
 }
 
-/* Fentes de lumière verticales : l'architecture du lieu. */
-.hero-slits span {
+/* Lumières qui s'allument et s'éteignent (planète, reliefs). */
+.hero-twinkle {
   position: absolute;
-  top: 0;
+  width: 7px;
+  height: 7px;
+  margin: -3.5px 0 0 -3.5px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgb(255 240 206) 0, rgb(236 204 140 / 0.55) 30%, transparent 70%);
+  opacity: 0.35;
+}
+
+/* Orbites : centrées sur la planète, elles traversent le centre du hero. */
+.hero-orbits {
+  inset: 0;
+}
+.hero-orbit {
+  position: absolute;
+  width: 150vw;
+  left: calc(100% - var(--planet-w) + var(--planet-w) * 1.012 - 75vw);
+  top: calc(3.5rem + var(--planet-w) * 0.884);
+  translate: 0 -50%;
+  overflow: visible;
+}
+/* Elles pivotent d'un ou deux degrés quand le curseur bouge : un
+   mouvement qui ne coûte rien au repos. */
+.hero-orbit-1 {
+  rotate: calc(-13deg + var(--hx, 0) * 1.6deg);
+  opacity: 0.55;
+}
+.hero-orbit-2 {
+  rotate: calc(-5deg - var(--hx, 0) * 1.2deg);
+  opacity: 0.4;
+}
+
+/* Grains de lumière qui dérivent lentement (ordinateur). */
+.hero-motes {
+  inset: 0;
+}
+.hero-mote {
+  position: absolute;
+  width: 3px;
+  height: 3px;
+  border-radius: 50%;
+  background: rgb(245 228 190);
+  box-shadow: 0 0 6px 1px rgb(236 204 140 / 0.35);
+  opacity: 0.4;
+}
+
+/* Reliefs, à gauche, sous le texte : sombres, avec quelques arêtes
+   dorées. Ils s'effacent vers le haut. */
+.hero-relief {
+  left: -3vw;
+  bottom: -5%;
+  width: 44vw;
+  aspect-ratio: 700 / 290;
+  background: url("/hero/relief.webp") center / 100% 100% no-repeat;
+  opacity: 0.6;
+  translate: calc(var(--hx, 0) * -12px) calc(var(--hy, 0) * -5px);
+}
+
+/* Horizon numérique : courbe lumineuse et sol quadrillé. */
+.hero-horizon {
+  left: 0;
   bottom: 0;
+  width: 100%;
+  height: clamp(170px, 25%, 300px);
+  overflow: visible;
+}
+
+/* Voile de lecture : il assombrit légèrement ce qui passe sous le texte,
+   et un peu plus sous la ligne des garanties, juste au-dessus des reliefs
+   (il s'éteint avant le bas du hero : pas de bord visible). */
+.hero-text-depth {
+  left: -14%;
+  top: 4%;
+  width: 66%;
+  height: 94%;
+  background:
+    radial-gradient(34% 8% at 49% 91%, rgb(7 7 7 / 0.7), rgb(7 7 7 / 0.35) 55%, transparent),
+    radial-gradient(50% 50% at 50% 50%, rgb(7 7 7 / 0.6), rgb(7 7 7 / 0.36) 58%, transparent 80%);
+}
+
+/* Lueur dorée qui suit le curseur (ordinateur uniquement). */
+.hero-cursor-glow {
+  left: 50%;
+  top: 50%;
+  width: 46vw;
+  height: 46vw;
+  margin: -23vw 0 0 -23vw;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(214 180 116 / 0.075), rgb(198 167 106 / 0.025) 55%, transparent);
+  translate: calc(var(--hx, 0) * 28vw) calc(var(--hy, 0) * 30vh);
+  display: none;
+}
+@media (hover: hover) and (pointer: fine) {
+  .hero-cursor-glow {
+    display: block;
+  }
+}
+
+/* Repères : quatre mots en capitales fines, un trait, un point. Du décor,
+   pas des boutons ; ils se tiennent hors du texte et des maquettes. */
+.hero-landmarks {
+  inset: 0;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.hero-landmark {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.7rem;
+  font-family: var(--font-mono);
+  font-size: 0.625rem;
+  letter-spacing: 0.34em;
+  text-transform: uppercase;
+  color: rgb(242 238 230 / 0.46);
+  translate: -50% 0;
+}
+.hero-landmark::after {
+  content: "";
   width: 1px;
-  background: linear-gradient(to bottom, transparent 5%, rgb(242 238 230 / 0.07) 40%, rgb(236 214 168 / 0.09) 55%, transparent 92%);
-  translate: calc(var(--hx, 0) * -10px) 0;
+  height: 2.6rem;
+  background: linear-gradient(to bottom, rgb(222 196 146 / 0.5), transparent);
 }
-.hero-slits span:nth-child(1) {
-  left: 57%;
+.hero-landmark::before {
+  content: "";
+  order: 3;
+  width: 3px;
+  height: 3px;
+  margin-top: -0.7rem;
+  border-radius: 50%;
+  background: rgb(236 214 168 / 0.7);
 }
-.hero-slits span:nth-child(2) {
+.hero-landmark-1 {
+  left: 45%;
+  top: 13%;
+}
+.hero-landmark-2 {
+  left: 91%;
+  top: 13%;
+}
+.hero-landmark-3 {
+  left: 16%;
+}
+.hero-landmark-4 {
   left: 84%;
-  opacity: 0.7;
 }
-.hero-slits span:nth-child(3) {
-  left: 96.5%;
-  opacity: 0.5;
+/* En bas, dans la marge du hero : le repère se couche sur l'horizon —
+   point, trait, mot. */
+.hero-landmark-3,
+.hero-landmark-4 {
+  flex-direction: row-reverse;
+  bottom: 1.6rem;
+}
+.hero-landmark-3::after,
+.hero-landmark-4::after {
+  width: 2.6rem;
+  height: 1px;
+  background: linear-gradient(to left, rgb(222 196 146 / 0.5), transparent);
+}
+.hero-landmark-3::before,
+.hero-landmark-4::before {
+  margin: 0 -0.7rem 0 0;
 }
 
 /* --- Lumière de scène, attachée aux maquettes -------------------------- */
 
-/* Contre-jour chaud : les maquettes se détachent du fond. */
+/* Contre-jour chaud : les maquettes se détachent de la planète. */
 .stage-backlight {
   position: absolute;
   inset: -24% -20% -12% -20%;
-  background: radial-gradient(46% 44% at 52% 47%, rgb(214 180 116 / 0.2), rgb(198 167 106 / 0.07) 46%, transparent 72%);
+  background: radial-gradient(46% 44% at 52% 47%, rgb(214 180 116 / 0.13), rgb(198 167 106 / 0.05) 46%, transparent 72%);
   translate: calc(var(--hx, 0) * 14px) calc(var(--hy, 0) * 10px);
-}
-
-/* Sol : la grille devient architecture — un plan en perspective sous les
-   maquettes, qui se perd dans l'ombre. Un reflet chaud au pied. */
-.stage-floor {
-  position: absolute;
-  left: -62%;
-  right: -38%;
-  top: 86%;
-  height: 72%;
-  background:
-    radial-gradient(34% 30% at 50% 0%, rgb(214 180 116 / 0.18), transparent 75%),
-    linear-gradient(to right, rgb(242 238 230 / 0.13) 1px, transparent 1px) center top / 56px 56px,
-    linear-gradient(to bottom, rgb(242 238 230 / 0.13) 1px, transparent 1px) center top / 56px 56px;
-  transform: perspective(620px) rotateX(62deg);
-  transform-origin: 50% 0;
-  mask-image: radial-gradient(46% 80% at 50% 0%, #000 0%, rgb(0 0 0 / 0.5) 45%, transparent 80%);
 }
 
 /* Ombre de contact : les maquettes reposent sur quelque chose. */
@@ -1342,20 +1462,39 @@ html.has-pointer .cursor-halo {
   transform-origin: center;
 }
 
+@media (min-width: 1920px) {
+  .hero-scene {
+    --planet-w: 40vw;
+  }
+}
+
 @media (max-width: 1023px) {
-  /* Téléphone et tablette : moins de calques, rien sous le texte. */
-  .hero-slab,
-  .hero-slits,
-  .hero-text-depth {
+  /* Téléphone et tablette : la planète, discrète, derrière les maquettes,
+     et l'horizon. Rien d'autre ne bouge ni ne s'ajoute sous le texte. */
+  .hero-scene {
+    --planet-w: 118vw;
+  }
+  .hero-relief,
+  .hero-orbits,
+  .hero-landmarks,
+  .hero-motes,
+  .hero-dust-near,
+  .hero-twinkle,
+  .hero-text-depth,
+  .hero-cursor-glow {
     display: none;
+  }
+  .hero-cosmos {
+    top: auto;
+    right: -46vw;
+    bottom: 6%;
+    opacity: 0.7;
+  }
+  .hero-horizon {
+    height: clamp(110px, 12%, 180px);
   }
   .stage-backlight {
     inset: -18% -10% -8% -10%;
-  }
-  .stage-floor {
-    left: -30%;
-    right: -30%;
-    opacity: 0.7;
   }
   /* Le fil ne remonte pas dans le texte, au-dessus des maquettes. */
   .amyn-thread {
@@ -1379,6 +1518,37 @@ html.has-pointer .cursor-halo {
   .amyn-thread-light {
     animation: thread-light-in 1.2s var(--ease-out) 3.4s both;
   }
+
+  /* La planète entre par un lever de lumière, puis son liseré respire. */
+  .hero-cosmos {
+    animation: planet-rise 2.4s var(--ease-out) 0.1s both;
+  }
+  .hero-planet-glow {
+    animation: planet-breathe 9s ease-in-out 2.5s infinite alternate;
+  }
+  .hero-twinkle {
+    animation-name: twinkle;
+    animation-timing-function: ease-in-out;
+    animation-iteration-count: infinite;
+  }
+  .hero-landmark {
+    animation: landmark-in 1.8s var(--ease-out) both;
+  }
+  .hero-landmark-1 { animation-delay: 1.6s; }
+  .hero-landmark-2 { animation-delay: 2s; }
+  .hero-landmark-3 { animation-delay: 2.4s; }
+  .hero-landmark-4 { animation-delay: 2.8s; }
+
+  /* Ordinateur : quelques grains de lumière dérivent. Des durées
+     différentes, en aller-retour : pas de boucle visible. Ce sont de
+     petits éléments : les grandes couches (poussière, orbites) restent
+     immobiles, sinon le défilement ralentit sur les machines modestes. */
+  @media (min-width: 1024px) {
+    .hero-mote {
+      animation: mote-drift ease-in-out infinite alternate;
+    }
+  }
+
   @supports (animation-timeline: scroll()) {
     /* Au défilement, la lumière suit le fil et descend vers la section
        suivante. */
@@ -1388,6 +1558,36 @@ html.has-pointer .cursor-halo {
         thread-travel linear both;
       animation-timeline: auto, scroll(root);
       animation-range: normal, 0 90vh;
+    }
+    /* Parallaxe au défilement : la planète recule, le sol glisse à
+       peine ; les repères du haut s'effacent. */
+    @media (min-width: 1024px) {
+      .hero-cosmos {
+        animation:
+          planet-rise 2.4s var(--ease-out) 0.1s both,
+          depth-far linear both;
+        animation-timeline: auto, scroll(root);
+        animation-range: normal, 0 100vh;
+      }
+      .hero-horizon {
+        animation: depth-near linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100vh;
+      }
+      .hero-landmark-1,
+      .hero-landmark-2 {
+        animation:
+          landmark-in 1.8s var(--ease-out) both,
+          landmarks-out linear both;
+        animation-timeline: auto, scroll(root);
+        animation-range: normal, 0 55vh;
+      }
+      .hero-landmark-1 {
+        animation-delay: 1.6s, 0s;
+      }
+      .hero-landmark-2 {
+        animation-delay: 2s, 0s;
+      }
     }
   }
 }
@@ -1408,10 +1608,36 @@ html.has-pointer .cursor-halo {
   from { stroke-dashoffset: 0.08; }
   to { stroke-dashoffset: -0.95; }
 }
-
-/* Le halo général du hero laisse la place au contre-jour des maquettes. */
-.atmos-hero .atmos-halo {
-  display: none;
+@keyframes planet-rise {
+  from { opacity: 0; transform: translateY(3vh); }
+}
+@keyframes planet-breathe {
+  from { opacity: 0.55; }
+  to { opacity: 1; }
+}
+@keyframes twinkle {
+  0%, 100% { opacity: 0.1; scale: 0.7; }
+  42% { opacity: 1; scale: 1.25; }
+  58% { opacity: 0.3; scale: 0.9; }
+}
+/* L'entrée passe par filter (et non opacity) : l'effacement au
+   défilement, lui, anime opacity — les deux se cumulent. */
+@keyframes landmark-in {
+  from { filter: opacity(0); translate: -50% 0.6rem; }
+}
+@keyframes mote-drift {
+  0% { transform: translate(0, 0); opacity: 0.15; }
+  35% { opacity: 0.9; }
+  100% { transform: translate(var(--mx), var(--my)); opacity: 0.35; }
+}
+@keyframes depth-far {
+  to { transform: translateY(26vh); }
+}
+@keyframes depth-near {
+  to { transform: translateY(3vh); }
+}
+@keyframes landmarks-out {
+  to { opacity: 0; }
 }
 
 /* ==========================================================================

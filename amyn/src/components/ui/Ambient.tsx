@@ -26,10 +26,11 @@ export function Ambient() {
 }
 
 /**
- * Lumière locale d'une section : faisceau, halo et, pour les grands
- * moments (hero, appel final), l'horizon éclairé par derrière.
+ * Lumière locale d'une section : faisceau, halo et, pour l'appel final,
+ * l'horizon éclairé par derrière, au sol quadrillé — l'écho de l'horizon
+ * du hero (qui a sa propre scène, voir HeroScene).
  */
-export function Atmosphere({ variant }: { variant: "hero" | "page" | "finale" }) {
+export function Atmosphere({ variant }: { variant: "page" | "finale" }) {
   return (
     <div aria-hidden className={`atmos atmos-${variant}`}>
       {variant !== "finale" && <div className="atmos-beam" />}

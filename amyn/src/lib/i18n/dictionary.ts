@@ -50,6 +50,8 @@ const fr = {
       { title: "Réservation confirmée", detail: "2 pers. · ce soir 20:30" },
       { title: "Nouvelle demande de devis", detail: "Rénovation · infos complètes" },
     ],
+    /* Repères du décor, en fond : décoratifs, jamais des liens. */
+    landmarks: ["Expérience", "Analytique", "Automatisation", "Croissance"],
   },
   sectors: {
     aria: "Les métiers que nous accompagnons",
@@ -315,6 +317,7 @@ const en: Dictionary = {
       { title: "Booking confirmed", detail: "2 guests · tonight 8:30pm" },
       { title: "New quote request", detail: "Renovation · details complete" },
     ],
+    landmarks: ["Experience", "Analytics", "Automation", "Growth"],
   },
   sectors: {
     aria: "The trades we work with",
