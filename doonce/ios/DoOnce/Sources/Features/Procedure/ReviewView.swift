@@ -154,6 +154,7 @@ struct ReviewView: View {
         case .moveDown: app.haptics.play(.selection); editor.move(step.id, by: 1)
         case .split: editor.split(step.id)
         case .combine: editor.combineWithNext(step.id)
+        case .addAfter: app.haptics.play(.selection); editor.insert(after: step.id)
         case .remove: editor.remove(step.id)
         case .replaceFrame: frameToReplace = step
         }
@@ -183,6 +184,7 @@ struct ReviewView: View {
     }
 
     private func remember() {
+        editor.renumber()
         Task {
             if await app.canCreateMemory() { showsObjectCreate = true } else { router.show(.paywall) }
         }

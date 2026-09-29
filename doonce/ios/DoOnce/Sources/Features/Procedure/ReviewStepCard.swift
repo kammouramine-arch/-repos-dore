@@ -5,7 +5,7 @@ import SwiftUI
 /// was said, any warning, and the provenance chip. Never hides that a step was inferred.
 @MainActor
 struct ReviewStepCard: View {
-    enum Action { case toggleWarning, replaceFrame, split, combine, moveUp, moveDown, remove }
+    enum Action { case toggleWarning, replaceFrame, split, combine, addAfter, moveUp, moveDown, remove }
 
     let step: Step
     /// "What Julien said" / "What you said" / "What they said".
@@ -22,7 +22,7 @@ struct ReviewStepCard: View {
         VStack(alignment: .leading, spacing: 10) {
             media
             if isEditing {
-                TextField(L10n.string("review.editTitle.placeholder"), text: $instruction, axis: .vertical)
+                TextField(L10n.string("review.step.placeholder"), text: $instruction, axis: .vertical)
                     .dsText(.title2).foregroundStyle(DSColor.textPrimary)
                     .padding(.horizontal, 10).padding(.vertical, 8)
                     .background(DSColor.fillSubtle, in: RoundedRectangle(cornerRadius: DS.Radius.small, style: .continuous))
@@ -71,6 +71,7 @@ struct ReviewStepCard: View {
                     Button(L10n.string("review.replaceFrame"), systemImage: "photo") { onAction(.replaceFrame) }
                     Button(L10n.string("review.splitStep"), systemImage: "scissors") { onAction(.split) }
                     Button(L10n.string("review.combine"), systemImage: "arrow.triangle.merge") { onAction(.combine) }.disabled(!canCombine)
+                    Button(L10n.string("review.addStep"), systemImage: "plus") { onAction(.addAfter) }
                     Button(L10n.string("review.moveUp"), systemImage: "arrow.up") { onAction(.moveUp) }.disabled(!canMoveUp)
                     Button(L10n.string("review.moveDown"), systemImage: "arrow.down") { onAction(.moveDown) }.disabled(!canMoveDown)
                     Button(L10n.string("review.remove"), systemImage: "trash", role: .destructive) { onAction(.remove) }
@@ -168,12 +169,27 @@ struct StepEditor {
         commit(steps)
     }
 
+    /// A step the recording missed, written by the user after `id`. It has no source in the
+    /// recording, so it is never "observed"; a step left blank is dropped on save.
+    @discardableResult
+    func insert(after id: UUID) -> UUID? {
+        var steps = memory.orderedSteps
+        guard let index = steps.firstIndex(where: { $0.id == id }) else { return nil }
+        let added = Step(order: steps[index].order + 1, instruction: "", provenance: .inferred, completionRule: .manual)
+        steps.insert(added, at: index + 1)
+        commit(steps)
+        return added.id
+    }
+
     func replace(step: Step) {
         guard let i = memory.steps.firstIndex(where: { $0.id == step.id }) else { return }
         memory.steps[i] = step
     }
 
-    func renumber() { commit(memory.orderedSteps) }
+    /// Renumbers, dropping added steps the user left blank.
+    func renumber() {
+        commit(memory.orderedSteps.filter { !$0.instruction.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty || $0.sourceRange != nil })
+    }
 
     private func commit(_ steps: [Step]) {
         memory.steps = steps.enumerated().map { index, step in var s = step; s.order = index + 1; return s }

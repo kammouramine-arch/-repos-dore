@@ -5669,6 +5669,28 @@
           }
         }
       }
+    },
+    "review.addStep": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "Add a missing step after this"
+          }
+        }
+      }
+    },
+    "review.step.placeholder": {
+      "extractionState": "manual",
+      "localizations": {
+        "en": {
+          "stringUnit": {
+            "state": "translated",
+            "value": "What to do, e.g. Close the valve."
+          }
+        }
+      }
     }
   }
 }

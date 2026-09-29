@@ -11,8 +11,11 @@ name: DoOnce — deploy gateway
 #                                  (LifeOS) and must never receive this function. The workflow fails
 #                                  if the DoOnce secret is missing or equals that ref.
 #
-# Set once on the DoOnce project itself (never in the repository, never in the app):
-#   supabase secrets set ANTHROPIC_API_KEY=<model key> DOONCE_APPLE_AUDIENCE=app.doonce.ios --project-ref <doonce ref>
+# The model key reaches the function one of two ways, never the repository files or the app:
+#   - the repository secret DOONCE_ANTHROPIC_API_KEY: when present, this workflow copies it into the
+#     function's secrets (masked) on every deploy, together with DOONCE_APPLE_AUDIENCE; or
+#   - set once by hand on the DoOnce project:
+#     supabase secrets set ANTHROPIC_API_KEY=<model key> DOONCE_APPLE_AUDIENCE=app.doonce.ios --project-ref <doonce ref>
 # DOONCE_AUTH_MODE must never be set to "dev" on a deployed function.
 #
 # DOONCE_SESSION_SECRET (HMAC key for the gateway's 30-day session tokens, POST /v1/session) is
@@ -81,6 +84,18 @@ jobs:
           fi
       - uses: supabase/setup-cli@v1
         with: { version: latest }
+      - name: Copy the model key into the function's secrets
+        # Only when the repository secret exists; otherwise the key set by hand on the project stays.
+        env:
+          MODEL_KEY: ${{ secrets.DOONCE_ANTHROPIC_API_KEY }}
+        run: |
+          if [ -z "$MODEL_KEY" ]; then
+            echo "DOONCE_ANTHROPIC_API_KEY is not a repository secret; relying on ANTHROPIC_API_KEY already set on the project."
+            exit 0
+          fi
+          echo "::add-mask::$MODEL_KEY"
+          supabase secrets set ANTHROPIC_API_KEY="$MODEL_KEY" DOONCE_APPLE_AUDIENCE=app.doonce.ios --project-ref "$DOONCE_PROJECT_REF" > /dev/null
+          echo "Model key and audience set on the function (values not shown)."
       - name: Ensure the session-signing secret exists
         # Lists only secret names and digests; the value is generated here once and never echoed.
         run: |

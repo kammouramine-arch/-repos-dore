@@ -549,7 +549,9 @@ window.STRINGS = {
     "review.whoShowed.someoneNew": "Someone else",
     "review.whoShowed.placeholder": "Their name, e.g. Dad or Julien",
     "review.whoShowed.unknown": "Not set",
-    "center.action": "Show DoOnce or Look"
+    "center.action": "Show DoOnce or Look",
+    "review.addStep": "Add a missing step after this",
+    "review.step.placeholder": "What to do, e.g. Close the valve."
   },
   "fr": {
     "app.name": "DoOnce",
