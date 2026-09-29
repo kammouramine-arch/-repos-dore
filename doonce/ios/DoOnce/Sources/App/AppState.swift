@@ -159,7 +159,9 @@ final class AppState {
     /// user is and fills the read model. Called once from `RootView`; safe to call again.
     func bootstrap() async {
         guard !isBootstrapped else { return }
-        if !configuration.isLive, configuration.sampleContent {
+        // Examples are labelled and hide themselves after the first real memory, so a live build
+        // may seed them too when its Info.plist asks (DoOnceSampleContent).
+        if configuration.sampleContent {
             _ = try? await store.seedIfEmpty(SampleData.snapshot)
         }
         await restoreSession()
@@ -340,4 +342,7 @@ extension Memory {
     /// Tag carried by a memory the pipeline generated but the user has not reviewed yet.
     static let draftTag = "draft"
     var isDraft: Bool { tags.contains(Self.draftTag) }
+    /// Steps made on this iPhone without AI, after the AI could not be reached. Shown, never hidden.
+    static let onDeviceTag = "made-on-device"
+    var isMadeOnDevice: Bool { tags.contains(Self.onDeviceTag) }
 }

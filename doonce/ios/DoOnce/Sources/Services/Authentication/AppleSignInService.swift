@@ -94,17 +94,29 @@ actor AppleSignInService: AuthService {
             ?? (previous?.providerUserID == credential.user ? previous?.displayName : nil)
             ?? "You"
         let email = credential.email ?? (previous?.providerUserID == credential.user ? previous?.email : nil)
-        let new = AuthSession(
+        var new = AuthSession(
             userID: Self.stableUserID(for: credential.user),
             provider: "apple",
             providerUserID: credential.user,
             displayName: displayName,
             email: email,
-            accessToken: token
+            accessToken: token,
+            expiresAt: JWTClaims.expiry(of: token)
         )
+        // Apple's token lasts minutes; the gateway trades it for its own session of weeks. If the
+        // gateway cannot be reached now, the Apple token is kept until it expires and the next
+        // analysis asks to confirm again.
+        if let gatewayURL, case .session(let issued)? = try? await GatewaySessionExchange(baseURL: gatewayURL, transport: URLSessionTransport(timeout: 20), clientVersion: Self.clientVersion).exchange(appleIdentityToken: token) {
+            new.accessToken = issued.accessToken
+            new.expiresAt = issued.expiresAt
+        }
         try await sessions.save(new)
         session = new
         return new
+    }
+
+    private static var clientVersion: String {
+        Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
     }
 
     // MARK: AuthService

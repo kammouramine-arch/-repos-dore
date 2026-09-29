@@ -22,11 +22,13 @@ enum ProcessingStage: Sendable {
 
 /// Why processing stopped. `messageKey` is the calm copy the screen shows; the recording, its
 /// transcript and analysis stay saved whatever the reason, so retry never starts from zero.
-enum ProcessingFailure: LocalizedError {
+enum ProcessingFailure: LocalizedError, Equatable {
     case originalMissing
     case transcription(String)
     case notConfigured
     case unreachable
+    /// The gateway no longer accepts this phone's session: confirm with Apple, then retry.
+    case signInAgain
     case rejected(String)
     case generation(String)
 
@@ -36,6 +38,7 @@ enum ProcessingFailure: LocalizedError {
         case .transcription: "processing.transcriptionFailed"
         case .notConfigured: "processing.notConfigured"
         case .unreachable: "processing.unreachable"
+        case .signInAgain: "processing.signInAgain"
         case .rejected: "processing.rejected"
         case .generation: "processing.failed"
         }
@@ -43,13 +46,23 @@ enum ProcessingFailure: LocalizedError {
 
     var errorDescription: String? { L10n.string(messageKey) }
 
+    /// True when the words are already transcribed and only the AI step failed, so steps can
+    /// still be made on this iPhone, openly labelled as made without AI.
+    var allowsOnDeviceSteps: Bool {
+        switch self {
+        case .notConfigured, .unreachable, .signInAgain, .rejected, .generation: true
+        case .originalMissing, .transcription: false
+        }
+    }
+
     /// The gateway's errors, and everything else, as one of ours.
     static func wrap(_ error: any Error) -> ProcessingFailure {
         if let failure = error as? ProcessingFailure { return failure }
         if let gateway = error as? GatewayError {
             switch gateway {
             case .notConfigured: return .notConfigured
-            case .unavailable, .unauthorized: return .unreachable
+            case .unavailable: return .unreachable
+            case .unauthorized: return .signInAgain
             case .rejected, .malformedResponse: return .rejected("\(gateway)")
             }
         }
@@ -60,6 +73,8 @@ enum ProcessingFailure: LocalizedError {
 /// Extracts a still from a recording at a time. Real: `AVAssetImageGenerator`; tests: a stub.
 protocol KeyFrameExtracting: Sendable {
     func keyFrame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef
+    /// The frame at `seconds` as saved, plus a small JPEG of it to send to the model.
+    func analysisFrame(of recording: Recording, at seconds: TimeInterval) async throws -> (MediaRef, Data)
 }
 
 /// Stop → memory, resumable. Orchestrates the services in order and reports each stage as it
@@ -82,6 +97,7 @@ struct ProcessingPipeline: Sendable {
     let frames: any KeyFrameExtracting
     let clips: any StepClipExporting
     var momentDetector = MomentDetector()
+    var frameSampler = AnalysisFrameSampler()
 
     func run(job initial: ProcessingJob, recording: Recording, draft: Memory?, context: GenerationContext, objects: [PhysicalObject]) -> AsyncThrowingStream<ProcessingStage, any Error> {
         AsyncThrowingStream { (continuation: AsyncThrowingStream<ProcessingStage, any Error>.Continuation) in
@@ -158,8 +174,15 @@ struct ProcessingPipeline: Sendable {
                         let analysis = Analysis(moments: moments, objects: detected, riskFlags: recording.analysis?.riskFlags ?? [])
                         recording.analysis = analysis
                         try await recordings.save(recording)
+                        // What the model sees: real stills from the recording, when it looks at them.
+                        var generator = generation
+                        if let aware = generation as? any KeyFrameAwareGeneration, aware.wantsKeyFrames {
+                            let (references, media) = await analysisFrames(of: recording, moments: moments)
+                            generator = aware.withKeyFrames(references, media: media)
+                        }
+                        try Task.checkCancellation()
                         do {
-                            memory = try await generation.generateMemory(from: recording, transcript: transcript, analysis: analysis, context: context)
+                            memory = try await generator.generateMemory(from: recording, transcript: transcript, analysis: analysis, context: context)
                         } catch is CancellationError {
                             throw CancellationError()
                         } catch {
@@ -217,6 +240,21 @@ struct ProcessingPipeline: Sendable {
             }
             continuation.onTermination = { _ in task.cancel() }
         }
+    }
+
+    /// Up to ten stills chosen by `AnalysisFrameSampler`, each id'd "f1"… in time order. A frame
+    /// that cannot be read is skipped; the analysis still runs on the words.
+    private func analysisFrames(of recording: Recording, moments: [DetectedMoment]) async -> ([KeyFrameReference], [String: MediaRef]) {
+        let times = frameSampler.times(duration: recording.duration, moments: moments, markers: recording.userMarkers)
+        var references: [KeyFrameReference] = []
+        var media: [String: MediaRef] = [:]
+        for time in times {
+            guard !Task.isCancelled, let (ref, jpeg) = try? await frames.analysisFrame(of: recording, at: time) else { continue }
+            let id = AnalysisFrameSampler.frameID(references.count)
+            references.append(KeyFrameReference(id: id, time: time, jpegBase64: jpeg.base64EncodedString()))
+            media[id] = ref
+        }
+        return (references, media)
     }
 
     /// Advances the job to `stage` (never backwards, except out of `.failed`) and persists it.
@@ -295,5 +333,9 @@ struct MomentDetector: Sendable {
 struct AssetKeyFrameExtractor: KeyFrameExtracting {
     func keyFrame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef {
         try await KeyFrames.frame(of: recording, at: seconds)
+    }
+
+    func analysisFrame(of recording: Recording, at seconds: TimeInterval) async throws -> (MediaRef, Data) {
+        try await KeyFrames.analysisFrame(of: recording, at: seconds)
     }
 }

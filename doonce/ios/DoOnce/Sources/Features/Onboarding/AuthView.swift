@@ -137,3 +137,52 @@ struct AuthView: View {
         }
     }
 }
+
+/// Sign in with Apple again, in place, when the gateway no longer accepts this phone's session.
+/// Success saves the new session and calls `onConfirmed`; a cancel does nothing.
+@MainActor
+struct ReconfirmWithAppleButton: View {
+    var onConfirmed: () -> Void
+
+    @Environment(AppState.self) private var app
+    @Environment(\.colorScheme) private var colorScheme
+    @State private var isWorking = false
+    @State private var failed = false
+
+    var body: some View {
+        VStack(spacing: DS.Space.s2) {
+            SignInWithAppleButton(.continue) { request in
+                request.requestedScopes = []
+            } onCompletion: { result in
+                guard case .success(let authorization) = result,
+                      let credential = authorization.credential as? ASAuthorizationAppleIDCredential,
+                      let apple = app.services.auth as? AppleSignInService else {
+                    if case .failure(let error) = result, (error as? ASAuthorizationError)?.code != .canceled { failed = true }
+                    return
+                }
+                let value = AppleCredential(credential)
+                isWorking = true
+                Task {
+                    defer { isWorking = false }
+                    do {
+                        let session = try await apple.signIn(credential: value)
+                        await app.didSignIn(session)
+                        HapticsService.shared.play(.light)
+                        onConfirmed()
+                    } catch {
+                        failed = true
+                    }
+                }
+            }
+            .signInWithAppleButtonStyle(colorScheme == .dark ? .white : .black)
+            .frame(height: DS.Size.touchComfort)
+            .clipShape(Capsule())
+            .opacity(isWorking ? 0.4 : 1)
+            .disabled(isWorking)
+            .accessibilityIdentifier("processing.reconfirm")
+            if failed {
+                Text(L10n.string("auth.error")).dsText(.footnote).foregroundStyle(DSColor.danger)
+            }
+        }
+    }
+}

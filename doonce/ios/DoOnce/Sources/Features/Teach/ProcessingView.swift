@@ -53,7 +53,16 @@ struct ProcessingView: View {
                 .padding(.bottom, DS.Size.tabBarClearance)
             }
             if case .failed(let message) = model.status {
-                ErrorStateView(kind: .generic, media: model.hero, detail: message, retry: { model.retry(app: app, recordingID: recordingID, objectID: objectID) })
+                ErrorStateView(
+                    kind: .generic, media: model.hero, detail: message,
+                    retry: { model.retry(app: app, recordingID: recordingID, objectID: objectID) },
+                    reconfirm: model.failure == .signInAgain && app.configuration.isLive,
+                    alternative: model.failure?.allowsOnDeviceSteps == true
+                        ? ErrorStateView.Alternative(title: L10n.string("processing.onDevice"), note: L10n.string("processing.onDevice.note")) {
+                            model.retry(app: app, recordingID: recordingID, objectID: objectID, onDevice: true)
+                        }
+                        : nil
+                )
                     .transition(.opacity)
             }
             VStack {

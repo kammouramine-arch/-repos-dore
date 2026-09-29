@@ -65,6 +65,7 @@ enum RecordingFiles {
 enum KeyFrames {
     struct Unavailable: Error {}
     static func frame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef { throw Unavailable() }
+    static func analysisFrame(of recording: Recording, at seconds: TimeInterval) async throws -> (MediaRef, Data) { throw Unavailable() }
 }
 
 /// Mirrors the extension in `Services/Storage/AppDirectories.swift`.

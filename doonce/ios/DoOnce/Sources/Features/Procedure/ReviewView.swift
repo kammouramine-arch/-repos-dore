@@ -38,6 +38,11 @@ struct ReviewView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     hero
                     ReviewMetaGrid(memory: draft, recognition: recognition, demonstratorID: $draft.demonstratorID).padding(.top, 6)
+                    if draft.isMadeOnDevice {
+                        DSCallout(.warning, systemImage: "iphone", L10n.string("review.madeOnDevice"))
+                            .padding(.horizontal, DS.Space.gutter).padding(.top, 14)
+                            .accessibilityIdentifier("review.madeOnDevice")
+                    }
                     DSCallout(.neutral, systemImage: "eye", explainer)
                         .padding(.horizontal, DS.Space.gutter).padding(.top, 14)
                     stepsList.padding(.horizontal, DS.Space.gutter).padding(.top, DS.Space.s2)

@@ -26,6 +26,8 @@ final class ProcessingModel {
     private(set) var memory: Memory?
     private(set) var recognition: RecognitionResult?
     private(set) var isReady = false
+    /// Why the last run stopped, for the actions the failure screen offers.
+    private(set) var failure: ProcessingFailure?
 
     var duration: TimeInterval { recording?.duration ?? 0 }
 
@@ -34,25 +36,28 @@ final class ProcessingModel {
     private var revealing = false
     private var pipelineTask: Task<Void, Never>?
 
-    func start(app: AppState, recordingID: UUID, objectID: UUID?) {
+    func start(app: AppState, recordingID: UUID, objectID: UUID?, onDevice: Bool = false) {
         guard pipelineTask == nil else { return }
-        pipelineTask = Task { await run(app: app, recordingID: recordingID, objectID: objectID) }
+        pipelineTask = Task { await run(app: app, recordingID: recordingID, objectID: objectID, onDevice: onDevice) }
     }
 
     func cancel() { pipelineTask?.cancel() }
 
     /// After a failure: forget what was shown and run the pipeline again on the same recording.
-    func retry(app: AppState, recordingID: UUID, objectID: UUID?) {
+    /// `onDevice`: the AI could not be used, and the user chose steps made on this iPhone from the
+    /// transcript alone. The memory is tagged so Review says so.
+    func retry(app: AppState, recordingID: UUID, objectID: UUID?, onDevice: Bool = false) {
         pipelineTask?.cancel()
         pipelineTask = nil
         status = .secured
+        failure = nil
         shownText = ""; highlights = []; fill = 0; ticks = []; revealedSteps = []
         memory = nil; recognition = nil; isReady = false
         shownSegments = 0; revealQueue = []; revealing = false
-        start(app: app, recordingID: recordingID, objectID: objectID)
+        start(app: app, recordingID: recordingID, objectID: objectID, onDevice: onDevice)
     }
 
-    private func run(app: AppState, recordingID: UUID, objectID: UUID?) async {
+    private func run(app: AppState, recordingID: UUID, objectID: UUID?, onDevice: Bool) async {
         guard let recording = try? await app.services.recordings.recording(id: recordingID) else {
             status = .failed(L10n.string("error.generic.title"))
             return
@@ -70,7 +75,7 @@ final class ProcessingModel {
 
         let pipeline = ProcessingPipeline(
             transcription: app.services.transcription,
-            generation: app.services.generation,
+            generation: onDevice ? OnDeviceGeneration() as any ProcedureGenerationService : app.services.generation,
             recognition: app.services.recognition,
             recordings: app.services.recordings,
             memories: app.services.memories,
@@ -96,9 +101,11 @@ final class ProcessingModel {
         } catch is CancellationError {
             // Left the screen; the job resumes from Memory home.
         } catch let failure as ProcessingFailure {
+            self.failure = failure
             status = .failed(L10n.string(failure.messageKey))
             await app.refresh()
         } catch {
+            failure = .generation(error.localizedDescription)
             status = .failed(L10n.string("processing.failed"))
             await app.refresh()
         }
@@ -182,5 +189,17 @@ final class ProcessingModel {
         setStatus(.ready)
         HapticsService.shared.play(.light)
         withDSAnimation(DSMotion.emphasized(0.26)) { isReady = true }
+    }
+}
+
+/// The fallback the user chooses when the AI cannot be reached: the deterministic assembler over
+/// the real transcript and markers, through the same validator and mapper, tagged as made on this
+/// iPhone. Never used silently.
+struct OnDeviceGeneration: ProcedureGenerationService {
+    func generateMemory(from recording: Recording, transcript: Transcript, analysis: Analysis?, context: GenerationContext) async throws -> Memory {
+        var memory = try await AnalysisBackedGenerationService(analysis: DeterministicProcedureAnalysisService())
+            .generateMemory(from: recording, transcript: transcript, analysis: analysis, context: context)
+        memory.tags.append(Memory.onDeviceTag)
+        return memory
     }
 }

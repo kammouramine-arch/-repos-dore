@@ -10,6 +10,19 @@ final class ProcessingPipelineTests: XCTestCase {
         func keyFrame(of recording: Recording, at seconds: TimeInterval) async throws -> MediaRef {
             MediaRef(kind: .image, localURL: URL(fileURLWithPath: "/tmp/frames/\(recording.id.uuidString)/\(Int(seconds)).jpg"), sourceOffset: seconds)
         }
+        func analysisFrame(of recording: Recording, at seconds: TimeInterval) async throws -> (MediaRef, Data) {
+            (try await keyFrame(of: recording, at: seconds), Data([0xFF, 0xD8, 0xFF]))
+        }
+    }
+
+    /// A provider that looks at frames, recording what it was sent.
+    private actor FrameReadingAnalysis: ProcedureAnalysisService {
+        private(set) var received: [KeyFrameReference] = []
+        nonisolated var readsKeyFrames: Bool { true }
+        func analyze(_ request: ProcedureAnalysisRequest) async throws -> ProcedureAnalysisResponse {
+            received = request.keyFrames
+            return try await DeterministicProcedureAnalysisService().analyze(request)
+        }
     }
 
     private struct StubClips: StepClipExporting {
@@ -119,6 +132,37 @@ final class ProcessingPipelineTests: XCTestCase {
             XCTAssertNotNil(step.clip, "a clip is cut for each step")
         }
         XCTAssertEqual(steps.map(\.order), Array(1...steps.count))
+    }
+
+    func testRealFramesReachAProviderThatLooks() async throws {
+        let analysis = FrameReadingAnalysis()
+        let recording = try makeRecording(markers: [35])
+        try await store.save(recording)
+        _ = try await run(makePipeline(generation: AnalysisBackedGenerationService(analysis: analysis)), recording)
+        let frames = await analysis.received
+        XCTAssertFalse(frames.isEmpty)
+        XCTAssertLessThanOrEqual(frames.count, 10)
+        XCTAssertEqual(frames.map(\.id), frames.indices.map { "f\($0 + 1)" })
+        XCTAssertEqual(frames.map(\.time), frames.map(\.time).sorted())
+        XCTAssertTrue(frames.allSatisfy { $0.jpegBase64 == "/9j/" }, "the JPEG itself is sent, base64")
+        XCTAssertTrue(frames.contains { abs($0.time - 35.8) < 0.01 }, "the user's marker is looked at")
+    }
+
+    func testTranscriptOnlyProviderIsNotSentFrames() async throws {
+        let recording = try makeRecording()
+        try await store.save(recording)
+        let spy = FrameReadingAnalysisIgnoringFrames()
+        _ = try await run(makePipeline(generation: AnalysisBackedGenerationService(analysis: spy)), recording)
+        let count = await spy.frameCount
+        XCTAssertEqual(count, 0)
+    }
+
+    private actor FrameReadingAnalysisIgnoringFrames: ProcedureAnalysisService {
+        private(set) var frameCount = -1
+        func analyze(_ request: ProcedureAnalysisRequest) async throws -> ProcedureAnalysisResponse {
+            frameCount = request.keyFrames.count
+            return try await DeterministicProcedureAnalysisService().analyze(request)
+        }
     }
 
     func testTranscriptionFailureFailsTheJobWithoutAStandIn() async throws {

@@ -4,6 +4,13 @@ import Foundation
 /// deterministic assembler all sit behind this, so the app pipeline is identical in every mode.
 public protocol ProcedureAnalysisService: Sendable {
     func analyze(_ request: ProcedureAnalysisRequest) async throws -> ProcedureAnalysisResponse
+    /// True when the provider looks at key frames, so the app extracts and sends them. A provider
+    /// that only reads the transcript (the on-device assembler) is spared the work.
+    var readsKeyFrames: Bool { get }
+}
+
+extension ProcedureAnalysisService {
+    public var readsKeyFrames: Bool { false }
 }
 
 /// Refuses every request with `GatewayError.notConfigured`. Used in live mode when no gateway
