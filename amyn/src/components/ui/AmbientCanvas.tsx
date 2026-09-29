@@ -208,10 +208,14 @@ export function AmbientCanvas() {
 
       /* Interfaces et flux, en tuiles répétées : ils glissent ensemble,
          plus lentement que le texte (parallaxe). */
-      const fade = mobile ? 0.55 : 1;
+      /* Le hero a sa propre scène (HeroScene) : silhouettes et flux ne s'y
+         superposent pas, ils apparaissent une fois le hero quitté. */
+      const hero = document.querySelector("[data-hero-scene]");
+      const heroFade = hero ? clamp((scroll - h * 0.35) / (h * 0.55), 0, 1) : 1;
+      const fade = (mobile ? 0.55 : 1) * heroFade;
       const shift = (scroll * DEPTH) % tile;
       const first = Math.floor((scroll * DEPTH) / tile);
-      for (let k = -1; k <= Math.ceil(h / tile) + 1; k++) {
+      for (let k = -1; k <= Math.ceil(h / tile) + 1 && fade > 0.01; k++) {
         const tileIndex = first + k;
         const mirror = Math.abs(tileIndex) % 2 === 1;
         const oy = k * tile - shift;

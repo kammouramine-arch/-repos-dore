@@ -1179,6 +1179,242 @@ html.has-pointer .cursor-halo {
 }
 
 /* ==========================================================================
+   HERO — l'environnement
+
+   Le site est « posé » dans un lieu, pas sur un fond noir : graphite aux
+   nuances chaudes, lumière de scène derrière les maquettes, sol quadrillé
+   qui se perd dans l'ombre, dalles de verre au loin, et le fil AMYN qui
+   relie site, application et tableau de bord. Voir HeroScene.tsx.
+
+   --hx et --hy (-1 à 1) viennent du curseur (HeroLight) : chaque calque se
+   décale de quelques pixels, les plus lointains le moins.
+   ========================================================================== */
+
+.hero-scene,
+.stage-lights {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.hero-scene {
+  overflow: hidden;
+}
+
+/* Graphite, avec une chaleur derrière les maquettes et une ombre froide
+   en bas à gauche. */
+.hero-base {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(52% 62% at 74% 46%, rgb(40 31 20 / 0.55), transparent 72%),
+    radial-gradient(40% 50% at 6% 100%, rgb(18 20 24 / 0.55), transparent 70%),
+    linear-gradient(180deg, rgb(10 9 8 / 0) 60%, rgb(8 8 8 / 0.45));
+}
+
+/* Profondeur tonale derrière le texte : une chaleur à peine perceptible,
+   qui détache le titre sans rien lui retirer en contraste. */
+.hero-text-depth {
+  position: absolute;
+  left: -12%;
+  top: 4%;
+  width: 64%;
+  height: 96%;
+  background: radial-gradient(48% 44% at 44% 46%, rgb(46 36 24 / 0.34), transparent 72%);
+  translate: calc(var(--hx, 0) * -6px) calc(var(--hy, 0) * -4px);
+}
+
+/* Dalles de verre, loin derrière : un voile aux bords fondus et une
+   arête de lumière qui s'éteint aux deux bouts. Aucun filtre de flou :
+   le calque ne coûte rien à déplacer. */
+.hero-slab {
+  position: absolute;
+  border-radius: 32px;
+  background: radial-gradient(72% 64% at 42% 34%, rgb(242 238 230 / 0.05), rgb(242 238 230 / 0.015) 50%, transparent 74%);
+  translate: calc(var(--hx, 0) * var(--p)) calc(var(--hy, 0) * var(--p));
+  rotate: var(--r);
+}
+.hero-slab::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  left: 8%;
+  right: 24%;
+  height: 1px;
+  background: linear-gradient(90deg, transparent, rgb(242 238 230 / 0.16) 35%, rgb(236 214 168 / 0.12) 65%, transparent);
+}
+.hero-slab-a {
+  --p: -14px;
+  --r: -8deg;
+  right: -5%;
+  top: 16%;
+  width: 30vw;
+  height: 54vh;
+}
+.hero-slab-b {
+  --p: -24px;
+  --r: 6deg;
+  right: 31%;
+  bottom: 9%;
+  width: 18vw;
+  height: 24vh;
+  opacity: 0.7;
+}
+
+/* Fentes de lumière verticales : l'architecture du lieu. */
+.hero-slits span {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: linear-gradient(to bottom, transparent 5%, rgb(242 238 230 / 0.07) 40%, rgb(236 214 168 / 0.09) 55%, transparent 92%);
+  translate: calc(var(--hx, 0) * -10px) 0;
+}
+.hero-slits span:nth-child(1) {
+  left: 57%;
+}
+.hero-slits span:nth-child(2) {
+  left: 84%;
+  opacity: 0.7;
+}
+.hero-slits span:nth-child(3) {
+  left: 96.5%;
+  opacity: 0.5;
+}
+
+/* --- Lumière de scène, attachée aux maquettes -------------------------- */
+
+/* Contre-jour chaud : les maquettes se détachent du fond. */
+.stage-backlight {
+  position: absolute;
+  inset: -24% -20% -12% -20%;
+  background: radial-gradient(46% 44% at 52% 47%, rgb(214 180 116 / 0.2), rgb(198 167 106 / 0.07) 46%, transparent 72%);
+  translate: calc(var(--hx, 0) * 14px) calc(var(--hy, 0) * 10px);
+}
+
+/* Sol : la grille devient architecture — un plan en perspective sous les
+   maquettes, qui se perd dans l'ombre. Un reflet chaud au pied. */
+.stage-floor {
+  position: absolute;
+  left: -62%;
+  right: -38%;
+  top: 86%;
+  height: 72%;
+  background:
+    radial-gradient(34% 30% at 50% 0%, rgb(214 180 116 / 0.18), transparent 75%),
+    linear-gradient(to right, rgb(242 238 230 / 0.13) 1px, transparent 1px) center top / 56px 56px,
+    linear-gradient(to bottom, rgb(242 238 230 / 0.13) 1px, transparent 1px) center top / 56px 56px;
+  transform: perspective(620px) rotateX(62deg);
+  transform-origin: 50% 0;
+  mask-image: radial-gradient(46% 80% at 50% 0%, #000 0%, rgb(0 0 0 / 0.5) 45%, transparent 80%);
+}
+
+/* Ombre de contact : les maquettes reposent sur quelque chose. */
+.stage-contact {
+  position: absolute;
+  left: 6%;
+  right: 2%;
+  bottom: -6%;
+  height: 15%;
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(0 0 0 / 0.6), transparent);
+}
+
+/* --- Le fil AMYN -------------------------------------------------------- */
+
+.amyn-thread {
+  position: absolute;
+  left: -55%;
+  top: -35%;
+  width: 165%;
+  height: auto;
+  aspect-ratio: 1650 / 1800;
+  overflow: visible;
+}
+/* Au repos, la lumière attend au départ de la branche ; au défilement,
+   elle la descend vers la section suivante. */
+.amyn-thread-light {
+  stroke-dasharray: 0.12 0.88;
+  stroke-dashoffset: 0.08;
+  opacity: 0.85;
+}
+.amyn-node {
+  transform-box: fill-box;
+  transform-origin: center;
+}
+
+@media (max-width: 1023px) {
+  /* Téléphone et tablette : moins de calques, rien sous le texte. */
+  .hero-slab,
+  .hero-slits,
+  .hero-text-depth {
+    display: none;
+  }
+  .stage-backlight {
+    inset: -18% -10% -8% -10%;
+  }
+  .stage-floor {
+    left: -30%;
+    right: -30%;
+    opacity: 0.7;
+  }
+  /* Le fil ne remonte pas dans le texte, au-dessus des maquettes. */
+  .amyn-thread {
+    mask-image: linear-gradient(to bottom, transparent 16%, #000 26%);
+  }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Le fil se trace à l'arrivée, puis ses nœuds s'allument. */
+  .amyn-thread-line {
+    stroke-dasharray: 1;
+    animation: thread-draw 2.8s var(--ease-out) 0.5s both;
+  }
+  .amyn-node {
+    animation: node-in 0.9s var(--ease-out) both;
+  }
+  .amyn-thread-exit {
+    stroke-dasharray: 1;
+    animation: thread-draw 1.4s var(--ease-out) 2.6s both;
+  }
+  .amyn-thread-light {
+    animation: thread-light-in 1.2s var(--ease-out) 3.4s both;
+  }
+  @supports (animation-timeline: scroll()) {
+    /* Au défilement, la lumière suit le fil et descend vers la section
+       suivante. */
+    .amyn-thread-light {
+      animation:
+        thread-light-in 1.2s var(--ease-out) 3.4s both,
+        thread-travel linear both;
+      animation-timeline: auto, scroll(root);
+      animation-range: normal, 0 90vh;
+    }
+  }
+}
+
+@keyframes thread-draw {
+  from { stroke-dashoffset: 1; }
+  to { stroke-dashoffset: 0; }
+}
+@keyframes node-in {
+  from { opacity: 0; transform: scale(0.4); }
+  to { opacity: 1; transform: none; }
+}
+@keyframes thread-light-in {
+  from { opacity: 0; }
+  to { opacity: 0.85; }
+}
+@keyframes thread-travel {
+  from { stroke-dashoffset: 0.08; }
+  to { stroke-dashoffset: -0.95; }
+}
+
+/* Le halo général du hero laisse la place au contre-jour des maquettes. */
+.atmos-hero .atmos-halo {
+  display: none;
+}
+
+/* ==========================================================================
    Scène 3D du hero : chaque plan a sa profondeur (--depth). La scène
    s'incline vers le curseur (--rx, --ry posés par Interactions.tsx) et les
    plans glissent à des vitesses différentes au défilement.

@@ -4,6 +4,8 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Check } from "@/components/ui/Icons";
 import { Container, delay } from "@/components/ui/Layout";
 import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
+import { HeroLight } from "./HeroLight";
+import { HeroScene, StageLights } from "./HeroScene";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { ctas } from "@/lib/i18n/nav";
@@ -25,7 +27,9 @@ export function Hero({ locale }: { locale: Locale }) {
       aria-labelledby="hero-title"
       className="tone-ink relative flex min-h-[100svh] items-center overflow-hidden pb-16 pt-[calc(var(--header-h)+2.5rem)] lg:pb-20"
     >
+      <HeroScene />
       <Atmosphere variant="hero" />
+      <HeroLight />
       <Container className="relative grid items-center gap-14 lg:grid-cols-12 lg:gap-8">
         <div className="relative z-10 lg:col-span-6">
           <p
@@ -95,6 +99,7 @@ function HeroStage({ locale }: { locale: Locale }) {
   const [booked, quote] = getDictionary(locale).hero.notices;
   return (
     <div className="rise relative lg:col-span-6" style={delay(360)}>
+      <StageLights />
       <div
         data-tilt=""
         className="stage relative mx-auto aspect-[1/0.86] w-full max-w-[40rem] lg:max-w-none"
@@ -124,7 +129,6 @@ function HeroStage({ locale }: { locale: Locale }) {
         <Notice className="left-[-2%] top-[4%] [--depth:70px] float-b" title={booked.title} detail={booked.detail} />
         <Notice className="bottom-[10%] left-[8%] [--depth:80px] float-c" title={quote.title} detail={quote.detail} tone="gold" />
       </div>
-      <div aria-hidden className="pointer-events-none absolute inset-x-[10%] bottom-[-6%] h-24 rounded-[50%] bg-[radial-gradient(closest-side,rgb(198_167_106/0.22),transparent)] blur-2xl" />
     </div>
   );
 }
