@@ -8,6 +8,8 @@ struct ReviewStepCard: View {
     enum Action { case toggleWarning, replaceFrame, split, combine, moveUp, moveDown, remove }
 
     let step: Step
+    /// "What Julien said" / "What you said" / "What they said".
+    var saidLabel: String
     var isEditing: Bool
     @Binding var instruction: String
     var canMoveUp = true
@@ -30,9 +32,7 @@ struct ReviewStepCard: View {
             if let details = step.details, !details.isEmpty {
                 Text(details).dsText(.body).foregroundStyle(DSColor.textSecondary)
             }
-            if let quote = step.sourceTranscript, !quote.isEmpty {
-                Text("“\(quote)”").dsText(.subheadline).foregroundStyle(DSColor.textSecondary).lineSpacing(3)
-            }
+            OriginalWordsBlock(label: saidLabel, quote: step.sourceTranscript, range: step.sourceRange, onSeeOriginal: onSeeOriginal)
             if let warning = step.warning {
                 DSCallout(warning.severity == .high ? .danger : .warning, systemImage: "exclamationmark.triangle", warning.text)
             }
@@ -55,16 +55,6 @@ struct ReviewStepCard: View {
                 .font(.system(size: 15, weight: .bold)).foregroundStyle(DSColor.textOnInverse)
                 .frame(width: 32, height: 32).background(DSColor.backgroundInverse, in: Circle())
                 .padding(12)
-            if let range = step.sourceRange {
-                VStack { Spacer(); HStack { Spacer()
-                    Button { onSeeOriginal(range.lowerBound) } label: {
-                        Label(L10n.string("review.originalClip", ["from": DSFormat.clock(range.lowerBound), "to": DSFormat.clock(range.upperBound)]), systemImage: "play.fill")
-                            .monospacedDigit()
-                    }
-                    .buttonStyle(.dsOnMediaSmall)
-                    .padding(10)
-                } }
-            }
         }
         .frame(height: 200)
     }

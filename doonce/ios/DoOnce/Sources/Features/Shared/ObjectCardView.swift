@@ -19,6 +19,7 @@ struct ObjectCardView: View {
             DSPhotoCard(title: object.name, subtitle: subtitle, titleSize: 20) {
                 MediaView(ref: app.heroMedia(for: object))
             }
+            .overlay(alignment: .topLeading) { if app.isExample(object) { ExampleChip(onMedia: true).padding(12) } }
             .frame(width: width, height: height)
         }
         .buttonStyle(.dsPressable)

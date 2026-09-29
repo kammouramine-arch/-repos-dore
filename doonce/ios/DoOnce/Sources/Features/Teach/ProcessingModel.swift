@@ -85,7 +85,8 @@ final class ProcessingModel {
             creatorID: app.currentUser.id,
             objectID: job.objectID,
             spaceID: object?.spaceID,
-            demonstratorID: app.people.first(where: { $0.isSelf })?.id
+            // Nobody is assumed: the phone's owner is usually filming someone else. Review asks.
+            demonstratorID: nil
         )
         do {
             for try await stage in pipeline.run(job: job, recording: recording, draft: draft, context: context, objects: app.objects) {

@@ -38,11 +38,12 @@ final class PaywallGateTests: XCTestCase {
     }
 
     @MainActor
-    func testSampleHouseholdIsOverTheFreeLimit() async {
+    func testExamplesDoNotCountTowardTheFreeLimit() async {
         let app = await makeApp(sample: true)
-        XCTAssertGreaterThan(app.memories.count, MemoryQuota.freeLimit)
+        XCTAssertGreaterThan(app.memories.count, MemoryQuota.freeLimit, "The demo household shows more examples than the free limit")
+        XCTAssertTrue(app.isShowingExamples)
         let allowed = await app.canCreateMemory()
-        XCTAssertFalse(allowed, "The sample household has more memories than the free limit, so Teach must show the paywall.")
+        XCTAssertTrue(allowed, "Examples are not the user's memories, so they never close the free-tier gate.")
     }
 
     @MainActor

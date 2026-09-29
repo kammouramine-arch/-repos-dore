@@ -26,6 +26,13 @@ struct MemoryHomeView: View {
                 .padding(.horizontal, DS.Space.gutter)
                 .padding(.top, DS.Space.s5)
 
+                if app.isShowingExamples {
+                    DSCallout(.neutral, systemImage: "sparkles", L10n.string("memory.examples.note"))
+                        .padding(.horizontal, DS.Space.gutter)
+                        .padding(.top, DS.Space.s4)
+                        .accessibilityIdentifier("memory.examplesNote")
+                }
+
                 if app.objects.isEmpty {
                     if !app.pendingJobs.isEmpty {
                         PendingProcessingSection(jobs: app.pendingJobs).padding(.top, 28)

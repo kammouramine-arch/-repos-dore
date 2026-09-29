@@ -12,7 +12,7 @@ final class LocalizationTests: XCTestCase {
         let strings = try Localization.bundled()
         XCTAssertEqual(strings.string("look.found", ["object": "boiler"]), "Found your boiler.")
         XCTAssertEqual(strings.string("memory.continue.progress", ["done": "2", "total": "7"]), "2 of 7 steps done")
-        XCTAssertEqual(strings.string("do.taughtBy", ["person": "Julien", "date": "18 March"]), "Julien showed you this · 18 March")
+        XCTAssertEqual(strings.string("do.taughtBy", ["person": "Julien", "date": "18 March"]), "Shown by Julien · 18 March")
     }
 
     func testPlurals() throws {

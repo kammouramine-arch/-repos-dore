@@ -67,6 +67,14 @@ struct DoModeView: View {
         }
     }
 
+    private func demonstratorInitials(_ memory: Memory) -> String? {
+        switch app.demonstrator(for: memory) {
+        case .you: app.currentUser.displayName.initials
+        case .person(let name): name.initials
+        case .unknown: nil
+        }
+    }
+
     private func makeModel() {
         guard vm == nil, let memory = app.memory(memoryID) else { return }
         let model = DoModeViewModel(
@@ -89,13 +97,13 @@ struct DoModeView: View {
                         .frame(height: geo.size.height * 0.54)
                     ZStack(alignment: .topLeading) {
                         if let step = vm.step {
-                            StepBody(step: step, demonstratorName: app.demonstratorName(for: vm.memory), taughtAt: vm.memory.createdAt)
+                            StepBody(step: step, saidLabel: app.saidLabel(for: vm.memory), shownByLine: app.shownByLine(for: vm.memory), initials: demonstratorInitials(vm.memory))
                                 .id(vm.index)
                                 .transition(incoming(vm.direction))
                         }
                         if let outgoing {
                             OutgoingStep(direction: outgoing.direction, onDone: { self.outgoing = nil }) {
-                                StepBody(step: outgoing.step, demonstratorName: app.demonstratorName(for: vm.memory), taughtAt: vm.memory.createdAt)
+                                StepBody(step: outgoing.step, saidLabel: app.saidLabel(for: vm.memory), shownByLine: app.shownByLine(for: vm.memory), initials: demonstratorInitials(vm.memory))
                             }
                             .id(outgoing.id)
                             .transition(.identity)

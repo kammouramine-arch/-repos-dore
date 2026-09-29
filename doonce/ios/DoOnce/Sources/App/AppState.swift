@@ -313,6 +313,9 @@ final class AppState {
             snapshot.people = try await services.people.allPeople()
             snapshot.spaces = try await services.spaces.allSpaces()
             snapshot.progress = try await progressStore.allProgress()
+            // Examples (demo builds) are labelled while they are all there is, and drop away the
+            // moment the user has remembered something real — they must never pass for real data.
+            snapshot = snapshot.hidingExamplesOnceReal(draftTag: Memory.draftTag)
             pendingJobs = try await jobs.allJobs().filter { $0.stage != .done }.sorted { $0.updatedAt > $1.updatedAt }
         } catch {
             // Read model keeps its last good state; the failure is surfaced by the caller.
@@ -320,9 +323,17 @@ final class AppState {
     }
 
     /// Free tier: 5 memories. Returns false (and the caller shows the paywall) when the gate is closed.
+    /// Examples are not the user's and never count toward the limit.
     func canCreateMemory() async -> Bool {
-        await services.subscription.canCreateMemory(existingCount: memories.count).isAllowed
+        let own = memories.filter { !SampleData.isExample($0) }.count
+        return await services.subscription.canCreateMemory(existingCount: own).isAllowed
     }
+
+    /// True for sample content shown as a demonstration (demo builds only).
+    func isExample(_ memory: Memory) -> Bool { SampleData.isExample(memory) }
+    func isExample(_ object: PhysicalObject) -> Bool { SampleData.isExample(object) }
+    /// The Memory home is currently showing the demonstration household.
+    var isShowingExamples: Bool { snapshot.memories.contains(where: SampleData.isExample) }
 }
 
 extension Memory {

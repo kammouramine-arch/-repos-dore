@@ -1,7 +1,8 @@
 import SwiftUI
 import DoOnceCore
 
-/// Provenance, always visible: who showed you this, when, how long it took and how many steps.
+/// Provenance, always visible: who showed it ("Shown by Julien", "Shown by you"), when, how long it
+/// took and how many steps. Nobody named yet: just the facts, no invented name.
 /// Sits under a procedure hero and on a search "best answer".
 @MainActor
 struct TaughtByLine: View {
@@ -11,15 +12,24 @@ struct TaughtByLine: View {
     @Environment(AppState.self) private var app
 
     var body: some View {
-        let name = app.demonstratorName(for: memory)
         HStack(spacing: DS.Space.s3) {
-            DSAvatar(initials: name.initials, size: avatarSize)
+            if let initials { DSAvatar(initials: initials, size: avatarSize) }
             VStack(alignment: .leading, spacing: 2) {
-                Text(L10n.string("people.taughtBy", ["person": name])).dsText(.headline).foregroundStyle(DSColor.textPrimary)
+                if let shownBy = app.shownBy(for: memory) {
+                    Text(shownBy).dsText(.headline).foregroundStyle(DSColor.textPrimary)
+                }
                 Text(detail).dsText(.subheadline).foregroundStyle(DSColor.textSecondary)
             }
         }
         .accessibilityElement(children: .combine)
+    }
+
+    private var initials: String? {
+        switch app.demonstrator(for: memory) {
+        case .you: app.currentUser.displayName.initials
+        case .person(let name): name.initials
+        case .unknown: nil
+        }
     }
 
     private var detail: String {

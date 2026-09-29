@@ -106,9 +106,7 @@ struct SaveMomentView: View {
         .shadow(color: DSColor.shadow, radius: 30, y: 16)
     }
 
-    private var taughtBy: String? {
-        app.person(memory.demonstratorID).map { L10n.string("people.taughtBy", ["person": $0.displayName]) }
-    }
+    private var taughtBy: String? { app.shownBy(for: memory) }
 
     // MARK: Timeline
 
