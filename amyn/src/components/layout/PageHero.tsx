@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
+import { Atmosphere } from "@/components/ui/Ambient";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Container, PageTitle, delay, type HeadingLine } from "@/components/ui/Layout";
 import { breadcrumbSchema } from "@/lib/seo";
@@ -31,10 +32,7 @@ export function PageHero({
 
   return (
     <section className="tone-ink relative overflow-hidden pb-16 pt-[calc(var(--header-h)+2.5rem)] sm:pb-20 sm:pt-[calc(var(--header-h)+3.5rem)] lg:pb-24">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 top-0 h-[60vh] bg-[radial-gradient(50%_60%_at_80%_0%,rgb(198_167_106/0.06),transparent_70%)]"
-      />
+      <Atmosphere variant="page" />
       <JsonLd data={breadcrumbSchema(trail)} />
 
       <Container className="relative">

@@ -125,12 +125,27 @@
   background-color: transparent;
 }
 
+/* Section relevée : un voile très léger, fondu en haut et en bas, plutôt
+   qu'une bande grise à bords nets. */
 .tone-ink-2 {
-  background-color: rgb(17 17 17 / 0.72);
+  background-color: transparent;
+  background-image: linear-gradient(
+    to bottom,
+    rgb(8 8 8 / 0),
+    rgb(12 11 10 / 0.55) 14%,
+    rgb(12 11 10 / 0.55) 86%,
+    rgb(8 8 8 / 0)
+  );
 }
 
+/* Papier : éclairé en haut à gauche, comme une feuille sous une lampe. */
 .tone-paper {
   background-color: var(--canvas);
+  background-image:
+    radial-gradient(70% 60% at 15% 0%, rgb(255 253 248 / 0.9), transparent 70%),
+    radial-gradient(60% 50% at 100% 100%, rgb(198 167 106 / 0.08), transparent 70%);
+  /* Un liseré de lumière sur l'arête haute de la feuille. */
+  box-shadow: inset 0 1px 0 rgb(255 255 255 / 0.7);
 }
 
 .tone-paper .accent {
@@ -532,13 +547,27 @@ html.menu-open {
 
 
 /* ==========================================================================
-   AMBIANCE — le fond vivant
+   AMBIANCE — lumière de studio
 
-   Quatre couches fixes derrière tout le site : une grille technique très
-   fine, deux lumières diffuses, du grain. Les lumières glissent avec le
-   défilement (animation liée au scroll, sans JavaScript) et respirent très
-   lentement. Tout est en transform/opacity : rien ne recalcule la mise en
-   page.
+   Direction : un noir chaud, éclairé comme un studio photo plutôt que
+   décoré. Pas de motif : de la lumière, de la profondeur, du grain.
+
+   Fond fixe (Ambient.tsx), derrière tout le site :
+   1. un noir qui n'est pas plat — plus chaud en haut, plus profond en bas ;
+   2. trois nappes de lumière très diffuses (laiton, cuivre, acier froid),
+      peintes une fois sur une seule couche fixe ;
+   3. un voile fixe : vignettage qui recentre le regard et grain de film
+      qui donne de la matière au noir.
+
+   Par-dessus, dans le hero et l'appel final : un faisceau de lumière et un
+   horizon (« éclipse ») — la signature. Les pages intérieures en reprennent
+   une version plus discrète.
+
+   Tout est en dégradés peints une fois. Les seuls mouvements (sortie du
+   hero, coutures, fil) sont liés au défilement et n'animent que translate,
+   scale et opacity sur de petites surfaces : aucun flou calculé, aucune
+   boucle quand la page est immobile, aucun recalcul de mise en page. Les
+   lumières restent sous 16 % d'opacité : le contraste du texte ne bouge pas.
    ========================================================================== */
 
 .ambient {
@@ -547,49 +576,33 @@ html.menu-open {
   z-index: -1;
   overflow: hidden;
   pointer-events: none;
-  background: var(--color-ink);
+  background:
+    radial-gradient(130% 75% at 50% -8%, #15110c 0%, #0c0b09 42%, transparent 75%),
+    linear-gradient(to bottom, #0b0a09, #080808);
 }
 
-.ambient-grid {
-  position: absolute;
-  inset: -2px;
-  background-image:
-    linear-gradient(to right, rgb(242 238 230 / 0.045) 1px, transparent 1px),
-    linear-gradient(to bottom, rgb(242 238 230 / 0.045) 1px, transparent 1px);
-  background-size: 96px 96px;
-  mask-image: radial-gradient(90% 70% at 50% 30%, #000 20%, transparent 75%);
-}
-
-.ambient-light {
-  position: absolute;
-  border-radius: 50%;
-  will-change: transform;
-}
-
-/* Lumière chaude, haute et à droite. */
-.ambient-light.a {
-  width: 70vmax;
-  height: 70vmax;
-  right: -22vmax;
-  top: -30vmax;
-  background: radial-gradient(closest-side, rgb(198 167 106 / 0.13), rgb(198 167 106 / 0.04) 55%, transparent 72%);
-}
-
-/* Lumière froide, basse et à gauche : elle donne de la profondeur au noir. */
-.ambient-light.b {
-  width: 60vmax;
-  height: 60vmax;
-  left: -24vmax;
-  bottom: -30vmax;
-  background: radial-gradient(closest-side, rgb(120 140 170 / 0.08), transparent 70%);
-}
-
-.ambient-grain {
+/* Les trois nappes, peintes une seule fois sur une même couche :
+   laiton en haut à droite (la lumière principale), cuivre à gauche (évite
+   le noir « écran »), acier froid en bas à droite (le contre-jour qui rend
+   le laiton plus riche). La couche est fixe : le contenu défile devant la
+   lumière, ce qui suffit à donner de la profondeur. */
+.ambient-lights {
   position: absolute;
   inset: 0;
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='0.6'/%3E%3C/svg%3E");
-  opacity: 0.045;
-  mix-blend-mode: overlay;
+  background:
+    radial-gradient(circle 46vmax at 86% -13%, rgb(214 180 116 / 0.15), rgb(198 167 106 / 0.07) 38%, rgb(198 167 106 / 0.02) 62%, transparent),
+    radial-gradient(circle 38vmax at -3% 62%, rgb(150 96 56 / 0.1), rgb(150 96 56 / 0.03) 50%, transparent),
+    radial-gradient(circle 36vmax at 101% 122%, rgb(118 136 168 / 0.075), transparent);
+}
+
+/* Voile fixe au-dessus de la lumière : grain de film et vignettage, en
+   un seul calque, sans mode de fusion (le grain est déjà dosé dans l'image). */
+.ambient-veil {
+  position: absolute;
+  inset: 0;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='180' height='180'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix values='0 0 0 0 1 0 0 0 0 0.96 0 0 0 0 0.9 0 0 0 0.05 0'/%3E%3C/filter%3E%3Crect width='180' height='180' filter='url(%23n)'/%3E%3C/svg%3E"),
+    radial-gradient(120% 90% at 50% 35%, transparent 55%, rgb(0 0 0 / 0.5) 100%);
 }
 
 /* Le fil AMYN : un trait laiton qui se trace avec la lecture de la page. */
@@ -601,7 +614,7 @@ html.menu-open {
   width: 1px;
   z-index: 1;
   pointer-events: none;
-  background: linear-gradient(to bottom, transparent, rgb(242 238 230 / 0.07) 12%, rgb(242 238 230 / 0.07) 88%, transparent);
+  background: linear-gradient(to bottom, transparent, rgb(242 238 230 / 0.06) 12%, rgb(242 238 230 / 0.06) 88%, transparent);
 }
 
 .thread-fill {
@@ -623,30 +636,149 @@ html.menu-open {
   box-shadow: 0 0 12px 3px rgb(198 167 106 / 0.45);
 }
 
-@media (prefers-reduced-motion: no-preference) {
-  .ambient-light.a {
-    animation: breathe 18s ease-in-out infinite alternate;
-  }
-  .ambient-light.b {
-    animation: breathe 23s ease-in-out infinite alternate-reverse;
-  }
+/* --------------------------------------------------------------------------
+   Atmosphère locale : faisceau, halo, horizon
+   -------------------------------------------------------------------------- */
 
+.atmos {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+}
+
+/* Faisceau : un cône de lumière qui tombe d'en haut, légèrement incliné,
+   comme un projecteur de studio. Fondu vers le bas. */
+.atmos-beam {
+  position: absolute;
+  top: -6%;
+  left: 50%;
+  width: min(120vw, 1100px);
+  height: 115%;
+  margin-left: calc(min(120vw, 1100px) / -2);
+  transform-origin: 50% 0;
+  rotate: 9deg;
+  background:
+    conic-gradient(
+      from 180deg at 50% 0%,
+      transparent 0deg,
+      transparent 158deg,
+      rgb(236 212 160 / 0.04) 164deg,
+      rgb(236 212 160 / 0.1) 175deg,
+      rgb(245 228 190 / 0.14) 180deg,
+      rgb(236 212 160 / 0.1) 185deg,
+      rgb(236 212 160 / 0.04) 196deg,
+      transparent 202deg
+    );
+  mask-image: radial-gradient(70% 90% at 50% 0%, #000 10%, rgb(0 0 0 / 0.5) 45%, transparent 80%);
+}
+
+/* Halo : la lumière posée derrière le sujet. */
+.atmos-halo {
+  position: absolute;
+  left: 50%;
+  top: 34%;
+  width: min(110vw, 980px);
+  height: min(80vw, 720px);
+  margin: calc(min(80vw, 720px) / -2) 0 0 calc(min(110vw, 980px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(closest-side, rgb(210 176 112 / 0.14), rgb(198 167 106 / 0.05) 50%, transparent 76%);
+}
+
+/* Horizon : le bord d'un astre sombre éclairé par derrière. Le disque
+   masque le fond ; son liseré et l'aura au-dessus font la lumière. */
+.eclipse {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - var(--eclipse-rise, 5.5rem));
+  width: max(170vw, 1500px);
+  height: max(70vw, 620px);
+  margin-left: calc(max(170vw, 1500px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(60% 40% at 50% 0%, #17130d 0%, #0a0909 55%, #080808 100%);
+  box-shadow:
+    inset 0 1px 0 0 rgb(244 224 180 / 0.6),
+    inset 0 18px 40px -22px rgb(214 180 116 / 0.4);
+  mask-image: linear-gradient(to right, transparent 12%, #000 38%, #000 62%, transparent 88%);
+}
+
+.eclipse-glow {
+  position: absolute;
+  left: 50%;
+  top: calc(100% - var(--eclipse-rise, 5.5rem) - 11rem);
+  width: min(110vw, 860px);
+  height: 16rem;
+  margin-left: calc(min(110vw, 860px) / -2);
+  border-radius: 50%;
+  background: radial-gradient(50% 50% at 50% 70%, rgb(214 180 116 / 0.22), rgb(198 167 106 / 0.06) 55%, transparent 76%);
+}
+
+/* Hero : faisceau et halo derrière la scène, à droite sur grand écran. */
+@media (min-width: 1024px) {
+  .atmos-hero .atmos-beam {
+    left: 71%;
+  }
+  .atmos-hero .atmos-halo {
+    left: 71%;
+    top: 50%;
+    width: 900px;
+    margin-left: -450px;
+  }
+}
+
+/* Appel final : l'horizon remonte sous le titre, comme un lever de jour. */
+.atmos-finale {
+  --eclipse-rise: 7rem;
+}
+.atmos-finale .atmos-halo {
+  top: 55%;
+  opacity: 0.8;
+}
+
+/* Pages intérieures : la même lumière, en plus retenu. */
+.atmos-page .atmos-beam {
+  left: 78%;
+  height: 100%;
+  opacity: 0.75;
+}
+.atmos-page .atmos-halo {
+  left: 78%;
+  top: 8%;
+  opacity: 0.6;
+}
+.atmos-page .horizon {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: linear-gradient(90deg, transparent 5%, rgb(242 238 230 / 0.1) 30%, rgb(220 197 146 / 0.35) 50%, rgb(242 238 230 / 0.1) 70%, transparent 95%);
+}
+.atmos-page .horizon::after {
+  content: "";
+  position: absolute;
+  left: 25%;
+  right: 25%;
+  bottom: 0;
+  height: 6rem;
+  background: radial-gradient(50% 100% at 50% 100%, rgb(198 167 106 / 0.08), transparent 80%);
+}
+
+/* --------------------------------------------------------------------------
+   Mouvement : lent, jamais distrayant. Coupé si l'utilisateur le demande.
+   -------------------------------------------------------------------------- */
+
+@media (prefers-reduced-motion: no-preference) {
+  /* Aucune boucle continue : la lumière ne bouge qu'avec le défilement,
+     donc rien ne tourne quand la page est immobile. */
   @supports (animation-timeline: scroll()) {
-    .ambient-light.a {
-      animation:
-        breathe 18s ease-in-out infinite alternate,
-        drift-a linear both;
-      animation-timeline: auto, scroll(root);
-    }
-    .ambient-light.b {
-      animation:
-        breathe 23s ease-in-out infinite alternate-reverse,
-        drift-b linear both;
-      animation-timeline: auto, scroll(root);
-    }
-    .ambient-grid {
-      animation: grid-scroll linear both;
+    /* En quittant le hero, sa lumière monte et s'efface, comme un plan de
+       cinéma qui change. */
+    .atmos-hero .atmos-beam,
+    .atmos-hero .atmos-halo {
+      animation: atmos-leave linear both;
       animation-timeline: scroll(root);
+      animation-range: 0 100vh;
     }
     .thread-fill {
       animation: thread-fill linear both;
@@ -659,21 +791,9 @@ html.menu-open {
   }
 }
 
-@keyframes breathe {
-  from { opacity: 0.75; }
-  to { opacity: 1; }
-}
-@keyframes drift-a {
-  from { translate: 0 0; }
-  to { translate: -38vw 95vh; }
-}
-@keyframes drift-b {
-  from { translate: 0 0; }
-  to { translate: 30vw -80vh; }
-}
-@keyframes grid-scroll {
-  from { background-position: 0 0; }
-  to { background-position: 0 -480px; }
+@keyframes atmos-leave {
+  from { translate: 0 0; opacity: 1; }
+  to { translate: 0 -18vh; opacity: 0.25; }
 }
 @keyframes thread-fill {
   from { transform: scaleY(0.08); }
@@ -684,20 +804,47 @@ html.menu-open {
   to { top: calc(100% - 6px); }
 }
 
-/* Couture entre deux sections : un filet de lumière qui s'éteint sur les
-   bords, plutôt qu'une rupture sèche. */
+/* --------------------------------------------------------------------------
+   Coutures entre sections : un filet de lumière, plus vif au centre, et
+   une aura qui s'allume quand la couture passe dans l'écran.
+   -------------------------------------------------------------------------- */
+
 .seam {
   position: relative;
 }
-.seam::before {
+.seam::before,
+.seam::after {
   content: "";
   position: absolute;
   left: 0;
   right: 0;
   top: 0;
-  height: 1px;
-  background: linear-gradient(90deg, transparent, rgb(198 167 106 / 0.35), transparent);
   pointer-events: none;
+}
+.seam::before {
+  height: 1px;
+  background: linear-gradient(90deg, transparent 4%, rgb(242 238 230 / 0.08) 28%, rgb(226 202 150 / 0.4) 50%, rgb(242 238 230 / 0.08) 72%, transparent 96%);
+}
+.seam::after {
+  left: 20%;
+  right: 20%;
+  height: 7rem;
+  background: radial-gradient(50% 100% at 50% 0%, rgb(198 167 106 / 0.1), transparent 78%);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  @supports (animation-timeline: view()) {
+    .seam::after {
+      animation: seam-light linear both;
+      animation-timeline: view();
+      animation-range: entry 0% cover 45%;
+    }
+  }
+}
+
+@keyframes seam-light {
+  from { opacity: 0; scale: 0.6 1; }
+  to { opacity: 1; scale: 1 1; }
 }
 
 /* ==========================================================================
@@ -889,7 +1036,7 @@ html.menu-open {
   margin: -260px 0 0 -260px;
   border-radius: 50%;
   pointer-events: none;
-  background: radial-gradient(closest-side, rgb(198 167 106 / 0.08), transparent 70%);
+  background: radial-gradient(closest-side, rgb(214 180 116 / 0.07), rgb(198 167 106 / 0.025) 45%, transparent 72%);
   opacity: 0;
   transition: opacity 0.6s;
   will-change: transform;

@@ -1,4 +1,5 @@
 import { AmynMark } from "@/components/layout/Logo";
+import { Atmosphere } from "@/components/ui/Ambient";
 import { ButtonLink } from "@/components/ui/Button";
 import { ArrowRight } from "@/components/ui/Icons";
 import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
@@ -169,10 +170,7 @@ export function Method() {
 export function FinalCta({ number }: { number?: string }) {
   return (
     <Section labelledBy="final-titre" className="seam overflow-hidden">
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-x-0 bottom-0 h-full bg-[radial-gradient(55%_60%_at_50%_100%,rgb(198_167_106/0.14),transparent_70%)]"
-      />
+      <Atmosphere variant="finale" />
       <AmynMark
         className="pointer-events-none absolute -bottom-24 left-1/2 size-[34rem] -translate-x-1/2 text-[rgb(242_238_230/0.025)]"
         accent="rgb(198 167 106 / 0.1)"

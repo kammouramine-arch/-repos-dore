@@ -1,4 +1,5 @@
 import { Fragment } from "react";
+import { Atmosphere } from "@/components/ui/Ambient";
 import { ButtonLink } from "@/components/ui/Button";
 import { Check } from "@/components/ui/Icons";
 import { Container, delay } from "@/components/ui/Layout";
@@ -20,6 +21,7 @@ export function Hero() {
       aria-labelledby="hero-title"
       className="tone-ink relative flex min-h-[100svh] items-center overflow-hidden pb-16 pt-[calc(var(--header-h)+2.5rem)] lg:pb-20"
     >
+      <Atmosphere variant="hero" />
       <Container className="relative grid items-center gap-14 lg:grid-cols-12 lg:gap-8">
         <div className="relative z-10 lg:col-span-6">
           <p
