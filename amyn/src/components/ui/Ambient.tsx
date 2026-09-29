@@ -1,14 +1,19 @@
+import { AmbientCanvas } from "./AmbientCanvas";
+
 /**
  * Fond du site : un noir chaud éclairé comme un studio — trois nappes de
- * lumière diffuse, un vignettage, du grain — et le fil AMYN qui se trace
- * avec la lecture. Purement décoratif, sans JavaScript : les mouvements
- * sont en CSS et s'arrêtent si le visiteur a demandé moins d'animations.
+ * lumière diffuse — puis le « système vivant » (interfaces, flux,
+ * poussière de lumière, voir AmbientCanvas), sous un voile de grain et de
+ * vignettage. Le fil AMYN se trace avec la lecture. Sans JavaScript, le
+ * fond reste la lumière de studio ; avec « moins d'animations », le
+ * système est dessiné une fois, immobile.
  */
 export function Ambient() {
   return (
     <>
       <div aria-hidden className="ambient">
         <div className="ambient-lights" />
+        <AmbientCanvas />
         <div className="ambient-veil" />
       </div>
       <div aria-hidden className="thread hidden xl:block">

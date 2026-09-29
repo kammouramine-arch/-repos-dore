@@ -637,6 +637,19 @@ html.menu-open {
     radial-gradient(circle 36vmax at 101% 122%, rgb(118 136 168 / 0.075), transparent);
 }
 
+/* Le système vivant (AmbientCanvas) : il apparaît en fondu une fois prêt. */
+.ambient-canvas {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  transition: opacity 1.6s var(--ease-out);
+}
+.ambient-canvas[data-ready] {
+  opacity: 1;
+}
+
 /* Voile fixe au-dessus de la lumière : grain de film et vignettage, en
    un seul calque, sans mode de fusion (le grain est déjà dosé dans l'image). */
 .ambient-veil {
