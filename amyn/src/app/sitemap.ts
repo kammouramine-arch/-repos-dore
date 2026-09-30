@@ -7,7 +7,7 @@ import {
   type Alternates,
   type RouteKey,
 } from "@/lib/i18n/routes";
-import { legalComplete, missingTerms } from "@/lib/legal";
+import { legalComplete } from "@/lib/legal";
 import { projects } from "@/lib/projects";
 import { site } from "@/lib/site";
 
@@ -38,13 +38,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
   const route = (key: RouteKey, priority: number, freq?: "monthly" | "yearly") =>
     entries(routeAlternates(key), priority, freq);
 
-  const legal: MetadataRoute.Sitemap = legalComplete()
-    ? [
-        ...route("legalNotice", 0.2, "yearly"),
-        ...route("privacy", 0.2, "yearly"),
-        ...(missingTerms().length === 0 ? route("terms", 0.2, "yearly") : []),
-      ]
-    : [];
+  /* Confidentialité et conditions sont complètes : indexées. Les mentions
+     légales restent hors index tant que SIREN, adresse et téléphone
+     manquent (voir legal.ts). */
+  const legal: MetadataRoute.Sitemap = [
+    ...route("privacy", 0.2, "yearly"),
+    ...route("terms", 0.2, "yearly"),
+    ...(legalComplete() ? route("legalNotice", 0.2, "yearly") : []),
+  ];
 
   return [
     ...route("home", 1),

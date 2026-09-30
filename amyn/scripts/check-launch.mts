@@ -3,26 +3,19 @@
  *
  *   npm run check:launch
  *
- * Échoue tant qu'une information légale obligatoire ou une clause
- * contractuelle manque, ou que l'adresse de l'hébergeur n'a pas été
- * vérifiée. Ne remplace pas une relecture juridique : il empêche seulement
- * de publier des emplacements « [À COMPLÉTER] ».
+ * Liste les informations légales obligatoires encore absentes (SIREN,
+ * forme juridique, adresse, téléphone — LCEN art. 1-1), et vérifie
+ * l'hébergeur et la configuration d'envoi des formulaires. Ne remplace pas
+ * une relecture juridique.
  */
-import {
-  LEGAL_LABELS,
-  TERMS_LABELS,
-  hosting,
-  missingLegalFields,
-  missingTerms,
-} from "../src/lib/legal.ts";
+import { LEGAL_LABELS, hosting, missingLegalFields } from "../src/lib/legal.ts";
 
 const problems: string[] = [
   ...missingLegalFields().map((k) => `Mentions légales — ${LEGAL_LABELS[k]}`),
-  ...missingTerms().map((k) => `Conditions des services — ${TERMS_LABELS[k]}`),
   ...(hosting.verified ? [] : ["Hébergeur — adresse à vérifier (hosting.verified)"]),
-  ...(process.env.SMTP_PASSWORD
+  ...(process.env.SMTP_PASSWORD || process.env.RESEND_API_KEY
     ? []
-    : ["Formulaires — SMTP_PASSWORD (mot de passe de contact@amyn.agency) absente de cet environnement"]),
+    : ["Formulaires — ni SMTP_PASSWORD (mot de passe de contact@amyn.agency) ni RESEND_API_KEY dans cet environnement"]),
 ];
 
 if (problems.length) {

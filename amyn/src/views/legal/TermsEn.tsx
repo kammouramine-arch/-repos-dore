@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { LegalSection, LegalShell, ToComplete } from "@/components/legal/LegalShell";
+import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { TERMS_LABELS_EN, legalComplete, missingTerms, terms } from "@/lib/legal";
+import { registrationPending } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -9,101 +9,161 @@ export const termsEnMetadata = () =>
   pageMetadata({
     title: "Terms of service",
     description:
-      "How AMYN works with clients: quote first, no-obligation first look, content, third-party services and the limits of our commitments.",
+      "How AMYN works with businesses: quote first, no-obligation first look, payment, intellectual property, liability and disputes.",
     locale: "en",
     alternates: routeAlternates("terms"),
-    noindex: !legalComplete() || missingTerms().length > 0,
   });
 
 /**
- * English courtesy version. Contractual clauses stay as placeholders until
- * the publisher has set and approved them (in French first).
+ * English courtesy version of TermsFr: same clauses, nothing added. The
+ * French version prevails.
  */
 export function TermsEn() {
-  const clause = (key: keyof typeof terms) =>
-    terms[key] ? <p>{terms[key]}</p> : <p><ToComplete locale="en" label={TERMS_LABELS_EN[key]} /></p>;
-
   return (
     <LegalShell
       locale="en"
       title="Terms of service"
       path={href("terms", "en")}
-      intro="The framework within which AMYN delivers its services. Every project also has a quote, which prevails over these terms for what it specifies. This English version is provided for convenience; the French version prevails."
+      intro="The framework in which AMYN delivers its services to businesses. Each project is covered by a quote, which prevails over these terms for anything it specifies. This English version is provided for convenience; the French version prevails."
     >
       <LegalSection title="Scope">
         <p>
-          These terms apply to the services AMYN offers to businesses: website design and redesign,
-          tracking tools, mobile apps, online booking, business profile improvements, client
-          onboarding journeys, portfolios and content.
+          These terms apply to the services AMYN offers to professionals — businesses,
+          self-employed people and organisations acting for the purposes of their activity:
+          website creation and redesign, request-tracking tools, mobile apps, online booking,
+          business profile improvements, client onboarding, portfolio and content. They do not
+          cover contracts with consumers.
         </p>
+        <p>
+          Where a contract is concluded off-premises with a professional who employs five people
+          or fewer and whose main activity is not the subject of the service ordered, the
+          protective provisions of Article L221-3 of the French Consumer Code, including the right
+          of withdrawal, apply.
+        </p>
+        <p>{registrationPending.en}</p>
       </LegalSection>
 
-      <LegalSection title="Quote first">
+      <LegalSection title="Quotes and formation of the contract">
         <p>
-          Every project is priced on quote. The quote sets out the scope, deliverables, timeline,
-          price and what is expected from the client. No billable work starts before the quote has
-          been accepted in writing.
+          Every project is priced on a quote. The quote sets out the scope, deliverables,
+          timeline, price and what is expected from the client. The contract is formed when the
+          quote is accepted in writing; no billable work starts before that.
         </p>
         <p>
-          Any addition to or change of scope during a project requires prior agreement and, where
-          needed, an additional quote.
+          Any change or addition to the scope during a project requires prior agreement and,
+          where needed, an additional quote.
         </p>
       </LegalSection>
 
       <LegalSection title="First look">
         <p>
-          The <Link href={href("firstLook", "en")}>first look</Link> is offered with no obligation.
-          It carries no commitment to buy. AMYN decides freely whether a project lends itself to it
-          and chooses the most useful format (visual direction, short review, recommendation…). It is
-          not a website, an app or a tool delivered for free.
+          The <Link href={href("firstLook", "en")}>first look</Link> is offered with no obligation
+          and involves no commitment to buy. AMYN decides freely whether a project lends itself to
+          one and chooses the most useful format (visual direction, short review,
+          recommendation…). It is not a website, app or tool delivered for free.
         </p>
       </LegalSection>
 
-      <LegalSection title="Content supplied by the client">
+      <LegalSection title="Prices, deposit and payment">
         <p>
-          AMYN only uses text, photos, brands and documents the client declares they are authorised
-          to use — including the consent of people or clients who can be identified in project
-          photos.
+          Prices are stated in the quote, in euros, together with the applicable VAT treatment.
+          The quote sets out the payment schedule and methods; it may provide for a deposit, with
+          its amount and due date.
+        </p>
+        <p>
+          If the quote sets no payment term, amounts due are payable within the period set by
+          Article L441-10 of the French Commercial Code. Any late payment automatically incurs,
+          without reminder, late-payment penalties at the rate set by that article, plus the fixed
+          recovery fee of €40 (Article D441-5 of the French Commercial Code).
         </p>
       </LegalSection>
 
-      <LegalSection title="Third-party services">
+      <LegalSection title="Start and timelines">
         <p>
-          Some services rely on third parties (hosting, domain names, booking tools, email delivery,
-          App Store, Google Play, Google Business Profile). These remain subject to their own terms
-          and decisions, which AMYN does not control.
+          The project starts once the quote is accepted and, if the quote provides for one, the
+          deposit is paid. Timelines are those set out in the quote. They assume that the content,
+          access and approvals expected from the client are provided on time; any delay on the
+          client&apos;s side moves the schedule accordingly.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Client obligations">
+        <p>
+          The client provides the information, content and access the project needs, and responds
+          to approval requests. The client warrants that they are entitled to use the text,
+          photos, trademarks and documents they send — in particular the consent of any
+          identifiable people or customers in photos. AMYN only uses content provided in this way
+          or content whose rights have been acquired for the project.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Revisions and approval of deliverables">
+        <p>
+          The number of included revisions and how deliverables are approved are set out in the
+          quote. Requests beyond that require prior agreement.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Intellectual property">
+        <p>
+          The rights assigned or licensed to the client in the deliverables — scope, duration,
+          territory and purpose — are set out in the quote, and are only transferred on the terms
+          it provides (Article L131-3 of the French Intellectual Property Code).
+        </p>
+        <p>
+          Third-party elements included in a deliverable (typefaces, software libraries,
+          photographs, plugins, online services) remain subject to their own licences, which are
+          shared with the client where relevant.
+        </p>
+      </LegalSection>
+
+      <LegalSection title="Third-party services, hosting and maintenance">
+        <p>
+          Some services rely on third parties (hosting, domain names, booking tools, email
+          delivery, the App Store, Google Play, Google Business Profile). These remain subject to
+          their own terms and decisions, which AMYN does not control.
+        </p>
+        <p>
+          Hosting, maintenance and support after delivery are only included if they appear in the
+          quote or are covered by a separate agreement.
         </p>
       </LegalSection>
 
       <LegalSection title="What we don't guarantee">
         <ul>
           <li>A position in search engine results.</li>
-          <li>Any volume of traffic, calls, reviews or sales.</li>
+          <li>A volume of traffic, calls, reviews or sales.</li>
           <li>Acceptance of an app on the App Store or Google Play.</li>
         </ul>
         <p>
-          What we do commit to is what&apos;s written in the quote: the scope, the deliverables and
-          the quality of the work.
+          What we do commit to is what the quote says: the scope, the deliverables and the quality
+          of the work.
         </p>
       </LegalSection>
 
-      <LegalSection title="Price, deposit and payment">
-        {clause("payment")}
-        {clause("deposit")}
+      <LegalSection title="Liability and force majeure">
+        <p>
+          Each party is liable for performing its own obligations under ordinary law; the quote
+          may set out terms suited to the project. Neither party is liable for a failure caused by
+          force majeure within the meaning of Article 1218 of the French Civil Code.
+        </p>
       </LegalSection>
-      <LegalSection title="Timelines">{clause("deadlines")}</LegalSection>
-      <LegalSection title="Client obligations">{clause("clientObligations")}</LegalSection>
-      <LegalSection title="Revisions">{clause("revisions")}</LegalSection>
-      <LegalSection title="Intellectual property">
-        <p>Ownership and transfer of rights in the deliverables are set out in each quote.</p>
-        {clause("intellectualProperty")}
+
+      <LegalSection title="Cancellation, suspension and termination">
+        <p>
+          Cancellation and termination terms, and what happens to work already done and amounts
+          already paid, are set out in the quote. Failing that, the rules of the French Civil Code
+          on non-performance of contracts apply (Articles 1217 and 1224 et seq.).
+        </p>
       </LegalSection>
-      <LegalSection title="Maintenance and support">{clause("maintenance")}</LegalSection>
-      <LegalSection title="Liability">{clause("liability")}</LegalSection>
-      <LegalSection title="Cancellation">{clause("cancellation")}</LegalSection>
-      <LegalSection title="Suspension and termination">{clause("termination")}</LegalSection>
-      <LegalSection title="Governing law">{clause("law")}</LegalSection>
-      <LegalSection title="Disputes">{clause("disputes")}</LegalSection>
+
+      <LegalSection title="Governing law and disputes">
+        <p>
+          These terms and the contracts concluded with AMYN are governed by French law. In the
+          event of a dispute, the parties first seek an amicable solution; failing that, the
+          dispute is brought before the competent court under the ordinary rules.
+        </p>
+      </LegalSection>
 
       <LegalSection title="Contact">
         <p>

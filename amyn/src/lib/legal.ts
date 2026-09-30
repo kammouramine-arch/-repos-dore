@@ -1,9 +1,19 @@
 /**
  * Informations légales de l'éditeur.
  *
- * AUCUNE DE CES VALEURS N'EST INVENTÉE. Tant qu'un champ vaut `null`, la
- * page concernée affiche un emplacement « [À COMPLÉTER — …] », reste hors
- * des moteurs de recherche, et `npm run check:launch` échoue.
+ * AUCUNE DE CES VALEURS N'EST INVENTÉE. Un champ `null` n'est pas affiché
+ * (jamais d'emplacement « à compléter » en ligne) : la page dit à la place,
+ * en toutes lettres, que l'entreprise est en cours de création. Tant qu'un
+ * champ obligatoire manque, les mentions légales restent hors des moteurs de
+ * recherche et `npm run check:launch` le signale.
+ *
+ * Références (vérifiées le 30 septembre 2026) :
+ *   - loi n° 2004-575 (LCEN), art. 1-1 : une personne physique éditrice à
+ *     titre professionnel publie ses nom, prénoms, domicile et numéro de
+ *     téléphone, son numéro d'immatriculation le cas échéant, le directeur
+ *     de la publication, et le nom, l'adresse et le téléphone de l'hébergeur ;
+ *   - entreprendre.service-public.gouv.fr, fiche F31228 (mentions
+ *     obligatoires d'un site internet professionnel).
  *
  * Ce fichier ne remplace pas un avis juridique : il rend visibles les
  * informations manquantes, il ne les devine pas.
@@ -29,6 +39,16 @@ export type LegalInfo = {
   /** Assurance professionnelle, si elle doit être mentionnée pour l'activité. */
   insurance: string | null;
 };
+
+/**
+ * Situation d'immatriculation, affichée tant que SIREN et SIRET n'existent
+ * pas. Formulation factuelle : elle ne prétend ni à une immatriculation ni
+ * à un statut qui n'existent pas encore.
+ */
+export const registrationPending = {
+  fr: "Entreprise en cours de création : les identifiants SIREN et SIRET ne sont pas encore attribués. Le numéro d'immatriculation, la forme juridique, l'adresse de l'établissement et la situation au regard de la TVA seront publiés sur cette page dès leur attribution.",
+  en: "Business currently being set up: SIREN and SIRET identifiers have not yet been assigned. The registration number, legal form, business address and VAT status will be published on this page as soon as they are issued.",
+} as const;
 
 /*
  * Éditeur : personne physique Amine Kammour, déjà confirmée comme éditeur
@@ -64,82 +84,13 @@ export const hosting = {
   name: "Vercel Inc.",
   address: "440 N Barranca Ave #4133, Covina, CA 91723, États-Unis",
   addressEn: "440 N Barranca Ave #4133, Covina, CA 91723, United States",
+  /* Téléphone publié par Vercel sur la même page officielle. */
+  phone: "+1 559 288 7060",
   website: "https://vercel.com",
   verified: true,
 } as const;
 
-/**
- * Conditions commerciales. Elles relèvent du contrat : aucune n'est
- * rédigée à la place de l'éditeur. Tant qu'une valeur vaut `null`, la page
- * « Conditions des services » affiche un emplacement « à valider », reste
- * hors index, et `npm run check:launch` échoue. Chaque texte doit être
- * validé par l'éditeur — idéalement avec un conseil juridique — AVANT la
- * mise en production.
- */
-export type Terms = {
-  payment: string | null;
-  deposit: string | null;
-  intellectualProperty: string | null;
-  deadlines: string | null;
-  clientObligations: string | null;
-  revisions: string | null;
-  cancellation: string | null;
-  liability: string | null;
-  maintenance: string | null;
-  termination: string | null;
-  law: string | null;
-  disputes: string | null;
-};
-
-export const terms: Terms = {
-  payment: null,
-  deposit: null,
-  intellectualProperty: null,
-  deadlines: null,
-  clientObligations: null,
-  revisions: null,
-  cancellation: null,
-  liability: null,
-  maintenance: null,
-  termination: null,
-  law: null,
-  disputes: null,
-};
-
-export const TERMS_LABELS: Record<keyof Terms, string> = {
-  payment: "Conditions de paiement (échéances, moyens, pénalités de retard, indemnité de recouvrement)",
-  deposit: "Acompte (montant ou pourcentage, moment du versement)",
-  intellectualProperty: "Propriété intellectuelle et cession des droits sur les livrables",
-  deadlines: "Délais de réalisation et conséquences d'un retard",
-  clientObligations: "Obligations du client (contenus, accès, validations, délais de réponse)",
-  revisions: "Nombre de révisions incluses et facturation des révisions supplémentaires",
-  cancellation: "Annulation d'une commande par le client ou par AMYN",
-  liability: "Garanties et limitation de responsabilité",
-  maintenance: "Maintenance, hébergement et support après livraison",
-  termination: "Suspension et résiliation",
-  law: "Droit applicable",
-  disputes: "Règlement des litiges (tentative amiable, juridiction compétente)",
-};
-
-export const TERMS_LABELS_EN: Record<keyof Terms, string> = {
-  payment: "Payment terms (instalments, methods, late payment penalties, recovery fee)",
-  deposit: "Deposit (amount or percentage, when it is paid)",
-  intellectualProperty: "Intellectual property and transfer of rights in the deliverables",
-  deadlines: "Delivery timelines and consequences of delay",
-  clientObligations: "Client obligations (content, access, approvals, response times)",
-  revisions: "Number of included revisions and billing of additional revisions",
-  cancellation: "Cancellation of an order by the client or by AMYN",
-  liability: "Warranties and limitation of liability",
-  maintenance: "Maintenance, hosting and support after delivery",
-  termination: "Suspension and termination",
-  law: "Governing law",
-  disputes: "Dispute resolution (amicable settlement, competent court)",
-};
-
-export const missingTerms = (t: Terms = terms) =>
-  (Object.keys(t) as (keyof Terms)[]).filter((k) => !t[k]?.trim());
-
-/** Libellés des champs, pour les emplacements et la vérification. */
+/** Libellés des champs, pour l'affichage et la vérification. */
 export const LEGAL_LABELS: Record<keyof LegalInfo, string> = {
   publisherName: "Nom ou dénomination de l'éditeur",
   legalForm: "Forme juridique",
@@ -171,14 +122,15 @@ export const LEGAL_LABELS_EN: Record<keyof LegalInfo, string> = {
 };
 
 /**
- * Champs indispensables à la mise en ligne. Les autres dépendent du statut
- * (capital, TVA, assurance) et ne bloquent pas si le statut ne les exige pas.
+ * Champs exigés pour des mentions légales complètes (LCEN art. 1-1 ; fiche
+ * F31228). Les autres dépendent du statut (capital, TVA, assurance).
  */
 export const REQUIRED_LEGAL_FIELDS: (keyof LegalInfo)[] = [
   "publisherName",
   "legalForm",
   "siren",
   "address",
+  "phone",
   "publicationDirector",
 ];
 
@@ -191,8 +143,9 @@ export const legalComplete = (info: LegalInfo = legal) =>
 
 /**
  * Durées de conservation annoncées dans la politique de confidentialité.
- * Ce sont des engagements : à valider par l'éditeur, puis à respecter dans
- * les outils (boîte mail, outil de prospection).
+ * Ce sont des engagements, à respecter dans les outils (boîte mail, outil
+ * de prospection). Les 3 ans après le dernier contact suivent la
+ * recommandation de la CNIL pour les données de prospection.
  */
 export const retention = {
   requests: "3 ans à compter du dernier échange",
@@ -211,5 +164,5 @@ export const retentionEn = {
 } as const;
 
 /** Date de dernière mise à jour affichée sur les pages légales. */
-export const LEGAL_UPDATED = "28 septembre 2026";
-export const LEGAL_UPDATED_EN = "28 September 2026";
+export const LEGAL_UPDATED = "30 septembre 2026";
+export const LEGAL_UPDATED_EN = "30 September 2026";

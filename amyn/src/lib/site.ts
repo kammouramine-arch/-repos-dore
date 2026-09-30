@@ -9,7 +9,10 @@ export const site = {
   name: "AMYN",
   legalBrand: "AMYN Agency",
   domain: "amyn.agency",
-  url: "https://amyn.agency",
+  /* Adresse canonique : le domaine nu redirige (308) vers www chez Vercel.
+     Canoniques, plan du site et données structurées pointent donc vers la
+     version www, jamais vers une redirection. */
+  url: "https://www.amyn.agency",
   email: "contact@amyn.agency",
   locale: "fr_FR",
   /* Phrase de positionnement, reprise par le SEO et le pied de page. */

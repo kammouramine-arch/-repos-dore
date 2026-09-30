@@ -63,18 +63,10 @@ export function LegalSection({
 }
 
 /**
- * Information légale manquante. Visible volontairement : une page qui en
- * contient ne doit pas être publiée en l'état.
+ * Une ligne « intitulé : valeur ». Une valeur absente n'est pas affichée :
+ * jamais d'emplacement « à compléter » en ligne. La page concernée dit en
+ * toutes lettres ce qui n'existe pas encore (voir `registrationPending`).
  */
-export function ToComplete({ label, locale = "fr" }: { label: string; locale?: Locale }) {
-  return (
-    <span className="rounded-[var(--radius-xs)] border border-dashed border-accent/60 px-1.5 py-0.5 font-mono text-[0.8125rem] text-accent">
-      [{getDictionary(locale).legal.toComplete} — {label}]
-    </span>
-  );
-}
-
-/** Une ligne « intitulé : valeur », avec emplacement si la valeur manque. */
 export function Fact({
   label,
   value,
@@ -84,13 +76,14 @@ export function Fact({
   value: string | null;
   locale?: Locale;
 }) {
+  if (!value?.trim()) return null;
   return (
     <p>
       <span className="text-fg">
         {label}
         {locale === "en" ? ":" : " :"}
       </span>{" "}
-      {value ?? <ToComplete label={label} locale={locale} />}
+      {value}
     </p>
   );
 }

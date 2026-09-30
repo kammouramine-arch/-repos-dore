@@ -73,5 +73,5 @@ test("légal : aucune information inventée, les manques sont détectés", () =>
     assert.ok(legal[key] === null || typeof legal[key] === "string");
   }
   assert.ok(missingLegalFields().length > 0, "à mettre à jour quand les mentions seront complètes");
-  assert.deepEqual(missingLegalFields({ ...legal, publisherName: "X", legalForm: "EI", siren: "1", address: "A", publicationDirector: "X" }), []);
+  assert.deepEqual(missingLegalFields({ ...legal, publisherName: "X", legalForm: "EI", siren: "1", address: "A", phone: "0", publicationDirector: "X" }), []);
 });

@@ -1,7 +1,7 @@
 import Link from "next/link";
-import { Fact, LegalSection, LegalShell } from "@/components/legal/LegalShell";
+import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { LEGAL_LABELS_EN, hosting, legal, legalComplete, retentionEn } from "@/lib/legal";
+import { hosting, legal, retentionEn } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -12,7 +12,6 @@ export const privacyEnMetadata = () =>
       "What data AMYN processes, why, on what legal basis, for how long, with which providers, and how to exercise your rights.",
     locale: "en",
     alternates: routeAlternates("privacy"),
-    noindex: !legalComplete(),
   });
 
 /** English courtesy version of the privacy policy. The French text prevails. */
@@ -26,8 +25,11 @@ export function PrivacyEn() {
       intro="We only collect what we need to reply to you or to offer a service that's useful to your business. Here's exactly what, why, and how you stay in control. This English version is provided for convenience; the French version prevails."
     >
       <LegalSection title="Data controller">
-        <Fact locale="en" label={LEGAL_LABELS_EN.publisherName} value={legal.publisherName} />
-        <Fact locale="en" label={LEGAL_LABELS_EN.address} value={legal.address} />
+        <p>
+          <span className="text-fg">{legal.publisherName}</span>, publisher of this website under
+          the trading name {site.legalBrand} (business currently being set up — see the{" "}
+          <Link href={href("legalNotice", "en")}>legal notice</Link>).
+        </p>
         <p>
           <span className="text-fg">Contact for any question about your data:</span>{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>
@@ -120,10 +122,18 @@ export function PrivacyEn() {
             <span className="text-fg">{hosting.name}</span> — website hosting (United States);
           </li>
           <li>
-            <span className="text-fg">OVHcloud</span> — business email, including receipt of
-            requests sent through the forms (France);
+            <span className="text-fg">OVHcloud</span> — business email, including sending and
+            receiving requests submitted through the form (France);
           </li>
-          <li>where applicable, an assisted writing service for outreach, within the limits described above.</li>
+          <li>
+            <span className="text-fg">Resend</span> — email delivery service, used only as a
+            fallback to pass a form request on to AMYN if sending through the OVHcloud mailbox is not
+            configured (United States);
+          </li>
+          <li>
+            <span className="text-fg">Anthropic</span> — where applicable, assisted drafting of
+            outreach messages, within the limits described above (United States).
+          </li>
         </ul>
       </LegalSection>
 

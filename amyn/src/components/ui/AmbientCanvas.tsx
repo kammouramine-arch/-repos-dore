@@ -343,7 +343,9 @@ export function AmbientCanvas() {
       }
     }
 
+    let started = false;
     const onVisibility = () => {
+      if (!started) return;
       cancelAnimationFrame(raf);
       if (!document.hidden && !calm && quality > 0) raf = requestAnimationFrame(step);
     };
@@ -354,7 +356,7 @@ export function AmbientCanvas() {
     /* Figé : on redessine seulement au défilement, pour garder la parallaxe. */
     let pending = 0;
     const onScroll = () => {
-      if (!(calm || quality === 0) || pending) return;
+      if (!started || !(calm || quality === 0) || pending) return;
       pending = requestAnimationFrame(() => {
         pending = 0;
         if (!calm) draw(performance.now() / 1000, true);
@@ -366,10 +368,21 @@ export function AmbientCanvas() {
       resizeTimer = window.setTimeout(resize, 150);
     };
 
-    resize();
-    canvas.dataset.ready = "true";
-    if (calm) draw(0, true);
-    else raf = requestAnimationFrame(step);
+    /* Le système démarre une fois la page chargée (et un court instant
+       après) : il ne dispute ni le titre ni les images au premier
+       affichage. Il apparaît de toute façon en fondu. */
+    const begin = () => {
+      if (started) return;
+      started = true;
+      resize();
+      canvas.dataset.ready = "true";
+      if (calm) draw(0, true);
+      else raf = requestAnimationFrame(step);
+    };
+    let startTimer = 0;
+    const onLoad = () => (startTimer = window.setTimeout(begin, 400));
+    if (document.readyState === "complete") onLoad();
+    else window.addEventListener("load", onLoad, { once: true });
 
     window.addEventListener("resize", onResize);
     window.addEventListener("scroll", onScroll, { passive: true });
@@ -382,6 +395,8 @@ export function AmbientCanvas() {
       cancelAnimationFrame(raf);
       cancelAnimationFrame(pending);
       window.clearTimeout(resizeTimer);
+      window.clearTimeout(startTimer);
+      window.removeEventListener("load", onLoad);
       window.removeEventListener("resize", onResize);
       window.removeEventListener("scroll", onScroll);
       document.removeEventListener("visibilitychange", onVisibility);

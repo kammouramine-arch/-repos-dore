@@ -5,6 +5,7 @@ import { Container, delay } from "@/components/ui/Layout";
 import { BrowserShot, PhoneShot } from "@/components/visuals/Shots";
 import { HeroLight } from "./HeroLight";
 import { HeroScene, StageLights } from "./HeroScene";
+import { HeroSceneReady } from "./HeroSceneReady";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { ctas } from "@/lib/i18n/nav";
@@ -27,6 +28,7 @@ export function Hero({ locale }: { locale: Locale }) {
       className="tone-ink relative flex min-h-[100svh] items-center overflow-hidden pb-16 pt-[calc(var(--header-h)+2.5rem)] lg:pb-20"
     >
       <HeroScene landmarks={t.landmarks} />
+      <HeroSceneReady />
       <HeroLight />
       <Container className="relative grid items-center gap-14 lg:grid-cols-12 lg:gap-8">
         <div className="relative z-10 lg:col-span-6">

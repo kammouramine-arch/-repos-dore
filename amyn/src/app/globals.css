@@ -1214,11 +1214,33 @@ html.has-pointer .cursor-halo {
 .hero-dust {
   inset: -60px;
 }
+/* Les points sont des dégradés (et non une image) : un fond en image de la
+   taille du hero serait pris pour « le plus grand élément affiché » (LCP)
+   par les navigateurs, au détriment du titre. Une tuile par point, de
+   tailles premières entre elles : le motif ne se répète pas à l'œil. */
 .hero-dust-far {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='340' height='340'%3E%3Ccircle cx='110' cy='51' r='0.8' fill='%23f5e4be' fill-opacity='0.20'/%3E%3Ccircle cx='124' cy='20' r='0.7' fill='%23f5e4be' fill-opacity='0.19'/%3E%3Ccircle cx='24' cy='31' r='0.7' fill='%23f5e4be' fill-opacity='0.40'/%3E%3Ccircle cx='76' cy='213' r='0.9' fill='%23f5e4be' fill-opacity='0.34'/%3E%3Ccircle cx='332' cy='16' r='0.8' fill='%23f5e4be' fill-opacity='0.26'/%3E%3Ccircle cx='40' cy='105' r='0.8' fill='%23f5e4be' fill-opacity='0.23'/%3E%3Ccircle cx='217' cy='127' r='0.7' fill='%23f5e4be' fill-opacity='0.20'/%3E%3Ccircle cx='70' cy='231' r='0.7' fill='%23f5e4be' fill-opacity='0.26'/%3E%3Ccircle cx='154' cy='102' r='0.8' fill='%23f5e4be' fill-opacity='0.37'/%3E%3Ccircle cx='195' cy='179' r='0.9' fill='%23f5e4be' fill-opacity='0.38'/%3E%3Ccircle cx='333' cy='40' r='0.7' fill='%23f5e4be' fill-opacity='0.38'/%3E%3Ccircle cx='166' cy='13' r='0.8' fill='%23f5e4be' fill-opacity='0.39'/%3E%3Ccircle cx='298' cy='107' r='0.8' fill='%23f5e4be' fill-opacity='0.34'/%3E%3Ccircle cx='155' cy='286' r='0.9' fill='%23f2eee6' fill-opacity='0.31'/%3E%3Ccircle cx='21' cy='239' r='0.8' fill='%23f2eee6' fill-opacity='0.45'/%3E%3Ccircle cx='97' cy='131' r='0.8' fill='%23f5e4be' fill-opacity='0.19'/%3E%3Ccircle cx='57' cy='40' r='0.5' fill='%23f5e4be' fill-opacity='0.39'/%3E%3Ccircle cx='84' cy='133' r='0.8' fill='%23f5e4be' fill-opacity='0.20'/%3E%3C/svg%3E");
+  background-image:
+    radial-gradient(circle, rgb(245 228 190 / 0.35) 0 0.9px, transparent 1.5px),
+    radial-gradient(circle, rgb(245 228 190 / 0.48) 0 0.7px, transparent 1.3px),
+    radial-gradient(circle, rgb(245 228 190 / 0.27) 0 0.5px, transparent 1.1px),
+    radial-gradient(circle, rgb(245 228 190 / 0.40) 0 0.8px, transparent 1.4px),
+    radial-gradient(circle, rgb(245 228 190 / 0.46) 0 0.5px, transparent 1.1px),
+    radial-gradient(circle, rgb(242 238 230 / 0.39) 0 0.7px, transparent 1.3px),
+    radial-gradient(circle, rgb(245 228 190 / 0.43) 0 0.5px, transparent 1.1px),
+    radial-gradient(circle, rgb(245 228 190 / 0.36) 0 0.8px, transparent 1.4px),
+    radial-gradient(circle, rgb(242 238 230 / 0.45) 0 0.6px, transparent 1.2px);
+  background-size: 312px 312px, 323px 323px, 337px 337px, 287px 287px, 286px 286px, 260px 260px, 325px 325px, 357px 357px, 322px 322px;
+  background-position: 274px 48px, 44px 222px, 289px 63px, 203px 25px, 73px 276px, 52px 96px, 316px 105px, 299px 232px, 124px 41px;
 }
 .hero-dust-near {
-  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='560' height='560'%3E%3Ccircle cx='253' cy='313' r='1.5' fill='%23f5e4be' fill-opacity='0.41'/%3E%3Ccircle cx='329' cy='103' r='1.2' fill='%23f2eee6' fill-opacity='0.47'/%3E%3Ccircle cx='53' cy='170' r='1.0' fill='%23f2eee6' fill-opacity='0.53'/%3E%3Ccircle cx='23' cy='550' r='1.5' fill='%23f2eee6' fill-opacity='0.48'/%3E%3Ccircle cx='88' cy='8' r='1.2' fill='%23f5e4be' fill-opacity='0.27'/%3E%3Ccircle cx='135' cy='17' r='1.2' fill='%23f2eee6' fill-opacity='0.40'/%3E%3Ccircle cx='291' cy='359' r='1.2' fill='%23f5e4be' fill-opacity='0.48'/%3E%3Ccircle cx='156' cy='559' r='1.5' fill='%23f2eee6' fill-opacity='0.54'/%3E%3Ccircle cx='177' cy='129' r='1.1' fill='%23f2eee6' fill-opacity='0.27'/%3E%3C/svg%3E");
+  background-image:
+    radial-gradient(circle, rgb(242 238 230 / 0.56) 0 1.3px, transparent 1.9px),
+    radial-gradient(circle, rgb(245 228 190 / 0.36) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgb(242 238 230 / 0.33) 0 1.1px, transparent 1.7px),
+    radial-gradient(circle, rgb(245 228 190 / 0.42) 0 1.2px, transparent 1.8px),
+    radial-gradient(circle, rgb(245 228 190 / 0.30) 0 1.0px, transparent 1.6px);
+  background-size: 495px 495px, 598px 598px, 494px 494px, 390px 390px, 546px 546px;
+  background-position: 231px 260px, 190px 96px, 355px 324px, 378px 315px, 60px 36px;
   opacity: 0.8;
 }
 
@@ -1230,12 +1252,22 @@ html.has-pointer .cursor-halo {
   top: 3.5rem;
   width: var(--planet-w);
   aspect-ratio: 692 / 540;
+  opacity: 0;
+  transition: opacity 2.2s var(--ease-out);
+}
+/* Les images n'existent qu'une fois la page chargée (HeroSceneReady) :
+   elles ne retardent jamais le titre. */
+.hero-scene[data-ready] .hero-cosmos {
+  opacity: 1;
 }
 .hero-planet {
   position: absolute;
   inset: 0;
-  background: url("/hero/planet.webp") center / 100% 100% no-repeat;
+  background: center / 100% 100% no-repeat;
   translate: calc(var(--hx, 0) * -5px) calc(var(--hy, 0) * -4px);
+}
+.hero-scene[data-ready] .hero-planet {
+  background-image: url("/hero/planet.webp");
 }
 /* L'éclat du liseré, sur une couche à part : c'est elle qui respire. */
 .hero-planet-glow {
@@ -1305,9 +1337,15 @@ html.has-pointer .cursor-halo {
   bottom: -5%;
   width: 44vw;
   aspect-ratio: 700 / 290;
-  background: url("/hero/relief.webp") center / 100% 100% no-repeat;
-  opacity: 0.6;
+  background: center / 100% 100% no-repeat;
+  opacity: 0;
+  transition: opacity 2.4s var(--ease-out) 0.3s;
   translate: calc(var(--hx, 0) * -12px) calc(var(--hy, 0) * -5px);
+}
+
+.hero-scene[data-ready] .hero-relief {
+  background-image: url("/hero/relief.webp");
+  opacity: 0.6;
 }
 
 /* Horizon numérique : courbe lumineuse et sol quadrillé. */
@@ -1519,10 +1557,7 @@ html.has-pointer .cursor-halo {
     animation: thread-light-in 1.2s var(--ease-out) 3.4s both;
   }
 
-  /* La planète entre par un lever de lumière, puis son liseré respire. */
-  .hero-cosmos {
-    animation: planet-rise 2.4s var(--ease-out) 0.1s both;
-  }
+  /* Le liseré de la planète respire. */
   .hero-planet-glow {
     animation: planet-breathe 9s ease-in-out 2.5s infinite alternate;
   }
@@ -1563,11 +1598,9 @@ html.has-pointer .cursor-halo {
        peine ; les repères du haut s'effacent. */
     @media (min-width: 1024px) {
       .hero-cosmos {
-        animation:
-          planet-rise 2.4s var(--ease-out) 0.1s both,
-          depth-far linear both;
-        animation-timeline: auto, scroll(root);
-        animation-range: normal, 0 100vh;
+        animation: depth-far linear both;
+        animation-timeline: scroll(root);
+        animation-range: 0 100vh;
       }
       .hero-horizon {
         animation: depth-near linear both;
@@ -1607,9 +1640,6 @@ html.has-pointer .cursor-halo {
 @keyframes thread-travel {
   from { stroke-dashoffset: 0.08; }
   to { stroke-dashoffset: -0.95; }
-}
-@keyframes planet-rise {
-  from { opacity: 0; transform: translateY(3vh); }
 }
 @keyframes planet-breathe {
   from { opacity: 0.55; }

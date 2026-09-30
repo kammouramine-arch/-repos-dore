@@ -276,7 +276,6 @@ const fr = {
 
   legal: {
     updated: "Dernière mise à jour",
-    toComplete: "À COMPLÉTER",
   },
 };
 
@@ -542,7 +541,6 @@ const en: Dictionary = {
 
   legal: {
     updated: "Last updated",
-    toComplete: "TO BE COMPLETED",
   },
 };
 

@@ -12,10 +12,15 @@ import { sendSmtp } from "./smtp";
  * adresse, aucun changement DNS. Le Reply-To porte l'adresse du demandeur :
  * « Répondre » lui écrit directement.
  *
- * Seul secret : SMTP_PASSWORD (mot de passe de la boîte), lu uniquement ici,
- * côté serveur, depuis les variables d'environnement Vercel. Sans lui, en
- * développement la demande est écrite dans la console ; ailleurs, l'envoi
- * est refusé proprement (le visiteur est invité à écrire directement).
+ * Secret principal : SMTP_PASSWORD (mot de passe de la boîte), lu uniquement
+ * ici, côté serveur, depuis les variables d'environnement Vercel.
+ *
+ * Repli : si SMTP_PASSWORD n'est pas défini mais que RESEND_API_KEY l'est
+ * (configuration de la version précédente du site), la demande part par
+ * l'API Resend, toujours vers contact@amyn.agency avec le demandeur en
+ * Reply-To. Sans aucun des deux, en développement la demande est écrite
+ * dans la console ; ailleurs, l'envoi est refusé proprement (le visiteur
+ * est invité à écrire directement).
  */
 
 const env = (key: string, fallback: string) => process.env[key]?.trim() || fallback;
@@ -36,12 +41,16 @@ export async function sendRequestEmail({
   const pass = process.env.SMTP_PASSWORD;
   const user = env("SMTP_USER", "contact@amyn.agency");
 
+  if (!pass && process.env.RESEND_API_KEY) {
+    return sendWithResend(process.env.RESEND_API_KEY, { subject, html, text, replyTo });
+  }
+
   if (!pass) {
     if (process.env.NODE_ENV !== "production") {
       console.info(`\n[formulaire] ${subject} (mode développement, non envoyé)\n${text}\n`);
       return "console";
     }
-    console.error("[formulaire] SMTP_PASSWORD manquante : envoi impossible.");
+    console.error("[formulaire] Ni SMTP_PASSWORD ni RESEND_API_KEY : envoi impossible.");
     return "unavailable";
   }
 
@@ -68,6 +77,37 @@ export async function sendRequestEmail({
     return "sent";
   } catch (error) {
     console.error("[formulaire] Envoi impossible :", error instanceof Error ? error.message : error);
+    return "failed";
+  }
+}
+
+/* Repli par l'API HTTP de Resend (aucune dépendance). L'expéditeur vient de
+   CONTACT_FROM_EMAIL, déjà utilisé par la version précédente du site. */
+async function sendWithResend(
+  apiKey: string,
+  { subject, html, text, replyTo }: { subject: string; html: string; text: string; replyTo: string },
+): Promise<SendResult> {
+  try {
+    const response = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${apiKey}`, "Content-Type": "application/json" },
+      body: JSON.stringify({
+        from: env("CONTACT_FROM_EMAIL", "Site AMYN <onboarding@resend.dev>"),
+        to: [env("CONTACT_TO_EMAIL", "contact@amyn.agency")],
+        reply_to: replyTo,
+        subject,
+        html,
+        text,
+      }),
+      signal: AbortSignal.timeout(15_000),
+    });
+    if (!response.ok) {
+      console.error(`[formulaire] Envoi Resend refusé (${response.status}).`);
+      return "failed";
+    }
+    return "sent";
+  } catch (error) {
+    console.error("[formulaire] Envoi Resend impossible :", error instanceof Error ? error.message : error);
     return "failed";
   }
 }

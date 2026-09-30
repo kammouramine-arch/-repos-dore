@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Fact, LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { LEGAL_LABELS_EN, hosting, legal, legalComplete } from "@/lib/legal";
+import { LEGAL_LABELS_EN, hosting, legal, legalComplete, registrationPending } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -25,30 +25,29 @@ export function LegalNoticeEn() {
       intro={`Information about the publisher and hosting provider of ${site.domain}. This English version is provided for convenience; the French version prevails.`}
     >
       <LegalSection title="Publisher">
-        <Fact locale="en" label={L.publisherName} value={legal.publisherName} />
+        <p>
+          {site.domain} is published by <span className="text-fg">{legal.publisherName}</span>, a
+          natural person, under the trading name {site.legalBrand}.
+        </p>
+        {!legal.siren && <p className="text-fg">{registrationPending.en}</p>}
         <Fact locale="en" label={L.legalForm} value={legal.legalForm} />
         {legal.shareCapital && <Fact locale="en" label={L.shareCapital} value={legal.shareCapital} />}
         <Fact locale="en" label={L.address} value={legal.address} />
         <Fact locale="en" label={L.siren} value={legal.siren} />
         <Fact locale="en" label={L.siret} value={legal.siret} />
         <Fact locale="en" label={L.registration} value={legal.registration} />
-        {legal.vatMention ? (
-          <p>{legal.vatMention}</p>
-        ) : (
-          <Fact locale="en" label={L.vatNumber} value={legal.vatNumber} />
-        )}
-        <Fact locale="en" label={L.publicationDirector} value={legal.publicationDirector} />
+        {legal.vatMention ? <p>{legal.vatMention}</p> : <Fact locale="en" label={L.vatNumber} value={legal.vatNumber} />}
+        <Fact locale="en" label={L.phone} value={legal.phone} />
         <p>
           <span className="text-fg">Email:</span> <a href={`mailto:${site.email}`}>{site.email}</a>
         </p>
-        {legal.phone && <Fact locale="en" label={L.phone} value={legal.phone} />}
-        <p>Trading name: {site.legalBrand}.</p>
+        <Fact locale="en" label={L.publicationDirector} value={legal.publicationDirector} />
       </LegalSection>
 
       <LegalSection title="Hosting">
         <p>
           The website is hosted by <span className="text-fg">{hosting.name}</span>,{" "}
-          {hosting.addressEn} —{" "}
+          {hosting.addressEn} — phone: {hosting.phone} —{" "}
           <a href={hosting.website} rel="noopener noreferrer" target="_blank">
             {hosting.website.replace("https://", "")}
           </a>

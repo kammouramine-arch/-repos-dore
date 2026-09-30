@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { Fact, LegalSection, LegalShell } from "@/components/legal/LegalShell";
-import { LEGAL_LABELS, hosting, legal, legalComplete, retention } from "@/lib/legal";
+import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
+import { hosting, legal, retention } from "@/lib/legal";
 import { href, routeAlternates } from "@/lib/i18n/routes";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -12,18 +12,18 @@ export const privacyFrMetadata = () =>
       "Quelles données AMYN traite, pourquoi, sur quelle base, combien de temps, avec quels prestataires, et comment exercer vos droits.",
     locale: "fr",
     alternates: routeAlternates("privacy"),
-    noindex: !legalComplete(),
   });
 
 /**
  * Politique de confidentialité — décrit les traitements RÉELS :
- *   - les deux formulaires du site, remis à la boîte contact@amyn.agency
- *     par le serveur d'envoi d'OVHcloud (aucun service d'envoi tiers) ;
+ *   - le formulaire « Recevoir un premier aperçu », remis à la boîte
+ *     contact@amyn.agency par le serveur d'envoi d'OVHcloud, ou à défaut
+ *     par l'API Resend (voir lib/server/email.ts) ;
  *   - les échanges par e-mail (boîte hébergée chez OVH, constatée par les
  *     enregistrements MX du domaine) ;
  *   - la prospection B2B menée avec l'outil interne AMYN Outreach, qui ne
- *     collecte que des informations publiques et gère une liste
- *     d'opposition ;
+ *     collecte que des informations publiques, gère une liste d'opposition
+ *     et peut s'appuyer sur l'API d'Anthropic pour rédiger un brouillon ;
  *   - l'hébergement (Vercel) et ses journaux techniques.
  * Le site ne dépose aucun cookie et ne charge aucun traceur.
  */
@@ -37,8 +37,11 @@ export function PrivacyFr() {
       intro="Nous ne collectons que ce qui sert à vous répondre ou à vous proposer un service utile à votre activité. Voici précisément quoi, pourquoi, et comment garder la main."
     >
       <LegalSection title="Responsable du traitement">
-        <Fact label={LEGAL_LABELS.publisherName} value={legal.publisherName} />
-        <Fact label={LEGAL_LABELS.address} value={legal.address} />
+        <p>
+          <span className="text-fg">{legal.publisherName}</span>, éditeur du site sous le nom
+          commercial {site.legalBrand} (entreprise en cours de création — voir les{" "}
+          <Link href={href("legalNotice", "fr")}>mentions légales</Link>).
+        </p>
         <p>
           <span className="text-fg">Contact pour toute question sur vos données :</span>{" "}
           <a href={`mailto:${site.email}`}>{site.email}</a>
@@ -144,12 +147,19 @@ export function PrivacyFr() {
           </li>
           <li>
             <span className="text-fg">OVHcloud</span> — messagerie professionnelle,
-            y compris la réception des demandes envoyées par les formulaires
-            (France) ;
+            y compris l&apos;envoi et la réception des demandes transmises par le
+            formulaire (France) ;
           </li>
           <li>
-            le cas échéant, un service de rédaction assistée pour la prospection, dans
-            les limites décrites ci-dessus.
+            <span className="text-fg">Resend</span> — service d&apos;envoi d&apos;e-mails,
+            utilisé uniquement en secours pour transmettre une demande du formulaire
+            à AMYN si l&apos;envoi par la messagerie OVHcloud n&apos;est pas configuré
+            (États-Unis) ;
+          </li>
+          <li>
+            <span className="text-fg">Anthropic</span> — le cas échéant, rédaction
+            assistée des messages de prospection, dans les limites décrites
+            ci-dessus (États-Unis).
           </li>
         </ul>
       </LegalSection>
