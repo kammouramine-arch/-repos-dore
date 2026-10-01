@@ -5,6 +5,7 @@ import { Hero } from "@/components/home/Hero";
 import { SectorStrip } from "@/components/home/SectorStrip";
 import { FinalCta, Method, Tools, Work } from "@/components/home/Sections";
 import { ServicesShowcase } from "@/components/home/ServicesShowcase";
+import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
 import { Testimonials, hasTestimonials } from "@/components/home/Testimonials";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Heading, Label, Section } from "@/components/ui/Layout";
@@ -100,6 +101,7 @@ export function HomePage({ locale }: { locale: Locale }) {
             <ServicesShowcase rows={rows} />
           </div>
           <p className="label mt-8 text-bone-3">{t.home.services.note}</p>
+          <ProofSprintCard locale={locale} className="mt-12 sm:mt-16" />
         </Container>
       </Section>
 

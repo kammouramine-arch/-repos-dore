@@ -109,7 +109,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           </Link>
 
           <nav aria-label={t.mainNav} className="hidden lg:block">
-            <ul className="flex items-center gap-1 rounded-full border border-[rgb(242_238_230/0.08)] bg-[rgb(242_238_230/0.03)] p-1 backdrop-blur-md">
+            <ul className="flex items-center gap-0.5 rounded-full border border-[rgb(242_238_230/0.08)] bg-[rgb(242_238_230/0.03)] p-1 backdrop-blur-md">
               {nav.map((item) => {
                 const active = isActive(item.href);
                 return (
@@ -117,12 +117,16 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative block rounded-full px-4 py-2 text-[0.875rem] font-medium transition-[background-color,color] duration-300 active:scale-[0.97] ${
+                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-2 text-[0.875rem] font-medium transition-[background-color,color] duration-300 active:scale-[0.97] xl:px-4 ${
                         active
-                          ? "bg-[rgb(242_238_230/0.1)] text-bone"
-                          : "text-bone-2 hover:bg-[rgb(242_238_230/0.06)] hover:text-bone"
+                          ? `bg-[rgb(242_238_230/0.1)] ${item.accent ? "text-gold-2" : "text-bone"}`
+                          : item.accent
+                            ? "text-gold-2 hover:bg-[rgb(198_167_106/0.1)] hover:text-bone"
+                            : "text-bone-2 hover:bg-[rgb(242_238_230/0.06)] hover:text-bone"
                       }`}
                     >
+                      {/* ProofSprint : un point de laiton, rien de plus. */}
+                      {item.accent && <span aria-hidden className="size-1.5 rounded-full bg-gold" />}
                       {item.label}
                     </Link>
                   </li>
@@ -209,7 +213,11 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                     className="group flex items-baseline gap-4 border-b border-[rgb(242_238_230/0.08)] py-4 active:opacity-70"
                   >
                     <span className="label w-7 text-gold">0{i + 1}</span>
-                    <span className="display-md flex-1 text-bone group-aria-[current=page]:text-gold-2">
+                    <span
+                      className={`display-md flex-1 group-aria-[current=page]:text-gold-2 ${
+                        "accent" in item && item.accent ? "text-gold-2" : "text-bone"
+                      }`}
+                    >
                       {item.label}
                     </span>
                     <ArrowRight className="size-5 translate-y-0.5 text-bone-3" />

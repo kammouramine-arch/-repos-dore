@@ -56,6 +56,12 @@ export function PrivacyEn() {
                 <td className={cell}>Pre-contractual steps taken at your request (Art. 6(1)(b) GDPR)</td>
               </tr>
               <tr>
+                <th scope="row" className={`${cell} font-medium text-fg`}>ProofSprint form</th>
+                <td className={cell}>Company, work email, optional name, buyer deadline, description of the opportunity (no documents are requested)</td>
+                <td className={cell}>Review the opportunity, reply to you and, if ProofSprint is a fit, agree the scope</td>
+                <td className={cell}>Pre-contractual steps taken at your request (Art. 6(1)(b) GDPR)</td>
+              </tr>
+              <tr>
                 <th scope="row" className={`${cell} font-medium text-fg`}>Emails exchanged</th>
                 <td className={cell}>Email address and message content</td>
                 <td className={cell}>Corresponding with you</td>

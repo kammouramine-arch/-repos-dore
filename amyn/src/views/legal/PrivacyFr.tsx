@@ -68,6 +68,12 @@ export function PrivacyFr() {
                 <td className={cell}>Mesures précontractuelles prises à votre demande (art. 6.1.b RGPD)</td>
               </tr>
               <tr>
+                <th scope="row" className={`${cell} font-medium text-fg`}>Formulaire ProofSprint</th>
+                <td className={cell}>Entreprise, e-mail professionnel, nom facultatif, échéance de l&apos;acheteur, description de l&apos;opportunité (aucun document n&apos;est demandé)</td>
+                <td className={cell}>Étudier l&apos;opportunité, vous répondre et, si ProofSprint convient, convenir du périmètre</td>
+                <td className={cell}>Mesures précontractuelles prises à votre demande (art. 6.1.b RGPD)</td>
+              </tr>
+              <tr>
                 <th scope="row" className={`${cell} font-medium text-fg`}>E-mails échangés</th>
                 <td className={cell}>Adresse e-mail et contenu des messages</td>
                 <td className={cell}>Correspondre avec vous</td>

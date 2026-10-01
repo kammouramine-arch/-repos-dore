@@ -16,6 +16,7 @@ const fr = {
     work: "Réalisations",
     method: "Méthode",
     about: "À propos",
+    proofsprint: "ProofSprint",
     firstLook: "Premier aperçu",
   },
   header: {
@@ -71,6 +72,28 @@ const fr = {
     outreachBody: "Bienvenue. Voici qui nous sommes — sans obligation.",
     outreachLink: "Pourquoi ce message ?",
   },
+  proofsprintForm: {
+    title: "Votre opportunité",
+    company: "Entreprise",
+    email: "E-mail professionnel",
+    name: "Votre nom",
+    deadline: "Échéance de l'acheteur",
+    deadlinePlaceholder: "Ex. remise de l'offre le 14 novembre",
+    deadlineHint: "Date de remise, comité de décision… une indication suffit.",
+    description: "L'opportunité en quelques phrases",
+    descriptionPlaceholder:
+      "Ce que vous vendez, à quel acheteur, ce qu'il attend encore (réponses techniques, justificatifs, plan de déploiement, calcul de retour sur investissement)…",
+    descriptionHint:
+      "N'envoyez aucun document confidentiel à ce stade : la transmission des sources s'organise après accord sur le périmètre et les modalités de partage.",
+    submit: "Parlons de votre dossier",
+    sending: "Envoi en cours…",
+    intro: "Sans engagement · Aucun document à joindre",
+    sentTitle: "Merci. Votre demande nous est bien parvenue.",
+    sentBody: [
+      "Nous revenons vers vous pour un premier échange : l'opportunité, l'échéance de l'acheteur et les informations dont vous disposez déjà.",
+      "Nous confirmons ensuite si ProofSprint convient et quel périmètre retenir — avant tout engagement de votre part.",
+    ],
+  },
 };
 
 export type Ui = typeof fr;
@@ -86,6 +109,7 @@ const en: Ui = {
     work: "Work",
     method: "Method",
     about: "About",
+    proofsprint: "ProofSprint",
     firstLook: "First look",
   },
   header: {
@@ -140,6 +164,28 @@ const en: Ui = {
     outreachTitle: "You've arrived from a message from AMYN",
     outreachBody: "Welcome. Here's who we are — no obligation.",
     outreachLink: "Why this message?",
+  },
+  proofsprintForm: {
+    title: "Your opportunity",
+    company: "Company",
+    email: "Work email",
+    name: "Your name",
+    deadline: "Buyer deadline",
+    deadlinePlaceholder: "E.g. proposal due on 14 November",
+    deadlineHint: "Submission date, decision committee… an indication is enough.",
+    description: "The opportunity in a few sentences",
+    descriptionPlaceholder:
+      "What you sell, to which buyer, and what they still expect (technical answers, supporting evidence, a rollout plan, a business case)…",
+    descriptionHint:
+      "Please don't send any confidential documents at this stage: source material is shared once the scope and the sharing arrangements have been agreed.",
+    submit: "Discuss your deal",
+    sending: "Sending…",
+    intro: "No obligation · No documents needed",
+    sentTitle: "Thank you. Your enquiry has reached us.",
+    sentBody: [
+      "We'll get back to you for an initial conversation about the opportunity, your buyer's deadline and the information you already have.",
+      "We then confirm whether ProofSprint is a good fit and which scope to agree — before you commit to anything.",
+    ],
   },
 };
 

@@ -40,8 +40,11 @@ export function TermsFr() {
           professionnels — entreprises, indépendants et associations agissant pour les
           besoins de leur activité : création et refonte de sites, outils de suivi des
           demandes, applications mobiles, réservation en ligne, amélioration de fiches
-          d&apos;établissement, parcours d&apos;accueil client, portfolio et contenus. Elles ne
-          visent pas les contrats conclus avec des consommateurs.
+          d&apos;établissement, parcours d&apos;accueil client, portfolio et contenus, ainsi que
+          le service <Link href={href("proofsprint", "fr")}>ProofSprint</Link> (dossier
+          commercial grand compte, dont le prix, le périmètre standard et l&apos;échéancier de
+          paiement sont publiés sur sa page). Elles ne visent pas les contrats conclus avec
+          des consommateurs.
         </p>
         <p>
           Lorsqu&apos;un contrat est conclu hors établissement avec un professionnel qui

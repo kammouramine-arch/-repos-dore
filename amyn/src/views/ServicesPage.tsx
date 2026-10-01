@@ -3,6 +3,7 @@ import { FinalCta } from "@/components/home/Sections";
 import { PageHero } from "@/components/layout/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, delay } from "@/components/ui/Layout";
+import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
 import { Shot } from "@/components/visuals/Shots";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -118,6 +119,13 @@ export function ServicesPage({ locale }: { locale: Locale }) {
           </Section>
         );
       })}
+
+      {/* ProofSprint : offre distincte, présentée à la suite des services. */}
+      <Section tone="ink" spacing="tight" className="seam">
+        <Container>
+          <ProofSprintCard locale={locale} />
+        </Container>
+      </Section>
 
       <FinalCta locale={locale} />
     </>

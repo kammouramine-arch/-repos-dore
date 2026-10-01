@@ -16,6 +16,8 @@ export const ROUTES = {
   method: { fr: "/methode", en: "/en/method" },
   about: { fr: "/a-propos", en: "/en/about" },
   firstLook: { fr: "/premier-apercu", en: "/en/first-look" },
+  /* Offre distincte des sept services : même nom dans les deux langues. */
+  proofsprint: { fr: "/proofsprint", en: "/en/proofsprint" },
   legalNotice: { fr: "/mentions-legales", en: "/en/legal-notice" },
   privacy: { fr: "/confidentialite", en: "/en/privacy" },
   terms: { fr: "/conditions-services", en: "/en/terms" },

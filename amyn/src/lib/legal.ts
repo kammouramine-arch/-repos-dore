@@ -164,5 +164,5 @@ export const retentionEn = {
 } as const;
 
 /** Date de dernière mise à jour affichée sur les pages légales. */
-export const LEGAL_UPDATED = "30 septembre 2026";
-export const LEGAL_UPDATED_EN = "30 September 2026";
+export const LEGAL_UPDATED = "1er octobre 2026";
+export const LEGAL_UPDATED_EN = "1 October 2026";

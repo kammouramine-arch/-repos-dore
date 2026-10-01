@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { OG_LOCALE, type Locale } from "./i18n/config.ts";
 import type { Alternates } from "./i18n/routes.ts";
-import { servicePath } from "./i18n/routes.ts";
+import { href, servicePath } from "./i18n/routes.ts";
+import { PROOFSPRINT_PRICE_EUR, getProofSprint } from "./proofsprint.ts";
 import type { Service } from "./services.ts";
 import { site } from "./site.ts";
 
@@ -109,6 +110,35 @@ export function serviceSchema(service: Service, locale: Locale = "fr") {
     inLanguage: locale,
     provider: { "@id": ORG_ID },
     areaServed: { "@type": "Country", name: "France" },
+  };
+}
+
+/**
+ * ProofSprint : un service à prix public. Uniquement des faits publiés sur
+ * la page (nom, description, prix hors taxes) — ni avis, ni note.
+ */
+export function proofSprintSchema(locale: Locale = "fr") {
+  const t = getProofSprint(locale);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "ProofSprint",
+    description: t.meta.description,
+    url: `${site.url}${href("proofsprint", locale)}`,
+    inLanguage: locale,
+    provider: { "@id": ORG_ID },
+    audience: { "@type": "BusinessAudience" },
+    offers: {
+      "@type": "Offer",
+      price: PROOFSPRINT_PRICE_EUR,
+      priceCurrency: "EUR",
+      priceSpecification: {
+        "@type": "PriceSpecification",
+        price: PROOFSPRINT_PRICE_EUR,
+        priceCurrency: "EUR",
+        valueAddedTaxIncluded: false,
+      },
+    },
   };
 }
 

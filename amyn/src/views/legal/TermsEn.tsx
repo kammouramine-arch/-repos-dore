@@ -31,8 +31,10 @@ export function TermsEn() {
           These terms apply to the services AMYN offers to professionals — businesses,
           self-employed people and organisations acting for the purposes of their activity:
           website creation and redesign, request-tracking tools, mobile apps, online booking,
-          business profile improvements, client onboarding, portfolio and content. They do not
-          cover contracts with consumers.
+          business profile improvements, client onboarding, portfolio and content, as well as the{" "}
+          <Link href={href("proofsprint", "en")}>ProofSprint</Link> service (an enterprise deal proof
+          package whose price, standard scope and payment schedule are published on its page). They
+          do not cover contracts with consumers.
         </p>
         <p>
           Where a contract is concluded off-premises with a professional who employs five people

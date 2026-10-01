@@ -16,6 +16,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
     { label: n.work, href: href("work", locale) },
     { label: n.method, href: href("method", locale) },
     { label: n.about, href: href("about", locale) },
+    { label: n.proofsprint, href: href("proofsprint", locale) },
     { label: n.firstLook, href: href("firstLook", locale) },
   ];
   const legalNav = [

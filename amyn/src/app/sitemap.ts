@@ -52,6 +52,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     ...route("services", 0.9),
     ...Object.keys(SERVICE_SLUGS).flatMap((id) => entries(serviceAlternates(id), 0.8)),
     ...route("firstLook", 0.9),
+    ...route("proofsprint", 0.8),
     ...route("work", 0.7),
     ...projects.flatMap((p) => entries(projectAlternates(p.slug), 0.5)),
     ...route("method", 0.6),
