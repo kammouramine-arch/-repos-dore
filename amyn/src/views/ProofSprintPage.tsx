@@ -36,6 +36,7 @@ const ANCHOR = { deliverables: "livrables", contact: "contact" } as const;
 export function ProofSprintPage({ locale }: { locale: Locale }) {
   const t = getProofSprint(locale);
   const nav = getUi(locale).nav;
+  const demo = href("proofsprintDemo", locale);
 
   return (
     <>
@@ -54,7 +55,10 @@ export function ProofSprintPage({ locale }: { locale: Locale }) {
           <ButtonLink href={`#${ANCHOR.contact}`} className="!min-h-14 !px-7 text-[1rem]">
             {t.hero.primary}
           </ButtonLink>
-          <ButtonLink href={`#${ANCHOR.deliverables}`} variant="secondary" className="!min-h-14">
+          <ButtonLink href={demo} variant="secondary" className="!min-h-14 border-gold/60">
+            {t.demo.cta}
+          </ButtonLink>
+          <ButtonLink href={`#${ANCHOR.deliverables}`} variant="text" className="min-h-11 px-2">
             {t.hero.secondary}
           </ButtonLink>
         </div>
@@ -194,9 +198,21 @@ export function ProofSprintPage({ locale }: { locale: Locale }) {
               <Label>{t.pricing.label}</Label>
             </div>
             <Heading id="ps-prix-titre" className="mt-8" lines={t.pricing.title} />
+            {/* Juste au-dessus du prix : de quoi juger sur pièces. */}
+            <div data-reveal className="mt-10 rounded-[var(--radius-md)] border border-gold/40 bg-[rgb(198_167_106/0.06)] p-5 sm:p-6">
+              <p className="label flex items-center gap-2 text-gold-2">
+                <span aria-hidden className="size-1.5 rounded-full bg-gold" />
+                {t.demo.label}
+              </p>
+              <p className="mt-3 text-[0.9375rem] leading-relaxed text-fg-2">{t.demo.intro}</p>
+              <ButtonLink href={demo} variant="secondary" className="mt-5 border-gold/60">
+                {t.demo.cta}
+              </ButtonLink>
+            </div>
             <div data-reveal className="mt-10">
               <p className="text-[clamp(2.6rem,6vw,4rem)] font-semibold leading-none tracking-[-0.04em] text-fg">{t.pricing.price}</p>
               <p className="mt-3 text-fg-3">{t.pricing.priceNote}</p>
+              <p className="mt-5 text-[0.9375rem] leading-relaxed text-fg-2">{t.feeExplanation}</p>
             </div>
             <div data-reveal className="mt-10 border-t border-line pt-6">
               <p className="label text-fg-3">{t.pricing.paymentTitle}</p>

@@ -1,0 +1,488 @@
+/**
+ * Données de la démonstration ProofSprint — reprises telles quelles de
+ * `evidence.json` (paquet « ProofSprint evidence demo », 2 octobre 2026).
+ *
+ * TOUT EST FICTIF : l'éditeur AtlasFlow, l'industriel acheteur, les huit
+ * documents et les chiffres. Aucune validation client réelle, certification,
+ * économie mesurée ni résultat commercial. « supported » signifie étayé par
+ * ce texte fictif, jamais « approuvé par un client ».
+ *
+ * Ne pas modifier le contenu à la main : il doit rester identique au paquet
+ * fourni (vérifié par tests/proofsprint-demo.test.mts).
+ */
+
+export type DemoLang = "fr" | "en";
+export type EvidenceStatus = "supported" | "review" | "missing";
+type L = Record<DemoLang, string>;
+
+export type DemoSource = {
+  id: string;
+  title: L;
+  section: string;
+  quote: L;
+  synthetic: boolean;
+  owner_status: string;
+  current_as_of: string;
+};
+
+export type DemoResponse = {
+  id: string;
+  question: L;
+  answer: L;
+  source_ids: string[];
+  status: EvidenceStatus;
+  client_approval: string;
+};
+
+export const evidence: {
+  synthetic: boolean;
+  date: string;
+  scenario: L;
+  sources: DemoSource[];
+  responses: DemoResponse[];
+} = {
+  "synthetic": true,
+  "date": "2026-10-02",
+  "scenario": {
+    "en": "Fictional vendor AtlasFlow responds to a fictional manufacturer’s enterprise procurement questionnaire. Neither party is a client.",
+    "fr": "L’éditeur fictif AtlasFlow répond au questionnaire d’achat d’un industriel fictif. Aucune partie n’est cliente."
+  },
+  "sources": [
+    {
+      "id": "S01",
+      "title": {
+        "en": "Product specification",
+        "fr": "Spécification produit"
+      },
+      "section": "1.1",
+      "quote": {
+        "en": "The Enterprise plan supports configurable approval workflows and role-based permissions. A workspace administrator assigns roles.",
+        "fr": "Le forfait Enterprise prend en charge des circuits de validation configurables et des permissions par rôle. Un administrateur attribue les rôles."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S02",
+      "title": {
+        "en": "Identity specification",
+        "fr": "Spécification identité"
+      },
+      "section": "2.1",
+      "quote": {
+        "en": "SAML 2.0 single sign-on is included in Enterprise. SCIM provisioning is not currently supported.",
+        "fr": "Le SSO SAML 2.0 est inclus dans Enterprise. Le provisionnement SCIM n’est pas actuellement pris en charge."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S03",
+      "title": {
+        "en": "Hosting architecture",
+        "fr": "Architecture hébergement"
+      },
+      "section": "3.1",
+      "quote": {
+        "en": "Production application and primary database are hosted in France. Backups are stored in Germany. The architecture document does not establish the locations of support access or all subprocessors.",
+        "fr": "L’application de production et la base principale sont hébergées en France. Les sauvegardes sont stockées en Allemagne. Le document ne précise pas les lieux d’accès du support ni de tous les sous-traitants."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S04",
+      "title": {
+        "en": "Operational resilience draft",
+        "fr": "Projet de résilience opérationnelle"
+      },
+      "section": "4.1",
+      "quote": {
+        "en": "The proposed recovery time objective is eight hours and recovery point objective is twenty-four hours. These objectives have not been demonstrated in a documented recovery test.",
+        "fr": "Le RTO proposé est de huit heures et le RPO de vingt-quatre heures. Ces objectifs n’ont pas été démontrés par un test de reprise documenté."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S05",
+      "title": {
+        "en": "API guide",
+        "fr": "Guide API"
+      },
+      "section": "5.1",
+      "quote": {
+        "en": "The REST API exports records as JSON. An administrator can download a CSV export. The guide does not describe a production SAP connector.",
+        "fr": "L’API REST exporte les données en JSON. Un administrateur peut télécharger un export CSV. Le guide ne décrit pas de connecteur SAP en production."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S06",
+      "title": {
+        "en": "Implementation estimate",
+        "fr": "Estimation de déploiement"
+      },
+      "section": "6.1",
+      "quote": {
+        "en": "A pilot is estimated at four weeks after approved inputs and access are received. The customer supplies a project sponsor and an identity administrator. Historical data migration is excluded from this estimate.",
+        "fr": "Un pilote est estimé à quatre semaines après réception des éléments approuvés et des accès. Le client fournit un sponsor et un administrateur identité. La migration des données historiques est exclue de cette estimation."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S07",
+      "title": {
+        "en": "Commercial schedule",
+        "fr": "Conditions commerciales"
+      },
+      "section": "7.1",
+      "quote": {
+        "en": "The illustrative software subscription is EUR 48,000 annually and implementation is EUR 12,000 once. Support is available Monday to Friday, 09:00–18:00 Paris time, excluding public holidays. No twenty-four-hour support is included.",
+        "fr": "L’abonnement logiciel illustratif est de 48 000 € par an et le déploiement de 12 000 € ponctuels. Le support est disponible du lundi au vendredi, de 9 h à 18 h, heure de Paris, hors jours fériés. Aucun support 24 h/24 n’est inclus."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    },
+    {
+      "id": "S08",
+      "title": {
+        "en": "Retention policy draft",
+        "fr": "Projet de politique de conservation"
+      },
+      "section": "8.1",
+      "quote": {
+        "en": "The draft proposes deletion within thirty days of contract termination. Legal retention exceptions and the backup deletion schedule remain to be confirmed.",
+        "fr": "Le projet prévoit une suppression dans les trente jours suivant la fin du contrat. Les exceptions légales et le calendrier de suppression des sauvegardes restent à confirmer."
+      },
+      "synthetic": true,
+      "owner_status": "fictional source; no real client approval",
+      "current_as_of": "2026-10-02"
+    }
+  ],
+  "responses": [
+    {
+      "id": "Q01",
+      "question": {
+        "en": "Approval workflows?",
+        "fr": "Circuits de validation ?"
+      },
+      "answer": {
+        "en": "Configurable approval workflows are described for Enterprise.",
+        "fr": "Des circuits de validation configurables sont décrits pour Enterprise."
+      },
+      "source_ids": [
+        "S01"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q02",
+      "question": {
+        "en": "Role-based permissions?",
+        "fr": "Permissions par rôle ?"
+      },
+      "answer": {
+        "en": "An administrator assigns workspace roles.",
+        "fr": "Un administrateur attribue les rôles de l’espace."
+      },
+      "source_ids": [
+        "S01"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q03",
+      "question": {
+        "en": "SAML SSO included?",
+        "fr": "SSO SAML inclus ?"
+      },
+      "answer": {
+        "en": "SAML 2.0 is included in Enterprise.",
+        "fr": "SAML 2.0 est inclus dans Enterprise."
+      },
+      "source_ids": [
+        "S02"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q04",
+      "question": {
+        "en": "SCIM provisioning?",
+        "fr": "Provisionnement SCIM ?"
+      },
+      "answer": {
+        "en": "No. The specification explicitly says SCIM is not supported.",
+        "fr": "Non. La spécification précise que SCIM n’est pas pris en charge."
+      },
+      "source_ids": [
+        "S02"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q05",
+      "question": {
+        "en": "Primary hosting location?",
+        "fr": "Hébergement principal ?"
+      },
+      "answer": {
+        "en": "Application and primary database: France.",
+        "fr": "Application et base principale : France."
+      },
+      "source_ids": [
+        "S03"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q06",
+      "question": {
+        "en": "Backup location?",
+        "fr": "Localisation des sauvegardes ?"
+      },
+      "answer": {
+        "en": "Germany. Do not describe all storage as France-only.",
+        "fr": "Allemagne. Ne pas présenter tout le stockage comme exclusivement français."
+      },
+      "source_ids": [
+        "S03"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q07",
+      "question": {
+        "en": "JSON export?",
+        "fr": "Export JSON ?"
+      },
+      "answer": {
+        "en": "The REST API exports records as JSON.",
+        "fr": "L’API REST exporte les données en JSON."
+      },
+      "source_ids": [
+        "S05"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q08",
+      "question": {
+        "en": "CSV export?",
+        "fr": "Export CSV ?"
+      },
+      "answer": {
+        "en": "An administrator can download a CSV export.",
+        "fr": "Un administrateur peut télécharger un export CSV."
+      },
+      "source_ids": [
+        "S05"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q09",
+      "question": {
+        "en": "Pilot timeline?",
+        "fr": "Délai du pilote ?"
+      },
+      "answer": {
+        "en": "Four-week estimate after approved inputs and access; not an unconditional delivery guarantee.",
+        "fr": "Estimation de quatre semaines après éléments approuvés et accès ; pas de garantie inconditionnelle."
+      },
+      "source_ids": [
+        "S06"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q10",
+      "question": {
+        "en": "Customer resources?",
+        "fr": "Ressources côté client ?"
+      },
+      "answer": {
+        "en": "A project sponsor and identity administrator are required.",
+        "fr": "Un sponsor et un administrateur identité sont requis."
+      },
+      "source_ids": [
+        "S06"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q11",
+      "question": {
+        "en": "Historical migration included?",
+        "fr": "Migration historique incluse ?"
+      },
+      "answer": {
+        "en": "No. Historical migration is excluded from the estimate.",
+        "fr": "Non. Elle est exclue de l’estimation."
+      },
+      "source_ids": [
+        "S06"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q12",
+      "question": {
+        "en": "24/7 support included?",
+        "fr": "Support 24 h/24 inclus ?"
+      },
+      "answer": {
+        "en": "No. The schedule states weekday business-hours support.",
+        "fr": "Non. Le contrat prévoit un support en heures ouvrées."
+      },
+      "source_ids": [
+        "S07"
+      ],
+      "status": "supported",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q13",
+      "question": {
+        "en": "All processing exclusively in France?",
+        "fr": "Tous les traitements exclusivement en France ?"
+      },
+      "answer": {
+        "en": "No such conclusion is supported: backups are in Germany and support/subprocessor locations need review.",
+        "fr": "Cette conclusion n’est pas étayée : sauvegardes en Allemagne, lieux du support et des sous-traitants à vérifier."
+      },
+      "source_ids": [
+        "S03"
+      ],
+      "status": "review",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q14",
+      "question": {
+        "en": "Recovery time commitment?",
+        "fr": "Engagement de reprise ?"
+      },
+      "answer": {
+        "en": "Eight-hour objective is proposed, not a tested or contractual commitment.",
+        "fr": "Objectif de huit heures proposé, pas un engagement testé ou contractuel."
+      },
+      "source_ids": [
+        "S04"
+      ],
+      "status": "review",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q15",
+      "question": {
+        "en": "Recovery point commitment?",
+        "fr": "Engagement de perte de données ?"
+      },
+      "answer": {
+        "en": "Twenty-four-hour objective is proposed; test evidence and contract confirmation are required.",
+        "fr": "Objectif de vingt-quatre heures proposé ; preuve de test et confirmation contractuelle requises."
+      },
+      "source_ids": [
+        "S04"
+      ],
+      "status": "review",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q16",
+      "question": {
+        "en": "Deletion within thirty days guaranteed?",
+        "fr": "Suppression en trente jours garantie ?"
+      },
+      "answer": {
+        "en": "Draft only. Legal exceptions and backup deletion are unresolved.",
+        "fr": "Projet uniquement. Exceptions légales et suppression des sauvegardes non résolues."
+      },
+      "source_ids": [
+        "S08"
+      ],
+      "status": "review",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q17",
+      "question": {
+        "en": "Year-one total price approved?",
+        "fr": "Prix total de première année validé ?"
+      },
+      "answer": {
+        "en": "Illustrative total: EUR 60,000. Commercial owner must confirm taxes, scope and binding price.",
+        "fr": "Total illustratif : 60 000 €. Le responsable commercial doit confirmer taxes, périmètre et prix contractuel."
+      },
+      "source_ids": [
+        "S07"
+      ],
+      "status": "review",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q18",
+      "question": {
+        "en": "ISO 27001 certificate?",
+        "fr": "Certificat ISO 27001 ?"
+      },
+      "answer": {
+        "en": "No certificate supplied. Do not claim certification.",
+        "fr": "Aucun certificat fourni. Ne pas revendiquer de certification."
+      },
+      "source_ids": [],
+      "status": "missing",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q19",
+      "question": {
+        "en": "Independent penetration-test report?",
+        "fr": "Rapport de test d’intrusion indépendant ?"
+      },
+      "answer": {
+        "en": "No report supplied. Obtain an approved report and permitted sharing terms.",
+        "fr": "Aucun rapport fourni. Obtenir un rapport approuvé et les conditions de partage."
+      },
+      "source_ids": [],
+      "status": "missing",
+      "client_approval": "not obtained; demonstration only"
+    },
+    {
+      "id": "Q20",
+      "question": {
+        "en": "Production SAP integration?",
+        "fr": "Intégration SAP en production ?"
+      },
+      "answer": {
+        "en": "No connector or implementation evidence supplied. An API alone does not prove an integration.",
+        "fr": "Aucun connecteur ni preuve de déploiement fourni. Une API ne prouve pas une intégration."
+      },
+      "source_ids": [],
+      "status": "missing",
+      "client_approval": "not obtained; demonstration only"
+    }
+  ]
+};

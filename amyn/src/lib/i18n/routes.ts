@@ -18,6 +18,8 @@ export const ROUTES = {
   firstLook: { fr: "/premier-apercu", en: "/en/first-look" },
   /* Offre distincte des sept services : même nom dans les deux langues. */
   proofsprint: { fr: "/proofsprint", en: "/en/proofsprint" },
+  /* Démonstration fictive, sous l'offre ProofSprint. */
+  proofsprintDemo: { fr: "/proofsprint/exemple", en: "/en/proofsprint/example" },
   legalNotice: { fr: "/mentions-legales", en: "/en/legal-notice" },
   privacy: { fr: "/confidentialite", en: "/en/privacy" },
   terms: { fr: "/conditions-services", en: "/en/terms" },

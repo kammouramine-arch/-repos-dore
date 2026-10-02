@@ -212,6 +212,14 @@ const fr = {
     lead: "Décrivez l'opportunité et l'échéance de l'acheteur. Aucun document à joindre : nous convenons d'abord du périmètre et des modalités de partage.",
     orEmail: "Vous préférez l'e-mail ?",
   },
+  demo: {
+    cta: "Voir un dossier de démonstration",
+    label: "Exemple fictif",
+    intro:
+      "Examinez un exemple complet : 20 questions d’un acheteur, 8 documents sources fictifs, une matrice de réponses traçables, une synthèse de déploiement et un registre des preuves manquantes. Cliquez sur une référence pour consulter l’extrait exact. Cet exemple illustre notre méthode ; il ne constitue pas un résultat client ni une preuve d’économie réalisée.",
+  },
+  feeExplanation:
+    "Le forfait rémunère un travail de cadrage, de lecture et de rapprochement des sources, de rédaction, de construction des supports et de coordination des validations. Son intérêt économique dépend de votre dossier et de la charge réellement évitée. Nous vérifions ces éléments avec vous avant de convenir du périmètre et du prix.",
   card: {
     label: "Nouveau service",
     summary:
@@ -412,6 +420,14 @@ const en: ProofSprintCopy = {
     lead: "Tell us about the opportunity and the buyer's deadline. No documents needed: we first agree the scope and how information will be shared.",
     orEmail: "Prefer email?",
   },
+  demo: {
+    cta: "Inspect a sample evidence pack",
+    label: "Fictional example",
+    intro:
+      "Inspect a worked example: 20 buyer questions, eight fictional source documents, a traceable response matrix, an implementation summary and an evidence-gap register. Click a citation to inspect the exact excerpt. This example demonstrates our method; it is not a client result or evidence of measured savings.",
+  },
+  feeExplanation:
+    "The fee covers scoping, source review and mapping, drafting, building the buyer assets and coordinating review. Whether it is worthwhile depends on your proposal and the work genuinely avoided. We assess those inputs with you before agreeing scope and price.",
   card: {
     label: "New service",
     summary:
