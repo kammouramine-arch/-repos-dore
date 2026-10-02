@@ -1,12 +1,12 @@
 import Link from "next/link";
 import { Fact, LegalSection, LegalShell } from "@/components/legal/LegalShell";
-import { LEGAL_LABELS, hosting, legal, legalComplete, registrationPending } from "@/lib/legal";
+import { LEGAL_LABELS, hosting, legal, legalComplete, tradeName } from "@/lib/legal";
 import { href, routeAlternates } from "@/lib/i18n/routes";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
-/* Hors index tant que des informations obligatoires manquent (SIREN,
-   adresse, téléphone : voir legal.ts). */
+/* Hors index tant qu'une information obligatoire manque (téléphone de
+   l'éditeur : voir legal.ts). */
 export const legalNoticeFrMetadata = () =>
   pageMetadata({
     title: "Mentions légales",
@@ -28,12 +28,10 @@ export function LegalNoticeFr() {
       <LegalSection title="Éditeur du site">
         <p>
           Le site {site.domain} est édité par{" "}
-          <span className="text-fg">{legal.publisherName}</span>, personne physique,
-          sous le nom commercial {site.legalBrand}.
+          <span className="text-fg">{legal.publisherName}, entrepreneur individuel (EI)</span>,
+          qui exerce sous le nom commercial <span className="text-fg">{tradeName}</span>.
         </p>
-        {!legal.siren && <p className="text-fg">{registrationPending.fr}</p>}
         <Fact label={L.legalForm} value={legal.legalForm} />
-        {legal.shareCapital && <Fact label={L.shareCapital} value={legal.shareCapital} />}
         <Fact label={L.address} value={legal.address} />
         <Fact label={L.siren} value={legal.siren} />
         <Fact label={L.siret} value={legal.siret} />

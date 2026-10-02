@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { Fact, LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { LEGAL_LABELS_EN, hosting, legal, legalComplete, registrationPending } from "@/lib/legal";
+import { LEGAL_LABELS_EN, hosting, legal, legalComplete, tradeName } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -26,12 +26,11 @@ export function LegalNoticeEn() {
     >
       <LegalSection title="Publisher">
         <p>
-          {site.domain} is published by <span className="text-fg">{legal.publisherName}</span>, a
-          natural person, under the trading name {site.legalBrand}.
+          {site.domain} is published by{" "}
+          <span className="text-fg">{legal.publisherName}, entrepreneur individuel (EI)</span> — a sole
+          trader under French law — trading under the name <span className="text-fg">{tradeName}</span>.
         </p>
-        {!legal.siren && <p className="text-fg">{registrationPending.en}</p>}
         <Fact locale="en" label={L.legalForm} value={legal.legalForm} />
-        {legal.shareCapital && <Fact locale="en" label={L.shareCapital} value={legal.shareCapital} />}
         <Fact locale="en" label={L.address} value={legal.address} />
         <Fact locale="en" label={L.siren} value={legal.siren} />
         <Fact locale="en" label={L.siret} value={legal.siret} />

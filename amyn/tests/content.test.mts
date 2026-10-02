@@ -75,3 +75,26 @@ test("légal : aucune information inventée, les manques sont détectés", () =>
   assert.ok(missingLegalFields().length > 0, "à mettre à jour quand les mentions seront complètes");
   assert.deepEqual(missingLegalFields({ ...legal, publisherName: "X", legalForm: "EI", siren: "1", address: "A", phone: "0", publicationDirector: "X" }), []);
 });
+
+test("légal : identifiants officiels valides, mention EI, plus aucune mention provisoire", async () => {
+  const { readFileSync, readdirSync } = await import("node:fs");
+  const luhn = (n: string) =>
+    [...n].reverse().reduce((sum, c, i) => {
+      const d = Number(c) * (i % 2 ? 2 : 1);
+      return sum + (d > 9 ? d - 9 : d);
+    }, 0) % 10 === 0;
+  const siren = (legal.siren ?? "").replace(/\s/g, "");
+  const siret = (legal.siret ?? "").replace(/\s/g, "");
+  assert.equal(siren, "130867757");
+  assert.ok(luhn(siren) && luhn(siret) && siret.startsWith(siren) && siret.length === 14);
+  assert.match(legal.legalForm ?? "", /Entrepreneur individuel \(EI\)/);
+  assert.equal(legal.publicationDirector, "Amine Kammour");
+  /* Rien d'inventé : RCS et TVA restent vides tant qu'ils ne sont pas communiqués. */
+  assert.equal(legal.registration, null);
+  assert.equal(legal.vatNumber, null);
+  const dir = new URL("../src/views/legal/", import.meta.url);
+  for (const f of readdirSync(dir)) {
+    const src = readFileSync(new URL(f, dir), "utf8");
+    assert.ok(!/en cours de création|being set up|pas encore attribu|COMPLÉTER/i.test(src), f);
+  }
+});

@@ -3,8 +3,8 @@
  *
  *   npm run check:launch
  *
- * Liste les informations légales obligatoires encore absentes (SIREN,
- * forme juridique, adresse, téléphone — LCEN art. 1-1), et vérifie
+ * Liste les informations légales obligatoires encore absentes (LCEN
+ * art. 1-1 : identité, adresse, SIREN, téléphone…), et vérifie
  * l'hébergeur et la configuration d'envoi des formulaires. Ne remplace pas
  * une relecture juridique.
  */

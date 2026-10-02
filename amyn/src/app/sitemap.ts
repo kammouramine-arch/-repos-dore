@@ -39,8 +39,8 @@ export default function sitemap(): MetadataRoute.Sitemap {
     entries(routeAlternates(key), priority, freq);
 
   /* Confidentialité et conditions sont complètes : indexées. Les mentions
-     légales restent hors index tant que SIREN, adresse et téléphone
-     manquent (voir legal.ts). */
+     légales restent hors index tant qu'une information obligatoire
+     manque (téléphone de l'éditeur) (voir legal.ts). */
   const legal: MetadataRoute.Sitemap = [
     ...route("privacy", 0.2, "yearly"),
     ...route("terms", 0.2, "yearly"),

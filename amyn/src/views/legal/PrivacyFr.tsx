@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
-import { hosting, legal, retention } from "@/lib/legal";
+import { hosting, legal, retention, tradeName } from "@/lib/legal";
 import { href, routeAlternates } from "@/lib/i18n/routes";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -38,9 +38,9 @@ export function PrivacyFr() {
     >
       <LegalSection title="Responsable du traitement">
         <p>
-          <span className="text-fg">{legal.publisherName}</span>, éditeur du site sous le nom
-          commercial {site.legalBrand} (entreprise en cours de création — voir les{" "}
-          <Link href={href("legalNotice", "fr")}>mentions légales</Link>).
+          <span className="text-fg">{legal.publisherName}, entrepreneur individuel (EI)</span>,
+          exerçant sous le nom commercial {tradeName} — SIREN {legal.siren}, {legal.address}{" "}
+          (voir les <Link href={href("legalNotice", "fr")}>mentions légales</Link>).
         </p>
         <p>
           <span className="text-fg">Contact pour toute question sur vos données :</span>{" "}
@@ -197,7 +197,8 @@ export function PrivacyFr() {
           directives sur le sort de vos données après votre décès.
         </p>
         <p>
-          Pour les exercer, écrivez à <a href={`mailto:${site.email}`}>{site.email}</a>.
+          Pour les exercer, écrivez à <a href={`mailto:${site.email}`}>{site.email}</a> ou par
+          courrier à {legal.publisherName} — {tradeName}, {legal.address}.
           Nous répondons dans un délai d&apos;un mois. Si vous estimez que vos droits ne
           sont pas respectés, vous pouvez adresser une réclamation à la CNIL (
           <a href="https://www.cnil.fr/fr/plaintes" rel="noopener noreferrer" target="_blank">

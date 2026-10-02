@@ -321,7 +321,7 @@ function Form({ locale, initial }: { locale: Locale; initial: FirstLookValues })
 
       {last && (
         <p className="mt-6 text-[0.8125rem] leading-relaxed text-fg-3">
-          {t.privacyNoteBefore} {locale === "en" ? retentionEn.requests : retention.requests}.{" "}
+          {t.privacyNoteBefore} {locale === "en" ? retentionEn.requests : retention.requests}. {t.privacyNoteRights}{" "}
           <Link href={href("privacy", locale)} className="underline underline-offset-4">
             {t.privacyNoteLink}
           </Link>

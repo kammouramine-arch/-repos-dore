@@ -53,8 +53,11 @@ const fr = {
     sending: "Envoi en cours…",
     submit: "Recevoir un premier aperçu",
     continue: "Continuer",
-    privacyNoteBefore: "Vos informations servent uniquement à étudier et à répondre à votre demande. Elles sont conservées",
-    privacyNoteLink: "En savoir plus",
+    privacyNoteBefore:
+      "Vos informations sont traitées par AMYN (Amine Kammour, EI) uniquement pour étudier et répondre à votre demande ; elles ne sont ni vendues ni cédées. Elles sont conservées",
+    privacyNoteRights:
+      "Vous pouvez y accéder, les rectifier, les effacer, en limiter l'usage ou vous y opposer en écrivant à contact@amyn.agency, et saisir la CNIL.",
+    privacyNoteLink: "Politique de confidentialité",
     sentTitle: "Merci. Nous regardons d'abord votre activité.",
     sentBody: [
       "Avant de vous proposer quoi que ce soit, nous étudions ce que vous nous avez transmis.",
@@ -146,8 +149,11 @@ const en: Ui = {
     sending: "Sending…",
     submit: "Get a first look",
     continue: "Continue",
-    privacyNoteBefore: "Your information is only used to review and reply to your request. It is kept for",
-    privacyNoteLink: "Learn more",
+    privacyNoteBefore:
+      "Your information is processed by AMYN (Amine Kammour, EI) only to review and reply to your request; it is never sold or passed on. It is kept for",
+    privacyNoteRights:
+      "You can access, correct, erase, restrict or object to its use by writing to contact@amyn.agency, and you can complain to the CNIL.",
+    privacyNoteLink: "Privacy policy",
     sentTitle: "Thank you. We'll look at your business first.",
     sentBody: [
       "Before suggesting anything, we review what you've sent us.",

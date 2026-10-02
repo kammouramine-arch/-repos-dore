@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
-import { registrationPending } from "@/lib/legal";
+import { legal, tradeName } from "@/lib/legal";
 import { href, routeAlternates } from "@/lib/i18n/routes";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
@@ -53,7 +53,10 @@ export function TermsFr() {
           l&apos;article L221-3 du Code de la consommation, dont le droit de rétractation,
           s&apos;appliquent.
         </p>
-        <p>{registrationPending.fr}</p>
+        <p>
+          Le prestataire est {legal.publisherName}, entrepreneur individuel (EI), exerçant sous le
+          nom commercial {tradeName} — SIREN {legal.siren}, SIRET {legal.siret}, {legal.address}.
+        </p>
       </LegalSection>
 
       <LegalSection title="Devis et formation du contrat">

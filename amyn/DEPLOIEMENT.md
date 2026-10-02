@@ -18,34 +18,30 @@
 Le projet Next.js vit dans le sous-dossier **`amyn/`** (Root Directory du
 projet Vercel).
 
-## Informations légales en attente
+## Informations légales
+
+Identité officielle (2 octobre 2026), dans l'objet `legal` de
+`src/lib/legal.ts` : Amine Kammour, entrepreneur individuel (EI), nom
+commercial AMYN, SIREN 130 867 757, SIRET 130 867 757 00010, 18 rue
+Blériot, 59139 Wattignies. Hébergeur : Vercel Inc. (objet `hosting`).
 
 ```bash
 cd amyn
 npm run check:launch
 ```
 
-La commande liste ce qui manque encore. Le site ne montre jamais
-d'emplacement « à compléter » : les pages disent en toutes lettres que
-l'entreprise est en cours de création (`registrationPending` dans
-`src/lib/legal.ts`), et les mentions légales restent en `noindex` (hors du
-plan du site) tant que des champs obligatoires manquent.
+La commande liste ce qui manque encore. À compléter dès que disponible :
 
-Dès réception des identifiants, compléter l'objet `legal` de
-`src/lib/legal.ts` :
-
-1. `legalForm` — forme juridique (ex. « Entrepreneur individuel (EI) »).
-2. `siren`, `siret` — tels qu'ils figurent sur l'avis de situation.
-3. `registration` — immatriculation au RNE (et RCS le cas échéant).
-4. `vatMention` ou `vatNumber` — « TVA non applicable, art. 293 B du CGI »
+1. `phone` — numéro de téléphone publiable (LCEN, art. 1-1). Tant qu'il
+   manque, la page Mentions légales reste en `noindex` et hors du plan du
+   site.
+2. `vatMention` ou `vatNumber` — « TVA non applicable, art. 293 B du CGI »
    en franchise en base, sinon le numéro de TVA intracommunautaire.
-5. `address` — adresse publiable de l'établissement (domiciliation
-   possible ; ne pas publier une adresse privée non choisie pour cela).
-6. `phone` — numéro de téléphone publiable (LCEN, art. 1-1).
+3. `registration` — seulement si l'activité est immatriculée au RCS
+   (activité commerciale) : « RCS de … ».
 
-Puis `npm test`, `npm run check:launch`, commit et push sur la branche de
-production. Les mentions légales repassent alors automatiquement en
-indexable et dans le plan du site. Mettre aussi à jour `LEGAL_UPDATED`.
+Puis mettre à jour `LEGAL_UPDATED`, lancer `npm test` et
+`npm run check:launch`, et pousser sur la branche de production.
 
 ## Activer l'envoi des formulaires
 

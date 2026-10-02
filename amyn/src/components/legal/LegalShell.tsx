@@ -64,8 +64,8 @@ export function LegalSection({
 
 /**
  * Une ligne « intitulé : valeur ». Une valeur absente n'est pas affichée :
- * jamais d'emplacement « à compléter » en ligne. La page concernée dit en
- * toutes lettres ce qui n'existe pas encore (voir `registrationPending`).
+ * jamais d'emplacement vide ou provisoire en ligne. Les informations
+ * manquantes sont signalées par `npm run check:launch`, pas sur le site.
  */
 export function Fact({
   label,

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { registrationPending } from "@/lib/legal";
+import { legal, tradeName } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -42,7 +42,11 @@ export function TermsEn() {
           protective provisions of Article L221-3 of the French Consumer Code, including the right
           of withdrawal, apply.
         </p>
-        <p>{registrationPending.en}</p>
+        <p>
+          The service provider is {legal.publisherName}, entrepreneur individuel (EI) — a sole trader
+          under French law — trading as {tradeName}: SIREN {legal.siren}, SIRET {legal.siret},{" "}
+          {legal.address}.
+        </p>
       </LegalSection>
 
       <LegalSection title="Quotes and formation of the contract">

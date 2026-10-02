@@ -1,10 +1,13 @@
 /**
  * Inventaire des cookies et traceurs du site.
  *
- * Constaté au 28 septembre 2026 par un audit du site rendu (requêtes
- * réseau, cookies et stockage du navigateur) : le site ne dépose aucun
- * cookie, n'utilise ni localStorage ni sessionStorage, et ne charge aucune
- * ressource tierce. Les polices sont servies par le site lui-même.
+ * Constaté le 2 octobre 2026 sur www.amyn.agency (en-têtes HTTP de chaque
+ * type de page et de l'API, requêtes réseau, cookies et stockage du
+ * navigateur, ordinateur et mobile) : aucun cookie, ni localStorage ni
+ * sessionStorage, aucune ressource tierce, aucun script d'analyse (Vercel
+ * Analytics / Speed Insights, Google Analytics, Meta Pixel…). La langue
+ * fait partie de l'adresse (/en) : rien n'est enregistré. Les polices sont
+ * servies par le site lui-même.
  *
  * RÈGLE : tout ajout d'outil de mesure d'audience, de publicité, de réseau
  * social ou de contenu embarqué doit :

@@ -7,7 +7,9 @@
 
 export const site = {
   name: "AMYN",
-  legalBrand: "AMYN Agency",
+  /* Nom commercial officiel. « AMYN Agency » reste une formule de
+     présentation, jamais l'identité légale. */
+  legalBrand: "AMYN",
   domain: "amyn.agency",
   /* Adresse canonique : le domaine nu redirige (308) vers www chez Vercel.
      Canoniques, plan du site et données structurées pointent donc vers la

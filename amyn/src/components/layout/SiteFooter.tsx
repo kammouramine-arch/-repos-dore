@@ -4,6 +4,7 @@ import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { href, servicePath } from "@/lib/i18n/routes";
 import { getUi } from "@/lib/i18n/ui";
+import { legal } from "@/lib/legal";
 import { getServices } from "@/lib/services";
 import { site, social } from "@/lib/site";
 import { Logo } from "./Logo";
@@ -84,7 +85,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
 
         <div className="mt-16 flex flex-col gap-3 border-t border-line pt-8 text-[0.8125rem] text-fg-3 sm:flex-row sm:items-center sm:justify-between">
           <p>
-            © {year} {site.legalBrand}
+            © {year} {site.legalBrand} — {legal.publisherName}, EI
           </p>
           <p>{t.common.studio}</p>
         </div>

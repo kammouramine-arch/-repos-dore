@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { LegalSection, LegalShell } from "@/components/legal/LegalShell";
 import { href, routeAlternates } from "@/lib/i18n/routes";
-import { hosting, legal, retentionEn } from "@/lib/legal";
+import { hosting, legal, retentionEn, tradeName } from "@/lib/legal";
 import { pageMetadata } from "@/lib/seo";
 import { site } from "@/lib/site";
 
@@ -26,9 +26,9 @@ export function PrivacyEn() {
     >
       <LegalSection title="Data controller">
         <p>
-          <span className="text-fg">{legal.publisherName}</span>, publisher of this website under
-          the trading name {site.legalBrand} (business currently being set up — see the{" "}
-          <Link href={href("legalNotice", "en")}>legal notice</Link>).
+          <span className="text-fg">{legal.publisherName}, entrepreneur individuel (EI)</span> (a
+          sole trader under French law), trading as {tradeName} — SIREN {legal.siren},{" "}
+          {legal.address} (see the <Link href={href("legalNotice", "en")}>legal notice</Link>).
         </p>
         <p>
           <span className="text-fg">Contact for any question about your data:</span>{" "}
@@ -169,7 +169,8 @@ export function PrivacyEn() {
           can also set out instructions on what happens to your data after your death.
         </p>
         <p>
-          To exercise them, write to <a href={`mailto:${site.email}`}>{site.email}</a>. We reply
+          To exercise them, write to <a href={`mailto:${site.email}`}>{site.email}</a> or by post to{" "}
+          {legal.publisherName} — {tradeName}, {legal.address}. We reply
           within one month. If you believe your rights haven&apos;t been respected, you can lodge a
           complaint with the CNIL, the French data protection authority (
           <a href="https://www.cnil.fr/fr/plaintes" rel="noopener noreferrer" target="_blank">

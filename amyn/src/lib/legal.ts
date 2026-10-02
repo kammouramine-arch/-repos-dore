@@ -1,19 +1,25 @@
 /**
  * Informations légales de l'éditeur.
  *
- * AUCUNE DE CES VALEURS N'EST INVENTÉE. Un champ `null` n'est pas affiché
- * (jamais d'emplacement « à compléter » en ligne) : la page dit à la place,
- * en toutes lettres, que l'entreprise est en cours de création. Tant qu'un
- * champ obligatoire manque, les mentions légales restent hors des moteurs de
- * recherche et `npm run check:launch` le signale.
+ * AUCUNE DE CES VALEURS N'EST INVENTÉE : elles viennent des identifiants
+ * officiels transmis par l'entrepreneur (2 octobre 2026). Un champ `null`
+ * n'est pas affiché ; tant qu'un champ obligatoire manque, les mentions
+ * légales restent hors des moteurs de recherche et `npm run check:launch`
+ * le signale.
  *
- * Références (vérifiées le 30 septembre 2026) :
- *   - loi n° 2004-575 (LCEN), art. 1-1 : une personne physique éditrice à
- *     titre professionnel publie ses nom, prénoms, domicile et numéro de
- *     téléphone, son numéro d'immatriculation le cas échéant, le directeur
- *     de la publication, et le nom, l'adresse et le téléphone de l'hébergeur ;
- *   - entreprendre.service-public.gouv.fr, fiche F31228 (mentions
- *     obligatoires d'un site internet professionnel).
+ * Références (vérifiées le 2 octobre 2026) :
+ *   - loi n° 2004-575 (LCEN), art. 1-1 (Légifrance) : une personne physique
+ *     éditrice à titre professionnel publie ses nom, prénoms, adresse et
+ *     numéro de téléphone, son numéro d'immatriculation le cas échéant, le
+ *     directeur de la publication, et le nom, l'adresse et le téléphone de
+ *     l'hébergeur ;
+ *   - entreprendre.service-public.gouv.fr, fiche F31228 (mentions d'un site
+ *     d'entrepreneur individuel) et actualité A15744 / décret n° 2022-725 :
+ *     le nom de l'entrepreneur est précédé ou suivi de « entrepreneur
+ *     individuel » ou « EI » ;
+ *   - n° RCS et n° de TVA : seulement s'ils existent (activité commerciale
+ *     immatriculée au RCS ; assujettissement à la TVA). Ni l'un ni l'autre
+ *     n'a été communiqué : ils ne sont pas affichés.
  *
  * Ce fichier ne remplace pas un avis juridique : il rend visibles les
  * informations manquantes, il ne les devine pas.
@@ -40,36 +46,29 @@ export type LegalInfo = {
   insurance: string | null;
 };
 
-/**
- * Situation d'immatriculation, affichée tant que SIREN et SIRET n'existent
- * pas. Formulation factuelle : elle ne prétend ni à une immatriculation ni
- * à un statut qui n'existent pas encore.
- */
-export const registrationPending = {
-  fr: "Entreprise en cours de création : les identifiants SIREN et SIRET ne sont pas encore attribués. Le numéro d'immatriculation, la forme juridique, l'adresse de l'établissement et la situation au regard de la TVA seront publiés sur cette page dès leur attribution.",
-  en: "Business currently being set up: SIREN and SIRET identifiers have not yet been assigned. The registration number, legal form, business address and VAT status will be published on this page as soon as they are issued.",
-} as const;
+/** Nom commercial (enseigne) sous lequel l'entreprise individuelle exerce. */
+export const tradeName = "AMYN";
 
 /*
- * Éditeur : personne physique Amine Kammour, déjà confirmée comme éditeur
- * et directeur de la publication dans la documentation juridique du dépôt
- * (docs/acquisition, branche DEVISERA). Aucune immatriculation n'existe
- * encore (création d'entreprise prévue) : SIREN, SIRET, forme juridique et
- * mention TVA restent vides. L'adresse personnelle ne doit pas être publiée
- * (décision consignée dans la même documentation) : il faut une adresse
- * professionnelle ou une domiciliation.
+ * Éditeur : Amine Kammour, entrepreneur individuel (EI), nom commercial
+ * AMYN. Identifiants officiels transmis le 2 octobre 2026 (SIREN et SIRET
+ * vérifiés par leur clé de contrôle ; l'immatriculation, toute récente,
+ * n'apparaissait pas encore dans l'annuaire public à cette date).
  */
 export const legal: LegalInfo = {
   publisherName: "Amine Kammour",
-  legalForm: null,
+  legalForm: "Entrepreneur individuel (EI)",
   shareCapital: null,
-  siren: null,
-  siret: null,
+  siren: "130 867 757",
+  siret: "130 867 757 00010",
+  /* RCS / RNE : non communiqué, dépend de la nature de l'activité. */
   registration: null,
-  address: null,
+  address: "18 rue Blériot, 59139 Wattignies, France",
+  /* Régime de TVA non communiqué : ni numéro ni mention affichés. */
   vatNumber: null,
   vatMention: null,
   publicationDirector: "Amine Kammour",
+  /* Exigé par la LCEN pour une personne physique ; non communiqué. */
   phone: null,
   insurance: null,
 };
@@ -98,7 +97,7 @@ export const LEGAL_LABELS: Record<keyof LegalInfo, string> = {
   siren: "SIREN",
   siret: "SIRET",
   registration: "Immatriculation (RCS / RNE)",
-  address: "Adresse du siège",
+  address: "Adresse professionnelle",
   vatNumber: "Numéro de TVA intracommunautaire",
   vatMention: "Mention TVA si non assujetti",
   publicationDirector: "Directeur de la publication",
@@ -113,7 +112,7 @@ export const LEGAL_LABELS_EN: Record<keyof LegalInfo, string> = {
   siren: "SIREN number",
   siret: "SIRET number",
   registration: "Registration (RCS / RNE)",
-  address: "Registered address",
+  address: "Business address",
   vatNumber: "EU VAT number",
   vatMention: "VAT statement if not VAT-registered",
   publicationDirector: "Publication director",
@@ -164,5 +163,5 @@ export const retentionEn = {
 } as const;
 
 /** Date de dernière mise à jour affichée sur les pages légales. */
-export const LEGAL_UPDATED = "1er octobre 2026";
-export const LEGAL_UPDATED_EN = "1 October 2026";
+export const LEGAL_UPDATED = "2 octobre 2026";
+export const LEGAL_UPDATED_EN = "2 October 2026";

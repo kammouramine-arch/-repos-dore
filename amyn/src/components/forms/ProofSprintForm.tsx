@@ -111,7 +111,7 @@ export function ProofSprintForm({ locale }: { locale: Locale }) {
       </div>
 
       <p className="mt-6 text-[0.8125rem] leading-relaxed text-fg-3">
-        {ui.form.privacyNoteBefore} {locale === "en" ? retentionEn.requests : retention.requests}.{" "}
+        {ui.form.privacyNoteBefore} {locale === "en" ? retentionEn.requests : retention.requests}. {ui.form.privacyNoteRights}{" "}
         <Link href={href("privacy", locale)} className="underline underline-offset-4">
           {ui.form.privacyNoteLink}
         </Link>
