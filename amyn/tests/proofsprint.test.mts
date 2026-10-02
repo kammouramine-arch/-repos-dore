@@ -46,8 +46,11 @@ test("ProofSprint : mêmes contenus en français et en anglais", () => {
   assert.equal(en.pricing.scope.length, 9);
   assert.equal(fr.hero.primary, "Parlons de votre dossier");
   assert.equal(en.hero.primary, "Discuss your deal");
-  assert.equal(fr.pricing.price, "12 500 € HT");
-  assert.ok(en.pricing.price === "€12,500" && /excluding VAT/.test(en.pricing.priceNote));
+  /* Franchise en base de TVA : prix sans « HT », mention 293 B du CGI. */
+  assert.equal(fr.pricing.price, "12\u202f500\u00a0€");
+  assert.match(fr.pricing.priceNote, /TVA non applicable, article 293 B du CGI/);
+  assert.ok(en.pricing.price === "€12,500" && /VAT not applicable/.test(en.pricing.priceNote));
+  assert.ok(!/\bHT\b|excl\. VAT|excluding VAT/.test(JSON.stringify([fr, en])));
 });
 
 test("ProofSprint : aucune preuve sociale ni promesse inventée", () => {

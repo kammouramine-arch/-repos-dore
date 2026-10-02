@@ -35,7 +35,11 @@ export function LegalNoticeEn() {
         <Fact locale="en" label={L.siren} value={legal.siren} />
         <Fact locale="en" label={L.siret} value={legal.siret} />
         <Fact locale="en" label={L.registration} value={legal.registration} />
-        {legal.vatMention ? <p>{legal.vatMention}</p> : <Fact locale="en" label={L.vatNumber} value={legal.vatNumber} />}
+        {legal.vatMention ? (
+          <p>
+            {legal.vatMention} <span className="text-fg-3">(VAT not applicable — French VAT exemption scheme for small businesses.)</span>
+          </p>
+        ) : <Fact locale="en" label={L.vatNumber} value={legal.vatNumber} />}
         <Fact locale="en" label={L.phone} value={legal.phone} />
         <p>
           <span className="text-fg">Email:</span> <a href={`mailto:${site.email}`}>{site.email}</a>

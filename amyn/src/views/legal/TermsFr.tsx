@@ -84,8 +84,8 @@ export function TermsFr() {
 
       <LegalSection title="Prix, acompte et paiement">
         <p>
-          Les prix sont indiqués dans le devis, en euros, avec la mention du régime de
-          TVA applicable. Le devis précise l&apos;échéancier et les moyens de paiement ; un
+          Les prix sont indiqués dans le devis, en euros. AMYN relève de la franchise
+          en base de TVA : TVA non applicable, article 293 B du CGI. Le devis précise l&apos;échéancier et les moyens de paiement ; un
           acompte peut y être prévu, avec son montant et son échéance.
         </p>
         <p>

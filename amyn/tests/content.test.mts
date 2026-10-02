@@ -72,7 +72,7 @@ test("légal : aucune information inventée, les manques sont détectés", () =>
   for (const key of Object.keys(LEGAL_LABELS) as (keyof typeof legal)[]) {
     assert.ok(legal[key] === null || typeof legal[key] === "string");
   }
-  assert.ok(missingLegalFields().length > 0, "à mettre à jour quand les mentions seront complètes");
+  assert.deepEqual(missingLegalFields(), [], "mentions légales obligatoires complètes");
   assert.deepEqual(missingLegalFields({ ...legal, publisherName: "X", legalForm: "EI", siren: "1", address: "A", phone: "0", publicationDirector: "X" }), []);
 });
 
@@ -89,9 +89,11 @@ test("légal : identifiants officiels valides, mention EI, plus aucune mention p
   assert.ok(luhn(siren) && luhn(siret) && siret.startsWith(siren) && siret.length === 14);
   assert.match(legal.legalForm ?? "", /Entrepreneur individuel \(EI\)/);
   assert.equal(legal.publicationDirector, "Amine Kammour");
-  /* Rien d'inventé : RCS et TVA restent vides tant qu'ils ne sont pas communiqués. */
+  /* Activité libérale non réglementée : pas de RCS. Franchise en base : pas de n° de TVA. */
   assert.equal(legal.registration, null);
   assert.equal(legal.vatNumber, null);
+  assert.equal(legal.vatMention, "TVA non applicable, article 293 B du CGI.");
+  assert.equal(legal.phone, "+33 7 55 88 77 09");
   const dir = new URL("../src/views/legal/", import.meta.url);
   for (const f of readdirSync(dir)) {
     const src = readFileSync(new URL(f, dir), "utf8");

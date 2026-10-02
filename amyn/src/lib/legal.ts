@@ -17,9 +17,10 @@
  *     d'entrepreneur individuel) et actualité A15744 / décret n° 2022-725 :
  *     le nom de l'entrepreneur est précédé ou suivi de « entrepreneur
  *     individuel » ou « EI » ;
- *   - n° RCS et n° de TVA : seulement s'ils existent (activité commerciale
- *     immatriculée au RCS ; assujettissement à la TVA). Ni l'un ni l'autre
- *     n'a été communiqué : ils ne sont pas affichés.
+ *   - n° RCS : seulement pour une activité commerciale. AMYN exerce une
+ *     activité libérale non réglementée (micro-entrepreneur) : non concerné ;
+ *   - TVA : franchise en base → mention « TVA non applicable, article 293 B
+ *     du CGI » à la place d'un numéro de TVA.
  *
  * Ce fichier ne remplace pas un avis juridique : il rend visibles les
  * informations manquantes, il ne les devine pas.
@@ -61,15 +62,16 @@ export const legal: LegalInfo = {
   shareCapital: null,
   siren: "130 867 757",
   siret: "130 867 757 00010",
-  /* RCS / RNE : non communiqué, dépend de la nature de l'activité. */
+  /* Activité libérale non réglementée : pas d'immatriculation au RCS (réservé
+     aux commerçants). Aucune mention d'immatriculation n'est donc affichée. */
   registration: null,
   address: "18 rue Blériot, 59139 Wattignies, France",
-  /* Régime de TVA non communiqué : ni numéro ni mention affichés. */
+  /* Franchise en base de TVA (micro-entrepreneur) : pas de numéro de TVA,
+     mention légale de non-application à la place. */
   vatNumber: null,
-  vatMention: null,
+  vatMention: "TVA non applicable, article 293 B du CGI.",
   publicationDirector: "Amine Kammour",
-  /* Exigé par la LCEN pour une personne physique ; non communiqué. */
-  phone: null,
+  phone: "+33 7 55 88 77 09",
   insurance: null,
 };
 

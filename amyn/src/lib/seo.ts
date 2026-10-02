@@ -126,7 +126,8 @@ export function serviceSchema(service: Service, locale: Locale = "fr") {
 
 /**
  * ProofSprint : un service à prix public. Uniquement des faits publiés sur
- * la page (nom, description, prix hors taxes) — ni avis, ni note.
+ * la page (nom, description, prix ; franchise en base, pas de TVA) — ni
+ * avis, ni note.
  */
 export function proofSprintSchema(locale: Locale = "fr") {
   const t = getProofSprint(locale);
@@ -143,12 +144,6 @@ export function proofSprintSchema(locale: Locale = "fr") {
       "@type": "Offer",
       price: PROOFSPRINT_PRICE_EUR,
       priceCurrency: "EUR",
-      priceSpecification: {
-        "@type": "PriceSpecification",
-        price: PROOFSPRINT_PRICE_EUR,
-        priceCurrency: "EUR",
-        valueAddedTaxIncluded: false,
-      },
     },
   };
 }

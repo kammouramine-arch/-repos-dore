@@ -36,7 +36,7 @@ const fr = {
     lead: "Vous vendez un logiciel ou une prestation d'intégration et votre acheteur attend des réponses techniques, des justificatifs, un plan de déploiement ou un calcul de retour sur investissement ? AMYN Agency transforme vos informations existantes en un dossier clair, adapté à cette opportunité et validé par vos équipes.",
     primary: "Parlons de votre dossier",
     secondary: "Voir les livrables",
-    facts: ["5 jours ouvrés", "12 500 € HT", "Validé par vos experts"],
+    facts: ["5 jours ouvrés", "12 500 €", "Validé par vos experts"],
   },
   visual: {
     aria: "Illustration : des documents sources deviennent une matrice de réponses, une présentation pour l'acheteur et un calcul de retour sur investissement.",
@@ -136,8 +136,8 @@ const fr = {
   pricing: {
     label: "Prix et périmètre",
     title: [{ text: "Un prix fixe, un périmètre", accent: "clair." }] as HeadingLine[],
-    price: "12 500 € HT",
-    priceNote: "pour un ProofSprint standard",
+    price: "12 500 €",
+    priceNote: "pour un ProofSprint standard — TVA non applicable, article 293 B du CGI",
     scopeTitle: "Le périmètre standard",
     scope: [
       "Une opportunité commerciale.",
@@ -217,7 +217,7 @@ const fr = {
     summary:
       "Un dossier commercial structuré pour vos ventes grand compte : réponses documentées, présentation acheteur, calculateur ROI et plan de déploiement.",
     cta: "Découvrir ProofSprint",
-    facts: ["5 jours ouvrés", "12 500 € HT"],
+    facts: ["5 jours ouvrés", "12 500 €"],
   },
 };
 
@@ -238,7 +238,7 @@ const en: ProofSprintCopy = {
     lead: "Selling software or an implementation project, but your buyer still needs technical answers, supporting evidence, a rollout plan or a business case? AMYN Agency turns your existing information into a clear, deal-specific package reviewed and approved by your team.",
     primary: "Discuss your deal",
     secondary: "Explore the deliverables",
-    facts: ["Five business days", "€12,500 excl. VAT", "Approved by your experts"],
+    facts: ["Five business days", "€12,500", "Approved by your experts"],
   },
   visual: {
     aria: "Illustration: source documents become a response matrix, a buyer-facing presentation and a business case.",
@@ -339,7 +339,7 @@ const en: ProofSprintCopy = {
     label: "Pricing and scope",
     title: [{ text: "One fixed price, a", accent: "clear scope." }],
     price: "€12,500",
-    priceNote: "excluding VAT, for a standard ProofSprint",
+    priceNote: "for a standard ProofSprint — VAT not applicable (French tax code, article 293 B)",
     scopeTitle: "Standard scope",
     scope: [
       "One commercial opportunity.",
@@ -417,7 +417,7 @@ const en: ProofSprintCopy = {
     summary:
       "A structured proof package for enterprise sales: source-linked answers, a buyer presentation, an ROI calculator and a rollout summary.",
     cta: "Discover ProofSprint",
-    facts: ["Five business days", "€12,500 excl. VAT"],
+    facts: ["Five business days", "€12,500"],
   },
 };
 
@@ -425,5 +425,5 @@ const copy: Record<Locale, ProofSprintCopy> = { fr, en };
 
 export const getProofSprint = (locale: Locale): ProofSprintCopy => copy[locale];
 
-/** Prix public, pour les données structurées (hors taxes). */
+/** Prix public, pour les données structurées (franchise en base : pas de TVA). */
 export const PROOFSPRINT_PRICE_EUR = 12500;

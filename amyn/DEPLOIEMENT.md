@@ -20,28 +20,21 @@ projet Vercel).
 
 ## Informations légales
 
-Identité officielle (2 octobre 2026), dans l'objet `legal` de
-`src/lib/legal.ts` : Amine Kammour, entrepreneur individuel (EI), nom
-commercial AMYN, SIREN 130 867 757, SIRET 130 867 757 00010, 18 rue
-Blériot, 59139 Wattignies. Hébergeur : Vercel Inc. (objet `hosting`).
+Identité officielle (2 octobre 2026), objet `legal` de `src/lib/legal.ts` :
+Amine Kammour, entrepreneur individuel (EI), nom commercial AMYN, SIREN
+130 867 757, SIRET 130 867 757 00010, 18 rue Blériot, 59139 Wattignies,
+téléphone +33 7 55 88 77 09. Micro-entrepreneur, activité libérale non
+réglementée (pas de RCS), franchise en base de TVA : « TVA non applicable,
+article 293 B du CGI ». Hébergeur : Vercel Inc. (objet `hosting`).
 
-```bash
-cd amyn
-npm run check:launch
-```
+À mettre à jour si la situation change :
 
-La commande liste ce qui manque encore. À compléter dès que disponible :
-
-1. `phone` — numéro de téléphone publiable (LCEN, art. 1-1). Tant qu'il
-   manque, la page Mentions légales reste en `noindex` et hors du plan du
-   site.
-2. `vatMention` ou `vatNumber` — « TVA non applicable, art. 293 B du CGI »
-   en franchise en base, sinon le numéro de TVA intracommunautaire.
-3. `registration` — seulement si l'activité est immatriculée au RCS
-   (activité commerciale) : « RCS de … ».
-
-Puis mettre à jour `LEGAL_UPDATED`, lancer `npm test` et
-`npm run check:launch`, et pousser sur la branche de production.
+- sortie de la franchise en base de TVA → remplacer `vatMention` par
+  `vatNumber` (numéro de TVA intracommunautaire) et afficher les prix HT
+  (ProofSprint : `src/lib/proofsprint.ts`) ;
+- changement d'adresse ou de téléphone → `address`, `phone` ;
+- puis `LEGAL_UPDATED`, `npm test`, `npm run check:launch`, push sur la
+  branche de production.
 
 ## Activer l'envoi des formulaires
 

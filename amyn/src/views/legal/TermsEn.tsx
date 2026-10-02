@@ -72,7 +72,9 @@ export function TermsEn() {
 
       <LegalSection title="Prices, deposit and payment">
         <p>
-          Prices are stated in the quote, in euros, together with the applicable VAT treatment.
+          Prices are stated in the quote, in euros. AMYN is under the French VAT
+          exemption scheme for small businesses (franchise en base): VAT not applicable, article 293 B
+          of the French General Tax Code (CGI).
           The quote sets out the payment schedule and methods; it may provide for a deposit, with
           its amount and due date.
         </p>
