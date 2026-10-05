@@ -38,7 +38,9 @@ export function TermsFr() {
         <p>
           Ces conditions s&apos;appliquent aux prestations proposées par AMYN aux
           professionnels — entreprises, indépendants et associations agissant pour les
-          besoins de leur activité : création et refonte de sites, outils de suivi des
+          besoins de leur activité : conception et mise en place de systèmes commerciaux
+          sur mesure (<Link href={href("revenueOs", "fr")}>AMYN Revenue OS</Link>), Revenue
+          Audit, création et refonte de sites, outils de suivi des
           demandes, applications mobiles, réservation en ligne, amélioration de fiches
           d&apos;établissement, parcours d&apos;accueil client, portfolio et contenus, ainsi que
           le service <Link href={href("proofsprint", "fr")}>ProofSprint</Link> (dossier

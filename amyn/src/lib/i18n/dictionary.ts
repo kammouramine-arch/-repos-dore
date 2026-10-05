@@ -15,14 +15,14 @@ type Line = { text?: string; accent?: string };
 
 const fr = {
   meta: {
-    title: "AMYN — Sites web, applications et outils digitaux sur mesure",
+    title: "AMYN — Revenue OS, automatisation commerciale et produits digitaux sur mesure",
     description:
-      "AMYN conçoit des sites web, des applications et des outils digitaux — réservation, suivi des demandes, accueil client — autour de votre façon de travailler.",
+      "AMYN conçoit et installe Revenue OS, l'infrastructure qui capte vos demandes, les qualifie, automatise les relances et aide votre équipe à conclure — ainsi que des sites, applications et outils digitaux sur mesure.",
     shareDescription:
-      "Montrez-nous votre entreprise. Nous vous montrerons d'abord ce que nous changerions.",
-    shareAlt: "AMYN — sites web, applications et outils digitaux sur mesure",
+      "Faites de votre entreprise un moteur de revenus. AMYN conçoit et installe Revenue OS.",
+    shareAlt: "AMYN — Revenue OS et produits digitaux sur mesure",
     tagline:
-      "Sites web, applications et outils digitaux conçus autour de la façon dont votre entreprise fonctionne réellement.",
+      "Revenue OS, sites, applications et automatisation : des systèmes conçus autour de votre façon de vendre, pour transformer plus de demandes en clients.",
   },
   common: {
     home: "Accueil",
@@ -39,23 +39,11 @@ const fr = {
     cookies: "Cookies",
     terms: "Conditions des services",
   },
-  footer: { services: "Services", studio: "Studio", info: "Informations" },
+  footer: { revenue: "Revenue OS", services: "Capacités", studio: "Studio", info: "Informations" },
 
   hero: {
-    badge: "Studio digital pour les entreprises",
-    words: ["Sites.", "Apps.", "Systèmes."],
-    lead: "Sites web, applications et systèmes digitaux conçus autour de votre activité.",
-    checks: ["Sans engagement", "Une première piste avant tout devis"],
-    notices: [
-      { title: "Réservation confirmée", detail: "2 pers. · ce soir 20:30" },
-      { title: "Nouvelle demande de devis", detail: "Rénovation · infos complètes" },
-    ],
     /* Repères du décor, en fond : décoratifs, jamais des liens. */
     landmarks: ["Expérience", "Analytique", "Automatisation", "Croissance"],
-  },
-  sectors: {
-    aria: "Les métiers que nous accompagnons",
-    items: ["Restaurants", "Artisans", "Salons", "Barbiers", "Entreprises", "Dépannage", "Cuisine", "Architecture"],
   },
   home: {
     services: {
@@ -84,18 +72,6 @@ const fr = {
     work: {
       label: "Réalisations",
       title: [{ text: "Des concepts" }, { text: "qui se", accent: "voient." }] as Line[],
-    },
-    tools: {
-      label: "Au-delà du site",
-      title: [{ text: "Les outils" }, { text: "qui font", accent: "tourner." }] as Line[],
-      lead: "Demandes, devis, réservations, nouveaux clients : ce qui se gère encore à la main peut tenir dans un écran.",
-      captions: ["Suivi des demandes & devis", "Appli terrain", "Réservation"],
-    },
-    method: {
-      label: "Méthode",
-      title: [{ text: "Quatre étapes." }, { accent: "Aucune surprise." }] as Line[],
-      link: "La méthode en détail",
-      commitmentsAria: "Nos engagements",
     },
     testimonials: {
       label: "Ils en parlent",
@@ -128,10 +104,10 @@ const fr = {
   },
 
   servicesPage: {
-    metaTitle: "Services",
+    metaTitle: "Capacités : sites web, applications, outils digitaux",
     metaDescription:
-      "Sites web, suivi des demandes et des devis, applications mobiles, réservation en ligne, fiche Google Business, onboarding client, portfolio : les sept services d'AMYN, sur devis.",
-    label: "Sept services · Sur devis",
+      "Au-delà de Revenue OS : sites web, suivi des demandes et des devis, applications mobiles, réservation en ligne, fiche Google Business, onboarding client, portfolio : les sept services d'AMYN, sur devis.",
+    label: "Capacités · Sur devis",
     title: [{ text: "Ce que nous" }, { accent: "construisons." }] as Line[],
     lead: "Du site à l'application, des outils qui servent vraiment. Souvent combinés, toujours cadrés sur devis.",
     navAria: "Aller à un service",
@@ -283,12 +259,13 @@ export type Dictionary = typeof fr;
 
 const en: Dictionary = {
   meta: {
-    title: "AMYN — Bespoke websites, apps and digital tools",
+    title: "AMYN — Revenue OS, sales automation and bespoke digital products",
     description:
-      "AMYN designs websites, apps and digital tools — booking, request tracking, client onboarding — around the way your business actually works.",
-    shareDescription: "Show us your business. We'll show you first what we would change.",
-    shareAlt: "AMYN — bespoke websites, apps and digital tools",
-    tagline: "Websites, apps and digital tools designed around the way your business actually works.",
+      "AMYN designs and installs Revenue OS, the infrastructure that captures enquiries, qualifies them, automates follow-up and helps your team close — plus bespoke websites, apps and digital tools.",
+    shareDescription: "Turn your business into a revenue engine. AMYN designs and installs Revenue OS.",
+    shareAlt: "AMYN — Revenue OS and bespoke digital products",
+    tagline:
+      "Revenue OS, websites, apps and automation: systems designed around the way you sell, so more enquiries become customers.",
   },
   common: {
     home: "Home",
@@ -305,22 +282,10 @@ const en: Dictionary = {
     cookies: "Cookies",
     terms: "Terms of service",
   },
-  footer: { services: "Services", studio: "Studio", info: "Information" },
+  footer: { revenue: "Revenue OS", services: "Capabilities", studio: "Studio", info: "Information" },
 
   hero: {
-    badge: "A digital studio for businesses",
-    words: ["Sites.", "Apps.", "Systems."],
-    lead: "Websites, apps and digital systems designed around the way your business works.",
-    checks: ["No obligation", "A first direction before any quote"],
-    notices: [
-      { title: "Booking confirmed", detail: "2 guests · tonight 8:30pm" },
-      { title: "New quote request", detail: "Renovation · details complete" },
-    ],
     landmarks: ["Experience", "Analytics", "Automation", "Growth"],
-  },
-  sectors: {
-    aria: "The trades we work with",
-    items: ["Restaurants", "Trades", "Salons", "Barbers", "Businesses", "Repairs", "Kitchens", "Architecture"],
   },
   home: {
     services: {
@@ -349,18 +314,6 @@ const en: Dictionary = {
     work: {
       label: "Work",
       title: [{ text: "Concepts" }, { text: "you can", accent: "see." }],
-    },
-    tools: {
-      label: "Beyond the website",
-      title: [{ text: "The tools" }, { text: "that keep things", accent: "running." }],
-      lead: "Requests, quotes, bookings, new clients: what's still handled by hand can fit on a single screen.",
-      captions: ["Request & quote tracking", "Field app", "Booking"],
-    },
-    method: {
-      label: "Method",
-      title: [{ text: "Four steps." }, { accent: "No surprises." }],
-      link: "The method in detail",
-      commitmentsAria: "Our commitments",
     },
     testimonials: {
       label: "Client feedback",
@@ -393,10 +346,10 @@ const en: Dictionary = {
   },
 
   servicesPage: {
-    metaTitle: "Services",
+    metaTitle: "Capabilities: websites, apps, digital tools",
     metaDescription:
-      "Websites, request and quote tracking, mobile apps, online booking, Google Business Profile, client onboarding and portfolios: AMYN's seven services, priced on quote.",
-    label: "Seven services · Priced on quote",
+      "Beyond Revenue OS: websites, request and quote tracking, mobile apps, online booking, Google Business Profile, client onboarding and portfolios: AMYN's seven services, priced on quote.",
+    label: "Capabilities · Priced on quote",
     title: [{ text: "What we" }, { accent: "build." }],
     lead: "From websites to apps, tools that genuinely earn their place. Often combined, always scoped on quote.",
     navAria: "Jump to a service",

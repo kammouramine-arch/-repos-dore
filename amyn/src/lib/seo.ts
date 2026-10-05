@@ -3,6 +3,7 @@ import { OG_LOCALE, type Locale } from "./i18n/config.ts";
 import type { Alternates } from "./i18n/routes.ts";
 import { href, servicePath } from "./i18n/routes.ts";
 import { PROOFSPRINT_PRICE_EUR, getProofSprint } from "./proofsprint.ts";
+import { REVENUE_OS_FROM_EUR, getRevenue } from "./revenue-os.ts";
 import type { Service } from "./services.ts";
 import { legal } from "./legal.ts";
 import { site } from "./site.ts";
@@ -83,7 +84,7 @@ const ORG_ID = `${site.url}/#organisation`;
 
 const TAGLINE: Record<Locale, string> = {
   fr: site.tagline,
-  en: "Websites, apps and digital tools designed around the way your business actually works.",
+  en: "Revenue OS, websites, apps and automation: systems designed around the way you sell, so more enquiries become customers.",
 };
 
 export function organizationSchema(locale: Locale = "fr") {
@@ -145,6 +146,47 @@ export function proofSprintSchema(locale: Locale = "fr") {
       price: PROOFSPRINT_PRICE_EUR,
       priceCurrency: "EUR",
     },
+  };
+}
+
+/**
+ * Revenue OS : mise en place sur mesure, prix d'entrée publié (« à partir
+ * de »). Ni avis, ni note, ni résultat client.
+ */
+export function revenueOsSchema(locale: Locale = "fr") {
+  const t = getRevenue(locale).meta;
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: "AMYN Revenue OS",
+    serviceType: locale === "en" ? "Sales automation and AI business systems" : "Automatisation commerciale et systèmes IA",
+    description: t.pageDescription,
+    url: `${site.url}${href("revenueOs", locale)}`,
+    inLanguage: locale,
+    provider: { "@id": ORG_ID },
+    areaServed: { "@type": "Country", name: "France" },
+    audience: { "@type": "BusinessAudience" },
+    offers: {
+      "@type": "Offer",
+      priceSpecification: {
+        "@type": "PriceSpecification",
+        minPrice: REVENUE_OS_FROM_EUR,
+        priceCurrency: "EUR",
+      },
+    },
+  };
+}
+
+/** Questions fréquentes affichées sur la page (texte identique). */
+export function faqSchema(items: { q: string; a: string }[]) {
+  return {
+    "@context": "https://schema.org",
+    "@type": "FAQPage",
+    mainEntity: items.map((item) => ({
+      "@type": "Question",
+      name: item.q,
+      acceptedAnswer: { "@type": "Answer", text: item.a },
+    })),
   };
 }
 

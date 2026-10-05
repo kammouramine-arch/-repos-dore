@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { SiteFooter } from "@/components/layout/SiteFooter";
 import { SiteHeader } from "@/components/layout/SiteHeader";
 import { Ambient } from "@/components/ui/Ambient";
+import { AnalyticsBridge } from "@/components/ui/AnalyticsBridge";
 import { Interactions } from "@/components/ui/Interactions";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { RevealObserver } from "@/components/ui/RevealObserver";
@@ -37,6 +38,7 @@ export function SiteShell({ locale, children }: { locale: Locale; children: Reac
         <SiteFooter locale={locale} />
         <RevealObserver />
         <Interactions />
+        <AnalyticsBridge />
         <JsonLd data={organizationSchema(locale)} />
       </body>
     </html>

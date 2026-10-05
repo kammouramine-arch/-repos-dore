@@ -1,41 +1,57 @@
 import Image from "next/image";
-import { Faq } from "@/components/home/Faq";
-import { FirstLook } from "@/components/home/FirstLook";
 import { Hero } from "@/components/home/Hero";
-import { SectorStrip } from "@/components/home/SectorStrip";
-import { FinalCta, Method, Tools, Work } from "@/components/home/Sections";
+import { Work } from "@/components/home/Sections";
 import { ServicesShowcase } from "@/components/home/ServicesShowcase";
-import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
 import { Testimonials, hasTestimonials } from "@/components/home/Testimonials";
+import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
+import {
+  AudienceSection,
+  CalculatorSection,
+  CapabilitiesSection,
+  DashboardSection,
+  FlagshipIntro,
+  ModulesSection,
+  OfferSection,
+  ProblemSection,
+  ProcessSection,
+  ReactivationSection,
+  RevenueFaq,
+  RevenueFinale,
+  StorySection,
+  SystemStatement,
+} from "@/components/revenue/RevenueSections";
 import { ButtonLink } from "@/components/ui/Button";
+import { JsonLd } from "@/components/ui/JsonLd";
 import { Container, Heading, Label, Section } from "@/components/ui/Layout";
-import { getFaq } from "@/lib/faq";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
 import { ctas } from "@/lib/i18n/nav";
 import { routeAlternates, servicePath } from "@/lib/i18n/routes";
-import { pageMetadata } from "@/lib/seo";
+import { getRevenue } from "@/lib/revenue-os";
+import { faqSchema, pageMetadata } from "@/lib/seo";
 import { getServices } from "@/lib/services";
 import { shot, shotSrc } from "@/lib/visuals";
 
 export function homeMetadata(locale: Locale) {
-  const t = getDictionary(locale);
+  const t = getRevenue(locale).meta;
   return {
     ...pageMetadata({
-      title: t.meta.title,
-      description: t.meta.description,
+      title: t.homeTitle,
+      description: t.homeDescription,
       locale,
       alternates: routeAlternates("home"),
     }),
     /* L'accueil porte le titre complet, sans le suffixe « · AMYN ». */
-    title: { absolute: t.meta.title },
+    title: { absolute: t.homeTitle },
   };
 }
 
 /**
- * Accueil — montrer plutôt qu'expliquer : ce que fait AMYN, pour qui, les
- * sept services, la preuve (réalisations, outils), la méthode, et une seule
- * action : le premier aperçu.
+ * Accueil — l'offre phare d'abord : AMYN Revenue OS (le système, ses
+ * modules, un scénario, la vue direction, le calculateur, l'engagement),
+ * puis les capacités plus larges d'AMYN (sites, applications, produits),
+ * les sept services, les réalisations et une seule action : le Revenue
+ * Audit.
  *
  * Les chapitres sont numérotés dans l'ordre d'affichage : si une section
  * n'a rien à montrer (témoignages), la numérotation reste continue.
@@ -43,13 +59,22 @@ export function homeMetadata(locale: Locale) {
 export function HomePage({ locale }: { locale: Locale }) {
   const t = getDictionary(locale);
   const cta = ctas(locale);
+  const faq = getRevenue(locale).faq.items.slice(0, 5);
 
   const chapters = [
+    "flagship",
+    "modules",
+    "story",
+    "problem",
+    "reactivation",
+    "dashboard",
+    "calculator",
+    "audience",
+    "process",
+    "offer",
+    "capabilities",
     "services",
-    "firstLook",
     "work",
-    "tools",
-    "method",
     ...(hasTestimonials(locale) ? ["testimonials"] : []),
     "faq",
     "final",
@@ -81,10 +106,22 @@ export function HomePage({ locale }: { locale: Locale }) {
 
   return (
     <>
+      <JsonLd data={faqSchema(faq)} />
       <Hero locale={locale} />
-      <SectorStrip locale={locale} />
+      <SystemStatement locale={locale} />
+      <FlagshipIntro locale={locale} number={n("flagship")} />
+      <ModulesSection locale={locale} number={n("modules")} />
+      <StorySection locale={locale} number={n("story")} />
+      <ProblemSection locale={locale} number={n("problem")} />
+      <ReactivationSection locale={locale} number={n("reactivation")} />
+      <DashboardSection locale={locale} number={n("dashboard")} />
+      <CalculatorSection locale={locale} number={n("calculator")} />
+      <AudienceSection locale={locale} number={n("audience")} />
+      <ProcessSection locale={locale} number={n("process")} />
+      <OfferSection locale={locale} number={n("offer")} />
+      <CapabilitiesSection locale={locale} number={n("capabilities")} />
 
-      <Section labelledBy="services-titre" className="seam">
+      <Section tone="ink-2" labelledBy="services-titre" className="seam">
         <Container>
           <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
             <div>
@@ -105,13 +142,10 @@ export function HomePage({ locale }: { locale: Locale }) {
         </Container>
       </Section>
 
-      <FirstLook locale={locale} number={n("firstLook")} />
       <Work locale={locale} number={n("work")} />
-      <Tools locale={locale} number={n("tools")} />
-      <Method locale={locale} number={n("method")} />
       <Testimonials locale={locale} number={n("testimonials")} />
-      <Faq locale={locale} items={getFaq(locale).slice(0, 5)} number={n("faq")} size="lg" />
-      <FinalCta locale={locale} number={n("final")} />
+      <RevenueFaq locale={locale} number={n("faq")} items={faq} />
+      <RevenueFinale locale={locale} number={n("final")} />
     </>
   );
 }

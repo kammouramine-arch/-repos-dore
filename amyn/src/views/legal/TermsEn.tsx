@@ -30,7 +30,8 @@ export function TermsEn() {
         <p>
           These terms apply to the services AMYN offers to professionals — businesses,
           self-employed people and organisations acting for the purposes of their activity:
-          website creation and redesign, request-tracking tools, mobile apps, online booking,
+          design and implementation of bespoke sales systems (
+          <Link href={href("revenueOs", "en")}>AMYN Revenue OS</Link>), the Revenue Audit, website creation and redesign, request-tracking tools, mobile apps, online booking,
           business profile improvements, client onboarding, portfolio and content, as well as the{" "}
           <Link href={href("proofsprint", "en")}>ProofSprint</Link> service (an enterprise deal proof
           package whose price, standard scope and payment schedule are published on its page). They

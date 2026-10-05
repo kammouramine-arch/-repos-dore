@@ -13,11 +13,16 @@ export function SiteFooter({ locale }: { locale: Locale }) {
   const year = new Date().getFullYear();
   const t = getDictionary(locale);
   const n = getUi(locale).nav;
+  const cta = getUi(locale).cta;
+  const revenue = [
+    { label: "AMYN Revenue OS™", href: href("revenueOs", locale) },
+    { label: cta.revenueAuditShort, href: href("revenueAudit", locale) },
+    { label: n.proofsprint, href: href("proofsprint", locale) },
+  ];
   const studio = [
     { label: n.work, href: href("work", locale) },
     { label: n.method, href: href("method", locale) },
     { label: n.about, href: href("about", locale) },
-    { label: n.proofsprint, href: href("proofsprint", locale) },
     { label: n.firstLook, href: href("firstLook", locale) },
   ];
   const legalNav = [
@@ -30,8 +35,8 @@ export function SiteFooter({ locale }: { locale: Locale }) {
   return (
     <footer className="tone-ink border-t border-line pb-10 pt-16 sm:pt-20">
       <Container>
-        <div className="grid gap-12 lg:grid-cols-12">
-          <div className="lg:col-span-4">
+        <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12">
+          <div className="sm:col-span-2 lg:col-span-4">
             <Link href={href("home", locale)} aria-label={`${site.name} — ${t.common.homeAria}`} className="inline-block">
               <Logo />
             </Link>
@@ -46,7 +51,15 @@ export function SiteFooter({ locale }: { locale: Locale }) {
             </a>
           </div>
 
-          <FooterColumn title={t.footer.services} className="lg:col-span-3 lg:col-start-6">
+          <FooterColumn title={t.footer.revenue} className="lg:col-span-2">
+            {revenue.map((item) => (
+              <FooterLink key={item.href} href={item.href}>
+                {item.label}
+              </FooterLink>
+            ))}
+          </FooterColumn>
+
+          <FooterColumn title={t.footer.services} className="lg:col-span-2">
             {getServices(locale).map((s) => (
               <FooterLink key={s.slug} href={servicePath(s.slug, locale)}>
                 {s.short}

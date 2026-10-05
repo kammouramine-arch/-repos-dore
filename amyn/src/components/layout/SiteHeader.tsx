@@ -18,7 +18,7 @@ import { AmynMark, Logo } from "./Logo";
  * En-tête.
  *
  * Transparent en haut de page ; dès qu'on défile, il devient une barre de
- * verre (flou, filet, ombre douce). Une seule action : le premier aperçu.
+ * verre (flou, filet, ombre douce). Une seule action : le Revenue Audit.
  *
  * Sur téléphone, le menu s'ouvre en cercle depuis le bouton, comme une
  * application : grands liens numérotés, arrivée en cascade, action en bas
@@ -138,8 +138,14 @@ export function SiteHeader({ locale }: { locale: Locale }) {
           <div className="flex items-center gap-2">
             <LanguageSwitcher locale={locale} />
             <span className="hidden md:block">
-              <Link href={cta.firstLook.href} data-magnetic="" className={buttonClass("primary", "", "sm")}>
-                {cta.firstLook.label}
+              <Link
+                href={cta.revenueAudit.href}
+                data-magnetic=""
+                data-track="revenue_audit_cta_clicked"
+                data-track-place="header"
+                className={buttonClass("primary", "", "sm")}
+              >
+                {cta.revenueAudit.short}
                 <ArrowRight className="nudge size-4" />
               </Link>
             </span>
@@ -198,7 +204,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
         <Container className="relative flex flex-1 flex-col justify-between gap-10 pb-8 pt-6">
           <nav aria-label={t.menuNav}>
             <ul>
-              {[...nav, { label: getUi(locale).nav.firstLook, href: cta.firstLook.href }].map((item, i) => (
+              {nav.map((item, i) => (
                 <li
                   key={item.href}
                   className={`transition-[opacity,transform] duration-700 ease-[var(--ease-out)] ${
@@ -234,11 +240,13 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             style={{ transitionDelay: open ? "420ms" : "0ms" }}
           >
             <Link
-              href={cta.firstLook.href}
+              href={cta.revenueAudit.href}
+              data-track="revenue_audit_cta_clicked"
+              data-track-place="menu"
               onClick={() => close(false)}
               className={buttonClass("primary", "w-full !min-h-14 text-[1rem]")}
             >
-              {cta.firstLook.label}
+              {cta.revenueAudit.label}
               <ArrowRight className="nudge size-4" />
             </Link>
             <a href={`mailto:${site.email}`} className="text-center text-[0.9375rem] text-bone-2">

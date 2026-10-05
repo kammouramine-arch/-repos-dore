@@ -74,6 +74,12 @@ export function PrivacyFr() {
                 <td className={cell}>Mesures précontractuelles prises à votre demande (art. 6.1.b RGPD)</td>
               </tr>
               <tr>
+                <th scope="row" className={`${cell} font-medium text-fg`}>Demande de Revenue Audit</th>
+                <td className={cell}>Entreprise, site web, secteur, tranches de chiffre d&apos;affaires, d&apos;effectif, de volume de demandes et de valeur client, outils de suivi, sources de demandes, difficultés constatées, nom, fonction facultative, e-mail professionnel, téléphone facultatif</td>
+                <td className={cell}>Étudier votre parcours commercial, vous répondre et, si l&apos;audit convient, en convenir des modalités</td>
+                <td className={cell}>Mesures précontractuelles prises à votre demande (art. 6.1.b RGPD)</td>
+              </tr>
+              <tr>
                 <th scope="row" className={`${cell} font-medium text-fg`}>E-mails échangés</th>
                 <td className={cell}>Adresse e-mail et contenu des messages</td>
                 <td className={cell}>Correspondre avec vous</td>

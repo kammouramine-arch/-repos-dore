@@ -4,6 +4,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, delay } from "@/components/ui/Layout";
 import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
+import { RevenueOsCard } from "@/components/revenue/RevenueOsCard";
 import { Shot } from "@/components/visuals/Shots";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -26,7 +27,8 @@ export function servicesMetadata(locale: Locale) {
 }
 
 /**
- * Services — sept blocs, chacun avec son écran. On voit ce que c'est avant
+ * Capacités — l'offre phare (Revenue OS) en tête, puis sept blocs, chacun
+ * avec son écran. On voit ce que c'est avant
  * de lire quoi que ce soit ; le détail est sur la page du service.
  */
 export function ServicesPage({ locale }: { locale: Locale }) {
@@ -59,6 +61,13 @@ export function ServicesPage({ locale }: { locale: Locale }) {
           </ol>
         </nav>
       </PageHero>
+
+      {/* L'offre phare d'abord ; les capacités ci-dessous la complètent. */}
+      <Section tone="ink" spacing="tight" className="seam">
+        <Container>
+          <RevenueOsCard locale={locale} />
+        </Container>
+      </Section>
 
       {services.map((service, index) => {
         const price = priceLabel(service.pricing, locale);

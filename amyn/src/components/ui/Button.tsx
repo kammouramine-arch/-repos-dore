@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { ReactNode } from "react";
 import { ArrowRight } from "./Icons";
+import type { TrackEvent } from "@/lib/analytics";
 
 type Variant = "primary" | "secondary" | "text";
 
@@ -28,6 +29,8 @@ export function ButtonLink({
   size = "md",
   arrow = true,
   className = "",
+  track,
+  trackPlace,
 }: {
   href: string;
   children: ReactNode;
@@ -35,10 +38,16 @@ export function ButtonLink({
   size?: "md" | "sm";
   arrow?: boolean;
   className?: string;
+  /** Événement de conversion émis au clic (voir lib/analytics.ts). */
+  track?: TrackEvent;
+  /** Emplacement du bouton, transmis avec l'événement. */
+  trackPlace?: string;
 }) {
   return (
     <Link
       href={href}
+      data-track={track}
+      data-track-place={track ? trackPlace : undefined}
       data-magnetic={variant === "text" ? undefined : ""}
       className={buttonClass(variant, className, size)}
     >

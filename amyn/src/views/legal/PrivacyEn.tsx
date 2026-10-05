@@ -62,6 +62,12 @@ export function PrivacyEn() {
                 <td className={cell}>Pre-contractual steps taken at your request (Art. 6(1)(b) GDPR)</td>
               </tr>
               <tr>
+                <th scope="row" className={`${cell} font-medium text-fg`}>Revenue Audit request</th>
+                <td className={cell}>Company, website, sector, revenue, headcount, enquiry-volume and customer-value ranges, tracking tools, lead sources, issues observed, name, optional role, work email, optional phone</td>
+                <td className={cell}>Review your sales journey, reply to you and, if the audit is a fit, agree its terms</td>
+                <td className={cell}>Pre-contractual steps taken at your request (Art. 6(1)(b) GDPR)</td>
+              </tr>
+              <tr>
                 <th scope="row" className={`${cell} font-medium text-fg`}>Emails exchanged</th>
                 <td className={cell}>Email address and message content</td>
                 <td className={cell}>Corresponding with you</td>

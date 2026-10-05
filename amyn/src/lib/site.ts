@@ -19,7 +19,7 @@ export const site = {
   locale: "fr_FR",
   /* Phrase de positionnement, reprise par le SEO et le pied de page. */
   tagline:
-    "Sites web, applications et outils digitaux conçus autour de la façon dont votre entreprise fonctionne réellement.",
+    "Revenue OS, sites, applications et automatisation : des systèmes conçus autour de votre façon de vendre, pour transformer plus de demandes en clients.",
 } as const;
 
 /**
