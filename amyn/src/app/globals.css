@@ -1,5 +1,24 @@
 @import "tailwindcss";
 
+/* Mises en page du Revenue Audit : celles de l'ordinateur s'appliquent
+   aussi à l'impression (une page A4 fait ~680 px de large). */
+@custom-variant doc {
+  @media (width >= 64rem) {
+    @slot;
+  }
+  @media print {
+    @slot;
+  }
+}
+@custom-variant docmd {
+  @media (width >= 48rem) {
+    @slot;
+  }
+  @media print {
+    @slot;
+  }
+}
+
 /* ==========================================================================
    AMYN — système de design
 
@@ -1810,5 +1829,239 @@ html.has-pointer .cursor-halo {
   to {
     transform: translate(-50%, 1.9rem);
     opacity: 0;
+  }
+}
+
+/* --- Démonstration Revenue OS ------------------------------------------- */
+@media (prefers-reduced-motion: no-preference) {
+  .demo-stage-in {
+    animation: demo-stage-in 0.6s var(--ease-out) both;
+  }
+  .demo-zoom {
+    animation: demo-zoom 1.1s var(--ease-out) both;
+  }
+  .demo-travel {
+    animation: demo-travel 0.9s var(--ease-out) infinite;
+  }
+  .demo-msg {
+    animation: demo-msg 0.45s var(--ease-out) both;
+  }
+  .demo-dot {
+    animation: demo-dot 1s ease-in-out infinite;
+  }
+  .demo-type {
+    animation: demo-type 0.7s steps(18, end) both;
+  }
+  .demo-flow {
+    stroke-dasharray: 0.07 0.93;
+    animation: demo-flow 2.6s linear infinite;
+  }
+}
+.demo-flow {
+  stroke-dasharray: 0 1;
+}
+@keyframes demo-stage-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+@keyframes demo-zoom {
+  from {
+    opacity: 0;
+    transform: scale(1.12);
+    filter: blur(6px);
+  }
+}
+@keyframes demo-travel {
+  from {
+    top: 0;
+    left: 0;
+    opacity: 0;
+  }
+  30% {
+    opacity: 1;
+  }
+  to {
+    top: 100%;
+    left: 100%;
+    opacity: 0;
+  }
+}
+@keyframes demo-msg {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+@keyframes demo-dot {
+  0%,
+  100% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+@keyframes demo-type {
+  from {
+    clip-path: inset(0 100% 0 0);
+  }
+  to {
+    clip-path: inset(0 0 0 0);
+  }
+}
+@keyframes demo-flow {
+  from {
+    stroke-dashoffset: 0.07;
+  }
+  to {
+    stroke-dashoffset: -0.93;
+  }
+}
+
+/* --- Revenue Audit ------------------------------------------------------- */
+.audit {
+  --audit-gold: var(--color-gold);
+  --audit-risk: #c9634f;
+  /* L'en-tête du site est fixe : le document commence sous lui. */
+  padding-top: var(--header-h);
+}
+html[data-presenting] .audit {
+  padding-top: 0;
+}
+.audit .tone-paper {
+  --audit-gold: #a8864a;
+  --audit-risk: #a2402c;
+  /* Mentions plus foncées : lisibles aussi sur les cartes (papier 2). */
+  --fg-3: #59544d;
+  --accent: #6b5326;
+}
+.audit-print-only {
+  display: none;
+}
+
+/* Présentation : le site s'efface, une section par écran. */
+html[data-presenting] {
+  scroll-snap-type: y proximity;
+}
+html[data-presenting] [data-site-chrome] {
+  display: none;
+}
+html[data-presenting] .audit-toolbar {
+  top: 0;
+}
+html[data-presenting] .audit-cover {
+  min-height: 100svh;
+}
+html[data-presenting] .audit-section,
+html[data-presenting] .audit-cover {
+  scroll-snap-align: start;
+  scroll-margin-top: 3.25rem;
+}
+html[data-presenting] .audit-section {
+  min-height: 100svh;
+}
+
+/* Impression / PDF : un document clair, page A4, sans interface. */
+@media print {
+  @page {
+    size: A4;
+    margin: 16mm 15mm 18mm;
+  }
+  html {
+    font-size: 10.5px;
+    scroll-snap-type: none;
+  }
+  html,
+  body {
+    background: #fff !important;
+  }
+  .audit {
+    padding-top: 0;
+  }
+  * {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+  [data-site-chrome],
+  [data-print-hide],
+  .ambient,
+  .thread,
+  .cursor-halo,
+  a[href="#contenu"] {
+    display: none !important;
+  }
+  .audit-print-only {
+    display: block;
+  }
+  [data-reveal],
+  .rise,
+  .rise-line,
+  .mask-line > span {
+    opacity: 1 !important;
+    transform: none !important;
+    clip-path: none !important;
+    animation: none !important;
+  }
+  .audit .audit-section {
+    padding-top: 0;
+    padding-bottom: 0;
+    break-before: page;
+    min-height: 0 !important;
+  }
+  /* Sections sombres (investissement, prochaine étape) : en clair sur papier. */
+  .audit .audit-ink {
+    color-scheme: light;
+    --canvas: #fff;
+    --surface: var(--color-paper-2);
+    --fg: var(--color-ink);
+    --fg-2: var(--color-graphite);
+    --fg-3: #6b665e;
+    --line: rgb(10 10 10 / 0.12);
+    --line-strong: rgb(10 10 10 / 0.24);
+    --accent: var(--color-gold-ink);
+    --audit-gold: #a8864a;
+    --audit-risk: #a2402c;
+  }
+  .audit .tone-paper,
+  .audit .audit-ink {
+    --canvas: #fff;
+    background-image: none !important;
+    background-color: #fff !important;
+  }
+  .audit .audit-ink .accent {
+    color: var(--color-gold-ink) !important;
+  }
+  /* Investissement, prochaine étape et sources se suivent sans saut forcé. */
+  .audit #nextStep,
+  .audit #sources {
+    break-before: auto;
+    padding-top: 10mm;
+  }
+  .audit-avoid,
+  .audit li,
+  .audit article {
+    break-inside: avoid;
+  }
+  .audit h2,
+  .audit h3 {
+    break-after: avoid;
+  }
+  /* Couverture : pleine page sombre. */
+  .audit .audit-cover {
+    background: #0c0b0a !important;
+    height: 297mm;
+    min-height: 0;
+    padding: 18mm 15mm;
+    break-after: page;
+  }
+  .audit .audit-cover > div {
+    max-width: none;
+    padding: 0;
+  }
+  .audit input {
+    border: none;
+    padding-left: 0;
   }
 }

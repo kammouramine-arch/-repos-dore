@@ -2,6 +2,7 @@ import { PageHero } from "@/components/layout/PageHero";
 import { RevenueFlow } from "@/components/revenue/RevenueFlow";
 import {
   ArchitectureSection,
+  DemoBanner,
   AudienceSection,
   CalculatorSection,
   IntegrationsSection,
@@ -87,8 +88,8 @@ export function RevenueOsPage({ locale }: { locale: Locale }) {
           >
             {ui.cta.revenueAudit}
           </ButtonLink>
-          <ButtonLink href={`#${locale === "fr" ? "calculateur" : "calculator"}`} variant="secondary" className="!min-h-14">
-            {r.calculator.label}
+          <ButtonLink href={href("revenueOsDemo", locale)} variant="secondary" className="!min-h-14 border-gold/60" track="revenue_os_cta_clicked" trackPlace="demo_link">
+            {r.demo.cta}
           </ButtonLink>
         </div>
         <ul className="mt-8 flex flex-wrap gap-x-5 gap-y-2 text-[0.875rem] text-fg-3">
@@ -101,6 +102,7 @@ export function RevenueOsPage({ locale }: { locale: Locale }) {
         </ul>
       </PageHero>
 
+      <DemoBanner locale={locale} />
       <SystemStatement locale={locale} />
       <ProblemSection locale={locale} number={n("problem")} />
       <ArchitectureSection locale={locale} number={n("architecture")} />

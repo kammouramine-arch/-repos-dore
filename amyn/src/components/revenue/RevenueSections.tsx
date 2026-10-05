@@ -5,7 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { ArrowUpRight, Check } from "@/components/ui/Icons";
 import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
 import type { Locale } from "@/lib/i18n/config";
-import { href, servicePath } from "@/lib/i18n/routes";
+import { SAMPLE_AUDIT, auditPath, href, servicePath } from "@/lib/i18n/routes";
 import { getRevenue, type CapabilityKey } from "@/lib/revenue-os";
 import { site } from "@/lib/site";
 import { LeadStory } from "./LeadStory";
@@ -134,6 +134,46 @@ export function ModulesSection({ locale, number }: Props) {
         </div>
         <div className="mt-14">
           <ModuleMap t={t} />
+        </div>
+      </Container>
+    </Section>
+  );
+}
+
+/* --- Démonstration interactive -------------------------------------------- */
+
+export function DemoBanner({ locale }: Props) {
+  const t = getRevenue(locale).demo;
+  return (
+    <Section spacing="tight" labelledBy="rev-demo" className="seam overflow-hidden">
+      <Container>
+        <div className={`${panel} relative grid gap-8 overflow-hidden p-6 sm:p-10 lg:grid-cols-12 lg:items-center lg:gap-10`}>
+          <div aria-hidden className="pointer-events-none absolute -right-24 -top-24 size-80 rounded-full bg-[radial-gradient(closest-side,rgb(198_167_106/0.16),transparent_70%)]" />
+          <div className="relative lg:col-span-6">
+            <p className="label inline-flex items-center gap-2 text-gold">
+              <span aria-hidden className="size-1.5 rounded-full bg-gold" />
+              {t.label}
+            </p>
+            <Heading id="rev-demo" size="md" className="mt-5" lines={t.title} />
+            <p className="mt-5 max-w-xl text-fg-2">{t.lead}</p>
+            <div className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <ButtonLink href={href("revenueOsDemo", locale)} className="!min-h-14 !px-7" track="revenue_os_cta_clicked" trackPlace="demo_banner">
+                {t.cta}
+              </ButtonLink>
+              <Link href={auditPath(SAMPLE_AUDIT[locale], locale)} className="link-line inline-flex min-h-11 items-center px-2 text-[0.9375rem] text-fg-2">
+                {t.sample}
+              </Link>
+            </div>
+            <p className="mt-5 text-[0.8125rem] text-fg-3">{t.note}</p>
+          </div>
+          <ol aria-hidden className="relative grid grid-cols-3 gap-2 sm:grid-cols-3 lg:col-span-6">
+            {t.steps.map((s, i) => (
+              <li key={s} data-reveal style={delay(i * 50)} className={`${tile} px-3 py-3`}>
+                <span className="block font-mono text-[0.6875rem] text-gold">{String(i + 1).padStart(2, "0")}</span>
+                <span className="mt-1.5 block truncate text-[0.875rem] text-fg">{s}</span>
+              </li>
+            ))}
+          </ol>
         </div>
       </Container>
     </Section>

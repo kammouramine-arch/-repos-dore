@@ -363,6 +363,17 @@ const fr = {
   },
 
   /* --- /revenue-os : sections propres ------------------------------------ */
+  /* --- Démonstration interactive (entreprise fictive) ---------------- */
+  demo: {
+    label: "Démonstration interactive",
+    title: [{ text: "Voyez Revenue OS" }, { accent: "fonctionner." }] as HeadingLine[],
+    lead: "Deux minutes dans une entreprise de rénovation fictive : une demande à 09:42, qualifiée, attribuée, préparée, transformée en rendez-vous — puis relancée, réactivée et pilotée.",
+    cta: "Voir Revenue OS en action",
+    note: "Entreprise fictive · données illustratives",
+    steps: ["Demande", "Réponse", "Qualification", "CRM", "Attribution", "Rendez-vous", "Proposition", "Réactivation", "Direction"],
+    sample: "Voir un exemple de Revenue Audit",
+  },
+
   page: {
     label: "AMYN Revenue OS™ · Offre phare",
     title: [{ text: "L'infrastructure commerciale" }, { text: "de votre", accent: "entreprise." }] as HeadingLine[],
@@ -727,6 +738,16 @@ const en: RevenueCopy = {
     },
     more: "See all capabilities",
   },
+  demo: {
+    label: "Interactive demonstration",
+    title: [{ text: "See Revenue OS" }, { accent: "at work." }],
+    lead: "Two minutes inside a fictional renovation company: an enquiry at 09:42, qualified, routed, prepared, turned into an appointment — then followed up, reactivated and managed.",
+    cta: "See Revenue OS in action",
+    note: "Fictional company · illustrative data",
+    steps: ["Enquiry", "Response", "Qualification", "CRM", "Routing", "Appointment", "Proposal", "Reactivation", "Management"],
+    sample: "See a sample Revenue Audit",
+  },
+
   page: {
     label: "AMYN Revenue OS™ · Flagship offer",
     title: [{ text: "The revenue infrastructure" }, { text: "of your", accent: "business." }],

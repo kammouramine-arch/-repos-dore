@@ -46,7 +46,17 @@ const nextConfig: NextConfig = {
     ];
   },
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    /* Revenue Audit privés : ni indexés, ni archivés, et l'adresse (le lien
+       privé) n'est jamais transmise comme référent. */
+    const auditHeaders = [
+      { key: "X-Robots-Tag", value: "noindex, nofollow, noarchive, nosnippet" },
+      { key: "Referrer-Policy", value: "no-referrer" },
+    ];
+    return [
+      { source: "/:path*", headers: securityHeaders },
+      { source: "/audit/:slug*", headers: auditHeaders },
+      { source: "/en/audit/:slug*", headers: auditHeaders },
+    ];
   },
 };
 

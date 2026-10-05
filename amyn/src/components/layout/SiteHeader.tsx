@@ -97,6 +97,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
   return (
     <>
       <header
+        data-site-chrome=""
         className={`fixed inset-x-0 top-0 z-50 transition-[background-color,border-color,box-shadow,backdrop-filter] duration-500 ${
           solid
             ? "border-b border-[rgb(242_238_230/0.08)] bg-[rgb(10_10_10/0.62)] shadow-[0_10px_40px_-20px_rgb(0_0_0/0.9)] backdrop-blur-2xl backdrop-saturate-150"

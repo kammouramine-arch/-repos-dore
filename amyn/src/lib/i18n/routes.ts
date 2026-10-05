@@ -14,6 +14,7 @@ export const ROUTES = {
   /* Offre phare et sa porte d'entrée : même nom dans les deux langues
      (noms de produit), comme ProofSprint. */
   revenueOs: { fr: "/revenue-os", en: "/en/revenue-os" },
+  revenueOsDemo: { fr: "/revenue-os/demo", en: "/en/revenue-os/demo" },
   revenueAudit: { fr: "/revenue-audit", en: "/en/revenue-audit" },
   services: { fr: "/services", en: "/en/services" },
   work: { fr: "/realisations", en: "/en/work" },
@@ -59,6 +60,19 @@ export const servicePath = (id: string, locale: Locale): string => {
 export const serviceIdFromSlug = (slug: string, locale: Locale): ServiceId | undefined =>
   (Object.keys(SERVICE_SLUGS) as ServiceId[]).find((id) => SERVICE_SLUGS[id][locale] === slug);
 
+/**
+ * Revenue Audit privés : `/audit/<slug>` (français) et `/en/audit/<slug>`.
+ * Ces pages ne figurent ni dans la navigation ni dans le plan du site.
+ */
+export const auditPath = (slug: string, locale: Locale): string => `${locale === "en" ? "/en" : ""}/audit/${slug}`;
+
+/**
+ * Exemple public (entreprise fictive), dans les deux langues. SEUL l'exemple
+ * figure ici : ce fichier est envoyé au navigateur, et l'adresse d'un audit
+ * de prospect ne doit jamais s'y trouver.
+ */
+export const SAMPLE_AUDIT = { fr: "elan-habitat-exemple", en: "elan-habitat-sample" } as const;
+
 /** Les réalisations gardent le même slug (nom de marque) dans les deux langues. */
 export const projectPath = (slug: string, locale: Locale): string => `${ROUTES.work[locale]}/${slug}`;
 
@@ -87,6 +101,9 @@ export function translatePath(pathname: string, target: Locale): string {
   for (const key of Object.keys(ROUTES) as RouteKey[]) {
     if (ROUTES[key][from] === clean) return ROUTES[key][target];
   }
+
+  const sample = SAMPLE_AUDIT[from];
+  if (clean === auditPath(sample, from)) return auditPath(SAMPLE_AUDIT[target], target);
 
   const servicesBase = `${ROUTES.services[from]}/`;
   if (clean.startsWith(servicesBase)) {

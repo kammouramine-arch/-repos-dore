@@ -26,6 +26,16 @@ export const TRACK_EVENTS = [
   "revenue_os_page_viewed",
   "roi_calculator_completed",
   "contact_initiated",
+  "demo_started",
+  "demo_completed",
+  "demo_stage_viewed",
+  "revenue_audit_clicked_from_demo",
+  "contact_clicked_from_demo",
+  "audit_opened",
+  "audit_section_viewed",
+  "roi_interacted",
+  "architecture_session_clicked",
+  "audit_pdf_exported",
 ] as const;
 
 export type TrackEvent = (typeof TRACK_EVENTS)[number];

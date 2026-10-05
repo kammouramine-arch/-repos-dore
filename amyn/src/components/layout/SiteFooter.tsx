@@ -33,7 +33,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
   ];
 
   return (
-    <footer className="tone-ink border-t border-line pb-10 pt-16 sm:pt-20">
+    <footer data-site-chrome="" className="tone-ink border-t border-line pb-10 pt-16 sm:pt-20">
       <Container>
         <div className="grid gap-12 sm:grid-cols-2 lg:grid-cols-12">
           <div className="sm:col-span-2 lg:col-span-4">

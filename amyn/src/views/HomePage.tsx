@@ -9,6 +9,7 @@ import {
   CalculatorSection,
   CapabilitiesSection,
   DashboardSection,
+  DemoBanner,
   FlagshipIntro,
   ModulesSection,
   OfferSection,
@@ -112,6 +113,7 @@ export function HomePage({ locale }: { locale: Locale }) {
       <FlagshipIntro locale={locale} number={n("flagship")} />
       <ModulesSection locale={locale} number={n("modules")} />
       <StorySection locale={locale} number={n("story")} />
+      <DemoBanner locale={locale} />
       <ProblemSection locale={locale} number={n("problem")} />
       <ReactivationSection locale={locale} number={n("reactivation")} />
       <DashboardSection locale={locale} number={n("dashboard")} />

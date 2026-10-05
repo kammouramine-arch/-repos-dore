@@ -50,6 +50,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
   return [
     ...route("home", 1),
     ...route("revenueOs", 1),
+    ...route("revenueOsDemo", 0.9),
     ...route("revenueAudit", 0.9),
     ...route("services", 0.9),
     ...Object.keys(SERVICE_SLUGS).flatMap((id) => entries(serviceAlternates(id), 0.8)),

@@ -186,3 +186,24 @@ test("événements de conversion : liste fermée", () => {
   assert.ok(!isTrackEvent("page_view"));
   assert.ok(!isTrackEvent(undefined));
 });
+
+/* --- Démonstration -------------------------------------------------------- */
+
+import { DEMO_STAGES, DEMO_STEPS, getDemo } from "../src/lib/revenue-demo.ts";
+
+test("démonstration : mêmes contenus FR/EN, chaque écran a ses étapes", () => {
+  assert.deepEqual(shape(getDemo("en")), shape(getDemo("fr")));
+  for (const s of DEMO_STAGES) assert.ok(DEMO_STEPS[s] > 0);
+});
+
+test("démonstration : fictive et signalée, sans promesse", () => {
+  for (const locale of ["fr", "en"] as const) {
+    const t = getDemo(locale);
+    assert.match(t.fictional, /fictive|fictional/i);
+    assert.match(t.company.note, /n'existe pas|does not exist/);
+    assert.match(t.appointment.statNote, /illustrative/i);
+    assert.match(t.dashboard.tag, /fictives|fictional/i);
+    const corpus = JSON.stringify(t);
+    for (const pattern of FORBIDDEN) assert.ok(!pattern.test(corpus), `${locale} : ${pattern}`);
+  }
+});

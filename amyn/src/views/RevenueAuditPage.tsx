@@ -6,7 +6,7 @@ import { Check } from "@/components/ui/Icons";
 import { JsonLd } from "@/components/ui/JsonLd";
 import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
 import type { Locale } from "@/lib/i18n/config";
-import { href, routeAlternates } from "@/lib/i18n/routes";
+import { SAMPLE_AUDIT, auditPath, href, routeAlternates } from "@/lib/i18n/routes";
 import { getUi } from "@/lib/i18n/ui";
 import { getRevenue } from "@/lib/revenue-os";
 import { faqSchema, pageMetadata } from "@/lib/seo";
@@ -105,6 +105,12 @@ export function RevenueAuditPage({ locale }: { locale: Locale }) {
               </li>
             ))}
           </ul>
+          <p data-reveal className="mt-8 flex flex-wrap items-center gap-x-6 gap-y-2">
+            <a href={auditPath(SAMPLE_AUDIT[locale], locale)} className="link-line inline-flex min-h-11 items-center text-fg">
+              {r.demo.sample}
+            </a>
+            <span className="text-[0.875rem] text-fg-3">{r.demo.note}</span>
+          </p>
         </Container>
       </Section>
 
