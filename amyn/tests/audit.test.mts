@@ -29,9 +29,10 @@ test("score : ramené aux catégories évaluées, sans pénaliser l'inconnu", ()
   const r = scoreAudit(scores);
   assert.equal(r.earned, 25);
   assert.equal(r.assessable, 35);
-  assert.equal(r.total, 71);
   assert.ok(r.missing.includes("crmHandoff") && r.missing.includes("response"));
   assert.equal(scoreAudit([]).total, null, "rien d'évalué : pas de score inventé");
+  assert.equal(r.coverage, "insufficient", "2 domaines sur 7 : pas de score affiché");
+  assert.equal(r.total, null);
   assert.equal(strongestCategory(scores), "leadCapture");
 });
 
@@ -88,14 +89,8 @@ test("audits enregistrés : cohérents, slugs uniques par langue", () => {
   }
 });
 
-test("audits réels : jamais d'exemple fictif non signalé, slug difficile à deviner", () => {
-  for (const a of AUDITS) {
-    if (a.fictional) {
-      assert.ok(Object.values(SAMPLE_AUDIT).includes(a.slug as never), "seul l'exemple est fictif");
-      continue;
-    }
-    assert.match(a.slug, /-[a-z0-9_-]{8,}$/, `${a.slug} : ajouter un suffixe aléatoire`);
-  }
+test("audits en clair : uniquement des exemples fictifs", () => {
+  for (const a of AUDITS) assert.ok(a.fictional, `${a.slug} : un audit réel doit être scellé, jamais en clair`);
 });
 
 test("exemple Élan Habitat : fictif, mêmes calculs en français et en anglais", () => {
@@ -103,6 +98,7 @@ test("exemple Élan Habitat : fictif, mêmes calculs en français et en anglais"
   const en = AUDITS.find((a) => a.slug === SAMPLE_AUDIT.en)!;
   assert.ok(fr.fictional && en.fictional);
   assert.equal(scoreAudit(fr.scores).total, 45);
+  assert.equal(scoreAudit(fr.scores).coverage, "partial", "6 domaines sur 7 : évaluation partielle, annoncée");
   assert.equal(scoreAudit(en.scores).total, scoreAudit(fr.scores).total);
   assert.equal(assessmentOf(45), "developing");
   assert.deepEqual(roiInputs(fr.roi.assumptions), roiInputs(en.roi.assumptions));
@@ -116,4 +112,24 @@ test("adresses : exemple bilingue, sélecteur de langue", () => {
   assert.equal(auditPath("x", "en"), "/en/audit/x");
   assert.equal(translatePath(auditPath(SAMPLE_AUDIT.fr, "fr"), "en"), auditPath(SAMPLE_AUDIT.en, "en"));
   assert.equal(translatePath("/revenue-os/demo", "en"), "/en/revenue-os/demo");
+});
+
+test("score : complet à 7/7, partiel dès 4, rien en dessous", () => {
+  const all = (["leadCapture", "response", "qualification", "followUp", "crmHandoff", "reactivation", "visibility"] as const).map((id) => ({ id, points: 5, basis: ["O1"], rationale: "" }));
+  assert.equal(scoreAudit(all).coverage, "complete");
+  assert.equal(scoreAudit(all.slice(0, 4)).coverage, "partial");
+  assert.ok(scoreAudit(all.slice(0, 4)).total !== null);
+  assert.equal(scoreAudit(all.slice(0, 3)).total, null);
+});
+
+test("preuves : une hypothèse seule ne note rien ; « observé » exige une source externe", () => {
+  const base = structuredClone(AUDITS[0]);
+  base.scores = base.scores.map((s) => (s.id === "qualification" ? { ...s, basis: ["H1"] } : s));
+  assert.ok(auditIssues(base).some((i) => i.includes("hypothèses seulement")));
+  const obs = structuredClone(AUDITS[0]);
+  obs.observations[0] = { ...obs.observations[0], provenance: "observed", sources: ["S4"] };
+  assert.ok(auditIssues(obs).some((i) => i.includes("sans source externe")));
+  const prov = structuredClone(AUDITS[0]);
+  prov.observations[0] = { ...prov.observations[0], provenance: "provided", sources: ["S1"] };
+  assert.ok(auditIssues(prov).some((i) => i.includes("sans source de l'entreprise")));
 });

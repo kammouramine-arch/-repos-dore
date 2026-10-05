@@ -173,7 +173,8 @@ test("Revenue OS : chiffres illustratifs signalés comme tels, prix d'entrée co
   assert.equal(REVENUE_OS_FROM_EUR, 25000);
   assert.match(fr.offer.price.replace(/\s/g, ""), /^25000€$/);
   assert.match(en.offer.price, /^€25,000$/);
-  assert.match(fr.offer.tax, /293 B/);
+  /* Traitement de TVA non tranché pour Revenue OS : formulation neutre. */
+  assert.ok(!/293 B|HT|TTC/.test(fr.offer.tax) && /TVA/.test(fr.offer.tax));
   /* Pas de prix dans le hero. */
   assert.ok(!/25/.test(JSON.stringify(fr.hero)) && !/25/.test(JSON.stringify(en.hero)));
 });

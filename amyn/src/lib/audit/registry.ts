@@ -3,11 +3,11 @@ import { AUDITS } from "@/content/audits";
 import type { AuditLocale, RevenueAudit } from "./types";
 
 /**
- * Accès aux audits, côté serveur uniquement : les données d'un audit ne
- * partent vers le navigateur que dans la page de cet audit. Un audit
- * archivé n'est plus servi.
+ * Audits EN CLAIR : réservés aux exemples fictifs (publics). Un audit de
+ * prospect réel n'est jamais servi par ce registre, même ajouté par
+ * erreur : il passe par les audits scellés (lib/audit/seal.ts).
  */
-const served = (a: RevenueAudit) => a.status !== "archived";
+const served = (a: RevenueAudit) => a.fictional && a.status !== "archived";
 
 export function getAudit(slug: string, locale: AuditLocale): RevenueAudit | undefined {
   return AUDITS.find((a) => a.slug === slug && a.locale === locale && served(a));

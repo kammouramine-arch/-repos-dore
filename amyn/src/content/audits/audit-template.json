@@ -1,0 +1,60 @@
+{
+  "slug": "pending",
+  "locale": "fr",
+  "status": "draft",
+  "fictional": false,
+  "company": { "name": "Nom de l'entreprise", "domain": "exemple.fr", "industry": "Secteur", "country": "France" },
+  "date": "2026-01-01",
+  "preparedBy": "Amine Kammour — AMYN",
+  "summary": {
+    "context": "Contexte en deux phrases, à partir de ce qui a été observé ou communiqué.",
+    "primaryRecommendation": "Recommandation principale, fondée sur les observations."
+  },
+  "sources": [
+    { "id": "S1", "kind": "website", "label": "Page observée", "url": "https://exemple.fr/contact", "date": "2026-01-01" },
+    { "id": "S2", "kind": "call", "label": "Entretien avec la direction", "date": "2026-01-01" }
+  ],
+  "providedMetrics": [],
+  "scores": [
+    { "id": "leadCapture", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "response", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "qualification", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "followUp", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "crmHandoff", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "reactivation", "points": null, "basis": [], "rationale": "Pas assez d'informations." },
+    { "id": "visibility", "points": null, "basis": [], "rationale": "Pas assez d'informations." }
+  ],
+  "journey": [],
+  "observations": [
+    {
+      "id": "O1",
+      "title": "Titre de l'observation",
+      "provenance": "observed",
+      "category": "qualification",
+      "stage": "enquiry",
+      "statement": "Ce qui a été constaté, factuellement.",
+      "sources": ["S1"],
+      "confidence": "high",
+      "implication": "Conséquence possible, au conditionnel.",
+      "recommendation": "Recommandation AMYN."
+    }
+  ],
+  "hypotheses": [],
+  "opportunities": [],
+  "recommendations": [],
+  "roi": {
+    "assumptions": [
+      { "key": "monthlyLeads", "value": null, "origin": "provided" },
+      { "key": "dealValue", "value": null, "origin": "provided" },
+      { "key": "qualificationRate", "value": null, "origin": "hypothesis" },
+      { "key": "closeRate", "value": null, "origin": "hypothesis" },
+      { "key": "historicLeads", "value": null, "origin": "provided" },
+      { "key": "grossMargin", "value": null, "origin": "provided" }
+    ],
+    "scenarios": {
+      "conservative": { "qualificationLift": 1, "closeLift": 0.5, "reactivationRate": 0.5 },
+      "central": { "qualificationLift": 2, "closeLift": 1, "reactivationRate": 1 },
+      "upside": { "qualificationLift": 4, "closeLift": 2, "reactivationRate": 2 }
+    }
+  }
+}

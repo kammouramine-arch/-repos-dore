@@ -75,6 +75,10 @@ const fr = {
     honeypot: "Ne pas remplir",
     failed: "L'envoi a échoué. Réessayez dans un instant.",
     offline: "Connexion impossible. Vérifiez votre réseau, puis réessayez.",
+    timeout:
+      "La réponse tarde : votre demande n'a peut-être pas été envoyée. Vérifiez votre connexion et réessayez, ou écrivez-nous à contact@amyn.agency.",
+    noscript:
+      "Ce formulaire nécessite JavaScript. Vous pouvez aussi nous écrire directement à contact@amyn.agency.",
     outreachTitle: "Vous arrivez depuis un message d'AMYN",
     outreachBody: "Bienvenue. Voici qui nous sommes — sans obligation.",
     outreachLink: "Pourquoi ce message ?",
@@ -222,6 +226,9 @@ const en: Ui = {
     honeypot: "Do not fill in",
     failed: "Sending failed. Please try again in a moment.",
     offline: "Couldn't connect. Check your connection, then try again.",
+    timeout:
+      "The response is taking too long: your request may not have been sent. Check your connection and try again, or email us at contact@amyn.agency.",
+    noscript: "This form requires JavaScript. You can also email us directly at contact@amyn.agency.",
     outreachTitle: "You've arrived from a message from AMYN",
     outreachBody: "Welcome. Here's who we are — no obligation.",
     outreachLink: "Why this message?",

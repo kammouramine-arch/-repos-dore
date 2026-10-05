@@ -325,6 +325,8 @@ export function auditSummaryRows(v: RevenueAuditValues): [string, string][] {
     ["Fonction", v.role || "—"],
     ["E-mail", v.email],
     ["Téléphone", v.phone || "—"],
+    ["Exemple de perte d'opportunité", v.problemDetails ? "voir ci-dessous" : "—"],
+    ["Politique de confidentialité", v.privacy ? "Lue et acceptée" : "Non confirmée"],
     ["Origine", v.source === "outreach" ? "Fait suite à un message d'AMYN" : "Site"],
     ["Langue", v.lang === "en" ? "Anglais — répondre en anglais" : "Français"],
   ];

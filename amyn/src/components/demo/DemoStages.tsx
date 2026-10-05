@@ -3,11 +3,11 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { AmynMark } from "@/components/layout/Logo";
 import { ButtonLink } from "@/components/ui/Button";
+import { SalesSessionLink } from "@/components/ui/SalesSessionLink";
 import { Check } from "@/components/ui/Icons";
 import type { Locale } from "@/lib/i18n/config";
 import { href } from "@/lib/i18n/routes";
 import type { DemoCopy, DemoStageId } from "@/lib/revenue-demo";
-import { site } from "@/lib/site";
 
 /**
  * Les douze écrans de la démonstration. Chaque écran reçoit `k`, le nombre
@@ -766,14 +766,14 @@ function Finale({ t, k, locale, sampleHref }: StageProps) {
           <ButtonLink href={href("revenueAudit", locale)} className="!min-h-12" track="revenue_audit_clicked_from_demo" trackPlace="demo_finale">
             {f.primary}
           </ButtonLink>
-          <a
-            href={`mailto:${site.email}?subject=Revenue%20OS`}
-            data-track="contact_clicked_from_demo"
-            data-track-place="demo_finale"
+          <SalesSessionLink
+            subject="Revenue OS"
+            track="contact_clicked_from_demo"
+            place="demo_finale"
             className="inline-flex min-h-12 items-center justify-center rounded-full border border-line-strong px-6 text-[0.9375rem] font-medium text-fg transition-colors hover:border-gold/60"
           >
             {f.secondary}
-          </a>
+          </SalesSessionLink>
         </div>
         <a href={sampleHref} className={`link-line mt-5 inline-flex min-h-11 items-center text-[0.875rem] text-fg-2 ${appear(k >= 6)}`}>
           {f.sample}

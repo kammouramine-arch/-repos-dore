@@ -23,7 +23,7 @@ export const TRACK_EVENTS = [
   "revenue_audit_started",
   "revenue_audit_step_completed",
   "revenue_audit_submitted",
-  "revenue_os_page_viewed",
+  "revenue_os_viewed",
   "roi_calculator_completed",
   "contact_initiated",
   "demo_started",
@@ -43,12 +43,37 @@ export type TrackProps = Record<string, string | number | boolean | undefined>;
 
 export const TRACK_DOM_EVENT = "amyn:track";
 
+/**
+ * Brancher un outil de mesure — UN seul endroit.
+ *
+ * Aucun outil n'est installé. Pour en ajouter un (après choix et, si
+ * nécessaire, consentement — voir trackers.ts et la page Cookies), appeler
+ * une fois, côté navigateur :
+ *
+ *   registerAnalyticsSink((event, props) => monOutil.capture(event, props));
+ *
+ * Tous les événements du site passent par `track()` ci-dessous, donc par
+ * ce point d'entrée. Une erreur de l'outil ne remonte jamais jusqu'au site.
+ */
+export type AnalyticsSink = (event: TrackEvent, props: TrackProps) => void;
+let sink: AnalyticsSink | null = null;
+
+export function registerAnalyticsSink(next: AnalyticsSink | null) {
+  sink = next;
+}
+
+/** Émet un événement. Sans outil branché : ne fait rien de visible. */
 export function track(event: TrackEvent, props: TrackProps = {}) {
   if (typeof window === "undefined") return;
   const detail = { event, ...props };
-  window.dispatchEvent(new CustomEvent(TRACK_DOM_EVENT, { detail }));
-  const layer = (window as unknown as { dataLayer?: unknown[] }).dataLayer;
-  if (Array.isArray(layer)) layer.push(detail);
+  try {
+    window.dispatchEvent(new CustomEvent(TRACK_DOM_EVENT, { detail }));
+    const layer = (window as unknown as { dataLayer?: unknown[] }).dataLayer;
+    if (Array.isArray(layer)) layer.push(detail);
+    sink?.(event, props);
+  } catch {
+    /* La mesure ne doit jamais gêner la navigation. */
+  }
 }
 
 export const isTrackEvent = (value: string | undefined): value is TrackEvent =>

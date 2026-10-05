@@ -24,6 +24,7 @@ export function AuditToolbar({
   product,
   fictional,
   sampleLabel,
+  fictionalShort,
 }: {
   sections: { id: string; label: string }[];
   labels: Labels;
@@ -31,6 +32,7 @@ export function AuditToolbar({
   product: string;
   fictional: boolean;
   sampleLabel: string;
+  fictionalShort: string;
 }) {
   const [active, setActive] = useState<string | null>(null);
   const [open, setOpen] = useState(false);
@@ -135,7 +137,12 @@ export function AuditToolbar({
           <span className="truncate">
             <span className="text-bone">{product}</span> · {company}
           </span>
-          {fictional && <span className="label hidden shrink-0 rounded-full border border-gold/40 px-2 py-0.5 text-[0.6875rem] text-gold-2 md:inline">{sampleLabel}</span>}
+          {fictional && (
+            <span className="label shrink-0 rounded-full border border-gold/40 px-2 py-0.5 text-[0.6875rem] text-gold-2">
+              <span className="md:hidden">{fictionalShort}</span>
+              <span className="max-md:hidden">{sampleLabel}</span>
+            </span>
+          )}
         </p>
 
         <div className="flex shrink-0 items-center gap-1.5">

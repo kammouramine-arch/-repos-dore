@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useRef, useState, type FormEvent } from "react";
+import { useEffect, useRef, useState, useSyncExternalStore, type FormEvent } from "react";
 import { HONEYPOT_FIELD, hasErrors } from "@/lib/forms/shared";
 
 type Status = "idle" | "sending" | "sent";
@@ -27,7 +27,7 @@ export function useFormSubmission<V extends object, F extends string>({
   },
 }: {
   /** Messages génériques, dans la langue du visiteur. */
-  messages?: { failed: string; offline: string };
+  messages?: { failed: string; offline: string; timeout?: string };
   formId: string;
   endpoint: string;
   initial: V;
@@ -43,6 +43,13 @@ export function useFormSubmission<V extends object, F extends string>({
   const honeypot = useRef<HTMLInputElement>(null);
   const startedAt = useRef(0);
   const latest = useRef(values);
+  /* Avant le chargement de JavaScript, l'envoi est impossible : le
+     formulaire ne part jamais « nativement » (données dans l'adresse). */
+  const ready = useSyncExternalStore(
+    noop,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
     startedAt.current = Date.now();
@@ -79,8 +86,13 @@ export function useFormSubmission<V extends object, F extends string>({
     }
 
     setStatus("sending");
+    /* Réseau très lent : on n'attend pas indéfiniment, et on ne prétend
+       jamais que la demande est partie. */
+    const controller = new AbortController();
+    const timer = window.setTimeout(() => controller.abort(), 20_000);
     try {
       const response = await fetch(endpoint, {
+        signal: controller.signal,
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -105,11 +117,16 @@ export function useFormSubmission<V extends object, F extends string>({
       }
 
       setStatus("sent");
-    } catch {
-      setServerError(messages.offline);
+    } catch (error) {
+      const timedOut = error instanceof DOMException && error.name === "AbortError";
+      setServerError(timedOut ? (messages.timeout ?? messages.offline) : messages.offline);
       setStatus("idle");
+    } finally {
+      window.clearTimeout(timer);
     }
   }
 
-  return { values, set, errors, status, serverError, submit, honeypot };
+  return { values, set, errors, status, serverError, submit, honeypot, ready };
 }
+
+const noop = () => () => {};

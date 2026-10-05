@@ -2,6 +2,7 @@ import Link from "next/link";
 import { Accordion } from "@/components/ui/Accordion";
 import { Atmosphere } from "@/components/ui/Ambient";
 import { ButtonLink } from "@/components/ui/Button";
+import { SalesSessionLink } from "@/components/ui/SalesSessionLink";
 import { ArrowUpRight, Check } from "@/components/ui/Icons";
 import { Container, Heading, Label, Section, delay } from "@/components/ui/Layout";
 import type { Locale } from "@/lib/i18n/config";
@@ -677,9 +678,14 @@ export function RevenueFinale({ locale, number }: Props) {
           <ButtonLink href={href("revenueAudit", locale)} className="!min-h-16 !px-9 text-[1.05rem]" track="revenue_audit_cta_clicked" trackPlace="finale">
             {r.offer.cta}
           </ButtonLink>
-          <a href={`mailto:${site.email}`} className="inline-flex min-h-11 items-center gap-2 px-3 text-fg-3 transition-colors hover:text-fg">
-            {site.email}
-          </a>
+          <SalesSessionLink
+            subject="Revenue OS"
+            track="contact_initiated"
+            place="revenue_finale"
+            className="inline-flex min-h-14 items-center justify-center rounded-full border border-line-strong px-7 text-[1rem] font-medium text-fg transition-colors hover:border-gold/60"
+          >
+            {t.talk}
+          </SalesSessionLink>
         </div>
       </Container>
     </Section>

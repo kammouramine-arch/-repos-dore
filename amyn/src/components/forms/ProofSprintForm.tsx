@@ -31,7 +31,7 @@ const FORM = "proofsprint";
 export function ProofSprintForm({ locale }: { locale: Locale }) {
   const ui = getUi(locale);
   const t = ui.proofsprintForm;
-  const { values, set, errors, status, serverError, submit, honeypot } = useFormSubmission<
+  const { values, set, errors, status, serverError, submit, honeypot, ready } = useFormSubmission<
     ProofSprintValues,
     ProofSprintField
   >({
@@ -41,7 +41,7 @@ export function ProofSprintForm({ locale }: { locale: Locale }) {
     sanitize: sanitizeProofSprint,
     validate: validateProofSprint,
     order: PROOFSPRINT_ORDER,
-    messages: { failed: ui.form.failed, offline: ui.form.offline },
+    messages: { failed: ui.form.failed, offline: ui.form.offline, timeout: ui.form.timeout },
   });
 
   if (status === "sent") {
@@ -97,7 +97,7 @@ export function ProofSprintForm({ locale }: { locale: Locale }) {
         <span className="text-[0.8125rem] text-fg-3">{t.intro}</span>
         <button
           type="submit"
-          disabled={sending}
+          disabled={sending || !ready}
           data-magnetic=""
           className={buttonClass("primary", "w-full !min-h-14 sm:w-auto disabled:cursor-wait disabled:opacity-80")}
         >

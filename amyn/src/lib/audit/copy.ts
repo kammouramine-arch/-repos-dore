@@ -16,6 +16,7 @@ const fr = {
   confidential: "Privé & confidentiel",
   preparedBy: "Préparé par",
   sample: "Exemple d'audit — entreprise fictive",
+  fictionalShort: "Exemple fictif",
   sampleNote:
     "Élan Habitat n'existe pas. Les observations, les chiffres et les sources de cet exemple sont inventés pour montrer le format d'un Revenue Audit — ce n'est pas le travail réalisé pour un client.",
   draft: "Brouillon — document de travail, non transmis",
@@ -50,7 +51,7 @@ const fr = {
   },
   legendTitle: "Lire cet audit",
   confidenceLabel: "Confiance",
-  confidence: { high: "Élevée", medium: "Moyenne", low: "Faible" } as Record<Confidence, string>,
+  confidence: { high: "Élevée", medium: "Moyenne", needs_validation: "À valider" } as Record<Confidence, string>,
 
   categories: {
     leadCapture: "Captation des demandes",
@@ -78,7 +79,12 @@ const fr = {
     recommendation: "Recommandation principale",
     basis: (n: number, points: number) =>
       `Calculé sur ${n} des 7 catégories (${points} points évaluables). Une catégorie sans information suffisante ne pénalise pas le score.`,
-    noScore: "Pas encore assez d'informations pour calculer un score.",
+    noScore: "Trop peu de domaines ont pu être évalués : aucun score n'est calculé, pour ne pas donner une précision trompeuse.",
+    coverage: (n: number) => `Couverture : ${n} domaines sur 7 évalués`,
+    complete: "Évaluation complète",
+    partial: "Évaluation partielle",
+    insufficient: "Informations insuffisantes",
+    partialNote: "Le score ne porte que sur les domaines évalués ; il ne résume pas l'ensemble de l'entreprise.",
   },
 
   scorecard: {
@@ -211,7 +217,7 @@ const fr = {
     kind: "Mise en place sur mesure",
     from: "À partir de",
     price: `25${nn}000${nb}€`,
-    tax: "TVA non applicable, article 293 B du CGI.",
+    tax: "Montant d'entrée indicatif. Le montant définitif et le traitement de la TVA applicable sont précisés dans la proposition.",
     body:
       "L'investissement final dépend de la complexité du système, des intégrations, du périmètre d'automatisation, de l'architecture des données et des exigences de mise en œuvre. Il est fixé après la session d'architecture, avant tout engagement.",
   },
@@ -238,11 +244,19 @@ const fr = {
     kinds: {
       website: "Site web",
       public_listing: "Fiche publique",
-      call: "Échange",
-      document: "Document",
-      questionnaire: "Questionnaire",
-      other: "Autre",
+      public_document: "Document public",
+      call: "Entretien",
+      questionnaire: "Communiqué par l'entreprise",
+      company_document: "Document de l'entreprise",
     },
+  },
+
+  sealed: {
+    title: "Revenue Audit privé",
+    loading: "Ouverture de l'audit…",
+    invalidTitle: "Ce lien est incomplet ou n'est plus valide.",
+    invalidBody: "Cet audit est privé. Ouvrez le lien complet qui vous a été transmis, ou demandez-nous un nouveau lien.",
+    noscript: "Cet audit privé s'affiche avec JavaScript activé.",
   },
 
   footer: (company: string) => `AMYN Revenue Audit™ · ${company} · Privé & confidentiel`,
@@ -258,6 +272,7 @@ const en: AuditCopy = {
   confidential: "Private & Confidential",
   preparedBy: "Prepared by",
   sample: "Sample Audit — Fictional Company",
+  fictionalShort: "Fictional sample",
   sampleNote:
     "Élan Habitat does not exist. The observations, figures and sources in this sample are invented to show the format of a Revenue Audit — it is not work carried out for a client.",
   draft: "Draft — working document, not delivered",
@@ -292,7 +307,7 @@ const en: AuditCopy = {
   },
   legendTitle: "Reading this audit",
   confidenceLabel: "Confidence",
-  confidence: { high: "High", medium: "Medium", low: "Low" },
+  confidence: { high: "High", medium: "Medium", needs_validation: "Needs validation" },
 
   categories: {
     leadCapture: "Lead Capture",
@@ -320,7 +335,12 @@ const en: AuditCopy = {
     recommendation: "Primary recommendation",
     basis: (n: number, points: number) =>
       `Calculated on ${n} of 7 categories (${points} assessable points). A category without enough information does not lower the score.`,
-    noScore: "Not enough information yet to calculate a score.",
+    noScore: "Too few areas could be assessed: no score is calculated, to avoid false precision.",
+    coverage: (n: number) => `Coverage: ${n} of 7 areas assessed`,
+    complete: "Complete assessment",
+    partial: "Partial assessment",
+    insufficient: "Not enough information",
+    partialNote: "The score covers only the areas assessed; it does not summarise the whole business.",
   },
 
   scorecard: {
@@ -449,7 +469,7 @@ const en: AuditCopy = {
     kind: "Custom implementation",
     from: "From",
     price: "€25,000",
-    tax: "VAT not applicable, article 293 B of the French Tax Code.",
+    tax: "Indicative starting amount. The final amount and the applicable VAT treatment are set out in the proposal.",
     body:
       "The final investment depends on system complexity, integrations, automation scope, data architecture and implementation requirements. It is set after the architecture session, before any commitment.",
   },
@@ -470,11 +490,19 @@ const en: AuditCopy = {
     kinds: {
       website: "Website",
       public_listing: "Public listing",
-      call: "Conversation",
-      document: "Document",
-      questionnaire: "Questionnaire",
-      other: "Other",
+      public_document: "Public document",
+      call: "Interview",
+      questionnaire: "Company-provided",
+      company_document: "Company document",
     },
+  },
+
+  sealed: {
+    title: "Private Revenue Audit",
+    loading: "Opening the audit…",
+    invalidTitle: "This link is incomplete or no longer valid.",
+    invalidBody: "This audit is private. Open the full link you were sent, or ask us for a new one.",
+    noscript: "This private audit requires JavaScript.",
   },
 
   footer: (company: string) => `AMYN Revenue Audit™ · ${company} · Private & Confidential`,

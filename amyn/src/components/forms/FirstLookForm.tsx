@@ -70,7 +70,7 @@ function FormWithParams({ locale }: { locale: Locale }) {
  */
 function Form({ locale, initial }: { locale: Locale; initial: FirstLookValues }) {
   const t = getUi(locale).form;
-  const { values, set, errors, status, serverError, submit, honeypot } = useFormSubmission<
+  const { values, set, errors, status, serverError, submit, honeypot, ready } = useFormSubmission<
     FirstLookValues,
     FirstLookField
   >({
@@ -80,7 +80,7 @@ function Form({ locale, initial }: { locale: Locale; initial: FirstLookValues })
     sanitize: sanitizeFirstLook,
     validate: validateFirstLook,
     order: FIRST_LOOK_ORDER,
-    messages: { failed: t.failed, offline: t.offline },
+    messages: { failed: t.failed, offline: t.offline, timeout: t.timeout },
   });
 
   const [step, setStep] = useState(0);
@@ -306,7 +306,7 @@ function Form({ locale, initial }: { locale: Locale; initial: FirstLookValues })
         )}
         <button
           type="submit"
-          disabled={sending}
+          disabled={sending || !ready}
           data-magnetic=""
           className={buttonClass("primary", "w-full !min-h-14 sm:w-auto disabled:cursor-wait disabled:opacity-80")}
         >

@@ -314,7 +314,7 @@ const fr = {
     subtitle: "Mise en place sur mesure",
     priceLead: "À partir de",
     price: "25 000 €",
-    tax: "TVA non applicable, article 293 B du CGI.",
+    tax: "Montant d'entrée indicatif. Le montant définitif et le traitement de la TVA applicable sont précisés dans la proposition.",
     intro: "Un projet de transformation de votre infrastructure commerciale, mené de l'audit à l'exploitation. Le périmètre dépend de votre activité, de vos outils et de vos objectifs.",
     includesTitle: "Le périmètre peut comprendre",
     includes: [
@@ -378,7 +378,7 @@ const fr = {
     label: "AMYN Revenue OS™ · Offre phare",
     title: [{ text: "L'infrastructure commerciale" }, { text: "de votre", accent: "entreprise." }] as HeadingLine[],
     lead: "Revenue OS capte chaque demande, la qualifie, déclenche la bonne relance et donne à votre équipe — et à la direction — une vue claire de ce qui doit se passer ensuite. Conçu et installé par AMYN, autour de votre façon de vendre.",
-    facts: ["Sur mesure", "Relié à vos outils", "Mise en place à partir de 25 000 €"],
+    facts: ["Sur mesure", "Conçu pour vos outils existants", "Mise en place sur mesure à partir de 25 000 €"],
     architecture: {
       label: "Architecture",
       title: [{ text: "Vos outils restent." }, { accent: "Ils travaillent enfin ensemble." }] as HeadingLine[],
@@ -395,17 +395,17 @@ const fr = {
   integrations: {
     label: "Intégrations",
     title: [{ text: "Construit sur votre stack," }, { accent: "pas à sa place." }] as HeadingLine[],
-    lead: "Revenue OS se connecte aux outils que votre équipe utilise déjà, lorsque leurs interfaces le permettent. Les noms ci-dessous sont des exemples de systèmes connectables, pas des intégrations déjà réalisées : chaque connexion est vérifiée pendant l'audit.",
+    lead: "Revenue OS peut être conçu pour se connecter aux outils compatibles de votre stack existante. Les noms ci-dessous sont des exemples de systèmes qui peuvent être intégrés selon les contraintes techniques — pas des intégrations déjà réalisées par AMYN. Chaque connexion est vérifiée pendant l'audit.",
     categories: [
-      ["CRM", "HubSpot, Pipedrive, Salesforce, Axonaut…"],
-      ["E-mail", "Gmail, Outlook, boîtes professionnelles"],
-      ["Agenda", "Google Agenda, Outlook, Calendly"],
-      ["Formulaires et site", "Votre site actuel, formulaires, pages d'atterrissage"],
-      ["Téléphone", "Standard, messagerie vocale, rappels"],
-      ["Messagerie", "SMS, WhatsApp Business"],
-      ["Analytics", "Mesure d'audience, sources de demandes"],
-      ["Paiement", "Stripe, liens de paiement"],
-      ["Systèmes internes", "ERP, outils de devis, tableurs, bases de données"],
+      ["CRM", "Ex. HubSpot, Pipedrive, Salesforce, Axonaut…"],
+      ["E-mail", "Ex. Gmail, Outlook, boîtes professionnelles"],
+      ["Agenda", "Ex. Google Agenda, Outlook, Calendly"],
+      ["Formulaires et site", "Ex. Votre site actuel, formulaires, pages d'atterrissage"],
+      ["Téléphone", "Ex. Standard, messagerie vocale, rappels"],
+      ["Messagerie", "Ex. SMS, WhatsApp Business"],
+      ["Analytics", "Ex. Mesure d'audience, sources de demandes"],
+      ["Paiement", "Ex. Stripe, liens de paiement"],
+      ["Systèmes internes", "Ex. ERP, outils de devis, tableurs, bases de données"],
     ] as [string, string][],
   },
 
@@ -440,6 +440,7 @@ const fr = {
     label: "Prochaine étape",
     title: [{ text: "Savez-vous ce que vous perdez" }, { accent: "aujourd'hui ?" }] as HeadingLine[],
     lead: "Le Revenue Audit commence par là : le parcours réel entre une demande et un client, et les endroits où il fuit.",
+    talk: "Parler à AMYN",
   },
 
   /* --- /revenue-audit ---------------------------------------------------- */
@@ -694,7 +695,7 @@ const en: RevenueCopy = {
     subtitle: "Custom implementation",
     priceLead: "From",
     price: "€25,000",
-    tax: "VAT not applicable (French tax code, article 293 B).",
+    tax: "Indicative starting amount. The final amount and the applicable VAT treatment are set out in the proposal.",
     intro: "A transformation of your sales infrastructure, run from audit to operation. The scope depends on your business, your tools and your objectives.",
     includesTitle: "The scope can include",
     includes: [
@@ -752,7 +753,7 @@ const en: RevenueCopy = {
     label: "AMYN Revenue OS™ · Flagship offer",
     title: [{ text: "The revenue infrastructure" }, { text: "of your", accent: "business." }],
     lead: "Revenue OS captures every enquiry, qualifies it, triggers the right follow-up and gives your team — and management — a clear view of what needs to happen next. Designed and installed by AMYN, around the way you sell.",
-    facts: ["Bespoke", "Connected to your tools", "Implementation from €25,000"],
+    facts: ["Bespoke", "Designed around your existing tools", "Custom implementation from €25,000"],
     architecture: {
       label: "Architecture",
       title: [{ text: "Your tools stay." }, { accent: "They finally work together." }],
@@ -768,17 +769,17 @@ const en: RevenueCopy = {
   integrations: {
     label: "Integrations",
     title: [{ text: "Built on your stack," }, { accent: "not instead of it." }],
-    lead: "Revenue OS connects to the tools your team already uses, where their interfaces allow it. The names below are examples of systems that can be connected, not integrations already delivered: each connection is checked during the audit.",
+    lead: "Revenue OS can be designed to connect with supported tools in your existing stack. The names below are examples of systems that may be integrated depending on technical requirements — not integrations AMYN has already delivered. Each connection is checked during the audit.",
     categories: [
-      ["CRM", "HubSpot, Pipedrive, Salesforce, Axonaut…"],
-      ["Email", "Gmail, Outlook, business mailboxes"],
-      ["Calendar", "Google Calendar, Outlook, Calendly"],
-      ["Forms & website", "Your current website, forms, landing pages"],
-      ["Phone", "Switchboard, voicemail, call-backs"],
-      ["Messaging", "SMS, WhatsApp Business"],
-      ["Analytics", "Audience measurement, lead sources"],
-      ["Payments", "Stripe, payment links"],
-      ["Internal systems", "ERP, quoting tools, spreadsheets, databases"],
+      ["CRM", "e.g. HubSpot, Pipedrive, Salesforce, Axonaut…"],
+      ["Email", "e.g. Gmail, Outlook, business mailboxes"],
+      ["Calendar", "e.g. Google Calendar, Outlook, Calendly"],
+      ["Forms & website", "e.g. Your current website, forms, landing pages"],
+      ["Phone", "e.g. Switchboard, voicemail, call-backs"],
+      ["Messaging", "e.g. SMS, WhatsApp Business"],
+      ["Analytics", "e.g. Audience measurement, lead sources"],
+      ["Payments", "e.g. Stripe, payment links"],
+      ["Internal systems", "e.g. ERP, quoting tools, spreadsheets, databases"],
     ],
   },
   security: {
@@ -810,6 +811,7 @@ const en: RevenueCopy = {
     label: "Next step",
     title: [{ text: "Do you know what you're losing" }, { accent: "today?" }],
     lead: "The Revenue Audit starts there: the real journey from enquiry to customer, and the places where it leaks.",
+    talk: "Talk to AMYN",
   },
   audit: {
     label: "Revenue Audit",

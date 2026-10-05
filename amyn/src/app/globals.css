@@ -2033,6 +2033,10 @@ html[data-presenting] .audit-section {
   .audit .audit-ink .accent {
     color: var(--color-gold-ink) !important;
   }
+  /* Sources : section courte, jamais séparée de son titre. */
+  .audit #sources {
+    break-inside: avoid;
+  }
   /* Investissement, prochaine étape et sources se suivent sans saut forcé. */
   .audit #nextStep,
   .audit #sources {

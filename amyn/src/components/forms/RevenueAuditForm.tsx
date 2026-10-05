@@ -70,7 +70,7 @@ function Form({ locale, initial }: { locale: Locale; initial: RevenueAuditValues
   const ui = getUi(locale);
   const t = ui.revenueAuditForm;
   const f = ui.form;
-  const { values, set, errors, status, serverError, submit, honeypot } = useFormSubmission<
+  const { values, set, errors, status, serverError, submit, honeypot, ready } = useFormSubmission<
     RevenueAuditValues,
     RevenueAuditField
   >({
@@ -80,7 +80,7 @@ function Form({ locale, initial }: { locale: Locale; initial: RevenueAuditValues
     sanitize: sanitizeRevenueAudit,
     validate: validateRevenueAudit,
     order: AUDIT_ORDER,
-    messages: { failed: f.failed, offline: f.offline },
+    messages: { failed: f.failed, offline: f.offline, timeout: f.timeout },
   });
 
   const [step, setStep] = useState(0);
@@ -274,7 +274,7 @@ function Form({ locale, initial }: { locale: Locale; initial: RevenueAuditValues
         )}
         <button
           type="submit"
-          disabled={sending}
+          disabled={sending || !ready}
           data-magnetic=""
           className={buttonClass("primary", "w-full !min-h-14 sm:w-auto disabled:cursor-wait disabled:opacity-80")}
         >

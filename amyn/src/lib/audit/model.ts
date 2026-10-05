@@ -31,9 +31,18 @@ export const CATEGORY_MAX: Record<CategoryId, number> = {
 
 export const CATEGORY_ORDER = Object.keys(CATEGORY_MAX) as CategoryId[];
 
+/** En dessous de 4 domaines évalués sur 7, aucun score n'est affiché. */
+export const MIN_ASSESSED = 4;
+
+export type Coverage = "complete" | "partial" | "insufficient";
+
 export type ScoreResult = {
-  /** Sur 100, ramené aux seules catégories évaluées ; `null` si aucune. */
+  /**
+   * Sur 100, ramené aux seules catégories évaluées ; `null` si trop peu de
+   * domaines ont pu être évalués pour qu'un score ait un sens.
+   */
   total: number | null;
+  coverage: Coverage;
   earned: number;
   assessable: number;
   assessed: CategoryId[];
@@ -56,8 +65,10 @@ export function scoreAudit(scores: CategoryScore[]): ScoreResult {
     assessable += max;
     assessed.push(id);
   }
+  const coverage: Coverage = assessed.length === CATEGORY_ORDER.length ? "complete" : assessed.length >= MIN_ASSESSED ? "partial" : "insufficient";
   return {
-    total: assessable ? Math.round((earned / assessable) * 100) : null,
+    total: coverage === "insufficient" || !assessable ? null : Math.round((earned / assessable) * 100),
+    coverage,
     earned,
     assessable,
     assessed,
@@ -233,14 +244,25 @@ export function auditIssues(a: RevenueAudit): string[] {
   const issues: string[] = [];
   const sourceIds = new Set(a.sources.map((s) => s.id));
   const refIds = new Set([...a.observations.map((o) => o.id), ...a.hypotheses.map((h) => h.id), ...a.providedMetrics.map((m) => m.id)]);
+  const kindOf = new Map(a.sources.map((s) => [s.id, s.kind]));
+  const EXTERNAL = ["website", "public_listing", "public_document"];
+  const COMPANY = ["call", "questionnaire", "company_document"];
   for (const o of a.observations) {
     if (!o.sources.length) issues.push(`${o.id} : aucune source`);
     for (const s of o.sources) if (!sourceIds.has(s)) issues.push(`${o.id} : source inconnue ${s}`);
+    const kinds = o.sources.map((s) => kindOf.get(s)).filter(Boolean) as string[];
+    /* « Observé » exige une source externe vérifiable ; « communiqué »,
+       une source venant de l'entreprise. */
+    if (o.provenance === "observed" && !kinds.some((k) => EXTERNAL.includes(k))) issues.push(`${o.id} : observé sans source externe`);
+    if (o.provenance === "provided" && !kinds.some((k) => COMPANY.includes(k))) issues.push(`${o.id} : communiqué sans source de l'entreprise`);
   }
+  const factIds = new Set([...a.observations.map((o) => o.id), ...a.providedMetrics.map((m) => m.id)]);
   for (const m of a.providedMetrics) if (!sourceIds.has(m.source)) issues.push(`${m.id} : source inconnue ${m.source}`);
   for (const s of a.scores) {
     if (s.points !== null && (s.points < 0 || s.points > CATEGORY_MAX[s.id])) issues.push(`${s.id} : note hors barème`);
     if (s.points !== null && !s.basis.length) issues.push(`${s.id} : note sans fondement`);
+    /* Une hypothèse seule ne peut pas fonder une note. */
+    if (s.points !== null && !s.basis.some((b) => factIds.has(b))) issues.push(`${s.id} : note fondée sur des hypothèses seulement`);
     for (const b of s.basis) if (!refIds.has(b)) issues.push(`${s.id} : référence inconnue ${b}`);
   }
   for (const o of a.opportunities) for (const b of o.basis) if (!refIds.has(b)) issues.push(`${o.id} : référence inconnue ${b}`);

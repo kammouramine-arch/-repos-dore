@@ -1,39 +1,49 @@
-# Revenue Audit — ajouter un audit
+# Revenue Audit — données
 
-Un audit = un fichier de données, rendu par des composants génériques
-(`src/components/audit/`). Modèle : `elan-habitat.fr.ts` (exemple fictif).
+Deux circuits, un seul rendu (`src/components/audit/AuditDocument.tsx`) :
 
-1. Copier l'exemple dans `src/content/audits/<entreprise>.ts`, remplacer
-   **tout** son contenu. Mettre `fictional: false`, `status: "draft"` tant
-   que l'audit n'est pas relu, puis `"ready"`. `"archived"` retire la page.
-2. Choisir une adresse **difficile à deviner** : `slug: "<entreprise>-<8 caractères aléatoires>"`
-   (par ex. `node -e "console.log(require('crypto').randomBytes(6).toString('base64url').toLowerCase())"`).
-   L'audit est servi à `/audit/<slug>` (français) ou `/en/audit/<slug>` (anglais), selon `locale`.
-3. L'ajouter à la liste `AUDITS` de `index.ts`, puis `npm test` : les tests
-   refusent un audit incohérent (source citée inexistante, observation sans
-   source, note hors barème, recommandation sans fondement…).
+| | Exemple fictif | Audit de prospect réel |
+|---|---|---|
+| Données | `elan-habitat.*.ts` (en clair, dans le dépôt) | JSON en clair **hors du dépôt** (`private-audits/`, ignoré par Git) |
+| Publié | tel quel | **chiffré** (`sealed/<identifiant>.json`) |
+| Adresse | `/audit/<slug>` | `/audit/p/<identifiant>#k=<clé>` |
+| Lecture | publique (noindex) | qui possède le lien complet |
 
-## Règles de contenu
+## Préparer et publier un audit réel
 
-- `observations` : uniquement ce qui a été **observé** (avec une source
-  vérifiable) ou **communiqué** par l'entreprise. Une piste non vérifiée va
-  dans `hypotheses`, avec la manière de la valider.
-- Aucun chiffre inventé : une valeur inconnue reste `null` (« non communiqué »).
-  Une catégorie non évaluable garde `points: null` : elle ne pèse pas sur le score.
-- Le score, le niveau, le point fort, les priorités et la feuille de route
-  sont **calculés** (`src/lib/audit/model.ts`), jamais saisis.
-- Logo : seulement avec l'accord de l'entreprise (`logo.permission: true`).
+1. Copier `audit-template.json` dans `private-audits/<entreprise>.json` et le compléter
+   (même schéma que `src/lib/audit/types.ts`). Garder l'original dans un stockage privé
+   (pas dans le dépôt).
+2. `npm run audit:seal -- private-audits/<entreprise>.json`
+   - valide l'audit (forme, sources, notes, recommandations) ;
+   - écrit `sealed/<identifiant>.json` (texte chiffré, identifiant aléatoire) ;
+   - affiche le **lien privé**. La clé n'existe que dans ce lien : le conserver en lieu sûr.
+3. Commit du fichier scellé, déploiement, envoi du lien.
+
+Révoquer un lien : `npm run audit:seal -- <fichier> --id <identifiant>` (nouvelle clé,
+l'ancien lien ne fonctionne plus) ou supprimer le fichier scellé, puis redéployer.
+
+## Règles de contenu (vérifiées automatiquement)
+
+- `observations` : **observé** = au moins une source externe vérifiable
+  (`website`, `public_listing`, `public_document`) ; **communiqué** = au moins une source
+  venant de l'entreprise (`call`, `questionnaire`, `company_document`).
+- Une piste non vérifiée va dans `hypotheses`, avec la manière de la valider ;
+  une note ne peut pas reposer **uniquement** sur des hypothèses.
+- Aucun chiffre inventé : valeur inconnue = `null`. Domaine non évaluable = `points: null`
+  (exclu du score). Moins de 4 domaines évalués sur 7 : aucun score affiché.
+- Score, niveau, point fort, priorités et feuille de route sont **calculés**
+  (`src/lib/audit/model.ts`), jamais saisis.
+- Logo : uniquement avec l'accord de l'entreprise (`logo.permission: true`).
 - `notes` : notes internes, jamais affichées.
 
-## Confidentialité — ce que le site fait, et ce qu'il ne fait pas
+## Ce que la protection fait — et ne fait pas
 
-- Pages en `noindex, nofollow` (balise et en-tête `X-Robots-Tag`), absentes
-  du plan du site et de la navigation, `Referrer-Policy: no-referrer`.
-- Les données d'un audit ne sont envoyées au navigateur que sur sa propre page.
-- **Ce n'est pas une authentification** : toute personne qui possède le lien
-  peut lire l'audit. Ne pas y mettre d'information que l'entreprise n'a pas
-  accepté de voir circuler par lien.
-- Les fichiers d'audit sont dans le dépôt Git : toute personne ayant accès
-  au dépôt peut les lire.
-- Ne jamais ajouter l'adresse d'un audit de prospect dans `SAMPLE_AUDIT`
-  (`src/lib/i18n/routes.ts`) : ce fichier est envoyé au navigateur.
+- Pages `noindex, nofollow` (balise + en-tête `X-Robots-Tag`), absentes du plan du site et de
+  la navigation, `Referrer-Policy: no-referrer`, titre neutre (aucun nom de prospect).
+- Le dépôt et le site ne contiennent que du texte chiffré ; la clé (après `#`) n'est jamais
+  envoyée au serveur.
+- **Ce n'est pas une authentification** : toute personne qui obtient le lien complet peut lire
+  l'audit. Pas de traçage d'accès, pas d'expiration automatique.
+- Pour un vrai contrôle d'accès plus tard, remplacer `openSealedAudit` / `getSealed`
+  (`src/lib/audit/seal.ts`, `src/lib/audit/sealed.ts`) — le rendu ne change pas.

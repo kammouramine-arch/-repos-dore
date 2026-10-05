@@ -9,7 +9,7 @@ import { isTrackEvent, track } from "@/lib/analytics";
  *   - tout lien ou bouton `[data-track="…"]` émet l'événement nommé au
  *     clic (`data-track-place` précise l'emplacement) ;
  *   - un lien `mailto:` émet `contact_initiated` ;
- *   - l'affichage de la page Revenue OS émet `revenue_os_page_viewed`.
+ *   - l'affichage de la page Revenue OS émet `revenue_os_viewed`.
  * Les composants serveur n'ont donc besoin que d'attributs.
  */
 export function AnalyticsBridge() {
@@ -17,7 +17,7 @@ export function AnalyticsBridge() {
 
   useEffect(() => {
     if (pathname === "/revenue-os" || pathname === "/en/revenue-os") {
-      track("revenue_os_page_viewed", { lang: pathname.startsWith("/en") ? "en" : "fr" });
+      track("revenue_os_viewed", { lang: pathname.startsWith("/en") ? "en" : "fr" });
     }
   }, [pathname]);
 

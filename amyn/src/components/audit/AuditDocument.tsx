@@ -1,6 +1,7 @@
 import { Fragment, type ReactNode } from "react";
 import { AmynMark } from "@/components/layout/Logo";
 import { Container } from "@/components/ui/Layout";
+import { SalesSessionLink } from "@/components/ui/SalesSessionLink";
 import { MODULE_GROUPS, getAuditCopy, type AuditCopy } from "@/lib/audit/copy";
 import {
   ASSESSMENT_BANDS,
@@ -183,7 +184,6 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
   const recommended = new Map(audit.recommendations.map((r) => [r.module, r]));
   const date = new Date(`${audit.date}T12:00:00Z`).toLocaleDateString(t.dateLocale, { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" });
   const sourceById = new Map(audit.sources.map((s) => [s.id, s]));
-  const booking = audit.nextStep?.bookingUrl ?? `mailto:${site.email}?subject=${encodeURIComponent(t.nextStep.emailSubject(audit.company.name))}`;
 
   /* En-têtes et pieds de page du PDF (chaîne CSS échappée). */
   const footer = t.footer(audit.company.name) + (audit.fictional ? ` · ${t.sample}` : "");
@@ -202,6 +202,7 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
         product={t.product}
         fictional={audit.fictional}
         sampleLabel={t.sample}
+        fictionalShort={t.fictionalShort}
       />
 
       {/* Couverture */}
@@ -259,6 +260,16 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
         <div className="grid gap-6 doc:grid-cols-12 doc:gap-10">
           <div className="audit-avoid rounded-[1.25rem] border border-line bg-surface p-6 sm:p-8 doc:col-span-5">
             <p className="label text-fg-3">{t.summary.score}</p>
+            <p className="mt-3 flex flex-wrap items-center gap-2 text-[0.8125rem] text-fg-2">
+              <span
+                className={`rounded-full px-2.5 py-1 font-mono text-[0.6875rem] font-semibold uppercase tracking-[0.1em] ${
+                  score.coverage === "complete" ? "bg-fg text-canvas" : "border border-dashed border-fg/50 text-fg"
+                }`}
+              >
+                {t.summary[score.coverage]}
+              </span>
+              {t.summary.coverage(score.assessed.length)}
+            </p>
             {score.total === null ? (
               <p className="mt-4 text-fg-2">{t.summary.noScore}</p>
             ) : (
@@ -300,7 +311,10 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
                     <span className="mt-1 block text-[0.9375rem] text-fg-2">{t.assessment[assessment].desc}</span>
                   </p>
                 )}
-                <p className="mt-5 text-[0.75rem] leading-relaxed text-fg-3">{t.summary.basis(score.assessed.length, score.assessable)}</p>
+                <p className="mt-5 text-[0.75rem] leading-relaxed text-fg-3">
+                  {t.summary.basis(score.assessed.length, score.assessable)}
+                  {score.coverage === "partial" && <> {t.summary.partialNote}</>}
+                </p>
               </>
             )}
           </div>
@@ -342,6 +356,9 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
 
       {/* 02 · Évaluation */}
       <AuditSection id="scorecard" t={t} title={t.scorecard.title} lead={t.scorecard.lead}>
+        <p className="mb-5 font-mono text-[0.8125rem] text-fg-2">
+          {t.summary.coverage(score.assessed.length)} · {t.summary[score.coverage]}
+        </p>
         <ul className="border-t border-line">
           {CATEGORY_ORDER.map((id) => {
             const s = audit.scores.find((c) => c.id === id);
@@ -425,11 +442,11 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
                       return (
                         <span key={sid} className="block">
                           <span className="font-mono text-fg-3">{sid}</span> {s?.label}
+                          {s && <span className="text-fg-3"> · {t.sourcesSection.kinds[s.kind]}</span>}
                           {s?.url && (
-                            <>
-                              {" — "}
-                              <span className="break-all font-mono text-[0.75rem]">{s.url.replace(/^https?:\/\//, "")}</span>
-                            </>
+                            <a href={s.url} target="_blank" rel="noopener noreferrer" className="block break-all font-mono text-[0.75rem] text-fg-2 underline decoration-line-strong underline-offset-2">
+                              {s.url.replace(/^https?:\/\//, "")}
+                            </a>
                           )}
                         </span>
                       );
@@ -679,15 +696,16 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
           </div>
           <div className="doc:col-span-6">
             <p className="font-serif text-[clamp(1.6rem,3vw,2.2rem)] leading-snug text-fg">{t.nextStep.promise}</p>
-            <a
-              href={booking}
-              data-track="architecture_session_clicked"
-              data-track-place="audit"
-              data-print-hide=""
-              className="mt-8 inline-flex min-h-14 items-center justify-center rounded-full bg-bone px-7 text-center text-[1rem] font-medium text-ink transition-colors hover:bg-gold-2"
-            >
-              {t.nextStep.cta}
-            </a>
+            <div data-print-hide="" className="mt-8">
+              <SalesSessionLink
+                subject={t.nextStep.emailSubject(audit.company.name)}
+                track="architecture_session_clicked"
+                place="audit"
+                className="inline-flex min-h-14 items-center justify-center rounded-full bg-bone px-7 text-center text-[1rem] font-medium text-ink transition-colors hover:bg-gold-2"
+              >
+                {t.nextStep.cta}
+              </SalesSessionLink>
+            </div>
             <p className="audit-print-only mt-6 text-fg-2">
               {site.email}
             </p>
@@ -704,7 +722,11 @@ export function AuditDocument({ audit }: { audit: RevenueAudit }) {
               <span className="text-fg-3">{t.sourcesSection.kinds[s.kind]}</span>
               <span className="text-fg">
                 {s.label}
-                {s.url && <span className="block break-all font-mono text-[0.75rem] text-fg-3">{s.url}</span>}
+                {s.url && (
+                  <a href={s.url} target="_blank" rel="noopener noreferrer" className="block break-all font-mono text-[0.75rem] text-fg-3 underline decoration-line-strong underline-offset-2">
+                    {s.url}
+                  </a>
+                )}
               </span>
               <span className="font-mono text-[0.8125rem] text-fg-3 sm:text-right">{s.date ?? ""}</span>
             </li>

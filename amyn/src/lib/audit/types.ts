@@ -21,7 +21,8 @@ export type AuditLocale = "fr" | "en";
 
 /** Nature d'une observation (les hypothèses ont leur propre type). */
 export type Provenance = "observed" | "provided";
-export type Confidence = "high" | "medium" | "low";
+/** « À valider » : l'information existe mais doit être confirmée. */
+export type Confidence = "high" | "medium" | "needs_validation";
 
 export type CategoryId =
   | "leadCapture"
@@ -66,7 +67,12 @@ export type Rating = 1 | 2 | 3;
 export type AuditSource = {
   id: string;
   label: string;
-  kind: "website" | "public_listing" | "call" | "document" | "questionnaire" | "other";
+  /**
+   * website / public_listing / public_document : sources externes,
+   * vérifiables (seules à pouvoir fonder une observation « observée ») ;
+   * call / questionnaire / company_document : transmis par l'entreprise.
+   */
+  kind: "website" | "public_listing" | "public_document" | "call" | "questionnaire" | "company_document";
   url?: string;
   /** Date de consultation ou de l'échange (AAAA-MM-JJ). */
   date?: string;
@@ -186,10 +192,6 @@ export type RevenueAudit = {
   opportunities: Opportunity[];
   recommendations: ModuleRecommendation[];
   roi: { assumptions: RoiAssumption[]; scenarios: RoiScenarios };
-  nextStep?: {
-    /** Lien de réservation réel (sinon : e-mail à AMYN). */
-    bookingUrl?: string;
-  };
   /** Notes internes : jamais affichées. */
   notes?: string;
 };

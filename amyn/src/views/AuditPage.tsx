@@ -22,6 +22,17 @@ export function auditMetadata(audit: RevenueAudit | undefined): Metadata {
   };
 }
 
+/** Audit scellé : métadonnées neutres — le serveur ne connaît pas l'entreprise. */
+export function sealedAuditMetadata(locale: "fr" | "en"): Metadata {
+  return {
+    title: getAuditCopy(locale).sealed.title,
+    robots: { index: false, follow: false, nocache: true, googleBot: { index: false, follow: false, noimageindex: true } },
+    referrer: "no-referrer",
+    alternates: { canonical: null, languages: {} },
+    openGraph: null,
+  };
+}
+
 export function AuditPage({ audit }: { audit: RevenueAudit }) {
   return <AuditDocument audit={audit} />;
 }

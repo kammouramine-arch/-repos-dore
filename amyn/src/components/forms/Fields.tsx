@@ -304,10 +304,18 @@ export function Honeypot({
   locale?: Locale;
 }) {
   return (
-    <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
-      <label htmlFor={HONEYPOT_FIELD}>{getUi(locale).form.honeypot}</label>
-      <input ref={inputRef} id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
-    </div>
+    <>
+      {/* Sans JavaScript, le formulaire ne peut pas partir : on le dit. */}
+      <noscript>
+        <p className="mb-6 rounded-[var(--radius-sm)] border border-line-strong px-4 py-3 text-[0.9375rem] text-fg-2">
+          {getUi(locale).form.noscript}
+        </p>
+      </noscript>
+      <div aria-hidden className="pointer-events-none absolute -left-[9999px] h-px w-px overflow-hidden opacity-0">
+        <label htmlFor={HONEYPOT_FIELD}>{getUi(locale).form.honeypot}</label>
+        <input ref={inputRef} id={HONEYPOT_FIELD} name={HONEYPOT_FIELD} type="text" tabIndex={-1} autoComplete="off" />
+      </div>
+    </>
   );
 }
 
