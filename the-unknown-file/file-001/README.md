@@ -8,9 +8,9 @@ This is the editable production project for both films: the vertical short (1080
 |---|---|
 | `audio/` | The supplied ElevenLabs narration (originals, untouched) |
 | `audio/master/` | Mastered narration, 48 kHz / 24-bit, about −14.5 LUFS and −1.3 dBTP (generated) |
-| `data/` | Word-timed transcripts (`*.words.json`, `*.tokens.json`), subtitle cards, EN/FR SRTs |
+| `data/` | Word-timed transcripts (`*.words.json`, `*.tokens.json`), subtitle cards, SRTs |
 | `tools/` | Python and shell pipeline: transcription, data fetch, terrain baking, subtitles, render, mux |
-| `tools/fr_short.py`, `tools/fr_long.py` | **French subtitle text.** Edit here, then run `tools/build_subs.py` |
+| `tools/fr_short.py`, `tools/fr_long.py` | French subtitle text (not used in the current English-only deliverables; kept in case you want it later) |
 | `studio/` | Remotion project (React + Three.js). All scenes, graphics and timing live here |
 | `studio/src/short/Short.tsx` | The vertical short: shot list keyed to spoken phrases |
 | `studio/src/long/Long.tsx` | The documentary: eight chapters keyed to spoken phrases |
@@ -53,13 +53,13 @@ python3 tools/subs.py short && python3 tools/subs.py long
 python3 tools/build_subs.py short && python3 tools/build_subs.py long
 
 # 4 · preview / edit interactively
-cd studio && npx remotion studio            # compositions: Short, ShortClean, Long, Thumb, Cover
+cd studio && npx remotion studio            # compositions: ShortClean (delivered, English only), Short (FR-subtitled variant, not delivered), Long, Thumb, Cover
 
 # 5 · render (no GPU needed; ANGLE/SwiftShader)
 npx remotion render src/index.ts Short ../renders/short_video.mp4 --gl=angle --muted --crf=14
 npx remotion render src/index.ts ShortClean ../renders/short_clean_video.mp4 --gl=angle --muted --crf=14
 cd .. && tools/render_long.sh                # chunked + resumable 4K render
-tools/finish.sh                              # mux mastered narration + soft subtitles → deliverables/
+tools/finish.sh                              # mux mastered narration (English only) → deliverables/
 ```
 
 Audio master (narration only):

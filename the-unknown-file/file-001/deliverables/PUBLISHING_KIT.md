@@ -53,15 +53,11 @@ Vertical cover: `THE_UNKNOWN_FILE_001_VERTICAL_COVER.jpg` (1080 × 1920).
 > One night in 1986, a lake in Cameroon killed more than 1,700 people, and almost none of them were in the water. FILE #001 — THE UNKNOWN FILE.
 > #LakeNyos #history #science #geology #mystery #documentary #cameroon #didyouknow #TheUnknownFile
 
-French caption variant (for French-speaking audiences):
+## Subtitles / captions
 
-> Une nuit de 1986, un lac du Cameroun a tué plus de 1 700 personnes, et presque aucune ne se trouvait dans l'eau. Dossier n° 1 — The Unknown File.
-> #LacNyos #histoire #science #géologie #mystère #documentaire
-
-## Subtitles
-
-- YouTube: upload `THE_UNKNOWN_FILE_001_YOUTUBE_FULL.fr.srt` as **French** and `…en.srt` as **English** (YouTube Studio → Subtitles → Upload file → With timing). The full MP4 also carries both tracks as selectable soft subtitles.
-- Short: French subtitles are burned in, inside the 9:16 safe area. `THE_UNKNOWN_FILE_001_SHORT_CLEAN.mp4` has no subtitles, for editing in CapCut. Its SRTs are in this folder.
+Both videos are English only, with no burned-in subtitles and no translation. Optional English caption files are included for accessibility:
+- YouTube: you can upload `THE_UNKNOWN_FILE_001_YOUTUBE_FULL.en.srt` in YouTube Studio → Subtitles → Upload file → With timing, or skip it.
+- Short: `THE_UNKNOWN_FILE_001_SHORT.en.srt` can be imported into CapCut if you ever want captions.
 
 ## Upload notes
 
