@@ -1,0 +1,12 @@
+studio/node_modules/
+studio/out/
+renders/
+assets/geo/tiles/
+assets/geo/s2/
+assets/geo/*.npy
+assets/geo/s2_*.jpg
+data/*.log
+*.tmp.mp4
+deliverables/*.mp4
+deliverables/*.wav
+audio/master/
