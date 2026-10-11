@@ -7,6 +7,4 @@ assets/geo/*.npy
 assets/geo/s2_*.jpg
 data/*.log
 *.tmp.mp4
-deliverables/*.mp4
-deliverables/*.wav
 audio/master/
