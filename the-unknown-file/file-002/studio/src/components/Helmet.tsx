@@ -80,7 +80,7 @@ export const Helmet: React.FC<HelmetProps> = ({ t, water, shift = 0, vent = 0, v
     return out;
   }, [center, half, vol, Math.round(t * 24)]);
 
-  const light = 1 - 0.75 * dark;
+  const light = 1 - 0.5 * dark;
   return (
     <AbsoluteFill style={{ background: `radial-gradient(ellipse at 55% 45%, #121c2a 0%, ${C.ink} 75%)` }}>
       <svg width={W} height={H} style={{ position: "absolute" }}>
