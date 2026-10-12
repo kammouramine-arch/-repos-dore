@@ -13,10 +13,10 @@ enc_short() { # $1 = picture, $2 = output
 }
 if [[ -s renders/short_clean_video.mp4 ]]; then enc_short renders/short_clean_video.mp4 "$D/THE_UNKNOWN_FILE_001_SHORT.mp4"; echo "short ok"; fi
 if [[ -s renders/long_parts/list.txt ]]; then
-  ffmpeg -y -v error -f concat -safe 0 -i renders/long_parts/list.txt -c copy renders/long_video.mp4
+  [[ -s renders/long_video.mp4 ]] || ffmpeg -y -v error -f concat -safe 0 -i renders/long_parts/list.txt -c copy renders/long_video.mp4
   DUR=$(ffprobe -v error -show_entries format=duration -of csv=p=0 renders/long_video.mp4)
   ffmpeg -y -v error -i renders/long_video.mp4 -i audio/master/NARRATION_LONG.wav -map 0:v -map 1:a -t "$DUR" \
-    -c:v libx264 -preset slow -crf 18 -maxrate 40M -bufsize 80M -profile:v high -level 5.1 -pix_fmt yuv420p -x264-params "keyint=48:min-keyint=24" \
+    -c:v libx264 -preset slow -crf 19 -maxrate 35M -bufsize 70M -profile:v high -level 5.1 -pix_fmt yuv420p -x264-params "keyint=48:min-keyint=24" \
     -c:a aac -b:a 320k -ar 48000 -af "apad=whole_dur=$DUR" -metadata:s:a:0 language=eng \
     -metadata title="THE UNKNOWN FILE — FILE #001" -movflags +faststart "$D/THE_UNKNOWN_FILE_001_YOUTUBE_FULL.mp4"
   echo "long ok"

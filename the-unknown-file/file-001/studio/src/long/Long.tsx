@@ -716,7 +716,12 @@ const NotConfirmed: React.FC = () => {
 
 const VerdictShot: React.FC = () => {
   const { t, a } = useA(T.distinction);
-  return <Verdict t={t} aAt={a(T.strongExpl)} bAt={a(T.identifying)} />;
+  return (
+    <AbsoluteFill>
+      <Verdict t={t} aAt={0.4} bAt={a(T.identifying)} />
+      <Title x={0} y={150} align="center"><Kicker text="AN IMPORTANT DISTINCTION" t={t} at={0.1} size={24} color={C.paper} /></Title>
+    </AbsoluteFill>
+  );
 };
 
 /* ======================= CHAPTER 6 ======================= */
@@ -773,7 +778,17 @@ const ScaleShot: React.FC = () => {
 
 const Urgent: React.FC = () => {
   const { t, a } = useA(T.notEnough);
-  return <Statement t={t} kicker="BUT UNDERSTANDING WASN'T ENOUGH" lines={[{ text: "ANOTHER", at: a(T.urgent) }, { text: "URGENT PROBLEM", at: a(T.urgent) + 0.3, color: C.burgundyHi }]} size={130} />;
+  const swap = ramp(t, a(T.urgent) - 0.45, a(T.urgent) - 0.05);
+  return (
+    <AbsoluteFill>
+      <AbsoluteFill style={{ opacity: 1 - swap }}>
+        <Statement t={t} lines={[{ text: "UNDERSTANDING", at: 0.25 }, { text: "WASN'T ENOUGH.", at: 0.55, color: "rgba(236,230,218,0.6)" }]} size={120} />
+      </AbsoluteFill>
+      <AbsoluteFill style={{ opacity: swap }}>
+        <Statement t={t} lines={[{ text: "ANOTHER", at: a(T.urgent) }, { text: "URGENT PROBLEM", at: a(T.urgent) + 0.3, color: C.burgundyHi }]} size={130} />
+      </AbsoluteFill>
+    </AbsoluteFill>
+  );
 };
 
 /* ======================= CHAPTER 7 ======================= */
