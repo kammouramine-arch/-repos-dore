@@ -1,0 +1,857 @@
+       Failure Analysis Results and Corrective Actions
+    Implemented for the Extravehicular Mobility Unit 3011
+                Water in the Helmet Mishap
+                John Steele,1 Carol Metselaar,2 Barbara Peyton,3 Tony Rector,4 and Robert Rossato5
+                             UTC Aerospace Systems, Windsor Locks, CT 06096-1010
+
+                                       Brian Macias6 and Dana Weigel7
+                               NASA.Johnson Space Center, Houston, Texas, 77058
+
+                                                Don Holder8
+                         NASA/Marshall Space Flight Center, Huntsville, Alabama, 35812
+
+
+            Water entered the Extravehicular Mobility Unit (EMU) helmet during extravehicular
+        activity (EVA) #23 aboard the International Space Station on July 16, 2013, resulting in the
+        termination of the EVA approximately 1 hour after it began. It was estimated that 1.5 liters
+        of water had migrated up the ventilation loop into the helmet, adversely impacting the
+        astronaut’s hearing, vision, and verbal communication. Subsequent on-board testing and
+        ground-based test, tear-down, and evaluation of the affected EMU hardware components
+        determined that the proximate cause of the mishap was blockage of all water separator
+        drum holes with a mixture of silica and silicates. The blockages caused a failure of the water
+        separator degassing function, which resulted in EMU cooling water spilling into the
+        ventilation loop, migrating around the circulating fan, and ultimately pushing into the
+        helmet. The root cause of the failure was determined to be ground-processing shortcomings
+        of the Airlock Cooling Loop Recovery (ALCLR) Ion Filter Beds, which led to various levels
+        of contaminants being introduced into the filters before they left the ground. Those
+        contaminants were thereafter introduced into the EMU hardware on-orbit during ALCLR
+        scrubbing operations. This paper summarizes the failure analysis results along with
+        identified process, hardware, and operational corrective actions that were implemented as a
+        result of findings from this investigation.
+
+
+
+
+1
+   Engineering Fellow, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2- W66,
+  Windsor Locks, CT 06096-1010
+2
+  Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor
+  Locks, CT 06096-1010
+3
+  Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor
+  Locks, CT 06096-1010
+4
+  Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor
+  Locks, CT 06096-1010
+5
+  Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor
+  Locks, CT 06096-1010
+6
+  EMU Life Support System Manager, Johnson Space Center, National Aeronautics and Space Administration,
+  Houston, TX 77058
+7
+  ISS Vehicle Manager, Johnson Space Center, National Aeronautics and Space Administration,
+  Houston, TX 77058
+8
+   Chief Engineer, Flight Programs and Partnerships Office, Marshall Space Flight Center, National Aeronautics and
+  Space Administration, EE04 MSFC, AL 35812
+                                                          1
+                                International Conference on Environmental Systems
+                                                 Nomenclature
+ACTEX     =   Activated Carbon/Ion Exchange
+ALCLR     =   Airlock Cooling Loop Recovery
+CAP       =   Corrective Action Plan
+DI        =   deionized
+ECLSS     =   Environmental Control Life Support System
+EMU       =   Extravehicular Mobility Unit
+EVA       =   extravehicular activity
+Fe        =   iron
+FPS       =   fan/pump/separator
+ISS       =   International Space Station
+JSC       =   Johnson Space Center
+LCVG      =   Liquid Cooling and Ventilation Garment
+mL        =   milliliter
+Ni        =   nickel
+pH        =   hydrogen ion concentration
+ppm       =   parts per million
+SEMU      =   Short Extravehicular Mobility Unit
+Si        =   silicon
+TOC       =   Total Organic Carbon
+Zn        =   zinc
+
+
+                                                   I. Introduction
+      ater entered Astronaut Luca Parmitano’s helmet during U.S. extravehicular activity (EVA) 23 on July 16,
+W     2013, on-board the International Space Station (ISS), resulting in early termination of the EVA at a phase
+elapsed time of 1:05. Water entered the helmet at the ventilation loop inlet “T-2” port, which is located behind the
+crew member’s head at the base of the helmet. The specific location where the water was entering and the source of
+the water was unknown during the EVA. The water began to accumulate on the back of Luca’s head and he soon
+reported that the water was increasing, Mission Control Center–Houston directed the crew to terminate the EVA.
+The water migrated to Luca’s face during translation back to the airlock, thereby covering his eyes, ears, and nose.
+Luca’s vision and communications were degraded as a result of the water shift, requiring Luca to use his safety
+tether as a guide to navigate back to the Airlock. The crew successfully returned to the Airlock and performed an
+expedited repress and suit doffing. Luca communicated with EV1, Chris Cassidy, during repress using only hand
+squeezes. Following EVA 23, the crew reported approximately 1.5 liters of water in Luca’s helmet—a fact that was
+later confirmed when the Extravehicular Mobility Unit (EMU) feed-water recharge was performed as part of the
+standard post EVA suit servicing.1
+    This paper summarizes the investigative findings that lead to the proximate and root cause, provides associated
+corrective actions, and outlines recommended forward work related to the EVA 23 water in the helmet mishap. The
+mishap investigation, including the development of proximate and root cause for the failure and implementation of
+corrective actions, culminated in returning the ISS Program to nominal EVA capability on August 11, 2013.
+
+                                   II. On-orbit Hardware Evaluation
+    On-orbit troubleshooting of the failed EMU began the day following the EVA and included eliminating the
+Liquid Cooling and Ventilation Garment (LCVG), water tank structure, and hard upper torso tubing as leak sources.
+The failure was easily repeated on-orbit in the intravehicular activity environment by pressurizing the fully-suited
+EMU and “priming” the Transport (e.g., Cooling) Water Loop to initiate cooling loop water flow through the water
+separator. During this troubleshooting, water entered the unmanned helmet within about 3 minutes of priming. A
+fault tree was developed and more complex troubleshooting, including removal and replacement of various Life
+Support System components, was conducted through late October 2013. This troubleshooting eventually led to the
+removal and replacement of EMU 3011’s fan/pump/separator (FPS) (Item 123 S/N 006) on October 24, 2013, which
+resolved the water crossover anomaly. The FPS became a focal point of the investigation going forward and was
+returned to the ground for post-flight analysis. The S/N 006 FPS was removed from the Short Extravehicular
+Mobility Unit (SEMU) 3011 on orbit and returned to ground for test, teardown, and evaluation on 11/11/2013. This
+
+                                                        2
+                               International Conference on Environmental Systems
+approach was simple: move from least-invasive to most-invasive actions during the teardown of FPS 006 to preserve
+as much evidence as possible for evaluation.1
+    The EMU fan, pump, and water separator are coupled together through a common shaft and magnetic coupling
+to form what is called the FPS (Figure 1). The fan circulates oxygen over the crew member’s head and throughout
+the suit, and pulls waste gases (e.g., carbon dioxide) and oxygen through a carbon-dioxide-removal cartridge. The
+pump, which is isolated from the ventilation loop via a magnetic coupling, circulates coolant loop water through the
+EMU’s sublimator heat exchanger and throughout the LCVG. Humidity from the crew member’s' exhalation and
+sweat is also condensed in the sublimator and sent to the water separator where the water is removed and returned to
+the water loops. In addition to this condensate, water from the EMU coolant loop is continuously flowing through
+the water separator to facilitate constant coolant loop circulation for degassing purposes.2
+
+
+
+
+                                    Figure 1. Cutaway view of the EMU FPS.
+
+                                   III. Ground Hardware Evaluation
+    A receiving inspection was performed when the S/N 006 FPS assembly arrived at the United Technologies
+Aerospace Systems (UTAS) facility and the Item-123 FPS assembly was separated from the Item-127/128 Pump
+Inlet Filter. Both were repackaged and shipped to Goddard Space Flight Center for X-ray CT scans. The scans were
+primarily looking for mechanical assembly or component failure areas or gross contamination that may have caused
+the failure of the FPS to function properly. The result of the nondestructive evaluation showed no mechanical issues
+such as cracks or loss of a weld plug in the pitot that would result in the failure mechanism seen on orbit. However,
+both the X-ray CT scan and N-ray scan showed the presence of contamination within the drum of the separator.
+Figure 2 shows the contamination indications in the drum from the CT scans. The contamination appeared to be in
+and around the eight drum holes that feed the drum trough.3
+
+
+
+
+                                                         3
+                                International Conference on Environmental Systems
+                           Figure 3: X-ray CT scan of FPS S/N 006 separator drum.
+
+    After the CT scans were complete, the hardware was sent back to UTAS for disassembly. All parts were
+photographed and dimensionally inspected during disassembly. Once the FPS pitot and drum were removed, they
+were packaged and shipped to McClellan Nuclear Research Center for N-ray scans. The N-ray scan was to
+determine whether internal passageways within the pitot and drum were blocked or contained contamination.
+Testing of the water separator was added to the plan, based on findings from the inspections and nondestructive
+evaluations.
+    Upon return of the FPS, visual inspections identified contamination in all eight water separator drum inlet feed
+holes (Figure 3) and along the walls leading to the feed holes. Analysis showed the material to be primarily loosely
+bound silica, with zinc acetate, aluminum silicate, and aluminum oxide present as well. These constituents are all
+native to the EMU/Airlock system, but the quantity and location were out of family. The majority of the material
+was silica based.3
+    In operation of the EMU Transport Water Loop, small particles are filtered with a 20 micrometer filter prior to
+entering the water separator, which indicates the contaminant material either entered as very small particles that
+agglomerated in the separator or entered in solution followed by localized precipitation. Testing of EMU 3011’s
+returned FPS (S/N 006) both with and without the drum-hole contamination confirmed that the blocked drum holes
+were the cause of the water in the helmet mishap.
+
+
+
+
+                                                        4
+                               International Conference on Environmental Systems
+                                  Figure 3. Blocked water separator drum holes.
+
+
+    After the silica-laden contamination was found in the FPS, a causal tree was developed to determine the source
+of the silica and the potential mechanisms for facilitating the precipitation and agglomeration in the water separator. 1
+All hardware and water sources that interface with the EMU were investigated. This included EMU 3011’s interface
+with the Space Shuttle coolant loop prior to launch, Space Shuttle water from the Payload Water Reservoirs, which
+are used to fill the EMUs on the ISS, the Airlock Cooling Loop Recovery (ALCLR) Ion Beds, and the Airlock Heat
+Exchanger. Other potential contributors to the anomaly were the ISS environment (pH, temperatures), the EMU
+Sublimator, and EMU hardware contamination (Braycote®, system corrosion products, etc.). These investigations
+led to the ALCLR Ion Beds as potentially being the primary contributors to the high levels of silica-laded
+contaminants found in the FPS S/N 006 Water Separator drum holes. 1
+
+                       IV. Airlock Cooling Loop Recovery Ion Bed Evaluations
+
+A. Airlock Cooling Loop Recovery Description
+    The ALCLR water processing kit was developed as a corrective action to EMU coolant loop flow disruptions
+experienced on the ISS in May 2004 and thereafter. The components in the kit are designed to remove the
+contaminants that caused prior flow disruptions. ALCLR water processing kits have been used since 2004 as
+standard operating procedure. Periodic analysis of EMU coolant loop water and hardware examinations were used
+as a means to determine adequate functionality and optimized processing cycles as well as ALCLR component shelf
+life.
+    The ALCLR water processing kit (Figure 4) was devised to scrub and remediate the various chemical and
+biological contaminants and by-products that were found to have fouled the magnetically coupled pump in the EMU
+Transport Water Loop FPS. The heart of the kit is the EMU Ion Filter, which is a 50:50 by volume packed bed of
+mixed anion/cation exchange resin and activated carbon. This component is periodically installed inline to the EMU
+and Airlock Heat Exchanger coolant loop and serves the purpose of removing inorganic and organic constituents
+such as nickel and iron corrosion products and organic acids with the ion exchange resin. Furthermore, uncharged
+organic contaminants are removed with the activated carbon. 4
+
+
+
+
+                                                          5
+                                 International Conference on Environmental Systems
+                                 Figure 4. ALCLR processing kit components.
+
+
+   In service, a 3-micrometer filter is placed downstream of the EMU Ion Filter to capture fines from the packed
+bed prior to return of the polished water to the EMU Transport Loop. After scrubbing with the EMU Ion Filter, the
+EMU Biocide Filter is installed to add residual iodine biocide for microbial control. The EMU Biocide Filter is a
+packed bed of ion exchange resin impregnated.4
+
+B. Airlock Cooling Loop Recovery Ion Bed Link to Short Extravehicular Mobility Unit 3011 Mishap
+    In December 2013, five ALCLR Ion Beds and four post-Ion Bed 3-micrometer filters were returned from on-
+orbit for a complete chemical analysis. The focus of this investigation was on the proper functionality of this
+hardware since it was designed to remove the types of contaminants found in the SEMU 3011 S/N 006 FPS Water
+Separator drum holes from the EMU Transport Water Loop.
+    Each of the five ALCLR Ion Beds underwent an initial free water drain, and that water underwent a complete
+chemical analysis. The ion exchange resin from each was then removed, and different aliquots underwent separate
+acid (0.5 N nitric acid) and base (0.5 N sodium hydroxide) extractions to remove the adsorbed anions and cations,
+respectively, from the resins. Separate ion exchange resin samples from each Ion Bed then underwent capacity
+testing with a variant of ASTM Method D 3375-95a (Standard Test Method for Column Capacity of Particulate
+Mixed Bed Ion Exchange Materials) to determine the remaining ion exchange capacity for each resin. 5
+    The free water (~60 mL) drained from ALCLR Ion Bed (S/N 1003) was found to have a relatively high
+dissolved silicon level (41 ppm) when compared to the others (< 1 ppm dissolved silicon), thus indicating that the
+ion exchange resin was saturated and unable to retain silicon in its common dissolved form, as ionic silicic acid.
+Furthermore, the acid/base extracts from the ALCLR Ion Bed S/N 1003 ion exchange resin was found to have
+relatively high chloride, sulfate, potassium, and silicon levels when compared to the data generated from the other
+four beds. Finally, when the ion exchange resin capacity test was done on the resin from ALCLR Ion Bed S/N 1003,
+it was found to have no remaining ion exchange capacity, and silicon immediately discharged from the ion exchange
+resin when capacity challenge sodium chloride was added (Figure 5). This was a stark difference from the other four
+Ion Beds, which all showed significant remaining ion exchange resin capacity (Figure 6).5
+
+
+
+
+                                                        6
+                               International Conference on Environmental Systems
+                     Blue – Conductivity
+                     Red – Silicon Concentration
+
+
+
+
+                  Figure 5. Capacity test results—Ion Bed S/N 1003—no remaining capacity.
+
+
+    Similar analyses of the entire inventory of ground and on-orbit and returned ALCLR Ion Beds determined that
+several other Ion Beds were partially or completely exhausted. This suggested the ALCLR Ion Bed S/N 1003
+contamination and partial exhaustion was not a single occurrence. An incremental root cause that linked several of
+the Ion Beds together was thereafter investigated.5
+
+
+
+
+                Figure 6. Capacity test results—Ion Bed S/N 1013—significant remaining capacity.
+
+
+
+
+                                                        7
+                               International Conference on Environmental Systems
+    The free water (~100 mL) drained from 3-micrometer filter housing S/N 1034 was found to contain a relatively
+high dissolved silicon concentration (16 ppm) when compared to the other three 3-micrometer filter water samples
+that were analyzed, thus indicating the Ion Bed that last interfaced with 3-micrometer filter S/N 1034 was putting
+out relatively high silicon level.5
+     A search of the ALCLR-related records was conducted. It was found that 3-micrometer filter S/N 1034 was last
+used with ALCLR Ion Bed 1003 on August 14, 2012, indicating silicon was being released from ALCLR Ion Bed
+1003 at that time and then presumably flowed through 3-micrometer filter S/N 1034 and into the SEMU FPS that
+was undergoing the ALCLR process at the time. The ALCLR-related records then showed that the ALCLR Ion Bed
+S/N 1003/3-micrometer filter combination interfaced with SEMU 3011 on August 14, 2012—the first indication of a
+source of silicon-rich water flowing directly into the SEMU 3011 FPS Water Separator drum. Furthermore, ALCLR
+Ion Bed S/N 1003 interfaced two additional times with SEMU 3011 after it was determined to be exhausted on
+August 14, 2012, prior to the July 16, 2013, water-in-the-helmet mishap. What remained unanswered at that time
+was why the silicon was preferentially being released from ALCLR Ion Bed S/N 1003, why the silicon then
+precipitated in the SEMU 3011 FPS Water Separator Drum, the reason for ALCLR Ion Bed S/N 1003 to exhibit out-
+of-family exhaustion, and the source of the out-of-family silicon levels.3,5
+
+C. Silicon Retention on an Ion Exchange Resin
+    A review of the literature and discussions with several subject matter experts helped provide an understanding of
+why silicon was being preferentially released from ALCLR Ion Bed S/N 1003. Silicon, as dissolved silicic acid, is a
+weakly bound anion to ion exchange resin. Other anions, such as carbonate, chloride, phosphate, and sulfate will
+displace silicic acid from anion exchange sites in a competitive situation. 6
+    As previously mentioned, ALCLR Ion Bed S/N 1003 used with EMU 3011 on August 14, 2012 (S/N 1003) was
+found to be contaminated with high levels of silicon, chloride, and sulfate anions. The chloride and sulfate ions are
+expected to more strongly bind to ion exchange resin vs. ionic silicic acid, which is weakly bound It was surmised,
+at that time, that the high levels of chloride and sulfate anions would be expected to displace the normally weakly
+bound ionic silicic. The displaced ionic silica would then be expected to either move further down the scrubber bed
+to fresh anion exchange sites (if available) or would exit the scrubber bed.
+    As nominal levels of more strongly bound anions continued to enter the scrubber bed, they would continue to
+displace the more weakly bound ionic silica. Nominal ionic silica eventually would run out of fresh anion exchange
+sites with which to bind as well and would exit the ion exchange bed. After the August 14 incident, ion exchange
+scrubber bed S/N 1003 was effectively an ionic and precipitated silica generator.6,7
+
+D. Silicon Precipitation
+     A review of the literature and discussion with several subject matter experts also helped provide an
+understanding of why silicon would precipitate in the SEMU 3011 FPS Water Separator Drum. The input suggested
+that high levels of ionic silica in water are prone to agglomeration and particle formation, particularly where water
+steams of varying pH join (the EMU Transport Water and Sublimator condensate streams merge in this area).
+Furthermore, the input suggested that, once formed, particles of silicon would separate and migrate to the outer
+walls of the FPS Water Separator in operation due to its centrifugation action at 19,300 revolutions per minute. The
+Water Separator undergoes periodic drying during operation, which is further expected to lead to ionic silica
+exceeding solubility limits and forming silica/silicate-rich precipitates. Finally, once a layer of silica/silicate
+precipitates forms, it would be expected to attract additional silica/silicate that was introduced.6
+     Beaker level tests related to silicon solubility in water were conducted and showed that silicon solubility in
+solution was a function of pH (↑ Si at ↑pH) which is in agreement with the literature sources that were referenced
+and input from various subject matter experts.11
+     Shifts in water pH (start at pH 2 – 10, shift to pH 5 and pH 7) showed little effect on Si solubility with/without
+centrifugation indicating that potential pH shifts due to the joining of two water streams in the EMU (Sublimator
+condensate stream and Transport Water Loop) likely played a minimal if any role in the precipitation of
+silica/silicates in the SEMU 3011 Separator Drum.11
+     The presence of metal cations (Fe, Ni, Zn) at various pHs (2 – 10) showed little effect on Si solubility,
+suggesting that corrosion products from the SEMU 3011 Pump Rotor or other fluid loop sources played a minimal,
+if any, role in the precipitation of silica/silicates in the SEMU 3011 Separator. 11
+     The presence of Braycote® showed essentially no effect on Si solubility, suggesting that the excessive Braycote®
+observed in several areas of the SEMU 3011 Transport Water Loop likely played a minimal, if any, role in
+facilitating the precipitation of silica/silicates in the SEMU 3011 Separator Drum. It should be noted, however, that
+
+                                                         8
+                                International Conference on Environmental Systems
+once precipitates formed, excessive Braycote® would be expected to act as a “trap” for precipitated silica/silicates,
+thereby serving as a potential collection point.11
+    Testing indicated that as water volume was reduced through evaporation, the ratio of total Si/reactive Si
+increased at pH 9 – 10, indicating colloidal Si formation, essentially the first step in the precipitation of Si. Through
+evaporation, the amount of Si-rich precipitate that formed was shown to be a function of water pH (↑ Si at ↑pH). So
+a basic solution with high levels of Si would result in a relatively high Si precipitate due to the water evaporation
+expected to occur in the EMU Water Separator, a feasible pathway to what occurred in the SEMU 3011 Water
+Separator Drum.11
+
+E. Contaminated Ion Bed Link to Ground Processing
+    Immediately following the EVA 23 mishap, it was evident that a water cleanliness problem on orbit would
+require remediation. Since the ALCLR filters were the primary means of scrubbing the EVA water loops and the
+investigation had not yet uncovered a reason to suspect the filters, manufacture of eight additional ALCLR units
+(S/Ns 1020 – 1027) was initiated in anticipation of using them for the recovery effort. Assembly and ground
+processing of the filters was completed on December 20, 2013, and three of the filters (S/Ns 1020, 1021, and 1022)
+were shipped for flight on Orb-1 on December 23, 2013. The remaining filters were sent to Building 7 controlled
+storage.8
+    On December 26, 2013, “smudges and scratches” were noted on the exterior of the housings of the recently
+processed ALCLR filters, prompting an inspection. Further analysis of the hardware revealed that the housings were
+pitting and corroding, in some cases all the way through the housings (Figure 7).8
+
+
+
+
+                Figure 7. Pitting and corrosion on the external surfaces of the ALCLR housings.
+
+    After discovery of the corroding filters, water samples were taken from the free water in the ALCLR filters, the
+Activated Carbon/Ion Exchange (ACTEX) test stand (where the filters are processed), several DI water faucets in
+the Building 7 facility, and the output of the Building 7 deionized (DI) water processing facility. In all cases, the
+water conductivity and chloride concentrations exceeded the Type A Space Shuttle water specification, SE-S-0073,
+which was the water specification for the EMU at the time of the mishap (see Table 1 for key data outages from SE-
+S-0073).1
+
+
+
+
+                                                          9
+                                 International Conference on Environmental Systems
+                       Table 1. Post ALCLR Corrosion Discrepancy Free Water Test Results
+                                                                                  Crew         Bldg 7 DI
+                   ACTEX Test     ALCLR S/N:     ALCLR S/N:      LCVG Test
+  Parameter          Stand          1023           1027            Stand
+                                                                                Escape DI       Facility    SE-S-0073
+                                                                                   Sink         Output
+ Conductivity
+ (μS/cm)               150           2500            130           107.9          141.9          717*          < 3.3
+ Chloride (ppm)        36             730            26             23.2             -             -            <1
+
+
+
+
+    These results suggested gross contamination of the ALCLR Ion Beds before they were launched to the ISS and
+identified a potential issue with the flight hardware ground test facilities. All on-orbit ALCLR activities were
+suspended at that point. ALCLR units were pulled from controlled storage and returned from the ISS for analysis,
+which confirmed that ALCLR units were transported to the ISS in a contaminated state, though they were not
+actually used on-orbit. ALCLR Ion Bed ground processing became a major focus of the mishap investigation
+thereafter.
+
+F. Airlock Cooling Loop Recovery Ion Bed Ground Processing
+   The building 7 centralized DI water processing facility provides the water that is used to process the ALCLR Ion
+Bed. Several shortcomings of this water system were found upon further investigation, as follows:1
+       1. The water effluent conductivity sensor was set at 5.0 µS/cm vs. the requirement at that time of < 3.3
+            µS/cm. A visual indicator—a simple green/red light—indicated compliance with this requirement.
+       2. The system conductivity sensor was located after the last ion exchange bed (the industry standard is to
+            locate the conductivity sensor before the last ion exchange bed to provide a safety buffer), allowing
+            potentially poor quality water to be delivered to the processing area if no one noticed the green-to-red
+            light change
+       3. A single technician was assigned the task to periodically look at the conductivity indicator light in a
+            remote location. There was no requirement to notify building users of this water if the red light
+            indicated poor quality. Furthermore, the supplier of the system would be notified if a system ion
+            exchange bed was exhausted; replacement of that bed could take several days. Finally, there was no
+            backup in the event the primary technician was absent.
+       4. No recheck of the quality of the DI water occurred prior to the point of interface with the ALCLR Ion
+            Bed being processed, though several hundred feet of static water separated the final ion exchange bed
+            from the point of hardware interface.
+
+    Various water samples from the Building 7 ALCLR Ion Bed processing laboratory (i.e., EMU lab) including the
+test stand used for processing and several Building 7 locations were analyzed and were found to greatly exceed the
+SE-S-0073 water quality requirements for process water. Some of these samples were found to be comparable to tap
+water quality.1
+    The ion beds are processed at Johnson Space Center (JSC) in Building 7 in two phases: bed packing and bed
+flushing. After the raw material is loaded into the ion bed, the bed is flushed with 150 pounds of DI water to remove
+particulate. If there are any contaminants in the flush water, they are concentrated on the ion bed during the flush.
+The ground processing investigation found a number of configuration and process management issues with the
+Building 7 DI water system that lead to the facility DI beds passing silica and other contaminants downstream when
+the facility beds were near the end of their life. The investigation concluded that the source of the excessive silica
+and exhausted ALCLR Ion Beds was from ground processing and loading of the ALCLR ion beds. 1,7
+    As long as the anion or cation resin in the ALCLR Ion Bed was properly processed with good quality water (not
+exhausted), the effluent water would be free of ions and the pH will be close to neutral in the on-orbit ALCLR
+application. Once the resin became partially or fully exhausted due to processing with poor quality water, in-
+operation ions that were previously exchanged and held to the resin would be released into the bed effluent (into the
+EMU FPS on-orbit during the ALCLR process). Since the ions would be concentrated and ordered within the bed
+length by affinity for the resin, the ions would not be released in the order they enter into the bed. Rather, they
+would be released from lower affinity to higher affinity to the resin functional group. That means all the weakly
+                                                           10
+                                 International Conference on Environmental Systems
+ionic contaminants on the resin will be displaced first (such as silicon as silicic acid) and be released into the
+effluent due to adsorption of stronger ionic contaminants in the influent.6,7
+
+                                    V. Proximate and Root Cause Analysis
+    The process used to determine the causes of the SEMU 3011 FPS failure has been vetted through numerous
+investigations of ISS hardware including the 2007 Russian computer failure, the starboard solar array rotary joint
+failure, and the external thermal control system pump module failures. A fault tree is used to determine the
+proximate cause(s), then a causal tree determines the intermediate cause(s) of the proximate cause (Figure 8).
+Technical rationale is documented for each event and dispositioned as either a contributor or a non-contributor to the
+failure. The intermediate causes are then assessed to determine the root cause(s) by repeatedly asking why that event
+was able to manifest to failure. Definitions are consistent with NPR 8621.1B “NASA Procedural Requirements for
+Mishap and Close Call Reporting, Investigating, and Recordkeeping.”1
+
+
+
+
+                                  Figure 8. Relationship of fault tree to causal tree.
+
+    The scope of the failure investigation effort was defined by the activities related to the evaluation of first a
+proximate cause fault tree, and then a causal tree. The proximate cause for this failure investigation was determined
+by a fault tree. Within days of the failure, a fault tree was created that included all credible hardware failure
+mechanisms that could result in the observed failure signature during EVA 23. The top event, or failure signature,
+was “Liquid leakage internal to EMU 3011 free volume on 07/16/2013 during EVA 23.” Potential leakage sources
+included: bodily fluids that migrated to the helmet; EMU element failures that would result in water leakage into the
+suit free volume, then migrate to the helmet; and EMU element failures that would import water directly to the
+helmet or introduce it through the vent loop. This fault tree scoped the actions necessary to determine the proximate
+cause of the failure.1
+    An action plan was created. This plan identified the investigative actions necessary to close each of the fault tree
+events. Actions included inspections, tests, analyses, documentation reviews, etc. Initially, each event on the fault tree was
+colored either yellow or orange, thus indicating that forward work was planned. Those events colored orange were given a
+higher priority, and closure rationale would be discussed in team meetings. Closure rationale was documented for each of
+the 44 basic events. The team evaluated the closure rationale to determine whether each basic event contributed to the
+failure. Events were colored green if technical information confirmed that the event was not a contributor. Events colored
+blue were determined to be non-contributors, but substantiated largely by engineering judgment. Contributors were
+colored red in the fault tree. Through evaluation of the closure rationale, the proximate cause was identified as “Water
+separator drum feed holes become plugged, redirects flow into vent circuit” (Figure 9).1
+
+
+
+                                                          11
+                                  International Conference on Environmental Systems
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Liquid leakage internal to
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        EM U 3011 free volume on
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       07/16/2013 during EVA 23
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                 GM T197
+
+
+
+
+                                                                                                                                                                                                                        EM U element failure results                Bodily fluid from                                                                                                                                                                                                                                                                                                                                                                                                                                                                             EM U component failure                                                                                                                                                                                                    Suit maintenance-induced
+                                                                                                                                                                                                                         in water leak into suit free             crewmember migrates                                                                                                                                                                                                                                                                                                                                                                                                                                                                           results in approx. 1.5L water                                                                                                                                                                                                        failures
+                                                                                                                                                                                                                          volume (other than helm                 through suit to helmet                                                                                                                                                                                                                                                                                                                                                                                                                                                                                in crew helmet
+
+
+
+                                                                                                                                                                                                                                    G055                                   G002                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             G057                                                                                                                                                                                                                        G011
+
+                                                                                                                                                                                                                                                                                  W. Fritz
+                                                                                                                                                                                                                                                                                  10/15/13
+
+
+                                                                                                                                                                                                     EM U element failure leaks             Water migrates to helmet                                                                                                                                                                                                                                                                                                                               EM U element failure results          Drink bag contents released                                                                                                                Condensate leaks into EM U                           Water introduced at PortT11                          Leakage at internal HUT               HUT - PLSS interface 2               Suit servicing (Ground)               Suit storage and/or handling
+                                                                                                                                                                                                     water into suit free volume             (not absorbed by crew                                                                                                                                                                                                                                                                                                                                  in water introduced into             through drink bite valve into                                                                                                               vent loop thru separator                                                                               water lines impinges on crew          o-ring failure results in leak            results in leakage                   results in leakage of suit
+                                                                                                                                                                                                        (other than helmet)                     clothing layers)                                                                                                                                                                                                                                                                                                                                        ventilation circuit                        helmet                                                                                                                                      drum                                                                                                      neck                          (O2/H2O combo)                                                                     element
+
+
+
+                                                                                                                                                                                                               G001                                     G056                                                                                                                                                                                                                                                                                                                                                  G012                                    G014                                                                                                                                       G143                                               G120                                               G130                                  G142                                 G022                                    G075
+
+                                                                                                                                                                                                                                                               W. Fritz                                                                                                                                                                                                                                                                                                                                                                                      W. Fritz                                                                                                                                                                                                                                                                                C. Yau                               B. Rossato                             W. Frost
+                                                                                                                                                                                                                                                               11/06/13                                                                                                                                                                                                                                                                                                                                                                                      10/8/13                                                                                                                                                                                                                                                                                 11/5/13                              1/31/2014                              4/29/2014
+
+
+                                                                                                External leakage of SSA                                                                                                                                                                                          Fit (suit/crew) induced                                                                                                                           Localized failure forces fluid           LCVG leak in proximity of              Leakage internal to M WC                                                                                                                                                          Redirected flow through     Relief valve 135 fails closed            Bladders hard charged           Water tank bladder fails,      Leakage of liquid transport           Leakage of line to port T8                              Suit servicing (Orbit) results          Degradation of wetted suit
+                                                                                               component is the source of                                                                                                                                                                                                  failure                                                                                                                                        into vent circuit                 vent loop return duct, thru          into transport water line into                                                                                                                                                              system                                                                                       releases water thru 120A        circuit ports at crew neck          into HUT at crew neck (from                                        in leakage                      elements while stored
+                                                                                                        the fluid                                                                                                                                                                                                                                                                                                                                                                                               CCC, fan and vent                         vent circuit                                                                                                                                                                                                                                                                        orifice and out T11                                                        tank)                                                                                         on-orbit
+
+
+
+                                                                                                          G007                                                                                                                                                                                                            G009                                                                                                                                                 G005                                   G119                                   G123                                                                                                                                                                            G008                           G144                                   G145                             G121                           G060                                    G132                                                   G023                                    G076
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             W. Fritz                               W. Fritz                                                                                                                                                                                                        B. Peavey                              B. Peavey                       W. Fritz                                                               W. Fritz                                                B. Rossato                             W. Frost
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                             10/22/13                               10/17/13                                                                                                                                                                                                        11/07/13                               11/07/13                        10/15/13                Page 1                                         10/25/13 R1                                             1/31/2014                              5/15/2014
+
+
+                     Drink bag leaks into free           External leakage of Liquid                                                                                      Leakage of water from HUT                                                                                             Crew/suit interference             Improper donning of suit         Gas trap 141 o-ring fails,     Blocked WS inlet causes            Pitot actuated valve 125        Valve module assembly                 Water enters vent loop when             Failed 123 seal cup leaks      WS o-ring cut leaks water            Sublimator internal failure            134 Filter/valve blockage             Water separator internal          Rupture of water tank     WS pitot or drum feed holes               Blockage between 134           Blockage between WS pitot
+                    volume of suit (other than          Transport System water into                                                                                           into free volume                                                                                                results in damage to suit              results in binding or        bypass orifice, floods WS         water backflow into           internal failure (WS outlet to   crossover leakage (internal                    regulator fails                       into vent loop                into vent circuit              results in water released into          redirects flow through vent          failure leaks water into vent      bladder causes water to    become plugged redirects                outlet & 127 filter redirects     outlet & 134 valve module
+                             helmet)                          suit free volume                                                                                                                                                                                                                         element                     crimping of suit element            and enters vent            sublimator slurper holes                   WS inlet)                   Water to O2)                                                                                                                                         O2 vent loop                               loop                                  loop                         enter T11             flow into vent circuit                    flow into vent loop          redirects flow to vent loop
+
+
+
+                             G003                                   G031                                                                                                             G036                                                                                                               G017                                G010                            G044                           G079                               G081                             G085                                   G086                                   G140                           G141                                  G042                                   G039                                G052                            G047                           G040                                   G146                             G147
+
+                                     W. Fritz                                                                                                                                                                                                                                                                                                      W. Fritz                        B. Peavey                      W. Frost                           W. Frost                         C. Yau                                                                        B. Peavey                      B. Rossato                            W. Frost                                                                    B. Rossato                     C. Yau                          B. Rossato                             D. Dihn                         D. Dinh
+                                     10/8/13                                                                                                                                                                                                                                                                                                       11/06/13                        10/17/13                       8/7/2014                           11/1/2013                        10/25/13                                                                      11/06/13                       12/11/2013                            10/25/13                                                                    12/11/2013                     10/15/13                        1/31/2014                              12/12/2013                      12/12/2013
+
+
+                                      External leakage of LCVG              External leakage of LCVG             Leakage from HUT hardlines            Leakage of cooling water at          Leakage from Water Line                WLVTA - HUT interface (at              Crew/suit interference with           (Restricted space) body                                                                                                                                                H2O press regulator 113E               Failure of dual mode relief                                                                                Clogged 134 filter redirects           Condensate water relief
+                                     107 garment water lines into          M WC (garment side) in HUT                 into free volume                  M ultiple Water Connector           Vent Tube Assembly HUT                   tube/line connector)                  HUT results in damage to            movement causes localized                                                                                                                                                (gas side of water tanks)                      valve 120                                                                                            flow into vent circuit               valve 134 fails closed
+                                           suit free volume                                                                                                     on HUT side                      interface tubing                                                            fluid flow elements                  damage to element                                                                                                                                                   failure overpress feed water                                                                                                                                                              redirects flow into vent
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         circuit
+
+                                                 G071                                 G072                                   G117                                 G038                                G045                                   G118                                   G020                                  G018                                                                                                                                                                      G087                                  G088                                                                                                        G091                                 G092
+
+                                                        W. Fritz                               W. Fritz                                                                  W. Fritz                            W. Fritz                               W. Fritz                                 W. Fritz                            W. Fritz                                                                                                                                                                  W. Frost                              W. Frost                                                                                                    W. Frost                             W. Frost
+                                                        11/06/13                               11/06/13                                                                  11/06/13                            11/06/13                               11/06/13                                 11/06/13                            11/06/13                                                                                                                                                                  10/15/13                              10/31/13                                                                                                    10/22/13                             10/31/13, R3_11/6/13
+
+
+                                                                                               Leakage of liquid transport           Leakage of line to port T8
+                                                                                                circuit ports at crew neck          into HUT at crew neck (from
+                                                                                                                                               tank)
+
+
+
+                                                                                                          G060                                  G132
+                                                                                      Page 1
+
+                                                                                                                                                       W. Fritz
+                                                                                                                                                       10/25/13 R1
+
+
+                                                                           Failure of LCVG port T4 or             Failure of LCVG port T7 or
+                                                                             line at back of neck ring              line at back of neck ring
+
+
+
+
+                                                                                      G064                                   G063
+
+                                                                                               W. Fritz                             W. Fritz
+                                                                                               11/06/13                             11/06/13
+
+
+                                                                           Failure of LCVG port T5 or              Crew/suit interference at
+                                                                             line at back of neck ring             neck results in damage to
+                                                                                                                      fluid flow elements
+
+
+
+                                                                                      G061                                   G019
+
+                                                                                               W. Fritz                             W. Fritz
+                                                                                               11/06/13                             11/06/13
+
+
+                                                                                               Failure of LCVG port T6 or
+                                                                                                 line at back of neck ring
+
+
+
+
+                                                                                                          G062
+
+                                                                                                                 W. Fritz
+                                                                                                                 11/06/13
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                             Figure 9. Fault tree.
+
+
+
+    Once the proximate cause was identified, a causal tree was developed to include all potential causes of the
+proximate cause, and all the sources of the contamination in the coolant loop that plugged the water separator drum
+feed holes, and to determine the intermediate cause(s) (Figure 10). Sources of contamination included those
+resulting when the ALCLR components are not capable of removing contaminants and become a source of silicon
+(including ion bed S/N 1003, LCVG, Water Line Vent Tube Assembly, Payload Water Reservoirs, umbilicals, or
+changes to pH); silicon in the EMU water exceeds the capability or precipitates between scrubs (from sublimator
+hydrophilic coating, Space Shuttle coolant loop, or airlock heat exchanger); the temperature profile affects the
+solubility of silicon; or static time between wet-dry cycles contributes to the accumulation of silicon. Closure
+rationale was documented for each of the 42 potential causes, and was evaluated by the team. The findings (red
+events) and significant observations (identified by rounded corners on the description box) were determined by
+dispositioning each event.1
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                Contamination in the
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              coolant water loop plugs
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                              EM U3011 FPS Drum Holes
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                       RCA_EM U3011
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                     ALCLR is not capable of                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        Si released into EM U water                                      Temperature profile                                  Static time and/or wet/dry
+                                                                                                                                                                                                                                                                                                                                                                      removing contaminants,                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        exceeds ALCLR capability                                       supporting EVA ( lower                                    cycles contribute to
+                                                                                                                                                                                                                                                                                                                                                                      becomes a source of Si                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                        or precipitates b/w scrubs                                      solubility of Si @lower                                   accumulation of Si
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         temperature)
+
+                                                                                                                                                                                                                                                                                                                                                                                     G017                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           G037                                                      G064                                                       G065
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          J. Steele                                             J. Steele
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          5/22/2014                                             5/22/2014
+
+
+                                                                                                                                                                       Ion bed S/N 1003 releases                                                                                                                                                                                                                                                                                                                                                        Other contamination sources                                                                                                                                                                                                                                                              EM U sublimator S/N 029                            Air Lock Heat Exchanger is                                        Shuttle coolant loop
+                                                                                                                                                                           Si into EM U water                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                     hydrophylic coating is                            contamination source (both                                     introduces CL, SO4 or Si
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   contamination source                               for current and last HX)                                          into EM U 3011
+
+
+
+                                                                                                                                                                                       G018                                                                                                                                                                                                                                                                                                                                                                               G019                                                                                                                                                                                                                                                                                  G003                                                G001                                                      G069
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          D. Cybulski
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                          6/5/2014
+                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                    Page 1
+
+                           Charcoal in ion bed                                                                                            Poor water quality in Bldg 7                               Ion bed not processed                                       Iodination of ion bed                                    Ion bed housing/material                           LCVG 3228 processing                             Fan Pump Separator local                            WLVTA introduces                                         PWR not to specification                           PWR source water not to                                     Umbilical (IEU or SCU)                                                            Change in pH or water                                                       Sublimator manufacturing or                     Sublimator storage-related
+                       contributes to saturation of                                                                                         water (RO/DI test stand                                  correctly (constituents,                                  charcoal accelerates use of                                 not built to spec, sheds                         introduces contamination                            corrosion introduces                          contamination into water on                                      (mat'l, cleanliness)                            specification introduces                                Teflon Core hose introduces                                                          chemistry exacerbates                                                         coating-related defect                         defect results in shedding
+                                 ion bed                                                                                                   &lines) introduced to bed                                 packing, cleaning, etc.)                                       ion bed capacity                                       excessive Si, Cl or SO4                            into suit water on orbit                        Ni(OH)2 and/or displaces                                   orbit                                             introduces contamination                                 contamination                                        contamination into water                                                              shedding of Si                                                              results in release of Si                             excessive Si
+                                                                                                                                                                                                                                                                                                                                                                                                                                         Si
+
+                                        G020                                                                                                               G021                                                   G033                                                         G034                                                        G041                                            G030                                            G010                                                     G051                                                    G060                                                G061                                                     G059                                                                           G042                                                                            G007                                           G040
+                                                                                                                                                                                                                               M . Jennings                                                  J. Steele                                             M . Jennings                                                                                        B. Greene                                                                                                       C. Vande Zande                                    B. M acais                                                                                                                                                                                                             D. Holder, B. Greene                                D. Holder
+                                                                                                                                                                                                                               5/22/2014                                                     5/8/2014                                              5/15/2014                                                                                           8/5/2014                                                                                                        6/5/2014                                          6/19/2014                                                                                                                                                                                                              7/22/2014                                           5/8/2014
+
+
+     Post-rinse (gnd processing)                     Charcoal fine particulate                                 Water processing system                                      Fails to have/meet                                                                                                                                                     Residual detergent in LCVG                         LCVG not built to                                    WLVTA not built to                                    WLVTA sheds acetate,                                                                                                                  Umbilical (IEU or SCU) not                                High CO2 on orbit changes                          Human in the loop                                                            Excessive shedding of Si
+        insufficient to remove                       foul ion exchange resin                                    not optimized for this                                   configuration control of                                                                                                                                                   3228 adds CL & SO4 to                          specification (inadequate                             specification (inadequate                                changes pH of water                                                                                                                     built to specification                                  pH and accelerates use of                    introduces contamination or                                                      from EM U 3011 sublimator
+             contaminants                             pores which reduces                                            application                                          water processing plant                                                                                                                                                            suit water                                  cure, material)                                       cure, material)                                                                                                                                                                          (inadequate cure, material)                                 anion exchange capacity                        exacerbates suit water
+                                                             capacity                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                   chemistry
+
+               G022                                                  G054                                                      G056                                                   G048                                                                                                                                                                    G029                                                G039                                             G057                                                        G058                                                                                                                                      G062                                                     G044                                        G009                                                                              G008
+                      J. Steele                                                J. Steele                                                 B. Greene                                              B. Greene                                                                                                                                                                 W. Fritz                                           J. Clougherty                                    J. Clougherty                                               L. Hewes                                                                                                                                 V. M argott                                           J. Steele                                        J. Steele                                                                     D. Holder, B. Greene
+                      6/10/2014                                                5/22/2014                                                 7/1/2014                                               7/7/2014                                                                                                                                                                  5/8/2014(rev)                                      6/3/2014                                         5/15/2014                                                   5/15/2014                                                                                                                                5/15/2014                                             5/8/2014                                         5/22/2014                                                                     7/30/2014
+
+
+       M igration of inherent Cl,                    Static time between uses                                   Significant amount of                                 Insufficient water polishing                                                                                                                                                                             LCVG sheds acetate,                                                                                                                                                                                                                                                                                                                                       Low EM U water pH thru HX
+        SO4, Si from activated                      increases concentration of                               stagnant water prior to test                              and/or testing at point of                                                                                                                                                                              changes pH of water                                                                                                                                                                                                                                                                                                                                         accelerates release of Si
+     carbon to ion exchange resin                           Cl, SO4, Si                                         stand (~600' of lines)                                   use to ensure quality                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                           from ion bed/uses capacity
+
+
+
+               G023                                                  G053                                                      G027                                                   G049                                                                                                                                                                                                 G002                                                                                                                                                                                                                                                                                                                                                         G046
+                      J. Steele                                                J. Steele                                                 M . Jennings                                           B. Greene                                                                                                                                                                                         J. Steele, L. Hewes                                                                                                                                                                                                                                                                                                                                          D. Shindo, J. Steele
+                      6/10/2014                                                5/22/2014                                                 8/1/2014                                               6/30/2014                                                                                                                                                                                         5/15/2014                                                                                                                                                                                                                                                                                                                                                    5/8/2014*
+
+
+     Inherent Cl and SO4 in ion                          Lot-to-lot variation of                                Significant amount of                                  B 7 water processing plan
+     bed charcoal displace Si in                          source charcoal with                               stagnant water in test stand                              fails to remove ions from
+               ion bed                                  increased contaminants                                  and supporting tanks                                       water (uses ALCLR
+                                                                                                                                                                                capacity)
+
+               G024                                                 G066                                                       G067                                                    G050
+                      J. Steele                                                J. Steele                                                 M . Jennings, B. Greene                                B. Greene
+                      6/10/2014                                                5/22/2014                                                 7/30/2014                                              7/1/2014
+
+
+                                                                                                                 RO system degraded or                                   DI bed exceeds life limit
+                                                                                                                 bypassed results in poor                                sheds Cl, SO4 and/or Si
+                                                                                                                      quality water                                        which loads ion bed
+
+
+
+                                                                                                                              G028                                                     G052
+                                                                                                                                         B. Greene                                              M . Jennings, B. Greene
+                                                                                                                                         6/30.2014                                              6/17/2014
+
+
+                                                                                                                 DI water system not                                     Charcoal used in water
+                                                                                                              configured to protect for                                  processing DI beds not
+                                                                                                              breakthru, so poor quality                                   optimized for this
+                                                                                                                        water                                                 application
+
+                                                                                                                               G055                                                   G068
+                                                                                                                                         B. Greene                                              B. Greene
+                                                                                                                                         6/30/2014                                              6/12/2014
+
+
+                                                                                                                M aintenance escape in                                    B7 Super Q System
+                                                                                                              water processing results in                              introduces Si into water
+                                                                                                                contaminated ion bed                                  upstream of ACTEX stand
+
+
+
+                                                                                                                               G047                                                    G070
+                                                                                                                                         B. Greene                                              B. Greene
+                                                                                                                                         6/30/2014                                              7/30/2014
+
+
+
+
+                                                                                                                                                                                                                                                                                                                                                                                                               Figure 10. Causal tree.
+
+
+
+    These findings and significant observations were then categorized by similarity of the causes as either an
+operational response, a response to water quality management, or an EMU hardware processing issue. Each finding
+and significant observation causal tree event was then mapped to these categories on a root cause determination
+matrix spreadsheet. The team then asked the “three whys”—a technique where the team asked why the event was
+allowed to manifest at least three times until an organizational factor was identified. Corrective actions were then
+identified for each root cause in a Corrective Action Plan (CAP) to ensure the failure would not be repeated. Finally,
+the high-level investigation results were documented in an event sequence diagram (Figure 11). 1
+    A “list of truths” was collected throughout the investigation. Examples of these truths are the order of processing
+or use of ALCLR elements, physical barriers in the system, test results, hardware processing issues, etc. Once the
+                                                           12
+                                  International Conference on Environmental Systems
+failure scenario, or sequence of events, was identified, it was challenged by the list of truths. The failure scenario
+was confirmed when it didn’t invalidate any of the truths.1
+    In summary, a systematic, structured approach resulted in a CAP that ensures all findings and significant
+observations are mitigated to preclude future failures. A fault tree was created to determine the proximate cause. The
+investigation was bounded by identifying the actions necessary to evaluate each event as a contributor. The failure
+mechanism was determined by dispositioning each event on the fault tree. The causal tree examined the potential
+causes of the contamination to determine the intermediate cause. All findings and significant observations were
+grouped by similarity, then the root causes were identified by asking why they were able to manifest to failure.
+Corrective actions were assigned to each root cause to preclude a repeat of this failure signature. The results were
+documented in an event sequence diagram.1
+
+
+
+
+                                       Figure 11. Event sequence diagram.
+
+    This exercise was a valuable, systematic means to arrive at proximate and root cause of the SEMU 3011 Water
+in-the Helmet, as well as an organized means for a detailed treatment of corrective actions.
+    The proximate cause was determined to be: Water separator drum feed holes became plugged, and redirected
+water flow into vent circuit.
+    The primary root cause was determined to be: Poor water quality in JSC Building 7 water introduced into
+ALCLR Ion Beds during ground processing, resulting in partially and fully exhausted ALCLR Ion Beds being used
+with the on-orbit ALCLR processing of SEMU 3011. The key elements of this root cause analysis numbered 31, with
+numerous intermediated causes and significant observations. The key elements of the root cause analysis fit into
+three broad categories: Operational Responses, Water Quality Management, and EMU Hardware Processing.
+
+
+
+
+                                                        13
+                                International Conference on Environmental Systems
+                                        VI. Corrective Action Plan
+    The investigation concluded with a number of intermediate causes, root causes, significant observations, and
+corrective actions. A subset of these corrective actions was implemented as part of the effort to restore planned EVA
+capability. These corrective actions included: water quality and management across the EVA ground facilities; on-
+orbit recovery through water line flushing and component replacement; generation of associated safety
+documentation; properly controlling and verifying ion bed processing; and implementing on-orbit sampling and
+monitoring for the EMU/Airlock coolant loop.
+    An EVA Suit Hardware Components and Processes Audit was performed in March 2014. This audit focused on
+items contained within the feed-water and coolant loop system of the EMU. These five facilities were audited: SGT;
+UTAS Windsor Locks; ILC; JSC Building 7; and JSC Building 9. Four critical non-conformances were found and
+addressed.1
+    Following the water audit, auditors developed CAPs for audit findings and closed them by providing objective
+evidence to the EVA hardware engineers. Final CAP closures occurred at the EMU Panel. Of the 98 audit items
+assigned, 38 CAPs remain open as of mid-July 2014. All open items have closure plans and dates identified in their
+CAP response.1
+    As the investigation continued to reveal that contamination of water used in the EMU and its ancillary systems
+was a significant concern, it was determined that an update to the specifications governing water quality in the EMU
+was necessary. Historically, either the Space Shuttle Specification Fluid Procurement and Use Control Document
+(SE-S-0073) or the System Specification for the International Space Station (SSP41000) was used to control the
+quality of water in both the EMU feed-water and transport water circuits; although these where not in conflict with
+the needs of the EMU, they lacked certain parameters that were discovered as contaminants in the proximate cause
+of the SEMU 3011 water intrusion failure. As such, a new document was crafted to address water quality needs
+specific to the EMU system. JSC-66695, EMU Water Quality Specification, was written to define the water quality
+for any water used in the maintenance, processing, or testing of EMU hardware or any hardware that interfaces with
+the EMU transport water circuit and feed water circuit.9
+    The requirements found in JSC-66695 define the quality of source water prior to being used in the EMU in an
+effort to mitigate contamination failures of various components. These requirements are not intended to control
+water quality within the EMU during operations. Controlling water quality during operations is accomplished via
+maintenance, both on the ground and on-orbit. The feed-water circuit receives periodic flushing, referred to as a
+dump and fill. The transport circuit receives loop scrubs using the ALCLR hardware. From a technical perspective,
+the requirements found in the EMU Water Quality Specification add the need to evaluate silica, total carbon,
+bacteria count, and particulate in source water, as well as tighten the threshold of acceptable quantities of other
+contaminants when compared to the heritage Space Shuttle and Space Station documents.9
+    The EMU Water Quality Specification was written by a team comprised of chemistry and hardware experts
+throughout the NASA and contractor community. It was reviewed from April through June 2014, including multiple
+team meetings to finalize and validate the requirements. Final signature was obtained on June 14, 2014.
+    In parallel to the work that was done to create the JSC-66695 EMU Water Quality Specification, the OneEVA
+contractor began formation of a Water Management Plan to address how water is being managed throughout all the
+various facilities used during EMU processing or testing. This document was needed to respond to the changes in
+water sampling required in response of the EMU 3011 Water Intrusion Failure. Each facility used by OneEVA and,
+in many cases, each specific test stand, maintains its own requirements and verifications to validate performance and
+water quality. The Water Management Plan describes the intent, operation, and changes required for each of these
+end items. The single greatest change throughout the processing of EVA hardware is the sampling plans, including
+ensuring sampling is consistent throughout any stage of processing or testing. The OneEVA Water Management
+Plan describes each of the facilities on contract and how the contractor will execute sampling, source water
+processing, and maintenance.10
+    The corrective actions to this investigation continue to be worked. Key corrective actions that have been
+implemented include: the generation of an EMU-specific water quality specification and water management plan;
+the development and certification of an ALCLR Ion Bed process independent of direct Building 7 DI water; the
+implementation of numerous water quality checks prior to, during, and after the processing of ALCLR Ion Beds; the
+implementation of on-orbit sampling before and after ALCLR scrub events; the evaluation of every ALCLR Ion Bed
+and 3-micrometer filter after flight use; and a reduction in the number of ALCLR Ion Bed uses on orbit to enhance
+safety margin.
+
+
+
+                                                        14
+                                International Conference on Environmental Systems
+                                                   VII. Summary
+    The proximate cause of the U.S. EVA 23 water-in-the-helmet mishap was blockage of all water separator drum
+holes by a mixture composed primarily of silica and silicates. The blockages caused a failure of the water separator
+function that resulted in EMU cooling water spilling into the ventilation loop, migrating around the circulating fan,
+and ultimately pushing into the helmet. The root cause of the failure was determined to be JSC Building 7 ground-
+processing shortcomings of the ALCLR Ion Filter Beds, which led to various levels of contaminants being
+introduced into the filters before they left the ground. Those contaminants were thereafter introduced on-orbit into
+the EMU hardware during ALCLR scrubbing operations. A methodical fault tree/causal tree activity was used to
+uncover 31 key elements to the root cause as well as numerous intermediate causes and significant observations. A
+regimented CAP was prepared to address all findings in a prioritized fashion to ensure a return to, and a
+sustainability of, nominal ISS EVA status.
+
+                                                         References
+   1
+     EVA Recovery Team Summary Report, EVA 23 Mishap Action Response, November 21, 2014.
+   2
+     NASA Extravehicular Mobility Unit (EMU) Life Support Subsystem (LSS) and Space Suit Assembly (SSA) Data Book,
+September 2009.
+   3
+     United Technologies Aerospace Systems (UTAS) Presentation, “SEMU 3011 Investigation”, R. Rossato, February 13, 2014
+   4
+     Steele, J. W., Boyle, R., Etter, D., Rector, T., Vandezande, C., 2013. “Efforts to Reduce International Space Station Crew
+Maintenance for the Management of the Extravehicular Mobility Unit Transport Loop Water Quality”, AIAA 43 rd International
+Conference on Environmental Systems, Vail, Colorado.
+   5
+     United Technologies Aerospace Systems (UTAS) Presentation, “SEMU 3011 Mishap Investigation ALCLR Ion Bed & 3-
+micron Filter Analysis”, J. Steele, December 16, 2013.
+   6
+     Iler, Ralph K., 1079, “The Chemistry of Silica – Solubility, Polymerization, Colloid, Surface Properties and Biochemistry”,
+John Wiley and Sons.
+   7
+     Lorch, Walter, 1987, “Handbook of Water Purification”, W. Lorch/Ellis Horwood Limited.
+   8
+     United Technologies Aerospace Systems (UTAS) Presentation, “ALCLR Cartridge Corrosion Investigation – Status
+Update”, J. Steele, January 22, 2014.
+   9
+     JSC-66695, “EVA Management Office EMU Water Quality Specification”, June 11, 2014.
+   10
+      “EMU Water Management Plan” In Revision as of 01/23/2014.
+   11
+      United Technologies Aerospace Systems (UTAS) Internal Document, SVME 6997 “EMU Delivery Order DO-72 Final
+Report” J. Steele, October 30, 2014.
+
+
+
+
+                                                           15
+                                   International Conference on Environmental Systems
+

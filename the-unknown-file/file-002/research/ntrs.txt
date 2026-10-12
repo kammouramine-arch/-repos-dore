@@ -1,0 +1,48 @@
+Failure Analysis Results and Corrective Actions Implemented  
+For  the EMU 3011 Water in the Helmet Mishap  
+ 
+John Steele1, Carol Metselaar2, Barbara Peyton3, Tony Rector4 and Robert Rossato5 
+UTC Aerospace Systems, Windsor Locks, CT 06096-1010 
+ 
+Brian Macias6 and Dana Weigel7 
+NASA.JSC Houston, TX 
+ 
+Don Holder8 
+NASA/MSFC Huntsville, ALA 
+ 
+ 
+During EVA (Extravehicular Activity) #23 aboard the ISS (International Space Station) on 
+07/16/2013 water entered the EMU (Extravehicular Mobility Unit) helmet resulting in the 
+termination of the EVA (Extravehicular Activity) approximately 1-hour after it began. It was 
+estimated that 1.5-L of water had migrated up the ventilation loop into the helmet, adversely 
+impacting the astronauts hearing, vision and verbal communication. Subsequent on-board testing 
+and ground-based TT&E (Test, Tear-down and Evaluation) of the affected EMU hardware 
+components led to the determination that the proximate cause of the mishap was blockage of all 
+water separator drum holes with a mixture of silica and silicates. The blockages caused a failure 
+of the water separator function which resulted in EMU cooling water spilling into the ventilation 
+loop, around the circulating fan, and ultimately pushing into the helmet. The root cause of the 
+failure was determined to be ground-processing short-comings of the ALCLR (Airlock Cooling 
+Loop Recovery) Ion Filter Beds which led to various levels of contaminants being introduced 
+into the Filters before they left the ground. Those contaminants were thereafter introduced into 
+the EMU hardware on-orbit during ALCLR scrubbing operations. This paper summarizes the 
+failure analysis results along with identified process, hardware and operational corrective actions 
+that were implemented as a result of findings from this investigation. 
+ 
+ 
+ 
+1 Engineering Fellow, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2- W66,  
+  Windsor Locks, CT 06096-1010. 
+2 Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor  
+  Locks, CT 06096-1010. 
+3 Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor  
+  Locks, CT 06096-1010. 
+4 Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor 
+  Locks, CT 06096-1010. 
+5 Staff Engineer, Hamilton Sundstrand Space Systems International, 1 Hamilton Road, MS 1A-2-W66, Windsor 
+  Locks, CT 06096-1010. 
+6 EMU Life Support System Manager, Johnson Space Center, National Aeronautics and Space Administration,  
+  Houston, TX 77058 
+7 ISS Vehicle Manager, Johnson Space Center, National Aeronautics and Space Administration,  
+  Houston, TX 77058 
+8 Chief Engineer, Flight Programs and Partnerships Office, Marshall Space Flight Center, National Aeronautics and    
+  Space Administration, EE04 MSFC, AL 35812 
