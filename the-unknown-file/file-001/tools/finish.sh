@@ -18,7 +18,8 @@ if [[ -s renders/long_parts/list.txt ]]; then
   ffmpeg -y -v error -i renders/long_video.mp4 -i audio/master/NARRATION_LONG.wav -map 0:v -map 1:a -t "$DUR" \
     -c:v libx264 -preset slow -b:v 25M -maxrate 32M -bufsize 50M -profile:v high -level 5.1 -pix_fmt yuv420p -x264-params "keyint=48:min-keyint=24" \
     -c:a aac -b:a 320k -ar 48000 -af "apad=whole_dur=$DUR" -metadata:s:a:0 language=eng \
-    -metadata title="THE UNKNOWN FILE — FILE #001" -movflags +faststart "$D/THE_UNKNOWN_FILE_001_YOUTUBE_FULL.mp4"
+    -metadata title="THE UNKNOWN FILE — FILE #001" -movflags +faststart renders/long_final.tmp.mp4
+  mv renders/long_final.tmp.mp4 "$D/THE_UNKNOWN_FILE_001_YOUTUBE_FULL.mp4"   # only complete files reach deliverables/
   echo "long ok"
 fi
 cp audio/master/NARRATION_SHORT.wav "$D/THE_UNKNOWN_FILE_001_SHORT_NARRATION.wav"
