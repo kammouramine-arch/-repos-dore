@@ -16,6 +16,13 @@
     "production": {
       "autoIncrement": true,
       "channel": "production"
+    },
+    "connected-beta": {
+      "extends": "production",
+      "env": {
+        "EXPO_PUBLIC_BACKEND_URL": "https://blah-transform-bring-filtering.trycloudflare.com",
+        "EXPO_PUBLIC_ROAD_DATA_ENABLED": "true"
+      }
     }
   },
   "submit": {

@@ -129,8 +129,14 @@ Cloudflare Quick Tunnel is prepared as a temporary HTTPS test transport, without
 an account, domain or paid plan. The official cloudflared 2026.10.0 Windows AMD64
 binary was downloaded and verified against its published SHA256:
 `86aee4017b26625cee8484c113558f48effa4cd47f7aa05fcf425604e5d2b23c`.
-It has NOT been started; user authorization is needed to expose the local
-backend online under the user's no-publishing instruction.
+The user subsequently explicitly authorized the connection. The tunnel is now
+running, and an external HTTPS integration test passed health, registration,
+session validation, live mapped limit, pending incident submission, rejected
+unauthorized moderation, disabled paid AI and logout revocation. Only synthetic
+identity/observations and public test coordinates were used; the synthetic user
+and report were deleted afterward. No test observation was approved/published.
+The `connected-beta` EAS profile explicitly enables the road-data opt-in and
+uses the temporary HTTPS backend; the standard production profile stays off.
 
 This is not production hosting: the computer and process must remain running,
 the hostname changes on tunnel restart, and there is no uptime guarantee.
