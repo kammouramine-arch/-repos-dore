@@ -9,5 +9,9 @@ describe('unobservable driving conditions', () => {
   });
   it('allows ordinary navigation commands', () => {
     expect(drivingSafetyReply('take me home')).toBeNull();
+    expect(drivingSafetyReply('take me to 12 Park Lane')).toBeNull();
+  });
+  it('does not turn a negated control into a navigation action', () => {
+    expect(drivingSafetyReply('Do not cancel navigation')).toContain('keep the current route');
   });
 });
