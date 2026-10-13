@@ -1,3 +1,4 @@
+import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
 import { StyleSheet, View } from 'react-native';
 
 import { VoiceButton } from '@/features/conversation/ui/VoiceButton';
@@ -33,6 +34,7 @@ export const GuidanceControls = ({
 }: GuidanceControlsProps) => (
   <View style={styles.column}>
     <VoiceButton />
+    <IncidentReportButton />
 
     <IconButton
       name={muted ? 'volume-mute' : 'volume-medium'}

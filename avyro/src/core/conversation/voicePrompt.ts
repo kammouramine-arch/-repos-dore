@@ -84,6 +84,6 @@ export const canStartVoiceTurn = (
   voice: VoiceSessionStatus,
   conversation: ConversationStatus,
 ): boolean => {
-  if (voice === 'off' || voice === 'unsupported' || voice === 'blocked') return false;
+  if (voice === 'blocked') return false;
   return conversation === 'idle' || conversation === 'cancelled';
 };

@@ -1,0 +1,45 @@
+name: Avyro native iOS validation
+on:
+  push:
+    branches: [chatgpt/avyro-v2-foundation-20261013]
+    paths: ['avyro/**', '.github/workflows/avyro-ios.yml']
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: avyro-ios-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  ios:
+    runs-on: macos-26
+    timeout-minutes: 60
+    defaults:
+      run:
+        working-directory: avyro
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+          cache-dependency-path: avyro/package-lock.json
+      - run: npm ci --no-audit --no-fund
+      - run: npx expo prebuild --platform ios --no-install
+      - run: pod install --project-directory=ios
+      - name: Build Release for the iOS simulator
+        run: |
+          set -o pipefail
+          xcodebuild -workspace ios/Avyro.xcworkspace -scheme Avyro -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > native-build.log 2>&1 || { tail -n 120 native-build.log; exit 1; }
+          ditto -c -k --keepParent build/Build/Products/Release-iphonesimulator/Avyro.app build/Avyro-simulator.zip
+      - name: Upload simulator app
+        uses: actions/upload-artifact@v4
+        with:
+          name: Avyro-iOS-simulator
+          path: avyro/build/Avyro-simulator.zip
+      - name: Upload diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Avyro-native-build-log
+          path: avyro/native-build.log
+          if-no-files-found: ignore

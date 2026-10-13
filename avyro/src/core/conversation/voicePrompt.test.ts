@@ -69,9 +69,9 @@ describe('when tap-to-talk is offered', () => {
     expect(canStartVoiceTurn('suspended', 'speaking')).toBe(false);
   });
 
-  it('is not offered when voice cannot work at all', () => {
-    expect(canStartVoiceTurn('off', 'idle')).toBe(false);
-    expect(canStartVoiceTurn('unsupported', 'idle')).toBe(false);
+  it('offers tap-to-talk independently of the wake detector, unless permission is blocked', () => {
+    expect(canStartVoiceTurn('off', 'idle')).toBe(true);
+    expect(canStartVoiceTurn('unsupported', 'idle')).toBe(true);
     expect(canStartVoiceTurn('blocked', 'idle')).toBe(false);
   });
 

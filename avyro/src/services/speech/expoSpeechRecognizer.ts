@@ -167,11 +167,15 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
       { onTranscript, onError, onEnd }: SpeechRecognizerEvents,
     ): Promise<SpeechRecognitionSession> {
       let released = false;
+      let stopping = false;
+      let stopPromise: Promise<void> | null = null;
+      let resolveStop: (() => void) | null = null;
 
       const subscriptions = [
         ExpoSpeechRecognitionModule.addListener(
           'result',
           (event: ExpoSpeechRecognitionResultEvent) => {
+            if (stopping || released) return;
             const text = event.results[0]?.transcript ?? '';
             if (text.length > 0) onTranscript({ text, isFinal: event.isFinal });
           },
@@ -179,6 +183,7 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
         ExpoSpeechRecognitionModule.addListener(
           'error',
           (event: ExpoSpeechRecognitionErrorEvent) => {
+            if (stopping || released) return;
             const error = toError(event);
 
             // Warn, not debug: this is the line that explains a dead
@@ -200,7 +205,9 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
         ),
         ExpoSpeechRecognitionModule.addListener('end', () => {
           if (released) return;
-          onEnd();
+          release();
+          resolveStop?.();
+          if (!stopping) onEnd();
         }),
       ];
 
@@ -225,15 +232,20 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
 
       return {
         stop() {
-          if (released) return;
+          if (released) return Promise.resolve();
+          if (stopPromise) return stopPromise;
+          stopping = true;
+          stopPromise = new Promise<void>((resolve) => { resolveStop = resolve; });
           // `stop` asks for a final result; `abort` throws the utterance away.
           // Ending a listening turn should still surrender what was heard.
           try {
-            ExpoSpeechRecognitionModule.stop();
+            ExpoSpeechRecognitionModule.abort();
           } catch (error) {
             scoped.warn('stop failed', { reason: String(error) });
           }
-          release();
+          // The native end event is emitted after its engine is reset. A timer
+          // must never authorize a second microphone owner while release is unknown.
+          return stopPromise;
         },
       };
     },

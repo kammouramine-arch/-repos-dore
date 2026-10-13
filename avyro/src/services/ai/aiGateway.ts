@@ -1,4 +1,5 @@
 import { AI } from '@/config';
+import { drivingSafetyReply } from '@/core/conversation/drivingSafety';
 import type {
   ConversationReply,
   ConversationRequest,
@@ -123,6 +124,8 @@ export const createAiGateway = ({
     name: `gateway(${provider.id})`,
 
     async respond(request: ConversationRequest): Promise<ConversationReply> {
+      const safety = drivingSafetyReply(request.transcript);
+      if (safety) return { speech: safety, intent: { kind: 'unknown' }, action: { type: 'none' }, referent: null };
       const localReply = await local.respond(request);
 
       // The parser understood it. Nothing a model could add is worth the

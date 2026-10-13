@@ -54,6 +54,9 @@ const TRACKING_REASON = 'Avyro does not track you or use your data for advertisi
  */
 const PHOTOS_REASON = 'Avyro does not access your photo library.';
 
+if (process.env.EXPO_PUBLIC_AI_API_KEY?.trim()) throw new Error('Remove EXPO_PUBLIC_AI_API_KEY: provider secrets cannot ship in a mobile app.');
+if (process.env.EXPO_PUBLIC_BACKEND_URL && !process.env.EXPO_PUBLIC_BACKEND_URL.startsWith('https://')) throw new Error('Backend must use HTTPS.');
+
 const config: ExpoConfig = {
   name: 'Avyro',
   slug: 'avyro',

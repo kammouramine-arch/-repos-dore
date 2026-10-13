@@ -18,6 +18,7 @@ const GUIDANCE_RATE = 0.98;
  */
 export const createExpoSpeechEngine = (): SpeechEngine => {
   let currentUtterance = 0;
+  let voices: Promise<Speech.Voice[]> | null = null;
 
   return {
     async speak(text: string, options: SpeechOptions = {}): Promise<void> {
@@ -32,9 +33,16 @@ export const createExpoSpeechEngine = (): SpeechEngine => {
       };
 
       await Speech.stop();
+      voices ??= Speech.getAvailableVoicesAsync().catch(() => []);
+      const language = options.language ?? 'en-US';
+      const available = await voices;
+      const voice = available.find((v) => v.language === language && v.quality === Speech.VoiceQuality.Enhanced)
+        ?? available.find((v) => v.language.startsWith(language.split('-')[0]) && v.quality === Speech.VoiceQuality.Enhanced);
+      if (utterance !== currentUtterance) return;
 
       Speech.speak(text, {
-        language: options.language,
+        language,
+        voice: voice?.identifier,
         rate: options.rate ?? GUIDANCE_RATE,
         pitch: options.pitch ?? 1,
         onDone: settle,

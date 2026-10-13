@@ -1,45 +1,52 @@
-import type { AuthRepository } from '@/core/domain/ports/authRepository';
-import type { ConversationProvider } from '@/core/domain/ports/conversationProvider';
-import type { CrashReporter } from '@/core/domain/ports/crashReporter';
-import type { LocationTracker } from '@/core/domain/ports/locationTracker';
-import type { Logger } from '@/core/domain/ports/logger';
-import type { PlacesProvider } from '@/core/domain/ports/placesProvider';
+import { migrateSavedPlaces } from '@/database/migrations/secureSavedPlaces';
+import type { IncidentReporter } from "@/core/domain/ports/incidentReporter";
+import { createGatewayIncidentReporter } from "@/services/incidents/gatewayIncidentReporter";
+import { env } from "@/config";
+import { createRemoteAuthRepository } from "@/services/auth/remoteAuthRepository";
+import type { AuthRepository } from "@/core/domain/ports/authRepository";
+import type { ConversationProvider } from "@/core/domain/ports/conversationProvider";
+import type { CrashReporter } from "@/core/domain/ports/crashReporter";
+import type { LocationTracker } from "@/core/domain/ports/locationTracker";
+import type { Logger } from "@/core/domain/ports/logger";
+import type { PlacesProvider } from "@/core/domain/ports/placesProvider";
 import type {
   OnboardingRepository,
   PreferencesRepository,
   RecentDestinationsRepository,
-} from '@/core/domain/ports/preferencesRepository';
-import type { RoutingProvider } from '@/core/domain/ports/routingProvider';
-import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
-import type { SpeechRecognizer } from '@/core/domain/ports/speechRecognizer';
-import type { SpeechEngine } from '@/core/domain/ports/speechEngine';
-import { createSignIn, createSignUp } from '@/core/usecases/authenticate';
-import { createPlanTrip } from '@/core/usecases/planTrip';
-import { createSearchPlaces } from '@/core/usecases/searchPlaces';
-import { createKeyValueStore } from '@/database/keyValueStore';
-import { migrateBrandedStorageKeys } from '@/database/migrations/renameBrandedStorageKeys';
-import { createSecureStore } from '@/database/secureStore';
+} from "@/core/domain/ports/preferencesRepository";
+import type { RoutingProvider } from "@/core/domain/ports/routingProvider";
+import type { SavedPlacesRepository } from "@/core/domain/ports/savedPlacesRepository";
+import type { SpeechRecognizer } from "@/core/domain/ports/speechRecognizer";
+import type { WakeWordDetector } from "@/core/domain/ports/wakeWordDetector";
+import { createSherpaWakeWordDetector } from "@/services/speech/sherpaWakeWordDetector";
+import type { SpeechEngine } from "@/core/domain/ports/speechEngine";
+import { createSignIn, createSignUp } from "@/core/usecases/authenticate";
+import { createPlanTrip } from "@/core/usecases/planTrip";
+import { createSearchPlaces } from "@/core/usecases/searchPlaces";
+import { createKeyValueStore } from "@/database/keyValueStore";
+import { migrateBrandedStorageKeys } from "@/database/migrations/renameBrandedStorageKeys";
+import { createSecureStore } from "@/database/secureStore";
 import {
   createLocalOnboardingRepository,
   createLocalPreferencesRepository,
-} from '@/database/repositories/localPreferencesRepository';
-import { createLocalRecentDestinationsRepository } from '@/database/repositories/localRecentDestinationsRepository';
-import { createLocalSavedPlacesRepository } from '@/database/repositories/localSavedPlacesRepository';
-import { createAiGateway } from '@/services/ai/aiGateway';
-import { createLocalConversationProvider } from '@/services/ai/localConversationProvider';
-import { createOpenAiProvider } from '@/services/ai/openAiProvider';
-import { createRouteAwareRecommender } from '@/services/conversation/routeAwareRecommender';
-import { createAccountStore } from '@/services/auth/accountStore';
-import { createLocalAuthRepository } from '@/services/auth/localAuthRepository';
-import { createSessionStore } from '@/services/auth/sessionStore';
-import { createHttpClient } from '@/services/http/httpClient';
-import { createExpoLocationTracker } from '@/services/location/expoLocationTracker';
-import { createConsoleLogger } from '@/services/observability/consoleLogger';
-import { createLocalCrashReporter } from '@/services/observability/localCrashReporter';
-import { createNominatimPlacesProvider } from '@/services/places/nominatimPlacesProvider';
-import { createOsrmRoutingProvider } from '@/services/routing/osrmRoutingProvider';
-import { createExpoSpeechRecognizer } from '@/services/speech/expoSpeechRecognizer';
-import { createExpoSpeechEngine } from '@/voice/expoSpeechEngine';
+} from "@/database/repositories/localPreferencesRepository";
+import { createLocalRecentDestinationsRepository } from "@/database/repositories/localRecentDestinationsRepository";
+import { createLocalSavedPlacesRepository } from "@/database/repositories/localSavedPlacesRepository";
+import { createAiGateway } from "@/services/ai/aiGateway";
+import { createLocalConversationProvider } from "@/services/ai/localConversationProvider";
+import { createOpenAiProvider } from "@/services/ai/openAiProvider";
+import { createRouteAwareRecommender } from "@/services/conversation/routeAwareRecommender";
+import { createAccountStore } from "@/services/auth/accountStore";
+import { createLocalAuthRepository } from "@/services/auth/localAuthRepository";
+import { createSessionStore } from "@/services/auth/sessionStore";
+import { createHttpClient } from "@/services/http/httpClient";
+import { createExpoLocationTracker } from "@/services/location/expoLocationTracker";
+import { createConsoleLogger } from "@/services/observability/consoleLogger";
+import { createLocalCrashReporter } from "@/services/observability/localCrashReporter";
+import { createNominatimPlacesProvider } from "@/services/places/nominatimPlacesProvider";
+import { createOsrmRoutingProvider } from "@/services/routing/osrmRoutingProvider";
+import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecognizer";
+import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
 
 /**
  * The one place where abstractions meet implementations.
@@ -63,6 +70,8 @@ export interface ServiceContainer {
   recentDestinationsRepository: RecentDestinationsRepository;
   savedPlacesRepository: SavedPlacesRepository;
   speechRecognizer: SpeechRecognizer;
+  wakeWordDetector: WakeWordDetector;
+  incidentReporter: IncidentReporter;
   /** The swappable brain. See `ConversationProvider` before adding a model. */
   conversationProvider: ConversationProvider;
   /**
@@ -79,13 +88,14 @@ export interface ServiceContainer {
 }
 
 /** Any part of the graph can be replaced; the rest is still wired for you. */
-export type ServiceOverrides = Partial<Omit<ServiceContainer, 'useCases'>>;
+export type ServiceOverrides = Partial<Omit<ServiceContainer, "useCases">>;
 
 export const createServiceContainer = (
   overrides: ServiceOverrides = {},
 ): ServiceContainer => {
   const logger = overrides.logger ?? createConsoleLogger();
-  const crashReporter = overrides.crashReporter ?? createLocalCrashReporter(logger);
+  const crashReporter =
+    overrides.crashReporter ?? createLocalCrashReporter(logger);
 
   const http = createHttpClient(logger);
   const keyValue = createKeyValueStore(logger);
@@ -93,16 +103,18 @@ export const createServiceContainer = (
 
   const authRepository =
     overrides.authRepository ??
-    createLocalAuthRepository({
-      accounts: createAccountStore(secure, logger),
-      sessions: createSessionStore(secure),
-      logger,
-    });
+    (env.backendUrl
+      ? createRemoteAuthRepository({ http, secure, baseUrl: env.backendUrl })
+      : createLocalAuthRepository({
+          accounts: createAccountStore(secure, logger),
+          sessions: createSessionStore(secure),
+          logger,
+        }));
 
   const placesProvider =
     overrides.placesProvider ?? createNominatimPlacesProvider({ http });
   const savedPlacesRepository =
-    overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(keyValue);
+    overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(secure);
 
   const routingProvider =
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
@@ -124,7 +136,12 @@ export const createServiceContainer = (
       savedPlaces: savedPlacesRepository,
       logger,
     }),
-    provider: createOpenAiProvider({ http, logger }),
+    provider: createOpenAiProvider({
+      http,
+      logger,
+      getAccessToken: async () =>
+        (await createSessionStore(secure).read())?.token ?? null,
+    }),
     logger,
     crashReporter,
   });
@@ -138,18 +155,31 @@ export const createServiceContainer = (
     locationTracker: overrides.locationTracker ?? createExpoLocationTracker(),
     speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(),
     preferencesRepository:
-      overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue),
+      overrides.preferencesRepository ??
+      createLocalPreferencesRepository(keyValue),
     onboardingRepository:
-      overrides.onboardingRepository ?? createLocalOnboardingRepository(keyValue),
+      overrides.onboardingRepository ??
+      createLocalOnboardingRepository(keyValue),
     recentDestinationsRepository:
       overrides.recentDestinationsRepository ??
       createLocalRecentDestinationsRepository(keyValue),
     savedPlacesRepository,
-    speechRecognizer: overrides.speechRecognizer ?? createExpoSpeechRecognizer(logger),
-    conversationProvider: overrides.conversationProvider ?? conversationProvider,
+    incidentReporter:
+      overrides.incidentReporter ??
+      createGatewayIncidentReporter({
+        http,
+        getAccessToken: async () =>
+          (await createSessionStore(secure).read())?.token ?? null,
+      }),
+    wakeWordDetector:
+      overrides.wakeWordDetector ?? createSherpaWakeWordDetector(),
+    speechRecognizer:
+      overrides.speechRecognizer ?? createExpoSpeechRecognizer(logger),
+    conversationProvider:
+      overrides.conversationProvider ?? conversationProvider,
     migrateStorage:
       overrides.migrateStorage ??
-      (() => migrateBrandedStorageKeys({ keyValue, secure, logger })),
+      (async () => { await migrateBrandedStorageKeys({ keyValue, secure, logger }); await migrateSavedPlaces(keyValue, secure); }),
     useCases: {
       signIn: createSignIn({ authRepository }),
       signUp: createSignUp({ authRepository }),

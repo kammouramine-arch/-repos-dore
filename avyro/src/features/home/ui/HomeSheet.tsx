@@ -5,6 +5,7 @@ import { PLACE_ICONS } from '@/features/search/placeIcons';
 import { AppText, Divider, GlassPanel, ListRow, SectionHeader } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { SearchTrigger } from './SearchTrigger';
+import { SavedPlacesPanel } from './SavedPlacesPanel';
 
 export interface HomeSheetProps {
   recents: readonly RecentDestination[];
@@ -31,6 +32,7 @@ export const HomeSheet = ({
 
     <View style={styles.body}>
       <SearchTrigger onPress={onSearchPress} />
+      <SavedPlacesPanel onNavigate={onRecentPress} />
 
       {locationError ? (
         <ListRow

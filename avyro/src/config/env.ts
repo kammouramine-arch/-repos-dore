@@ -44,6 +44,7 @@ export const env = {
    *
    * Empty by default, which is why a stock build answers deterministically.
    */
+  backendUrl: readString(process.env.EXPO_PUBLIC_BACKEND_URL, ''),
   aiGatewayUrl: readString(process.env.EXPO_PUBLIC_AI_GATEWAY_URL, ''),
 
   /**
@@ -52,7 +53,7 @@ export const env = {
    * Set this and the app talks to the provider directly, bypassing your proxy.
    * Never set it in a build you distribute — see above.
    */
-  aiApiKey: readString(process.env.EXPO_PUBLIC_AI_API_KEY, ''),
+
 
   aiModel: readString(process.env.EXPO_PUBLIC_AI_MODEL, ''),
 } as const;

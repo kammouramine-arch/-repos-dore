@@ -45,9 +45,10 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
           near,
           signal: controller.signal,
         });
+        if (controller.signal.aborted) return;
         setState({ results, status: 'ready', error: null });
       } catch (error) {
-        if (isAbortError(error)) return;
+        if (controller.signal.aborted || isAbortError(error)) return;
         setState({
           results: [],
           status: 'error',

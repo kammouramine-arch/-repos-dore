@@ -8,6 +8,7 @@ export interface SearchFieldProps {
   onChangeText: (value: string) => void;
   busy?: boolean;
   autoFocus?: boolean;
+  onSubmit?: () => void;
 }
 
 /** The search input itself: icon, field, and a clear affordance while typing. */
@@ -16,6 +17,7 @@ export const SearchField = ({
   onChangeText,
   busy = false,
   autoFocus = false,
+  onSubmit,
 }: SearchFieldProps) => (
   <View style={styles.field}>
     <Icon name="search" size={19} color={colors.textSecondary} />
@@ -28,6 +30,7 @@ export const SearchField = ({
       placeholderTextColor={colors.textTertiary}
       selectionColor={colors.accent}
       returnKeyType="search"
+      onSubmitEditing={onSubmit}
       autoCorrect={false}
       style={styles.input}
       accessibilityLabel="Destination"

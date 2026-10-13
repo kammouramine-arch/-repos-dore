@@ -81,7 +81,7 @@ export interface SpeechRecognitionOptions {
 }
 
 export interface SpeechRecognitionSession {
-  stop(): void;
+  stop(): void | Promise<void>;
 }
 
 export interface SpeechRecognizerEvents {

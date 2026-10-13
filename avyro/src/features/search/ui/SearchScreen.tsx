@@ -1,22 +1,27 @@
-import { useNavigation } from '@react-navigation/native';
-import { useState } from 'react';
-import { FlatList, StyleSheet, View } from 'react-native';
+import { useRoute, useNavigation } from "@react-navigation/native";
+import type { RootStackScreenProps } from "@/app/navigation/types";
+import { useServices } from "@/app/runtime/AppRuntime";
+import { Alert, FlatList, StyleSheet, View } from "react-native";
 
-import { useTripStore } from '@/app/stores/hooks';
-import type { Place } from '@/core/domain/entities/place';
-import { usePlanDestination } from '@/features/trip/hooks/usePlanDestination';
+import { useState } from "react";
+
+import { useTripStore } from "@/app/stores/hooks";
+import type { Place } from "@/core/domain/entities/place";
+import { usePlanDestination } from "@/features/trip/hooks/usePlanDestination";
 import {
+  AppText,
+  Button,
   Divider,
   EmptyState,
   ListRow,
   Screen,
   ScreenHeader,
   SectionHeader,
-} from '@/ui/components';
-import { spacing } from '@/ui/theme';
-import { usePlaceSearch } from '../hooks/usePlaceSearch';
-import { PLACE_ICONS } from '../placeIcons';
-import { SearchField } from './SearchField';
+} from "@/ui/components";
+import { spacing } from "@/ui/theme";
+import { usePlaceSearch } from "../hooks/usePlaceSearch";
+import { PLACE_ICONS } from "../placeIcons";
+import { SearchField } from "./SearchField";
 
 /**
  * Destination search. With no query it shows recent trips, which is what a
@@ -24,19 +29,44 @@ import { SearchField } from './SearchField';
  */
 export const SearchScreen = () => {
   const navigation = useNavigation();
-  const [query, setQuery] = useState('');
-  const { results, status, error } = usePlaceSearch(query);
+  const { savedPlacesRepository } = useServices();
+  const route = useRoute<RootStackScreenProps<"Search">["route"]>();
+  const saveSlot = route.params?.saveSlot;
+  const [query, setQuery] = useState("");
+  const [submitted, setSubmitted] = useState("");
+  const { results, status, error } = usePlaceSearch(submitted);
+  const submit = () => setSubmitted(query.trim());
+  const choose = async (place: Place) => {
+    if (!saveSlot) {
+      await planDestination(place);
+      return;
+    }
+    try {
+      await savedPlacesRepository.set(saveSlot, place);
+      navigation.goBack();
+    } catch {
+      Alert.alert("Could not save address", "Please try again.");
+    }
+  };
   const recents = useTripStore((state) => state.recents);
   const planDestination = usePlanDestination();
 
-  const showRecents = status === 'idle';
-  const places: Place[] = showRecents ? recents.map((entry) => entry.place) : results;
+  const showRecents = status === "idle";
+  const places: Place[] = showRecents
+    ? recents.map((entry) => entry.place)
+    : results;
 
   const emptyState = () => {
-    if (status === 'error') {
-      return <EmptyState icon="cloud-offline-outline" title="Search unavailable" message={error ?? undefined} />;
+    if (status === "error") {
+      return (
+        <EmptyState
+          icon="cloud-offline-outline"
+          title="Search unavailable"
+          message={error ?? undefined}
+        />
+      );
     }
-    if (status === 'ready') {
+    if (status === "ready") {
       return (
         <EmptyState
           icon="compass-outline"
@@ -60,13 +90,32 @@ export const SearchScreen = () => {
   return (
     <Screen padded={false}>
       <View style={styles.header}>
-        <ScreenHeader title="Where to?" onBack={() => navigation.goBack()} />
+        <ScreenHeader
+          title={
+            saveSlot
+              ? `Save ${saveSlot === "home" ? "Home" : "Work"}`
+              : "Where to?"
+          }
+          onBack={() => navigation.goBack()}
+        />
         <SearchField
           value={query}
-          onChangeText={setQuery}
-          busy={status === 'searching'}
+          onChangeText={(value) => {
+            setQuery(value);
+            setSubmitted("");
+          }}
+          onSubmit={submit}
+          busy={status === "searching"}
           autoFocus
         />
+        <Button
+          label="Search address"
+          onPress={submit}
+          disabled={query.trim().length < 2}
+        />
+        <AppText variant="footnote" tone="tertiary">
+          OpenStreetMap contributors · Address results may be incomplete
+        </AppText>
       </View>
 
       <FlatList
@@ -75,17 +124,21 @@ export const SearchScreen = () => {
         keyboardShouldPersistTaps="handled"
         contentContainerStyle={styles.list}
         ListHeaderComponent={
-          showRecents && places.length > 0 ? <SectionHeader title="Recent" /> : null
+          showRecents && places.length > 0 ? (
+            <SectionHeader title="Recent" />
+          ) : null
         }
-        ItemSeparatorComponent={() => <Divider inset={spacing.md + 38 + spacing.sm} />}
+        ItemSeparatorComponent={() => (
+          <Divider inset={spacing.md + 38 + spacing.sm} />
+        )}
         ListEmptyComponent={emptyState}
         renderItem={({ item }) => (
           <ListRow
             title={item.name}
             subtitle={item.address}
             icon={PLACE_ICONS[item.category]}
-            iconTone={showRecents ? 'neutral' : 'accent'}
-            onPress={() => void planDestination(item)}
+            iconTone={showRecents ? "neutral" : "accent"}
+            onPress={() => void choose(item)}
           />
         )}
       />
