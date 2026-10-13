@@ -1,0 +1,519 @@
+import React from "react";
+import { AbsoluteFill, Audio, staticFile } from "remotion";
+import { C } from "../theme";
+import { clamp, easeInOut, easeOut, keys, lerp, ramp } from "../lib/anim";
+import { useT } from "../lib/time";
+import { Shot } from "../components/Shot";
+import { FilmLook, Preload } from "../components/FilmLook";
+import { FileSeal } from "../components/Brand";
+import { Bedroom } from "../scenes/Bedroom";
+import { Town, NewsTV, Observatory } from "../scenes/Town";
+import { Grunion } from "../scenes/Grunion";
+import { TideChart, TideCoast } from "../scenes/Tides";
+import { Harbor, Haul, Market, Kitchen } from "../scenes/Fishing";
+import { Wild } from "../scenes/Wild";
+import { Reef, ReefState } from "../three/Reef";
+import { Globe, GlobeState } from "../three/Globe";
+import { Clock, Counter, Headline, KnowTag, Knowledge, Marker, MoonPhases, Notes, ObliquityChart, PhoneClip, SimBadge, SpawnCalendar } from "../components/Overlays";
+
+export const LONG_DURATION = 597.5;
+
+/* All times are seconds in the supplied narration (WHAT_IF_001_LONG.mp3), from the word-level transcript. */
+
+type S = { from: number; to: number; inT?: "fade" | "blur" | "push" | "cut" | "dip"; fadeIn?: number; fadeOut?: number; tag?: Knowledge; tagExtra?: string; el: (f: number, to: number) => React.ReactNode };
+const L: React.FC<{ from: number; render: (t: number, a: number) => React.ReactNode }> = ({ from, render }) => { const t = useT(); return <>{render(t, t + from)}</>; };
+const Tag: React.FC<{ kind: Knowledge; extra?: string }> = ({ kind, extra }) => { const t = useT(); return <KnowTag t={t} kind={kind} extra={extra} />; };
+const reef = (o: Partial<ReefState> & { cam: ReefState["cam"]; time: number }): ReefState => ({ night: 0, fish: 1, juveniles: 1, health: 1, ...o });
+const globe = (o: Partial<GlobeState> & { time: number; cam: GlobeState["cam"] }): GlobeState => ({ tilt: 23.4, spin: o.time * 0.12, sun: [1, 0.18, 0.6], ...o });
+const P = (t: number, d: number) => clamp(t / d); // progress within a shot
+const RES = 0.5; // 3D canvas at half of 4K, scaled up
+
+const SHOTS: S[] = [
+  // ═════ THE NIGHT IT DISAPPEARED ═════
+  { from: 0, to: 5.6, fadeIn: 0.8, tag: "fiction", el: (f, to) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Bedroom t={a} cam={{ x: lerp(1250, 1380, easeInOut(P(t, 5.6))), y: 820, w: lerp(2300, 1900, easeInOut(P(t, 5.6))) }} moon={1} mother={1} />
+        <Clock t={a} at={0.3} />
+        <Marker t={a} at={1.4} text="The night it disappeared" dur={4} />
+      </>
+    )} />
+  ) },
+  { from: 5.5, to: 9.2, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Bedroom t={a} cam={{ x: 1720, y: lerp(560, 600, P(t, 3.7)), w: lerp(1000, 880, easeInOut(P(t, 3.7))) }} moon={1} mother={1} />} /> },
+  { from: 9.1, to: 12.6, tag: "fiction", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Bedroom t={a} cam={{ x: 1700, y: 600, w: 920 }} moon={1 - ramp(a, 11.1, 11.25)} mother={1} />
+        <Headline t={a} top={0.78} kicker="NO EXPLOSION · NO DEBRIS · NO WARNING" kAt={11.8} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 12.5, to: 16.8, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Bedroom t={a} cam={{ x: 1380, y: 780, w: lerp(1400, 1250, P(t, 4.3)) }} moon={0} react={ramp(a, 12.6, 14.0)} mother={1} />} /> },
+  { from: 16.7, to: 19.3, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Bedroom t={a} cam={{ x: 1260, y: 760, w: 1100 }} moon={0} react={1} mother={1} touch={ramp(a, 17.0, 18.2)} />} /> },
+  { from: 19.2, to: 23.1, tag: "fiction", tagExtra: "FICTIONAL CLIPS", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #121a26 0%, #050608 78%)" }}>
+        {[0, 1, 2].map((i) => {
+          const p = easeOut(ramp(t, 0.1 + i * 0.6, 1.0 + i * 0.6));
+          return <PhoneClip key={i} t={a} idx={i} s={2.6} x={(0.16 + i * 0.26) * 3840 + (1 - p) * 200} y={420 + (i === 1 ? -80 : 60)} rot={[-6, 2, 7][i]} />;
+        })}
+        <Headline t={a} top={0.82} kicker="WITHIN MINUTES" kAt={19.4} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 23.0, to: 25.0, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Town t={a} cam={{ x: 1300, y: 920, w: 2400 }} moon={0} gather={lerp(0.5, 1, P(t, 2))} />} /> },
+  { from: 24.9, to: 27.5, tag: "fiction", tagExtra: "FICTIONAL BROADCAST", el: (f) => <L from={f} render={(t, a) => <NewsTV t={a} cam={{ x: 1450, y: 650, w: lerp(2000, 1800, P(t, 2.6)) }} on={1} />} /> },
+  { from: 27.4, to: 31.8, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Observatory t={a} cam={{ x: 1300, y: 640, w: 2300 }} slew={P(t, 3.6)} />} /> },
+  { from: 31.7, to: 37.9, tag: "fiction", tagExtra: "THE PREMISE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [1.2, 2.2, 8.5], target: [0.8, 0, 0], fov: 40 }, moon: 1 - ramp(a, 35.8, 36.3), moonAng: 0.5, moonDist: 3.6, orbit: ramp(a, 35.8, 36.8) * 0.7 })} />
+        <Notes t={a} x={0.06} y={0.62} items={[{ text: "NOT EXPLODED", at: 32.4 }, { text: "NOT HIDDEN BEHIND A PLANET", at: 34.0 }, { text: "SIMPLY GONE", at: 36.0, color: C.paper }]} />
+      </>
+    )} />
+  ) },
+  { from: 37.8, to: 42.8, el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [1.4, 2.6, lerp(9, 13, easeOut(P(t, 5)))], target: [0.8, 0, 0], fov: 40 }, orbit: 0.7, moonDist: 3.6 })} />
+        <Headline t={a} top={0.72} lines={[{ text: "EARTH HAS NO MOON", at: 40.3, size: 96 }]} />
+      </>
+    )} />
+  ) },
+  { from: 42.7, to: 50.0, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Grunion t={a} cam={{ x: lerp(700, 900, P(t, 7.3)), y: lerp(420, 700, easeInOut(P(t, 7.3))), w: 2000 }} moonless day={3} xsec={0} />
+        <Headline t={a} top={0.12} kicker="WHAT NOBODY REALIZES YET" kAt={43.0} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 49.9, to: 58.0, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 0, torch: 0.6, fish: 0, cam: { pos: [lerp(-2, 1, P(t, 8)), 2.4, 6.4], target: [0, 1, -1], fov: 46 } })} />
+        <Headline t={a} top={0.12} kicker="ANIMALS THAT DEPEND ON THE MOON" kAt={53.2} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 57.9, to: 62.0, fadeOut: 0.7, el: (f, to) => <L from={f} render={(t) => <FileSeal t={t} dur={to - f} mode="open" stampText="BONUS #001" />} /> },
+
+  // ═════ THE FIRST MORNING ═════
+  { from: 61.9, to: 67.6, tag: "fiction", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Town t={a} cam={{ x: lerp(1100, 1500, P(t, 5.7)), y: 900, w: 2400 }} moon={0} gather={1} dawn={1} commute />
+        <Marker t={a} at={62.1} text="The first morning" dur={4.6} />
+      </>
+    )} />
+  ) },
+  { from: 67.5, to: 73.7, tag: "fiction", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Town t={a} cam={{ x: 1300, y: 1000, w: 1500 }} moon={0} gather={1} dawn={1} commute />
+        <Headline t={a} top={0.12} kicker="THE WORLD HASN'T ENDED" kAt={71.8} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 73.6, to: 79.8, tag: "fact", tagExtra: "TIDE GAUGE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "linear-gradient(180deg,#2c3e58 0%,#8b7d78 60%,#c9a98a 100%)" }}>
+        <TideCoast t={a} day={lerp(1, 1.6, P(t, 6))} moonless label="TIDE GAUGE" />
+        <Marker t={a} at={77.6} text="The changing oceans" dur={2.4} top />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 79.7, to: 90.3, tag: "fact", tagExtra: "TWICE A DAY IN MANY PLACES", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "linear-gradient(180deg,#2c3e58 0%,#8b7d78 60%,#c9a98a 100%)" }}>
+        <TideCoast t={a} day={lerp(0, 2.2, P(t, 10.6))} moonless={false} label="BEFORE · MOON + SUN" />
+        <Headline t={a} top={0.12} align="left" kicker="THE SEA RISES AND FALLS" kAt={87.9} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 90.2, to: 97.7, tag: "fact", tagExtra: "ILLUSTRATIVE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #16202c 0%, #07090c 78%)" }}>
+        <TideChart t={t} reveal={P(t, 3)} moonless={ramp(a, 95.2, 97.4)} />
+        <Headline t={a} top={0.06} kicker="SPRING AND NEAP TIDES" kAt={90.4} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 97.6, to: 105.0, tag: "fact", tagExtra: "THE SUN STILL MAKES TIDES", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #16202c 0%, #07090c 78%)" }}>
+        <TideChart t={t + 3} reveal={1} moonless={1} />
+        <Headline t={a} top={0.06} kicker="THE OCEAN DOESN'T STOP MOVING" kAt={99.8} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  // ═════ THE GRUNION ═════
+  { from: 104.9, to: 111.2, tag: "fact", tagExtra: "SOUTHERN CALIFORNIA", el: (f) => <L from={f} render={(t, a) => <Grunion t={a} cam={{ x: lerp(800, 1000, P(t, 6.3)), y: 760, w: lerp(2200, 1800, P(t, 6.3)) }} moonless day={5} xsec={0} />} /> },
+  { from: 111.1, to: 119.1, tag: "fact", tagExtra: "CALIFORNIA GRUNION", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Grunion t={a} cam={{ x: lerp(1000, 1050, P(t, 8)), y: 790, w: lerp(1800, 1100, easeInOut(P(t, 6))) }} moonless day={5} xsec={ramp(a, 111.2, 112.6)} labels={0} />
+        <Headline t={a} top={0.12} align="left" kicker="LEURESTHES TENUIS" kAt={116.6} lines={[{ text: "CALIFORNIA GRUNION", at: 117.0, size: 72 }]} />
+      </>
+    )} />
+  ) },
+  { from: 119.0, to: 138.0, tag: "fact", tagExtra: "THE SPAWNING RUN", el: (f) => (
+    <L from={f} render={(t, a) => {
+      const sp = keys(a, [[119, 0], [125.7, 0.15], [128.5, 0.75], [131.5, 1], [133.3, 1], [135.8, 0]]);
+      return (
+        <>
+          <Grunion t={a} cam={{ x: lerp(1000, 1060, P(t, 19)), y: lerp(740, 790, ramp(a, 134, 137.5)), w: lerp(1100, 900, P(t, 19)) }} moonless={false} day={0} spawn={sp} xsec={ramp(a, 135, 137.2)} />
+          <Marker t={a} at={119.4} text="Before the disappearance" sub="FLASHBACK" dur={4.4} top />
+          <Notes t={a} x={0.06} y={0.62} items={[{ text: "RUNS AFTER THE HIGHEST TIDES", at: 124.0 }, { text: "FEMALES DIG IN, TAIL FIRST", at: 130.2 }, { text: "MALES CURL AROUND THEM", at: 131.6 }, { text: "EGGS STAY IN THE SAND", at: 135.0, color: "#e6a35a" }]} />
+        </>
+      );
+    }} />
+  ) },
+  { from: 137.9, to: 149.1, tag: "fact", tagExtra: "NORMAL TIDES", el: (f) => (
+    <L from={f} render={(t, a) => {
+      const day = keys(a, [[137.9, 1], [139.3, 9], [142.6, 11.8], [146, 13.2], [149, 14]]);
+      return (
+        <>
+          <Grunion t={a} cam={{ x: 1000, y: 790, w: 1150 }} moonless={false} day={day} xsec={1} labels={1} sky={0} />
+          <Counter t={a} at={138.1} label="DAY" value={day} note="WITH THE MOON" />
+        </>
+      );
+    }} />
+  ) },
+  { from: 149.0, to: 157.1, tag: "fact", tagExtra: "SUN-ONLY TIDES · ILLUSTRATIVE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #16202c 0%, #07090c 78%)" }}>
+        <TideChart t={t + 3} reveal={1} moonless={ramp(a, 152.8, 155.6)} />
+        <Headline t={a} top={0.06} kicker="A WORLD WITHOUT THE MOON" kAt={149.3} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 157.0, to: 173.8, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => {
+      const day = keys(a, [[157, 10], [162.2, 14], [164.9, 16.5], [166.4, 21], [170.4, 25], [173.8, 34]]);
+      return (
+        <>
+          <Grunion t={a} cam={{ x: 1000, y: 790, w: 1150 }} moonless day={day} xsec={1} labels={1} />
+          <Counter t={a} at={157.2} label="DAY" value={day} note="WITHOUT THE MOON · ILLUSTRATIVE" />
+          <Marker t={a} at={157.4} text="The next high tides" dur={4} top={false} />
+        </>
+      );
+    }} />
+  ) },
+  { from: 173.7, to: 183.2, tag: "plausible", tagExtra: "REPEATED SEASONS", el: (f) => (
+    <L from={f} render={(t, a) => {
+      const season = lerp(1, 5, P(t, 9.5));
+      return (
+        <>
+          <Grunion t={a} cam={{ x: 1000, y: 740, w: 1100 }} moonless={false} day={0} spawn={0.85} runSize={lerp(1, 0.35, P(t, 9.5))} xsec={0} sky={0} />
+          <Counter t={a} at={173.9} label="SPAWNING SEASON" value={season} note="FEWER FISH EACH RUN · ILLUSTRATIVE" />
+        </>
+      );
+    }} />
+  ) },
+  { from: 183.1, to: 193.6, tag: "fact", tagExtra: "A RHYTHM THE MOON HELPS CREATE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #16202c 0%, #07090c 78%)" }}>
+        <TideChart t={t + 3} reveal={1} moonless={ramp(a, 188.3, 191.5)} />
+        <Headline t={a} top={0.06} lines={[{ text: "REMOVE THE RHYTHM", at: 188.4, size: 80 }]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  // ═════ THE CORAL REEFS ═════
+  { from: 193.5, to: 201.5, el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, spin: 2.2 + a * 0.05, cam: { pos: [0.4, 0.3, lerp(4.2, 3.0, easeInOut(P(t, 8)))], target: [0, 0, 0], fov: 38 }, sun: [0.6, 0.1, 1] })} />
+        <Headline t={a} top={0.12} kicker="FAR AWAY · TROPICAL OCEANS" kAt={197.6} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 201.4, to: 213.3, inT: "blur", tag: "fact", tagExtra: "AMONG THE MOST DIVERSE ECOSYSTEMS", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, cam: { pos: [lerp(-3, 1.5, easeInOut(P(t, 12))), lerp(3.6, 2.4, P(t, 12)), lerp(9, 6, easeInOut(P(t, 12)))], target: [0, 0.8, -1], fov: 46 } })} />
+        <Marker t={a} at={205.2} text="Coral reefs" sub="WHAT IF? · TROPICAL OCEANS" dur={4.5} />
+      </>
+    )} />
+  ) },
+  { from: 213.2, to: 219.5, tag: "fact", tagExtra: "CORALS ARE ANIMALS", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, cam: { pos: [lerp(1.4, 1.0, P(t, 6.3)), 1.5, lerp(2.4, 2.0, P(t, 6.3))], target: [0.2, 1.0, 0], fov: 44 } })} />
+        <Headline t={a} top={0.12} align="left" lines={[{ text: "LIVING ANIMALS", at: 213.6, size: 80 }]} />
+      </>
+    )} />
+  ) },
+  { from: 219.4, to: 229.4, tag: "fact", tagExtra: "SOME SPECIES", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 1, torch: 1, fish: 0, cam: { pos: [lerp(1.4, 0.4, P(t, 10)), 2.0, lerp(5.2, 4.0, P(t, 10))], target: [0, 1.4, -0.5], fov: 48 }, spawn: { p: lerp(0.05, 0.75, P(t, 10)), frac: 0.9 } })} />
+        <Headline t={a} top={0.12} kicker="SYNCHRONISED SPAWNING" kAt={219.6} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 229.3, to: 234.0, tag: "fact", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 1, torch: 1, fish: 0, cam: { pos: [0.4, 2.6, 1.6], target: [0.2, 3.0, -0.6], fov: 50 }, spawn: { p: 0.85, frac: 0.9 } })} />
+        <Headline t={a} top={0.12} align="left" kicker="EGGS + SPERM IN EACH BUNDLE" kAt={229.5} lines={[{ text: "THEY MUST MEET", at: 230.6, size: 72 }]} />
+      </>
+    )} />
+  ) },
+  { from: 233.9, to: 241.4, tag: "fact", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 1, torch: 0.8, fish: 0, cam: { pos: [-1, 2.4, 6], target: [0, 1.4, -0.5], fov: 48 }, spawn: { p: 0.6, frac: 0.9 } })} />
+        <SpawnCalendar t={t} reveal={P(t, 0.8)} scatter={0} />
+        <Headline t={a} top={0.12} align="left" lines={[{ text: "TIMING IS CRITICAL", at: 233.9, size: 72 }]} />
+      </>
+    )} />
+  ) },
+  { from: 241.3, to: 253.4, tag: "fact", tagExtra: "SOME SPECIES", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #121a26 0%, #050608 78%)" }}>
+        <MoonPhases t={t} reveal={1} window={ramp(a, 246.0, 247.5)} />
+        <Headline t={a} top={0.12} kicker="MOONLIGHT AS A SIGNAL" kAt={244.8} lines={[]} />
+        <Notes t={a} x={0.14} y={0.74} size={24} items={[{ text: "WATER TEMPERATURE SETS THE SEASON", at: 248.6, color: "#9fd4b8" }, { text: "THE LUNAR CYCLE HELPS SET THE NIGHT", at: 250.0, color: "#9fd4b8" }]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 253.3, to: 263.0, tag: "fiction", tagExtra: "MARINE BIOLOGIST", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 0, torch: 1, fish: 0, cam: { pos: [lerp(2, 0.5, P(t, 9.7)), 1.7, lerp(5, 3.8, P(t, 9.7))], target: [lerp(0.6, 0, P(t, 9.7)), 1.2, -0.6], fov: 50, roll: 0.03 * Math.sin(a * 0.7) } })} />
+        <Marker t={a} at={257.8} text="The following spawning seasons" dur={4.8} />
+      </>
+    )} />
+  ) },
+  { from: 262.9, to: 275.0, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 0, torch: 1, fish: 0, cam: { pos: [0.6, 1.9, 4.2], target: [0, 1.3, -0.5], fov: 48 }, spawn: { p: lerp(0.15, 0.8, P(t, 12)), frac: 0.16, seed: 21 } })} />
+        <Notes t={a} x={0.06} y={0.62} items={[{ text: "SOME MAY FOLLOW OTHER CUES", at: 263.6, color: "#9fd4b8" }, { text: "OTHERS MAY DRIFT OUT OF STEP", at: 269.2 }]} />
+      </>
+    )} />
+  ) },
+  { from: 274.9, to: 288.1, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 0, torch: 0.7, fish: 0, cam: { pos: [-1, 2.4, 6], target: [0, 1.4, -0.5], fov: 48 }, spawn: { p: 0.6, frac: 0.12, seed: 33 } })} />
+        <SpawnCalendar t={t + 2} reveal={P(t, 0.6)} scatter={ramp(a, 275.4, 277.8)} />
+        <Notes t={a} x={0.06} y={0.18} items={[{ text: "FEWER FERTILISED EGGS", at: 279.6 }, { text: "FEWER LARVAE", at: 282.8 }, { text: "FEWER NEW COLONIES", at: 283.9 }]} />
+      </>
+    )} />
+  ) },
+  { from: 288.0, to: 308.7, tag: "plausible", tagExtra: "ONE POSSIBLE FUTURE", el: (f) => (
+    <L from={f} render={(t, a) => {
+      const k = easeInOut(ramp(a, 290.5, 305));
+      return (
+        <>
+          <Reef res={RES} s={reef({ time: a, health: lerp(1, 0.4, k), fish: lerp(1, 0.5, k), cam: { pos: [lerp(-2.5, 2.5, P(t, 20.7)), 2.8, 7], target: [0, 0.9, -1], fov: 46 } })} />
+          <Marker t={a} at={288.3} text="The first years" dur={4} />
+          <Counter t={a} at={290.6} label="YEAR" value={lerp(1, 15, k)} note="ILLUSTRATIVE" />
+          <Notes t={a} x={0.6} y={0.66} size={24} items={[{ text: "ALREADY UNDER PRESSURE:", at: 295.5, color: C.paperDim }, { text: "POLLUTION · WARMING SEAS", at: 296.6, color: C.paperDim }]} />
+        </>
+      );
+    }} />
+  ) },
+  { from: 308.6, to: 319.1, tag: "fact", tagExtra: "SHELTER · FOOD · NURSERY", el: (f) => (
+    <L from={f} render={(t, a) => <Reef res={RES} s={reef({ time: a, juveniles: 1.4, cam: { pos: [lerp(1.6, 1.1, P(t, 10.5)), 1.6, lerp(2.6, 2.1, P(t, 10.5))], target: [0.1, 1.0, -0.2], fov: 44 } })} />} />
+  ) },
+  { from: 319.0, to: 327.9, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, health: 0.35, fish: 0.4, juveniles: 1.4, cam: { pos: [lerp(1.6, 1.1, P(t, 8.9)), 1.6, lerp(2.6, 2.1, P(t, 8.9))], target: [0.1, 1.0, -0.2], fov: 44 } })} />
+        <Headline t={a} top={0.12} align="left" lines={[{ text: "FEWER PLACES TO GROW UP", at: 319.4, size: 64 }]} />
+      </>
+    )} />
+  ) },
+  // ═════ THE FISHING FAMILY ═════
+  { from: 327.8, to: 337.5, tag: "fiction", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Harbor t={a} cam={{ x: lerp(900, 1100, P(t, 9.7)), y: 860, w: lerp(2400, 2000, P(t, 9.7)) }} depart={0} />
+        <Headline t={a} top={0.12} kicker="A FISHING COMMUNITY" kAt={331.8} lines={[]} />
+      </>
+    )} />
+  ) },
+  { from: 337.4, to: 342.0, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Harbor t={a} cam={{ x: 1250, y: 860, w: 2000 }} depart={P(t, 4.6) * 0.8} />} /> },
+  { from: 341.9, to: 346.1, tag: "fiction", tagExtra: "THE PAST", el: (f) => <L from={f} render={(t, a) => <Haul t={a} cam={{ x: 1450, y: 820, w: 1900 }} haul={P(t, 3.2)} catchK={1} />} /> },
+  { from: 346.0, to: 355.0, tag: "fiction", tagExtra: "ONE POSSIBLE FUTURE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Haul t={a} cam={{ x: 1500, y: 820, w: 1800 }} haul={P(t, 5)} catchK={0.2} />
+        <Marker t={a} at={346.2} text="The following decades" dur={4} top />
+      </>
+    )} />
+  ) },
+  { from: 354.9, to: 360.1, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Market t={a} cam={{ x: 1300, y: 850, w: 2400 }} abundance={0.28} customers={0.6} />} /> },
+  { from: 360.0, to: 369.4, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Kitchen t={a} cam={{ x: 1180, y: 720, w: lerp(2300, 2000, P(t, 9.4)) }} talk={1} />} /> },
+  { from: 369.3, to: 376.7, tag: "uncertain", tagExtra: "NOT EVERY REEF", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Reef res={RES} s={reef({ time: a, health: 0.85, cam: { pos: [lerp(2, -1, P(t, 7.4)), 2.6, 6.5], target: [0, 0.8, -1], fov: 46 } })} />
+        <Notes t={a} x={0.06} y={0.62} items={[{ text: "NOT EVERY REEF RESPONDS THE SAME", at: 369.6, color: "#c9a3e6" }, { text: "NOT EVERY POPULATION COLLAPSES", at: 371.3, color: "#c9a3e6" }, { text: "SOME SPECIES MIGHT ADAPT", at: 374.6, color: "#9fd4b8" }]} />
+      </>
+    )} />
+  ) },
+  { from: 376.6, to: 387.4, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, spin: 1 + a * 0.06, cam: { pos: [0.5, 0.8, lerp(4.6, 5.4, P(t, 10.8))], target: [0, 0, 0], fov: 40 }, sun: [1, 0.25, 0.3] })} />
+        <Headline t={a} top={0.74} lines={[{ text: "NOT DISTRIBUTED EQUALLY", at: 383.4, size: 72 }]} />
+      </>
+    )} />
+  ) },
+  // ═════ NIGHTS ON LAND ═════
+  { from: 387.3, to: 396.9, tag: "fact", tagExtra: "DARKER NIGHTS", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Wild t={a} cam={{ x: lerp(1000, 1500, P(t, 9.6)), y: 760, w: 2500 }} moon={0} fox={0} forage={0} />
+        <Marker t={a} at={387.6} text="Back on land" dur={4} top />
+      </>
+    )} />
+  ) },
+  { from: 396.8, to: 407.4, tag: "fact", tagExtra: "BEFORE · MOONLIT NIGHT", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Wild t={a} cam={{ x: 1300, y: 760, w: 2500 }} moon={1} fox={P(t, 10.6) * 0.5} forage={P(t, 6)} />
+        <Notes t={a} x={0.6} y={0.18} size={24} items={[{ text: "WHEN THEY HUNT", at: 401.5, color: "#9fd4b8" }, { text: "WHERE THEY TRAVEL", at: 402.7, color: "#9fd4b8" }, { text: "HOW THEY SPOT DANGER", at: 404.3, color: "#9fd4b8" }]} />
+      </>
+    )} />
+  ) },
+  { from: 407.3, to: 419.7, tag: "fact", tagExtra: "IT DEPENDS ON THE SPECIES", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Wild t={a} cam={{ x: lerp(1500, 1350, P(t, 12.4)), y: 960, w: 1400 }} moon={1} fox={lerp(0.3, 0.7, P(t, 12.4))} forage={lerp(0.3, 0.6, P(t, 6))} />
+        <Notes t={a} x={0.06} y={0.18} size={24} items={[{ text: "MOONLIGHT HELPS THE PREDATOR SEE", at: 411.0 }, { text: "…AND HELPS THE PREY SEE IT COMING", at: 415.2, color: "#9fd4b8" }]} />
+      </>
+    )} />
+  ) },
+  { from: 419.6, to: 438.3, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Wild t={a} cam={{ x: lerp(1600, 1300, P(t, 18.7)), y: 900, w: 1700 }} moon={1 - ramp(a, 423.2, 425.2)} fox={lerp(0.2, 1, P(t, 18.7))} forage={lerp(0, 1, P(t, 12))} />
+        <Notes t={a} x={0.06} y={0.16} size={24} items={[{ text: "SOME PREDATORS: NEW OPPORTUNITIES", at: 428.8 }, { text: "SOME PREY: MORE VULNERABLE", at: 431.4 }, { text: "OTHERS: BETTER OFF IN THE DARK", at: 434.1, color: "#9fd4b8" }]} />
+      </>
+    )} />
+  ) },
+  { from: 438.2, to: 443.3, tag: "plausible", el: (f) => <L from={f} render={(t, a) => <Wild t={a} cam={{ x: 1300, y: lerp(760, 560, P(t, 5)), w: lerp(2000, 2600, P(t, 5)) }} moon={0} fox={1} forage={1} />} /> },
+  // ═════ THE DISTANT FUTURE ═════
+  { from: 443.2, to: 455.5, tag: "fact", tagExtra: "THE MOON STEADIES EARTH'S TILT", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [1.2, 1.6, lerp(10, 8, P(t, 12.3))], target: [0.6, 0, 0], fov: 40 }, moon: ramp(a, 447.4, 449) * (1 - ramp(a, 452.5, 454)), moonAng: 0.7 + a * 0.02, moonDist: 3.6, orbit: 0.6, axis: ramp(a, 451.2, 452.5) })} />
+        <Marker t={a} at={447.4} text="The distant future" dur={4.5} />
+      </>
+    )} />
+  ) },
+  { from: 455.4, to: 467.9, tag: "fact", tagExtra: "TILT ≈ 23.4°", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [0.2, 0.4, lerp(4.6, 4.0, P(t, 12.5))], target: [0, 0, 0], fov: 40 }, axis: 1, sun: [1, 0.05, 0.1] })} />
+        <Headline t={a} top={0.12} align="left" kicker="THE TILT GIVES US SEASONS" kAt={457.2} lines={[{ text: "23.4°", at: 456.2, size: 110 }]} />
+      </>
+    )} />
+  ) },
+  { from: 467.8, to: 482.2, tag: "uncertain", tagExtra: "MODELS DISAGREE", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 40% 45%, #141a26 0%, #050608 78%)" }}>
+        <ObliquityChart t={t} reveal={P(t, 2)} models={ramp(a, 473.4, 475)} />
+        <Notes t={a} x={0.66} y={0.3} size={22} items={[{ text: "COMPUTER SIMULATIONS OF", at: 468.2, color: C.paperDim }, { text: "A HYPOTHETICAL MOONLESS EARTH", at: 469.0, color: C.paperDim }]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 482.1, to: 486.6, tag: "uncertain", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #141a26 0%, #050608 78%)" }}>
+        <Headline t={a} top={0.4} kicker="WHAT WE CAN'T HONESTLY PREDICT" kAt={482.2} lines={[{ text: "NO SUDDEN CLIMATE COLLAPSE", at: 483.0, size: 84 }]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 486.5, to: 505.7, tag: "uncertain", tagExtra: "HUNDREDS OF THOUSANDS OF YEARS +", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [0.5, 1.2, lerp(5, 6.2, P(t, 19))], target: [0, 0.2, 0], fov: 40 }, axis: 1, cone: ramp(a, 493.4, 496), coneDeg: 22, tilt: 23.4 + Math.sin(t * 0.35) * 8 * ramp(a, 493.4, 497), sun: [1, 0.1, 0.4] })} />
+        <Notes t={a} x={0.06} y={0.66} size={24} items={[{ text: "HOW SUNLIGHT IS SHARED OUT", at: 497.0, color: "#c9a3e6" }, { text: "THE CHARACTER OF THE SEASONS", at: 501.0, color: "#c9a3e6" }]} />
+      </>
+    )} />
+  ) },
+  // ═════ DECADES LATER ═════
+  { from: 505.6, to: 516.1, tag: "fiction", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Bedroom t={a} cam={{ x: lerp(1250, 1350, P(t, 10.5)), y: 800, w: lerp(2300, 1800, easeInOut(P(t, 10.5))) }} moon={0} adult lamp={0.45} />
+        <Marker t={a} at={508.9} text="Decades later" dur={5} />
+      </>
+    )} />
+  ) },
+  { from: 516.0, to: 520.4, tag: "fiction", tagExtra: "MEMORY", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ filter: "grayscale(0.7) contrast(1.05) brightness(0.85)" }}>
+        <Town t={a + 30} cam={{ x: 1300, y: 920, w: 2400 }} moon={0} gather={1} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 520.3, to: 525.7, tag: "fiction", tagExtra: "MEMORY", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ filter: "grayscale(0.7) contrast(1.05) brightness(0.85)" }}>
+        <Bedroom t={a} cam={{ x: 1700, y: 600, w: 920 }} moon={1 - ramp(a, 522.5, 522.65)} mother={1} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 525.6, to: 530.4, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Town t={a} cam={{ x: 1300, y: 900, w: 2300 }} moon={0} gather={1} dawn={1} commute />} /> },
+  { from: 530.3, to: 536.4, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Harbor t={a} cam={{ x: 1100, y: 860, w: 2200 }} depart={lerp(0.2, 0.6, P(t, 6))} />} /> },
+  { from: 536.3, to: 543.7, tag: "plausible", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <AbsoluteFill style={{ background: "radial-gradient(ellipse at 50% 45%, #16202c 0%, #07090c 78%)" }}>
+        <TideChart t={t + 3} reveal={1} moonless={1} />
+        <Headline t={a} top={0.06} kicker="A PLANET WITH DIFFERENT RHYTHMS" kAt={536.6} lines={[]} />
+      </AbsoluteFill>
+    )} />
+  ) },
+  { from: 543.6, to: 545.7, tag: "plausible", el: (f) => <L from={f} render={(t, a) => <Reef res={RES} s={reef({ time: a, health: 0.5, fish: 0.6, cam: { pos: [1.5, 2.4, 6], target: [0, 0.9, -1], fov: 46 } })} />} /> },
+  { from: 545.6, to: 549.2, el: (f) => <L from={f} render={(t, a) => <Wild t={a} cam={{ x: 1300, y: 520, w: 2600 }} moon={0} fox={1} forage={1} />} /> },
+  { from: 549.1, to: 554.5, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Bedroom t={a} cam={{ x: lerp(1500, 1600, P(t, 5.4)), y: 700, w: lerp(1300, 1150, P(t, 5.4)) }} moon={0} adult lamp={0.35} planets={ramp(a, 551.7, 552.8)} />} /> },
+  { from: 554.4, to: 560.1, tag: "plausible", el: (f) => <L from={f} render={(t, a) => <Reef res={RES} s={reef({ time: a, night: 1, moonlight: 0, torch: 0.8, fish: 0, cam: { pos: [0.4, 1.8, 4], target: [0, 1.3, -0.5], fov: 48 }, spawn: { p: lerp(0.3, 0.6, P(t, 5.6)), frac: 0.12, seed: 41 } })} />} /> },
+  // ═════ CLOSING ═════
+  { from: 560.0, to: 567.9, el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [1, 1.6, lerp(7, 11, easeOut(P(t, 7.9)))], target: [0.5, 0, 0], fov: 40 }, orbit: 0.6, moonDist: 3.6 })} />
+        <Headline t={a} top={0.72} kicker="NOT DESTROYED" kAt={561} lines={[{ text: "CHANGED", at: 563, size: 96 }]} />
+      </>
+    )} />
+  ) },
+  { from: 567.8, to: 573.6, tag: "plausible", el: (f) => <L from={f} render={(t, a) => <Grunion t={a} cam={{ x: 1160, y: 760, w: 900 }} moonless day={34} xsec={1} />} /> },
+  { from: 573.5, to: 576.4, tag: "plausible", el: (f) => <L from={f} render={(t, a) => <Reef res={RES} s={reef({ time: a, health: 0.45, fish: 0.5, cam: { pos: [-1, 2.2, 5.5], target: [0, 0.9, -1], fov: 46 } })} />} /> },
+  { from: 576.3, to: 579.9, tag: "fiction", el: (f) => <L from={f} render={(t, a) => <Kitchen t={a} cam={{ x: 1180, y: 720, w: 2000 }} talk={0.4} />} /> },
+  { from: 579.8, to: 592.5, inT: "dip", el: (f) => (
+    <L from={f} render={(t, a) => (
+      <>
+        <Globe res={RES} s={globe({ time: a, cam: { pos: [lerp(6.5, 4.8, easeInOut(P(t, 12.7))), 0.25, 0.6], target: [2.8, 0, 2.2], fov: 30 }, moon: 1, moonAng: 0.66, moonDist: 3.6, sun: [0.4, 0.15, 1] })} />
+        <Headline t={a} top={0.74} lines={[{ text: "THE RHYTHMS OF LIFE", at: 586.8, size: 80 }]} />
+      </>
+    )} />
+  ) },
+  { from: 592.4, to: LONG_DURATION, fadeOut: 0.01, el: (f, to) => <L from={f} render={(t) => <FileSeal t={t} dur={to - f} mode="close" stampText="BONUS #001" />} /> },
+];
+
+export const Long: React.FC = () => (
+  <AbsoluteFill style={{ background: C.ink }}>
+    <Audio src={staticFile("audio/long.mp3")} />
+    <Preload srcs={["moon/moon_disc.png"]} />
+    {SHOTS.map((s, i) => (
+      <Shot key={i} from={s.from} to={s.to} inT={s.inT} fadeIn={s.fadeIn ?? 0.45} fadeOut={s.fadeOut ?? 0.45}>
+        {s.el(s.from, s.to)}
+        {s.tag && <Tag kind={s.tag} extra={s.tagExtra} />}
+      </Shot>
+    ))}
+    <LongBadge />
+    <FilmLook grain={0.06} />
+  </AbsoluteFill>
+);
+const LongBadge: React.FC = () => {
+  const t = useT();
+  const show = ramp(t, 1.0, 2.0) * (1 - ramp(t, 57.8, 58.2)) + ramp(t, 62.2, 63) * (1 - ramp(t, LONG_DURATION - 5.2, LONG_DURATION - 4.8));
+  return <SimBadge opacity={Math.min(1, show)} />;
+};
