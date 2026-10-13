@@ -13,5 +13,6 @@ describe('unobservable driving conditions', () => {
   });
   it('does not turn a negated control into a navigation action', () => {
     expect(drivingSafetyReply('Do not cancel navigation')).toContain('keep the current route');
+    expect(drivingSafetyReply("Don't cancel navigation")).toContain('keep the current route');
   });
 });

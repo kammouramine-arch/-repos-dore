@@ -3,7 +3,7 @@ import { normaliseUtterance } from './wakePhrase';
 /** These questions require observations this app cannot obtain from a map. */
 export const drivingSafetyReply = (transcript: string): string | null => {
   const text = normaliseUtterance(transcript);
-  if (/\b(?:dont|don't|do not|never|no need to)\b.*\b(?:cancel|navigate|go|reroute|take|drive|route)\b/.test(text)) {
+  if (/\b(?:don\s*t|do not|never|no need to)\b.*\b(?:cancel|navigate|go|reroute|take|drive|route)\b/.test(text)) {
     return 'I will keep the current route. Please give a direct command if you want to change it.';
   }
   if (/\b(?:overtake|overtaking|pass this|safe to turn|safe to cross|can i turn|can i cross)\b/.test(text) ||
