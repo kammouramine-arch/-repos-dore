@@ -5,6 +5,10 @@ and the [gateway setup](backend/README.md). The legacy release description below
 describes the earlier implementation; current code uses dedicated offline keyword
 spotting, submitted address search, secure Home/Work and optional server identity.
 V2 is not yet a complete production release. Use a native build rather than Expo Go.
+Internal TestFlight 1.0.0 (27) connects the approved temporary beta gateway for
+opt-in TomTom mapped speed limits, remote beta identity, pending reports and
+free local AI classification. The owner's computer/tunnel must remain running.
+See the validation record for physical-testing and production release gates.
 
 **Avyro is not another GPS. Avyro is the world’s first AI Driving Companion.**
 

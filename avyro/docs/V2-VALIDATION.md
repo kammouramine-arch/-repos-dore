@@ -54,14 +54,16 @@ OSRM demo has no production availability guarantee.
 - Actual wake accuracy, false activations, audio interruption recovery, immediate
   trailing commands, vehicle noise, Bluetooth, CPU, memory and battery need physical
   iPhone testing. Wake detection is foreground-only. Do not promise Siri behavior.
-- No licensed speed-limit, road-sign, traffic or official hazard feed is configured.
+- Connected beta 27 can display licensed evaluation mapped speed limits.
+  Forward road-sign warnings, live traffic and official hazards remain unavailable.
   Missing data is stated; none is fabricated or inferred from GPS speed.
-- Backend is executable locally and tested, but not deployed. No hosted identity,
-  AI billing, public incident feed or moderator operation is live. Email verification,
+- Backend is connected through an explicitly approved temporary HTTPS tunnel,
+  with remote beta identity and free local AI classification. It is not production
+  hosting. No billed AI or public incident feed is enabled. Email verification,
   password reset, account deletion and persistent distributed abuse limits are
   required before public registration.
 - The report control checks a fresh stationary GPS fix and requests consent.
-  The hosted service and real moderation operations still need deployment.
+  Reports reach the beta queue; production moderation operations remain a gate.
 - Natural voice quality depends on voices installed on the iPhone.
 - App Store publication and any new paid infrastructure require user approval.
 
@@ -101,3 +103,32 @@ website browser was signed out, so this was not executed inside cloud Work.
 
 This is a testable foundation beta, not a claim that the remaining production
 release gates above have been satisfied.
+
+## Connected TestFlight beta 27
+
+Version 1.0.0 (27), mobile source `77b6d338bcf7ee53391e43c383a9233353f19b67`:
+EAS signed device build `e1818304-2740-48e0-94dd-cc0a2e055367` succeeded.
+Submission `c9e605fb-1290-4d28-88c6-47ae1f4e5293` finished. Apple reports VALID
+and IN_BETA_TESTING for existing internal testers. The IPA contains the correct
+temporary HTTPS backend address, no TomTom secret, and all nine hash-verified
+wake-model/licence resources. The latest unsigned simulator workflow was
+superseded/cancelled; the signed device Release build is the native result.
+
+423 mobile tests and 18 backend tests passed; typecheck and lint passed.
+The live HTTPS smoke test passed remote identity, real TomTom map evidence,
+pending incident submission, restricted moderator access, free local AI
+classification and session revocation. No synthetic report was made public;
+its test identity/report were removed. Paid AI provider calls remain disabled.
+
+Local AI uses Apache-2.0 Qwen2.5-1.5B-Instruct through a MIT llama.cpp runtime.
+Four model command samples and two deterministic refusal samples passed;
+measured model responses were 0.93–2.11 s locally. A smaller model failed an ETA
+sample and was not deployed. Guardrails reject absent saved-place names,
+invented destination queries and unrelated route-control actions. This does not
+establish general model accuracy, physical ASR accuracy or road-noise robustness.
+
+The computer, local model/gateway and tunnel must stay running for connected
+features. Restarting the temporary tunnel changes the hostname and requires a
+new phone build. Native foreground wake and local commands do not depend on the
+model service. The beta is ready for parked iPhone testing, but the production
+gates above and worldwide feature coverage have not been completed.

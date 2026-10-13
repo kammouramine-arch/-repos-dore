@@ -34,14 +34,18 @@ Moderators use `GET /moderation` for the queue, and `POST /moderation` with an
 incident `id` and `decision: approved|rejected`. Decisions are transactional and
 audited. Expired/already-reviewed reports cannot be approved again.
 
-Deployment has not been performed. Public registration requires email verification,
+An explicitly authorized temporary HTTPS beta connection is now running on the
+owner's Windows computer. This is controlled testing, not production hosting.
+It ends when the computer/tunnel stops; the hostname changes on tunnel restart.
+Public registration requires email verification,
 password reset, account deletion, retention/purge jobs, backup controls and abuse
 limits shared across replicas. Current process-local limits and a single SQLite
 writer are intended for a controlled test deployment. Do not deploy this to an
 unrelated existing application database.
 
-No road-limit/sign data source, official hazard feed, hosted natural voice or
-production map provider has been activated. Obtain appropriate licences and
+The connected beta can read licensed evaluation road-limit data. No official
+hazard feed, hosted natural voice or production map provider is active.
+Obtain appropriate licences and
 approve the deployment/provider costs before enabling those services.
 
 ## Road-data evaluation adapter
@@ -80,3 +84,31 @@ confirmed the API and mapped limits on selected public routes in five countries;
 this is not physical driving validation or proof of worldwide coverage. Tests use
 documented-schema fixtures and adversarial cases. See `docs/PROVIDER-SELECTION.md`
 for the evidence and outstanding commercial restrictions.
+
+## Free local AI classifier
+
+Set `AVYRO_USE_LOCAL_CLASSIFIER=true` only with a working loopback model server
+on `127.0.0.1:8181`, model alias `avyro-local`. It takes precedence over the paid
+provider and never falls back to a billed API. The current beta uses official
+Qwen2.5-1.5B-Instruct Q4_K_M through llama.cpp CPU runtime b11602, four threads,
+one slot, 2048-token context, web UI and logging disabled. The model server is
+not exposed by the tunnel. No user transcript is logged or sent to a paid AI
+provider. Windows must remain awake and connected for the beta backend to work.
+
+Model: Apache 2.0, official model card
+https://huggingface.co/Qwen/Qwen2.5-1.5B-Instruct-GGUF
+revision `91cad51170dc346986eccefdc2dd33a9da36ead9`, SHA256
+`6a1a2eb6d15622bf3c96857206351ba97e1af16c30d7a74ee38970e434e9407e`.
+Runtime: MIT, https://github.com/ggml-org/llama.cpp/blob/b11602/LICENSE.
+Windows CPU archive SHA256
+`4f3da792ec5eee550eca467807bfc5f8bc3e30836870587fdd73dc4a4ea24a5f`.
+Both downloads were hash-verified; original licence files are preserved with
+the local runtime. Weights/runtime are not committed or shipped in the IPA.
+
+Six local command checks passed (four real model classifications, two deterministic
+negation/safety refusals), observed 0.93–2.11 seconds for model calls. This is not
+a broad accuracy or latency claim. The smaller 0.5B model misclassified an ETA
+question and was not enabled for the beta. Additional guards reject invented
+destinations, unmentioned saved places and unrelated cancellation/route actions.
+Output prose and unrelated fields are discarded. Invalid/slow model responses
+leave the phone's local command resolver in control.

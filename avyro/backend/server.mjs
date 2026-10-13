@@ -4,6 +4,7 @@ import { randomBytes, randomUUID, createHash, scrypt as derive, timingSafeEqual 
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
 import { createTomTomRoadProvider, ROAD_MONTHLY_CAP } from './road-data.mjs';
+import { createLocalClassifier } from './local-classifier.mjs';
 
 const scrypt = promisify(derive);
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -15,7 +16,7 @@ const MAX_BODY_BYTES = 16384;
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 /** No client-supplied prompt, provider URL or credential reaches the upstream. */
-export function createGateway({ database = 'avyro.sqlite', providerKey = process.env.OPENAI_API_KEY, model = process.env.AVYRO_AI_MODEL, roadKey = process.env.TOMTOM_API_KEY, roadEnabled = process.env.AVYRO_ROAD_DATA_ENABLED === 'true', moderators = new Set((process.env.AVYRO_MODERATOR_IDS ?? '').split(',').filter(Boolean)), fetcher = fetch, now = Date.now } = {}) {
+export function createGateway({ database = 'avyro.sqlite', providerKey = process.env.OPENAI_API_KEY, model = process.env.AVYRO_AI_MODEL, localClassifier = process.env.AVYRO_USE_LOCAL_CLASSIFIER === 'true' ? createLocalClassifier() : null, roadKey = process.env.TOMTOM_API_KEY, roadEnabled = process.env.AVYRO_ROAD_DATA_ENABLED === 'true', moderators = new Set((process.env.AVYRO_MODERATOR_IDS ?? '').split(',').filter(Boolean)), fetcher = fetch, now = Date.now } = {}) {
   const db = new DatabaseSync(database);
   db.exec(`PRAGMA journal_mode=WAL;
     PRAGMA foreign_keys=ON;
@@ -115,25 +116,40 @@ export function createGateway({ database = 'avyro.sqlite', providerKey = process
       }
       if (route === '/ai' && req.method === 'POST') {
         rate(`ai:${user.id}`, 10);
-        if (!providerKey || !model) throw error(503, 'AI is not configured.');
+        if (!localClassifier && (!providerKey || !model)) throw error(503, 'AI is not configured.');
         const { transcript } = await read(req);
         if (typeof transcript !== 'string' || !transcript.trim() || transcript.length > 500) throw error(400, 'Invalid transcript.');
+        if (/(?:don['’]t|do not)\b|\b(?:overtak\w*|change lanes?|safe to (?:turn|drive)|speed limit|road signs?|hazards? ahead)\b/i.test(transcript)) return reply(res, 200, { choices: [{ message: { content: JSON.stringify({ intent: { kind: 'unknown' }, speech: null }) } }] });
+        const systemPrompt = `Classify a navigation command. Return JSON {intent:{kind:string,slot?:string,category?:string,query?:string}}. Valid kinds: ${[...kinds].join(',')}. Slots: home,work. Categories: restaurants,coffee,fuel,parking. Destination queries must come from the driver's words. Unknown for road conditions, driving safety or negated actions. Do not answer questions or provide prose.`;
+        let output;
+        if (localClassifier) {
+          rate('ai:local-global', 10);
+          output = await localClassifier(transcript, systemPrompt);
+        } else {
         const response = await fetcher('https://api.openai.com/v1/chat/completions', {
           method: 'POST', signal: AbortSignal.timeout(3500),
           headers: { Authorization: `Bearer ${providerKey}`, 'Content-Type': 'application/json' },
           body: JSON.stringify({ model, max_completion_tokens: 180, response_format: { type: 'json_object' }, messages: [
-            { role: 'system', content: `Classify a navigation command. Return JSON {intent:{kind:string,slot?:string,category?:string,query?:string}}. Valid kinds: ${[...kinds].join(',')}. Slots: home,work. Categories: restaurants,coffee,fuel,parking. Destination queries must come from the driver's words. Unknown for road conditions, driving safety or negated actions. Do not answer questions or provide prose.` },
+            { role: 'system', content: systemPrompt },
             { role: 'user', content: transcript },
           ] }),
         });
         if (!response.ok) throw error(503, 'AI is unavailable.');
-        let output;
         try { output = JSON.parse((await response.json()).choices[0].message.content); } catch { throw error(502, 'AI response rejected.'); }
+        }
         const intent = output?.intent;
         if (!kinds.has(intent?.kind) || (intent.kind === 'navigate-saved' && !['home', 'work'].includes(intent.slot)) || (intent.kind === 'find-nearby' && !['restaurants', 'coffee', 'fuel', 'parking'].includes(intent.category)) || (intent.kind === 'navigate-to-place' && (typeof intent.query !== 'string' || !intent.query.trim() || intent.query.length > 200))) throw error(502, 'AI response rejected.');
+        // A model cannot invent a destination that was absent from the driver input.
+        const normalize = (text) => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
+        if (intent.kind === 'navigate-to-place' && !normalize(transcript).includes(normalize(intent.query.trim()))) throw error(502, 'AI response rejected.');
+        if (intent.kind === 'navigate-saved' && !(intent.slot === 'home' ? /\bhome\b/i : /\b(?:work|office)\b/i).test(transcript)) throw error(502, 'AI response rejected.');
+        if (intent.kind === 'cancel-navigation' && (!/\b(?:cancel|stop|end)\b/i.test(transcript) || !/\b(?:navigation|navigating|trip|route|guidance)\b/i.test(transcript))) throw error(502, 'AI response rejected.');
+        if (['reroute', 'restore-destination', 'navigate-referent'].includes(intent.kind) && !/\b(?:go|take|navigate|drive|reroute|route|restore|switch)\b/i.test(transcript)) throw error(502, 'AI response rejected.');
         // Discard all model prose and extraneous fields; the client resolves locally.
         const safe = { kind: intent.kind };
-        for (const name of ['slot', 'category', 'query']) if (typeof intent[name] === 'string') safe[name] = intent[name];
+        if (intent.kind === 'navigate-saved') safe.slot = intent.slot;
+        if (intent.kind === 'find-nearby') safe.category = intent.category;
+        if (intent.kind === 'navigate-to-place') safe.query = intent.query;
         return reply(res, 200, { choices: [{ message: { content: JSON.stringify({ intent: safe, speech: null }) } }] });
       }
       if (route === '/incidents' && req.method === 'POST') {

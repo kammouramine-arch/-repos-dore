@@ -127,3 +127,34 @@ test('AI output outside the supported command vocabulary is rejected', async () 
     assert.equal((await f.request('/ai', { transcript: 'hello' }, token)).status, 502);
   } finally { await f.close(); }
 });
+
+test('local model never returns prose, guesses destinations or sees safety/negated requests', async () => {
+  let calls = 0;
+  const f = await fixture({ providerKey: null, model: null, localClassifier: async () => { calls++; return { intent: { kind: 'navigate-to-place', query: 'Berlin' }, speech: 'It is safe to overtake.' }; } });
+  try {
+    const { token } = await f.register();
+    for (const transcript of ["Don't cancel navigation", 'Can I change lanes?', 'What is the speed limit?']) {
+      const response = await f.request('/ai', { transcript }, token);
+      const envelope = JSON.parse((await response.json()).choices[0].message.content);
+      assert.deepEqual(envelope, { intent: { kind: 'unknown' }, speech: null });
+    }
+    assert.equal(calls, 0);
+    assert.equal((await f.request('/ai', { transcript: 'take me to Paris' }, token)).status, 502);
+    const response = await f.request('/ai', { transcript: 'take me to Berlin' }, token);
+    assert.equal(response.status, 200);
+    assert.equal(JSON.parse((await response.json()).choices[0].message.content).speech, null);
+  } finally { await f.close(); }
+});
+
+test('model cannot turn an ETA or unrelated question into a saved-place or cancellation action', async () => {
+  let intent = { kind: 'navigate-saved', slot: 'work' };
+  const f = await fixture({ localClassifier: async () => ({ intent }) });
+  try {
+    const { token } = await f.register();
+    assert.equal((await f.request('/ai', { transcript: 'How long until we get there' }, token)).status, 502);
+    intent = { kind: 'cancel-navigation' };
+    assert.equal((await f.request('/ai', { transcript: 'stop talking' }, token)).status, 502);
+    intent = { kind: 'navigate-referent' };
+    assert.equal((await f.request('/ai', { transcript: 'How far is it' }, token)).status, 502);
+  } finally { await f.close(); }
+});
