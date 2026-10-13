@@ -75,7 +75,8 @@ enabled only when `EXPO_PUBLIC_ROAD_DATA_ENABLED=true` and a HTTPS backend URL a
 configured at build time. Evidence clears on expiry, more than 15 m of movement,
 poor GPS, sign-out, end of guidance and backgrounding. Requests are spaced at
 least 12 seconds apart. No sign warnings or incident-feed claims are made.
-Build 25 predates this wiring. No live TomTom response has been tested:
-account setup and verified access are still required. Tests use
+Build 26 includes the wiring, with activation off. Live evaluation requests have
+confirmed the API and mapped limits on selected public routes in five countries;
+this is not physical driving validation or proof of worldwide coverage. Tests use
 documented-schema fixtures and adversarial cases. See `docs/PROVIDER-SELECTION.md`
 for the evidence and outstanding commercial restrictions.
