@@ -17,6 +17,8 @@ describe('the ten commands', () => {
 
     ['how long until I arrive?', { kind: 'ask-eta' }],
     ['how long', { kind: 'ask-eta' }],
+    ['where am I?', { kind: 'ask-location' }],
+    ['what street are we on?', { kind: 'ask-location' }],
     ['how much longer', { kind: 'ask-eta' }],
     ['when will I get there', { kind: 'ask-eta' }],
     ["what's my ETA", { kind: 'ask-eta' }],

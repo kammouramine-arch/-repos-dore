@@ -7,7 +7,7 @@ import { fileURLToPath } from 'node:url';
 const scrypt = promisify(derive);
 const digest = (text) => createHash('sha256').update(text).digest('hex');
 const categories = new Set(['accident', 'hazard', 'closure', 'police']);
-const kinds = new Set(['navigate-saved', 'navigate-to-place', 'find-nearby', 'ask-eta', 'ask-remaining-distance', 'ask-fastest-route', 'ask-traffic', 'cancel-navigation', 'reroute', 'navigate-referent', 'restore-destination', 'unknown']);
+const kinds = new Set(['navigate-saved', 'navigate-to-place', 'find-nearby', 'ask-eta', 'ask-location', 'ask-remaining-distance', 'ask-fastest-route', 'ask-traffic', 'cancel-navigation', 'reroute', 'navigate-referent', 'restore-destination', 'unknown']);
 const SESSION_MS = 7 * 24 * 60 * 60 * 1000;
 const INCIDENT_MS = 60 * 60 * 1000;
 const MAX_BODY_BYTES = 16384;

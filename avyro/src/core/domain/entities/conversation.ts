@@ -45,6 +45,7 @@ export type VoiceIntent =
   | { kind: 'navigate-to-place'; query: string }
   | { kind: 'find-nearby'; category: NearbyCategory }
   | { kind: 'ask-eta' }
+  | { kind: 'ask-location' }
   | { kind: 'ask-remaining-distance' }
   | { kind: 'ask-fastest-route' }
   | { kind: 'ask-traffic' }
@@ -62,6 +63,7 @@ export const VOICE_INTENT_KINDS = [
   'navigate-to-place',
   'find-nearby',
   'ask-eta',
+  'ask-location',
   'ask-remaining-distance',
   'ask-fastest-route',
   'ask-traffic',
@@ -115,6 +117,8 @@ export interface RouteContext {
   location: Coordinates | null;
   /** Course over ground in degrees from true north, when it is known. */
   headingDegrees: number | null;
+  /** Routing-map street name, only when supported by a fresh accurate fix. */
+  currentRoadName?: string | null;
   /** The place Avyro last recommended, which "take me there" refers to. */
   referent: Place | null;
   remainingDistanceMeters: number | null;

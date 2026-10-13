@@ -228,6 +228,11 @@ export const createLocalConversationProvider = ({
       case 'ask-eta':
         return reply(intent, REPLIES.eta(context));
 
+      case 'ask-location':
+        return reply(intent, context.currentRoadName
+          ? `The route map shows ${context.currentRoadName}.`
+          : context.location ? 'Your GPS location is shown on the map. I do not have a verified street name right now.' : REPLIES.needLocation());
+
       case 'ask-remaining-distance':
         return reply(intent, REPLIES.remainingDistance(context));
 

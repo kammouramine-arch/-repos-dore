@@ -49,6 +49,7 @@ export const buildRouteContext = ({
     progress?.remainingDurationSeconds ?? route?.durationSeconds ?? null;
 
   return {
+    currentRoadName: navigationState === 'guiding' && position && now >= position.timestamp && now - position.timestamp < 10000 && position.accuracy !== null && position.accuracy <= 30 ? progress?.currentStep.roadName || null : null,
     navigationState,
     destination,
     previousDestination,

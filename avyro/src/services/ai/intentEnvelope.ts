@@ -17,6 +17,7 @@ const SLOTS = ['home', 'work'] as const;
 
 const PLAIN_KINDS = [
   'ask-eta',
+  'ask-location',
   'ask-remaining-distance',
   'ask-fastest-route',
   'ask-traffic',

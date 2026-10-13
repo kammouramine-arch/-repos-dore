@@ -58,6 +58,10 @@ export const cleanDestinationQuery = (raw: string): string => {
 
 const RULES: Rule[] = [
   {
+    intent: { kind: 'ask-location' },
+    patterns: [/\bwhere\s+(?:am\s+i|are\s+we)\b/, /\bwhat\s+(?:road|street)\s+(?:am\s+i|are\s+we)\s+on\b/],
+  },
+  {
     // Before everything: "go back to my original destination" contains "go
     // back", which would otherwise read as a plain navigation command.
     intent: { kind: 'restore-destination' },
