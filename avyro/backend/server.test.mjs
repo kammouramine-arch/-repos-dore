@@ -2,6 +2,9 @@ import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { once } from 'node:events';
 import { createGateway } from './server.mjs';
+import { DatabaseSync } from 'node:sqlite';
+import { mkdtempSync, rmSync } from 'node:fs';
+import { resolve, join } from 'node:path';
 
 async function fixture(options = {}) {
   const server = createGateway({ database: ':memory:', ...options });
@@ -23,7 +26,48 @@ test('unauthenticated requests cannot spend AI money or submit reports', async (
   const f = await fixture(); try {
     assert.equal((await f.request('/ai', { transcript: 'hello' })).status, 401);
     assert.equal((await f.request('/incidents', { category: 'accident' })).status, 401);
+    assert.equal((await f.request('/roads/context', { fixes: [] })).status, 401);
   } finally { await f.close(); }
+});
+
+test('road-data key alone cannot activate the provider', async () => {
+  let fetched = false;
+  const f = await fixture({ roadKey: 'server-test-key', roadEnabled: false, fetcher: async () => { fetched = true; throw Error('must not fetch'); } });
+  try {
+    const { token } = await f.register();
+    assert.equal((await f.request('/roads/context', { fixes: [], consent: true }, token)).status, 503);
+    assert.equal(fetched, false);
+  } finally { await f.close(); }
+});
+
+test('road evaluation quota survives a server restart and includes failed upstream requests', async () => {
+  const root = resolve(process.cwd());
+  const folder = mkdtempSync(join(root, '.road-tests-'));
+  const database = join(folder, 'test.sqlite');
+  const clock = Date.now();
+  const fixes = [{ latitude: 48, longitude: 2, timestamp: clock - 3000, accuracy: 10 }, { latitude: 48, longitude: 2.0002, timestamp: clock, accuracy: 10 }];
+  let calls = 0;
+  const options = { database, roadEnabled: true, roadKey: 'private-test-key', now: () => clock, fetcher: async () => { calls++; return new Response('unavailable', { status: 503 }); } };
+  let f = await fixture(options);
+  try {
+    const { token } = await f.register();
+    await f.close();
+    const db = new DatabaseSync(database);
+    const month = new Date(clock).toISOString().slice(0, 7);
+    db.prepare('INSERT INTO provider_usage VALUES (?,999)').run(month); db.close();
+    f = await fixture(options);
+    assert.equal((await f.request('/roads/context', { fixes, consent: true }, token)).status, 503);
+    await f.close();
+    f = await fixture(options);
+    const response = await f.request('/roads/context', { fixes, consent: true }, token);
+    assert.equal(response.status, 429); assert.equal(calls, 1);
+    assert.equal(JSON.stringify(await response.json()).includes('private-test-key'), false);
+  } finally {
+    await f.close();
+    const target = resolve(folder);
+    if (!target.startsWith(root + '/') && !target.startsWith(root + '\\')) throw Error('Test cleanup escaped workspace.');
+    rmSync(target, { recursive: true, force: true });
+  }
 });
 test('server sessions restore, reject wrong passwords and revoke on logout', async () => {
   const f = await fixture(); try {

@@ -3,6 +3,7 @@ import { DatabaseSync } from 'node:sqlite';
 import { randomBytes, randomUUID, createHash, scrypt as derive, timingSafeEqual } from 'node:crypto';
 import { promisify } from 'node:util';
 import { fileURLToPath } from 'node:url';
+import { createTomTomRoadProvider, ROAD_MONTHLY_CAP } from './road-data.mjs';
 
 const scrypt = promisify(derive);
 const digest = (text) => createHash('sha256').update(text).digest('hex');
@@ -14,7 +15,7 @@ const MAX_BODY_BYTES = 16384;
 const error = (status, message) => Object.assign(new Error(message), { status });
 
 /** No client-supplied prompt, provider URL or credential reaches the upstream. */
-export function createGateway({ database = 'avyro.sqlite', providerKey = process.env.OPENAI_API_KEY, model = process.env.AVYRO_AI_MODEL, moderators = new Set((process.env.AVYRO_MODERATOR_IDS ?? '').split(',').filter(Boolean)), fetcher = fetch, now = Date.now } = {}) {
+export function createGateway({ database = 'avyro.sqlite', providerKey = process.env.OPENAI_API_KEY, model = process.env.AVYRO_AI_MODEL, roadKey = process.env.TOMTOM_API_KEY, roadEnabled = process.env.AVYRO_ROAD_DATA_ENABLED === 'true', moderators = new Set((process.env.AVYRO_MODERATOR_IDS ?? '').split(',').filter(Boolean)), fetcher = fetch, now = Date.now } = {}) {
   const db = new DatabaseSync(database);
   db.exec(`PRAGMA journal_mode=WAL;
     PRAGMA foreign_keys=ON;
@@ -22,7 +23,14 @@ export function createGateway({ database = 'avyro.sqlite', providerKey = process
     CREATE TABLE IF NOT EXISTS sessions (hash TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), expires INTEGER NOT NULL);
     CREATE TABLE IF NOT EXISTS incidents (id TEXT PRIMARY KEY, user_id TEXT NOT NULL REFERENCES users(id), category TEXT NOT NULL, latitude REAL NOT NULL, longitude REAL NOT NULL, observed INTEGER NOT NULL, expires INTEGER NOT NULL, status TEXT NOT NULL DEFAULT 'pending', reviewer TEXT, reviewed INTEGER);
     CREATE INDEX IF NOT EXISTS incident_visibility ON incidents(status,expires);
-    CREATE TABLE IF NOT EXISTS moderation_audit (id INTEGER PRIMARY KEY, incident_id TEXT NOT NULL, moderator TEXT NOT NULL, decision TEXT NOT NULL, at INTEGER NOT NULL);`);
+    CREATE TABLE IF NOT EXISTS moderation_audit (id INTEGER PRIMARY KEY, incident_id TEXT NOT NULL, moderator TEXT NOT NULL, decision TEXT NOT NULL, at INTEGER NOT NULL);
+    CREATE TABLE IF NOT EXISTS provider_usage (month TEXT PRIMARY KEY, requests INTEGER NOT NULL);`);
+  const roads = createTomTomRoadProvider({ key: roadKey, enabled: roadEnabled, fetcher, now, reserveRequest: () => {
+    const month = new Date(now()).toISOString().slice(0, 7);
+    db.prepare('INSERT OR IGNORE INTO provider_usage VALUES (?,0)').run(month);
+    const changed = db.prepare('UPDATE provider_usage SET requests=requests+1 WHERE month=? AND requests<?').run(month, ROAD_MONTHLY_CAP);
+    if (!changed.changes) throw error(429, 'Road-data evaluation quota reached.');
+  } });
   const buckets = new Map();
   const rate = (key, maximum, interval = 60000) => {
     const time = now();
@@ -96,6 +104,10 @@ export function createGateway({ database = 'avyro.sqlite', providerKey = process
       }
       const user = authorize(req);
       rate(`user:${user.id}`, 60);
+      if (route === '/roads/context' && req.method === 'POST') {
+        rate(`roads:${user.id}`, 6);
+        return reply(res, 200, await roads.lookup(await read(req)));
+      }
       if (route === '/auth/me' && req.method === 'GET') return reply(res, 200, publicUser(user));
       if (route === '/auth/logout' && req.method === 'POST') {
         db.prepare('DELETE FROM sessions WHERE hash=?').run(digest(req.headers.authorization.slice(7)));

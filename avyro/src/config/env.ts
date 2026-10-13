@@ -45,6 +45,8 @@ export const env = {
    * Empty by default, which is why a stock build answers deterministically.
    */
   backendUrl: readString(process.env.EXPO_PUBLIC_BACKEND_URL, ''),
+  /** Activation is separate from a backend URL and contains no provider secret. */
+  roadDataEnabled: process.env.EXPO_PUBLIC_ROAD_DATA_ENABLED === 'true',
   aiGatewayUrl: readString(process.env.EXPO_PUBLIC_AI_GATEWAY_URL, ''),
 
 } as const;

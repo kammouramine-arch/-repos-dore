@@ -707,6 +707,12 @@ localisation of driver-facing copy, live traffic.
 
 ## 9. Before you change anything
 
+V2 road-data integration adds a `RoadDataProvider` port, a server-side TomTom
+adapter and an opt-in foreground guidance consumer. Road evidence is discarded
+on movement, expiry, poor positioning or backgrounding; it never uses GPS speed
+as a legal limit. Provider activation is off until account entitlements and terms
+are verified. See `PROVIDER-SELECTION.md` and the backend README.
+
 1. Read the doc comment at the top of the file. It usually contains the argument
    you are about to have.
 2. Ask which layer the change belongs to (§1.1). If it is going in the wrong

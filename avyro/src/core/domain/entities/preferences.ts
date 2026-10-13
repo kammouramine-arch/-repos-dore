@@ -20,6 +20,8 @@ export interface Preferences {
   distanceUnit: DistanceUnit;
   mapStyle: MapStyle;
   showTraffic: boolean;
+  /** Opt-in sharing of a short GPS trace with the licensed road-data service. */
+  roadInformation: boolean;
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -30,4 +32,5 @@ export const DEFAULT_PREFERENCES: Preferences = {
   distanceUnit: 'metric',
   mapStyle: 'standard',
   showTraffic: false,
+  roadInformation: false,
 };

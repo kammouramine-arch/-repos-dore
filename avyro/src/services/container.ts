@@ -1,4 +1,6 @@
 import { migrateSavedPlaces } from "@/database/migrations/secureSavedPlaces";
+import type { RoadDataProvider } from '@/core/domain/ports/roadDataProvider';
+import { createGatewayRoadDataProvider } from '@/services/roads/gatewayRoadDataProvider';
 import type { IncidentReporter } from "@/core/domain/ports/incidentReporter";
 import { createGatewayIncidentReporter } from "@/services/incidents/gatewayIncidentReporter";
 import { env } from "@/config";
@@ -72,6 +74,7 @@ export interface ServiceContainer {
   speechRecognizer: SpeechRecognizer;
   wakeWordDetector: WakeWordDetector;
   incidentReporter: IncidentReporter;
+  roadDataProvider: RoadDataProvider;
   /** The swappable brain. See `ConversationProvider` before adding a model. */
   conversationProvider: ConversationProvider;
   /**
@@ -164,6 +167,7 @@ export const createServiceContainer = (
       overrides.recentDestinationsRepository ??
       createLocalRecentDestinationsRepository(keyValue),
     savedPlacesRepository,
+    roadDataProvider: overrides.roadDataProvider ?? createGatewayRoadDataProvider({ http, getAccessToken: async () => (await createSessionStore(secure).read())?.token ?? null }),
     incidentReporter:
       overrides.incidentReporter ??
       createGatewayIncidentReporter({

@@ -43,3 +43,39 @@ unrelated existing application database.
 No road-limit/sign data source, official hazard feed, hosted natural voice or
 production map provider has been activated. Obtain appropriate licences and
 approve the deployment/provider costs before enabling those services.
+
+## Road-data evaluation adapter
+
+`POST /roads/context` is authenticated and disabled by default. Server-only
+`TOMTOM_API_KEY` and `AVYRO_ROAD_DATA_ENABLED=true` activate the adapter only
+after verifying the account's evaluation entitlement, remaining free allowance,
+permitted Avyro use case, attribution and map-display conditions. A key alone
+does not enable calls. Do not enable Pay As You Grow without user approval.
+
+Body: `{fixes:[{latitude,longitude,timestamp,accuracy},...],consent:true}`.
+Two to twelve ordered fixes must be accurate within 25 m, at most one minute old,
+with a latest fix no older than five seconds, at least 5 m of net movement and
+no jump over 2 km. This endpoint never stores GPS traces. It reserves one request
+in SQLite before each upstream call and stops at 1,000 requests per UTC month,
+including failed calls. This protects this gateway only: other users of the same
+key, changed provider allowances and dashboard billing still require checking.
+Never delete or reset the usage table to obtain more free calls.
+
+The response includes source, match status, speedLimit or null, recentSegmentSigns,
+capturedAt, receivedAt and expiresAt. Confidence below 0.9, off-road results, a
+projection more than 25 m away, expired responses, advisory speeds and unknown
+units return no maximum limit. These thresholds are conservative engineering
+choices, not a measured road-match accuracy guarantee. The caller must also
+clear evidence on movement, expiry, poor GPS, sign-out and backgrounding.
+Signs describe the traveled segment, not hazards/signs ahead. Data is TomTom map
+evidence, not a government-confirmed observation. No lane-change assurances.
+
+Mobile source now includes an opt-in Settings control and speed-limit display,
+enabled only when `EXPO_PUBLIC_ROAD_DATA_ENABLED=true` and a HTTPS backend URL are
+configured at build time. Evidence clears on expiry, more than 15 m of movement,
+poor GPS, sign-out, end of guidance and backgrounding. Requests are spaced at
+least 12 seconds apart. No sign warnings or incident-feed claims are made.
+Build 25 predates this wiring. No live TomTom response has been tested:
+account setup and verified access are still required. Tests use
+documented-schema fixtures and adversarial cases. See `docs/PROVIDER-SELECTION.md`
+for the evidence and outstanding commercial restrictions.

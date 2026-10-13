@@ -182,6 +182,18 @@ export const AUTH = {
   sessionTtlMs: 90 * 24 * 60 * 60 * 1000,
 } as const;
 
+/** Conservative test-feed limits; never keep a road limit through a GPS gap. */
+export const ROAD_DATA = {
+  maxAccuracyMeters: 25,
+  evidenceTtlMs: 5000,
+  maxEvidenceMovementMeters: 15,
+  requestIntervalMs: 12000,
+  traceTtlMs: 60000,
+  maxTraceFixes: 12,
+  maxTraceJumpMeters: 2000,
+  minTraceMovementMeters: 5,
+} as const;
+
 export const STORAGE_KEYS = {
   accounts: 'avyro.auth.accounts',
   session: 'avyro.auth.session',

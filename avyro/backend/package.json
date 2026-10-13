@@ -1,1 +1,1 @@
-{"name":"avyro-gateway","private":true,"type":"module","engines":{"node":">=24"},"scripts":{"start":"node server.mjs","test":"node --test server.test.mjs"}}
+{"name":"avyro-gateway","private":true,"type":"module","engines":{"node":">=24"},"scripts":{"start":"node server.mjs","test":"node --test *.test.mjs"}}

@@ -1,4 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
+import { useServices } from '@/app/runtime/AppRuntime';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
@@ -35,6 +36,7 @@ const MAP_OPTIONS = [
 ];
 
 export const SettingsScreen = () => {
+  const { roadDataProvider } = useServices();
   const navigation = useNavigation();
   const session = useAuthStore((state) => state.session);
   const signOut = useAuthStore((state) => state.signOut);
@@ -98,6 +100,12 @@ export const SettingsScreen = () => {
         </SettingsSection>
 
         <SettingsSection title="Map">
+          {roadDataProvider.isConfigured() ? <ToggleRow
+            title="Road information"
+            subtitle="Share recent GPS fixes with TomTom through Avyro to check mapped speed limits. Road signs take priority."
+            value={preferences.roadInformation}
+            onChange={(value) => void update({ roadInformation: value })}
+          /> : <ListRow title="Road information" subtitle="Licensed road data is not connected yet" />}
           <ChoiceRow
             title="Style"
             options={MAP_OPTIONS}

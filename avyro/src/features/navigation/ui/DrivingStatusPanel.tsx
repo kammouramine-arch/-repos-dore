@@ -4,12 +4,14 @@ import { useLocationStore, usePreferencesStore } from "@/app/stores/hooks";
 import { AppText, GlassPanel } from "@/ui/components";
 import { spacing } from "@/ui/theme";
 import { formatSpeed, speedUnitLabel } from "@/utils/format";
+import { useRoadInformation } from '../hooks/useRoadInformation';
 
 /** GPS speed is a measurement, never a statement about the legal road limit. */
 export const DrivingStatusPanel = () => {
   const fix = useLocationStore((state) => state.position);
   const unit = usePreferencesStore((state) => state.preferences.distanceUnit);
   const [now, setNow] = useState(Date.now);
+  const road = useRoadInformation(now);
   useEffect(() => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
@@ -36,8 +38,9 @@ export const DrivingStatusPanel = () => {
         </AppText>
       </View>
       <AppText variant="caption" tone="tertiary">
-        Limit unavailable
+        {road?.speedLimit ? `Mapped limit ${road.speedLimit.value} ${road.speedLimit.unit}` : 'Limit unavailable'}
       </AppText>
+      {road?.speedLimit ? <AppText variant="caption" tone="tertiary">TomTom · follow road signs</AppText> : null}
     </GlassPanel>
   );
 };
