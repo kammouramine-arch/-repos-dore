@@ -11,3 +11,4 @@ data/*.log
 renders/
 studio/node_modules/
 studio/out/
+studio/node_modules
