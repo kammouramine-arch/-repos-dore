@@ -49,7 +49,8 @@ OSRM demo has no production availability guarantee.
 
 ## Remaining release gates
 
-- Native compile and signed build results must be recorded after the builders finish.
+- Native signed device Release and unsigned simulator Release builds passed for
+  candidate commit `ca834a1e11491995fa8bd22ed21472f99c16b0f2`.
 - Actual wake accuracy, false activations, audio interruption recovery, immediate
   trailing commands, vehicle noise, Bluetooth, CPU, memory and battery need physical
   iPhone testing. Wake detection is foreground-only. Do not promise Siri behavior.
@@ -81,3 +82,22 @@ The native iOS workflow builds an unsigned Release simulator app. A simulator ZI
 cannot be installed on an iPhone and must never be presented as a phone artifact.
 EAS production produces a signed App Store IPA; TestFlight requires a successful
 submission, Apple processing and tester access before the user can install it.
+
+## Delivered internal beta, 2026-10-13
+
+Version 1.0.0 (25), EAS build `c370befb-7e66-46b4-a084-d366683c9f08`,
+submission `7f292351-c15f-4f53-8456-b91b1cda7254`: Apple reports processing
+`VALID`, internal state `IN_BETA_TESTING`. Existing internal testers can update
+through TestFlight. No public App Store release or new tester invitations were made.
+The signed IPA contains all nine expected model, token, keyword and licence files,
+whose hashes match the committed resources.
+
+Validation: 419 app tests in 30 suites; six backend integration tests;
+typecheck and lint passed; Expo Doctor 21/21 passed. GitHub simulator workflow
+run 38457829108 completed successfully. No physical iPhone or vehicle test has
+been performed. EAS account remained on Free with recorded build cost zero.
+Development ran locally and on native build services; the available ChatGPT
+website browser was signed out, so this was not executed inside cloud Work.
+
+This is a testable foundation beta, not a claim that the remaining production
+release gates above have been satisfied.
