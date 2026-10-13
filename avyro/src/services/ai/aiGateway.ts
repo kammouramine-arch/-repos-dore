@@ -96,14 +96,9 @@ export const createAiGateway = ({
         return local.resolve(completion.intent, request);
       }
 
-      return completion.speech
-        ? {
-            intent: { kind: 'unknown' },
-            speech: completion.speech,
-            action: { type: 'none' },
-            referent: null,
-          }
-        : null;
+      // Ungrounded provider prose can sound like an observation about the road.
+      // Only locally resolved, supported intents are allowed into driver speech.
+      return null;
     } catch (error) {
       const timedOut = deadline.signal.aborted && !request.signal?.aborted;
       scoped.warn('provider unavailable, answering locally', {

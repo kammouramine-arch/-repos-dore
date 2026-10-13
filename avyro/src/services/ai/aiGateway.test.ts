@@ -159,15 +159,15 @@ describe('the model classifies, the app acts', () => {
     expect(result.speech).toBe('resolved:cancel-navigation');
   });
 
-  it('speaks the model’s sentence only when it had no intent to offer', async () => {
+  it('discards ungrounded provider speech when there is no supported intent', async () => {
     const { gateway, resolved } = build(
-      aiProvider({ intent: null, speech: 'I cannot do that while driving.' }),
+      aiProvider({ intent: null, speech: 'The road ahead is clear.' }),
     );
 
     const result = await gateway.respond(request('read me the news'));
 
     expect(resolved).toEqual([]);
-    expect(result.speech).toBe('I cannot do that while driving.');
+    expect(result.speech).toBe('local:unknown');
   });
 
   it('treats an unknown classification as no answer at all', async () => {

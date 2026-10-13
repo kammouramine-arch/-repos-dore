@@ -1,5 +1,11 @@
 # Avyro
 
+V2 development candidate: see [current validation and limitations](docs/V2-VALIDATION.md)
+and the [gateway setup](backend/README.md). The legacy release description below
+describes the earlier implementation; current code uses dedicated offline keyword
+spotting, submitted address search, secure Home/Work and optional server identity.
+V2 is not yet a complete production release. Use a native build rather than Expo Go.
+
 **Avyro is not another GPS. Avyro is the world’s first AI Driving Companion.**
 
 Sprint 1 built the ground the companion stands on: a real navigation app —

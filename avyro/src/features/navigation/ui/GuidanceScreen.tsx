@@ -1,30 +1,31 @@
-import { useNavigation } from '@react-navigation/native';
-import { activateKeepAwakeAsync, deactivateKeepAwake } from 'expo-keep-awake';
-import { useEffect, useRef, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
-import type MapView from 'react-native-maps';
-import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
+import { DrivingStatusPanel } from "./DrivingStatusPanel";
+import { useNavigation } from "@react-navigation/native";
+import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
+import { useEffect, useRef, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import type MapView from "react-native-maps";
+import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 
 import {
   useLocationStore,
   useNavigationStore,
   usePreferencesStore,
-} from '@/app/stores/hooks';
-import { MAP_DEFAULTS } from '@/config';
-import { ActiveRouteOverlay } from '@/maps/components/ActiveRouteOverlay';
-import { DestinationMarker } from '@/maps/components/DestinationMarker';
-import { AvyroMapView } from '@/maps/components/AvyroMapView';
-import { UserPuck } from '@/maps/components/UserPuck';
-import { AppText, GlassPanel } from '@/ui/components';
-import { spacing } from '@/ui/theme';
-import { useGuidanceSession } from '../hooks/useGuidanceSession';
-import { ArrivalCard } from './ArrivalCard';
-import { GuidanceControls } from './GuidanceControls';
-import { ManeuverBanner } from './ManeuverBanner';
-import { TripStatusBar } from './TripStatusBar';
+} from "@/app/stores/hooks";
+import { MAP_DEFAULTS } from "@/config";
+import { ActiveRouteOverlay } from "@/maps/components/ActiveRouteOverlay";
+import { DestinationMarker } from "@/maps/components/DestinationMarker";
+import { AvyroMapView } from "@/maps/components/AvyroMapView";
+import { UserPuck } from "@/maps/components/UserPuck";
+import { AppText, GlassPanel } from "@/ui/components";
+import { spacing } from "@/ui/theme";
+import { useGuidanceSession } from "../hooks/useGuidanceSession";
+import { ArrivalCard } from "./ArrivalCard";
+import { GuidanceControls } from "./GuidanceControls";
+import { ManeuverBanner } from "./ManeuverBanner";
+import { TripStatusBar } from "./TripStatusBar";
 
-const KEEP_AWAKE_TAG = 'avyro-guidance';
+const KEEP_AWAKE_TAG = "avyro-guidance";
 
 /**
  * Active guidance. The camera rides behind the driver — pitched, rotated to
@@ -96,7 +97,7 @@ export const GuidanceScreen = () => {
 
   const endTrip = () => {
     stop();
-    navigation.navigate('Home');
+    navigation.navigate("Home");
   };
 
   const initialRegion = lastPosition
@@ -142,18 +143,24 @@ export const GuidanceScreen = () => {
       </AvyroMapView>
 
       <View style={[styles.top, { paddingTop: insets.top + spacing.xs }]}>
-        {status === 'arrived' ? null : progress ? (
+        {status === "arrived" ? null : progress ? (
           <ManeuverBanner progress={progress} unit={preferences.distanceUnit} />
         ) : (
           <GlassPanel style={styles.acquiring}>
             <AppText variant="subhead" tone="secondary">
-              {status === 'rerouting' ? 'Finding a new route…' : 'Waiting for GPS…'}
+              {status === "rerouting"
+                ? "Finding a new route…"
+                : "Waiting for GPS…"}
             </AppText>
           </GlassPanel>
         )}
 
-        {status === 'rerouting' && progress ? (
-          <Animated.View entering={FadeIn} exiting={FadeOut} style={styles.pill}>
+        {status === "rerouting" && progress ? (
+          <Animated.View
+            entering={FadeIn}
+            exiting={FadeOut}
+            style={styles.pill}
+          >
             <GlassPanel style={styles.pillInner}>
               <AppText variant="caption" tone="accent">
                 Rerouting…
@@ -163,27 +170,35 @@ export const GuidanceScreen = () => {
         ) : null}
       </View>
 
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
-        {status === 'arrived' ? null : (
-          <GuidanceControls
-            following={following}
-            onRecenter={() => setFollowing(true)}
-            overview={overview}
-            onToggleOverview={() => (overview ? leaveOverview() : setOverview(true))}
-            muted={!preferences.voiceGuidance}
-            onToggleMute={() =>
-              void updatePreferences({ voiceGuidance: !preferences.voiceGuidance })
-            }
-          />
+      <View
+        style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}
+      >
+        {status === "arrived" ? null : (
+          <View style={styles.driving}>
+            <DrivingStatusPanel />
+            <GuidanceControls
+              following={following}
+              onRecenter={() => setFollowing(true)}
+              overview={overview}
+              onToggleOverview={() =>
+                overview ? leaveOverview() : setOverview(true)
+              }
+              muted={!preferences.voiceGuidance}
+              onToggleMute={() =>
+                void updatePreferences({
+                  voiceGuidance: !preferences.voiceGuidance,
+                })
+              }
+            />
+          </View>
         )}
 
-        {status === 'arrived' ? (
+        {status === "arrived" ? (
           <ArrivalCard destination={destination} onDone={endTrip} />
         ) : progress ? (
           <TripStatusBar
             progress={progress}
             unit={preferences.distanceUnit}
-            speedMetersPerSecond={lastPosition?.speed ?? null}
             onEnd={endTrip}
           />
         ) : null}
@@ -193,29 +208,35 @@ export const GuidanceScreen = () => {
 };
 
 const styles = StyleSheet.create({
+  driving: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "flex-end",
+    gap: spacing.md,
+  },
   root: {
     flex: 1,
   },
   top: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: spacing.md,
     right: spacing.md,
     gap: spacing.xs,
   },
   acquiring: {
-    alignItems: 'center',
+    alignItems: "center",
     paddingVertical: spacing.md,
   },
   pill: {
-    alignSelf: 'center',
+    alignSelf: "center",
   },
   pillInner: {
     paddingVertical: spacing.xxs,
     paddingHorizontal: spacing.sm,
   },
   bottom: {
-    position: 'absolute',
+    position: "absolute",
     left: spacing.md,
     right: spacing.md,
     bottom: 0,

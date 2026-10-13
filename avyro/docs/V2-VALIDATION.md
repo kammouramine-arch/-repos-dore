@@ -6,12 +6,12 @@ This branch is a development candidate, not a completed production release.
 
 - Native foreground keyword spotting with sherpa-onnx 1.13.8 and the English
   GigaSpeech 3.3M model. Literal `HEY AVYRO` is encoded using the model's BPE
-  tokenizer. No Porcupine dependency, access key or paid wake contract.
+  tokenizer, with pronunciation variants AVIRO, AVEERO and A VEE RO.
+  No Porcupine dependency, access key or paid wake contract.
 - Native microphone release is awaited before opening command recognition.
   Backgrounding, audio interruption and audio route changes stop capture.
 - Home and Work can be selected, saved, edited and navigated to. New records
-  use device secure storage. Earlier unencrypted records need migration before
-  a production release.
+  use device secure storage. Earlier unencrypted records migrate before loading.
 - Address searches require submission, rather than public Nominatim autocomplete.
 - Preference for installed enhanced platform voices; falls back to the available
   system voice. No voice download or paid voice API is started.
@@ -59,11 +59,20 @@ OSRM demo has no production availability guarantee.
   AI billing, public incident feed or moderator operation is live. Email verification,
   password reset, account deletion and persistent distributed abuse limits are
   required before public registration.
-- The incident backend is not yet a complete driver-facing report workflow.
+- The report control checks a fresh stationary GPS fix and requests consent.
+  The hosted service and real moderation operations still need deployment.
 - Natural voice quality depends on voices installed on the iPhone.
 - App Store publication and any new paid infrastructure require user approval.
 
 ## Validation commands
+
+Local native-model smoke test: three synthesized pronunciation variants trigger
+HEY_AVYRO; five negative clips (normal directions, Siri, Google, “a hero” and
+“a viral”) do not. These eight clips are insufficient to measure accuracy,
+false-activation rate or road-noise robustness. The literal spelling spoken by
+Windows TTS was pronounced differently and initially missed; physical user
+pronunciations remain a release gate. KWS score 5, threshold 0.1, one trailing
+blank are candidate tuning values, not a validated reliability claim.
 
 `npm run typecheck`, `npm run lint`, `npm test -- --ci --runInBand`,
 `npm --prefix backend test`, `npx expo-doctor`.

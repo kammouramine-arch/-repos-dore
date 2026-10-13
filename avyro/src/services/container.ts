@@ -1,4 +1,4 @@
-import { migrateSavedPlaces } from '@/database/migrations/secureSavedPlaces';
+import { migrateSavedPlaces } from "@/database/migrations/secureSavedPlaces";
 import type { IncidentReporter } from "@/core/domain/ports/incidentReporter";
 import { createGatewayIncidentReporter } from "@/services/incidents/gatewayIncidentReporter";
 import { env } from "@/config";
@@ -179,7 +179,10 @@ export const createServiceContainer = (
       overrides.conversationProvider ?? conversationProvider,
     migrateStorage:
       overrides.migrateStorage ??
-      (async () => { await migrateBrandedStorageKeys({ keyValue, secure, logger }); await migrateSavedPlaces(keyValue, secure); }),
+      (async () => {
+        await migrateBrandedStorageKeys({ keyValue, secure, logger });
+        await migrateSavedPlaces(keyValue, secure);
+      }),
     useCases: {
       signIn: createSignIn({ authRepository }),
       signUp: createSignUp({ authRepository }),

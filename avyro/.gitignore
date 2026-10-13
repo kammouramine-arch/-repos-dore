@@ -42,3 +42,8 @@ yarn-error.*
 /ios
 /android
 /modules/avyro-wake/ios/vendor/
+*.sqlite
+*.sqlite-wal
+*.sqlite-shm
+/build/
+native-build.log

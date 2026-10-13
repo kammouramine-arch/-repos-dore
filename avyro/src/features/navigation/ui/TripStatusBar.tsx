@@ -3,20 +3,16 @@ import { StyleSheet, View } from 'react-native';
 import type { NavigationProgress } from '@/core/domain/entities/navigation';
 import type { DistanceUnit } from '@/core/domain/entities/preferences';
 import { AppText, Button, GlassPanel } from '@/ui/components';
-import { colors, spacing } from '@/ui/theme';
+import { spacing } from '@/ui/theme';
 import {
   formatArrivalTime,
   formatDistance,
   formatDuration,
-  formatSpeed,
-  speedUnitLabel,
 } from '@/utils/format';
 
 export interface TripStatusBarProps {
   progress: NavigationProgress;
   unit: DistanceUnit;
-  /** Ground speed in m/s, or null when the platform reports nothing. */
-  speedMetersPerSecond: number | null;
   onEnd: () => void;
 }
 
@@ -35,10 +31,8 @@ export interface TripStatusBarProps {
 export const TripStatusBar = ({
   progress,
   unit,
-  speedMetersPerSecond,
   onEnd,
 }: TripStatusBarProps) => {
-  const speed = formatSpeed(speedMetersPerSecond, unit);
   const road = progress.currentStep.roadName;
 
   return (
@@ -57,15 +51,6 @@ export const TripStatusBar = ({
           </AppText>
         ) : null}
       </View>
-
-      {speed ? (
-        <View style={styles.speed}>
-          <AppText variant="title3">{speed}</AppText>
-          <AppText variant="caption" tone="tertiary">
-            {speedUnitLabel(unit)}
-          </AppText>
-        </View>
-      ) : null}
 
       <Button
         label="End"
@@ -90,12 +75,6 @@ const styles = StyleSheet.create({
   figures: {
     flexShrink: 1,
     gap: 1,
-  },
-  speed: {
-    alignItems: 'center',
-    paddingHorizontal: spacing.sm,
-    borderLeftWidth: StyleSheet.hairlineWidth,
-    borderLeftColor: colors.border,
   },
   end: {
     minWidth: 88,

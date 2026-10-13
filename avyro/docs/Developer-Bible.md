@@ -1,5 +1,31 @@
 # The Avyro Developer Bible
 
+## V2 architecture update — 2026-10-13
+
+This user-authorized V2 feature release supersedes the earlier wake/credential
+descriptions below. `WakeWordDetector` is implemented by a native foreground-only
+sherpa-onnx KWS module with bundled English Apache-2.0 model files. It never
+transcribes ambient speech. The controller serializes starts/stops, awaits native
+release and stops capture on backgrounding. Tap-to-talk is independent of the wake
+preference and asks for its own recognition permissions.
+
+The mobile AI adapter sends one utterance and a server-issued session to a TLS
+gateway. Model, prompts and provider keys belong exclusively to the server.
+No `EXPO_PUBLIC_AI_API_KEY` is accepted; the build rejects it. Unknown model prose
+is discarded, including unsupported facts about road conditions. The app locally
+handles driving-safety and missing-data questions before consulting any model.
+
+Home/Work now use secure storage, with a copy-before-remove legacy migration.
+Submitted geocoding is paced and cached for the public endpoint; public Nominatim
+autocomplete is prohibited. V2 intentionally adds original UI: saved destination
+rows, a separate fresh-GPS speed panel and a parked-only reporting control.
+
+The executable backend provides server sessions, command classification and a
+moderation queue. No backend deployment, public moderation operation, licensed
+road-information feed or paid service has been started. Model smoke tests are
+synthetic, not road-noise or physical-iPhone validation. See `V2-VALIDATION.md` for
+remaining gates and `backend/README.md` for supported test deployment setup.
+
 **Avyro is the world’s first AI Driving Companion.**
 
 This is the permanent engineering reference for Avyro. It records the decisions
