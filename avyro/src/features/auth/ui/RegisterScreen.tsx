@@ -42,7 +42,7 @@ export const RegisterScreen = () => {
 
     if (Object.values(errors).some((message) => message !== null)) return;
 
-    await signUp(fullName.value, email.value, password.value);
+    if (await signUp(fullName.value, email.value, password.value)) navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   };
 
   return (

@@ -50,7 +50,7 @@ export function createTomTomRoadProvider({ key, enabled = false, fetcher = fetch
       const fixes = validateRoadTrace(input, now());
       // Reservation is persisted before fetch, so failures and restarts cannot
       // bypass the evaluation cap. Other consumers of this key need their own cap.
-      reserveRequest();
+      await reserveRequest();
       const url = new URL('https://api.tomtom.com/snapToRoads/1');
       url.searchParams.set('key', key);
       url.searchParams.set('points', fixes.map((p) => `${p.longitude},${p.latitude}`).join(';'));

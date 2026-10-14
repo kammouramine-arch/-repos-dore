@@ -49,6 +49,9 @@ import { createNominatimPlacesProvider } from "@/services/places/nominatimPlaces
 import { createOsrmRoutingProvider } from "@/services/routing/osrmRoutingProvider";
 import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecognizer";
 import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
+import { createNativeSpeechRecognizer } from '@/services/speech/nativeSpeechRecognizer';
+import { createPlatformWakeWordDetector } from '@/services/speech/platformWakeWordDetector';
+import { createGuestAccessToken } from '@/services/auth/guestAccessToken';
 
 /**
  * The one place where abstractions meet implementations.
@@ -121,6 +124,10 @@ export const createServiceContainer = (
 
   const routingProvider =
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
+  const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger));
+  const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
+  const getAccessToken = async () => (await createSessionStore(secure).read())?.token ?? guestAccessToken();
+  const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
 
   // Conversation Engine → AI Gateway → AiProvider → OpenAI today.
   // The engine only ever sees the gateway; the gateway decides whether a model
@@ -142,8 +149,7 @@ export const createServiceContainer = (
     provider: createOpenAiProvider({
       http,
       logger,
-      getAccessToken: async () =>
-        (await createSessionStore(secure).read())?.token ?? null,
+      getAccessToken: async () => (await preferencesRepository.load()).cloudAssistant ? getAccessToken() : null,
     }),
     logger,
     crashReporter,
@@ -157,9 +163,7 @@ export const createServiceContainer = (
     routingProvider,
     locationTracker: overrides.locationTracker ?? createExpoLocationTracker(),
     speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(),
-    preferencesRepository:
-      overrides.preferencesRepository ??
-      createLocalPreferencesRepository(keyValue),
+    preferencesRepository,
     onboardingRepository:
       overrides.onboardingRepository ??
       createLocalOnboardingRepository(keyValue),
@@ -167,18 +171,17 @@ export const createServiceContainer = (
       overrides.recentDestinationsRepository ??
       createLocalRecentDestinationsRepository(keyValue),
     savedPlacesRepository,
-    roadDataProvider: overrides.roadDataProvider ?? createGatewayRoadDataProvider({ http, getAccessToken: async () => (await createSessionStore(secure).read())?.token ?? null }),
+    roadDataProvider: overrides.roadDataProvider ?? createGatewayRoadDataProvider({ http, getAccessToken }),
     incidentReporter:
       overrides.incidentReporter ??
       createGatewayIncidentReporter({
         http,
-        getAccessToken: async () =>
-          (await createSessionStore(secure).read())?.token ?? null,
+        getAccessToken,
       }),
     wakeWordDetector:
-      overrides.wakeWordDetector ?? createSherpaWakeWordDetector(),
+      overrides.wakeWordDetector ?? createPlatformWakeWordDetector(speechRecognizer, createSherpaWakeWordDetector()),
     speechRecognizer:
-      overrides.speechRecognizer ?? createExpoSpeechRecognizer(logger),
+      speechRecognizer,
     conversationProvider:
       overrides.conversationProvider ?? conversationProvider,
     migrateStorage:

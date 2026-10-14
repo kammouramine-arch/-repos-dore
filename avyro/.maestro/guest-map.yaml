@@ -1,0 +1,17 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- assertVisible: "Your voice. Your way."
+- takeScreenshot: build/screens/01-voice-invitation
+- tapOn: "Explore the map first"
+- assertVisible: "Where to?"
+- assertNotVisible: "Welcome back"
+- waitForAnimationToEnd
+- takeScreenshot: build/screens/02-guest-map
+- tapOn: "Settings"
+- assertVisible: "Optional account"
+- assertVisible: "Voice language"
+- takeScreenshot: build/screens/03-settings

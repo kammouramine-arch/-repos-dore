@@ -25,45 +25,45 @@ export const palette = {
 
 export const colors = {
   /** Page background — true near-black, kind to OLED panels at night. */
-  background: palette.ink950,
+  background: '#F4F6F8',
   /** Panels sitting on the background: sheets, cards, fields. */
-  surface: palette.ink800,
+  surface: '#FFFFFF',
   /** A panel on top of another panel. */
-  surfaceElevated: palette.ink700,
+  surfaceElevated: '#F1F4F5',
   /** Pressed states and subtle fills. */
-  surfaceHighlight: palette.ink600,
+  surfaceHighlight: '#EAF0F2',
 
-  border: 'rgba(255, 255, 255, 0.08)',
-  borderStrong: 'rgba(255, 255, 255, 0.16)',
+  border: 'rgba(17, 35, 46, 0.08)',
+  borderStrong: 'rgba(17, 35, 46, 0.12)',
 
-  textPrimary: '#F5F7FA',
-  textSecondary: 'rgba(245, 247, 250, 0.64)',
-  textTertiary: 'rgba(245, 247, 250, 0.38)',
-  textInverted: palette.ink950,
+  textPrimary: '#132C38',
+  textSecondary: '#566F7B',
+  textTertiary: '#647D87',
+  textInverted: '#FFFFFF',
 
-  accent: palette.avyroBlue,
-  accentMuted: 'rgba(61, 123, 255, 0.16)',
+  accent: '#087F83',
+  accentMuted: '#E0F3F1',
   onAccent: palette.white,
 
-  success: palette.green,
-  warning: palette.amber,
-  danger: palette.red,
-  dangerMuted: 'rgba(255, 77, 69, 0.14)',
+  success: '#16805A',
+  warning: '#AB6A00',
+  danger: '#C1373B',
+  dangerMuted: '#FCE8E9',
 
   /** Dim layer behind modals and over the map. */
   scrim: 'rgba(5, 6, 9, 0.62)',
   /** Live driving state: the route already driven, and the puck. */
-  routeActive: palette.avyroBlue,
-  routeInactive: 'rgba(245, 247, 250, 0.30)',
-  routeCasing: '#0B1D3F',
+  routeActive: '#087F83',
+  routeInactive: '#A6B7C0',
+  routeCasing: '#FFFFFF',
 } as const;
 
 export const gradients = {
   /** The Avyro signature. Used once per screen, never as a background wash. */
-  brand: [palette.avyroBlue, palette.avyroViolet] as const,
+  brand: ['#087F83', '#245477'] as const,
   /** Fades map content out from under floating panels. */
   scrimDown: ['rgba(5, 6, 9, 0)', 'rgba(5, 6, 9, 0.85)'] as const,
   scrimUp: ['rgba(5, 6, 9, 0.9)', 'rgba(5, 6, 9, 0)'] as const,
   /** Splash and onboarding backdrop. */
-  night: ['#0A0C11', '#111827', '#050609'] as const,
+  night: ['#F6FAFA', '#E5F2F1', '#F4F6F8'] as const,
 } as const;

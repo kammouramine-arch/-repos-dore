@@ -13,6 +13,7 @@ import { bootstrapApp } from './bootstrap';
 import { navigationRef } from './navigation/navigationRef';
 import { navigationTheme } from './navigation/navigationTheme';
 import { RootNavigator } from './navigation/RootNavigator';
+import { VoiceSetupPrompt } from '@/features/onboarding/ui/VoiceSetupPrompt';
 
 // Hold the native splash until React has something to show, so the handover to
 // Avyro's own splash is a cross-fade rather than a white flash.
@@ -37,7 +38,7 @@ export const App = () => {
   return (
     <AppRuntimeProvider runtime={runtime}>
       <SafeAreaProvider>
-        <StatusBar style="light" />
+        <StatusBar style="dark" />
 
         <View style={styles.root} onLayout={onLayout}>
           {bootstrapped ? (
@@ -48,6 +49,7 @@ export const App = () => {
                 voice HUD, which has to float above whatever screen is on.
               */}
               <ConversationEngine />
+              {!splashVisible ? <VoiceSetupPrompt /> : null}
             </NavigationContainer>
           ) : null}
 

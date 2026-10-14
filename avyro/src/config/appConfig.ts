@@ -68,15 +68,18 @@ export const NAVIGATION = {
  */
 export const CONVERSATION = {
   defaultLocale: 'en-US',
+  bilingualFinalWaitMs: 450,
+  /** End input after a pause, then wait for a committed result before acting. */
+  commandSilenceMs: 1400,
 
   wakePhrases: {
-    'en-US': ['hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
+    'en-US': ['hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
     'en-GB': ['hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
-    'fr-FR': ['dis avyro', 'salut avyro', 'ok avyro', 'hey avyro'],
+    'fr-FR': ['hey avyro', 'he avyro', 'hey aviro', 'he aviro', 'hey a viro', 'he a viro', 'hey a vero', 'he av ero', 'eh aviro', 'dis avyro', 'salut avyro', 'ok avyro'],
   } as Record<string, readonly string[]>,
 
   /** Give up on a command if the driver says nothing after waking Avyro. */
-  listenTimeoutMs: 7_000,
+  listenTimeoutMs: 12_000,
   /**
    * How long a partial transcript must stop changing before it is read.
    *
@@ -197,6 +200,7 @@ export const ROAD_DATA = {
 export const STORAGE_KEYS = {
   accounts: 'avyro.auth.accounts',
   session: 'avyro.auth.session',
+  guestSession: 'avyro.auth.guest',
   preferences: 'avyro.preferences',
   onboarding: 'avyro.onboarding.completed',
   recentDestinations: 'avyro.destinations.recent',

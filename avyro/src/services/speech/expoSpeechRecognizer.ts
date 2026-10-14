@@ -8,6 +8,7 @@ import {
 } from 'expo-speech-recognition';
 
 import type { Logger } from '@/core/domain/ports/logger';
+import { CONVERSATION } from '@/config';
 import type {
   SpeechErrorCode,
   SpeechPermission,
@@ -170,6 +171,8 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
       let stopping = false;
       let stopPromise: Promise<void> | null = null;
       let resolveStop: (() => void) | null = null;
+      let endpointTimer: ReturnType<typeof setTimeout> | undefined;
+      let previousPartial = '';
 
       const subscriptions = [
         ExpoSpeechRecognitionModule.addListener(
@@ -177,7 +180,19 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
           (event: ExpoSpeechRecognitionResultEvent) => {
             if (stopping || released) return;
             const text = event.results[0]?.transcript ?? '';
-            if (text.length > 0) onTranscript({ text, isFinal: event.isFinal });
+            if (text.length > 0) {
+              onTranscript({ text, isFinal: event.isFinal, locale });
+              if (!continuous && !event.isFinal && text !== previousPartial) {
+                previousPartial = text;
+                if (endpointTimer) clearTimeout(endpointTimer);
+                endpointTimer = setTimeout(() => {
+                  if (!stopping && !released) {
+                    try { ExpoSpeechRecognitionModule.stop(); }
+                    catch { onError({ code: 'audio-capture', message: 'Speech could not finish. Please try again.', fatal: false }); }
+                  }
+                }, CONVERSATION.commandSilenceMs);
+              }
+            }
           },
         ),
         ExpoSpeechRecognitionModule.addListener(
@@ -213,6 +228,7 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
 
       const release = () => {
         released = true;
+        if (endpointTimer) clearTimeout(endpointTimer);
         subscriptions.forEach((subscription) => subscription.remove());
       };
 
@@ -231,6 +247,7 @@ export const createExpoSpeechRecognizer = (logger: Logger): SpeechRecognizer => 
       }
 
       return {
+        finish() { if (!released && !stopping) ExpoSpeechRecognitionModule.stop(); },
         stop() {
           if (released) return Promise.resolve();
           if (stopPromise) return stopPromise;

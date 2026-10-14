@@ -6,7 +6,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 import { useStores } from '@/app/runtime/AppRuntime';
 import {
-  useAuthStore,
   useLocationStore,
   usePreferencesStore,
   useTripStore,
@@ -19,7 +18,7 @@ import { UserPuck } from '@/maps/components/UserPuck';
 import { IconButton } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { HomeSheet } from './HomeSheet';
-import { HomeTopBar } from './HomeTopBar';
+import { HomeHeader } from './HomeHeader';
 
 /**
  * The map is the app. Everything else floats over it, and the camera locks
@@ -35,7 +34,6 @@ export const HomeScreen = () => {
   // stack, so subscribing to whole stores would re-render the map on state it
   // does not display — trip planning, guidance status, sign-in progress.
   const stores = useStores();
-  const session = useAuthStore((state) => state.session);
   const position = useLocationStore((state) => state.position);
   const locationError = useLocationStore((state) => state.error);
   const locate = useLocationStore((state) => state.locate);
@@ -83,8 +81,7 @@ export const HomeScreen = () => {
       </AvyroMapView>
 
       <View style={[styles.top, { paddingTop: insets.top + spacing.xs }]}>
-        <HomeTopBar
-          fullName={session?.user.fullName ?? 'Driver'}
+        <HomeHeader
           onSettingsPress={() => navigation.navigate('Settings')}
         />
       </View>

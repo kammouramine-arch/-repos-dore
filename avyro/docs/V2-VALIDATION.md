@@ -2,6 +2,31 @@
 
 This branch is a development candidate, not a completed production release.
 
+## October 14 map-first revision (under native validation)
+
+The login/onboarding barrier is removed. Launch animation opens the map; a
+one-time invitation enables foreground hands-free listening with microphone
+consent. Home/Work, typed routing and deterministic voice are available without
+personal identity. Optional accounts live in Settings.
+
+Original light teal/ink cartography, compact destination tiles, collapsed
+recents, improved surface contrast and correctly applied row layout replace
+the earlier glass styling. CI now launches the actual simulator app and checks
+guest access, the voice invitation and Settings, saving native screenshots.
+
+French and English offline iPhone speech tasks share a single microphone.
+Command input ends after a pause; only committed final results can act. A
+same-breath command following the wake phrase is preserved. Readiness requires
+an opened capture. Speech can resume after an interruption and keeps the display
+awake when enabled. The Apache-2.0 keyword model remains available as an option.
+
+442 app tests, 18 original backend tests and seven cloud backend checks passed
+locally, with typecheck and lint. Cloud checks run against actual workerd/D1,
+including anonymous sessions, optional password accounts and pending reports.
+Native compilation, cloud deployment and real iPhone wake/ASR testing remain
+pending until explicitly recorded below. No claims of physical voice accuracy,
+road-noise robustness or production worldwide readiness follow from these tests.
+
 ## Implemented
 
 - Native foreground keyword spotting with sherpa-onnx 1.13.8 and the English

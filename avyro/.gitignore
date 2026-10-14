@@ -47,3 +47,7 @@ yarn-error.*
 *.sqlite-shm
 /build/
 native-build.log
+.wrangler/
+.dev.vars
+.dev.vars.*
+.maestro-output/

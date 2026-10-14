@@ -11,7 +11,7 @@ import type { ExpoConfig } from 'expo/config';
  * iOS uses Apple Maps and needs no key.
  */
 
-const BACKGROUND = '#050609';
+const BACKGROUND = '#F4F6F8';
 
 const MICROPHONE_REASON =
   'Avyro listens for “Hey Avyro” so you can ask for directions without taking your hands off the wheel.';
@@ -72,7 +72,7 @@ const config: ExpoConfig = {
   version: '1.0.0',
   scheme: 'avyro',
   orientation: 'portrait',
-  userInterfaceStyle: 'dark',
+  userInterfaceStyle: 'light',
   backgroundColor: BACKGROUND,
   icon: './assets/icon.png',
   assetBundlePatterns: ['**/*'],

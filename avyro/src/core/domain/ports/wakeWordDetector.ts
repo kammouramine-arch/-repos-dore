@@ -1,9 +1,9 @@
 /**
  * Vendor-neutral, foreground-only wake-word detection.
  *
- * This port is NOT speech-to-text. It produces no partial transcript and never
- * chooses a navigation destination. The adapter must use a real on-device
- * keyword model whose code and weights can legally ship with Avyro.
+ * The keyword adapter uses redistributable bundled models. The platform
+ * adapter recognizes the phrase with iPhone-owned offline speech models;
+ * ambient transcripts never leave the adapter. Neither chooses a destination.
  *
  * A detected phrase must release the microphone before the command recognizer
  * starts. For that reason stop() is intentionally asynchronous.
@@ -32,7 +32,7 @@ export interface WakeWordSession {
 }
 
 export interface WakeWordEvents {
-  onDetected(): void;
+  onDetected(command?: string): void;
   onError(error: WakeWordFailure): void;
 }
 
@@ -41,10 +41,15 @@ export interface WakeWordDetector {
    * Check for permission, bundled models and a usable native implementation.
    * Do not claim availability from a placeholder adapter.
    */
-  isAvailable(): Promise<WakeWordAvailability>;
+  isAvailable(options?: WakeWordOptions): Promise<WakeWordAvailability>;
   /**
    * Starts listening for the configured phrase while Avyro is foregrounded.
    * An implementation must stop on background, interruption and permission loss.
    */
-  start(events: WakeWordEvents): Promise<WakeWordSession>;
+  start(events: WakeWordEvents, options?: WakeWordOptions): Promise<WakeWordSession>;
+}
+
+export interface WakeWordOptions {
+  locales?: readonly string[];
+  engine?: 'system' | 'keyword';
 }

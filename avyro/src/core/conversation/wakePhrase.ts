@@ -65,6 +65,7 @@ export const matchWakePhrase = (
     const target = normaliseUtterance(phrase);
     const at = normalised.indexOf(target);
     if (at === -1) continue;
+    if ((at > 0 && normalised[at - 1] !== ' ') || (normalised.length > at + target.length && normalised[at + target.length] !== ' ')) continue;
 
     return {
       phrase: target,

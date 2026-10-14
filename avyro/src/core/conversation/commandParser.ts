@@ -223,6 +223,9 @@ const RULES: Rule[] = [
 export const parseCommand = (transcript: string): VoiceIntent => {
   const utterance = normaliseUtterance(transcript);
   if (utterance.length === 0) return { kind: 'unknown' };
+  if (/\b(?:ne|n)\b.*\b(?:pas|jamais)\b|\b(?:don t|do not)\b/.test(utterance)) return { kind: 'unknown' };
+  const french = parseFrenchCommand(utterance);
+  if (french) return french;
 
   for (const rule of RULES) {
     for (const pattern of rule.patterns) {
@@ -238,4 +241,28 @@ export const parseCommand = (transcript: string): VoiceIntent => {
   }
 
   return { kind: 'unknown' };
+};
+
+const parseFrenchCommand = (text: string): VoiceIntent | null => {
+  if (/\b(?:emmene moi|amene moi|va)\s+la bas\b/.test(text)) return { kind: 'navigate-referent' };
+  if (/\b(?:annule|arrete|termine)\b.*\b(?:navigation|guidage|itineraire|trajet)\b/.test(text)) return { kind: 'cancel-navigation' };
+  if (/\b(?:recalcule|change|nouvel|autre)\b.*\b(?:itineraire|route|trajet)\b/.test(text)) return { kind: 'reroute' };
+  if (/\b(?:combien de temps|a quelle heure|quand)\b.*\b(?:arriv|reste)|\bheure d arrivee\b/.test(text)) return { kind: 'ask-eta' };
+  if (/\b(?:quelle distance|combien de kilometres|combien de km)\b/.test(text)) return { kind: 'ask-remaining-distance' };
+  if (/\bou (?:suis je|sommes nous)|\bquelle (?:rue|route)\b/.test(text)) return { kind: 'ask-location' };
+  if (/\b(?:trafic|bouchons|embouteillages)\b/.test(text)) return { kind: 'ask-traffic' };
+  if (/\b(?:trouve|cherche|besoin|ou est|ou sont)\b/.test(text)) {
+    if (/\b(?:essence|station service|carburant)\b/.test(text)) return { kind: 'find-nearby', category: 'fuel' };
+    if (/\b(?:cafe|cafes)\b/.test(text)) return { kind: 'find-nearby', category: 'coffee' };
+    if (/\b(?:restaurant|restaurants|manger)\b/.test(text)) return { kind: 'find-nearby', category: 'restaurants' };
+    if (/\b(?:parking|garer)\b/.test(text)) return { kind: 'find-nearby', category: 'parking' };
+  }
+  const motion = /\b(?:emmene moi|amene moi|conduis moi|guide moi|je veux aller|allons|aller|va|navigue|itineraire|direction)\s+(?:a|au|aux|vers|jusqu a|pour|chez)\s+(.+)$/;
+  const match = text.match(motion);
+  if (!match) return null;
+  const query = (match[1] ?? '').replace(/\s+s il te plait$/, '').trim();
+  if (/^(?:la )?maison$|^moi$/.test(query)) return { kind: 'navigate-saved', slot: 'home' };
+  if (/^(?:le )?(?:travail|bureau)$/.test(query)) return { kind: 'navigate-saved', slot: 'work' };
+  if (/^(?:la )?bas$/.test(query)) return { kind: 'navigate-referent' };
+  return query ? { kind: 'navigate-to-place', query } : null;
 };

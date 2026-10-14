@@ -12,6 +12,7 @@ import {
   type VoiceSessionEvent,
 } from "@/core/conversation/voiceSession";
 import { formatVoiceDebug } from "@/core/conversation/voiceDebug";
+import { speechLanguage } from '@/core/conversation/frenchReply';
 import type { ConversationEffect } from "@/core/conversation/conversationMachine";
 import type { SpeechRecognitionSession } from "@/core/domain/ports/speechRecognizer";
 import { runConversationAction } from "../runConversationAction";
@@ -42,6 +43,12 @@ export const useConversationEngine = (): void => {
     (state) => state.preferences.voiceCommands,
   );
   const status = stores.conversation((state) => state.status);
+  const voiceLanguage = stores.preferences(state => state.preferences.voiceLanguage);
+  const voiceDetection = stores.preferences(state => state.preferences.voiceDetection);
+  const voiceOptions = useCallback(() => {
+    const preferences = stores.preferences.getState().preferences;
+    return { locales: preferences.voiceLanguage === 'bilingual' ? ['fr-FR', 'en-US'] : [preferences.voiceLanguage], engine: preferences.voiceDetection };
+  }, [stores]);
   const pending = stores.conversation((state) => state.pending);
 
   const sessionRef = useRef<SpeechRecognitionSession | null>(null);
@@ -172,11 +179,11 @@ export const useConversationEngine = (): void => {
 
         if (
           state.status !== previous.status ||
-          state.message !== previous.message
+          state.message !== previous.message || state.open !== previous.open
         ) {
           stores.conversation
             .getState()
-            .setVoice({ status: state.status, message: state.message });
+            .setVoice({ status: state.status, message: state.message, ready: state.open });
 
           // The states a driver would notice are worth a record in a release
           // build: this is the line that explains a dead microphone later.
@@ -212,7 +219,7 @@ export const useConversationEngine = (): void => {
             .then(() => {
               if (!isCurrent()) throw new Error("Superseded wake session");
               return services.wakeWordDetector.start({
-                onDetected: () => {
+                onDetected: (command) => {
                   if (!isCurrent()) return;
                   closeSession();
                   void releaseRef.current.then(() => {
@@ -220,7 +227,7 @@ export const useConversationEngine = (): void => {
                       stores.preferences.getState().preferences.voiceCommands &&
                       AppState.currentState === "active"
                     ) {
-                      dispatch({ type: "wake-detected" });
+                      dispatch({ type: "wake-detected", command });
                     }
                   });
                 },
@@ -231,11 +238,11 @@ export const useConversationEngine = (): void => {
                       error: {
                         code: error.kind,
                         message: error.message,
-                        fatal: false,
+                        fatal: !error.recoverable,
                       },
                     });
                 },
-              });
+              }, voiceOptions());
             })
             .then(async (session) => {
               if (!isCurrent()) {
@@ -266,9 +273,9 @@ export const useConversationEngine = (): void => {
           switch (effect.type) {
             case "check-availability":
               void Promise.all([
-                services.wakeWordDetector.isAvailable(),
+                services.wakeWordDetector.isAvailable(voiceOptions()),
                 services.speechRecognizer.supportsOnDevice(
-                  CONVERSATION.defaultLocale,
+                  voiceOptions().locales[0],
                 ),
               ])
                 .then(([available, onDevice]) => {
@@ -352,13 +359,14 @@ export const useConversationEngine = (): void => {
 
       send(event);
     },
-    [services, stores, closeSession, clearVoiceTimer, voiceDebug, dispatch],
+    [services, stores, closeSession, clearVoiceTimer, voiceDebug, dispatch, voiceOptions],
   );
 
   // Turning the switch on is what starts the permission flow; turning it off
   // is what guarantees the microphone is released.
   useEffect(() => {
     voiceDebug("voice_commands_preference", enabled ? "enabled" : "disabled");
+    sendVoice({ type: 'disabled' });
     sendVoice({
       type:
         enabled && AppState.currentState === "active" ? "enabled" : "disabled",
@@ -371,7 +379,7 @@ export const useConversationEngine = (): void => {
       } else if (enabled) sendVoice({ type: "enabled" });
     });
     return () => subscription.remove();
-  }, [enabled, sendVoice, voiceDebug, closeSession, dispatch]);
+  }, [enabled, voiceLanguage, voiceDetection, sendVoice, voiceDebug, closeSession, dispatch]);
 
   // Declared before the effect runner so that on a status change the wake
   // listener is torn down before the runner opens a command session.
@@ -401,9 +409,8 @@ export const useConversationEngine = (): void => {
             AppState.currentState !== "active"
           )
             throw new Error("Superseded command session");
-          const onDevice = await services.speechRecognizer.supportsOnDevice(
-            CONVERSATION.defaultLocale,
-          );
+          const locales = voiceOptions().locales;
+          const onDevice = (await Promise.all(locales.map(locale => services.speechRecognizer.supportsOnDevice(locale)))).every(Boolean);
           const permissionRequest = { networkRecognition: !onDevice };
           let permission =
             await services.speechRecognizer.getPermission(permissionRequest);
@@ -421,7 +428,8 @@ export const useConversationEngine = (): void => {
             throw new Error("Superseded command session");
           return services.speechRecognizer.start(
             {
-              locale: CONVERSATION.defaultLocale,
+              locale: locales[0],
+              locales,
               interimResults: true,
               continuous: false,
               onDevice,
@@ -575,6 +583,7 @@ export const useConversationEngine = (): void => {
           return void releaseRef.current
             .then(() =>
               services.speechEngine.speak(effect.text, {
+                language: speechLanguage(effect.text),
                 onDone: () => finishSpeaking("tts_finished"),
               }),
             )
@@ -622,6 +631,7 @@ export const useConversationEngine = (): void => {
     stores,
     dispatch,
     readContext,
+    voiceOptions,
     closeSession,
     clearTimers,
     voiceDebug,

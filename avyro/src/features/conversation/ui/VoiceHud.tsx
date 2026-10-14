@@ -25,6 +25,7 @@ export const VoiceHud = () => {
   const status = useConversationStore((state) => state.status);
   const speaking = useConversationStore((state) => state.speaking);
   const error = useConversationStore((state) => state.error);
+  const transcript = useConversationStore(state => state.transcript);
 
   const prompt = voicePromptFor(status, speaking, error);
   if (!prompt.visible) return null;
@@ -43,7 +44,7 @@ export const VoiceHud = () => {
             numberOfLines={2}
             style={styles.label}
           >
-            {prompt.label}
+            {status === 'listening' && transcript ? transcript : prompt.label}
           </AppText>
         </GlassPanel>
       </Animated.View>

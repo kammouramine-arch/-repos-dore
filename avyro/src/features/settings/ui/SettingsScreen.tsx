@@ -57,6 +57,7 @@ export const SettingsScreen = () => {
         showsVerticalScrollIndicator={false}
       >
         <AccountCard user={session?.user ?? null} />
+        {!session ? <SettingsSection title="Optional account"><ListRow title="Sign in or create an account" subtitle="The map, saved places and voice work without an account" icon="person-outline" onPress={() => navigation.navigate('Login')} /></SettingsSection> : null}
 
         <SettingsSection title="Guidance">
           <ToggleRow
@@ -67,10 +68,13 @@ export const SettingsScreen = () => {
           />
           <ToggleRow
             title="Voice commands"
-            subtitle={`Listen for “${displayWakePhrase()}” while driving`}
+            subtitle={`Hands-free “${displayWakePhrase()}” while Avyro is open`}
             value={preferences.voiceCommands}
             onChange={(value) => void update({ voiceCommands: value })}
           />
+          <ChoiceRow title="Voice language" options={[{ value: 'bilingual' as const, label: 'FR + EN' }, { value: 'fr-FR' as const, label: 'Français' }, { value: 'en-US' as const, label: 'English' }]} value={preferences.voiceLanguage} onChange={value => void update({ voiceLanguage: value })} />
+          <ChoiceRow title="Wake detection" options={[{ value: 'system' as const, label: 'iPhone speech' }, { value: 'keyword' as const, label: 'Keyword model' }]} value={preferences.voiceDetection} onChange={value => void update({ voiceDetection: value })} />
+          <ToggleRow title="Cloud command assistant" subtitle="Optionally send one spoken command to Avyro’s Cloudflare AI service when on-device command matching cannot understand it. Ambient listening stays on your iPhone." value={preferences.cloudAssistant} onChange={value => void update({ cloudAssistant: value })} />
           {/*
             Guarded here rather than inside the note: a child that renders null
             still counts as a row, and `SettingsSection` would draw a divider
@@ -87,7 +91,7 @@ export const SettingsScreen = () => {
           />
           <ToggleRow
             title="Keep screen on"
-            subtitle="Stay awake while a trip is running"
+            subtitle="Stay awake during navigation or hands-free listening"
             value={preferences.keepScreenAwake}
             onChange={(value) => void update({ keepScreenAwake: value })}
           />
@@ -102,7 +106,7 @@ export const SettingsScreen = () => {
         <SettingsSection title="Map">
           {roadDataProvider.isConfigured() ? <ToggleRow
             title="Road information"
-            subtitle="Share recent GPS fixes with TomTom through Avyro to check mapped speed limits. Road signs take priority."
+            subtitle="Share recent GPS fixes with Avyro’s Cloudflare service and TomTom to check mapped speed limits. Road signs take priority."
             value={preferences.roadInformation}
             onChange={(value) => void update({ roadInformation: value })}
           /> : <ListRow title="Road information" subtitle="Licensed road data is not connected yet" />}
@@ -137,7 +141,7 @@ export const SettingsScreen = () => {
           />
         </SettingsSection>
 
-        <Button label="Sign out" variant="danger" onPress={() => void signOut()} />
+        {session ? <Button label="Sign out" variant="danger" onPress={() => void signOut()} /> : null}
       </ScrollView>
     </Screen>
   );

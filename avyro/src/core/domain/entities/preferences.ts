@@ -13,6 +13,10 @@ export interface Preferences {
    * something a driver opts into, not something they discover.
    */
   voiceCommands: boolean;
+  voiceSetupSeen: boolean;
+  voiceLanguage: 'bilingual' | 'fr-FR' | 'en-US';
+  voiceDetection: 'system' | 'keyword';
+  cloudAssistant: boolean;
   /** Haptic confirmation on primary actions and maneuvers. */
   hapticFeedback: boolean;
   /** Keep the display on while a trip is in progress. */
@@ -27,6 +31,10 @@ export interface Preferences {
 export const DEFAULT_PREFERENCES: Preferences = {
   voiceGuidance: true,
   voiceCommands: false,
+  voiceSetupSeen: false,
+  voiceLanguage: 'bilingual',
+  voiceDetection: 'system',
+  cloudAssistant: false,
   hapticFeedback: true,
   keepScreenAwake: true,
   distanceUnit: 'metric',

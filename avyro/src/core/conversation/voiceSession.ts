@@ -107,7 +107,7 @@ export interface VoiceSessionTransition {
 export const VOICE_MESSAGES = {
   denied: `Avyro needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
   blocked: `Avyro cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › Avyro.`,
-  unsupported: 'This device cannot recognise speech in your language.',
+  unsupported: 'On-device speech is unavailable. Select one installed voice language or the keyword detector in Settings.',
   failed: 'Voice commands keep stopping. Avyro is still trying.',
 } as const;
 

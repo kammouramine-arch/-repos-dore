@@ -65,6 +65,6 @@ describe('localisation', () => {
 
   it('advertises only the canonical phrase, never the misheard spellings', () => {
     expect(displayWakePhrase('en-US')).toBe('Hey Avyro');
-    expect(displayWakePhrase('fr-FR')).toBe('Dis Avyro');
+    expect(displayWakePhrase('fr-FR')).toBe('Hey Avyro');
   });
 });

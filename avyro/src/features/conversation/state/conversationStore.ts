@@ -25,6 +25,7 @@ import {
 export interface VoiceStatusView {
   status: VoiceSessionStatus;
   message: string | null;
+  ready: boolean;
 }
 
 export interface ConversationStoreState extends ConversationState {
@@ -62,7 +63,7 @@ export interface ConversationStoreState extends ConversationState {
   reset: () => void;
 }
 
-const initialVoiceView: VoiceStatusView = { status: 'off', message: null };
+const initialVoiceView: VoiceStatusView = { status: 'off', message: null, ready: false };
 
 export const createConversationStore = () =>
   create<ConversationStoreState>()((set, get) => ({

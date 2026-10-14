@@ -1,5 +1,28 @@
 # The Avyro Developer Bible
 
+## October 14 map-first and bilingual revision
+
+User-authorized product change: the animated launch now opens the map directly.
+Accounts are optional modal screens in Settings, and session restoration cannot
+block navigation. A one-time overlay asks before enabling hands-free listening.
+Compact destination tiles, original teal/ink branding, light cartography and
+opaque floating surfaces replace the earlier dark glass layout. The previous
+glass wrapper incorrectly applied caller flex styles outside its content node.
+
+Native iPhone offline speech models are the default wake path. French and
+English tasks share one AVAudioEngine input; ambient transcripts stay in the
+adapter, and only a recognized wake phrase leaves it. A final command in the
+same utterance is preserved. After a command pause, input ends and the recognizer
+must commit a final result before routing; partial destinations never execute.
+The bundled Apache-2.0 sherpa keyword model remains an optional detector.
+The readiness indicator reflects an opened microphone, not an enabled switch.
+Native concurrency, accent and road-noise behavior still require physical testing.
+
+Cloudflare Workers/D1 replace computer-dependent hosting. Guest access is opaque
+and anonymous; optional accounts and pending reports are durable. See
+`backend/cloud/README.md` for limits, model terms, consent and deployment gates.
+Cloud command assistance is opt-in and has no paid fallback.
+
 ## V2 architecture update — 2026-10-13
 
 This user-authorized V2 feature release supersedes the earlier wake/credential

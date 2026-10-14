@@ -1,11 +1,12 @@
 import { StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 
 import type { Place, RecentDestination } from '@/core/domain/entities/place';
 import { PLACE_ICONS } from '@/features/search/placeIcons';
-import { AppText, Divider, GlassPanel, ListRow, SectionHeader } from '@/ui/components';
+import { AppText, Divider, GlassPanel, ListRow, PressableScale, SectionHeader } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { SearchTrigger } from './SearchTrigger';
-import { SavedPlacesPanel } from './SavedPlacesPanel';
+import { SavedPlacesDock } from './SavedPlacesDock';
 
 export interface HomeSheetProps {
   recents: readonly RecentDestination[];
@@ -26,13 +27,15 @@ export const HomeSheet = ({
   onRecentPress,
   onEnableLocation,
   onClearRecents,
-}: HomeSheetProps) => (
+}: HomeSheetProps) => {
+  const [expanded, setExpanded] = useState(false);
+  return (
   <GlassPanel style={styles.sheet}>
-    <View style={styles.grabber} />
+    <PressableScale accessibilityRole="button" accessibilityLabel={expanded ? 'Collapse recent destinations' : 'Show recent destinations'} onPress={() => setExpanded(!expanded)}><View style={styles.grabber} /></PressableScale>
 
     <View style={styles.body}>
       <SearchTrigger onPress={onSearchPress} />
-      <SavedPlacesPanel onNavigate={onRecentPress} />
+      <SavedPlacesDock onNavigate={onRecentPress} />
 
       {locationError ? (
         <ListRow
@@ -44,7 +47,7 @@ export const HomeSheet = ({
         />
       ) : null}
 
-      {recents.length > 0 ? (
+      {recents.length > 0 && expanded ? (
         <View style={styles.recents}>
           <SectionHeader
             title="Recent"
@@ -64,14 +67,16 @@ export const HomeSheet = ({
             </View>
           ))}
         </View>
+      ) : recents.length > 0 ? (
+        <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">Recent destinations · {recents.length}</AppText></PressableScale>
       ) : (
         <AppText variant="footnote" tone="tertiary" style={styles.hint}>
-          Search for anywhere you need to be. Avyro keeps your recent trips here.
+          Pick a destination. Enjoy the drive.
         </AppText>
       )}
     </View>
   </GlassPanel>
-);
+); };
 
 const styles = StyleSheet.create({
   sheet: {
@@ -83,7 +88,7 @@ const styles = StyleSheet.create({
     width: 38,
     height: 4,
     borderRadius: 2,
-    backgroundColor: 'rgba(255, 255, 255, 0.18)',
+    backgroundColor: '#C5D4D8',
   },
   body: {
     gap: spacing.sm,

@@ -1,5 +1,6 @@
 import { AI } from '@/config';
 import { drivingSafetyReply } from '@/core/conversation/drivingSafety';
+import { frenchReply } from '@/core/conversation/frenchReply';
 import type {
   ConversationReply,
   ConversationRequest,
@@ -125,14 +126,14 @@ export const createAiGateway = ({
 
       // The parser understood it. Nothing a model could add is worth the
       // latency, and plenty could be worth the risk.
-      if (localReply.intent.kind !== 'unknown') return localReply;
+      if (localReply.intent.kind !== 'unknown') return frenchReply(localReply, request);
 
       if (!provider.isConfigured()) {
         scoped.debug('no provider configured, staying local');
-        return localReply;
+        return frenchReply(localReply, request);
       }
 
-      return (await askProvider(request)) ?? localReply;
+      return frenchReply((await askProvider(request)) ?? localReply, request);
     },
   };
 };

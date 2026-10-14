@@ -1,0 +1,14 @@
+{
+  "name": "avyro-gateway",
+  "account_id": "25a1a142dff294b87c4366178391ee04",
+  "main": "worker.mjs",
+  "compatibility_date": "2026-10-14",
+  "compatibility_flags": ["nodejs_compat"],
+  "workers_dev": true,
+  "durable_objects": { "bindings": [{ "name": "PASSWORD_HASHER", "class_name": "PasswordHasher" }] },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["PasswordHasher"] }],
+  "observability": { "enabled": false },
+  "vars": { "ROAD_DATA_ENABLED": "false", "AI_ENABLED": "false" },
+  "d1_databases": [{ "binding": "DB", "database_name": "avyro-beta", "database_id": "00000000-0000-0000-0000-000000000000" }],
+  "triggers": { "crons": ["0 3 * * *"] }
+}

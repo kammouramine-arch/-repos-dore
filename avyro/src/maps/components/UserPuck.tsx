@@ -29,9 +29,9 @@ const UserPuckComponent = ({ coordinate, headingDegrees }: UserPuckProps) => (
     zIndex={20}
   >
     <Svg width={SIZE} height={SIZE} viewBox="0 0 56 56">
-      <Circle cx="28" cy="28" r="26" fill="rgba(61, 123, 255, 0.14)" />
+      <Circle cx="28" cy="28" r="26" fill="rgba(8, 127, 131, 0.14)" />
       {headingDegrees == null ? null : (
-        <Path d="M28 3 L40 27 A13 13 0 0 0 16 27 Z" fill="rgba(61, 123, 255, 0.42)" />
+        <Path d="M28 3 L40 27 A13 13 0 0 0 16 27 Z" fill="rgba(8, 127, 131, 0.42)" />
       )}
       <Circle cx="28" cy="28" r="9.5" fill={colors.accent} />
       <Circle

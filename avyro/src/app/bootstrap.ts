@@ -30,8 +30,11 @@ export const bootstrapApp = async ({ services, stores }: AppRuntime): Promise<vo
     ['system-ui', SystemUI.setBackgroundColorAsync(colors.background)],
     ['preferences', stores.preferences.getState().load()],
     ['onboarding', stores.onboarding.getState().load()],
-    ['session', stores.auth.getState().restore()],
   ];
+  // Identity is optional; a remote session refresh must not hold the map hostage.
+  void stores.auth.getState().restore().then(() => {
+    services.crashReporter.identify(stores.auth.getState().session?.user.id ?? null);
+  }).catch(error => logger.warn('optional session restore failed', { reason: String(error) }));
 
   const results = await Promise.allSettled(steps.map(([, work]) => work));
 

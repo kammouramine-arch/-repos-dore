@@ -14,14 +14,14 @@ export function useRoadInformation(now: number): RoadEvidence | null {
   const fix = useLocationStore((s) => s.position);
   const consent = usePreferencesStore((s) => s.preferences.roadInformation);
   const guiding = useNavigationStore((s) => s.status === 'guiding');
-  const token = useAuthStore((s) => s.session?.token);
+  const token = useAuthStore((s) => s.session?.token ?? 'guest');
   const [active, setActive] = useState(AppState.currentState === 'active');
   const [result, setResult] = useState<{ evidence: RoadEvidence; token: string } | null>(null);
   const trace = useRef<UserPosition[]>([]);
   const pending = useRef<AbortController | null>(null);
   const lastRequest = useRef(0);
   const generation = useRef(0);
-  const enabled = active && consent && guiding && !!token && roadDataProvider.isConfigured();
+  const enabled = active && consent && guiding && roadDataProvider.isConfigured();
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state !== 'active') { generation.current++; pending.current?.abort(); trace.current = []; setResult(null); }

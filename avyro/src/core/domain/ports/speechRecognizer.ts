@@ -2,6 +2,8 @@ export interface TranscriptEvent {
   text: string;
   /** False for a running guess, true for the recogniser's committed answer. */
   isFinal: boolean;
+  locale?: string;
+  confidence?: number;
 }
 
 /**
@@ -62,6 +64,7 @@ export interface SpeechPermissionRequest {
 export interface SpeechRecognitionOptions {
   /** BCP-47 tag. Drives both the recognition model and the wake phrase set. */
   locale: string;
+  locales?: readonly string[];
   /**
    * Emit running guesses as the driver speaks. Wake-phrase detection needs
    * them; a single command does not.
@@ -82,6 +85,8 @@ export interface SpeechRecognitionOptions {
 
 export interface SpeechRecognitionSession {
   stop(): void | Promise<void>;
+  /** Ends audio input but lets the recognizer commit its final result. */
+  finish?(): void | Promise<void>;
 }
 
 export interface SpeechRecognizerEvents {

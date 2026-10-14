@@ -3,6 +3,10 @@ import { normaliseUtterance } from './wakePhrase';
 /** These questions require observations this app cannot obtain from a map. */
 export const drivingSafetyReply = (transcript: string): string | null => {
   const text = normaliseUtterance(transcript);
+  if (/\b(?:ne|n)\b.*\b(?:pas|jamais)\b|\b(?:pas besoin de)\b/.test(text)) return 'Je garde le trajet actuel. Donnez une commande directe pour le modifier.';
+  if (/\b(?:depasser|depassement|changer de voie|quelle voie|quelle file|sans danger|peux je tourner|peux je traverser)\b/.test(text)) return 'Je ne peux pas juger si une manœuvre est sûre. Vérifiez la route, les rétroviseurs et les panneaux.';
+  if (/\b(?:limitation de vitesse|vitesse maximale|quelle vitesse)\b/.test(text)) return 'Je ne dispose pas d’une limitation vérifiée pour cette route. Suivez les panneaux.';
+  if (/\b(?:panneaux|feux rouges|feux de circulation|route fermee)\b/.test(text) || /\b(?:danger|dangers|accident|accidents|police)\b.*\b(?:devant|sur|ici|nous)\b/.test(text)) return 'Je ne dispose pas d’informations vérifiées sur les panneaux ou incidents à venir. Restez attentif à la route.';
   if (/\b(?:don\s*t|do not|never|no need to)\b.*\b(?:cancel|navigate|go|reroute|take|drive|route)\b/.test(text)) {
     return 'I will keep the current route. Please give a direct command if you want to change it.';
   }

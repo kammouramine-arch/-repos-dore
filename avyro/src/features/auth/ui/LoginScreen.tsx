@@ -25,7 +25,7 @@ export const LoginScreen = () => {
     password.setError(passwordError);
     if (emailError || passwordError) return;
 
-    await signIn(email.value, password.value);
+    if (await signIn(email.value, password.value)) navigation.reset({ index: 0, routes: [{ name: 'Home' }] });
   };
 
   return (
@@ -71,6 +71,7 @@ export const LoginScreen = () => {
       />
 
       <Button label="Sign in" loading={submitting} onPress={() => void submit()} />
+      <Button label="Continue without an account" variant="ghost" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} />
     </AuthLayout>
   );
 };

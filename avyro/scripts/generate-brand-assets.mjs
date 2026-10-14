@@ -17,9 +17,9 @@ import { fileURLToPath } from 'node:url';
 const ASSETS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
 
 /** Brand tokens, mirrored from `src/ui/theme/colors.ts`. */
-const BACKGROUND = [10, 12, 17, 255];
-const GRADIENT_START = [61, 123, 255];
-const GRADIENT_END = [138, 107, 255];
+const BACKGROUND = [244, 246, 248, 255];
+const GRADIENT_START = [8, 127, 131];
+const GRADIENT_END = [36, 84, 119];
 const HIGHLIGHT = [255, 255, 255, 0.22];
 
 /** The mark, in normalised coordinates: a heading arrow. */
