@@ -7,15 +7,17 @@ import { ListRow } from './ListRow';
 export interface ToggleRowProps {
   title: string;
   subtitle?: string;
+  subtitleLines?: number;
   value: boolean;
   onChange: (value: boolean) => void;
 }
 
 /** A settings row whose entire surface is inert — only the switch acts. */
-export const ToggleRow = ({ title, subtitle, value, onChange }: ToggleRowProps) => (
+export const ToggleRow = ({ title, subtitle, subtitleLines = 2, value, onChange }: ToggleRowProps) => (
   <ListRow
     title={title}
     subtitle={subtitle}
+    subtitleLines={subtitleLines}
     trailing={
       <Switch
         value={value}

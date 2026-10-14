@@ -11,6 +11,7 @@ export interface ListRowProps {
   testID?: string;
   title: string;
   subtitle?: string;
+  subtitleLines?: number;
   icon?: IconName;
   iconTone?: IconBadgeTone;
   /** Right-hand content: a value, a switch, anything. */
@@ -25,6 +26,7 @@ export const ListRow = ({
   testID,
   title,
   subtitle,
+  subtitleLines = 1,
   icon,
   iconTone = 'neutral',
   trailing,
@@ -50,7 +52,7 @@ export const ListRow = ({
           {title}
         </AppText>
         {subtitle ? (
-          <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
+          <AppText variant="footnote" tone="tertiary" numberOfLines={subtitleLines}>
             {subtitle}
           </AppText>
         ) : null}

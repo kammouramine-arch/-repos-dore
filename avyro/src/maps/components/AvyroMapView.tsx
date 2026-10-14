@@ -4,7 +4,7 @@ import MapView, { PROVIDER_GOOGLE, type MapViewProps } from 'react-native-maps';
 
 import type { MapStyle } from '@/core/domain/entities/preferences';
 import { darkMapStyle } from '@/maps/mapStyle';
-import { colors } from '@/ui/theme';
+import { colors, spacing } from '@/ui/theme';
 
 export interface AvyroMapViewProps extends MapViewProps {
   mapRef?: RefObject<MapView | null>;
@@ -26,6 +26,8 @@ export const AvyroMapView = ({
   appearance = 'standard',
   children,
   style,
+  legalLabelInsets,
+  appleLogoInsets,
   ...rest
 }: AvyroMapViewProps) => (
   <MapView
@@ -43,6 +45,8 @@ export const AvyroMapView = ({
     loadingBackgroundColor={colors.background}
     loadingIndicatorColor={colors.accent}
     {...rest}
+    legalLabelInsets={legalLabelInsets}
+    appleLogoInsets={appleLogoInsets ?? (legalLabelInsets ? { top: 0, left: 0, right: spacing.md, bottom: legalLabelInsets.bottom } : undefined)}
     style={[StyleSheet.absoluteFill, style]}
   >
     {children}
