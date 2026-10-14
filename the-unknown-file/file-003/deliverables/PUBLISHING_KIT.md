@@ -4,7 +4,7 @@
 |---|---|
 | `THE_UNKNOWN_FILE_003_SHORT.mp4` | TikTok / Instagram Reels / YouTube Shorts · 1080×1920 · 30 fps · about 1:42 · −14 LUFS |
 | `THE_UNKNOWN_FILE_003_YOUTUBE_FULL.mp4` | YouTube · 3840×2160 · 24 fps · about 9:26 · −14 LUFS |
-| `THE_UNKNOWN_FILE_003_YOUTUBE_THUMBNAIL.png` | YouTube thumbnail (16:9) |
+| `THE_UNKNOWN_FILE_003_YOUTUBE_THUMBNAIL.png` | YouTube thumbnail (16:9, 1280×720, under 2 MB, upload this one); a 1920×1080 master is next to it |
 | `THE_UNKNOWN_FILE_003_VERTICAL_COVER.png` | Shorts / Reels / TikTok cover (9:16) |
 
 ## YouTube (long)

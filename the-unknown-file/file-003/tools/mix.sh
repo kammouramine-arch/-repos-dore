@@ -16,3 +16,5 @@ I=$(ffmpeg -nostats -i $M/${NAME}_premix.wav -af ebur128 -f null - 2>&1 | grep -
 G=$(python3 -c "print(round(-14.0 - float('$I'), 2))")
 ffmpeg -v error -y -i $M/${NAME}_premix.wav -af "volume=${G}dB,aresample=192000,alimiter=limit=0.84:attack=1:release=60:level=false,aresample=48000" -c:a pcm_s24le $M/${NAME}_mix.wav
 for f in ${NAME}_narration ${NAME}_sfx_ducked ${NAME}_mix; do echo -n "$f: "; ffmpeg -nostats -i $M/$f.wav -af ebur128=peak=true -f null - 2>&1 | grep -E "I:|Peak:" | tail -2 | tr -s ' ' | tr '\n' ' '; echo; done
+# AAC delivery master: a slightly lower ceiling so the encoded AAC stays below −1 dBTP (measured after encoding)
+ffmpeg -v error -y -i $M/${NAME}_mix.wav -af "aresample=192000,alimiter=limit=0.70:attack=1:release=60:level=false,aresample=48000" -c:a pcm_s24le $M/${NAME}_mix_aac.wav

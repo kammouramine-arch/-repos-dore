@@ -7,7 +7,8 @@ The true story of Roy C. Sullivan, a park ranger in Shenandoah National Park, Vi
 |---|---|
 | `THE_UNKNOWN_FILE_003_SHORT.mp4` | Vertical short: 1080×1920, 30 fps, about 1:42. Narration plus original SFX, −14 LUFS. |
 | `THE_UNKNOWN_FILE_003_YOUTUBE_FULL.mp4` | Documentary: 3840×2160, 24 fps, about 9:26. Narration plus original SFX, −14 LUFS. |
-| `THE_UNKNOWN_FILE_003_YOUTUBE_THUMBNAIL.png`, `THE_UNKNOWN_FILE_003_VERTICAL_COVER.png` | 16:9 thumbnail ("STRUCK 7 TIMES. SURVIVED.") and 9:16 cover ("STRUCK BY LIGHTNING 7 TIMES") |
+| `THE_UNKNOWN_FILE_003_YOUTUBE_THUMBNAIL.png`, `THE_UNKNOWN_FILE_003_VERTICAL_COVER.png` | 16:9 thumbnail ("STRUCK 7 TIMES. SURVIVED.") at 1280×720, under YouTube's 2 MB limit; 9:16 cover ("STRUCK BY LIGHTNING 7 TIMES") at 1080×1920 |
+| `THE_UNKNOWN_FILE_003_YOUTUBE_THUMBNAIL_1920x1080.png` | Full-resolution thumbnail master |
 | `*_NARRATION.wav`, `*_SFX.wav` | Separate stems: narration master and SFX (ducked, as mixed). There is no music stem: the episode has no music. |
 | `TRANSCRIPT_EN_SHORT.md`, `TRANSCRIPT_EN_LONG.md` | English transcripts with timecodes |
 | `LICENSE_REGISTER.md` | Every external asset with its source and licence, the music decision, and the fact-check |
