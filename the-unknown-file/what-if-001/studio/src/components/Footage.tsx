@@ -22,7 +22,8 @@ const useU = () => { const { width, height } = useVideoConfig(); return Math.min
 
 export const FootageLayer: React.FC<{
   id: string; start?: number; rate?: number; fx?: number; fy?: number; move?: Move; grade?: Grade; p?: number; style?: React.CSSProperties;
-}> = ({ id, start = 0, rate = 1, fx = 0.5, fy = 0.5, move = {}, grade = {}, p, style }) => {
+  overlay?: React.ReactNode; // SVG drawn in the clip's own pixel space (viewBox 0 0 w h), locked to the image
+}> = ({ id, start = 0, rate = 1, fx = 0.5, fy = 0.5, move = {}, grade = {}, p, style, overlay }) => {
   const c = getClip(id);
   const { fps } = useVideoConfig();
   const shot = useShot();
@@ -39,6 +40,11 @@ export const FootageLayer: React.FC<{
           <OffthreadVideo src={staticFile(c.file)} trimBefore={Math.round(start * fps)} playbackRate={rate} muted style={media} />
         ) : (
           <Img src={staticFile(c.file)} style={media} />
+        )}
+        {overlay && (
+          <svg viewBox={`0 0 ${c.w} ${c.h}`} preserveAspectRatio={`x${fx < 0.34 ? "Min" : fx > 0.66 ? "Max" : "Mid"}Y${fy < 0.34 ? "Min" : fy > 0.66 ? "Max" : "Mid"} slice`} style={{ position: "absolute", width: "100%", height: "100%", overflow: "visible" }}>
+            {overlay}
+          </svg>
         )}
       </AbsoluteFill>
       {(grade.night ?? 0) > 0 && <AbsoluteFill style={{ background: "#0b1a33", mixBlendMode: "multiply", opacity: grade.night }} />}
@@ -96,8 +102,8 @@ export const Split: React.FC<{ a: React.ReactNode; b: React.ReactNode; capA: str
     <AbsoluteFill style={{ background: "#020304" }}>
       <div style={{ position: "absolute", overflow: "hidden", ...pa }}><div style={{ position: "relative", width: "100%", height: "100%" }}>{a}</div></div>
       <div style={{ position: "absolute", overflow: "hidden", ...pb }}><div style={{ position: "relative", width: "100%", height: "100%" }}>{b}</div></div>
-      {cap(capA, subA, colA, v ? { left: 48 * u, top: (H - gap) / 2 - 130 * u } : { left: 70 * u, bottom: 120 * u })}
-      {cap(capB, subB, colB, v ? { left: 48 * u, top: H - 380 * u } : { left: (W + gap) / 2 + 50 * u, bottom: 120 * u })}
+      {cap(capA, subA, colA, v ? { left: 48 * u, top: 330 * u } : { left: 70 * u, bottom: 120 * u })}
+      {cap(capB, subB, colB, v ? { left: 48 * u, top: (H + gap) / 2 + 40 * u } : { left: (W + gap) / 2 + 50 * u, bottom: 120 * u })}
     </AbsoluteFill>
   );
 };

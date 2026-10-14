@@ -16,3 +16,4 @@ for (const s of secs.split(",").map(Number)) {
   await renderStill({ composition: comp, serveUrl, frame, output: out, imageFormat: "jpeg", jpegQuality: 85, chromiumOptions, browserExecutable, scale: Number(scale), timeoutInMilliseconds: 120000 });
   console.log(out, ((Date.now() - t0) / 1000).toFixed(1) + "s");
 }
+fs.rmSync(serveUrl, { recursive: true, force: true }); // bundles copy public/ (footage) into /tmp: clean up

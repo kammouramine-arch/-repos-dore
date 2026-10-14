@@ -5,10 +5,13 @@ import { useT } from "./lib/time";
 import { BeachSection } from "./scenes/BeachSection";
 import { Footage, FootageLayer, Split } from "./components/Footage";
 import { SpawnGrid } from "./components/SpawnGrid";
+import { TideBeach } from "./scenes/TideBeach";
 
 /** V2 test bench: one test view every 2 s */
 const L: React.FC<{ render: (t: number) => React.ReactNode }> = ({ render }) => { const t = useT(); return <>{render(t + 3)}</>; };
 export const LAB2: React.ReactNode[] = [
+  <L render={(t) => <TideBeach t={t} day={13} moonless={false} />} />,
+  <L render={(t) => <TideBeach t={t} day={25} moonless />} />,
   <L render={(t) => <BeachSection t={t} cam={{ x: 1000, y: 790, w: 1150 }} moonless={false} day={13} labels={1} />} />,
   <L render={(t) => <BeachSection t={t} cam={{ x: 1000, y: 790, w: 1150 }} moonless day={25} labels={1} inset={1} insetNest={0} />} />,
   <L render={(t) => <BeachSection t={t} cam={{ x: 1050, y: 760, w: 1500 }} moonless={false} day={3} light="dusk" inset={1} />} />,
