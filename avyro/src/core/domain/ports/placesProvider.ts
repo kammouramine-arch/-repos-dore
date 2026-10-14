@@ -13,5 +13,9 @@ export interface PlaceSearchOptions {
 export interface PlacesProvider {
   supportsTypeahead?: boolean;
   attribution?: string;
+  suggest?(query: string, options?: PlaceSearchOptions): Promise<PlaceSuggestion[]>;
+  resolveSuggestion?(suggestion: PlaceSuggestion): Promise<Place | null>;
   search(query: string, options?: PlaceSearchOptions): Promise<Place[]>;
 }
+/** Suggestions have no invented coordinates; resolve a selected one before routing. */
+export interface PlaceSuggestion extends Pick<Place, 'id' | 'name' | 'address' | 'category'> { query: string }

@@ -5,6 +5,7 @@ export interface RoadEvidence {
   capturedAt: number;
   expiresAt: number;
   speedLimit: { value: number; unit: 'km/h' | 'mph' } | null;
+  recentSegmentSigns?: { type: string }[];
   position: UserPosition;
 }
 

@@ -14,7 +14,8 @@ export const createGatewayRoadDataProvider = ({ http, getAccessToken }: { http: 
       const value = raw as Partial<RoadEvidence> & { status?: string } | null;
       const limit = value?.speedLimit;
       if (!value || value.source !== 'TomTom map data' || !['matched', 'unavailable'].includes(value.status ?? '') || !Number.isFinite(value.capturedAt) || value.capturedAt !== position.timestamp || !Number.isFinite(value.expiresAt) || value.expiresAt !== position.timestamp + 5000 || (limit != null && (value.status !== 'matched' || !Number.isInteger(limit.value) || limit.value <= 0 || limit.value > 300 || !['km/h', 'mph'].includes(limit.unit)))) throw new AppError('invalid-response', 'Road information was rejected.');
-      return { source: 'TomTom map data', capturedAt: value.capturedAt!, expiresAt: value.expiresAt!, speedLimit: limit ? { value: limit.value, unit: limit.unit } : null, position };
+      const signs = Array.isArray(value.recentSegmentSigns) ? value.recentSegmentSigns.filter(item => typeof item?.type === 'string' && /^[A-Za-z]{1,70}Sign$/.test(item.type)).slice(0, 20).map(item => ({ type: item.type })) : [];
+      return { source: 'TomTom map data', capturedAt: value.capturedAt!, expiresAt: value.expiresAt!, speedLimit: limit ? { value: limit.value, unit: limit.unit } : null, recentSegmentSigns: signs, position };
     }, { operation: 'roads.context', signal, timeoutMs: 4000, headers: { Authorization: `Bearer ${token}` } });
   },
 });

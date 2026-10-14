@@ -6,6 +6,7 @@ import { spacing } from "@/ui/theme";
 import { formatSpeed, speedUnitLabel } from "@/utils/format";
 import { useRoadInformation } from '../hooks/useRoadInformation';
 import { aboveMappedLimit, measuredSpeed } from '@/core/navigation/measuredSpeed';
+const SIGN_LABELS: Record<string, string> = { StopSign: 'Stop sign', YieldSign: 'Give way', TrafficLightSign: 'Traffic signal', TrafficLightsSign: 'Traffic signal', PedestrianCrossingSign: 'Pedestrian crossing', SchoolZoneSign: 'School zone', NoEntrySign: 'No entry' };
 
 /** GPS speed is a measurement, never a statement about the legal road limit. */
 export const DrivingStatusPanel = () => {
@@ -21,6 +22,7 @@ export const DrivingStatusPanel = () => {
   const speed = formatSpeed(measurement, unit);
   const limit = road?.speedLimit;
   const overLimit = aboveMappedLimit(measurement, limit);
+  const signs = road?.recentSegmentSigns?.map(sign => SIGN_LABELS[sign.type]).filter(Boolean).slice(0, 2);
   return (
     <GlassPanel style={styles.panel}>
       <AppText variant="caption" tone="secondary">
@@ -34,6 +36,7 @@ export const DrivingStatusPanel = () => {
       </View>
       {limit ? <View style={styles.limit}><AppText variant="headline">{limit.value}</AppText><AppText variant="caption">{limit.unit}</AppText></View> : <AppText variant="caption" tone="tertiary">Limit unavailable</AppText>}
       {overLimit ? <AppText variant="caption" tone="danger">Above mapped limit</AppText> : null}
+      {signs?.length ? <AppText variant="caption" tone="secondary">Mapped segment: {signs.join(' · ')}</AppText> : null}
       {road?.speedLimit ? <AppText variant="caption" tone="tertiary">TomTom · follow road signs</AppText> : null}
     </GlassPanel>
   );

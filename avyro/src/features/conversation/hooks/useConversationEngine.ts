@@ -289,7 +289,9 @@ export const useConversationEngine = (): void => {
                   send({
                     type: "availability",
                     available: available.available,
-                    onDevice,
+                    // Both wake paths are offline, including the bundled
+                    // keyword fallback when Apple's speech assets fail.
+                    onDevice: available.available,
                   });
                 })
                 .catch((error) => {
@@ -412,8 +414,11 @@ export const useConversationEngine = (): void => {
             AppState.currentState !== "active"
           )
             throw new Error("Superseded command session");
-          const locales = voiceOptions().locales;
-          const onDevice = (await Promise.all(locales.map(locale => services.speechRecognizer.supportsOnDevice(locale)))).every(Boolean);
+          const requestedLocales = voiceOptions().locales;
+          const supported = await Promise.all(requestedLocales.map(locale => services.speechRecognizer.supportsOnDevice(locale)));
+          const installedLocales = requestedLocales.filter((_locale, index) => supported[index]);
+          const onDevice = installedLocales.length > 0;
+          const locales = onDevice ? installedLocales : requestedLocales;
           const permissionRequest = { networkRecognition: !onDevice };
           let permission =
             await services.speechRecognizer.getPermission(permissionRequest);

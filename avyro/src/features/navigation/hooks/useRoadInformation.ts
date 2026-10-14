@@ -56,5 +56,7 @@ export function useRoadInformation(now: number): RoadEvidence | null {
       if (requestGeneration === generation.current) setResult(null);
     }).finally(() => { if (pending.current === controller) pending.current = null; });
   }, [enabled, fix, roadDataProvider, token]);
-  return enabled && result?.token === token && isRoadEvidenceCurrent(result.evidence, fix, now) ? result.evidence : null;
+  // GPS callbacks may arrive after the display's most recent one-second tick.
+  const displayClock = fix && fix.timestamp <= now + 1000 ? Math.max(now, fix.timestamp) : now;
+  return enabled && result?.token === token && isRoadEvidenceCurrent(result.evidence, fix, displayClock) ? result.evidence : null;
 }

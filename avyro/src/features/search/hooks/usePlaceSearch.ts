@@ -4,13 +4,15 @@ import { useServices } from '@/app/runtime/AppRuntime';
 import { useLocationStore } from '@/app/stores/hooks';
 import { NETWORK } from '@/config';
 import type { Place } from '@/core/domain/entities/place';
+import type { PlaceSuggestion } from '@/core/domain/ports/placesProvider';
 import { messageFor } from '@/core/domain/errors/appError';
 import { isAbortError } from '@/services/http/httpClient';
 
 export type SearchStatus = 'idle' | 'searching' | 'ready' | 'error';
 
 export interface PlaceSearchResult {
-  results: Place[];
+  results: (Place | PlaceSuggestion)[];
+  query?: string;
   status: SearchStatus;
   error: string | null;
 }
@@ -24,8 +26,8 @@ export interface PlaceSearchResult {
  */
 const IDLE: PlaceSearchResult = { results: [], status: 'idle', error: null };
 
-export const usePlaceSearch = (query: string): PlaceSearchResult => {
-  const { useCases } = useServices();
+export const usePlaceSearch = (query: string, fullSearch = false): PlaceSearchResult => {
+  const { useCases, placesProvider } = useServices();
   const near = useLocationStore((state) => state.position?.coordinates);
   const nearRef = useRef(near);
   useEffect(() => { nearRef.current = near; }, [near]);
@@ -39,22 +41,23 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
     const controller = new AbortController();
 
     const timer = setTimeout(async () => {
-      setState((current) => ({ ...current, status: 'searching' }));
+      setState({ results: [], status: 'searching', error: null, query });
 
       try {
-        const results = await useCases.searchPlaces({
+        const results = placesProvider.suggest && !fullSearch ? await placesProvider.suggest(query, { near: nearRef.current, signal: controller.signal }) : await useCases.searchPlaces({
           query,
           near: nearRef.current,
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;
-        setState({ results, status: 'ready', error: null });
+        setState({ results, status: 'ready', error: null, query });
       } catch (error) {
         if (controller.signal.aborted || isAbortError(error)) return;
         setState({
           results: [],
           status: 'error',
           error: messageFor(error, 'Search is unavailable right now.'),
+          query,
         });
       }
     }, NETWORK.searchDebounceMs);
@@ -63,9 +66,9 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, isSearchable, useCases]);
+  }, [query, isSearchable, useCases, placesProvider, fullSearch]);
 
   // Derived rather than stored: clearing the field returns to the idle result
   // without a second render pass, and stale hits can never flash back.
-  return isSearchable ? state : IDLE;
+  return !isSearchable ? IDLE : state.query === query ? state : { results: [], status: 'searching', error: null };
 };

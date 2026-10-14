@@ -17,6 +17,7 @@ import { ActiveRouteOverlay } from "@/maps/components/ActiveRouteOverlay";
 import { DestinationMarker } from "@/maps/components/DestinationMarker";
 import { AvyroMapView } from "@/maps/components/AvyroMapView";
 import { UserPuck } from "@/maps/components/UserPuck";
+import { IncidentMapLayer } from '@/maps/components/IncidentMapLayer';
 import { AppText, Button, GlassPanel } from "@/ui/components";
 import { spacing } from "@/ui/theme";
 import { useGuidanceSession } from "../hooks/useGuidanceSession";
@@ -116,6 +117,7 @@ export const GuidanceScreen = () => {
         pitchEnabled
         onPanDrag={() => setFollowing(false)}
       >
+        <IncidentMapLayer />
         {routeIndex && progress ? (
           <ActiveRouteOverlay
             routeIndex={routeIndex}

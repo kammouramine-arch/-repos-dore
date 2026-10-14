@@ -1,5 +1,49 @@
 # The Avyro Developer Bible
 
+## October 14 physical-test corrections
+
+Two valid device recordings were reviewed locally. The supplied ABGK3225.MP4
+was a 5,265-byte JPEG thumbnail rather than a video, so its speech could not
+be analyzed. No recordings or real trip traces were sent to external services.
+
+The speed display formerly rejected every GPS fix newer than its previous
+one-second UI tick, causing repeated blanks. Display freshness now tolerates
+that tick offset while still rejecting stale, inaccurate and invalid readings.
+The position marker uses one original static arrow with animated coordinates;
+missing course readings retain its last direction. Background Home camera
+animations stop when guidance is visible.
+
+The microphone now cancels an active turn, releases pending capture, aborts
+the assistant request and prevents queued TTS from speaking after cancellation.
+Repeated Apple speech startup/runtime failures switch the wake listener to the
+bundled offline keyword model. No ambient network recognition is introduced.
+Native ASR uses measurement capture mode and restores normal playback for TTS.
+Recognition in real road noise and French/English accents still needs device
+retesting; passing mocked recognizer tests is not evidence of acoustic accuracy.
+
+iOS search uses native Apple MKLocalSearchCompleter suggestions and resolves
+the selected completion through MKLocalSearch before routing. Suggestions have
+no fabricated coordinates. Numbered address searches reject street-centre or
+different-house results, and preserve the returned house number in the label.
+Public Nominatim remains submit-only on platforms without the native adapter;
+its policy forbids autocomplete. Cancelled selections and stale query results
+cannot initiate a new route.
+
+The map offers Fuel, Food and Parking shortcuts and an explicit consent action
+for existing hosted AI and TomTom road information. Current licensed speed
+limits have a circular badge and visual overspeed indication. English/French
+speed-limit questions answer only from current evidence; missing data is stated.
+Mapped segment signs are not positioned as upcoming signs or live light phases.
+The evaluation quota and conservative evidence expiry still limit availability.
+
+Eight incident categories use an original grid sheet. Only server-reviewed,
+unexpired, coarse-location community observations can appear on the map;
+pending reports cannot. A reviewed observation is not an official verification.
+The backend still requires an assigned human moderation operation before
+community reports can be approved in production.
+
+No paid plans, copied Waze code/assets or closed-app listening were introduced.
+
 ## October 14 map-first and bilingual revision
 
 User-authorized product change: the animated launch now opens the map directly.

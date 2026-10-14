@@ -15,6 +15,9 @@ test('anonymous access works without a personal account; reports stay pending an
   const report = await request('/incidents', { category: 'hazard', latitude: 48.856612, longitude: 2.352219, observedAt: Date.now(), consent: true, status: 'approved' }, token);
   assert.equal(report.status, 202); assert.equal((await report.json()).status, 'pending');
   assert.deepEqual(await (await request('/incidents', null, token)).json(), []);
+  const traffic = await request('/incidents', { category: 'traffic', latitude: 48.856612, longitude: 2.352219, observedAt: Date.now(), consent: true, status: 'approved' }, token);
+  assert.equal(traffic.status, 202); assert.equal((await traffic.json()).status, 'pending');
+  assert.deepEqual(await (await request('/incidents', null, token)).json(), []);
   assert.equal((await request('/incidents', { category: 'hazard', latitude: 48, longitude: 2, observedAt: Date.now(), consent: false }, token)).status, 400);
   assert.equal((await request('/roads/context', { consent: true }, token)).status, 503);
   assert.equal((await request('/auth/logout', {}, token)).status, 200);

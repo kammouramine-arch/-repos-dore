@@ -103,6 +103,14 @@ const build = (provider: AiProvider) => {
 };
 
 describe('deterministic first', () => {
+  it('lets speed-limit questions reach grounded local answers without a blanket refusal or a model call', async () => {
+    const complete = jest.fn(async () => ({ intent: null, speech: null }));
+    const { gateway, understands } = build({ id: 'test-provider', isConfigured: () => true, complete });
+    understands({ kind: 'ask-speed-limit' });
+    const response = await gateway.respond(request('What is the speed limit here?'));
+    expect(response.intent.kind).toBe('ask-speed-limit');
+    expect(complete).not.toHaveBeenCalled();
+  });
   it('never consults the model for a command the parser understood', async () => {
     let asked = false;
     const provider: AiProvider = {

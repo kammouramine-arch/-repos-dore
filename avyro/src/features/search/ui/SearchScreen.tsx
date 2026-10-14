@@ -3,10 +3,11 @@ import type { RootStackScreenProps } from "@/app/navigation/types";
 import { useServices } from "@/app/runtime/AppRuntime";
 import { Alert, FlatList, StyleSheet, View } from "react-native";
 
-import { useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 import { useTripStore } from "@/app/stores/hooks";
 import type { Place } from "@/core/domain/entities/place";
+import type { PlaceSuggestion } from '@/core/domain/ports/placesProvider';
 import { usePlanDestination } from "@/features/trip/hooks/usePlanDestination";
 import {
   AppText,
@@ -34,9 +35,18 @@ export const SearchScreen = () => {
   const saveSlot = route.params?.saveSlot;
   const [query, setQuery] = useState(route.params?.initialQuery ?? "");
   const [submitted, setSubmitted] = useState(route.params?.initialQuery ?? "");
-  const { results, status, error } = usePlaceSearch(placesProvider.supportsTypeahead ? query : submitted);
+  const selectionGeneration = useRef(0);
+  const supersedeSelection = useCallback(() => { selectionGeneration.current++; }, []);
+  useEffect(() => { supersedeSelection(); return supersedeSelection; }, [query, supersedeSelection]);
+  const { results, status, error } = usePlaceSearch(placesProvider.supportsTypeahead ? query : submitted, submitted === query);
   const submit = () => setSubmitted(query.trim());
-  const choose = async (place: Place) => {
+  const choose = async (item: Place | PlaceSuggestion) => {
+    const generation = ++selectionGeneration.current;
+    let place: Place | null;
+    try { place = 'coordinates' in item ? item : await placesProvider.resolveSuggestion?.(item) ?? null; }
+    catch { if (generation === selectionGeneration.current) Alert.alert('Address unavailable', 'Please select a current suggestion and try again.'); return; }
+    if (generation !== selectionGeneration.current) return;
+    if (!place) { Alert.alert('Exact address unavailable', 'The provider could not confirm this destination or house number. Refine the address; Avyro will not silently choose the street centre.'); return; }
     if (!saveSlot) {
       await planDestination(place);
       return;
@@ -52,7 +62,7 @@ export const SearchScreen = () => {
   const planDestination = usePlanDestination();
 
   const showRecents = status === "idle";
-  const places: Place[] = showRecents
+  const places: (Place | PlaceSuggestion)[] = showRecents
     ? recents.map((entry) => entry.place)
     : results;
 

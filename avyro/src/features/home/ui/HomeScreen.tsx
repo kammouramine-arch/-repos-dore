@@ -1,4 +1,4 @@
-import { useNavigation } from '@react-navigation/native';
+import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type MapView from 'react-native-maps';
@@ -16,6 +16,7 @@ import { regionAround } from '@/maps/camera';
 import { AvyroMapView } from '@/maps/components/AvyroMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
 import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
+import { IncidentMapLayer } from '@/maps/components/IncidentMapLayer';
 import { IconButton } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { HomeSheet } from './HomeSheet';
@@ -27,6 +28,7 @@ import { HomeHeader } from './HomeHeader';
  */
 export const HomeScreen = () => {
   const navigation = useNavigation();
+  const focused = useIsFocused();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
@@ -62,9 +64,9 @@ export const HomeScreen = () => {
 
   // Lock onto the driver once, on the first fix. After that the map is theirs.
   useEffect(() => {
-    if (!position || !following) return;
+    if (!position || !following || !focused) return;
     mapRef.current?.animateToRegion(regionAround(position.coordinates), 650);
-  }, [position, following]);
+  }, [position, following, focused]);
 
   return (
     <View style={styles.root}>
@@ -76,6 +78,7 @@ export const HomeScreen = () => {
         onPanDrag={() => setFollowing(false)}
         legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
       >
+        {focused ? <IncidentMapLayer /> : null}
         {position ? (
           <UserPuck
             coordinate={position.coordinates}

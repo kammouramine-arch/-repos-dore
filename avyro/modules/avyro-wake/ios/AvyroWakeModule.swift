@@ -5,6 +5,21 @@ import Speech
 import MapKit
 import SherpaOnnxC
 
+private final class AvyroSuggestions: NSObject, MKLocalSearchCompleterDelegate {
+  let completer = MKLocalSearchCompleter()
+  var complete: (([MKLocalSearchCompletion]) -> Void)?
+  var fail: ((Error) -> Void)?
+  func start(_ query: String, latitude: Double?, longitude: Double?) {
+    completer.delegate = self
+    completer.resultTypes = [.address, .pointOfInterest]
+    if let latitude, let longitude { completer.region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), latitudinalMeters: 50000, longitudinalMeters: 50000) }
+    completer.queryFragment = query
+  }
+  func completerDidUpdateResults(_ completer: MKLocalSearchCompleter) { complete?(completer.results); complete = nil; fail = nil; completer.delegate = nil }
+  func completer(_ completer: MKLocalSearchCompleter, didFailWithError error: Error) { fail?(error); complete = nil; fail = nil; completer.delegate = nil }
+  func cancel() { completer.cancel(); fail?(NSError(domain: "AvyroSearch", code: 1, userInfo: [NSLocalizedDescriptionKey: "Search superseded"])); complete = nil; fail = nil; completer.delegate = nil }
+}
+
 // Audio lifecycle stays on main; model ownership stays on the inference queue.
 // Stop drains that queue before resolving, so a command never races the wake tap.
 public final class AvyroWakeModule: Module {
@@ -19,6 +34,8 @@ public final class AvyroWakeModule: Module {
   private var speechRecognizers: [SFSpeechRecognizer] = []
   private var recognitionRequests: [SFSpeechAudioBufferRecognitionRequest] = []
   private var generation = 0
+  private var suggestions: AvyroSuggestions?
+  private var completionResults: [String: MKLocalSearchCompletion] = [:]
 
   private var models: Bundle? {
     guard let url = Bundle(for: AvyroWakeModule.self).url(forResource: "AvyroWakeModels", withExtension: "bundle") else { return nil }
@@ -28,6 +45,33 @@ public final class AvyroWakeModule: Module {
   public func definition() -> ModuleDefinition {
     Name("AvyroWake")
     Events("detected", "failure", "transcript", "speechEnd")
+    AsyncFunction("suggestPlaces") { (query: String, latitude: Double?, longitude: Double?, promise: Promise) in
+      self.suggestions?.cancel()
+      let search = AvyroSuggestions()
+      search.complete = { [weak self] results in
+        guard let self else { promise.resolve([]); return }
+        self.completionResults = [:]
+        let items: [[String: Any]] = results.prefix(8).map { item in
+          let id = UUID().uuidString
+          self.completionResults[id] = item
+          return ["id": id, "name": item.title, "address": item.subtitle]
+        }
+        promise.resolve(items)
+      }
+      search.fail = { error in promise.reject(error) }
+      self.suggestions = search
+      search.start(query, latitude: latitude, longitude: longitude)
+    }.runOnQueue(.main)
+    AsyncFunction("resolvePlaceSuggestion") { (id: String) async throws -> [[String: Any]] in
+      guard let completion = self.completionResults[id] else { throw self.wakeError("Search changed. Choose a current suggestion.") }
+      let response = try await MKLocalSearch(request: MKLocalSearch.Request(completion: completion)).start()
+      return response.mapItems.prefix(1).map { item in
+        let address = item.placemark
+        let street = [address.subThoroughfare, address.thoroughfare].compactMap { $0 }.joined(separator: " ")
+        let fullAddress = [street, address.locality, address.postalCode, address.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+        return ["name": item.name ?? street, "address": fullAddress, "houseNumber": address.subThoroughfare ?? "", "latitude": address.coordinate.latitude, "longitude": address.coordinate.longitude]
+      }
+    }.runOnQueue(.main)
     AsyncFunction("searchPlaces") { (query: String, latitude: Double?, longitude: Double?) async throws -> [[String: Any]] in
       let request = MKLocalSearch.Request()
       request.naturalLanguageQuery = query
@@ -175,6 +219,9 @@ public final class AvyroWakeModule: Module {
       stream = nil; spotter = nil; triggered = false
     }
     try? AVAudioSession.sharedInstance().setActive(false, options: .notifyOthersOnDeactivation)
+    // Recognition uses measurement mode. Restore normal playback before TTS
+    // so guidance does not inherit the capture session's reduced output level.
+    try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.duckOthers])
   }
 
   // Both language models consume the same microphone buffers. Ambient audio
