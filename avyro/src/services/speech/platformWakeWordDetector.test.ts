@@ -22,7 +22,7 @@ test('a partial command only requests a final result, never navigates', async ()
   jest.useFakeTimers(); const { detector, events, finish } = setup(); const onDetected = jest.fn();
   const session = await detector.start({ onDetected, onError: jest.fn() });
   events().onTranscript({ text: 'Hey Avyro, take me to', isFinal: false });
-  jest.advanceTimersByTime(1600);
+  jest.advanceTimersByTime(2400);
   expect(finish).toHaveBeenCalledTimes(1); expect(onDetected).not.toHaveBeenCalled();
   await session.stop();
 });
@@ -44,11 +44,19 @@ test('never falls back to ambient network recognition for a missing offline lang
 test('repeated system speech startup failures switch to the offline keyword model', async () => {
   const systemStart = jest.fn(async () => { throw Error('Speech asset unavailable'); });
   const keywordStart = jest.fn(async () => ({ stop: async () => undefined }));
-  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => true, start: systemStart } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: true }), start: keywordStart });
+  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => true, start: systemStart } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: systemStart.mock.calls.length >= 2 }), start: keywordStart });
   const events = { onDetected: jest.fn(), onError: jest.fn() };
   await expect(detector.start(events)).rejects.toThrow();
   await expect(detector.start(events)).rejects.toThrow();
   await detector.start(events);
   expect(systemStart).toHaveBeenCalledTimes(2);
+  expect(keywordStart).toHaveBeenCalledTimes(1);
+});
+test('automatic mode prefers the dedicated offline wake model rather than continuous bilingual dictation', async () => {
+  const systemStart = jest.fn();
+  const keywordStart = jest.fn(async () => ({ stop: async () => undefined }));
+  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => true, start: systemStart } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: true }), start: keywordStart });
+  await detector.start({ onDetected: jest.fn(), onError: jest.fn() }, { engine: 'system', locales: ['en-US', 'fr-FR'] });
+  expect(systemStart).not.toHaveBeenCalled();
   expect(keywordStart).toHaveBeenCalledTimes(1);
 });

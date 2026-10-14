@@ -9,12 +9,15 @@ export const createPlatformWakeWordDetector = (recognizer: SpeechRecognizer, key
   return {
   async isAvailable(options) {
     if (options?.engine === 'keyword' || systemFailures >= 2) return keyword.isAvailable();
+    const bundled = await keyword.isAvailable();
+    if (bundled.available) return bundled;
     const locales = options?.locales ?? ['fr-FR', 'en-US'];
     const available = (await Promise.all(locales.map(locale => recognizer.supportsOnDevice(locale)))).every(Boolean);
     return available ? { available: true } : keyword.isAvailable();
   },
   async start(events, options) {
     if (options?.engine === 'keyword' || systemFailures >= 2) return keyword.start(events);
+    if ((await keyword.isAvailable()).available) return keyword.start(events);
     const locales = options?.locales ?? ['fr-FR', 'en-US'];
     if (!(await Promise.all(locales.map(locale => recognizer.supportsOnDevice(locale)))).every(Boolean)) return keyword.start(events);
     let triggered = false, stopped = false;

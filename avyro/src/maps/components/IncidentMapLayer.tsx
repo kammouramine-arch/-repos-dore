@@ -5,9 +5,8 @@ import { useServices } from '@/app/runtime/AppRuntime';
 import { useLocationStore } from '@/app/stores/hooks';
 import type { ReviewedIncident } from '@/core/domain/ports/incidentReporter';
 import { distanceBetween } from '@/utils/geo';
-import { AppText } from '@/ui/components';
-
-const symbols = { accident: '!', hazard: '△', closure: '⊘', police: '◈', traffic: '≋', 'blocked-lane': '↥', weather: '☂', 'map-issue': '⌖' };
+import { Icon } from '@/ui/components';
+import { INCIDENT_CATALOG } from '@/features/incidents/incidentCatalog';
 
 /** Reviewed observations only; a review is not an official verification. */
 export function IncidentMapLayer() {
@@ -30,6 +29,9 @@ export function IncidentMapLayer() {
     return () => { clearInterval(timer); controller.abort(); };
   }, [active, incidentReporter]);
   if (!active || !position) return null;
-  return <>{reports.filter(item => item.expires > now && distanceBetween(position.coordinates, { latitude: item.latitude, longitude: item.longitude }) < 10000).map(item => <Marker key={item.id} coordinate={{ latitude: item.latitude, longitude: item.longitude }} title={item.category.replace('-', ' ')} description="Reviewed community observation · approximate location · conditions may change" tracksViewChanges={false}><View style={styles.marker}><AppText variant="headline" tone="accent">{symbols[item.category]}</AppText></View></Marker>)}</>;
+  return <>{reports.filter(item => item.expires > now && distanceBetween(position.coordinates, { latitude: item.latitude, longitude: item.longitude }) < 10000).map(item => {
+    const category = INCIDENT_CATALOG.find(entry => entry.category === item.category)!;
+    return <Marker key={item.id} coordinate={{ latitude: item.latitude, longitude: item.longitude }} title={category.title} description="Reviewed community observation · approximate location · conditions may change" tracksViewChanges={false}><View style={[styles.marker, { borderColor: category.color }]}><Icon name={category.icon} size={22} color={category.color} /></View></Marker>;
+  })}</>;
 }
 const styles = StyleSheet.create({ marker: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 14, borderWidth: 2, borderColor: '#087F83', backgroundColor: '#FFFFFF' } });

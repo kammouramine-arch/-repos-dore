@@ -33,6 +33,7 @@ export const HomeScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
+  const [cameraHeading, setCameraHeading] = useState(0);
 
   // Narrow selectors on purpose. Home stays mounted under the rest of the
   // stack, so subscribing to whole stores would re-render the map on state it
@@ -76,13 +77,15 @@ export const HomeScreen = () => {
         showsTraffic={preferences.showTraffic}
         initialRegion={MAP_DEFAULTS.fallbackRegion}
         onPanDrag={() => setFollowing(false)}
+        onRegionChangeComplete={() => { if (focused) void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => undefined); }}
         legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
       >
         {focused ? <IncidentMapLayer /> : null}
-        {position ? (
+        {focused && position ? (
           <UserPuck
             coordinate={position.coordinates}
             headingDegrees={position.heading}
+            cameraHeadingDegrees={cameraHeading}
           />
         ) : null}
       </AvyroMapView>

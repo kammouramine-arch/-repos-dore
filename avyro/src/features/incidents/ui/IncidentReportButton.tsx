@@ -3,19 +3,9 @@ import { useState } from 'react';
 import { useServices, useStores } from "@/app/runtime/AppRuntime";
 import { canReportIncident } from "@/core/navigation/reportEligibility";
 import type { IncidentCategory } from "@/core/domain/ports/incidentReporter";
-import { AppText, Button, GlassPanel, IconButton, PressableScale } from "@/ui/components";
+import { AppText, Button, GlassPanel, Icon, IconButton, PressableScale } from "@/ui/components";
 import { colors, spacing } from '@/ui/theme';
-
-const categories: { category: IncidentCategory; title: string; symbol: string }[] = [
-  { category: 'traffic', title: 'Traffic', symbol: '≋' },
-  { category: 'police', title: 'Police', symbol: '◈' },
-  { category: 'accident', title: 'Crash', symbol: '!' },
-  { category: 'hazard', title: 'Hazard', symbol: '△' },
-  { category: 'closure', title: 'Closure', symbol: '⊘' },
-  { category: 'blocked-lane', title: 'Blocked lane', symbol: '↥' },
-  { category: 'weather', title: 'Weather', symbol: '☂' },
-  { category: 'map-issue', title: 'Map issue', symbol: '⌖' },
-];
+import { INCIDENT_CATALOG as categories } from '../incidentCatalog';
 
 export const IncidentReportButton = () => {
   const { incidentReporter } = useServices();
@@ -85,7 +75,7 @@ export const IncidentReportButton = () => {
       <View style={styles.backdrop}><GlassPanel style={styles.sheet}>
         <AppText variant="title2">What did you see?</AppText>
         <AppText variant="footnote" tone="secondary">Report while parked. Observations remain pending until reviewed.</AppText>
-        <View style={styles.grid}>{categories.map(item => <PressableScale key={item.category} style={styles.tile} accessibilityRole="button" accessibilityLabel={`Report ${item.title}`} onPress={() => submit(item.category)}><AppText variant="title1" tone="accent">{item.symbol}</AppText><AppText variant="subhead">{item.title}</AppText></PressableScale>)}</View>
+        <View style={styles.grid}>{categories.map(item => <PressableScale key={item.category} style={styles.tile} accessibilityRole="button" accessibilityLabel={`Report ${item.title}`} onPress={() => submit(item.category)}><Icon name={item.icon} color={item.color} size={30} /><AppText variant="subhead">{item.title}</AppText></PressableScale>)}</View>
         <Button label="Close" variant="ghost" onPress={() => setVisible(false)} />
       </GlassPanel></View>
     </Modal></>

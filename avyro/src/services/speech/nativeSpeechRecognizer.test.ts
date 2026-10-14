@@ -16,9 +16,9 @@ test('requests both languages on one native capture, ends audio after a pause an
   jest.useFakeTimers(); const { native, emit, recognizer } = setup();
   const onTranscript = jest.fn();
   const session = await recognizer.start({ locale: 'fr-FR', locales: ['fr-FR','en-US'], onDevice: true }, { onTranscript, onError: jest.fn(), onEnd: jest.fn() });
-  expect(native.startSpeech).toHaveBeenCalledTimes(1); expect(native.startSpeech).toHaveBeenCalledWith(['fr-FR','en-US']);
+  expect(native.startSpeech).toHaveBeenCalledTimes(1); expect(native.startSpeech).toHaveBeenCalledWith(['fr-FR','en-US'], false);
   emit('transcript', { text: 'Emmène-moi à la maison', isFinal: false, locale: 'fr-FR' });
-  jest.advanceTimersByTime(1400); expect(native.finishSpeech).toHaveBeenCalledTimes(1);
+  jest.advanceTimersByTime(2200); expect(native.finishSpeech).toHaveBeenCalledTimes(1);
   expect(onTranscript.mock.calls.some(([event]) => event.isFinal)).toBe(false);
   emit('transcript', { text: 'amen memo', isFinal: true, locale: 'en-US', confidence: 0.9 });
   emit('transcript', { text: 'Emmène-moi à la maison', isFinal: true, locale: 'fr-FR', confidence: 0.8 });
@@ -31,4 +31,11 @@ test('stopping cancels pending endpoint work and every late transcript', async (
   emit('transcript', { text: 'take me', isFinal: false }); await session.stop();
   jest.runAllTimers(); emit('transcript', { text: 'take me home', isFinal: true });
   expect(native.finishSpeech).not.toHaveBeenCalled(); expect(onTranscript).toHaveBeenCalledTimes(1);
+});
+test('the handoff delivers only the command after the wake phrase', async () => {
+  jest.useFakeTimers(); const { emit, recognizer } = setup(); const onTranscript = jest.fn();
+  const session = await recognizer.start({ locale: 'en-US', onDevice: true }, { onTranscript, onError: jest.fn(), onEnd: jest.fn() });
+  emit('transcript', { text: 'Hey Avyro, what is the speed limit here?', isFinal: true, locale: 'en-US' });
+  expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'what is the speed limit here', isFinal: true }));
+  await session.stop();
 });

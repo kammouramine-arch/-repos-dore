@@ -48,7 +48,8 @@ export const useConversationEngine = (): void => {
   const voiceDetection = stores.preferences(state => state.preferences.voiceDetection);
   const voiceOptions = useCallback(() => {
     const preferences = stores.preferences.getState().preferences;
-    return { locales: preferences.voiceLanguage === 'bilingual' ? ['fr-FR', 'en-US'] : [preferences.voiceLanguage], engine: preferences.voiceDetection };
+    const frenchFirst = Intl.DateTimeFormat().resolvedOptions().locale.startsWith('fr');
+    return { locales: preferences.voiceLanguage === 'bilingual' ? (frenchFirst ? ['fr-FR', 'en-US'] : ['en-US', 'fr-FR']) : [preferences.voiceLanguage], engine: preferences.voiceDetection };
   }, [stores]);
   const pending = stores.conversation((state) => state.pending);
 

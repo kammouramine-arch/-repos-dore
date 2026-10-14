@@ -15,8 +15,13 @@ animations stop when guidance is visible.
 
 The microphone now cancels an active turn, releases pending capture, aborts
 the assistant request and prevents queued TTS from speaking after cancellation.
-Repeated Apple speech startup/runtime failures switch the wake listener to the
-bundled offline keyword model. No ambient network recognition is introduced.
+Automatic wake now prefers the bundled offline keyword model, preserving a
+bounded audio handoff cropped to the keyword timestamp. No speech before the
+wake phrase is handed to command recognition. Without keyword availability,
+offline system wake recognition remains a fallback. Ambient network recognition
+is never introduced. French/English commands are recognized serially from the
+same short local recording instead of competing simultaneous tasks. The temporary
+recording is deleted on completion/cancellation, and never sent to the gateway.
 Native ASR uses measurement capture mode and restores normal playback for TTS.
 Recognition in real road noise and French/English accents still needs device
 retesting; passing mocked recognizer tests is not evidence of acoustic accuracy.
@@ -44,7 +49,7 @@ community reports can be approved in production.
 
 No paid plans, copied Waze code/assets or closed-app listening were introduced.
 
-## October 14 map-first and bilingual revision
+## Earlier October 14 map-first revision (voice engine superseded above)
 
 User-authorized product change: the animated launch now opens the map directly.
 Accounts are optional modal screens in Settings, and session restoration cannot

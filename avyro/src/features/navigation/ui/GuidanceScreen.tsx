@@ -39,6 +39,7 @@ export const GuidanceScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
+  const [cameraHeading, setCameraHeading] = useState(0);
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
   const [overview, setOverview] = useState(false);
@@ -85,6 +86,7 @@ export const GuidanceScreen = () => {
   // driver asked to see the trip, not to have it recomposed under them.
   useEffect(() => {
     if (!overview || !route) return;
+    mapRef.current?.setCamera({ heading: 0, pitch: 0 });
 
     mapRef.current?.fitToCoordinates(route.geometry, {
       edgePadding: MAP_DEFAULTS.routeFitPadding,
@@ -116,6 +118,7 @@ export const GuidanceScreen = () => {
         initialRegion={initialRegion}
         pitchEnabled
         onPanDrag={() => setFollowing(false)}
+        onRegionChangeComplete={() => { if (!following || overview) void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => undefined); }}
       >
         <IncidentMapLayer />
         {routeIndex && progress ? (
@@ -137,11 +140,13 @@ export const GuidanceScreen = () => {
           <UserPuck
             coordinate={progress.snappedPosition}
             headingDegrees={progress.courseDegrees}
+            cameraHeadingDegrees={following && !overview ? progress.courseDegrees : cameraHeading}
           />
         ) : lastPosition ? (
           <UserPuck
             coordinate={lastPosition.coordinates}
             headingDegrees={lastPosition.heading}
+            cameraHeadingDegrees={cameraHeading}
           />
         ) : null}
       </AvyroMapView>

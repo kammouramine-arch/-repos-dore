@@ -70,7 +70,7 @@ export const CONVERSATION = {
   defaultLocale: 'en-US',
   bilingualFinalWaitMs: 450,
   /** End input after a pause, then wait for a committed result before acting. */
-  commandSilenceMs: 1400,
+  commandSilenceMs: 2200,
 
   wakePhrases: {
     'en-US': ['hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
@@ -79,7 +79,7 @@ export const CONVERSATION = {
   } as Record<string, readonly string[]>,
 
   /** Give up on a command if the driver says nothing after waking Avyro. */
-  listenTimeoutMs: 12_000,
+  listenTimeoutMs: 18_000,
   /**
    * How long a partial transcript must stop changing before it is read.
    *

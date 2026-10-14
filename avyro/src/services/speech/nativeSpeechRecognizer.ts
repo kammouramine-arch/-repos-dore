@@ -1,11 +1,12 @@
 import { requireOptionalNativeModule } from 'expo';
 import { CONVERSATION } from '@/config';
 import { selectBilingualTranscript } from '@/core/conversation/bilingualTranscript';
+import { matchWakePhrase } from '@/core/conversation/wakePhrase';
 import type { SpeechRecognizer, TranscriptEvent } from '@/core/domain/ports/speechRecognizer';
 
 export interface NativeSpeech {
   supportsOnDevice(locale: string): Promise<boolean>;
-  startSpeech(locales: string[]): Promise<void>;
+  startSpeech(locales: string[], continuous: boolean): Promise<void>;
   stop(): Promise<void>;
   finishSpeech(): Promise<void>;
   addListener(event: string, callback: (data: TranscriptEvent & { message?: string }) => void): { remove(): void };
@@ -27,7 +28,11 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
       const deliver = () => {
         if (stopped || delivered) return;
         const selected = selectBilingualTranscript([...finals.values()]);
-        if (selected) { delivered = true; events.onTranscript(selected); }
+        if (selected) {
+          delivered = true;
+          const wake = options.continuous ? null : matchWakePhrase(selected.text, selected.locale);
+          events.onTranscript(wake?.remainder ? { ...selected, text: wake.remainder } : selected);
+        }
         else if (finals.size) { delivered = true; events.onError({ code: 'no-speech', message: 'French and English recognition disagreed. Please repeat the destination.', fatal: false }); }
       };
       const subscriptions = [
@@ -51,7 +56,7 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
           if (!stopped) events.onError({ code: 'interrupted', message: event.message ?? 'Microphone interrupted. Listening will resume.', fatal: false });
         }),
       ];
-      try { await native.startSpeech([...(options.locales ?? [options.locale])]); }
+      try { await native.startSpeech([...(options.locales ?? [options.locale])], options.continuous ?? false); }
       catch (error) { stopped = true; if (timer) clearTimeout(timer); if (endpointTimer) clearTimeout(endpointTimer); subscriptions.forEach(s => s.remove()); throw error; }
       return { finish: () => native.finishSpeech(), async stop() {
         if (stopped) return;

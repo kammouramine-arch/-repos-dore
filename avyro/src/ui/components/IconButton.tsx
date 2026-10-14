@@ -9,6 +9,8 @@ export interface IconButtonProps {
   name: IconName;
   accessibilityLabel: string;
   onPress?: () => void;
+  onLongPress?: () => void;
+  accessibilityHint?: string;
   /** `floating` is for controls sitting directly on the map. */
   variant?: 'floating' | 'plain';
   active?: boolean;
@@ -21,6 +23,8 @@ export const IconButton = ({
   name,
   accessibilityLabel,
   onPress,
+  onLongPress,
+  accessibilityHint,
   variant = 'floating',
   active = false,
   size = sizing.iconButton,
@@ -29,8 +33,10 @@ export const IconButton = ({
   <PressableScale
     accessibilityRole="button"
     accessibilityLabel={accessibilityLabel}
+    accessibilityHint={accessibilityHint}
     accessibilityState={{ selected: active }}
     activeScale={0.92}
+    onLongPress={onLongPress}
     onPress={() => {
       haptics.tap();
       onPress?.();

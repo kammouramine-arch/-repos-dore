@@ -12,10 +12,10 @@ export const HomeHeader = ({ onSettingsPress }: { onSettingsPress(): void }) => 
   const label = !preferences.voiceCommands ? 'Enable hands-free' : active ? 'Hey Avyro · Ready' : voice.status === 'suspended' ? 'Voice in use' : voice.status === 'preparing' ? 'Starting microphone…' : 'Voice needs attention';
   return <View style={styles.root}>
     <View style={styles.row}>
-      <GlassPanel style={styles.brand}><AvyroMark size={28} ring={false} /><AppText variant="headline">avyro</AppText></GlassPanel>
+      <GlassPanel style={styles.brand}><AvyroMark size={28} ring={false} /><View><AppText variant="headline">avyro</AppText><AppText variant="caption" tone="secondary">Hello, driver.</AppText></View></GlassPanel>
       <IconButton name="options-outline" accessibilityLabel="Settings" onPress={onSettingsPress} />
     </View>
-    <PressableScale onPress={() => !preferences.voiceCommands ? void update({ voiceCommands: true, voiceSetupSeen: true }) : onSettingsPress()} accessibilityRole="button" accessibilityLabel={label} style={styles.voice}>
+    <PressableScale onPress={() => !preferences.voiceCommands ? void update({ voiceCommands: true, voiceSetupSeen: true }) : active ? void update({ voiceCommands: false }) : onSettingsPress()} accessibilityRole="button" accessibilityLabel={active ? 'Pause hands-free listening' : label} style={styles.voice}>
       <View style={[styles.dot, { backgroundColor: active ? colors.success : colors.textTertiary }]} />
       <AppText variant="caption" tone={active ? 'accent' : 'secondary'}>{label}</AppText>
     </PressableScale>
