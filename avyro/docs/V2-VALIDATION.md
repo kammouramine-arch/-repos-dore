@@ -132,3 +132,21 @@ features. Restarting the temporary tunnel changes the hostname and requires a
 new phone build. Native foreground wake and local commands do not depend on the
 model service. The beta is ready for parked iPhone testing, but the production
 gates above and worldwide feature coverage have not been completed.
+
+## October 14 beta network outage
+
+Account creation on build 27 failed because the local gateway and tunnel were
+no longer running; its temporary hostname no longer resolved. Restarting the
+services produced a different hostname. The connected-beta build profile now
+uses the replacement, so build 27 remains unable to connect.
+
+Signed iOS build 28 (`d74e47db-7282-4f38-b227-248d598d78d9`) passed. Its IPA
+contains the replacement HTTPS address, excludes the TomTom secret, and has all
+nine hash-verified wake-model/licence resources. HTTPS registration, sign-in
+session validation, live road evidence, pending incident submission, moderator
+access rejection, local classification and logout revocation passed again.
+TestFlight submission: `b4a83c42-6dd2-4243-8293-24b8eb4edb44`.
+
+This restores the temporary beta connection; it does not provide permanent
+hosting or resilience across computer/tunnel shutdowns. The computer and its
+services must remain awake, online and running throughout phone testing.
