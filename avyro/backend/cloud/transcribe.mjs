@@ -16,5 +16,8 @@ export async function transcribeCommand(ai, audio, language) {
   });
   const text = result?.text ?? result?.transcription_info?.text;
   if (typeof text !== 'string' || !text.trim() || text.length > 500) return { text: null, source: 'whisper' };
-  return { text: text.trim(), source: 'whisper' };
+  // Recognition can write the same spoken brand in French or English. Remove
+  // only a leading wake address, preserving every command word and negation.
+  const command = text.trim().replace(/^(?:hey|h[ée]|hi|salut|ok|dis)[,\s]+(?:avyro|aviro|avero)\b[,\s.!:;-]*/iu, '').trim();
+  return { text: command || null, source: 'whisper' };
 }

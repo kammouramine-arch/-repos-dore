@@ -18,3 +18,10 @@ test('uses multilingual Whisper transcription without a phrase prompt or forced 
 test('silence or oversized transcripts cannot become actions', async () => {
   for (const text of ['', ' '.repeat(10), 'x'.repeat(501)]) assert.equal((await transcribeCommand({ run: async () => ({ text }) }, audio(), 'en')).text, null);
 });
+test('French wake-address cleanup preserves the actual command and negation', async () => {
+  for (const [text, expected] of [
+    ['Hé Aviro, signale un accident ici.', 'signale un accident ici.'],
+    ['Hey Avyro, do not report an accident here.', 'do not report an accident here.'],
+    ['Do not say hey Avyro, report an accident here.', 'Do not say hey Avyro, report an accident here.'],
+  ]) assert.equal((await transcribeCommand({ run: async () => ({ text }) }, audio(), 'auto')).text, expected);
+});
