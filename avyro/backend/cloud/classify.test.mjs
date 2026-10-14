@@ -8,6 +8,11 @@ test('rejects model-invented destinations, absent saved places and route-control
 test('discards every model fact and extra field', () => {
   assert.deepEqual(validateClassification({ intent: { kind: 'navigate-to-place', query: 'Paris', safety: 'safe' }, speech: 'No hazards ahead.' }, 'Go to Paris'), { intent: { kind: 'navigate-to-place', query: 'Paris' }, speech: null });
 });
+
+test('a model cannot invent a stop category absent from the spoken request', () => {
+  assert.deepEqual(validateClassification({ intent: { kind: 'find-nearby', category: 'fuel' } }, 'Find a coffee nearby'), unknown());
+  assert.deepEqual(validateClassification({ intent: { kind: 'find-nearby', category: 'coffee' } }, 'Cherche un café'), { intent: { kind: 'find-nearby', category: 'coffee' }, speech: null });
+});
 test('negated and driving-safety questions never reach the remote model', async () => {
   let calls = 0; const ai = { run: async () => { calls++; return {}; } };
   for (const text of ['Do not take me home', 'Can I change lanes?', 'Ne va pas à Paris', 'Puis-je dépasser ?', 'What is the speed limit?']) assert.deepEqual(await classifyCommand(ai, text), unknown());

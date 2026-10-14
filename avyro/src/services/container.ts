@@ -126,7 +126,7 @@ export const createServiceContainer = (
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
   const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger));
   const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
-  const getAccessToken = async () => (await createSessionStore(secure).read())?.token ?? guestAccessToken();
+  const getAccessToken = async () => (await createSessionStore(secure).read(env.backendUrl))?.token ?? guestAccessToken();
   const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
 
   // Conversation Engine → AI Gateway → AiProvider → OpenAI today.

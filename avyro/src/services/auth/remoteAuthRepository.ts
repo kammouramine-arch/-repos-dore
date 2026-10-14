@@ -42,7 +42,7 @@ export const createRemoteAuthRepository = ({
       decodeSession,
       { operation: "auth.session" },
     );
-    await secure.writeJson(STORAGE_KEYS.session, session);
+    await secure.writeJson(STORAGE_KEYS.session, { ...session, gateway: baseUrl });
     return session;
   };
   return {
@@ -54,7 +54,7 @@ export const createRemoteAuthRepository = ({
         null,
       );
       try {
-        if (session)
+        if (session && (session as Session & { gateway?: string }).gateway === baseUrl)
           await http.postJson(`${baseUrl}/auth/logout`, {}, () => null, {
             operation: "auth.logout",
             headers: { Authorization: `Bearer ${session.token}` },
@@ -68,6 +68,7 @@ export const createRemoteAuthRepository = ({
       if (!value) return null;
       try {
         const session = decodeSession(value);
+        if ((value as { gateway?: string }).gateway !== baseUrl) throw new Error("Different gateway");
         if (session.expiresAt <= Date.now()) throw new Error("Expired");
         return session;
       } catch {

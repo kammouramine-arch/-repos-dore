@@ -16,7 +16,7 @@ export interface SessionStore {
   /** Issues and persists a session for an account. */
   open(user: User): Promise<Session>;
   /** The stored session, or `null` when absent or expired. */
-  read(): Promise<Session | null>;
+  read(gateway?: string): Promise<Session | null>;
   clear(): Promise<void>;
 }
 
@@ -37,11 +37,11 @@ export const createSessionStore = (secure: SecureStorage): SessionStore => ({
     return session;
   },
 
-  async read() {
+  async read(gateway) {
     const session = await secure.readJson<Session | null>(STORAGE_KEYS.session, null);
     if (!session?.token) return null;
 
-    if (isExpired(session, Date.now())) {
+    if (isExpired(session, Date.now()) || (gateway && (session as Session & { gateway?: string }).gateway !== gateway)) {
       await secure.remove(STORAGE_KEYS.session);
       return null;
     }

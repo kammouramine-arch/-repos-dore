@@ -7,7 +7,9 @@ appId: app.avyro.companion
 - assertVisible: "Your voice. Your way."
 - takeScreenshot: build/screens/01-voice-invitation
 - waitForAnimationToEnd
-- tapOn: "Explore the map first"
+- tapOn:
+    text: "Explore the map first"
+    retryTapIfNoChange: true
 - takeScreenshot: build/screens/02-after-invitation
 - assertVisible: "Search for a destination"
 - assertNotVisible: "Welcome back"

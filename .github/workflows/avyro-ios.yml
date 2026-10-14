@@ -61,6 +61,7 @@ jobs:
       - name: Verify guest launch and capture native screens
         env:
           MAESTRO_CLI_NO_ANALYTICS: 1
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
         run: |
           brew install mobile-dev-inc/tap/maestro
           DEVICE_ID=$(python3 -c 'import json,subprocess; d=json.loads(subprocess.check_output(["xcrun","simctl","list","devices","available","--json"])); print(next(x["udid"] for group in d["devices"].values() for x in group if "iPhone" in x["name"]))')
