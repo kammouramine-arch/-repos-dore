@@ -80,7 +80,7 @@ export const Tag: React.FC<{ t: number; text: string; sub?: string; at?: number;
 export const CreditLine: React.FC<{ t: number; text: string; at?: number }> = ({ t, text, at = 0.4 }) => {
   const { u, v } = useLay();
   return (
-    <div style={{ position: "absolute", left: (v ? 48 : 72) * u, bottom: (v ? 300 : 46) * u, right: (v ? 48 : undefined) * u, fontFamily: F.mono, fontSize: (v ? 13 : 12) * u, letterSpacing: "0.12em", color: "rgba(236,230,218,0.66)", opacity: ramp(t, at, at + 0.6), textShadow: "0 1px 6px rgba(0,0,0,0.95)" }}>{text}</div>
+    <div style={{ position: "absolute", left: (v ? 48 : 72) * u, bottom: (v ? 300 : 46) * u, right: v ? 48 * u : undefined, fontFamily: F.mono, fontSize: (v ? 13 : 12) * u, letterSpacing: "0.12em", color: "rgba(236,230,218,0.66)", opacity: ramp(t, at, at + 0.6), textShadow: "0 1px 6px rgba(0,0,0,0.95)" }}>{text}</div>
   );
 };
 
