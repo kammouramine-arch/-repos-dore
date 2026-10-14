@@ -8,7 +8,7 @@
 |---|---|
 | `THE_UNKNOWN_FILE_WORLD_ATLAS_001_GAMBIA.mp4` | Final video: TikTok / Reels / Shorts, 1080×1920, 30 fps, H.264 + AAC |
 | `WORLD_ATLAS_001_GAMBIA_VERTICAL_COVER.png` | 9:16 cover: "WHY DOES THIS COUNTRY LOOK LIKE THIS?" |
-| `WORLD_ATLAS_001_GAMBIA_NARRATION.wav`, `_SFX.wav`, `_MUSIC.wav` | Separate stems, level-matched to the mix |
+| `WORLD_ATLAS_001_GAMBIA_NARRATION.wav`, `_SFX.wav` | Separate stems, level-matched to the mix (the final video has no music) |
 | `LICENSE_REGISTER.md` | Map data, imagery, music and SFX licences, plus a historical fact-check with sources |
 | `TRANSCRIPT_EN.md` | English transcript with timecodes |
 
@@ -41,8 +41,9 @@ tools/
 cd studio && npm ci                     # this checkout symlinks node_modules locally; run npm ci in a fresh clone
 npx remotion studio                     # preview and edit
 cd .. && tools/render.sh Gambia 4008 ../renders/parts 500 16
-tools/mix.sh gambia audio/WORLD_ATLAS_001_GAMBIA.mp3 133.6 2.9 -20
-# concatenate renders/parts (ffmpeg concat), then mux with audio/master/gambia_mix.wav
+tools/mix.sh gambia audio/WORLD_ATLAS_001_GAMBIA.mp3 133.6 2.9 -20   # builds narration + SFX stems
+# final (no music): amix narration + SFX ducked (+3 dB), −0.3 dB, alimiter 0.85 → audio/master/gambia_mix_nomusic.wav
+# concatenate renders/parts (ffmpeg concat), then mux with audio/master/gambia_mix_nomusic.wav
 ```
 
 Re-creating the geo data needs the Natural Earth downloads in `assets/ne/` (see `tools/geo.py`). The OSM and geoBoundaries extracts are included in `assets/`.

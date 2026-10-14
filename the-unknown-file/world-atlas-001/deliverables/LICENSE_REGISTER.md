@@ -18,15 +18,13 @@ Language: English only. There are no subtitles and no French text. Every on-scre
 
 ### 2. Music
 
-| Track | Composer / source | Licence |
-|---|---|---|
-| *World Atlas #001 score* | An original composition made for this video. It is synthesised in code by `tools/music.py` (`score_gambia`): pads, a felt-piano voice, a low pulse and a generated reverb. | Original work owned by the channel. No third-party licence is needed. It contains no samples, loops, library tracks or AI-music services, and it is not registered with Content ID, so it cannot trigger claims. Safe on YouTube, TikTok and Instagram. |
-
-The music is ducked under the voice and sits about 10 dB below the narration.
+**The final video contains no music.** At the channel's request the score was removed: the soundtrack is narration plus original sound effects only.
 
 **Final mix:**
-- Integrated loudness: −13.8 LUFS
+- Integrated loudness: −14.0 LUFS
 - True peak: −1.4 dBTP
+
+The original score composed for this episode (`tools/music.py`, `score_gambia`) is kept in the editable project but is not used in the delivered video.
 
 ### 3. Sound effects
 

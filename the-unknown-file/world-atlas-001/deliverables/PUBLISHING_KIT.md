@@ -18,12 +18,12 @@
 >
 > Sources: UK Parliament — Hansard, 1 June 1904 (Anglo-French Convention Bill) and the UK treaty record of the 1889 Arrangement; Gambia Independence Act 1964 (legislation.gov.uk); Britannica; World Monuments Fund.
 > Map data: Natural Earth; geoBoundaries / World Bank (CC BY 4.0); © OpenStreetMap contributors (ODbL); Terrain Tiles (Mapzen, SRTM, ETOPO1, GMTED).
-> Historical images: Library of Congress (public domain). Original music and sound design.
+> Historical images: Library of Congress (public domain). Original sound design (no music).
 > The cannonball story shown in the video is a legend, not verified history.
 
 **Hashtags:** #TheGambia #Maps #History #Geography #Africa #WorldAtlas #TheUnknownFile
 
 **Notes**
 - The map-data credits above are required by CC BY 4.0 (geoBoundaries) and ODbL (OpenStreetMap). Keep them in the description on every platform.
-- The music is original and is not registered with Content ID.
+- The video has no music; the sound effects are original. Nothing in it can trigger a Content ID claim.
 - There are no subtitles in the video. Captions can be auto-generated on each platform, in English, if wanted.
