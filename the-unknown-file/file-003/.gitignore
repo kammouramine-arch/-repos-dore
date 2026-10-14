@@ -1,0 +1,17 @@
+*.tmp.mp4
+assets/*.tif
+assets/earth/
+assets/geo/*.npy
+assets/geo/s2/
+assets/geo/s2_*.jpg
+assets/geo/tiles/
+assets/photos/
+audio/master/
+data/*.log
+renders/
+studio/node_modules/
+studio/out/
+studio/node_modules
+assets/cand/
+assets/geo/ne_admin1/
+assets/geo/*.zip
