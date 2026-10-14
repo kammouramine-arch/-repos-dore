@@ -1,6 +1,7 @@
 import { createTomTomRoadProvider, ROAD_MONTHLY_CAP } from '../road-data.mjs';
 import { classifyCommand } from './classify.mjs';
 import { DurableObject } from 'cloudflare:workers';
+import { derivePasswordValue } from './password.mjs';
 
 const SESSION_MS = 7 * 86400000;
 const fail = (status, message) => Object.assign(new Error(message), { status });
@@ -27,10 +28,6 @@ async function rate(db, key, limit, window = 60000) {
   // One atomic SQL operation; different Worker instances share the same limits.
   const row = await db.prepare('INSERT INTO rate_limits (key,count,expires) VALUES (?,1,?) ON CONFLICT(key) DO UPDATE SET count=count+1 RETURNING count').bind(`${key}:${period}`, expires).first();
   if (row.count > limit) throw fail(429, 'Please try again later.');
-}
-async function derivePasswordValue(password, salt) {
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  return hex(await crypto.subtle.deriveBits({ name: 'PBKDF2', hash: 'SHA-256', iterations: 600000, salt: new TextEncoder().encode(salt) }, key, 256));
 }
 // Password hashing must not be weakened to fit the regular Free Worker's 10 ms
 // CPU ceiling. A SQLite-backed Free Durable Object has a 30-second CPU budget.

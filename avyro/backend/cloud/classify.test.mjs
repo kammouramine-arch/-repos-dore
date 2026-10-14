@@ -16,7 +16,7 @@ test('negated and driving-safety questions never reach the remote model', async 
 test('pins server model, prompt and output size; no provider prose reaches the app', async () => {
   const ai = { run: async (model, input) => {
     assert.equal(model, '@cf/qwen/qwen3-30b-a3b-fp8'); assert.equal(input.max_tokens, 160);
-    return { response: JSON.stringify({ intent: { kind: 'navigate-saved', slot: 'home' }, speech: 'Clear road.' }) };
+    return { choices: [{ message: { content: JSON.stringify({ intent: { kind: 'navigate-saved', slot: 'home' }, speech: 'Clear road.' }) } }] };
   } };
   assert.deepEqual(await classifyCommand(ai, 'Could you bring me home?'), { intent: { kind: 'navigate-saved', slot: 'home' }, speech: null });
 });

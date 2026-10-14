@@ -12,6 +12,12 @@ SQLite-backed Durable Object, avoiding the ordinary Free Worker CPU ceiling.
 Both Workers and SQLite-backed Durable Objects support the Free plan:
 https://developers.cloudflare.com/durable-objects/platform/limits/
 
+Cloudflare production WebCrypto refuses PBKDF2 above 100,000 iterations even
+though local workerd permits it. The private object uses pinned MIT
+`@noble/hashes` 2.4.0 to retain 600,000 iterations. Its result is checked against
+independent Node native PBKDF2, including Unicode input. Reference:
+https://github.com/cloudflare/workerd/pull/7550
+
 Limits are shared atomically through D1: 500 new guests/day, 100 registrations/day,
 1,000 authentication attempts/day, 100 optional AI calls/day, and 1,000 road-data
 requests/UTC month. Free account quotas can stop requests; they do not authorize
@@ -43,3 +49,12 @@ database, replace `database_id` with its returned UUID, apply `schema.sql` remot
 upload `TOMTOM_API_KEY` through secret stdin, and verify the Free plan before
 enabling the licensed evaluation road feed or AI binding. Run live synthetic
 verification before compiling the stable workers.dev URL into the phone app.
+
+October 14: deployed at https://avyro-gateway.avyro-cloud-gateway.workers.dev on
+the verified $0 Free plan. Eight tests passed against HTTPS hosted identity/D1
+(road/AI flags disabled during that suite). After enabling the evaluation road
+feed and free AI binding, a public documentation-coordinate sample returned a
+matched 70 km/h limit and one traveled-segment sign. English Home and French ETA
+model samples passed; lane-change and negated-action samples returned unknown.
+No real location trace, email, transcript or account database was imported.
+The road counter starts at 100 for October to reserve prior evaluation usage.

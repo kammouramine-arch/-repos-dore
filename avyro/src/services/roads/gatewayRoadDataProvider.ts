@@ -8,7 +8,7 @@ export const createGatewayRoadDataProvider = ({ http, getAccessToken }: { http: 
   async lookup(fixes, signal) {
     if (!this.isConfigured()) throw new AppError('network', 'Road information is not connected.');
     const token = await getAccessToken();
-    if (!token || fixes.length < 2) throw new AppError('network', 'Sign in and accurate location are required.');
+    if (!token || fixes.length < 2) throw new AppError('network', 'Road information needs a connection and accurate location.');
     const position = fixes[fixes.length - 1];
     return http.postJson(`${env.backendUrl}/roads/context`, { consent: true, fixes: fixes.map((fix) => ({ ...fix.coordinates, accuracy: fix.accuracy, timestamp: fix.timestamp })) }, (raw): RoadEvidence => {
       const value = raw as Partial<RoadEvidence> & { status?: string } | null;

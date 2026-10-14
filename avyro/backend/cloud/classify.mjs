@@ -30,8 +30,9 @@ export async function classifyCommand(ai, transcript) {
       ] }),
       new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Classifier timeout')), 3500); }),
     ]);
-    if (typeof result?.response !== 'string' || result.response.length > 4096) return unknown();
-    return validateClassification(JSON.parse(result.response), transcript);
+    const content = result?.choices?.[0]?.message?.content;
+    if (typeof content !== 'string' || content.length > 4096) return unknown();
+    return validateClassification(JSON.parse(content), transcript);
   } catch { return unknown(); }
   finally { clearTimeout(timer); }
 }
