@@ -1,0 +1,16 @@
+name: Avyro native command audio validation
+on:
+  push:
+    branches: [chatgpt/avyro-v2-foundation-20261013]
+    paths: ['.github/workflows/avyro-audio.yml', '.github/scripts/validate-command-audio.py']
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audio:
+    runs-on: macos-26
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate actual native encoder with AVFoundation recordings
+        run: python3 .github/scripts/validate-command-audio.py
