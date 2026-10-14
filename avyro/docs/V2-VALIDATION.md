@@ -146,6 +146,7 @@ nine hash-verified wake-model/licence resources. HTTPS registration, sign-in
 session validation, live road evidence, pending incident submission, moderator
 access rejection, local classification and logout revocation passed again.
 TestFlight submission: `b4a83c42-6dd2-4243-8293-24b8eb4edb44`.
+Apple confirms build 28 is VALID / IN_BETA_TESTING for internal testers.
 
 This restores the temporary beta connection; it does not provide permanent
 hosting or resilience across computer/tunnel shutdowns. The computer and its
