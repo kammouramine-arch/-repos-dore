@@ -68,3 +68,10 @@ Language and captions: everything is in English. There are no French subtitles, 
 - **YouTube, altered or synthetic content:** answer **Yes**. The video depicts a realistic-looking hypothetical event, with fictional characters and an AI narration voice.
 - **Fictional content:** the fictional broadcast and phone clips carry on-screen labels. The persistent WHAT IF? · SIMULATION badge marks the whole episode as hypothetical.
 - **Music:** the score is original, so it is safe to upload on every platform. There is no Content ID registration. If you later swap in a library track, upload the new mix and keep that library's licence.
+
+## V2 notes
+
+- **V2 audio:** no music. The soundtrack is narration plus original sound effects.
+- **Credits:** V2 includes real footage and photographs. Paste the "Attribution for the video description (V2)" block from `LICENSE_REGISTER.md` (section 8) into the description on every platform. The CC BY licences require it.
+- **Real scientists:** scientists seen in V2 are archive footage used to dramatize the scenario. The description should not suggest they are reacting to a real event.
+

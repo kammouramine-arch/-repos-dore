@@ -1,3 +1,4 @@
 deliverables/*.mp4 filter=lfs diff=lfs merge=lfs -text
 deliverables/*.wav filter=lfs diff=lfs merge=lfs -text
 audio/*.wav filter=lfs diff=lfs merge=lfs -text
+studio/public/footage/*.mp4 filter=lfs diff=lfs merge=lfs -text
