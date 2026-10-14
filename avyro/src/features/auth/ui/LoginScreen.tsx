@@ -31,7 +31,7 @@ export const LoginScreen = () => {
   return (
     <AuthLayout
       title="Welcome back"
-      subtitle="Sign in to pick up where you left off."
+      subtitle="An optional profile. Navigation works without signing in."
       footerPrompt="New to Avyro?"
       footerAction="Create an account"
       onFooterPress={() => {

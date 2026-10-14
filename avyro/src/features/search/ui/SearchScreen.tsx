@@ -132,8 +132,9 @@ export const SearchScreen = () => {
           <Divider inset={spacing.md + 38 + spacing.sm} />
         )}
         ListEmptyComponent={emptyState}
-        renderItem={({ item }) => (
+        renderItem={({ item, index }) => (
           <ListRow
+            testID={`place-result-${index}`}
             title={item.name}
             subtitle={item.address}
             icon={PLACE_ICONS[item.category]}

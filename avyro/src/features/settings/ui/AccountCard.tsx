@@ -17,10 +17,10 @@ export const AccountCard = ({ user }: AccountCardProps) => (
 
     <View style={styles.details}>
       <AppText variant="headline" numberOfLines={1}>
-        {user?.fullName ?? 'Driver'}
+        {user?.fullName ?? 'Guest mode'}
       </AppText>
       <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
-        {user?.email ?? 'Not signed in'}
+        {user?.email ?? 'Your saved places stay on this iPhone'}
       </AppText>
     </View>
   </Card>

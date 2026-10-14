@@ -14,6 +14,7 @@ import { navigationRef } from './navigation/navigationRef';
 import { navigationTheme } from './navigation/navigationTheme';
 import { RootNavigator } from './navigation/RootNavigator';
 import { VoiceSetupPrompt } from '@/features/onboarding/ui/VoiceSetupPrompt';
+import { LocationEngine } from '@/features/location/ui/LocationEngine';
 
 // Hold the native splash until React has something to show, so the handover to
 // Avyro's own splash is a cross-fade rather than a white flash.
@@ -44,6 +45,7 @@ export const App = () => {
           {bootstrapped ? (
             <NavigationContainer ref={navigationRef} theme={navigationTheme}>
               <RootNavigator />
+              <LocationEngine />
               {/*
                 After the navigator, not before: the engine now renders the
                 voice HUD, which has to float above whatever screen is on.

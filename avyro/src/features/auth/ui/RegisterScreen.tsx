@@ -48,7 +48,7 @@ export const RegisterScreen = () => {
   return (
     <AuthLayout
       title="Create your Avyro"
-      subtitle="One account, every drive."
+      subtitle="Create an optional personal profile for Avyro."
       footerPrompt="Already have an account?"
       footerAction="Sign in"
       onFooterPress={() => {

@@ -1,6 +1,7 @@
 import { useNavigation } from '@react-navigation/native';
 import { useServices } from '@/app/runtime/AppRuntime';
 import { ScrollView, StyleSheet, View } from 'react-native';
+import { useState } from 'react';
 
 import {
   useAuthStore,
@@ -45,6 +46,7 @@ export const SettingsScreen = () => {
   // TEMPORARY — see core/conversation/voiceDebug.ts. Remove with the rest.
   const diagnostics = useConversationStore((state) => state.diagnostics);
   const clearVoiceDebug = useConversationStore((state) => state.clearVoiceDebug);
+  const [showDiagnostics, setShowDiagnostics] = useState(false);
 
   return (
     <Screen padded={false}>
@@ -73,7 +75,7 @@ export const SettingsScreen = () => {
             onChange={(value) => void update({ voiceCommands: value })}
           />
           <ChoiceRow title="Voice language" options={[{ value: 'bilingual' as const, label: 'FR + EN' }, { value: 'fr-FR' as const, label: 'Français' }, { value: 'en-US' as const, label: 'English' }]} value={preferences.voiceLanguage} onChange={value => void update({ voiceLanguage: value })} />
-          <ChoiceRow title="Wake detection" options={[{ value: 'system' as const, label: 'iPhone speech' }, { value: 'keyword' as const, label: 'Keyword model' }]} value={preferences.voiceDetection} onChange={value => void update({ voiceDetection: value })} />
+          <ChoiceRow title="Hands-free mode" subtitle="Automatic French/English, or a lighter detector for English pronunciation" options={[{ value: 'system' as const, label: 'Automatic' }, { value: 'keyword' as const, label: 'Low power' }]} value={preferences.voiceDetection} onChange={value => void update({ voiceDetection: value })} />
           <ToggleRow title="Cloud command assistant" subtitle="Optionally send one spoken command to Avyro’s Cloudflare AI service when on-device command matching cannot understand it. Ambient listening stays on your iPhone." value={preferences.cloudAssistant} onChange={value => void update({ cloudAssistant: value })} />
           {/*
             Guarded here rather than inside the note: a child that renders null
@@ -127,7 +129,8 @@ export const SettingsScreen = () => {
         {/* TEMPORARY — remove with the rest of the voice diagnostics. */}
         {preferences.voiceCommands ? (
           <SettingsSection title="Voice diagnostics">
-            <VoiceDiagnosticsPanel entries={diagnostics} onClear={clearVoiceDebug} />
+            <ListRow title="Troubleshoot voice" subtitle="Check listening status if the microphone does not respond" onPress={() => setShowDiagnostics(!showDiagnostics)} />
+            {showDiagnostics ? <VoiceDiagnosticsPanel entries={diagnostics} onClear={clearVoiceDebug} /> : null}
           </SettingsSection>
         ) : null}
 

@@ -20,7 +20,7 @@ same-breath command following the wake phrase is preserved. Readiness requires
 an opened capture. Speech can resume after an interruption and keeps the display
 awake when enabled. The Apache-2.0 keyword model remains available as an option.
 
-442 app tests, 18 original backend tests and seven cloud backend checks passed
+443 app tests, 18 original backend tests and seven cloud backend checks passed
 locally, with typecheck and lint. Cloud checks run against actual workerd/D1,
 including anonymous sessions, optional password accounts and pending reports.
 Native compilation, cloud deployment and real iPhone wake/ASR testing remain

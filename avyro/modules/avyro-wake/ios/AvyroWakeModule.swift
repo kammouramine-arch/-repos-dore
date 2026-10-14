@@ -15,6 +15,7 @@ public final class AvyroWakeModule: Module {
   private var triggered = false
   private var observers: [NSObjectProtocol] = []
   private var recognitionTasks: [SFSpeechRecognitionTask] = []
+  private var speechRecognizers: [SFSpeechRecognizer] = []
   private var recognitionRequests: [SFSpeechAudioBufferRecognitionRequest] = []
   private var generation = 0
 
@@ -143,6 +144,7 @@ public final class AvyroWakeModule: Module {
     recognitionRequests.forEach { $0.endAudio() }
     recognitionTasks.forEach { $0.cancel() }
     recognitionTasks = []; recognitionRequests = []
+    speechRecognizers = []
     if let capture = engine {
       capture.inputNode.removeTap(onBus: 0)
       capture.stop()
@@ -172,6 +174,8 @@ public final class AvyroWakeModule: Module {
     }
     let currentGeneration = generation
     var completed = Set<String>()
+    var hasFinal = false
+    speechRecognizers = recognizers
     for (index, recognizer) in recognizers.enumerated() {
       let locale = supported[index]
       let request = SFSpeechAudioBufferRecognitionRequest()
@@ -187,12 +191,13 @@ public final class AvyroWakeModule: Module {
             let segments = result.bestTranscription.segments
             let confidence = segments.isEmpty ? 0 : segments.reduce(0.0) { $0 + Double($1.confidence) } / Double(segments.count)
             self.sendEvent("transcript", ["text": result.bestTranscription.formattedString, "isFinal": result.isFinal, "locale": locale, "confidence": confidence])
-            if result.isFinal { completed.insert(locale) }
+            if result.isFinal { hasFinal = true; completed.insert(locale) }
           }
           if error != nil { completed.insert(locale) }
           if completed.count == supported.count {
             self.stopCapture()
-            self.sendEvent("speechEnd", [:])
+            if hasFinal { self.sendEvent("speechEnd", [:]) }
+            else { self.sendEvent("failure", ["kind": "runtime-error", "message": "The iPhone speech service stopped. Try one voice language in Settings."]) }
           }
         }
       })

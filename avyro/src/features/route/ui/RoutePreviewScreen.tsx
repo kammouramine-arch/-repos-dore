@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type MapView from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -22,6 +22,7 @@ export const RoutePreviewScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
+  const [bottomHeight, setBottomHeight] = useState(0);
 
   const { destination, plan, selectedRouteId, planning, error, selectRoute, planTrip } =
     useTripStore();
@@ -57,6 +58,7 @@ export const RoutePreviewScreen = () => {
         mapRef={mapRef}
         appearance={preferences.mapStyle}
         showsTraffic={preferences.showTraffic}
+        legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
         initialRegion={
           position
             ? { ...position.coordinates, latitudeDelta: 0.05, longitudeDelta: 0.05 }
@@ -91,7 +93,7 @@ export const RoutePreviewScreen = () => {
         />
       </View>
 
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
+      <View onLayout={event => setBottomHeight(Math.round(event.nativeEvent.layout.height))} style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
         <RouteSummaryCard
           destination={destination}
           routes={plan?.routes ?? []}

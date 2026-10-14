@@ -15,3 +15,25 @@ appId: app.avyro.companion
 - assertVisible: "Optional account"
 - assertVisible: "Voice language"
 - takeScreenshot: build/screens/03-settings
+- tapOn: "Back"
+- tapOn: "Search for a destination"
+- tapOn: "Destination"
+- inputText: "Eiffel Tower Paris France"
+- tapOn: "Search address"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "place-result-0"
+    timeout: 20000
+- takeScreenshot: build/screens/04-address-results
+- tapOn:
+    id: "place-result-0"
+- extendedWaitUntil:
+    visible: "Start navigation"
+    timeout: 30000
+- takeScreenshot: build/screens/05-route-preview
+- tapOn: "Start navigation"
+- extendedWaitUntil:
+    visible: "End"
+    timeout: 20000
+- takeScreenshot: build/screens/06-guidance

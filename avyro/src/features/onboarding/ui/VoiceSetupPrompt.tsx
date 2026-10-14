@@ -17,7 +17,7 @@ export const VoiceSetupPrompt = () => {
           <AppText variant="footnote" tone="secondary">“Hey Avyro, take me home.”</AppText>
         </View>
         <AppText variant="footnote" tone="secondary">On-device listening while Avyro is open. Your iPhone will ask for microphone access. You can switch this off at any time.</AppText>
-        <Button label="Enable hands-free / Activer la voix" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
+        <Button label="Enable hands-free" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
         <Button label="Explore the map first" variant="ghost" onPress={() => void update({ voiceSetupSeen: true })} />
       </GlassPanel>
     </View>

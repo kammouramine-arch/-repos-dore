@@ -227,6 +227,7 @@ describe('a session that fails', () => {
   it('backs off, and backs off further each time', () => {
     const first = voiceSessionReducer(listening().state, failure('network', false));
     expect(first.effects).toEqual([
+      { type: 'close-session' },
       { type: 'schedule-retry', delayMs: retryDelayMs(1) },
     ]);
 

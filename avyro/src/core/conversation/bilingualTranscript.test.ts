@@ -14,6 +14,10 @@ test('a negation wins over a conflicting route-changing interpretation', () => {
   expect(drivingSafetyReply(chosen!.text)).not.toBeNull();
   expect(parseCommand(chosen!.text)).toEqual({ kind: 'unknown' });
 });
+test('disagreeing committed route actions require a repeat rather than guessing', () => {
+  expect(selectBilingualTranscript([{ text: 'take me home', isFinal: true, confidence: 0.9 }, { text: 'emmène-moi au travail', isFinal: true, confidence: 0.8 }])).toBeNull();
+  expect(selectBilingualTranscript([{ text: 'take me home', isFinal: true, confidence: 0.9 }, { text: 'combien de temps reste-t-il', isFinal: true, confidence: 0.8 }])).toBeNull();
+});
 test.each([
   ['Emmène-moi à la maison', { kind: 'navigate-saved', slot: 'home' }],
   ['Va au travail', { kind: 'navigate-saved', slot: 'work' }],

@@ -7,7 +7,8 @@ import {
   View,
 } from 'react-native';
 
-import { AppText, AvyroMark, PressableScale, Screen } from '@/ui/components';
+import { AppText, AvyroMark, IconButton, PressableScale, Screen } from '@/ui/components';
+import { useNavigation } from '@react-navigation/native';
 import { spacing } from '@/ui/theme';
 
 export interface AuthLayoutProps {
@@ -31,8 +32,11 @@ export const AuthLayout = ({
   footerPrompt,
   footerAction,
   onFooterPress,
-}: AuthLayoutProps) => (
+}: AuthLayoutProps) => {
+  const navigation = useNavigation();
+  return (
   <Screen backdrop="night">
+    <View style={styles.close}><IconButton name="close" accessibilityLabel="Back to map" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} /></View>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}
@@ -67,10 +71,11 @@ export const AuthLayout = ({
       </ScrollView>
     </KeyboardAvoidingView>
   </Screen>
-);
+); };
 
 const styles = StyleSheet.create({
   flex: { flex: 1 },
+  close: { alignItems: 'flex-end' },
   content: {
     flexGrow: 1,
     justifyContent: 'center',

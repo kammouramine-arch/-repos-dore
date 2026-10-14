@@ -250,15 +250,13 @@ export const voiceSessionReducer = (
       return {
         state: {
           ...state,
-          status: surfaced ? 'failed' : state.status,
+          status: 'failed',
           opening: false,
           open: false,
           failures,
-          message: surfaced ? VOICE_MESSAGES.failed : state.message,
+          message: surfaced ? VOICE_MESSAGES.failed : event.error.message,
         },
-        effects: state.turnActive
-          ? []
-          : [{ type: 'schedule-retry', delayMs: retryDelayMs(failures) }],
+        effects: [...closeEffects(state), ...(state.turnActive ? [] : [{ type: 'schedule-retry' as const, delayMs: retryDelayMs(failures) }])],
       };
     }
 

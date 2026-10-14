@@ -8,6 +8,7 @@ import { PressableScale } from './PressableScale';
 import { Icon, type IconName } from './Icon';
 
 export interface ListRowProps {
+  testID?: string;
   title: string;
   subtitle?: string;
   icon?: IconName;
@@ -21,6 +22,7 @@ export interface ListRowProps {
 
 /** The single row primitive behind search results, recents and settings. */
 export const ListRow = ({
+  testID,
   title,
   subtitle,
   icon,
@@ -33,6 +35,7 @@ export const ListRow = ({
 
   return (
     <PressableScale
+      testID={testID}
       accessibilityRole={onPress ? 'button' : undefined}
       accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
       disabled={!onPress}

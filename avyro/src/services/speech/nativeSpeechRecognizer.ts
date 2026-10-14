@@ -8,7 +8,7 @@ export interface NativeSpeech {
   startSpeech(locales: string[]): Promise<void>;
   stop(): Promise<void>;
   finishSpeech(): Promise<void>;
-  addListener(event: string, callback: (data: TranscriptEvent) => void): { remove(): void };
+  addListener(event: string, callback: (data: TranscriptEvent & { message?: string }) => void): { remove(): void };
 }
 
 /** Native French/English recognizers share one capture; no ambient network fallback. */
@@ -28,6 +28,7 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
         if (stopped || delivered) return;
         const selected = selectBilingualTranscript([...finals.values()]);
         if (selected) { delivered = true; events.onTranscript(selected); }
+        else if (finals.size) { delivered = true; events.onError({ code: 'no-speech', message: 'French and English recognition disagreed. Please repeat the destination.', fatal: false }); }
       };
       const subscriptions = [
         native.addListener('transcript', event => {
@@ -46,8 +47,8 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
           if (finals.size >= (options.locales?.length ?? 1)) deliver();
         }),
         native.addListener('speechEnd', () => { if (!stopped) { deliver(); events.onEnd(); } }),
-        native.addListener('failure', () => {
-          if (!stopped) events.onError({ code: 'interrupted', message: 'Microphone interrupted. Listening will resume.', fatal: false });
+        native.addListener('failure', event => {
+          if (!stopped) events.onError({ code: 'interrupted', message: event.message ?? 'Microphone interrupted. Listening will resume.', fatal: false });
         }),
       ];
       try { await native.startSpeech([...(options.locales ?? [options.locale])]); }

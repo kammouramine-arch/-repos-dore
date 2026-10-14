@@ -36,6 +36,25 @@ jobs:
         with:
           name: Avyro-iOS-simulator
           path: avyro/build/Avyro-simulator.zip
+      - name: Verify guest launch and capture native screens
+        run: |
+          brew install mobile-dev-inc/tap/maestro
+          DEVICE_ID=$(python3 -c 'import json,subprocess; d=json.loads(subprocess.check_output(["xcrun","simctl","list","devices","available","--json"])); print(next(x["udid"] for group in d["devices"].values() for x in group if "iPhone" in x["name"]))')
+          xcrun simctl boot "$DEVICE_ID"
+          xcrun simctl bootstatus "$DEVICE_ID" -b
+          xcrun simctl ui "$DEVICE_ID" appearance light
+          xcrun simctl status_bar "$DEVICE_ID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
+          xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
+          xcrun simctl location "$DEVICE_ID" set 48.8566,2.3522
+          mkdir -p build/screens
+          maestro --device "$DEVICE_ID" test .maestro/guest-map.yaml
+      - name: Upload native UI captures
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Avyro-native-UI
+          path: avyro/build/screens/
+          if-no-files-found: ignore
       - name: Upload diagnostics
         if: always()
         uses: actions/upload-artifact@v4

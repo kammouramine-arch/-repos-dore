@@ -37,6 +37,7 @@ export const GuidanceScreen = () => {
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
+  const [bottomHeight, setBottomHeight] = useState(0);
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
   const [overview, setOverview] = useState(false);
@@ -109,6 +110,7 @@ export const GuidanceScreen = () => {
       <AvyroMapView
         mapRef={mapRef}
         appearance={preferences.mapStyle}
+        legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
         showsTraffic={preferences.showTraffic}
         initialRegion={initialRegion}
         pitchEnabled
@@ -171,6 +173,7 @@ export const GuidanceScreen = () => {
       </View>
 
       <View
+        onLayout={event => setBottomHeight(Math.round(event.nativeEvent.layout.height))}
         style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}
       >
         {status === "arrived" ? null : (

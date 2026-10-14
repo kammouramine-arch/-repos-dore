@@ -1,5 +1,5 @@
 import { useNavigation } from '@react-navigation/native';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
 import type MapView from 'react-native-maps';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -28,7 +28,8 @@ export const HomeScreen = () => {
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
-  const hasCentred = useRef(false);
+  const [following, setFollowing] = useState(true);
+  const [bottomHeight, setBottomHeight] = useState(0);
 
   // Narrow selectors on purpose. Home stays mounted under the rest of the
   // stack, so subscribing to whole stores would re-render the map on state it
@@ -49,6 +50,7 @@ export const HomeScreen = () => {
   }, [loadRecents, locate]);
 
   const centreOnDriver = (animated = true) => {
+    setFollowing(true);
     const coordinates = stores.location.getState().position?.coordinates;
     if (!coordinates) {
       void locate();
@@ -59,10 +61,9 @@ export const HomeScreen = () => {
 
   // Lock onto the driver once, on the first fix. After that the map is theirs.
   useEffect(() => {
-    if (!position || hasCentred.current) return;
-    hasCentred.current = true;
+    if (!position || !following) return;
     mapRef.current?.animateToRegion(regionAround(position.coordinates), 650);
-  }, [position]);
+  }, [position, following]);
 
   return (
     <View style={styles.root}>
@@ -71,6 +72,8 @@ export const HomeScreen = () => {
         appearance={preferences.mapStyle}
         showsTraffic={preferences.showTraffic}
         initialRegion={MAP_DEFAULTS.fallbackRegion}
+        onPanDrag={() => setFollowing(false)}
+        legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
       >
         {position ? (
           <UserPuck
@@ -86,7 +89,7 @@ export const HomeScreen = () => {
         />
       </View>
 
-      <View style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
+      <View onLayout={event => setBottomHeight(Math.round(event.nativeEvent.layout.height))} style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
         <View style={styles.controls}>
           <IconButton
             name="locate"
