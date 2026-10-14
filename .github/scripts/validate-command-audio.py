@@ -15,6 +15,7 @@ final class EncoderProbe {
 ''' + production_function + '''
 }
 func verify(_ rate: Double, _ channels: AVAudioChannelCount, _ seconds: Double, _ expected: Bool) throws {
+  FileHandle.standardError.write(Data("Checking rate=\\(rate) channels=\\(channels) seconds=\\(seconds)\\n".utf8))
   let url = FileManager.default.temporaryDirectory.appendingPathComponent(UUID().uuidString + ".caf")
   defer { try? FileManager.default.removeItem(at: url) }
   let format = AVAudioFormat(standardFormatWithSampleRate: rate, channels: channels)!
@@ -54,5 +55,5 @@ with tempfile.TemporaryDirectory(prefix='avyro-audio-validation-') as temporary:
     folder = Path(temporary)
     swift = folder/'main.swift'
     swift.write_text(program)
-    subprocess.run(['swiftc', '-O', str(swift), '-o', str(folder/'validate')], check=True)
+    subprocess.run(['swiftc', '-Onone', '-g', str(swift), '-o', str(folder/'validate')], check=True)
     subprocess.run([str(folder/'validate')], check=True)
