@@ -15,3 +15,14 @@ test('network failure does not invent an account or block guest access to the ma
   const getToken = createGuestAccessToken({ secure, http: { postJson: async () => { throw Error('Offline'); } } as unknown as HttpClient, baseUrl: 'https://gateway.example' });
   expect(await getToken()).toBeNull(); expect(secure.writeJson).not.toHaveBeenCalled();
 });
+
+test('a gateway migration never sends the previous host its guest credential', async () => {
+  let stored: unknown = { gateway: 'https://old.example', session: { token: 'o'.repeat(43), expiresAt: Date.now() + 60000 } };
+  const secure = { readJson: async () => stored, writeJson: async (_key: string, value: unknown) => { stored = value; } } as unknown as SecureStorage;
+  const postJson = jest.fn(async (_url, _body, decode) => decode({ token: 'n'.repeat(43), expiresAt: Date.now() + 60000 }));
+  const getToken = createGuestAccessToken({ secure, http: { postJson } as unknown as HttpClient, baseUrl: 'https://new.example' });
+  expect(await getToken()).toBe('n'.repeat(43));
+  expect(postJson.mock.calls[0][0]).toBe('https://new.example/auth/guest');
+  expect(await getToken()).toBe('n'.repeat(43));
+  expect(postJson).toHaveBeenCalledTimes(1);
+});

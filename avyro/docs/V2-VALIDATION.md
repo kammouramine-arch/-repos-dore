@@ -176,3 +176,29 @@ Apple confirms build 28 is VALID / IN_BETA_TESTING for internal testers.
 This restores the temporary beta connection; it does not provide permanent
 hosting or resilience across computer/tunnel shutdowns. The computer and its
 services must remain awake, online and running throughout phone testing.
+
+## October 14 map-first and bilingual revision (not yet distributed)
+
+The next revision opens to the map after the animated splash. Personal accounts
+are optional. A first-use invitation offers foreground hands-free recognition,
+with French and English on-device recognizers and no ambient cloud fallback.
+Commands end audio input after a pause and act on committed results. Voice-ready
+status is shown only after native capture opens; retrying or enabling a preference
+does not itself indicate readiness. Physical iPhone accent/noise tests remain due.
+
+The original light map interface, saved-place dock, microphone state, partial
+transcript feedback, map legal-credit spacing and foreground location ownership
+have been revised. Native iOS Release compilation passed on source `1e81691`
+(GitHub run `38551366928`). Its simulator UI flow is still running; screenshots
+and destination-to-guidance behavior have not yet been verified.
+
+The independent Cloudflare Worker/D1 implementation passed seven local tests
+against workerd and a real local database. Anonymous gateway access, optional
+account hashing, pending reports and moderator rejection were exercised. The
+backend has not been deployed: Cloudflare deployment-tool authorization is still
+pending. No permanent URL has been compiled into a device build, and TestFlight
+build 28 still uses the computer-dependent tunnel described above.
+
+Guest credentials are scoped to their issuing gateway, so changing the backend
+hostname renews anonymous access instead of forwarding an old token. Three
+credential tests and typecheck passed after this migration safeguard.

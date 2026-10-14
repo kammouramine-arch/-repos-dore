@@ -15,9 +15,13 @@ export const createGuestAccessToken = ({ http, secure, baseUrl }: { http: HttpCl
   return async (): Promise<string | null> => {
     if (!baseUrl) return null;
     const stored = await secure.readJson<unknown>(STORAGE_KEYS.guestSession, null);
-    try { return decode(stored).token; } catch { /* Missing/expired credentials are renewed below. */ }
+    try {
+      // A credential belongs only to the gateway that issued it.
+      const persisted = stored as { gateway?: string; session?: unknown } | null;
+      if (persisted?.gateway === baseUrl) return decode(persisted.session).token;
+    } catch { /* Missing/expired credentials are renewed below. */ }
     pending ??= http.postJson(`${baseUrl}/auth/guest`, {}, decode, { operation: 'auth.guest', timeoutMs: 4000 }).then(async session => {
-      await secure.writeJson(STORAGE_KEYS.guestSession, session);
+      await secure.writeJson(STORAGE_KEYS.guestSession, { gateway: baseUrl, session });
       return session.token;
     }).catch(() => null).finally(() => { pending = null; });
     return pending;
