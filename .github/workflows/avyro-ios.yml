@@ -4,10 +4,15 @@ on:
     branches: [chatgpt/avyro-v2-foundation-20261013]
     paths: ['avyro/**', '.github/workflows/avyro-ios.yml']
   workflow_dispatch:
+    inputs:
+      simulator_run:
+        description: Existing successful compile run to reuse for UI-only checks
+        required: false
+        type: string
 permissions:
   contents: read
 concurrency:
-  group: avyro-ios-${{ github.ref }}
+  group: avyro-ios-${{ github.ref }}-${{ github.event_name }}
   cancel-in-progress: true
 jobs:
   ios:
@@ -24,19 +29,38 @@ jobs:
           cache: npm
           cache-dependency-path: avyro/package-lock.json
       - run: npm ci --no-audit --no-fund
+        if: ${{ !inputs.simulator_run }}
       - run: npx expo prebuild --platform ios --no-install
+        if: ${{ !inputs.simulator_run }}
       - run: pod install --project-directory=ios
+        if: ${{ !inputs.simulator_run }}
       - name: Build Release for the iOS simulator
+        if: ${{ !inputs.simulator_run }}
         run: |
           set -o pipefail
           xcodebuild -workspace ios/Avyro.xcworkspace -scheme Avyro -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > native-build.log 2>&1 || { tail -n 120 native-build.log; exit 1; }
           ditto -c -k --keepParent build/Build/Products/Release-iphonesimulator/Avyro.app build/Avyro-simulator.zip
       - name: Upload simulator app
+        if: ${{ !inputs.simulator_run }}
         uses: actions/upload-artifact@v4
         with:
           name: Avyro-iOS-simulator
           path: avyro/build/Avyro-simulator.zip
+      - uses: actions/download-artifact@v4
+        if: ${{ inputs.simulator_run }}
+        with:
+          name: Avyro-iOS-simulator
+          run-id: ${{ inputs.simulator_run }}
+          github-token: ${{ github.token }}
+          path: avyro/build
+      - name: Unpack existing simulator app
+        if: ${{ inputs.simulator_run }}
+        run: |
+          mkdir -p build/Build/Products/Release-iphonesimulator
+          ditto -x -k build/Avyro-simulator.zip build/Build/Products/Release-iphonesimulator
       - name: Verify guest launch and capture native screens
+        env:
+          MAESTRO_CLI_NO_ANALYTICS: 1
         run: |
           brew install mobile-dev-inc/tap/maestro
           DEVICE_ID=$(python3 -c 'import json,subprocess; d=json.loads(subprocess.check_output(["xcrun","simctl","list","devices","available","--json"])); print(next(x["udid"] for group in d["devices"].values() for x in group if "iPhone" in x["name"]))')
@@ -48,12 +72,19 @@ jobs:
           xcrun simctl location "$DEVICE_ID" set 48.8566,2.3522
           mkdir -p build/screens
           maestro --device "$DEVICE_ID" test .maestro/guest-map.yaml
+      - name: Capture final simulator state
+        if: always()
+        run: |
+          mkdir -p build/screens
+          xcrun simctl io booted screenshot build/screens/final-state.png || true
       - name: Upload native UI captures
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: Avyro-native-UI
-          path: avyro/build/screens/
+          path: |
+            avyro/**/screens/*.png
+            /Users/runner/.maestro/tests/
           if-no-files-found: ignore
       - name: Upload diagnostics
         if: always()
