@@ -25,8 +25,13 @@ func verify(_ rate: Double, _ channels: AVAudioChannelCount, _ seconds: Double, 
   for channel in 0..<Int(channels) {
     for frame in 0..<count { buffer.floatChannelData![channel][frame] = Float(sin(Double(frame) * 2 * .pi * 440 / rate)) * 0.4 }
   }
-  var file: AVAudioFile? = try AVAudioFile(forWriting: url, settings: format.settings)
-  try file!.write(from: buffer); file = nil
+  try autoreleasepool {
+    let file = try AVAudioFile(forWriting: url, settings: format.settings)
+    try file.write(from: buffer)
+  }
+  let available = try AVAudioFile(forReading: url).length
+  FileHandle.standardError.write(Data("Closed CAF frames=\\(available), input frames=\\(count)\\n".utf8))
+  precondition(available == count, "Test recording did not close completely")
   let result = EncoderProbe().encode(url)
   precondition((result != nil) == expected, "Unexpected encoder acceptance")
   guard expected, let encoded = result, let wav = Data(base64Encoded: encoded) else { return }
