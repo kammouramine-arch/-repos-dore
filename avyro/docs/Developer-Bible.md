@@ -23,6 +23,22 @@ and anonymous; optional accounts and pending reports are durable. See
 `backend/cloud/README.md` for limits, model terms, consent and deployment gates.
 Cloud command assistance is opt-in and has no paid fallback.
 
+The October 14 deployment is live on the verified Cloudflare Free plan. A private
+Durable Object keeps 600,000 PBKDF2-SHA256 iterations using pinned MIT
+`@noble/hashes`; production WebCrypto's 100k limit differs from local workerd.
+Both anonymous and optional account credentials are scoped to their issuing
+gateway. Migrated computer-hosted tokens are cleared without losing saved places.
+The client can obtain anonymous access before any personal account is created.
+Map overlays preserve both Legal and Apple Maps branding; privacy explanations
+wrap fully rather than hiding consent details in a one-line subtitle.
+
+French spoken guidance is generated from routing maneuver data and carried on
+the route step alongside English wording. Distance thresholds and arrival policy
+are unchanged. Guidance events carry an explicit speech language so proper road
+names do not switch the selected voice. Bilingual guidance follows the device's
+French/English locale; single-language preferences override it. Guidance retains
+an End control while GPS is acquiring, without inventing speed or progress.
+
 ## V2 architecture update — 2026-10-13
 
 This user-authorized V2 feature release supersedes the earlier wake/credential

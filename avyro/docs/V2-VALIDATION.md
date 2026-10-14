@@ -202,3 +202,48 @@ build 28 still uses the computer-dependent tunnel described above.
 Guest credentials are scoped to their issuing gateway, so changing the backend
 hostname renews anonymous access instead of forwarding an old token. Three
 credential tests and typecheck passed after this migration safeguard.
+
+## October 14 independent hosting and signed candidates
+
+Cloudflare authorization and email verification completed. The dashboard confirms
+the $0 Free plan. The service is deployed at
+`https://avyro-gateway.avyro-cloud-gateway.workers.dev`; it uses hosted D1 and a
+private password-hashing Durable Object. No old personal database was imported.
+Production WebCrypto rejected the 600k PBKDF2 work factor despite local success;
+the portable implementation retains that work factor and matches independent
+native PBKDF2, including Unicode input. Eight tests passed on real hosted HTTPS
+identity/report endpoints with road/AI disabled. Nine tests now pass locally.
+
+After licensed evaluation road and free AI activation, a public documentation
+trace returned a matched 70 km/h limit and one traveled-segment sign. English
+Home and French ETA samples classified correctly in 701/649 ms. Lane-change and
+negated-action samples returned unknown without model calls. Provider prose,
+invented destinations and absent stop categories are rejected. These synthetic
+samples establish connectivity, not worldwide completeness or physical accuracy.
+The October road counter starts at 100 to reserve prior evaluation consumption.
+
+447 mobile tests, typecheck and lint passed after scoping both guest and account
+sessions to the gateway. Signed device build 30 (`5b0828d7-348d-404a-b59a-971e92e971b1`)
+compiled and its IPA passed signature/resource, stable URL and secret-absence
+checks. It was not submitted. Build 31 (`6bfe4850-1b47-4db6-983a-4099ffe45aac`)
+adds readable consent/settings copy and separate visible Apple Maps branding.
+
+Native simulator run `38560642909` confirmed invitation dismissal, map-first
+guest access and bilingual settings, using the compiled app from source `e2dd31c`.
+Its later failure was the test's wrong "Back" selector (actual "Go back"). The
+corrected destination-to-guidance flow is running as `38562129132`. Physical
+French/English recognition and car-noise checks remain unperformed. The permanent
+backend is ready; the new candidate is not yet available in TestFlight.
+
+Run `38562129132` reached real address results, route preview and active guidance;
+its final End assertion timed out before the first guidance GPS update. The
+failure screenshot and hierarchy show the live maneuver, route and End button.
+Guidance now always offers End while awaiting GPS. The flow refreshes its public
+synthetic location after starting and waits for accurate guidance instead of an
+old fix. French turn, exit, distance, reroute and arrival speech now derives from
+the same OSRM maneuver fields as English. Explicit speech-language metadata keeps
+English guidance in English even with an accented French road name. On bilingual
+settings, navigation follows the device language (French or English); one-language
+settings explicitly select that language. The visual maneuver labels remain English.
+450 mobile tests, typecheck and lint pass for these changes. Earlier signed
+candidates through 31 are being superseded before TestFlight submission.

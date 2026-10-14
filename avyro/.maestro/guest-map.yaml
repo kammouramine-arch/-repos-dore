@@ -37,7 +37,13 @@ appId: app.avyro.companion
     timeout: 30000
 - takeScreenshot: build/screens/05-route-preview
 - tapOn: "Start navigation"
+- setLocation:
+    latitude: 48.8566
+    longitude: 2.3522
 - extendedWaitUntil:
     visible: "End"
-    timeout: 20000
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Waiting for GPS…"
+    timeout: 60000
 - takeScreenshot: build/screens/06-guidance

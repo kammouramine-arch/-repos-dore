@@ -50,7 +50,7 @@ export type ConversationEvent =
   /** The current utterance finished, was cut off, or failed. */
   | { type: 'speech-finished' }
   /** Guidance has something to say. It takes precedence over everything. */
-  | { type: 'navigation-announcement'; text: string }
+  | { type: 'navigation-announcement'; text: string; language?: string }
   /** The controller has restored the suspended activity. */
   | { type: 'resumed' }
   | { type: 'cancel' }
@@ -60,7 +60,7 @@ export type ConversationEffect =
   | { type: 'start-listening' }
   | { type: 'stop-listening' }
   | { type: 'ask-provider'; transcript: string }
-  | { type: 'speak'; text: string }
+  | { type: 'speak'; text: string; language?: string }
   | { type: 'stop-speaking' }
   | { type: 'run-action'; reply: ConversationReply }
   /** Return to idle after the cancelled state has been seen. */
@@ -150,7 +150,8 @@ export const conversationReducer = (
 ): Transition => {
   // Guidance pre-empts every state, so it is handled before any of them.
   if (event.type === 'navigation-announcement') {
-    return interrupt(state, event.text);
+    const transition = interrupt(state, event.text);
+    return event.language ? { ...transition, effects: transition.effects.map(effect => effect.type === 'speak' ? { ...effect, language: event.language } : effect) } : transition;
   }
 
   if (event.type === 'cancel') {

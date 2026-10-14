@@ -17,7 +17,7 @@ import { ActiveRouteOverlay } from "@/maps/components/ActiveRouteOverlay";
 import { DestinationMarker } from "@/maps/components/DestinationMarker";
 import { AvyroMapView } from "@/maps/components/AvyroMapView";
 import { UserPuck } from "@/maps/components/UserPuck";
-import { AppText, GlassPanel } from "@/ui/components";
+import { AppText, Button, GlassPanel } from "@/ui/components";
 import { spacing } from "@/ui/theme";
 import { useGuidanceSession } from "../hooks/useGuidanceSession";
 import { ArrivalCard } from "./ArrivalCard";
@@ -204,13 +204,14 @@ export const GuidanceScreen = () => {
             unit={preferences.distanceUnit}
             onEnd={endTrip}
           />
-        ) : null}
+        ) : <GlassPanel style={styles.waiting}><AppText variant="footnote" tone="secondary" style={{ flexShrink: 1 }}>Waiting for an accurate GPS fix</AppText><Button label="End" variant="danger" size="medium" onPress={endTrip} /></GlassPanel>}
       </View>
     </View>
   );
 };
 
 const styles = StyleSheet.create({
+  waiting: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', gap: spacing.md, padding: spacing.md },
   driving: {
     flexDirection: "row",
     justifyContent: "space-between",

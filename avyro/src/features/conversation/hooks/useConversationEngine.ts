@@ -583,7 +583,7 @@ export const useConversationEngine = (): void => {
           return void releaseRef.current
             .then(() =>
               services.speechEngine.speak(effect.text, {
-                language: speechLanguage(effect.text),
+                language: effect.language ?? speechLanguage(effect.text),
                 onDone: () => finishSpeaking("tts_finished"),
               }),
             )

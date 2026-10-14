@@ -29,4 +29,4 @@ export const frenchReply = (reply: ConversationReply, request: ConversationReque
   return { ...reply, speech };
 };
 
-export const speechLanguage = (text: string): string => /[àâéèêîôùûçœ]|\b(?:je|vous|votre|dans|reste|direction|navigation annul[eé]e)\b/i.test(text) ? 'fr-FR' : 'en-US';
+export const speechLanguage = (text: string): string => /[àâéèêîôùûçœ]|\b(?:je|vous|votre|dans|reste|continuez|prenez|partez|sortez|rejoignez|faites|direction|navigation annul[eé]e)\b/i.test(text) ? 'fr-FR' : 'en-US';

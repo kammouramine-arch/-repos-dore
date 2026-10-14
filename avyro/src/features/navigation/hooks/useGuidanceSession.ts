@@ -46,13 +46,18 @@ export const useGuidanceSession = () => {
 
     const logger = services.logger.scoped('guidance');
     const { navigation, preferences, location, conversation } = stores;
+    const deviceIsFrench = Intl.DateTimeFormat().resolvedOptions().locale.toLowerCase().startsWith('fr');
+    const guidanceLanguage = () => {
+      const language = preferences.getState().preferences.voiceLanguage;
+      return language === 'fr-FR' || (language === 'bilingual' && deviceIsFrench) ? 'fr-FR' as const : 'en-US' as const;
+    };
 
     // Guidance never speaks for itself. Announcements go to the conversation
     // engine, which stops whatever Avyro was saying, says this instead, and
     // resumes the conversation afterwards. That is the whole of requirement
     // "navigation always interrupts conversation" — in one call.
     const announce = (text: string) =>
-      conversation.getState().dispatch({ type: 'navigation-announcement', text });
+      conversation.getState().dispatch({ type: 'navigation-announcement', text, language: guidanceLanguage() });
     const { setProgress, setStatus, replaceRoute } = navigation.getState();
 
     trackerRef.current = initialTrackerState;
@@ -84,7 +89,7 @@ export const useGuidanceSession = () => {
         });
 
         if (preferences.getState().preferences.voiceGuidance) {
-          announce('Route updated.');
+          announce(guidanceLanguage() === 'fr-FR' ? 'Itinéraire mis à jour.' : 'Route updated.');
         }
       } catch (error) {
         setStatus('off-route');
@@ -114,6 +119,7 @@ export const useGuidanceSession = () => {
           result.progress,
           announcerRef.current,
           driverPreferences.distanceUnit,
+          guidanceLanguage(),
         );
         announcerRef.current = announcement.state;
         if (announcement.text) announce(announcement.text);

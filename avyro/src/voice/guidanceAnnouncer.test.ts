@@ -31,6 +31,11 @@ const progressAt = (
 });
 
 describe('nextAnnouncement', () => {
+  it('speaks French distance, maneuver and arrival while preserving the timing policy', () => {
+    const progress = progressAt(480, { currentStep: step({ instructionFr: 'Tournez à droite sur Rue de Rivoli' }) });
+    expect(nextAnnouncement(progress, initialAnnouncerState, 'metric', 'fr-FR').text).toBe('Dans 480 mètres, tournez à droite sur Rue de Rivoli');
+    expect(nextAnnouncement({ ...progress, hasArrived: true }, initialAnnouncerState, 'metric', 'fr-FR').text).toBe('Vous êtes arrivé à destination.');
+  });
   it('says nothing while the maneuver is far away', () => {
     const { text } = nextAnnouncement(progressAt(1_800), initialAnnouncerState, 'metric');
     expect(text).toBeNull();

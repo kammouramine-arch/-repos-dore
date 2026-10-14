@@ -39,6 +39,7 @@ const toSteps = (
       {
         id: createId(),
         instruction: 'Arrive at your destination',
+        instructionFr: 'Arrivée à destination',
         maneuver: 'arrive',
         distanceMeters: route.distance,
         durationSeconds: route.duration,
@@ -53,6 +54,7 @@ const toSteps = (
     return {
       id: createId(),
       instruction: formatInstruction(closing),
+      instructionFr: formatInstruction(closing, 'fr-FR'),
       maneuver: toManeuverType(closing.maneuver),
       distanceMeters: step.distance,
       durationSeconds: step.duration,

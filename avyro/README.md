@@ -1,16 +1,19 @@
 # Avyro
 
 V2 development candidate: see [current validation and limitations](docs/V2-VALIDATION.md)
-and the [gateway setup](backend/README.md). The legacy release description below
-describes the earlier implementation; current code uses dedicated offline keyword
-spotting, submitted address search, secure Home/Work and optional server identity.
+and the [independent gateway setup](backend/cloud/README.md). The legacy release description below
+describes the earlier implementation; current code opens directly to a light map,
+offers optional accounts, on-device French/English foreground wake recognition,
+submitted address search and secure Home/Work.
 V2 is not yet a complete production release. Use a native build rather than Expo Go.
-Internal TestFlight 1.0.0 (27) connects the approved temporary beta gateway for
-opt-in TomTom mapped speed limits, remote beta identity, pending reports and
-free local AI classification. The owner's computer/tunnel must remain running.
+The permanent Cloudflare Free gateway is deployed and tested for anonymous and
+optional account access, private pending reports, evaluation TomTom road evidence
+and optional free cloud command classification. The next connected iPhone build
+uses this hosted address and does not require the owner's computer to run.
+Older TestFlight builds through 28 still use the temporary computer/tunnel setup.
 See the validation record for physical-testing and production release gates.
 
-**Avyro is not another GPS. Avyro is the world’s first AI Driving Companion.**
+**Avyro is an AI navigation companion.**
 
 Sprint 1 built the ground the companion stands on: a real navigation app —
 splash, onboarding, accounts, a map, destination search, route preview and

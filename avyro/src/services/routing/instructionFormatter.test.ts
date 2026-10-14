@@ -9,6 +9,11 @@ const step = (
 ): OsrmStep => ({ distance: 100, duration: 20, name, ref, maneuver });
 
 describe('formatInstruction', () => {
+  it('generates French turns and exits from the same maneuver and road fields', () => {
+    expect(formatInstruction(step({ location: [2.3, 48.8], type: 'turn', modifier: 'right' }, 'Rue Saint-Denis'), 'fr-FR')).toBe('Tournez à droite sur Rue Saint-Denis');
+    expect(formatInstruction(step({ location: [2.3, 48.8], type: 'roundabout', exit: 3 }, 'Avenue Foch'), 'fr-FR')).toBe('Au rond-point, prenez la troisième sortie sur Avenue Foch');
+    expect(formatInstruction(step({ location: [2.3, 48.8], type: 'arrive', modifier: 'left' }), 'fr-FR')).toBe('Votre destination est à gauche');
+  });
   it('describes the departure by compass direction', () => {
     expect(
       formatInstruction(

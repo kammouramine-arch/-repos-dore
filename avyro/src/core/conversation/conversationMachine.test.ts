@@ -86,6 +86,10 @@ describe('a complete turn', () => {
 });
 
 describe('navigation always interrupts', () => {
+  it('keeps the chosen guidance voice even when a road name contains another language', () => {
+    const { effects } = conversationReducer(initialConversationState, { type: 'navigation-announcement', text: 'Turn left onto Rue de l’Église', language: 'en-US' });
+    expect(effects).toContainEqual({ type: 'speak', text: 'Turn left onto Rue de l’Église', language: 'en-US' });
+  });
   const announce: ConversationEvent = {
     type: 'navigation-announcement',
     text: 'In 200 metres, turn right.',

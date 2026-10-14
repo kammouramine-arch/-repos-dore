@@ -32,19 +32,20 @@ const METERS_PER_MILE = 1609.344;
 const METERS_PER_FOOT = 0.3048;
 
 /** Distances written out in words — TTS engines mangle abbreviations. */
-const spokenDistance = (meters: number, unit: DistanceUnit): string => {
+const spokenDistance = (meters: number, unit: DistanceUnit, language: 'en-US' | 'fr-FR'): string => {
+  const french = language === 'fr-FR';
   if (unit === 'imperial') {
     const feet = Math.round(meters / METERS_PER_FOOT / 10) * 10;
-    if (feet < 1000) return `${feet} feet`;
+    if (feet < 1000) return `${feet} ${french ? 'pieds' : 'feet'}`;
     const miles = meters / METERS_PER_MILE;
-    return miles < 10 ? `${miles.toFixed(1)} miles` : `${Math.round(miles)} miles`;
+    return miles < 10 ? `${miles.toFixed(1).replace('.', french ? ',' : '.')} miles` : `${Math.round(miles)} miles`;
   }
 
-  if (meters < 1000) return `${Math.round(meters / 10) * 10} meters`;
+  if (meters < 1000) return `${Math.round(meters / 10) * 10} ${french ? 'mètres' : 'meters'}`;
   const kilometers = meters / 1000;
   return kilometers < 10
-    ? `${kilometers.toFixed(1)} kilometers`
-    : `${Math.round(kilometers)} kilometers`;
+    ? `${kilometers.toFixed(1).replace('.', french ? ',' : '.')} ${french ? 'kilomètres' : 'kilometers'}`
+    : `${Math.round(kilometers)} ${french ? 'kilomètres' : 'kilometers'}`;
 };
 
 const uncapitalise = (text: string): string =>
@@ -67,10 +68,11 @@ export const nextAnnouncement = (
   progress: NavigationProgress,
   state: AnnouncerState,
   unit: DistanceUnit,
+  language: 'en-US' | 'fr-FR' = 'en-US',
 ): Announcement => {
   if (progress.hasArrived) {
     return {
-      text: state.arrivalAnnounced ? null : 'You have arrived at your destination.',
+      text: state.arrivalAnnounced ? null : language === 'fr-FR' ? 'Vous êtes arrivé à destination.' : 'You have arrived at your destination.',
       state: { ...state, arrivalAnnounced: true },
     };
   }
@@ -93,13 +95,13 @@ export const nextAnnouncement = (
   // Speak only the most urgent threshold that was crossed, and mark the rest as
   // handled: a slow fix rate must never trigger a burst of stale instructions.
   const threshold = Math.min(...pending);
-  const instruction = progress.currentStep.instruction;
+  const instruction = language === 'fr-FR' ? progress.currentStep.instructionFr ?? progress.currentStep.instruction : progress.currentStep.instruction;
 
   return {
     text:
       threshold === closestThreshold
         ? instruction
-        : `In ${spokenDistance(progress.distanceToManeuverMeters, unit)}, ${uncapitalise(instruction)}`,
+        : `${language === 'fr-FR' ? 'Dans' : 'In'} ${spokenDistance(progress.distanceToManeuverMeters, unit, language)}, ${uncapitalise(instruction)}`,
     state: { ...carried, spokenThresholds: [...spoken, ...pending] },
   };
 };

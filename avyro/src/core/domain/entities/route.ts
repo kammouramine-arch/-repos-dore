@@ -34,6 +34,8 @@ export interface RouteStep {
   id: string;
   /** Driver-facing instruction, e.g. `Turn right onto Rue de Rivoli`. */
   instruction: string;
+  /** French wording generated from the same grounded maneuver data. */
+  instructionFr?: string;
   maneuver: ManeuverType;
   /** Length of this leg, in metres. */
   distanceMeters: number;
