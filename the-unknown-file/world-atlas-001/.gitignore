@@ -1,0 +1,8 @@
+renders/
+audio/master/
+studio/node_modules
+studio/out/
+assets/ne/
+assets/terrain/*.npy
+*.tmp.mp4
+ref/

@@ -1,0 +1,13 @@
+{
+ "name": "senegambia",
+ "z": 8,
+ "x": 466944,
+ "y": 466944,
+ "w": 28672,
+ "h": 28672,
+ "px": [
+  1792,
+  1792
+ ],
+ "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+}

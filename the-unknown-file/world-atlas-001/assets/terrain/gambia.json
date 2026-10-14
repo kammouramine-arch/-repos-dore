@@ -1,0 +1,13 @@
+{
+ "name": "gambia",
+ "z": 11,
+ "x": 474112,
+ "y": 480768,
+ "w": 10752,
+ "h": 7680,
+ "px": [
+  5376,
+  3840
+ ],
+ "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+}

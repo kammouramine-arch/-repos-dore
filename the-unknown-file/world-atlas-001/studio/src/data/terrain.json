@@ -1,0 +1,54 @@
+{
+ "africa": {
+  "name": "africa",
+  "z": 6,
+  "x": 442368,
+  "y": 393216,
+  "w": 245760,
+  "h": 262144,
+  "px": [
+   3840,
+   4096
+  ],
+  "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+ },
+ "gambia": {
+  "name": "gambia",
+  "z": 11,
+  "x": 474112,
+  "y": 480768,
+  "w": 10752,
+  "h": 7680,
+  "px": [
+   5376,
+   3840
+  ],
+  "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+ },
+ "westafrica": {
+  "name": "westafrica",
+  "z": 7,
+  "x": 458752,
+  "y": 450560,
+  "w": 90112,
+  "h": 65536,
+  "px": [
+   2816,
+   2048
+  ],
+  "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+ },
+ "senegambia": {
+  "name": "senegambia",
+  "z": 8,
+  "x": 466944,
+  "y": 466944,
+  "w": 28672,
+  "h": 28672,
+  "px": [
+   1792,
+   1792
+  ],
+  "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+ }
+}

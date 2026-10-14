@@ -1,0 +1,13 @@
+{
+ "name": "westafrica",
+ "z": 7,
+ "x": 458752,
+ "y": 450560,
+ "w": 90112,
+ "h": 65536,
+ "px": [
+  2816,
+  2048
+ ],
+ "source": "AWS Terrain Tiles (Terrarium) \u2014 Mapzen/Tilezen open data; SRTM, ETOPO1, GMTED and others"
+}
