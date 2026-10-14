@@ -118,11 +118,11 @@ export const SearchScreen = () => {
           busy={status === "searching"}
           autoFocus
         />
-        <Button
+        {!placesProvider.supportsTypeahead ? <Button
           label="Search address"
           onPress={submit}
           disabled={query.trim().length < 2}
-        />
+        /> : null}
         <AppText variant="footnote" tone="tertiary">
           {placesProvider.attribution ?? 'OpenStreetMap contributors · Address results may be incomplete'}
         </AppText>
