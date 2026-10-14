@@ -267,6 +267,10 @@ not submitted. EAS remains Free, 12/30 builds used and totalCost=0.
 The owned computer gateway, temporary tunnel and local model processes were
 identity-checked and stopped. Hosted health (200), anonymous session issuance
 (201) and logout (200) still passed afterward. Local workerd was stopped too.
+Real hosted road matching and English/French model samples passed again after
+those shutdowns: matched 70 km/h evidence, one traveled-segment sign, Home/ETA
+intents in 582/792 ms and both safety/negation refusals. No computer model served
+those requests.
 Builds through 28 require updating, because their tunnel is retired.
 
 The permanent testing deliverable is ready. Production worldwide road/sign and
