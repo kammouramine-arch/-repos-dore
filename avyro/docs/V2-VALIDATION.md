@@ -247,3 +247,29 @@ settings, navigation follows the device language (French or English); one-langua
 settings explicitly select that language. The visual maneuver labels remain English.
 450 mobile tests, typecheck and lint pass for these changes. Earlier signed
 candidates through 31 are being superseded before TestFlight submission.
+
+## October 14 delivered internal TestFlight build 32
+
+Final executable source: `e61fe25` on the isolated development branch. Native
+Release simulator compilation and the complete first-use invitation, guest map,
+settings, real address search, route preview and active guidance flow passed in
+run `38565516842`. All six native captures were visually inspected. Map credits
+and original branding are visible; privacy explanations wrap. This flow declines
+voice setup, so it does not establish physical microphone or wake accuracy.
+
+Signed build `51554353-8226-4dec-aebe-0d3313a95b6e` (1.0.0 / 32) passed. The IPA
+contains the stable cloud address, excludes the TomTom key and matches all nine
+model/license-resource hashes. Submission `8a58f1e9-214c-4fb1-9ce3-e11deae909d1`
+finished; Apple confirms VALID / IN_BETA_TESTING for internal testers. External
+testing/public App Store publication has not been started. Builds 29–31 were
+not submitted. EAS remains Free, 12/30 builds used and totalCost=0.
+
+The owned computer gateway, temporary tunnel and local model processes were
+identity-checked and stopped. Hosted health (200), anonymous session issuance
+(201) and logout (200) still passed afterward. Local workerd was stopped too.
+Builds through 28 require updating, because their tunnel is retired.
+
+The permanent testing deliverable is ready. Production worldwide road/sign and
+official hazard coverage, commercial data entitlements, operational moderation,
+personal-account verification/reset/deletion and physical recognition/road-noise
+validation remain the documented production gates; no paid services were enabled.

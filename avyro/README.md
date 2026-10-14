@@ -6,11 +6,14 @@ describes the earlier implementation; current code opens directly to a light map
 offers optional accounts, on-device French/English foreground wake recognition,
 submitted address search and secure Home/Work.
 V2 is not yet a complete production release. Use a native build rather than Expo Go.
-The permanent Cloudflare Free gateway is deployed and tested for anonymous and
+Internal TestFlight **1.0.0 (32)** is VALID / IN_BETA_TESTING. The permanent Cloudflare Free gateway is deployed and tested for anonymous and
 optional account access, private pending reports, evaluation TomTom road evidence
-and optional free cloud command classification. The next connected iPhone build
+and optional free cloud command classification. The connected iPhone build
 uses this hosted address and does not require the owner's computer to run.
-Older TestFlight builds through 28 still use the temporary computer/tunnel setup.
+Older TestFlight builds through 28 use the retired computer/tunnel setup and must
+be updated. Native Release compilation and the full map/search/route/guidance UI
+flow passed on the final source; 450 mobile tests passed. Microphone accuracy and
+road-noise behavior still need physical iPhone testing.
 See the validation record for physical-testing and production release gates.
 
 **Avyro is an AI navigation companion.**
