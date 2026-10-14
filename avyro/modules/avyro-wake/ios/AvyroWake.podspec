@@ -13,7 +13,7 @@ Pod::Spec.new do |s|
   s.source_files = '**/*.swift'
   s.vendored_frameworks = 'vendor/*.xcframework'
   s.resource_bundles = { 'AvyroWakeModels' => ['models/*'] }
-  s.frameworks = 'AVFoundation', 'UIKit', 'CoreML', 'Accelerate'
+  s.frameworks = 'AVFoundation', 'UIKit', 'CoreML', 'Accelerate', 'MapKit', 'Speech'
   s.libraries = 'c++'
   s.swift_version = '5.9'
 end

@@ -10,7 +10,7 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
-  Search: { saveSlot?: 'home' | 'work' } | undefined;
+  Search: { saveSlot?: 'home' | 'work'; initialQuery?: string } | undefined;
   RoutePreview: undefined;
   Guidance: undefined;
   Settings: undefined;

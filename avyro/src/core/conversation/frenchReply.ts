@@ -20,6 +20,7 @@ export const frenchReply = (reply: ConversationReply, request: ConversationReque
     case 'ask-eta': speech = context.arrivalAt && context.remainingDurationSeconds !== null ? `Arrivée prévue à ${new Date(context.arrivalAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}, dans environ ${formatDuration(context.remainingDurationSeconds)}.` : 'Aucun trajet en cours.'; break;
     case 'ask-remaining-distance': speech = context.remainingDistanceMeters !== null ? `Il reste ${formatDistance(context.remainingDistanceMeters, context.distanceUnit)}${context.destination ? ` jusqu’à ${context.destination.name}` : ''}.` : 'Aucun trajet en cours.'; break;
     case 'ask-location': speech = context.currentRoadName ? `Vous êtes sur ${context.currentRoadName}.` : 'Je ne dispose pas d’un nom de rue vérifié ici.'; break;
+    case 'ask-speed-limit': speech = context.mappedSpeedLimit ? `La carte TomTom indique ${context.mappedSpeedLimit.value} ${context.mappedSpeedLimit.unit}. Suivez toujours les panneaux routiers.` : 'Je n’ai pas de limitation de vitesse vérifiée ici. Suivez les panneaux routiers.'; break;
     case 'ask-traffic': speech = 'Je ne dispose pas du trafic en direct. Je peux rechercher un autre itinéraire.'; break;
     case 'navigate-referent': speech = 'Demandez-moi d’abord de trouver un lieu.'; break;
     case 'restore-destination': speech = 'Je n’ai pas de destination précédente à restaurer.'; break;

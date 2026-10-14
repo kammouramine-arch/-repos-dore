@@ -11,5 +11,7 @@ export interface PlaceSearchOptions {
 
 /** Turns what the driver types into places they can navigate to. */
 export interface PlacesProvider {
+  supportsTypeahead?: boolean;
+  attribution?: string;
   search(query: string, options?: PlaceSearchOptions): Promise<Place[]>;
 }

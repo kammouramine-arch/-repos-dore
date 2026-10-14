@@ -46,6 +46,7 @@ import { createExpoLocationTracker } from "@/services/location/expoLocationTrack
 import { createConsoleLogger } from "@/services/observability/consoleLogger";
 import { createLocalCrashReporter } from "@/services/observability/localCrashReporter";
 import { createNominatimPlacesProvider } from "@/services/places/nominatimPlacesProvider";
+import { createApplePlacesProvider } from "@/services/places/applePlacesProvider";
 import { createOsrmRoutingProvider } from "@/services/routing/osrmRoutingProvider";
 import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecognizer";
 import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
@@ -118,7 +119,7 @@ export const createServiceContainer = (
         }));
 
   const placesProvider =
-    overrides.placesProvider ?? createNominatimPlacesProvider({ http });
+    overrides.placesProvider ?? createApplePlacesProvider() ?? createNominatimPlacesProvider({ http });
   const savedPlacesRepository =
     overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(secure);
 

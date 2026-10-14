@@ -5,6 +5,7 @@ import { AppText, GlassPanel } from "@/ui/components";
 import { spacing } from "@/ui/theme";
 import { formatSpeed, speedUnitLabel } from "@/utils/format";
 import { useRoadInformation } from '../hooks/useRoadInformation';
+import { aboveMappedLimit, measuredSpeed } from '@/core/navigation/measuredSpeed';
 
 /** GPS speed is a measurement, never a statement about the legal road limit. */
 export const DrivingStatusPanel = () => {
@@ -16,30 +17,23 @@ export const DrivingStatusPanel = () => {
     const timer = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(timer);
   }, []);
-  const fresh =
-    fix &&
-    fix.timestamp <= now &&
-    now - fix.timestamp < 10000 &&
-    fix.accuracy !== null &&
-    fix.accuracy <= 30;
-  const speed =
-    fresh && fix.speed !== null && Number.isFinite(fix.speed) && fix.speed >= 0
-      ? formatSpeed(fix.speed, unit)
-      : null;
+  const measurement = measuredSpeed(fix, now);
+  const speed = formatSpeed(measurement, unit);
+  const limit = road?.speedLimit;
+  const overLimit = aboveMappedLimit(measurement, limit);
   return (
     <GlassPanel style={styles.panel}>
       <AppText variant="caption" tone="secondary">
         GPS SPEED
       </AppText>
       <View style={styles.speed}>
-        <AppText variant="title1">{speed ?? "—"}</AppText>
+        <AppText variant="title1" tone={overLimit ? 'danger' : 'primary'}>{speed ?? "—"}</AppText>
         <AppText variant="caption" tone="tertiary">
           {speedUnitLabel(unit)}
         </AppText>
       </View>
-      <AppText variant="caption" tone="tertiary">
-        {road?.speedLimit ? `Mapped limit ${road.speedLimit.value} ${road.speedLimit.unit}` : 'Limit unavailable'}
-      </AppText>
+      {limit ? <View style={styles.limit}><AppText variant="headline">{limit.value}</AppText><AppText variant="caption">{limit.unit}</AppText></View> : <AppText variant="caption" tone="tertiary">Limit unavailable</AppText>}
+      {overLimit ? <AppText variant="caption" tone="danger">Above mapped limit</AppText> : null}
       {road?.speedLimit ? <AppText variant="caption" tone="tertiary">TomTom · follow road signs</AppText> : null}
     </GlassPanel>
   );
@@ -47,4 +41,5 @@ export const DrivingStatusPanel = () => {
 const styles = StyleSheet.create({
   panel: { padding: spacing.sm, gap: spacing.xxs, alignSelf: "flex-end" },
   speed: { flexDirection: "row", alignItems: "baseline", gap: spacing.xs },
+  limit: { borderWidth: 3, borderColor: '#C83F49', borderRadius: 32, minWidth: 58, minHeight: 58, alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
 });

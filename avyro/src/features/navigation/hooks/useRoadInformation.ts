@@ -12,6 +12,7 @@ import { ROAD_DATA } from '@/config';
 export function useRoadInformation(now: number): RoadEvidence | null {
   const { roadDataProvider } = useServices();
   const fix = useLocationStore((s) => s.position);
+  const setRoadEvidence = useLocationStore((s) => s.setRoadEvidence);
   const consent = usePreferencesStore((s) => s.preferences.roadInformation);
   const guiding = useNavigationStore((s) => s.status === 'guiding');
   const token = useAuthStore((s) => s.session?.token ?? 'guest');
@@ -22,6 +23,7 @@ export function useRoadInformation(now: number): RoadEvidence | null {
   const lastRequest = useRef(0);
   const generation = useRef(0);
   const enabled = active && consent && guiding && roadDataProvider.isConfigured();
+  useEffect(() => { setRoadEvidence(enabled ? result?.evidence ?? null : null); return () => setRoadEvidence(null); }, [enabled, result, setRoadEvidence]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state !== 'active') { generation.current++; pending.current?.abort(); trace.current = []; setResult(null); }

@@ -57,6 +57,7 @@ export const cleanDestinationQuery = (raw: string): string => {
 };
 
 const RULES: Rule[] = [
+  { intent: { kind: 'ask-speed-limit' }, patterns: [/\bspeed\s+limit\b/, /\b(?:limitation|limite)\s+(?:de\s+)?vitesse\b/, /\b(?:vitesse|rouler)\s+(?:maximale|autorisee)\b/] },
   {
     intent: { kind: 'ask-location' },
     patterns: [/\bwhere\s+(?:am\s+i|are\s+we)\b/, /\bwhat\s+(?:road|street)\s+(?:am\s+i|are\s+we)\s+on\b/],

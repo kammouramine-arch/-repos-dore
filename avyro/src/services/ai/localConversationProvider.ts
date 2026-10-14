@@ -233,6 +233,14 @@ export const createLocalConversationProvider = ({
           ? `The route map shows ${context.currentRoadName}.`
           : context.location ? 'Your GPS location is shown on the map. I do not have a verified street name right now.' : REPLIES.needLocation());
 
+      case 'ask-speed-limit': {
+        const french = /\b(quelle|vitesse|limitation|limite)\b/i.test(request.transcript);
+        const limit = context.mappedSpeedLimit;
+        return reply(intent, limit
+          ? french ? `La carte TomTom indique ${limit.value} ${limit.unit}. Suivez toujours les panneaux routiers.` : `The TomTom map indicates ${limit.value} ${limit.unit}. Always follow posted road signs.`
+          : french ? 'Je n’ai pas de limitation de vitesse vérifiée ici. Suivez les panneaux routiers.' : 'I do not have a verified speed limit here. Please follow posted road signs.');
+      }
+
       case 'ask-remaining-distance':
         return reply(intent, REPLIES.remainingDistance(context));
 

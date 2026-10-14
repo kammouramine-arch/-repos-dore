@@ -23,7 +23,6 @@ appId: app.avyro.companion
 - tapOn: "Search for a destination"
 - tapOn: "Destination"
 - inputText: "Eiffel Tower Paris France"
-- tapOn: "Search address"
 - hideKeyboard
 - extendedWaitUntil:
     visible:

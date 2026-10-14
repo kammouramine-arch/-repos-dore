@@ -120,7 +120,7 @@ export default {
       if (route === '/incidents' && method === 'POST') {
         await rate(db, `report:${user.id}`, 3, 600000); await rate(db, `report:${ip}`, 6, 600000);
         const { category, latitude, longitude, observedAt, consent } = await body(request), now = Date.now();
-        if (!['accident','hazard','closure','police'].includes(category) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180 || !Number.isFinite(observedAt) || observedAt > now + 5000 || now - observedAt > 300000 || consent !== true) throw fail(400, 'Recent observation and consent required.');
+        if (!['accident','hazard','closure','police','traffic','blocked-lane','weather','map-issue'].includes(category) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180 || !Number.isFinite(observedAt) || observedAt > now + 5000 || now - observedAt > 300000 || consent !== true) throw fail(400, 'Recent observation and consent required.');
         const id = crypto.randomUUID();
         await db.prepare('INSERT INTO incidents (id,user_id,category,latitude,longitude,observed,expires) VALUES (?,?,?,?,?,?,?)').bind(id, user.id, category, Math.round(latitude * 10000) / 10000, Math.round(longitude * 10000) / 10000, observedAt, now + 3600000).run();
         return json({ id, status: 'pending' }, 202);

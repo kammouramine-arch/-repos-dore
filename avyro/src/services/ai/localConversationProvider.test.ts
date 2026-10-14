@@ -155,6 +155,18 @@ const ask = (
 ) => provider.respond({ transcript, context, origin });
 
 describe('questions about the trip', () => {
+  it('understands the recorded speed-limit question and admits missing evidence', async () => {
+    const response = await ask(build(), 'What is the speed limit here?');
+    expect(response.intent.kind).toBe('ask-speed-limit');
+    expect(response.speech).toContain('do not have a verified speed limit');
+    expect(response.action.type).toBe('none');
+  });
+  it('answers a speed-limit question using only current mapped evidence supplied by the context', async () => {
+    const response = await ask(build(), 'What is the speed limit here?', { ...guiding(), mappedSpeedLimit: { value: 50, unit: 'km/h' } });
+    expect(response.speech).toContain('50 km/h');
+    expect(response.speech).toContain('posted road signs');
+    expect(response.action.type).toBe('none');
+  });
   it('answers how long is left', async () => {
     const reply = await ask(build(), 'how long until I arrive');
 

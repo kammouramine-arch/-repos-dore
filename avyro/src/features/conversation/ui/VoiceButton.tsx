@@ -23,17 +23,18 @@ export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
   const dispatch = useConversationStore((state) => state.dispatch);
 
   const listening = status === 'listening';
-  const enabled = canStartVoiceTurn(voice, status);
+  const busy = status !== 'idle' && status !== 'cancelled';
+  const enabled = busy || canStartVoiceTurn(voice, status);
 
   return (
     <IconButton
       name={listening ? 'mic' : 'mic-outline'}
-      accessibilityLabel={listening ? 'Listening' : 'Ask Avyro'}
+      accessibilityLabel={busy ? 'Stop voice conversation' : 'Ask Avyro'}
       active={listening}
       variant={variant}
       size={size}
       style={style}
-      onPress={enabled ? () => dispatch({ type: 'wake-detected' }) : undefined}
+      onPress={enabled ? () => dispatch({ type: busy ? 'cancel' : 'wake-detected' }) : undefined}
     />
   );
 };

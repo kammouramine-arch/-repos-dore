@@ -15,6 +15,7 @@ import { usePlanDestination } from '@/features/trip/hooks/usePlanDestination';
 import { regionAround } from '@/maps/camera';
 import { AvyroMapView } from '@/maps/components/AvyroMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
+import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
 import { IconButton } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { HomeSheet } from './HomeSheet';
@@ -91,6 +92,7 @@ export const HomeScreen = () => {
 
       <View onLayout={event => setBottomHeight(Math.round(event.nativeEvent.layout.height))} style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
         <View style={styles.controls}>
+          <IncidentReportButton />
           <IconButton
             name="locate"
             accessibilityLabel="Centre on my location"

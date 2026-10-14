@@ -3,11 +3,14 @@ import { create } from 'zustand';
 import type { LocationPermission, UserPosition } from '@/core/domain/entities/geo';
 import { messageFor } from '@/core/domain/errors/appError';
 import type { ServiceContainer } from '@/services/container';
+import type { RoadEvidence } from '@/core/domain/ports/roadDataProvider';
 
 type LocationStatus = 'idle' | 'locating' | 'ready' | 'denied' | 'error';
 
 export interface LocationState {
   position: UserPosition | null;
+  roadEvidence: RoadEvidence | null;
+  setRoadEvidence: (roadEvidence: RoadEvidence | null) => void;
   permission: LocationPermission;
   status: LocationStatus;
   error: string | null;
@@ -26,6 +29,8 @@ export interface LocationState {
 export const createLocationStore = (services: ServiceContainer) =>
   create<LocationState>()((set) => ({
     position: null,
+    roadEvidence: null,
+    setRoadEvidence: roadEvidence => set({ roadEvidence }),
     permission: 'undetermined',
     status: 'idle',
     error: null,

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 import { useServices } from '@/app/runtime/AppRuntime';
 import { useLocationStore } from '@/app/stores/hooks';
@@ -27,6 +27,8 @@ const IDLE: PlaceSearchResult = { results: [], status: 'idle', error: null };
 export const usePlaceSearch = (query: string): PlaceSearchResult => {
   const { useCases } = useServices();
   const near = useLocationStore((state) => state.position?.coordinates);
+  const nearRef = useRef(near);
+  useEffect(() => { nearRef.current = near; }, [near]);
   const [state, setState] = useState<PlaceSearchResult>(IDLE);
 
   const isSearchable = query.trim().length >= NETWORK.minSearchQueryLength;
@@ -42,7 +44,7 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
       try {
         const results = await useCases.searchPlaces({
           query,
-          near,
+          near: nearRef.current,
           signal: controller.signal,
         });
         if (controller.signal.aborted) return;
@@ -61,7 +63,7 @@ export const usePlaceSearch = (query: string): PlaceSearchResult => {
       clearTimeout(timer);
       controller.abort();
     };
-  }, [query, near, isSearchable, useCases]);
+  }, [query, isSearchable, useCases]);
 
   // Derived rather than stored: clearing the field returns to the idle result
   // without a second render pass, and stale hits can never flash back.

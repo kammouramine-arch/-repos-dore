@@ -1,5 +1,7 @@
-import { StyleSheet, View } from 'react-native';
+import { Alert, StyleSheet, View } from 'react-native';
 import { useState } from 'react';
+import { useNavigation } from '@react-navigation/native';
+import { usePreferencesStore } from '@/app/stores/hooks';
 
 import type { Place, RecentDestination } from '@/core/domain/entities/place';
 import { PLACE_ICONS } from '@/features/search/placeIcons';
@@ -29,6 +31,13 @@ export const HomeSheet = ({
   onClearRecents,
 }: HomeSheetProps) => {
   const [expanded, setExpanded] = useState(false);
+  const navigation = useNavigation();
+  const preferences = usePreferencesStore(state => state.preferences);
+  const update = usePreferencesStore(state => state.update);
+  const connect = () => Alert.alert('Connect your companion?', 'AI sends individual spoken commands to Avyro’s Cloudflare service. Road information sends a short GPS trace to Avyro and TomTom during navigation. Ambient listening stays on your iPhone. Both can be switched off in Settings.', [
+    { text: 'Later', style: 'cancel' },
+    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, roadInformation: true }) },
+  ]);
   return (
   <GlassPanel style={styles.sheet}>
     <PressableScale accessibilityRole="button" accessibilityLabel={expanded ? 'Collapse recent destinations' : 'Show recent destinations'} onPress={() => setExpanded(!expanded)}><View style={styles.grabber} /></PressableScale>
@@ -36,6 +45,10 @@ export const HomeSheet = ({
     <View style={styles.body}>
       <SearchTrigger onPress={onSearchPress} />
       <SavedPlacesDock onNavigate={onRecentPress} />
+      <View style={styles.shortcuts}>
+        {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Search', { initialQuery: label === 'Fuel' ? 'gas station' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{label}</AppText></PressableScale>)}
+      </View>
+      {!preferences.cloudAssistant || !preferences.roadInformation ? <PressableScale accessibilityRole="button" onPress={connect}><AppText variant="footnote" tone="accent">Enable AI companion & road information</AppText></PressableScale> : null}
 
       {locationError ? (
         <ListRow
@@ -83,6 +96,8 @@ const styles = StyleSheet.create({
     paddingTop: spacing.xs,
     paddingBottom: spacing.md,
   },
+  shortcuts: { flexDirection: 'row', gap: spacing.xs },
+  shortcut: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: 14, backgroundColor: '#E8F2F2' },
   grabber: {
     alignSelf: 'center',
     width: 38,

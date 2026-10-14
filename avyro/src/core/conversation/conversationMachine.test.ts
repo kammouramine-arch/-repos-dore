@@ -219,7 +219,7 @@ describe('cancelling', () => {
     ]).state;
 
     const { effects } = conversationReducer(speaking, { type: 'cancel' });
-    expect(types(effects)).toEqual(['stop-speaking', 'schedule-dismiss']);
+      expect(types(effects)).toEqual(['stop-listening', 'stop-speaking', 'schedule-dismiss']);
   });
 
   it('cancels when the driver says nothing at all', () => {

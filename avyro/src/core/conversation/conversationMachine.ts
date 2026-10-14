@@ -156,8 +156,8 @@ export const conversationReducer = (
 
   if (event.type === 'cancel') {
     const effects: ConversationEffect[] = [];
-    if (state.status === 'listening') effects.push({ type: 'stop-listening' });
-    if (state.status === 'speaking') effects.push({ type: 'stop-speaking' });
+    effects.push({ type: 'stop-listening' });
+    if (['speaking', 'navigation-interrupt', 'resuming'].includes(state.status)) effects.push({ type: 'stop-speaking' });
     return cancelled(state, effects);
   }
 

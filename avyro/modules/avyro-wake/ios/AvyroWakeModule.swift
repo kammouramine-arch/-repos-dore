@@ -2,6 +2,7 @@ import ExpoModulesCore
 import AVFoundation
 import UIKit
 import Speech
+import MapKit
 import SherpaOnnxC
 
 // Audio lifecycle stays on main; model ownership stays on the inference queue.
@@ -27,6 +28,21 @@ public final class AvyroWakeModule: Module {
   public func definition() -> ModuleDefinition {
     Name("AvyroWake")
     Events("detected", "failure", "transcript", "speechEnd")
+    AsyncFunction("searchPlaces") { (query: String, latitude: Double?, longitude: Double?) async throws -> [[String: Any]] in
+      let request = MKLocalSearch.Request()
+      request.naturalLanguageQuery = query
+      request.resultTypes = [.address, .pointOfInterest]
+      if let latitude, let longitude {
+        request.region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), latitudinalMeters: 50000, longitudinalMeters: 50000)
+      }
+      let response = try await MKLocalSearch(request: request).start()
+      return response.mapItems.prefix(8).map { item in
+        let address = item.placemark
+        let street = [address.subThoroughfare, address.thoroughfare].compactMap { $0 }.joined(separator: " ")
+        let fullAddress = [street, address.locality, address.postalCode, address.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+        return ["name": item.name ?? street, "address": fullAddress, "houseNumber": address.subThoroughfare ?? "", "latitude": address.coordinate.latitude, "longitude": address.coordinate.longitude]
+      }
+    }
     AsyncFunction("supportsOnDevice") { (locale: String) -> Bool in
       SFSpeechRecognizer(locale: Locale(identifier: locale))?.supportsOnDeviceRecognition == true
     }
@@ -98,6 +114,7 @@ public final class AvyroWakeModule: Module {
       throw wakeError("Wake stream could not be created.")
     }
     inference.sync { self.spotter = created; self.stream = createdStream; self.triggered = false }
+    let captureGeneration = generation
     do {
       let audio = AVAudioSession.sharedInstance()
       try audio.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
@@ -124,6 +141,7 @@ public final class AvyroWakeModule: Module {
               if !detected.isEmpty {
                 self.triggered = true
                 DispatchQueue.main.async {
+                  guard self.generation == captureGeneration else { return }
                   self.stopCapture()
                   self.sendEvent("detected", [:])
                 }
@@ -182,7 +200,7 @@ public final class AvyroWakeModule: Module {
       request.requiresOnDeviceRecognition = true
       request.shouldReportPartialResults = true
       request.taskHint = .dictation
-      request.contextualStrings = ["Hey Avyro", "Hé Avyro", "Aviro", "Take me home", "Emmène-moi à la maison", "Paris", "Lille"]
+      request.contextualStrings = ["Hey Avyro", "Hé Avyro", "Aviro", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison", "Paris", "Lille"]
       recognitionRequests.append(request)
       recognitionTasks.append(recognizer.recognitionTask(with: request) { [weak self] result, error in
         DispatchQueue.main.async {
@@ -204,7 +222,7 @@ public final class AvyroWakeModule: Module {
     }
     do {
       let audio = AVAudioSession.sharedInstance()
-      try audio.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
+      try audio.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP])
       try audio.setActive(true)
       let capture = AVAudioEngine(), input = capture.inputNode
       let format = input.outputFormat(forBus: 0)

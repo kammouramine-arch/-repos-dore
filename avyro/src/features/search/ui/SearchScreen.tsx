@@ -29,12 +29,12 @@ import { SearchField } from "./SearchField";
  */
 export const SearchScreen = () => {
   const navigation = useNavigation();
-  const { savedPlacesRepository } = useServices();
+  const { savedPlacesRepository, placesProvider } = useServices();
   const route = useRoute<RootStackScreenProps<"Search">["route"]>();
   const saveSlot = route.params?.saveSlot;
-  const [query, setQuery] = useState("");
-  const [submitted, setSubmitted] = useState("");
-  const { results, status, error } = usePlaceSearch(submitted);
+  const [query, setQuery] = useState(route.params?.initialQuery ?? "");
+  const [submitted, setSubmitted] = useState(route.params?.initialQuery ?? "");
+  const { results, status, error } = usePlaceSearch(placesProvider.supportsTypeahead ? query : submitted);
   const submit = () => setSubmitted(query.trim());
   const choose = async (place: Place) => {
     if (!saveSlot) {
@@ -114,7 +114,7 @@ export const SearchScreen = () => {
           disabled={query.trim().length < 2}
         />
         <AppText variant="footnote" tone="tertiary">
-          OpenStreetMap contributors · Address results may be incomplete
+          {placesProvider.attribution ?? 'OpenStreetMap contributors · Address results may be incomplete'}
         </AppText>
       </View>
 

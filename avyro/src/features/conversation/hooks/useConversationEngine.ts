@@ -5,6 +5,7 @@ import type { WakeWordSession } from "@/core/domain/ports/wakeWordDetector";
 import { useServices, useStores } from "@/app/runtime/AppRuntime";
 import { CONVERSATION } from "@/config";
 import { buildRouteContext } from "@/core/conversation/routeContext";
+import { isRoadEvidenceCurrent } from '@/core/navigation/roadEvidence';
 import {
   initialVoiceSessionState,
   voiceSessionReducer,
@@ -129,7 +130,7 @@ export const useConversationEngine = (): void => {
   const readContext = useCallback(() => {
     const navigation = stores.navigation.getState();
 
-    return buildRouteContext({
+    const context = buildRouteContext({
       navigationState: navigation.status,
       destination: navigation.destination ?? stores.trip.getState().destination,
       previousDestination: navigation.previousDestination,
@@ -139,6 +140,8 @@ export const useConversationEngine = (): void => {
       referent: stores.conversation.getState().referent,
       distanceUnit: stores.preferences.getState().preferences.distanceUnit,
     });
+    const location = stores.location.getState();
+    return { ...context, mappedSpeedLimit: stores.preferences.getState().preferences.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence?.speedLimit ?? null : null };
   }, [stores]);
 
   const clearVoiceTimer = useCallback(() => {
@@ -549,6 +552,7 @@ export const useConversationEngine = (): void => {
           return startListening();
         case "stop-listening":
           clearTimers();
+          requestRef.current?.abort();
           return closeSession();
         case "ask-provider":
           return ask(effect.transcript);
@@ -558,6 +562,7 @@ export const useConversationEngine = (): void => {
           // conversation machine has no reason to emit `stop-listening` — so
           // the release happens here, where speaking actually begins.
           closeSession();
+          const speechGeneration = generationRef.current;
           voiceDebug("tts_started", `"${effect.text.slice(0, 80)}"`);
 
           // The machine leaves `speaking` only on `speech-finished`. A
@@ -582,10 +587,10 @@ export const useConversationEngine = (): void => {
 
           return void releaseRef.current
             .then(() =>
-              services.speechEngine.speak(effect.text, {
+              speechGeneration === generationRef.current ? services.speechEngine.speak(effect.text, {
                 language: effect.language ?? speechLanguage(effect.text),
                 onDone: () => finishSpeaking("tts_finished"),
-              }),
+              }) : undefined,
             )
             .catch((error) => {
               voiceDebug("ERROR tts_threw", String(error));

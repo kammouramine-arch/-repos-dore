@@ -46,6 +46,7 @@ export type VoiceIntent =
   | { kind: 'find-nearby'; category: NearbyCategory }
   | { kind: 'ask-eta' }
   | { kind: 'ask-location' }
+  | { kind: 'ask-speed-limit' }
   | { kind: 'ask-remaining-distance' }
   | { kind: 'ask-fastest-route' }
   | { kind: 'ask-traffic' }
@@ -64,6 +65,7 @@ export const VOICE_INTENT_KINDS = [
   'find-nearby',
   'ask-eta',
   'ask-location',
+  'ask-speed-limit',
   'ask-remaining-distance',
   'ask-fastest-route',
   'ask-traffic',
@@ -119,6 +121,7 @@ export interface RouteContext {
   headingDegrees: number | null;
   /** Routing-map street name, only when supported by a fresh accurate fix. */
   currentRoadName?: string | null;
+  mappedSpeedLimit?: { value: number; unit: 'km/h' | 'mph' } | null;
   /** The place Avyro last recommended, which "take me there" refers to. */
   referent: Place | null;
   remainingDistanceMeters: number | null;
