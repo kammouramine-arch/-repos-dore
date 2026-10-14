@@ -384,19 +384,43 @@ public final class AvyroWakeModule: Module {
   private func commandAudioPayload() -> String? {
     guard let url = commandURL, let file = try? AVAudioFile(forReading: url),
           file.length > 0, Double(file.length) / file.processingFormat.sampleRate <= 20.5,
-          let source = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)),
           let format = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1),
-          let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 328000),
+          let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 4096),
           let converter = AVAudioConverter(from: file.processingFormat, to: format) else { return nil }
-    do { try file.read(into: source) } catch { return nil }
-    var supplied = false
-    var error: NSError?
-    _ = converter.convert(to: output, error: &error) { _, status in
-      if supplied { status.pointee = .endOfStream; return nil }
-      supplied = true; status.pointee = .haveData; return source
+    let expected = Int(ceil(Double(file.length) * 16000 / file.processingFormat.sampleRate))
+    guard expected >= 1600, expected <= 328000 else { return nil }
+    converter.primeMethod = .none
+    var samples: [Float] = []
+    samples.reserveCapacity(expected + 1024)
+    var ended = false
+    // A single conversion call can return .haveData before draining the tail.
+    // Honor requested input frames and drain through endOfStream, so the final
+    // syllable cannot disappear merely because it is shorter than a block.
+    for _ in 0..<256 {
+      output.frameLength = 0
+      var conversionError: NSError?
+      var readFailed = false
+      let result = converter.convert(to: output, error: &conversionError) { requested, status in
+        let frames = min(Int(file.length - file.framePosition), Int(requested))
+        if frames <= 0 { status.pointee = .endOfStream; return nil }
+        guard let input = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(frames)) else {
+          readFailed = true; status.pointee = .noDataNow; return nil
+        }
+        do { try file.read(into: input, frameCount: AVAudioFrameCount(frames)) }
+        catch { readFailed = true; status.pointee = .noDataNow; return nil }
+        status.pointee = .haveData
+        return input
+      }
+      if conversionError != nil || readFailed || result == .error { return nil }
+      if output.frameLength > 0, let channel = output.floatChannelData?[0] {
+        samples.append(contentsOf: UnsafeBufferPointer(start: channel, count: Int(output.frameLength)))
+      }
+      if samples.count > expected + 4096 { return nil }
+      if result == .endOfStream { ended = true; break }
+      if result == .inputRanDry && output.frameLength == 0 { return nil }
     }
-    guard error == nil, output.frameLength >= 1600, let samples = output.floatChannelData?[0] else { return nil }
-    let count = Int(output.frameLength), bytes = UInt32(count * 2)
+    guard ended, samples.count >= max(1600, expected - 32) else { return nil }
+    let count = min(samples.count, expected), bytes = UInt32(count * 2)
     var wav = Data("RIFF".utf8)
     func u32(_ value: UInt32) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
     func u16(_ value: UInt16) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
