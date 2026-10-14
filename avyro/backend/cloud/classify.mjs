@@ -11,7 +11,7 @@ export function validateClassification(output, transcript) {
   }
   if (intent.kind === 'navigate-to-place' && (typeof intent.query !== 'string' || intent.query.trim().length < 2 || intent.query.length > 200 || !text.includes(normalize(intent.query.trim())))) return unknown();
   if (intent.kind === 'find-nearby') {
-    const cues = { coffee: /\b(?:coffee|cafe|cafes)\b/, fuel: /\b(?:fuel|gas|petrol|essence|carburant|station)\b/, restaurants: /\b(?:food|eat|restaurant|restaurants|manger|repas)\b/, parking: /\b(?:parking|park|stationner|garer)\b/ };
+    const cues = { coffee: /\b(?:coffee|cafe|cafes)\b/, fuel: /\b(?:fuel|gas|petrol|essence|carburant)\b|\bstation[- ]service\b/, restaurants: /\b(?:food|eat|restaurant|restaurants|manger|repas)\b/, parking: /\b(?:parking|park|stationner|garer)\b/ };
     if (!cues[intent.category]?.test(text)) return unknown();
   }
   const safe = { kind: intent.kind };

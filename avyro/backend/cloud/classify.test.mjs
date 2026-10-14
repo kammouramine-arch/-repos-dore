@@ -11,6 +11,7 @@ test('discards every model fact and extra field', () => {
 
 test('a model cannot invent a stop category absent from the spoken request', () => {
   assert.deepEqual(validateClassification({ intent: { kind: 'find-nearby', category: 'fuel' } }, 'Find a coffee nearby'), unknown());
+  assert.deepEqual(validateClassification({ intent: { kind: 'find-nearby', category: 'fuel' } }, 'Find a train station'), unknown());
   assert.deepEqual(validateClassification({ intent: { kind: 'find-nearby', category: 'coffee' } }, 'Cherche un café'), { intent: { kind: 'find-nearby', category: 'coffee' }, speech: null });
 });
 test('negated and driving-safety questions never reach the remote model', async () => {

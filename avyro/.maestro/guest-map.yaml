@@ -19,7 +19,7 @@ appId: app.avyro.companion
 - assertVisible: "Optional account"
 - assertVisible: "Voice language"
 - takeScreenshot: build/screens/03-settings
-- tapOn: "Back"
+- tapOn: "Go back"
 - tapOn: "Search for a destination"
 - tapOn: "Destination"
 - inputText: "Eiffel Tower Paris France"
