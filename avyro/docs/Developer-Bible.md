@@ -9,6 +9,13 @@ be analyzed. No recordings or real trip traces were sent to external services.
 The speed display formerly rejected every GPS fix newer than its previous
 one-second UI tick, causing repeated blanks. Display freshness now tolerates
 that tick offset while still rejecting stale, inaccurate and invalid readings.
+The five-metre GPS movement filter was removed; Expo's timeInterval is Android-only
+and could not refresh stationary iPhone speed readings. The foreground map now
+shows the measured speed before starting a route too. Native traffic cartography
+defaults on for new preferences and is enabled with the connected-feature consent.
+`scripts/prepare-location.mjs` narrowly patches pinned expo-location 57.0.21:
+BestForNavigation foreground managers use automotive activity and disable automatic
+pausing. Background access remains off. Version/source changes fail loudly for review.
 The position marker uses one original static arrow with animated coordinates;
 missing course readings retain its last direction. Background Home camera
 animations stop when guidance is visible.
@@ -23,6 +30,9 @@ is never introduced. French/English commands are recognized serially from the
 same short local recording instead of competing simultaneous tasks. The temporary
 recording is deleted on completion/cancellation, and never sent to the gateway.
 Native ASR uses measurement capture mode and restores normal playback for TTS.
+Wake standby mixes with existing audio; explicit command recording and replies
+duck it. Reply language is attached to the owned template rather than inferred
+from accent marks in a street name; it survives navigation interruptions.
 Recognition in real road noise and French/English accents still needs device
 retesting; passing mocked recognizer tests is not evidence of acoustic accuracy.
 
@@ -40,6 +50,12 @@ limits have a circular badge and visual overspeed indication. English/French
 speed-limit questions answer only from current evidence; missing data is stated.
 Mapped segment signs are not positioned as upcoming signs or live light phases.
 The evaluation quota and conservative evidence expiry still limit availability.
+Native completion can return no suggestions for a fully specified natural-language
+query. Such queries automatically fall back to native full search; no extra Search
+tap is required. Named POIs retain their names, while explicitly numbered addresses
+retain the confirmed house number. This was identified by the real simulator flow.
+Optional AI can classify varied speed-limit questions, but every numeric reply still
+comes from current local road evidence and provider prose is discarded.
 
 Eight incident categories use an original grid sheet. Only server-reviewed,
 unexpired, coarse-location community observations can appear on the map;

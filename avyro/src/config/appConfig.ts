@@ -50,9 +50,10 @@ export const NAVIGATION = {
   offRouteConfirmations: 3,
   /** Distance to the destination that counts as an arrival. */
   arrivalThresholdMeters: 35,
-  /** Location updates: every 2 s or every 5 m, whichever comes first. */
+  /** Android cadence; iOS supplies its native foreground cadence. */
   locationIntervalMs: 2_000,
-  locationDistanceMeters: 5,
+  /** No movement filter: stationary speed readings must remain fresh too. */
+  locationDistanceMeters: 0,
   /** Spoken guidance is triggered as the driver crosses these distances. */
   announcementDistancesMeters: [1_500, 500, 180, 45],
 } as const;

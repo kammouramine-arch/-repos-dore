@@ -90,6 +90,7 @@ export type ConversationAction =
 /** One answer from a conversation provider: something to say, something to do. */
 export interface ConversationReply {
   speech: string;
+  language?: 'fr-FR' | 'en-US';
   action: ConversationAction;
   /** What the provider understood, for logging and future analytics. */
   intent: VoiceIntent;

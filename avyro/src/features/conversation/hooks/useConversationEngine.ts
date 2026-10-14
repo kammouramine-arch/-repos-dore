@@ -502,7 +502,7 @@ export const useConversationEngine = (): void => {
         if (generation === generationRef.current)
           dispatch({
             type: "recognition-failed",
-            reason: "Voice could not start. Check microphone permission.",
+            reason: /on-device speech language/i.test(String(error)) ? 'Offline voice needs a French or English speech language installed in iPhone Settings.' : "Voice could not start. Check microphone permission.",
           });
       });
     };

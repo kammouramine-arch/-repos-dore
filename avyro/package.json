@@ -51,8 +51,8 @@
     "prebuild:clean": "expo prebuild --clean",
     "test": "jest",
     "test:watch": "jest --watch",
-    "postinstall": "node scripts/prepare-wake.mjs",
-    "eas-build-post-install": "node scripts/prepare-wake.mjs"
+    "postinstall": "node scripts/prepare-native.mjs",
+    "eas-build-post-install": "node scripts/prepare-native.mjs"
   },
   "private": true,
   "description": "Avyro â€” the worldâ€™s first AI Driving Companion. Sprint 1: navigation foundations."

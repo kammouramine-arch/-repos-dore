@@ -10,10 +10,11 @@ export interface AppleSearch {
   resolvePlaceSuggestion?(id: string): Promise<ApplePlace[]>;
 }
 function toPlaces(results: ApplePlace[], query: string): Place[] {
-  const number = query.trim().match(/^(\d+[a-z]?)\s+/i)?.[1];
+  const number = query.trim().match(/^(\d+(?:[a-z]|\s*(?:bis|ter|quater))?)(?:\s|,|$)/i)?.[1];
+  const normalizeNumber = (value: string) => value.toLowerCase().replace(/\s+/g, '');
   return results.filter(item => Number.isFinite(item.latitude) && Number.isFinite(item.longitude) && Math.abs(item.latitude) <= 90 && Math.abs(item.longitude) <= 180)
-    .filter(item => !number || item.houseNumber.toLowerCase() === number.toLowerCase())
-    .map(item => ({ id: `apple:${item.latitude}:${item.longitude}:${item.name}`, name: item.houseNumber ? item.address.split(',')[0] : item.name, address: item.address, coordinates: { latitude: item.latitude, longitude: item.longitude }, category: 'address' }));
+    .filter(item => !number || normalizeNumber(item.houseNumber) === normalizeNumber(number))
+    .map(item => ({ id: `apple:${item.latitude}:${item.longitude}:${item.name}`, name: number && item.houseNumber ? item.address.split(',')[0] : item.name, address: item.address, coordinates: { latitude: item.latitude, longitude: item.longitude }, category: 'address' }));
 }
 
 /** Apple's native search on Apple maps; never send keystrokes to public Nominatim. */

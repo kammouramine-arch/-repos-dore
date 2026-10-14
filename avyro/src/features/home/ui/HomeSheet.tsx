@@ -36,7 +36,7 @@ export const HomeSheet = ({
   const update = usePreferencesStore(state => state.update);
   const connect = () => Alert.alert('Connect your companion?', 'AI sends individual spoken commands to Avyro’s Cloudflare service. Road information sends a short GPS trace to Avyro and TomTom during navigation. Ambient listening stays on your iPhone. Both can be switched off in Settings.', [
     { text: 'Later', style: 'cancel' },
-    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, roadInformation: true }) },
+    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, roadInformation: true, showTraffic: true }) },
   ]);
   return (
   <GlassPanel style={styles.sheet}>

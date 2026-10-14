@@ -16,8 +16,13 @@ test('a model cannot invent a stop category absent from the spoken request', () 
 });
 test('negated and driving-safety questions never reach the remote model', async () => {
   let calls = 0; const ai = { run: async () => { calls++; return {}; } };
-  for (const text of ['Do not take me home', 'Can I change lanes?', 'Ne va pas à Paris', 'Puis-je dépasser ?', 'What is the speed limit?']) assert.deepEqual(await classifyCommand(ai, text), unknown());
+  for (const text of ['Do not take me home', 'Can I change lanes?', 'Ne va pas à Paris', 'Puis-je dépasser ?', 'Are there hazards ahead?']) assert.deepEqual(await classifyCommand(ai, text), unknown());
   assert.equal(calls, 0);
+});
+test('AI can interpret a speed question but cannot invent its numeric answer', async () => {
+  const ai = { run: async () => ({ choices: [{ message: { content: JSON.stringify({ intent: { kind: 'ask-speed-limit' }, speech: 'The speed limit is 130.' }) } }] }) };
+  assert.deepEqual(await classifyCommand(ai, 'What speed is allowed here?'), { intent: { kind: 'ask-speed-limit' }, speech: null });
+  assert.deepEqual(validateClassification({ intent: { kind: 'ask-speed-limit' } }, 'Take me home'), unknown());
 });
 test('pins server model, prompt and output size; no provider prose reaches the app', async () => {
   const ai = { run: async (model, input) => {

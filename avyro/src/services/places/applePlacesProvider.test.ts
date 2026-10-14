@@ -12,6 +12,14 @@ test('a superseded search never publishes a destination', async () => {
   const provider = createApplePlacesProvider({ async searchPlaces() { controller.abort(); return []; } })!;
   await expect(provider.search('King Walk', { signal: controller.signal })).rejects.toMatchObject({ name: 'AbortError' });
 });
+test('a named place keeps its name instead of becoming its numbered postal street', async () => {
+  const provider = createApplePlacesProvider({ searchPlaces: async () => [{ name: 'Eiffel Tower', address: '5 Avenue Anatole France, Paris', houseNumber: '5', latitude: 48.85, longitude: 2.35 }] })!;
+  expect((await provider.search('Eiffel Tower Paris France'))[0].name).toBe('Eiffel Tower');
+});
+test('number suffixes and comma-separated addresses retain the confirmed house', async () => {
+  expect((await createApplePlacesProvider(native('18bis'))!.search('18 bis Rue Exemple'))[0].name).toContain('18bis');
+  expect((await createApplePlacesProvider(native('18'))!.search('18, Rue Exemple'))[0].name).toBe('18 Rue Exemple');
+});
 test('native autocomplete suggestions acquire coordinates only after explicit selection', async () => {
   const resolve = jest.fn(async () => [{ name: 'King Walk', address: 'King Walk, Example City', houseNumber: '', latitude: 48.85, longitude: 2.35 }]);
   const provider = createApplePlacesProvider({ ...native(''), suggestPlaces: async () => [{ id: 'completion-1', name: 'King Walk', address: 'Example City' }], resolvePlaceSuggestion: resolve })!;

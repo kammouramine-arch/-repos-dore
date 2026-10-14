@@ -5,7 +5,7 @@ export const isFrenchUtterance = (text: string): boolean => /\b(?:emm[eè]ne|am[
 
 /** Translate only supported, grounded reply templates, never a provider's invented prose. */
 export const frenchReply = (reply: ConversationReply, request: ConversationRequest): ConversationReply => {
-  if (!isFrenchUtterance(request.transcript)) return reply;
+  if (!isFrenchUtterance(request.transcript)) return { ...reply, language: 'en-US' };
   const { context } = request;
   const { action, intent } = reply;
   let speech: string;
@@ -27,7 +27,7 @@ export const frenchReply = (reply: ConversationReply, request: ConversationReque
     case 'ask-fastest-route': speech = 'Je ne peux pas vérifier les conditions de circulation en direct.'; break;
     case 'unknown': speech = 'Je n’ai pas compris. Essayez « emmène-moi à Paris » ou « annule la navigation ».'; break;
   }
-  return { ...reply, speech };
+  return { ...reply, speech, language: 'fr-FR' };
 };
 
 export const speechLanguage = (text: string): string => /[àâéèêîôùûçœ]|\b(?:je|vous|votre|dans|reste|continuez|prenez|partez|sortez|rejoignez|faites|direction|navigation annul[eé]e)\b/i.test(text) ? 'fr-FR' : 'en-US';

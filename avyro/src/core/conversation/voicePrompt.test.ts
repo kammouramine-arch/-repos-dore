@@ -44,6 +44,10 @@ describe('telling the driver what the microphone is doing', () => {
     expect(prompt.tone).toBe('error');
     expect(prompt.label).toBe('Sorry, I didn’t catch that.');
   });
+  it('distinguishes an unavailable speech language from a misheard utterance', () => {
+    const message = 'Offline voice needs a French or English speech language installed in iPhone Settings.';
+    expect(voicePromptFor('cancelled', null, message).label).toBe(message);
+  });
 
   it('says nothing when the driver cancelled it themselves', () => {
     // They know they cancelled. Reporting it back is noise.

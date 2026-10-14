@@ -123,7 +123,7 @@ const resume = (state: ConversationState): Transition => {
       : state.resumeTo === 'speaking' && state.reply
         ? // Re-speak from the beginning: half a sentence heard before a
           // maneuver is not an answer, and we cannot know where it was cut.
-          [{ type: 'speak', text: state.reply.speech }]
+          [{ type: 'speak', text: state.reply.speech, ...(state.reply.language ? { language: state.reply.language } : {}) }]
         : [];
 
   return { state: { ...state, status: 'resuming', speaking: null }, effects };
@@ -216,7 +216,7 @@ export const conversationReducer = (
             // The action runs as the reply is spoken, not after it: a driver
             // who asked to go home should see the route while they hear it.
             { type: 'run-action', reply: event.reply },
-            { type: 'speak', text: event.reply.speech },
+            { type: 'speak', text: event.reply.speech, ...(event.reply.language ? { language: event.reply.language } : {}) },
           ],
         };
       }

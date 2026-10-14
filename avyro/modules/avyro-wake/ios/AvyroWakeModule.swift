@@ -174,7 +174,7 @@ public final class AvyroWakeModule: Module {
     let captureGeneration = generation
     do {
       let audio = AVAudioSession.sharedInstance()
-      try audio.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP])
+      try audio.setCategory(.playAndRecord, mode: .default, options: [.defaultToSpeaker, .allowBluetoothHFP, .mixWithOthers])
       try audio.setActive(true)
       let capture = AVAudioEngine()
       let input = capture.inputNode
@@ -268,21 +268,24 @@ public final class AvyroWakeModule: Module {
     handoffAudio = nil
     guard UIApplication.shared.applicationState == .active else { throw wakeError("Open Avyro to use voice.") }
     guard AVAudioSession.sharedInstance().recordPermission == .granted else { throw wakeError("Microphone permission is required.") }
-    let supported = locales.reduce(into: [String]()) { result, locale in
+    let requested = locales.reduce(into: [String]()) { result, locale in
       if ["en-US", "fr-FR"].contains(locale) && !result.contains(locale) { result.append(locale) }
     }
-    guard !supported.isEmpty, supported.count <= 2 else { throw wakeError("Select French or English.") }
-    let recognizers = try supported.map { locale -> SFSpeechRecognizer in
+    guard !requested.isEmpty, requested.count <= 2 else { throw wakeError("Select French or English.") }
+    let available = requested.compactMap { locale -> (String, SFSpeechRecognizer)? in
       guard let recognizer = SFSpeechRecognizer(locale: Locale(identifier: locale)), recognizer.isAvailable,
-            recognizer.supportsOnDeviceRecognition else { throw wakeError("Download the on-device speech language in iPhone Settings.") }
-      return recognizer
+            recognizer.supportsOnDeviceRecognition else { return nil }
+      return (locale, recognizer)
     }
+    guard !available.isEmpty else { throw wakeError("Download the on-device speech language in iPhone Settings.") }
+    let supported = available.map { $0.0 }
+    let recognizers = available.map { $0.1 }
     let currentGeneration = generation
     var primaryCompleted = false
     var secondaryCompleted = false
     var finals: [[String: Any]] = []
     speechRecognizers = recognizers
-    let hints = ["Hey Avyro", "Hé Avyro", "Aviro", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison", "Paris", "Lille"]
+    let hints = ["Hey Avyro", "Hé Avyro", "Aviro", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison"]
     func event(_ result: SFSpeechRecognitionResult, _ locale: String) -> [String: Any] {
       let segments = result.bestTranscription.segments
       let confidence = segments.isEmpty ? 0 : segments.reduce(0.0) { $0 + Double($1.confidence) } / Double(segments.count)
@@ -334,7 +337,7 @@ public final class AvyroWakeModule: Module {
     }]
     do {
       let audio = AVAudioSession.sharedInstance()
-      try audio.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP])
+      try audio.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .allowBluetoothHFP, .duckOthers])
       try audio.setActive(true)
       let capture = AVAudioEngine(), input = capture.inputNode
       let format = input.outputFormat(forBus: 0)

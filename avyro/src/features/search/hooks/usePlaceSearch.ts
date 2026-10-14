@@ -44,11 +44,13 @@ export const usePlaceSearch = (query: string, fullSearch = false): PlaceSearchRe
       setState({ results: [], status: 'searching', error: null, query });
 
       try {
-        const results = placesProvider.suggest && !fullSearch ? await placesProvider.suggest(query, { near: nearRef.current, signal: controller.signal }) : await useCases.searchPlaces({
-          query,
-          near: nearRef.current,
-          signal: controller.signal,
-        });
+        let results: (Place | PlaceSuggestion)[];
+        if (placesProvider.suggest && !fullSearch) {
+          results = await placesProvider.suggest(query, { near: nearRef.current, signal: controller.signal });
+          // Completers can reject fully specified natural-language queries.
+          // Resolve those automatically through the same licensed native search.
+          if (!results.length && !controller.signal.aborted) results = await useCases.searchPlaces({ query, near: nearRef.current, signal: controller.signal });
+        } else results = await useCases.searchPlaces({ query, near: nearRef.current, signal: controller.signal });
         if (controller.signal.aborted) return;
         setState({ results, status: 'ready', error: null, query });
       } catch (error) {

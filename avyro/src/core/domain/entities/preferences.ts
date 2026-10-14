@@ -39,6 +39,6 @@ export const DEFAULT_PREFERENCES: Preferences = {
   keepScreenAwake: true,
   distanceUnit: 'metric',
   mapStyle: 'standard',
-  showTraffic: false,
+  showTraffic: true,
   roadInformation: false,
 };

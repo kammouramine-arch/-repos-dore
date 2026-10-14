@@ -1,10 +1,11 @@
-const kinds = new Set(['navigate-saved','navigate-to-place','find-nearby','ask-eta','ask-location','ask-remaining-distance','ask-traffic','unknown']);
+const kinds = new Set(['navigate-saved','navigate-to-place','find-nearby','ask-eta','ask-location','ask-speed-limit','ask-remaining-distance','ask-traffic','unknown']);
 const normalize = text => text.normalize('NFKD').replace(/[\u0300-\u036f]/g, '').toLowerCase();
 export const unknown = () => ({ intent: { kind: 'unknown' }, speech: null });
 
 export function validateClassification(output, transcript) {
   const intent = output?.intent, text = normalize(transcript);
   if (!kinds.has(intent?.kind)) return unknown();
+  if (intent.kind === 'ask-speed-limit' && !/\b(?:speed|limit|vitesse|limitation)\b/.test(text)) return unknown();
   if (intent.kind === 'navigate-saved') {
     if (!['home','work'].includes(intent.slot)) return unknown();
     if (!(intent.slot === 'home' ? /\b(?:home|maison|chez moi)\b/ : /\b(?:work|office|travail|bureau)\b/).test(text)) return unknown();
@@ -23,12 +24,12 @@ export function validateClassification(output, transcript) {
 
 export async function classifyCommand(ai, transcript) {
   const text = normalize(transcript);
-  if (/\b(?:don['’]t|do not|overtak\w*|lanes?|safe to|speed limit|road signs?|hazards? ahead|depass\w*|changer de voie|limitation|panneaux)\b|\b(?:ne|n['’])\b.*\b(?:pas|jamais)\b/.test(text)) return unknown();
+  if (/\b(?:don['’]t|do not|overtak\w*|lanes?|safe to|road signs?|hazards? ahead|depass\w*|changer de voie|panneaux)\b|\b(?:ne|n['’])\b.*\b(?:pas|jamais)\b/.test(text)) return unknown();
   let timer;
   try {
     const result = await Promise.race([
       ai.run('@cf/qwen/qwen3-30b-a3b-fp8', { temperature: 0, max_tokens: 160, response_format: { type: 'json_object' }, messages: [
-        { role: 'system', content: `Classify only a French or English navigation command. Return JSON {intent:{kind,slot?,query?,category?}}. Allowed kinds: ${[...kinds].join(',')}. Slots home/work; categories coffee/fuel/restaurants/parking. Query must be a substring of the user's words. No route-control commands, facts about roads, driving safety or negated actions. Return unknown if unsure. /no_think` },
+        { role: 'system', content: `Classify only a French or English navigation command. Return JSON {intent:{kind,slot?,query?,category?}}. Allowed kinds: ${[...kinds].join(',')}. Slots home/work; categories coffee/fuel/restaurants/parking. Query must be a substring of the user's words. Speed questions may classify as ask-speed-limit, but never supply a numeric limit: the app checks current licensed evidence separately. No route-control commands, facts about roads, driving safety or negated actions. Return unknown if unsure. /no_think` },
         { role: 'user', content: transcript },
       ] }),
       new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Classifier timeout')), 3500); }),

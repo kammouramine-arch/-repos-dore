@@ -17,6 +17,7 @@ import { AvyroMapView } from '@/maps/components/AvyroMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
 import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
 import { IncidentMapLayer } from '@/maps/components/IncidentMapLayer';
+import { DrivingStatusPanel } from '@/features/navigation/ui/DrivingStatusPanel';
 import { IconButton } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { HomeSheet } from './HomeSheet';
@@ -98,12 +99,15 @@ export const HomeScreen = () => {
 
       <View onLayout={event => setBottomHeight(Math.round(event.nativeEvent.layout.height))} style={[styles.bottom, { paddingBottom: insets.bottom + spacing.sm }]}>
         <View style={styles.controls}>
+          {focused && position ? <DrivingStatusPanel /> : null}
+          <View style={styles.controlButtons}>
           <IncidentReportButton />
           <IconButton
             name="locate"
             accessibilityLabel="Centre on my location"
             onPress={() => centreOnDriver()}
           />
+          </View>
         </View>
 
         <HomeSheet
@@ -137,6 +141,9 @@ const styles = StyleSheet.create({
     gap: spacing.sm,
   },
   controls: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
     alignItems: 'flex-end',
   },
+  controlButtons: { gap: spacing.xs, marginLeft: 'auto' },
 });
