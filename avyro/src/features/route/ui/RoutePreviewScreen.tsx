@@ -1,3 +1,4 @@
+import { useDriverHeading } from '@/maps/useDriverHeading';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -20,6 +21,7 @@ import { RouteSummaryCard } from './RouteSummaryCard';
  */
 export const RoutePreviewScreen = () => {
   const navigation = useNavigation();
+  const driverHeading = useDriverHeading();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [bottomHeight, setBottomHeight] = useState(0);
@@ -81,7 +83,7 @@ export const RoutePreviewScreen = () => {
         ) : null}
 
         {position ? (
-          <UserPuck coordinate={position.coordinates} headingDegrees={position.heading} />
+          <UserPuck coordinate={position.coordinates} headingDegrees={driverHeading} />
         ) : null}
       </AvyroMapView>
 

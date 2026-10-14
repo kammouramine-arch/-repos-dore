@@ -1,3 +1,4 @@
+import { useDriverHeading } from '@/maps/useDriverHeading';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
@@ -29,6 +30,7 @@ import { HomeHeader } from './HomeHeader';
  */
 export const HomeScreen = () => {
   const navigation = useNavigation();
+  const driverHeading = useDriverHeading();
   const focused = useIsFocused();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
@@ -85,7 +87,7 @@ export const HomeScreen = () => {
         {focused && position ? (
           <UserPuck
             coordinate={position.coordinates}
-            headingDegrees={position.heading}
+            headingDegrees={driverHeading}
             cameraHeadingDegrees={cameraHeading}
           />
         ) : null}

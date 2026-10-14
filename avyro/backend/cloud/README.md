@@ -58,3 +58,31 @@ matched 70 km/h limit and one traveled-segment sign. English Home and French ETA
 model samples passed; lane-change and negated-action samples returned unknown.
 No real location trace, email, transcript or account database was imported.
 The road counter starts at 100 for October to reserve prior evaluation usage.
+# Optional command-audio transcription (build 36)
+
+`POST /speech/transcribe` requires a guest/account bearer session and explicit
+`consent: true`. The app has a separate `cloudSpeech` opt-in, off for existing
+and new installations. Only the bounded command after wake-up is sent; ambient
+wake listening remains on-device. The Worker does not store audio or transcripts
+and observability remains disabled.
+
+The server validates a 16 kHz mono 16-bit PCM WAV, at most 20.5 seconds, before
+calling `@cf/openai/whisper-large-v3-turbo`. VAD is enabled, previous-text
+conditioning disabled, and there is no phrase prompt that could bias the answer
+toward the expected test command. Explicit single-language selection is honored;
+bilingual mode uses Whisper language detection.
+
+The server permits 100 speech requests/day globally, 30/day per session, and
+5/minute per hashed IP. The existing intent-model cap is separate. There is no
+paid fallback: disabled/quota/network failures fall back to local final speech
+recognition. This is a limited free beta, not an unlimited service commitment.
+The app cancels uploads on cancellation/backgrounding. Local recordings are
+deleted by the native microphone lifecycle.
+
+Whisper model weights: MIT, hosted remotely rather than bundled.
+https://huggingface.co/openai/whisper-large-v3-turbo
+Cloudflare pricing/free-plan hard stop:
+https://developers.cloudflare.com/workers-ai/platform/pricing/
+Cloudflare data terms:
+https://developers.cloudflare.com/workers-ai/platform/data-usage/
+

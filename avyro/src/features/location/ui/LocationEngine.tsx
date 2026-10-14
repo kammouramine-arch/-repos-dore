@@ -15,6 +15,15 @@ export const LocationEngine = () => {
     return () => subscription.remove();
   }, []);
   useEffect(() => {
+    if (!active || permission !== 'granted' || !services.locationTracker.watchHeading) return;
+    let current = true, subscription: LocationSubscription | null = null;
+    void services.locationTracker.watchHeading(heading => {
+      if (current) stores.location.getState().setCompass(heading);
+    }).then(watch => { if (current) subscription = watch; else watch.remove(); })
+      .catch(() => services.logger.warn('Compass unavailable'));
+    return () => { current = false; subscription?.remove(); };
+  }, [active, permission, services, stores]);
+  useEffect(() => {
     if (!active || permission !== 'granted' || hasGuidanceRoute) return;
     let current = true, subscription: LocationSubscription | null = null;
     void services.locationTracker.watchPosition(position => {

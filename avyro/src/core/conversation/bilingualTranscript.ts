@@ -11,7 +11,7 @@ export const selectBilingualTranscript = (candidates: readonly TranscriptEvent[]
   if (refusals.length) return refusals.reduce((best, candidate) => (candidate.confidence ?? 0) > (best.confidence ?? 0) ? candidate : best);
   const understood = finals.map(candidate => parseCommand(commandFor(candidate))).filter(intent => intent.kind !== 'unknown');
   const keys = new Set(understood.map(intent => JSON.stringify(intent)));
-  const changesRoute = understood.some(intent => ['navigate-saved','navigate-to-place','navigate-referent','cancel-navigation','reroute','restore-destination'].includes(intent.kind));
+  const changesRoute = understood.some(intent => ['navigate-saved','navigate-to-place','navigate-referent','cancel-navigation','reroute','restore-destination','report-incident'].includes(intent.kind));
   if (changesRoute && keys.size > 1) return null;
   const rank = (candidate: TranscriptEvent) => {
     const text = commandFor(candidate);

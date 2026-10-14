@@ -34,9 +34,9 @@ export const HomeSheet = ({
   const navigation = useNavigation();
   const preferences = usePreferencesStore(state => state.preferences);
   const update = usePreferencesStore(state => state.update);
-  const connect = () => Alert.alert('Connect your companion?', 'AI sends individual spoken commands to Avyro’s Cloudflare service. Road information sends a short GPS trace to Avyro and TomTom during navigation. Ambient listening stays on your iPhone. Both can be switched off in Settings.', [
+  const connect = () => Alert.alert('Connect your companion?', 'AI speech sends only your short command audio after wake-up to Cloudflare’s Whisper service for transcription, and command text for interpretation. Free testing is limited; offline recognition remains available. Road information sends a short GPS trace to Avyro and TomTom during navigation. Ambient listening stays on your iPhone. Both can be switched off in Settings.', [
     { text: 'Later', style: 'cancel' },
-    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, roadInformation: true, showTraffic: true }) },
+    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, cloudSpeech: true, roadInformation: true, showTraffic: true }) },
   ]);
   return (
   <GlassPanel style={styles.sheet}>
@@ -44,11 +44,11 @@ export const HomeSheet = ({
 
     <View style={styles.body}>
       <SearchTrigger onPress={onSearchPress} />
-      <SavedPlacesDock onNavigate={onRecentPress} />
+      {expanded ? <SavedPlacesDock onNavigate={onRecentPress} /> : null}
       <View style={styles.shortcuts}>
-        {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Search', { initialQuery: label === 'Fuel' ? 'gas station' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{label}</AppText></PressableScale>)}
+        {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Nearby', { category: label === 'Fuel' ? 'fuel' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{label}</AppText></PressableScale>)}
       </View>
-      {!preferences.cloudAssistant || !preferences.roadInformation ? <PressableScale accessibilityRole="button" onPress={connect}><AppText variant="footnote" tone="accent">Enable AI companion & road information</AppText></PressableScale> : null}
+      {!preferences.cloudSpeech || !preferences.cloudAssistant || !preferences.roadInformation ? <PressableScale accessibilityRole="button" onPress={connect}><AppText variant="footnote" tone="accent">Enable AI voice & road information</AppText></PressableScale> : null}
 
       {locationError ? (
         <ListRow
@@ -83,9 +83,7 @@ export const HomeSheet = ({
       ) : recents.length > 0 ? (
         <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">Recent destinations · {recents.length}</AppText></PressableScale>
       ) : (
-        <AppText variant="footnote" tone="tertiary" style={styles.hint}>
-          Pick a destination. Enjoy the drive.
-        </AppText>
+        <PressableScale onPress={() => setExpanded(!expanded)} accessibilityRole="button"><AppText variant="caption" tone="secondary">{expanded ? 'Hide saved places' : 'Home, Work & saved places'}</AppText></PressableScale>
       )}
     </View>
   </GlassPanel>
@@ -94,10 +92,10 @@ export const HomeSheet = ({
 const styles = StyleSheet.create({
   sheet: {
     paddingTop: spacing.xs,
-    paddingBottom: spacing.md,
+    paddingBottom: spacing.sm,
   },
   shortcuts: { flexDirection: 'row', gap: spacing.xs },
-  shortcut: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: 14, backgroundColor: '#E8F2F2' },
+  shortcut: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: 14, backgroundColor: '#F0F3F5' },
   grabber: {
     alignSelf: 'center',
     width: 38,
@@ -107,7 +105,7 @@ const styles = StyleSheet.create({
   },
   body: {
     gap: spacing.sm,
-    paddingTop: spacing.md,
+    paddingTop: spacing.sm,
     paddingHorizontal: spacing.md,
   },
   recents: {

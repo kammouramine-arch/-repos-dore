@@ -32,7 +32,7 @@ const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 
     rotation.stopAnimation(current => {
       if (!active) return;
       const delta = ((target - current) % 360 + 540) % 360 - 180;
-      Animated.timing(rotation, { toValue: current + delta, duration: 850, useNativeDriver: Platform.OS === 'ios' }).start();
+      Animated.timing(rotation, { toValue: current + delta, duration: 220, useNativeDriver: Platform.OS === 'ios' }).start();
     });
     return () => { active = false; rotation.stopAnimation(); };
   }, [headingDegrees, cameraHeadingDegrees, rotation]);
@@ -51,7 +51,7 @@ const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 
     anchor={{ x: 0.5, y: 0.5 }}
     flat
     rotation={Platform.OS === 'android' ? rotation : 0}
-    tracksViewChanges={false}
+    tracksViewChanges={Platform.OS === 'ios'}
     zIndex={20}
   >
     <Animated.View style={Platform.OS === 'ios' ? { transform: [{ rotate: rotation.interpolate({ inputRange: [-360, 360], outputRange: ['-360deg', '360deg'] }) }] } : undefined}>

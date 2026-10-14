@@ -1,5 +1,8 @@
 import { Fragment, memo } from 'react';
-import { Polyline } from 'react-native-maps';
+import { Marker, Polyline } from 'react-native-maps';
+import { View } from 'react-native';
+import { AppText } from '@/ui/components';
+import { formatDuration } from '@/utils/format';
 
 import type { Route } from '@/core/domain/entities/route';
 import { colors } from '@/ui/theme';
@@ -27,6 +30,7 @@ const RouteOverlayComponent = ({
 
   return (
     <>
+      {routes.filter(route => route.geometry.length > 0).map((route, index) => <Marker key={`time-${route.id}`} coordinate={route.geometry[Math.min(route.geometry.length - 1, Math.floor(route.geometry.length * (.38 + index * .15)))]} tracksViewChanges={false} onPress={() => onSelectRoute?.(route.id)} zIndex={10}><View style={{ paddingHorizontal: 12, paddingVertical: 8, borderRadius: 14, backgroundColor: route.id === selected?.id ? colors.accent : '#FFFFFF', borderWidth: 2, borderColor: '#FFFFFF' }}><AppText variant="caption" style={{ color: route.id === selected?.id ? '#FFFFFF' : colors.textPrimary }}>{formatDuration(route.durationSeconds)}</AppText></View></Marker>)}
       {routes
         .filter((route) => route.id !== selected?.id)
         .map((route) => (

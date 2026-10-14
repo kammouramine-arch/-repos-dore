@@ -77,6 +77,7 @@ export const SettingsScreen = () => {
           <ChoiceRow title="Voice language" options={[{ value: 'bilingual' as const, label: 'FR + EN' }, { value: 'fr-FR' as const, label: 'Français' }, { value: 'en-US' as const, label: 'English' }]} value={preferences.voiceLanguage} onChange={value => void update({ voiceLanguage: value })} />
           <ChoiceRow title="Hands-free mode" subtitle="Say “Hey Avyro”, then your command in French or English. Keep Avyro open to listen." options={[{ value: 'system' as const, label: 'Automatic' }, { value: 'keyword' as const, label: 'Low power' }]} value={preferences.voiceDetection} onChange={value => void update({ voiceDetection: value })} />
           <ToggleRow title="Cloud command assistant" subtitleLines={0} subtitle="Optionally send one spoken command to Avyro’s Cloudflare AI service when on-device command matching cannot understand it. Ambient listening stays on your iPhone." value={preferences.cloudAssistant} onChange={value => void update({ cloudAssistant: value })} />
+          <ToggleRow title="AI speech recognition" subtitleLines={0} subtitle="Send only the short command you speak after wake-up to Cloudflare’s Whisper model. English/French auto-detection, free testing cap, offline fallback. Ambient audio is never uploaded." value={preferences.cloudSpeech} onChange={value => void update({ cloudSpeech: value })} />
           {/*
             Guarded here rather than inside the note: a child that renders null
             still counts as a row, and `SettingsSection` would draw a divider

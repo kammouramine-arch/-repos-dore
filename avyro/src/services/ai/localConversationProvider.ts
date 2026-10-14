@@ -1,4 +1,7 @@
 import { CONVERSATION } from '@/config';
+import { canReportIncident } from '@/core/navigation/reportEligibility';
+import type { UserPosition } from '@/core/domain/entities/geo';
+import type { IncidentReporter } from '@/core/domain/ports/incidentReporter';
 import { parseCommand } from '@/core/conversation/commandParser';
 import { isConfidentMatch } from '@/core/conversation/destinationMatch';
 import { REPLIES } from '@/core/conversation/replyText';
@@ -21,6 +24,8 @@ import type { StopRecommender } from '@/services/conversation/routeAwareRecommen
 const WORTHWHILE_SAVING_SECONDS = 120;
 
 export interface LocalConversationProviderOptions {
+  incidentReporter?: IncidentReporter;
+  getPosition?: () => Promise<UserPosition>;
   recommender: StopRecommender;
   routingProvider: RoutingProvider;
   /** The same geocoder the search screen uses. There is only one. */
@@ -41,6 +46,8 @@ export interface LocalConversationProviderOptions {
  * says can change what "cancel navigation" does.
  */
 export const createLocalConversationProvider = ({
+  incidentReporter,
+  getPosition,
   recommender,
   routingProvider,
   placesProvider,
@@ -199,6 +206,18 @@ export const createLocalConversationProvider = ({
     scoped.debug('resolving', { kind: intent.kind });
 
     switch (intent.kind) {
+      case 'report-incident': {
+        const french = /signal/i.test(request.transcript);
+        const say = (en: string, fr: string) => ({ ...reply(intent, french ? fr : en), language: french ? 'fr-FR' as const : 'en-US' as const });
+        if (!incidentReporter?.isConfigured() || !getPosition) return say('Reports are unavailable right now.', 'Les signalements sont indisponibles pour le moment.');
+        try {
+          const fix = await getPosition();
+          if (request.signal?.aborted) throw new Error('Cancelled');
+          if (!canReportIncident(fix, Date.now())) return say('I need a usable GPS location to place that report.', 'J’ai besoin d’une position GPS utilisable pour placer ce signalement.');
+          await incidentReporter.submit(intent.category, fix);
+          return say('Your observation has been sent for review.', 'Votre observation a été envoyée pour vérification.');
+        } catch { return say('The report was not sent. Please try again.', 'Le signalement n’a pas été envoyé. Réessayez.'); }
+      }
       case 'navigate-saved':
         return goToSaved(intent, request);
 

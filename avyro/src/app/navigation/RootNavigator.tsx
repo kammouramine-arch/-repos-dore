@@ -3,6 +3,7 @@ import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { LoginScreen } from '@/features/auth/ui/LoginScreen';
 import { RegisterScreen } from '@/features/auth/ui/RegisterScreen';
 import { HomeScreen } from '@/features/home/ui/HomeScreen';
+import { NearbyScreen } from '@/features/search/ui/NearbyScreen';
 import { GuidanceScreen } from '@/features/navigation/ui/GuidanceScreen';
 import { RoutePreviewScreen } from '@/features/route/ui/RoutePreviewScreen';
 import { SearchScreen } from '@/features/search/ui/SearchScreen';
@@ -41,6 +42,7 @@ export const RootNavigator = () => {
             options={{ animation: 'slide_from_bottom' }}
           />
           <Stack.Screen name="RoutePreview" component={RoutePreviewScreen} />
+          <Stack.Screen name="Nearby" component={NearbyScreen} options={{ animation: 'slide_from_bottom' }} />
           <Stack.Screen
             name="Guidance"
             component={GuidanceScreen}

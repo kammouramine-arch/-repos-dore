@@ -17,6 +17,8 @@ export interface Preferences {
   voiceLanguage: 'bilingual' | 'fr-FR' | 'en-US';
   voiceDetection: 'system' | 'keyword';
   cloudAssistant: boolean;
+  /** Separate consent for sending only explicit short command audio to Whisper. */
+  cloudSpeech: boolean;
   /** Haptic confirmation on primary actions and maneuvers. */
   hapticFeedback: boolean;
   /** Keep the display on while a trip is in progress. */
@@ -35,6 +37,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   voiceLanguage: 'bilingual',
   voiceDetection: 'system',
   cloudAssistant: false,
+  cloudSpeech: false,
   hapticFeedback: true,
   keepScreenAwake: true,
   distanceUnit: 'metric',

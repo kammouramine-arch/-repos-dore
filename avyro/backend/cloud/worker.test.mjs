@@ -40,3 +40,11 @@ test('untrusted input cannot exceed the body bound or masquerade as moderator cr
   assert.equal((await request('/auth/guest', { padding: 'x'.repeat(17000) })).status, 413);
   assert.equal((await request('/moderation', { id: 'anything', decision: 'approved' }, 'fake-token')).status, 401);
 });
+
+test('speech endpoint requires authentication, consent and valid bounded WAV', async () => {
+  assert.equal((await request('/speech/transcribe', { audio: 'bad', language: 'auto', consent: true })).status, 401);
+  const { token } = await (await request('/auth/guest', {})).json();
+  assert.equal((await request('/speech/transcribe', { audio: 'bad', language: 'auto', consent: false }, token)).status, 400);
+  assert.equal((await request('/speech/transcribe', { audio: 'bad', language: 'auto', consent: true }, token)).status, 400);
+  assert.equal((await request('/speech/transcribe', { padding: 'x'.repeat(900001) }, token)).status, 413);
+});

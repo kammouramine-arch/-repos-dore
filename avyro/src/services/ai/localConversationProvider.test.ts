@@ -12,6 +12,7 @@ import type { StopRecommender } from '@/services/conversation/routeAwareRecommen
 import type { SavedPlacesRepository } from '@/core/domain/ports/savedPlacesRepository';
 import type { Route } from '@/core/domain/entities/route';
 import { createLocalConversationProvider } from './localConversationProvider';
+import { drivingSafetyReply } from '@/core/conversation/drivingSafety';
 
 const ORIGIN = { latitude: 48.86, longitude: 2.3 };
 
@@ -108,12 +109,16 @@ const places = (results: Place[] | Error): PlacesProvider => ({
 });
 
 const build = (options: {
+  incidentReporter?: Parameters<typeof createLocalConversationProvider>[0]['incidentReporter'];
+  getPosition?: Parameters<typeof createLocalConversationProvider>[0]['getPosition'];
   saved?: Partial<Record<'home' | 'work', Place>>;
   results?: StopSuggestion[] | Error;
   routes?: Route[] | Error;
   found?: Place[] | Error;
 } = {}) =>
   createLocalConversationProvider({
+    incidentReporter: options.incidentReporter,
+    getPosition: options.getPosition,
     recommender: recommender(options.results ?? []),
     routingProvider: routing(options.routes ?? []),
     placesProvider: places(options.found ?? []),
@@ -153,6 +158,25 @@ const ask = (
   context: RouteContext = guiding(),
   origin: typeof ORIGIN | null = ORIGIN,
 ) => provider.respond({ transcript, context, origin });
+
+test.each(['report an accident here', 'Signale un accident ici'])('submits an explicit voice report without requiring a stationary speed: %s', async transcript => {
+  const submit = jest.fn(async () => undefined);
+  const fix = { coordinates: ORIGIN, timestamp: Date.now(), accuracy: 40, speed: null, heading: null };
+  expect(drivingSafetyReply(transcript)).toBeNull();
+  const response = await ask(build({ incidentReporter: { isConfigured: () => true, submit }, getPosition: async () => fix }), transcript);
+  expect(submit).toHaveBeenCalledWith('accident', fix);
+  expect(response.speech).toMatch(/sent for review|envoyée pour vérification/);
+});
+
+test('report failure and invalid location never promise a submitted report', async () => {
+  const submit = jest.fn(async () => { throw Error('network'); });
+  const fix = { coordinates: ORIGIN, timestamp: Date.now(), accuracy: 10, speed: 5, heading: null };
+  const provider = build({ incidentReporter: { isConfigured: () => true, submit }, getPosition: async () => fix });
+  expect((await ask(provider, 'report an accident here')).speech).toContain('not sent');
+  const invalid = build({ incidentReporter: { isConfigured: () => true, submit }, getPosition: async () => ({ ...fix, accuracy: 500 }) });
+  expect((await ask(invalid, 'report an accident here')).speech).toContain('usable GPS');
+  expect(submit).toHaveBeenCalledTimes(1);
+});
 
 describe('questions about the trip', () => {
   it('understands the recorded speed-limit question and admits missing evidence', async () => {

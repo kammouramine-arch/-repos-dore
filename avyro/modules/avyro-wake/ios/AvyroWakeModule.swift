@@ -49,7 +49,7 @@ public final class AvyroWakeModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("AvyroWake")
-    Events("detected", "failure", "transcript", "speechEnd")
+    Events("detected", "failure", "transcript", "speechEnd", "commandAudio")
     AsyncFunction("suggestPlaces") { (query: String, latitude: Double?, longitude: Double?, promise: Promise) in
       self.suggestions?.cancel()
       let search = AvyroSuggestions()
@@ -96,8 +96,8 @@ public final class AvyroWakeModule: Module {
     AsyncFunction("supportsOnDevice") { (locale: String) -> Bool in
       SFSpeechRecognizer(locale: Locale(identifier: locale))?.supportsOnDeviceRecognition == true
     }
-    AsyncFunction("startSpeech") { (locales: [String], continuous: Bool) throws in
-      try self.startSpeechCapture(locales: locales, continuous: continuous)
+    AsyncFunction("startSpeech") { (locales: [String], continuous: Bool, exportAudio: Bool) throws in
+      try self.startSpeechCapture(locales: locales, continuous: continuous, exportAudio: exportAudio)
     }.runOnQueue(.main)
     AsyncFunction("finishSpeech") {
       if let capture = self.engine {
@@ -262,7 +262,7 @@ public final class AvyroWakeModule: Module {
 
   // One active speech task at a time. For commands, replay the short local
   // recording through the second language after the first task completes.
-  private func startSpeechCapture(locales: [String], continuous: Bool) throws {
+  private func startSpeechCapture(locales: [String], continuous: Bool, exportAudio: Bool) throws {
     stopCapture()
     let handoff = handoffAudio
     handoffAudio = nil
@@ -283,6 +283,7 @@ public final class AvyroWakeModule: Module {
     let currentGeneration = generation
     var primaryCompleted = false
     var secondaryCompleted = false
+    var audioSent = false
     var finals: [[String: Any]] = []
     speechRecognizers = recognizers
     let hints = ["Hey Avyro", "Hé Avyro", "Aviro", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison"]
@@ -293,13 +294,18 @@ public final class AvyroWakeModule: Module {
     }
     func complete() {
       guard self.generation == currentGeneration else { return }
+      if let capture = self.engine { capture.inputNode.removeTap(onBus: 0); capture.stop(); capture.reset(); self.engine = nil }
+      self.commandFile = nil
+      let audio = exportAudio && !continuous && !audioSent ? self.commandAudioPayload() : nil
+      if let audio { self.sendEvent("commandAudio", ["audio": audio]) }
       self.stopCapture()
-      if finals.isEmpty { self.sendEvent("failure", ["kind": "runtime-error", "message": "Offline recognition did not return a command. Check the installed voice languages."]) }
+      if finals.isEmpty && audio == nil && !audioSent { self.sendEvent("failure", ["kind": "runtime-error", "message": "Offline recognition did not return a command. Check the installed voice languages."]) }
       else { finals.forEach { self.sendEvent("transcript", $0) }; self.sendEvent("speechEnd", [:]) }
     }
     func replaySecondary() {
       if let capture = self.engine { capture.inputNode.removeTap(onBus: 0); capture.stop(); capture.reset(); self.engine = nil }
       self.commandFile = nil
+      if exportAudio, !continuous, let audio = self.commandAudioPayload() { self.sendEvent("commandAudio", ["audio": audio]); audioSent = true }
       guard !continuous, supported.count > 1, let url = self.commandURL else { complete(); return }
       let request = SFSpeechURLRecognitionRequest(url: url)
       request.requiresOnDeviceRecognition = true
@@ -342,7 +348,7 @@ public final class AvyroWakeModule: Module {
       let capture = AVAudioEngine(), input = capture.inputNode
       let format = input.outputFormat(forBus: 0)
       guard format.sampleRate > 0, format.channelCount > 0 else { throw wakeError("No microphone is available.") }
-      if !continuous && supported.count > 1 {
+      if !continuous && (supported.count > 1 || exportAudio) {
         let url = FileManager.default.temporaryDirectory.appendingPathComponent("Avyro-command-\(UUID().uuidString).caf")
         commandURL = url
         commandFile = try AVAudioFile(forWriting: url, settings: format.settings)
@@ -371,6 +377,36 @@ public final class AvyroWakeModule: Module {
       capture.prepare()
       try capture.start()
     } catch { stopCapture(); throw error }
+  }
+
+  // Encode a bounded command as 16 kHz mono WAV. No recording leaves native
+  // memory unless the caller opted in; the temporary CAF is deleted on stop.
+  private func commandAudioPayload() -> String? {
+    guard let url = commandURL, let file = try? AVAudioFile(forReading: url),
+          file.length > 0, Double(file.length) / file.processingFormat.sampleRate <= 20.5,
+          let source = AVAudioPCMBuffer(pcmFormat: file.processingFormat, frameCapacity: AVAudioFrameCount(file.length)),
+          let format = AVAudioFormat(standardFormatWithSampleRate: 16000, channels: 1),
+          let output = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: 328000),
+          let converter = AVAudioConverter(from: file.processingFormat, to: format) else { return nil }
+    do { try file.read(into: source) } catch { return nil }
+    var supplied = false
+    var error: NSError?
+    _ = converter.convert(to: output, error: &error) { _, status in
+      if supplied { status.pointee = .endOfStream; return nil }
+      supplied = true; status.pointee = .haveData; return source
+    }
+    guard error == nil, output.frameLength >= 1600, let samples = output.floatChannelData?[0] else { return nil }
+    let count = Int(output.frameLength), bytes = UInt32(count * 2)
+    var wav = Data("RIFF".utf8)
+    func u32(_ value: UInt32) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
+    func u16(_ value: UInt16) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
+    u32(bytes + 36); wav.append(contentsOf: "WAVEfmt ".utf8); u32(16); u16(1); u16(1); u32(16000); u32(32000); u16(2); u16(16)
+    wav.append(contentsOf: "data".utf8); u32(bytes)
+    for i in 0..<count {
+      let sample = samples[i].isFinite ? min(1, max(-1, samples[i])) : 0
+      u16(UInt16(bitPattern: Int16(sample * 32767)))
+    }
+    return wav.base64EncodedString()
   }
 
   private func wakeError(_ message: String) -> NSError {

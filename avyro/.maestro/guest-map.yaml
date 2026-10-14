@@ -15,6 +15,18 @@ appId: app.avyro.companion
 - assertNotVisible: "Welcome back"
 - waitForAnimationToEnd
 - takeScreenshot: build/screens/02-guest-map
+- tapOn: "Report an incident"
+- assertVisible: "What did you see?"
+- assertVisible: "Crash"
+- takeScreenshot: build/screens/07-report-menu
+- tapOn: "Close"
+- tapOn: "Parking"
+- extendedWaitUntil:
+    visible:
+      id: "nearby-result-0"
+    timeout: 30000
+- takeScreenshot: build/screens/08-parking-map
+- tapOn: "Back to map"
 - tapOn: "Settings"
 - assertVisible: "Optional account"
 - assertVisible: "Voice language"

@@ -1,5 +1,6 @@
 import { createTomTomRoadProvider, ROAD_MONTHLY_CAP } from '../road-data.mjs';
 import { classifyCommand } from './classify.mjs';
+import { transcribeCommand, validateCommandAudio } from './transcribe.mjs';
 import { DurableObject } from 'cloudflare:workers';
 import { derivePasswordValue } from './password.mjs';
 
@@ -10,14 +11,14 @@ const hex = bytes => Buffer.from(bytes).toString('hex');
 const hash = async text => hex(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
 const publicUser = u => ({ id: u.id, email: u.email, fullName: u.name, createdAt: u.created });
 const json = (body, status = 200) => Response.json(body, { status, headers: { 'Cache-Control': 'no-store', 'X-Content-Type-Options': 'nosniff' } });
-async function body(request) {
+async function body(request, maximum = 16384) {
   if (!request.headers.get('content-type')?.startsWith('application/json')) throw fail(415, 'JSON required.');
   const reader = request.body?.getReader();
   if (!reader) throw fail(400, 'JSON required.');
   const chunks = []; let size = 0;
   while (true) {
     const { value, done } = await reader.read(); if (done) break;
-    size += value.length; if (size > 16384) { await reader.cancel(); throw fail(413, 'Request too large.'); }
+    size += value.length; if (size > maximum) { await reader.cancel(); throw fail(413, 'Request too large.'); }
     chunks.push(Buffer.from(value));
   }
   try { const value = JSON.parse(Buffer.concat(chunks).toString('utf8')); if (!value || typeof value !== 'object' || Array.isArray(value)) throw Error(); return value; }
@@ -116,6 +117,17 @@ export default {
         if (env.AI_ENABLED !== 'true' || !env.AI) throw fail(503, 'Cloud command assistance is disabled.');
         await rate(db, 'ai:global', 100, 86400000);
         return json({ choices: [{ message: { content: JSON.stringify(await classifyCommand(env.AI, transcript)) } }] });
+      }
+      if (route === '/speech/transcribe' && method === 'POST') {
+        const { audio, language, consent } = await body(request, 900000);
+        if (consent !== true || !['en', 'fr', 'auto'].includes(language)) throw fail(400, 'Command-audio consent required.');
+        validateCommandAudio(audio);
+        if (env.AI_ENABLED !== 'true' || !env.AI) throw fail(503, 'Cloud speech is disabled.');
+        await rate(db, `speech:${ip}`, 5);
+        await rate(db, `speech:user:${user.id}`, 30, 86400000);
+        // At most ~35 minutes/day: under 1,650 Whisper neurons, with no paid fallback.
+        await rate(db, 'speech:global', 100, 86400000);
+        return json(await transcribeCommand(env.AI, audio, language));
       }
       if (route === '/incidents' && method === 'POST') {
         await rate(db, `report:${user.id}`, 3, 600000); await rate(db, `report:${ip}`, 6, 600000);

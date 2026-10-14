@@ -52,6 +52,7 @@ import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecogniz
 import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
 import { createNativeSpeechRecognizer } from '@/services/speech/nativeSpeechRecognizer';
 import { createPlatformWakeWordDetector } from '@/services/speech/platformWakeWordDetector';
+import { createGatewayTranscriber } from '@/services/speech/gatewayTranscriber';
 import { createGuestAccessToken } from '@/services/auth/guestAccessToken';
 
 /**
@@ -125,10 +126,16 @@ export const createServiceContainer = (
 
   const routingProvider =
     overrides.routingProvider ?? createOsrmRoutingProvider({ http });
-  const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger));
   const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
   const getAccessToken = async () => (await createSessionStore(secure).read(env.backendUrl))?.token ?? guestAccessToken();
   const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
+
+  const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger), undefined, {
+    enabled: async () => (await preferencesRepository.load()).cloudSpeech,
+    transcribe: createGatewayTranscriber({ http, getAccessToken }),
+  });
+  const locationTracker = overrides.locationTracker ?? createExpoLocationTracker();
+  const incidentReporter = overrides.incidentReporter ?? createGatewayIncidentReporter({ http, getAccessToken });
 
   // Conversation Engine → AI Gateway → AiProvider → OpenAI today.
   // The engine only ever sees the gateway; the gateway decides whether a model
@@ -145,6 +152,8 @@ export const createServiceContainer = (
       // typed one resolve through one pipeline, never two.
       placesProvider,
       savedPlaces: savedPlacesRepository,
+      incidentReporter,
+      getPosition: () => locationTracker.getCurrentPosition(),
       logger,
     }),
     provider: createOpenAiProvider({
@@ -162,7 +171,7 @@ export const createServiceContainer = (
     authRepository,
     placesProvider,
     routingProvider,
-    locationTracker: overrides.locationTracker ?? createExpoLocationTracker(),
+    locationTracker,
     speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(),
     preferencesRepository,
     onboardingRepository:
@@ -173,12 +182,7 @@ export const createServiceContainer = (
       createLocalRecentDestinationsRepository(keyValue),
     savedPlacesRepository,
     roadDataProvider: overrides.roadDataProvider ?? createGatewayRoadDataProvider({ http, getAccessToken }),
-    incidentReporter:
-      overrides.incidentReporter ??
-      createGatewayIncidentReporter({
-        http,
-        getAccessToken,
-      }),
+    incidentReporter,
     wakeWordDetector:
       overrides.wakeWordDetector ?? createPlatformWakeWordDetector(speechRecognizer, createSherpaWakeWordDetector()),
     speechRecognizer:

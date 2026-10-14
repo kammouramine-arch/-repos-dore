@@ -8,6 +8,8 @@ import type { RoadEvidence } from '@/core/domain/ports/roadDataProvider';
 type LocationStatus = 'idle' | 'locating' | 'ready' | 'denied' | 'error';
 
 export interface LocationState {
+  compass: { heading: number; timestamp: number } | null;
+  setCompass: (heading: number) => void;
   position: UserPosition | null;
   roadEvidence: RoadEvidence | null;
   setRoadEvidence: (roadEvidence: RoadEvidence | null) => void;
@@ -28,6 +30,8 @@ export interface LocationState {
  */
 export const createLocationStore = (services: ServiceContainer) =>
   create<LocationState>()((set) => ({
+    compass: null,
+    setCompass: heading => set({ compass: { heading, timestamp: Date.now() } }),
     position: null,
     roadEvidence: null,
     setRoadEvidence: roadEvidence => set({ roadEvidence }),

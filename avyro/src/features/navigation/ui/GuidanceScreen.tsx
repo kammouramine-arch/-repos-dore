@@ -1,3 +1,4 @@
+import { useDriverHeading } from '@/maps/useDriverHeading';
 import { DrivingStatusPanel } from "./DrivingStatusPanel";
 import { useNavigation } from "@react-navigation/native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
@@ -35,6 +36,7 @@ const KEEP_AWAKE_TAG = "avyro-guidance";
  */
 export const GuidanceScreen = () => {
   const navigation = useNavigation();
+  const driverHeading = useDriverHeading();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
@@ -74,7 +76,7 @@ export const GuidanceScreen = () => {
       {
         center: progress.snappedPosition,
         heading: progress.courseDegrees,
-        pitch: MAP_DEFAULTS.navigationCamera.pitch,
+        pitch: 0,
         zoom: MAP_DEFAULTS.navigationCamera.zoom,
         altitude: MAP_DEFAULTS.navigationCamera.altitude,
       },
@@ -139,13 +141,13 @@ export const GuidanceScreen = () => {
         {progress ? (
           <UserPuck
             coordinate={progress.snappedPosition}
-            headingDegrees={progress.courseDegrees}
+            headingDegrees={lastPosition?.speed != null && lastPosition.speed >= 1.5 ? progress.courseDegrees : driverHeading}
             cameraHeadingDegrees={following && !overview ? progress.courseDegrees : cameraHeading}
           />
         ) : lastPosition ? (
           <UserPuck
             coordinate={lastPosition.coordinates}
-            headingDegrees={lastPosition.heading}
+            headingDegrees={driverHeading}
             cameraHeadingDegrees={cameraHeading}
           />
         ) : null}

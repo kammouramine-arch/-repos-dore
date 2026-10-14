@@ -3,6 +3,7 @@ import type { Place } from './place';
 import type { DistanceUnit } from './preferences';
 import type { NavigationStatus } from './navigation';
 import type { Route } from './route';
+import type { IncidentCategory } from '../ports/incidentReporter';
 
 /**
  * The seven states a conversation can be in.
@@ -34,6 +35,7 @@ export type SavedPlaceSlot = 'home' | 'work';
  * wait on a model to be told how far is left.
  */
 export type VoiceIntent =
+  | { kind: 'report-incident'; category: IncidentCategory }
   | { kind: 'navigate-saved'; slot: SavedPlaceSlot }
   /**
    * "Take me to Lille" — a destination named in words, not from a slot.
@@ -60,6 +62,7 @@ export type VoiceIntent =
 
 /** Every intent kind, for provider schemas and exhaustive checks. */
 export const VOICE_INTENT_KINDS = [
+  'report-incident',
   'navigate-saved',
   'navigate-to-place',
   'find-nearby',

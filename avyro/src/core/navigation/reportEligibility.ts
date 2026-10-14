@@ -1,7 +1,8 @@
 import type { UserPosition } from '../domain/entities/geo';
 
-/** A fresh stationary fix is required before opening any report interaction. */
+/** A usable location is required to place an observation, not a GPS speed reading. */
 export const canReportIncident = (fix: UserPosition | null, now: number): boolean =>
-  !!fix && now >= fix.timestamp && now - fix.timestamp <= 10000 &&
-  fix.speed !== null && fix.speed >= 0 && fix.speed < 0.5 &&
-  fix.accuracy !== null && fix.accuracy >= 0 && fix.accuracy <= 30;
+  !!fix && fix.timestamp <= now + 1000 && now - fix.timestamp <= 60000 &&
+  Number.isFinite(fix.coordinates.latitude) && Math.abs(fix.coordinates.latitude) <= 90 &&
+  Number.isFinite(fix.coordinates.longitude) && Math.abs(fix.coordinates.longitude) <= 180 &&
+  fix.accuracy !== null && Number.isFinite(fix.accuracy) && fix.accuracy >= 0 && fix.accuracy <= 100;

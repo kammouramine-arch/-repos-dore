@@ -225,6 +225,12 @@ export const parseCommand = (transcript: string): VoiceIntent => {
   const utterance = normaliseUtterance(transcript);
   if (utterance.length === 0) return { kind: 'unknown' };
   if (/\b(?:ne|n)\b.*\b(?:pas|jamais)\b|\b(?:don t|do not)\b/.test(utterance)) return { kind: 'unknown' };
+  // Explicit observations only: questions about reporting never create a report.
+  const report = utterance.match(/^(?:please\s+|s il te plait\s+)?(?:report|signal(?:e|er))\s+(?:(?:an?|the|un|une|l|le|la|des)\s+)?(accident|crash|hazard|danger|police|traffic|trafic|bouchon|closure|fermeture)(?:\s+(?:here|ici|ahead|devant))?(?:\s+please)?$/);
+  if (report) {
+    const categories: Record<string, 'accident' | 'hazard' | 'police' | 'traffic' | 'closure'> = { accident: 'accident', crash: 'accident', hazard: 'hazard', danger: 'hazard', police: 'police', traffic: 'traffic', trafic: 'traffic', bouchon: 'traffic', closure: 'closure', fermeture: 'closure' };
+    return { kind: 'report-incident', category: categories[report[1]] };
+  }
   const french = parseFrenchCommand(utterance);
   if (french) return french;
 

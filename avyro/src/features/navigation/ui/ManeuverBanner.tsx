@@ -20,10 +20,10 @@ export interface ManeuverBannerProps {
 export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => (
   <GlassPanel style={styles.banner}>
     <View style={styles.primary}>
-      <ManeuverIcon maneuver={progress.currentStep.maneuver} size={46} />
+      <ManeuverIcon maneuver={progress.currentStep.maneuver} size={36} />
 
       <View style={styles.text}>
-        <AppText variant="maneuver">
+        <AppText variant="title1">
           {formatDistance(progress.distanceToManeuverMeters, unit)}
         </AppText>
         <AppText variant="callout" tone="secondary" numberOfLines={2}>
@@ -54,8 +54,8 @@ export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => (
 
 const styles = StyleSheet.create({
   banner: {
-    padding: spacing.md,
-    gap: spacing.sm,
+    padding: spacing.sm,
+    gap: spacing.xs,
   },
   primary: {
     flexDirection: 'row',

@@ -31,6 +31,12 @@ const toPosition = ({ coords, timestamp }: Location.LocationObject): UserPositio
  * in `UserPosition` and never imports expo-location.
  */
 export const createExpoLocationTracker = (): LocationTracker => ({
+  async watchHeading(onHeading) {
+    return Location.watchHeadingAsync(value => {
+      const heading = value.trueHeading >= 0 ? value.trueHeading : value.magHeading;
+      if (value.accuracy > 0 && Number.isFinite(heading) && heading >= 0) onHeading(heading);
+    });
+  },
   async getPermission(): Promise<LocationPermission> {
     const { status } = await Location.getForegroundPermissionsAsync();
     return toPermission(status);
@@ -43,6 +49,8 @@ export const createExpoLocationTracker = (): LocationTracker => ({
 
   async getCurrentPosition(): Promise<UserPosition> {
     try {
+      const recent = await Location.getLastKnownPositionAsync({ maxAge: 10000, requiredAccuracy: 100 });
+      if (recent) return toPosition(recent);
       const position = await Location.getCurrentPositionAsync({
         accuracy: Location.Accuracy.BestForNavigation,
       });

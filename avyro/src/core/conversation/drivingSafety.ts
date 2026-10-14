@@ -1,8 +1,11 @@
 import { normaliseUtterance } from './wakePhrase';
+import { parseCommand } from './commandParser';
 
 /** These questions require observations this app cannot obtain from a map. */
 export const drivingSafetyReply = (transcript: string): string | null => {
   const text = normaliseUtterance(transcript);
+  // Reporting an observation is different from asking the app to verify it.
+  if (parseCommand(text).kind === 'report-incident') return null;
   if (/\b(?:ne|n)\b.*\b(?:pas|jamais)\b|\b(?:pas besoin de)\b/.test(text)) return 'Je garde le trajet actuel. Donnez une commande directe pour le modifier.';
   if (/\b(?:depasser|depassement|changer de voie|quelle voie|quelle file|sans danger|peux je tourner|peux je traverser)\b/.test(text)) return 'Je ne peux pas juger si une manœuvre est sûre. Vérifiez la route, les rétroviseurs et les panneaux.';
   if (/\bquelle vitesse\b/.test(text)) return 'Suivez les panneaux et adaptez votre vitesse aux conditions de circulation.';

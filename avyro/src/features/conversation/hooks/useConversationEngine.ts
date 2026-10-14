@@ -476,6 +476,7 @@ export const useConversationEngine = (): void => {
           }
           sessionRef.current = session;
           voiceDebug("command_session_started");
+          timersRef.current.push(setTimeout(() => { void session.finish?.(); }, 12000));
           timersRef.current.push(
             setTimeout(() => {
               // Deliberately does NOT promote the last partial. A truncated
@@ -490,7 +491,7 @@ export const useConversationEngine = (): void => {
                     : ""),
               );
               dispatch({ type: "listen-timeout" });
-            }, CONVERSATION.listenTimeoutMs),
+            }, stores.preferences.getState().preferences.cloudSpeech ? 35000 : CONVERSATION.listenTimeoutMs),
           );
         });
       releaseRef.current = opening.then(

@@ -237,3 +237,10 @@ describe('destinations named in words', () => {
     expect(parseCommand('navigate to the').kind).toBe('unknown');
   });
 });
+test.each([
+  ['report an accident here', { kind: 'report-incident', category: 'accident' }],
+  ['Signale un accident ici', { kind: 'report-incident', category: 'accident' }],
+  ['report police here', { kind: 'report-incident', category: 'police' }],
+  ['Do not report an accident here', { kind: 'unknown' }],
+  ['How do I report an accident?', { kind: 'unknown' }],
+])('explicit incident command: %s', (text, intent) => expect(parseCommand(text)).toEqual(intent));

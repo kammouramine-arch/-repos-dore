@@ -13,6 +13,8 @@ export interface LocationSubscription {
 
 /** Access to the device's positioning hardware. */
 export interface LocationTracker {
+  /** Compass heading is independent of GPS course and works while stationary. */
+  watchHeading?(onHeading: (heading: number) => void): Promise<LocationSubscription>;
   getPermission(): Promise<LocationPermission>;
   requestPermission(): Promise<LocationPermission>;
   getCurrentPosition(): Promise<UserPosition>;

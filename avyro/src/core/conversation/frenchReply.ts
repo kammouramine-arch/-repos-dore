@@ -5,6 +5,7 @@ export const isFrenchUtterance = (text: string): boolean => /\b(?:emm[eè]ne|am[
 
 /** Translate only supported, grounded reply templates, never a provider's invented prose. */
 export const frenchReply = (reply: ConversationReply, request: ConversationRequest): ConversationReply => {
+  if (reply.intent.kind === 'report-incident') return reply;
   if (!isFrenchUtterance(request.transcript)) return { ...reply, language: 'en-US' };
   const { context } = request;
   const { action, intent } = reply;
