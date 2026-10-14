@@ -38,7 +38,7 @@ func verify(_ rate: Double, _ channels: AVAudioChannelCount, _ seconds: Double, 
   precondition(u16(20) == 1 && u16(22) == 1 && u32(24) == 16000 && u32(28) == 32000 && u16(32) == 2 && u16(34) == 16)
   precondition(u32(40) == UInt32(wav.count-44))
   let frames = (wav.count-44)/2
-  precondition(abs(Double(frames)/16000 - seconds) < 0.02, "Audio duration changed")
+  precondition(abs(Double(frames)/16000 - seconds) < 0.02, "Audio duration changed: encoded frames=\\(frames), expected seconds=\\(seconds)")
   var energy = 0.0
   for frame in 0..<frames { let sample = Double(Int16(bitPattern: u16(44+frame*2)))/32768; energy += sample*sample }
   precondition(sqrt(energy/Double(frames)) > 0.1, "Encoder lost the speech-band signal")
