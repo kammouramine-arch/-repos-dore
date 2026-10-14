@@ -18,6 +18,9 @@ jobs:
   ios:
     runs-on: macos-26
     timeout-minutes: 60
+    env:
+      EXPO_PUBLIC_BACKEND_URL: https://avyro-gateway.avyro-cloud-gateway.workers.dev
+      EXPO_PUBLIC_ROAD_DATA_ENABLED: 'true'
     defaults:
       run:
         working-directory: avyro
@@ -29,7 +32,6 @@ jobs:
           cache: npm
           cache-dependency-path: avyro/package-lock.json
       - run: npm ci --no-audit --no-fund
-        if: ${{ !inputs.simulator_run }}
       - run: npx expo prebuild --platform ios --no-install
         if: ${{ !inputs.simulator_run }}
       - run: pod install --project-directory=ios
@@ -58,6 +60,10 @@ jobs:
         run: |
           mkdir -p build/Build/Products/Release-iphonesimulator
           ditto -x -k build/Avyro-simulator.zip build/Build/Products/Release-iphonesimulator
+      - name: Embed configured JavaScript into reused simulator app
+        if: ${{ inputs.simulator_run }}
+        run: |
+          npx expo export:embed --entry-file index.ts --platform ios --dev false --bytecode --bundle-output build/Build/Products/Release-iphonesimulator/Avyro.app/main.jsbundle --assets-dest build/Build/Products/Release-iphonesimulator/Avyro.app
       - name: Verify guest launch and capture native screens
         env:
           MAESTRO_CLI_NO_ANALYTICS: 1

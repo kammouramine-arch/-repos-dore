@@ -17,7 +17,7 @@ appId: app.avyro.companion
 - takeScreenshot: build/screens/02-guest-map
 - tapOn: "Report an incident"
 - assertVisible: "What did you see?"
-- assertVisible: "Crash"
+- assertVisible: "Report Crash"
 - takeScreenshot: build/screens/07-report-menu
 - tapOn: "Close"
 - tapOn: "Parking"
