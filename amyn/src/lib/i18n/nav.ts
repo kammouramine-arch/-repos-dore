@@ -17,6 +17,7 @@ export function mainNav(locale: Locale): NavItem[] {
     { label: n.services, href: href("services", locale) },
     { label: n.work, href: href("work", locale) },
     { label: n.proofsprint, href: href("proofsprint", locale) },
+    { label: "AMYN 3D", href: href("three", locale) },
     { label: n.about, href: href("about", locale) },
   ];
 }

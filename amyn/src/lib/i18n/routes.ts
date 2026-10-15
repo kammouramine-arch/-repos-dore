@@ -11,6 +11,7 @@ import { localeFromPath, type Locale } from "./config.ts";
  */
 export const ROUTES = {
   home: { fr: "/", en: "/en" },
+  three: { fr: "/3d", en: "/en/3d" },
   /* Offre phare et sa porte d'entrée : même nom dans les deux langues
      (noms de produit), comme ProofSprint. */
   revenueOs: { fr: "/revenue-os", en: "/en/revenue-os" },
