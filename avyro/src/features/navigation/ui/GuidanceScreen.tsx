@@ -1,4 +1,3 @@
-import { useDriverHeading } from '@/maps/useDriverHeading';
 import { DrivingStatusPanel } from "./DrivingStatusPanel";
 import { useNavigation } from "@react-navigation/native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
@@ -30,6 +29,8 @@ import { useRoadAhead } from '../hooks/useRoadAhead';
 import { RoadAheadMarkers, RoadAheadNotice } from './RoadAheadLayer';
 import { TripStatusBar } from "./TripStatusBar";
 import { canGuidePosition } from '@/core/navigation/routeTracker';
+import type { Coordinates } from '@/core/domain/entities/geo';
+import { projectedPuckBearing, puckBearingPoint } from '@/maps/geometry/puckBearing';
 
 const KEEP_AWAKE_TAG = "avyro-guidance";
 
@@ -41,17 +42,26 @@ const KEEP_AWAKE_TAG = "avyro-guidance";
 export const GuidanceScreen = () => {
   const roadAhead = useRoadAhead();
   const navigation = useNavigation();
-  const driverHeading = useDriverHeading();
   const insets = useSafeAreaInsets();
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
   const [cameraHeading, setCameraHeading] = useState(0);
+  const [puckScreenHeading, setPuckScreenHeading] = useState<number | null>(null);
+  const puckProjection = useRef<{ coordinate: Coordinates; heading: number } | null>(null);
   const cameraRead = useRef({ pending: false, at: 0 });
   const readCamera = useCallback(() => {
     if (cameraRead.current.pending || Date.now() - cameraRead.current.at < 100) return;
     cameraRead.current = { pending: true, at: Date.now() };
-    void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => {}).finally(() => { cameraRead.current.pending = false; });
+    const map = mapRef.current, frame = puckProjection.current;
+    if (!map) { cameraRead.current.pending = false; return; }
+    void Promise.all([map.getCamera(), frame ? map.pointForCoordinate(frame.coordinate) : null, frame ? map.pointForCoordinate(puckBearingPoint(frame.coordinate, frame.heading)) : null]).then(([camera, from, to]) => {
+      setCameraHeading(camera.heading);
+      if (frame === puckProjection.current && from && to) {
+        const angle = projectedPuckBearing(from, to);
+        if (angle != null) setPuckScreenHeading(previous => previous != null && Math.abs(((angle - previous + 540) % 360) - 180) < .5 ? previous : angle);
+      }
+    }).catch(() => {}).finally(() => { cameraRead.current.pending = false; });
   }, []);
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
@@ -70,6 +80,12 @@ export const GuidanceScreen = () => {
   const updatePreferences = usePreferencesStore((state) => state.update);
   const lastPosition = useLocationStore((state) => state.position);
   const route = useNavigationStore((state) => state.route);
+  const navigationHeading = progress && progress.distanceFromRouteMeters <= 25 ? progress.courseDegrees : lastPosition?.speed != null && lastPosition.speed >= 1.5 && lastPosition.heading != null && lastPosition.heading >= 0 ? lastPosition.heading : null;
+  useEffect(() => {
+    const coordinate = progress && progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates;
+    if (coordinate && navigationHeading != null) puckProjection.current = { coordinate, heading: navigationHeading };
+    readCamera();
+  }, [progress, lastPosition, navigationHeading, readCamera]);
 
   useGuidanceSession();
 
@@ -158,7 +174,8 @@ export const GuidanceScreen = () => {
         {progress ? (
           <UserPuck
             coordinate={progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition}
-            headingDegrees={lastPosition?.speed != null && lastPosition.speed >= 1.5 ? progress.courseDegrees : driverHeading}
+            headingDegrees={navigationHeading}
+            screenHeadingDegrees={puckScreenHeading}
             cameraHeadingDegrees={cameraHeading}
             routeGeometry={progress.distanceFromRouteMeters <= 25 ? route?.geometry : undefined}
             segmentIndex={progress.segmentIndex}
@@ -166,7 +183,8 @@ export const GuidanceScreen = () => {
         ) : lastPosition ? (
           <UserPuck
             coordinate={lastPosition.coordinates}
-            headingDegrees={driverHeading}
+            headingDegrees={navigationHeading}
+            screenHeadingDegrees={puckScreenHeading}
             cameraHeadingDegrees={cameraHeading}
           />
         ) : null}

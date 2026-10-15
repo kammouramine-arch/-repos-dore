@@ -19,6 +19,7 @@ export interface TrackerState {
   stepIndex: number;
   timestamp?: number;
   travelledMeters?: number;
+  snappedPosition?: Coordinates;
 }
 
 export const initialTrackerState: TrackerState = { segmentIndex: 0, stepIndex: 0 };
@@ -142,6 +143,13 @@ export const trackPosition = (
     if (best) projection = best;
   }
 
+  // A confirmed stop must not creep backwards/forwards across a nearby vertex
+  // with centimetre-scale GPS jitter. Movement and stale/poor fixes release it.
+  if (position.speed === 0 && elapsed > 0 && elapsed <= 5 && position.accuracy != null && position.accuracy <= 12 && previous.snappedPosition && previous.travelledMeters != null && distanceBetween(projection.point, previous.snappedPosition) <= 1.5 && distanceBetween(position.coordinates, previous.snappedPosition) <= 15) {
+    const start = index.vertexDistances[previous.segmentIndex] ?? 0;
+    const length = (index.vertexDistances[previous.segmentIndex + 1] ?? start) - start;
+    projection = { ...projection, point: previous.snappedPosition, segmentIndex: previous.segmentIndex, t: length ? Math.max(0, Math.min(1, (previous.travelledMeters - start) / length)) : 0, distance: distanceBetween(position.coordinates, previous.snappedPosition) };
+  }
   const travelled = distanceTravelled(index, projection.segmentIndex, projection.t);
   const stepIndex = resolveStepIndex(index, travelled, previous.stepIndex);
   const steps = index.route.steps;
@@ -159,12 +167,12 @@ export const trackPosition = (
   const segmentStart = geometry[projection.segmentIndex];
   const segmentEnd = geometry[Math.min(projection.segmentIndex + 1, geometry.length - 1)];
   const roadCourse = bearingBetween(segmentStart, segmentEnd);
-  const measured = position.heading != null && position.heading >= 0 ? position.heading : roadCourse;
+  const measured = (position.speed ?? 0) >= 1.5 && position.heading != null && Number.isFinite(position.heading) && position.heading >= 0 ? position.heading : roadCourse;
   const agrees = Math.abs(((measured - roadCourse + 540) % 360) - 180) <= 60;
   const courseDegrees = projection.distance <= 25 && agrees ? roadCourse : measured;
 
   return {
-    state: { segmentIndex: projection.segmentIndex, stepIndex, timestamp: position.timestamp, travelledMeters: travelled },
+    state: { segmentIndex: projection.segmentIndex, stepIndex, timestamp: position.timestamp, travelledMeters: travelled, snappedPosition: projection.point },
     progress: {
       stepIndex,
       currentStep: steps[stepIndex],

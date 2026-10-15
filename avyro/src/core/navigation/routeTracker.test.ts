@@ -51,6 +51,21 @@ const route: Route = {
 
 const index = createRouteIndex(route);
 
+test('a stopped car ignores unreliable native heading and faces the road', () => {
+  for (const heading of [0, 180, 270]) {
+    const result = trackPosition(index, { coordinates: midpoint(A, B), accuracy: 5, speed: 0, heading, timestamp: 1000 }, initialTrackerState)!;
+    expect(result.progress.courseDegrees).toBeCloseTo(90, 0);
+  }
+});
+test('confirmed stops hold tiny position jitter but release for actual travel', () => {
+  const origin = midpoint(A, B);
+  const stopped = trackPosition(index, { coordinates: origin, accuracy: 5, speed: 0, heading: 0, timestamp: 1000 }, initialTrackerState)!;
+  const jittered = trackPosition(index, { coordinates: { ...origin, longitude: origin.longitude + .000005 }, accuracy: 5, speed: 0, heading: 270, timestamp: 2000 }, stopped.state)!;
+  expect(jittered.progress.snappedPosition).toEqual(stopped.progress.snappedPosition);
+  const moved = trackPosition(index, { coordinates: { ...origin, longitude: origin.longitude + .0001 }, accuracy: 5, speed: 3, heading: 90, timestamp: 3000 }, jittered.state)!;
+  expect(distanceBetween(moved.progress.snappedPosition, stopped.progress.snappedPosition)).toBeGreaterThan(5);
+});
+
 const positionAt = (
   coordinates: typeof A,
   heading: number | null = null,

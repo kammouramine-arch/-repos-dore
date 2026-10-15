@@ -2,6 +2,19 @@
 
 This branch is a development candidate, not a completed production release.
 
+## Car-only correction awaiting tester review
+
+The tester requested the human be removed and objected to distribution before
+reviewing the revised marker. EAS submission d7e1b60b-7254-4adb-8235-18f1d228074a
+is confirmed CANCELED while queued. Do not retry it or submit a replacement
+without the tester's approval of a concrete car-only preview.
+
+The car-only marker ignores phone-compass swings. Confirmed stationary fixes
+hold tiny route-position jitter; actual movement releases the hold. At a stop,
+route course wins over invalid/noisy CoreLocation course. On iOS the car angle
+uses the actual screen-projected road tangent, accounting for map pitch and
+camera rotation. These behaviors pass 512 app tests in 48 suites plus typecheck
+and lint. A separate native synthetic-street motion check is pending.
 ## October 15 additional visual feedback
 
 Reviewed the supplied SUPJ6093, WYVM2675 and RKZS9242 recordings and three desktop
@@ -18,7 +31,8 @@ subtle blink, retaining route-vertex motion and camera-relative bearing. No Waze
 artwork/code is used. Crossing a grounded limit produces three brief sign pulses;
 GPS digits stay red for the entire excess and return to white below the limit.
 The instrument layout stays fixed, without an expanding repeated warning pill.
-This revision requires new native visual validation and a replacement signed IPA.
+Final native run `38740963262` passes the full guest/search/report/settings/navigation flow, fresh stationary zero, both trip-panel body swipes and a retained 130 m parking stop. The recording was inspected frame by frame: the original roadster renders, the dimming layer no longer slides across the map as a rectangle, and the sheet stays at a stable height while results arrive. Signed build 39 from `7ac1f19322fdb02d0f288c41b95723636c96d893` passes signature checks, all nine wake-model/licence resource hashes, hosted-backend URL and provider-secret absence checks. The native source `c439ae5` differs only in the test flow. Apple submission `d7e1b60b-7254-4adb-8235-18f1d228074a` was canceled while queued at the tester's request. That package is not approved for release.
+
 ## October 15 build 39 candidate: driving recording review
 
 Reviewed LGZA8479, SUPJ6093 and RKZS9242 driving/UI recordings, and the NODU6018
@@ -61,7 +75,7 @@ light indicates listening/thinking/replying; no Siri assets/code are used.
 
 507 app tests in 47 suites, typecheck and lint pass. 30 backend and 18 Cloudflare
 tests pass, including route authentication and disabled-provider behavior.
-Native run 38732327312 passed guest entry, reports, nearby search, route preview, continuous stationary zero, trip details and swipe dismissal. Its last stop assertion selected a parking place only 20 m away, within the existing 50 m stop-arrival radius, so the stop immediately completed. A focused native rerun selects a farther parking place to validate retaining a pending stop. Final stop validation and Apple TestFlight availability remain pending.
+Earlier native fixtures were corrected to keep the GPS stream continuous, select a stop beyond the 50 m arrival area and swipe inside the lower parking list. The final full native run is successful; see the latest validation above for the signed artifact and Apple state.
 Physical accuracy on the tester's roads and in-car French/English voice still
 require device testing. No ElevenLabs account, paid voice or paid plan is activated.
 

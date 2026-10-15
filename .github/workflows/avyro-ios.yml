@@ -13,7 +13,7 @@ on:
         description: Native interaction suite
         type: choice
         default: guest-map
-        options: [guest-map, location-smoke, trip-smoke]
+        options: [guest-map, location-smoke, trip-smoke, car-motion]
 permissions:
   contents: read
 concurrency:
@@ -90,12 +90,30 @@ jobs:
           MAESTRO_CLI_NO_ANALYTICS: 1
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
         run: |
-          xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
+          AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
+          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke || "$AVYRO_UI_FLOW" == car-motion ]] || exit 1
+          if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+            xcrun simctl location "$DEVICE_ID" set 48.85763,2.35107
+          else
+            xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
+          fi
           mkdir -p build/screens
           # A slow sub-metre simulator path supplies fresh fixes and valid native
           # speed (rounding to zero). Static `set` fixes have unknown native speed.
           (
             xcrun simctl help location
+            if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+              # Public synthetic Rue de Rivoli trace, separate from real GPS.
+              until [[ -n "$(find "$HOME/.maestro/tests" -name start-driving-fixture.png -print -quit 2>/dev/null)" ]]; do
+                xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8576300,2.35107 48.8576350,2.35107
+                for attempt in {1..10}; do
+                  [[ -n "$(find "$HOME/.maestro/tests" -name start-driving-fixture.png -print -quit 2>/dev/null)" ]] && break
+                  sleep 1
+                done
+              done
+              xcrun simctl location "$DEVICE_ID" start --speed=10 --interval=0.5 48.85763,2.35107 48.85858,2.34807 48.85935,2.34569
+              while true; do sleep 1; done
+            fi
             while true; do
               xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8565300,2.35332 48.8565350,2.35332
               sleep 40
@@ -117,8 +135,6 @@ jobs:
             wait "$AVYRO_RECORD_PID" 2>/dev/null || true
           }
           trap finish_capture EXIT
-          AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
-          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke ]] || exit 1
           maestro --device "$DEVICE_ID" test ".maestro/$AVYRO_UI_FLOW.yaml"
       - name: Capture final simulator state
         if: always()

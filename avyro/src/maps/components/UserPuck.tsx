@@ -9,8 +9,9 @@ import { distanceBetween } from '@/utils/geo';
 
 export interface UserPuckProps {
   coordinate: Coordinates;
-  /** Course over ground; the cone points where the car is heading. */
+  /** Course over ground; the car's front points along travel. */
   headingDegrees?: number | null;
+  screenHeadingDegrees?: number | null;
   cameraHeadingDegrees?: number;
   routeGeometry?: readonly Coordinates[];
   segmentIndex?: number;
@@ -22,7 +23,7 @@ export interface UserPuckProps {
  * Coordinates follow route vertices between fixes; rotation is relative to the
  * measured camera heading, rather than its not-yet-reached animation target.
  */
-const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 0, routeGeometry, segmentIndex = 0 }: UserPuckProps) => {
+const UserPuckComponent = ({ coordinate, headingDegrees, screenHeadingDegrees, cameraHeadingDegrees = 0, routeGeometry, segmentIndex = 0 }: UserPuckProps) => {
   const [animated] = useState(() => ({ latitude: new Animated.Value(coordinate.latitude), longitude: new Animated.Value(coordinate.longitude) }));
   const [rotation] = useState(() => new Animated.Value(headingDegrees != null && headingDegrees >= 0 ? headingDegrees : 0));
   const lastHeading = useRef(headingDegrees != null && headingDegrees >= 0 ? headingDegrees : 0);
@@ -34,15 +35,15 @@ const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 
   }, [animated]);
   useEffect(() => {
     if (headingDegrees != null && Number.isFinite(headingDegrees) && headingDegrees >= 0) lastHeading.current = headingDegrees % 360;
-    const target = lastHeading.current - (Platform.OS === 'ios' ? cameraHeadingDegrees : 0);
+    const target = Platform.OS === 'ios' && screenHeadingDegrees != null && Number.isFinite(screenHeadingDegrees) ? screenHeadingDegrees : lastHeading.current - (Platform.OS === 'ios' ? cameraHeadingDegrees : 0);
     let active = true;
     rotation.stopAnimation(current => {
       if (!active) return;
       const delta = ((target - current) % 360 + 540) % 360 - 180;
-      Animated.timing(rotation, { toValue: current + delta, duration: 220, useNativeDriver: Platform.OS === 'ios' }).start();
+      Animated.timing(rotation, { toValue: current + delta, duration: 120, useNativeDriver: Platform.OS === 'ios' }).start();
     });
     return () => { active = false; rotation.stopAnimation(); };
-  }, [headingDegrees, cameraHeadingDegrees, rotation]);
+  }, [headingDegrees, screenHeadingDegrees, cameraHeadingDegrees, rotation]);
   const { latitude, longitude } = coordinate;
   useEffect(() => {
     const path = puckMotionPath(drawn.current, { latitude, longitude }, routeGeometry, segmentIndex);

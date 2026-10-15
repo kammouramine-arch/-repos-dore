@@ -1,0 +1,56 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- extendedWaitUntil:
+    visible: "Continue without hands-free"
+    timeout: 90000
+- waitForAnimationToEnd
+- tapOn:
+    text: "Continue without hands-free"
+    retryTapIfNoChange: true
+- tapOn: "Search for a destination"
+- tapOn: "Destination"
+- inputText: "Eiffel Tower Paris France"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "place-result-0"
+    timeout: 30000
+- tapOn:
+    id: "place-result-0"
+- extendedWaitUntil:
+    visible: "Start navigation"
+    timeout: 30000
+- tapOn: "Start navigation"
+- extendedWaitUntil:
+    visible:
+      id: "gps-speed-value"
+      text: "0"
+    timeout: 30000
+- takeScreenshot: build/screens/car-only-stationary
+# The host fixture waits for this screenshot before starting its public,
+# synthetic street trace. No phone code or production GPS is overridden.
+- takeScreenshot: build/screens/start-driving-fixture
+- extendedWaitUntil:
+    visible:
+      id: "gps-speed-value"
+      text: "36"
+    timeout: 30000
+- repeat:
+    times: 5
+    commands:
+      - assertVisible: "End"
+      - takeScreenshot: build/screens/car-only-moving
+- tapOn: "Trip details"
+- assertVisible: "Your trip"
+- swipe:
+    start: 50%, 60%
+    end: 50%, 95%
+    duration: 500
+- extendedWaitUntil:
+    notVisible: "Your trip"
+    timeout: 10000
+- takeScreenshot: build/screens/car-only-final
