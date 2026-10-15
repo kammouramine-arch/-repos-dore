@@ -35,16 +35,7 @@ export const ListRow = ({
 }: ListRowProps) => {
   const chevron = showChevron ?? (Boolean(onPress) && !trailing);
 
-  return (
-    <PressableScale
-      testID={testID}
-      accessibilityRole={onPress ? 'button' : undefined}
-      accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
-      disabled={!onPress}
-      onPress={onPress}
-      activeScale={0.985}
-      style={styles.row}
-    >
+  const content = <>
       {icon ? <IconBadge name={icon} tone={iconTone} /> : null}
 
       <View style={styles.text}>
@@ -62,8 +53,13 @@ export const ListRow = ({
       {chevron ? (
         <Icon name="chevron-forward" size={17} color={colors.textTertiary} />
       ) : null}
-    </PressableScale>
-  );
+    </>;
+  // Informational rows are not disabled buttons. In particular, keep trailing
+  // switches exposed to VoiceOver and render their labels at full contrast.
+  return onPress ? <PressableScale testID={testID} accessibilityRole="button"
+    accessibilityLabel={subtitle ? `${title}, ${subtitle}` : title}
+    onPress={onPress} activeScale={0.985} style={styles.row}>{content}</PressableScale>
+    : <View testID={testID} style={styles.row}>{content}</View>;
 };
 
 const styles = StyleSheet.create({

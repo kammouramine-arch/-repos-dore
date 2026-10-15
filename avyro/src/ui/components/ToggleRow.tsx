@@ -20,6 +20,8 @@ export const ToggleRow = ({ title, subtitle, subtitleLines = 2, value, onChange 
     subtitleLines={subtitleLines}
     trailing={
       <Switch
+        accessibilityLabel={title}
+        accessibilityHint={subtitle}
         value={value}
         onValueChange={(next) => {
           haptics.selection();
