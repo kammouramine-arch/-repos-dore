@@ -1,5 +1,15 @@
 # Independent beta hosting
 
+Build 39 adds authenticated `/routes` using the existing TomTom evaluation
+connection, replacing the connected app's OSRM public-demo route source. A
+separate D1 `routing:YYYY-MM` counter caps this at 1,000 requests/month; failed
+upstream calls count too. Input allows an origin, destination and at most three
+stops; provider URL, car profile and guidance format remain server-owned.
+Road lookahead also returns bounded matched limit sections, so fresh GPS can
+select the actual road section between requests rather than briefly flashing
+the last trace's limit. Current-position and lookahead calls still share their
+original 1,000/month road-evidence cap. No quota authorizes paid upgrades.
+
 Cloudflare Workers + D1 replace the computer and temporary tunnel. The public
 Worker holds only bindings; the TomTom key is uploaded as a server secret and
 never included in the phone app. No previous computer database is imported.

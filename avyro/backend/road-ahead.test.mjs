@@ -23,6 +23,14 @@ test('route requests require consent, finite coordinates and a short continuous 
   assert.deepEqual(validateLookahead({ consent: true, geometry: line }), line);
   for (const input of [{ consent: false, geometry: line }, { consent: true, geometry: [[3, 50], [4, 51]] }, { consent: true, geometry: [[3, 50], [NaN, 50]] }]) assert.throws(() => validateLookahead(input), { status: 400 });
 });
+
+test('international road-number separators normalize without accepting prose', () => {
+  for (const [input, expected] of [['US-101', 'US101'], ['NH-44', 'NH44'], ['A 1', 'A1']]) {
+    const result = decodeLookahead({ route: [{ ...road({ address: { roadNumbers: [input] } }), geometry: { type: 'LineString', coordinates: [line[1], line[2]] } }] }, line, 1000);
+    assert.equal(result.alerts.find(a => a.kind === 'numbered-road')?.label, expected);
+  }
+  assert.equal(decodeLookahead({ route: [road({ address: { roadNumbers: ['take the fast lane'] } })] }, line, 1000).alerts.length, 0);
+});
 test('documented municipal facts correct only exact French town/roads and never raise a lower limit', () => {
   const address = { countryCode: 'FRA', municipality: 'Wattignies', roadName: 'Avenue Denis Cordonnier' };
   const mapped = { value: 50, unit: 'km/h' }, now = Date.parse('2026-10-15T12:00:00Z');

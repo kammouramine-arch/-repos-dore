@@ -51,7 +51,7 @@ export function decodeLookahead(data, planned, now) {
     if (['End', 'Both'].includes(props.trafficLight)) add('traffic-light', line.at(-1));
     if (props.roadUse !== previousUse && props.roadUse === 'LimitedAccess') add('limited-access', line[0]);
     if (props.roadUse !== previousUse && props.roadUse === 'Ramp') add('ramp', line[0]);
-    const number = Array.isArray(props.address?.roadNumbers) ? props.address.roadNumbers.find(n => typeof n === 'string' && /^[A-Z]{0,3} ?[0-9]{1,4}(?:-[A-Z0-9]{1,3})?$/i.test(n)) : null;
+    const number = Array.isArray(props.address?.roadNumbers) ? props.address.roadNumbers.filter(n => typeof n === 'string' && n.length <= 16).map(n => n.replace(/^([A-Z]{1,3})[ -]+(?=[0-9])/i, '$1')).find(n => /^[A-Z]{0,3}[0-9]{1,4}(?:-[A-Z0-9]{1,3})?$/i.test(n)) : null;
     if (number && number !== previousNumber) add('numbered-road', line[0], number.replace(/ /g, '').toUpperCase());
     previousUse = props.roadUse;
     previousNumber = number;

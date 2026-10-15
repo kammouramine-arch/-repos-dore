@@ -2,6 +2,52 @@
 
 This branch is a development candidate, not a completed production release.
 
+## October 15 build 39 candidate: driving recording review
+
+Reviewed LGZA8479, SUPJ6093 and RKZS9242 driving/UI recordings, and the NODU6018
+and PWMP5299 visual references. MHZI5176 contains only a 74×160 preview frame,
+not a playable recording. Private tester footage remains outside the repository.
+
+Hosted route planning now uses the existing TomTom key through authenticated
+`POST /routes`; connected clients no longer use the OSRM public demo. The server
+pins car routing, bounds waypoints/response size/time, normalizes provider turn
+instructions and reserves a separate 1,000-request monthly route test allowance.
+The phone never receives the key. Live synthetic route checks succeeded in
+France, Morocco and India; these samples do not prove universal road coverage.
+
+Maneuvers use supplied geometry/coordinate anchors instead of globally rescaled
+step lengths. Road matching considers recent physically plausible progress and
+course near parallel/opposite approaches. The puck interpolates through curve
+vertices rather than drawing a straight chord across a bend, uses actual camera
+heading, and does not remain forcibly snapped when well off the planned route.
+Uncertain/off-route positions withhold the old turn banner and voice prompts.
+An endpoint projection alone can no longer announce arrival far from the route.
+
+Sourced lookahead road sections can retain speed limits between network requests
+while fresh accurate GPS matches that section and direction. Conflicting nearby
+limits, expired source evidence, turns and poor GPS are rejected. Street-name
+variants Lindbergh and Blériot now match their scoped Wattignies correction;
+the municipality's own school address confirms the shortened Lindbergh form:
+https://www.wattignies.fr/index.php
+No universal 30 km/h fallback is introduced. Accurate repeated stationary fixes
+can resolve CoreLocation's unknown speed to zero; missing GPS cannot.
+
+iPhone panels/controls use tinted native blur, the trip details touch area fills
+the information region, and its sheet has a drag-to-dismiss gesture and outside
+tap dismissal. The roundabout glyph is redrawn; sign markers/notices enter with
+brief motion, opposite-approach metadata is rejected and near-duplicate pins are
+collapsed. The traffic-light illustration shows all three conventional colours
+together; it never represents a current live phase. The unknown-limit pill is
+removed, with unavailable evidence retained in spoken/accessibility responses.
+TomTom attribution remains visible at a smaller size. Avyro's own animated edge
+light indicates listening/thinking/replying; no Siri assets/code are used.
+
+507 app tests in 47 suites, typecheck and lint pass. 30 backend and 18 Cloudflare
+tests pass, including route authentication and disabled-provider behavior.
+Final native screen validation and Apple TestFlight availability are pending.
+Physical accuracy on the tester's roads and in-car French/English voice still
+require device testing. No ElevenLabs account, paid voice or paid plan is activated.
+
 ## October 15 build 38 internal TestFlight release
 
 Source `8163534bef38cb177776a8ffa4d7337c08e7413b` passes 495 app tests in 43

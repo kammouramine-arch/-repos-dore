@@ -16,3 +16,9 @@ test('routing pins provider, car profile and output bounds without client URLs o
   let called; const routes = await calculateRoutes({ origin:a,destination:b, url:'https://untrusted.invalid' }, { enabled:true,key:'not-real',reserveRequest:async()=>{},fetcher:async(url)=>{called=new URL(url);return Response.json(raw());} });
   assert.equal(called.hostname,'api.tomtom.com');assert.equal(called.searchParams.get('travelMode'),'car');assert.equal(routes.length,1);
 });
+test('international freeway/highway entry and exit codes retain ramp guidance', () => {
+  for (const maneuver of ['ENTER_FREEWAY','ENTER_HIGHWAY','MOTORWAY_EXIT_LEFT','MOTORWAY_EXIT_RIGHT','ENTRANCE_RAMP']) {
+    const data=raw(); data.routes[0].guidance.instructions.splice(1,0,{ maneuver,point:a,routeOffsetInMeters:50,travelTimeInSeconds:10,message:'Take the exit.' });
+    assert.equal(decodeRoutes(data)[0].steps[0].maneuver,'ramp');
+  }
+});
