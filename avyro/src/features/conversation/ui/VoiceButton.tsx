@@ -27,7 +27,7 @@ export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
   return (
     <IconButton
       name={listening ? 'mic' : 'mic-outline'}
-      accessibilityLabel={busy ? 'Stop voice conversation' : 'Ask Avyro'}
+      accessibilityLabel={busy ? 'Stop voice conversation' : 'Ask meepmeep'}
       accessibilityHint="Tap to start or stop a conversation. Hold to pause hands-free listening."
       active={listening}
       variant={variant}

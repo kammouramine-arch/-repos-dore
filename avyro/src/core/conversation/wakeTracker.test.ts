@@ -49,14 +49,14 @@ const tick = (at: number): WakeTrackerEvent => ({ type: 'tick', at });
 const commands = (decisions: WakeDecision[]) =>
   decisions.filter((d): d is Extract<WakeDecision, { type: 'command' }> => d.type === 'command');
 
-describe('"Hey Avyro take me to Lille", as iOS actually delivers it', () => {
+describe('"Hey meepmeep take me to Lille", as iOS actually delivers it', () => {
   const stream: WakeTrackerEvent[] = [
     partial('Hey', 100),
-    partial('Hey Avyro', 300),
-    partial('Hey Avyro take', 600),
-    partial('Hey Avyro take me', 800),
-    partial('Hey Avyro take me to Lille', 1_100),
-    final('Hey Avyro take me to Lille', 1_400),
+    partial('Hey meepmeep', 300),
+    partial('Hey meepmeep take', 600),
+    partial('Hey meepmeep take me', 800),
+    partial('Hey meepmeep take me to Lille', 1_100),
+    final('Hey meepmeep take me to Lille', 1_400),
   ];
 
   it('never hands a half-finished sentence to the parser', () => {
@@ -106,7 +106,7 @@ describe('the wake phrase alone, then a pause', () => {
   it('hands off to a command session once the words stop changing', () => {
     const { decisions } = replay([
       partial('Hey', 0),
-      partial('Hey Avyro', 200),
+      partial('Hey meepmeep', 200),
       tick(200 + CONVERSATION.wakeSettleMs),
     ]);
 
@@ -115,7 +115,7 @@ describe('the wake phrase alone, then a pause', () => {
 
   it('does not hand off before the settle window has passed', () => {
     const { decisions } = replay([
-      partial('Hey Avyro', 200),
+      partial('Hey meepmeep', 200),
       tick(200 + CONVERSATION.wakeSettleMs - 50),
     ]);
 
@@ -123,7 +123,7 @@ describe('the wake phrase alone, then a pause', () => {
   });
 
   it('hands off immediately when the recogniser commits a bare wake phrase', () => {
-    const { decisions } = replay([partial('Hey Avyro', 0), final('Hey Avyro', 400)]);
+    const { decisions } = replay([partial('Hey meepmeep', 0), final('Hey meepmeep', 400)]);
 
     expect(decisions).toContainEqual({ type: 'listen' });
     expect(commands(decisions)).toHaveLength(0);
@@ -132,8 +132,8 @@ describe('the wake phrase alone, then a pause', () => {
   it('reads a command that arrives after a pause, once it settles', () => {
     // The driver hesitates: "Hey Avyro… take me to Lille."
     const { decisions } = replay([
-      partial('Hey Avyro', 0),
-      partial('Hey Avyro take me to Lille', 2_000),
+      partial('Hey meepmeep', 0),
+      partial('Hey meepmeep take me to Lille', 2_000),
       tick(2_000 + CONVERSATION.wakeSettleMs),
     ]);
 
@@ -146,9 +146,9 @@ describe('an interim that is later corrected', () => {
     // "take me to" followed by "take me to Lille" is the exact sequence that
     // produced a geocode for nothing.
     const { decisions } = replay([
-      partial('Hey Avyro take me to', 500),
-      partial('Hey Avyro take me to Lille', 900),
-      final('Hey Avyro take me to Lille', 1_200),
+      partial('Hey meepmeep take me to', 500),
+      partial('Hey meepmeep take me to Lille', 900),
+      final('Hey meepmeep take me to Lille', 1_200),
     ]);
 
     expect(commands(decisions).map((d) => d.transcript)).toEqual(['take me to lille']);
@@ -156,9 +156,9 @@ describe('an interim that is later corrected', () => {
 
   it('never geocodes a truncated fragment', () => {
     const { decisions } = replay([
-      partial('Hey Avyro take me to', 500),
-      partial('Hey Avyro take me to Lille', 900),
-      final('Hey Avyro take me to Lille', 1_200),
+      partial('Hey meepmeep take me to', 500),
+      partial('Hey meepmeep take me to Lille', 900),
+      final('Hey meepmeep take me to Lille', 1_200),
     ]);
 
     const queries = commands(decisions)
@@ -171,7 +171,7 @@ describe('an interim that is later corrected', () => {
   });
 });
 
-describe('speech that never woke Avyro', () => {
+describe('speech that never woke meepmeep', () => {
   it('is not a command, however complete it looks', () => {
     // A passenger saying "take me to Lille" mid-conversation has not addressed
     // Avyro, and the microphone is not a licence to act on the room.
@@ -190,9 +190,9 @@ describe('speech that never woke Avyro', () => {
 describe('once a decision is out', () => {
   it('ignores the rest of the wake stream, which belongs to the turn', () => {
     const { decisions } = replay([
-      final('Hey Avyro take me to Lille', 0),
-      partial('Hey Avyro take me to Lille and then', 400),
-      final('Hey Avyro take me to Lille and then Paris', 800),
+      final('Hey meepmeep take me to Lille', 0),
+      partial('Hey meepmeep take me to Lille and then', 400),
+      final('Hey meepmeep take me to Lille and then Paris', 800),
     ]);
 
     expect(commands(decisions).map((d) => d.transcript)).toEqual(['take me to lille']);
@@ -201,12 +201,12 @@ describe('once a decision is out', () => {
 
 describe('every command still reaches the parser intact', () => {
   it.each([
-    ['Hey Avyro what is my ETA', 'ask-eta'],
-    ['Hey Avyro find me a gas station', 'find-nearby'],
-    ['Hey Avyro take me home', 'navigate-saved'],
-    ['Hey Avyro cancel navigation', 'cancel-navigation'],
-    ['Hey Avyro how far is it', 'ask-remaining-distance'],
-    ['Hey Avyro take me to Lille', 'navigate-to-place'],
+    ['Hey meepmeep what is my ETA', 'ask-eta'],
+    ['Hey meepmeep find me a gas station', 'find-nearby'],
+    ['Hey meepmeep take me home', 'navigate-saved'],
+    ['Hey meepmeep cancel navigation', 'cancel-navigation'],
+    ['Hey meepmeep how far is it', 'ask-remaining-distance'],
+    ['Hey meepmeep take me to Lille', 'navigate-to-place'],
   ])('%s', (utterance, kind) => {
     const { decisions } = replay([partial(utterance, 0), final(utterance, 500)]);
     const [command] = commands(decisions);

@@ -1,5 +1,5 @@
 import { LinearGradient } from 'expo-linear-gradient';
-import { ActivityIndicator, StyleSheet, View, type ViewStyle } from 'react-native';
+import { ActivityIndicator, StyleSheet, View, type ViewStyle, type ColorValue } from 'react-native';
 
 import { haptics } from '@/ui/feedback/haptics';
 import { colors, gradients, radius, sizing, spacing } from '@/ui/theme';
@@ -28,7 +28,7 @@ const TONES: Record<ButtonVariant, TextTone> = {
   danger: 'danger',
 };
 
-const ICON_COLORS: Record<ButtonVariant, string> = {
+const ICON_COLORS: Record<ButtonVariant, ColorValue> = {
   primary: colors.onAccent,
   secondary: colors.textPrimary,
   ghost: colors.accent,

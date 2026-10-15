@@ -17,7 +17,7 @@ export type Decoder<T> = (value: unknown, path: string) => T;
 const invalid = (path: string, expected: string): never => {
   throw new AppError(
     'invalid-response',
-    'The service returned something Avyro could not read.',
+    'The service returned something meepmeep could not read.',
     `expected ${expected} at ${path}`,
   );
 };

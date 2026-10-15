@@ -21,7 +21,7 @@ describe('telling the driver what the microphone is doing', () => {
     });
   });
 
-  it('shows Avyro’s own words while it speaks', () => {
+  it('shows meepmeep’s own words while it speaks', () => {
     // Seeing the sentence confirms the command was heard correctly, which
     // hearing it alone does not at 110 km/h with the window down.
     expect(voicePromptFor('speaking', 'Heading home.', null)).toEqual({
@@ -31,7 +31,7 @@ describe('telling the driver what the microphone is doing', () => {
     });
   });
 
-  it('treats a maneuver interrupt as Avyro speaking, because it is', () => {
+  it('treats a maneuver interrupt as meepmeep speaking, because it is', () => {
     expect(voicePromptFor('navigation-interrupt', 'Turn right', null).tone).toBe(
       'speaking',
     );

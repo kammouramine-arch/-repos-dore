@@ -59,7 +59,7 @@ export const createExpoLocationTracker = (): LocationTracker => ({
     } catch (error) {
       throw new AppError(
         'permission-denied',
-        'Avyro needs location access to find where you are.',
+        'meepmeep needs location access to find where you are.',
         error,
       );
     }

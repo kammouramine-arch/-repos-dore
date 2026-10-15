@@ -2,7 +2,7 @@ import Svg, { Ellipse, Path, Rect } from 'react-native-svg';
 
 /** Original top-down car, with a clear front, windshield and rear lamps. */
 export const AvyroRoadster = () => {
-  return <Svg width={56} height={66} viewBox="0 0 64 76">
+  return <Svg width={36} height={44} viewBox="0 0 64 76">
   <Ellipse cx="32" cy="40" rx="28" ry="34" fill="rgba(8,127,131,0.12)" />
   <Ellipse cx="32" cy="43" rx="20" ry="29" fill="rgba(12,42,53,0.18)" />
   <Rect x="9" y="20" width="8" height="14" rx="3" fill="#183441" />

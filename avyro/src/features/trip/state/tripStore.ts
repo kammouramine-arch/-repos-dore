@@ -67,7 +67,7 @@ export const createTripStore = (services: ServiceContainer) =>
           planning: false,
           plan: null,
           selectedRouteId: null,
-          error: messageFor(error, 'Avyro could not plan that trip.'),
+          error: messageFor(error, 'meepmeep could not plan that trip.'),
         });
         return false;
       }

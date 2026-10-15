@@ -37,6 +37,9 @@ export interface ConversationStoreState extends ConversationState {
    * reducer where it can be tested, and every side effect in one hook.
    */
   pending: ConversationEffect[];
+  commandReady: boolean;
+  audioLevel: number;
+  setCapture: (ready: boolean, level?: number) => void;
   /**
    * The place Avyro last named, which "take me there" resolves against.
    *
@@ -69,6 +72,9 @@ export const createConversationStore = () =>
   create<ConversationStoreState>()((set, get) => ({
     ...initialConversationState,
     pending: [],
+    commandReady: false,
+    audioLevel: 0,
+    setCapture: (commandReady, audioLevel = 0) => set({ commandReady, audioLevel }),
     referent: null,
     voice: initialVoiceView,
     diagnostics: [],

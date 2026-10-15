@@ -46,8 +46,8 @@ jobs:
         if: ${{ !inputs.simulator_run }}
         run: |
           set -o pipefail
-          xcodebuild -workspace ios/Avyro.xcworkspace -scheme Avyro -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > native-build.log 2>&1 || { tail -n 120 native-build.log; exit 1; }
-          ditto -c -k --keepParent build/Build/Products/Release-iphonesimulator/Avyro.app build/Avyro-simulator.zip
+          xcodebuild -workspace ios/meepmeep.xcworkspace -scheme meepmeep -configuration Release -sdk iphonesimulator -destination 'generic/platform=iOS Simulator' -derivedDataPath build CODE_SIGNING_ALLOWED=NO > native-build.log 2>&1 || { tail -n 120 native-build.log; exit 1; }
+          ditto -c -k --keepParent build/Build/Products/Release-iphonesimulator/meepmeep.app build/Avyro-simulator.zip
       - name: Upload simulator app
         if: ${{ !inputs.simulator_run }}
         uses: actions/upload-artifact@v4
@@ -69,7 +69,7 @@ jobs:
       - name: Embed configured JavaScript into reused simulator app
         if: ${{ inputs.simulator_run }}
         run: |
-          npx expo export:embed --entry-file index.ts --platform ios --dev false --bytecode --bundle-output build/Build/Products/Release-iphonesimulator/Avyro.app/main.jsbundle --assets-dest build/Build/Products/Release-iphonesimulator/Avyro.app
+          npx expo export:embed --entry-file index.ts --platform ios --dev false --bytecode --bundle-output build/Build/Products/Release-iphonesimulator/meepmeep.app/main.jsbundle --assets-dest build/Build/Products/Release-iphonesimulator/meepmeep.app
       - name: Prepare iPhone simulator and test driver
         timeout-minutes: 10
         env:
@@ -82,7 +82,7 @@ jobs:
           xcrun simctl bootstatus "$DEVICE_ID" -b
           xcrun simctl ui "$DEVICE_ID" appearance light
           xcrun simctl status_bar "$DEVICE_ID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
-          xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
+          xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/meepmeep.app
           echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
       - name: Verify guest launch and capture native screens
         timeout-minutes: 15

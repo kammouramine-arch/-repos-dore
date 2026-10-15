@@ -26,6 +26,8 @@ export const VoiceHud = () => {
   const status = useConversationStore((state) => state.status);
   const speaking = useConversationStore((state) => state.speaking);
   const error = useConversationStore((state) => state.error);
+  const ready = useConversationStore(state => state.commandReady);
+  const level = useConversationStore(state => state.audioLevel);
   const transcript = useConversationStore(state => state.transcript);
 
   const prompt = voicePromptFor(status, speaking, error);
@@ -36,17 +38,17 @@ export const VoiceHud = () => {
       pointerEvents="none"
       style={[styles.root, { paddingBottom: insets.bottom + spacing.xxxl }]}
     >
-      <VoiceFrame active={['listening', 'thinking', 'speaking'].includes(status)} />
+      <VoiceFrame state={status} level={level} active={(status === 'listening' && ready) || ['thinking', 'speaking'].includes(status)} />
       <Animated.View entering={FadeInDown.duration(180)} exiting={FadeOutDown.duration(140)}>
         <GlassPanel style={styles.panel}>
-          <VoiceOrb tone={prompt.tone} />
+          <VoiceOrb tone={status === 'listening' && !ready ? 'idle' : prompt.tone} />
           <AppText
             variant="callout"
             tone={prompt.tone === 'error' ? 'danger' : 'primary'}
             numberOfLines={2}
             style={styles.label}
           >
-            {status === 'listening' && transcript ? transcript : prompt.label}
+            {status === 'listening' && !ready ? 'Just a moment…' : status === 'listening' && transcript ? transcript : prompt.label}
           </AppText>
         </GlassPanel>
       </Animated.View>

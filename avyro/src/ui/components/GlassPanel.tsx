@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, useColorScheme, type ViewStyle } from 'react-native';
 import { BlurView } from 'expo-blur';
 
 import { colors, radius, shadows } from '@/ui/theme';
@@ -17,8 +17,9 @@ export interface GlassPanelProps {
  * its colour underneath. The blur is absolute so caller flex layouts stay intact.
  */
 export const GlassPanel = ({ children, style, intensity = 65 }: GlassPanelProps) => {
-  return <View style={[styles.panel, styles.solid, style]}>
-    {Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint="systemUltraThinMaterialLight" intensity={intensity} style={StyleSheet.absoluteFill} /> : null}
+  const dark = useColorScheme() === 'dark';
+  return <View style={[styles.panel, styles.solid, dark ? { backgroundColor: 'rgba(18,43,55,0.72)', borderColor: 'rgba(190,231,229,0.18)' } : null, style]}>
+    {Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint={dark ? 'systemUltraThinMaterialDark' : 'systemUltraThinMaterialLight'} intensity={intensity} style={StyleSheet.absoluteFill} /> : null}
     {children}
   </View>;
 };

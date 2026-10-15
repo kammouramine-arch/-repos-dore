@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
@@ -18,7 +19,7 @@ export interface VoiceOrbProps {
   size?: number;
 }
 
-const TONE_COLOR: Record<VoiceTone, string> = {
+const TONE_COLOR: Record<VoiceTone, ColorValue> = {
   idle: colors.textTertiary,
   listening: colors.accent,
   thinking: colors.accent,

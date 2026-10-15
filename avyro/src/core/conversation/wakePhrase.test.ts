@@ -7,14 +7,14 @@ import {
 
 describe('normaliseUtterance', () => {
   it('flattens case, punctuation, accents and spacing', () => {
-    expect(normaliseUtterance('  Hey, AVYRO!  ')).toBe('hey avyro');
+    expect(normaliseUtterance('  Hey, meepmeep!  ')).toBe('hey meepmeep');
     expect(normaliseUtterance('Café — Déjà vu')).toBe('cafe deja vu');
   });
 });
 
 describe('matchWakePhrase', () => {
   it('hears the wake phrase', () => {
-    expect(matchWakePhrase('Hey Avyro')?.phrase).toBe('hey avyro');
+    expect(matchWakePhrase('Hey meepmeep')?.phrase).toBe('hey meepmeep');
   });
 
   it('tolerates how a recogniser mishears the name', () => {
@@ -24,7 +24,7 @@ describe('matchWakePhrase', () => {
   });
 
   it('returns the command said in the same breath', () => {
-    expect(matchWakePhrase('Hey Avyro, take me home')?.remainder).toBe('take me home');
+    expect(matchWakePhrase('Hey meepmeep, take me home')?.remainder).toBe('take me home');
   });
 
   it('returns an empty remainder when the driver only woke it', () => {
@@ -64,7 +64,7 @@ describe('localisation', () => {
   });
 
   it('advertises only the canonical phrase, never the misheard spellings', () => {
-    expect(displayWakePhrase('en-US')).toBe('Hey Avyro');
-    expect(displayWakePhrase('fr-FR')).toBe('Hey Avyro');
+    expect(displayWakePhrase('en-US')).toBe('Hey meepmeep');
+    expect(displayWakePhrase('fr-FR')).toBe('Hey meepmeep');
   });
 });

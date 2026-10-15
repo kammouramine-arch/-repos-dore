@@ -1,103 +1,50 @@
 import { useEffect, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
-import Animated, {
-  runOnJS,
-  useAnimatedStyle,
-  useSharedValue,
-  withDelay,
-  withSpring,
-  withTiming,
-} from 'react-native-reanimated';
-
+import { requireOptionalNativeModule } from 'expo';
+import Animated, { runOnJS, useAnimatedStyle, useReducedMotion, useSharedValue, withDelay, withTiming } from 'react-native-reanimated';
 import { APP_INFO } from '@/config';
-import { AppText, AvyroMark, Screen } from '@/ui/components';
-import { motion, spacing } from '@/ui/theme';
+import { AppText, AvyroMark } from '@/ui/components';
+import { AvyroRoadster } from '@/maps/components/AvyroRoadster';
 
-export interface SplashOverlayProps {
-  /** Bootstrap finished — the splash may leave as soon as it has been seen. */
-  ready: boolean;
-  onFinished: () => void;
-}
-
-/** Minimum time on screen, so a fast launch still feels composed. */
-const MINIMUM_VISIBLE_MS = motion.splash + 350;
-
-/**
- * The first thing anyone sees. The mark settles with a spring, the wordmark
- * follows, and the whole thing dissolves — never cuts — into the app.
- */
+export interface SplashOverlayProps { ready: boolean; onFinished: () => void }
+/** Live vector entrance; map bootstraps underneath. Re-entry never replays this. */
 export const SplashOverlay = ({ ready, onFinished }: SplashOverlayProps) => {
-  const [minimumElapsed, setMinimumElapsed] = useState(false);
-
-  const markScale = useSharedValue(0.82);
-  const markOpacity = useSharedValue(0);
-  const textOpacity = useSharedValue(0);
-  const textShift = useSharedValue(14);
-  const overlayOpacity = useSharedValue(1);
-
+  const reduced = useReducedMotion();
+  const [elapsed, setElapsed] = useState(false);
+  const carX = useSharedValue(reduced ? 0 : -180);
+  const reveal = useSharedValue(reduced ? 1 : 0);
+  const fade = useSharedValue(1);
   useEffect(() => {
-    markOpacity.value = withTiming(1, { duration: motion.slow });
-    markScale.value = withSpring(1, { damping: 14, stiffness: 120 });
-    textOpacity.value = withDelay(240, withTiming(1, { duration: motion.slow }));
-    textShift.value = withDelay(240, withSpring(0, motion.spring));
-
-    const timer = setTimeout(() => setMinimumElapsed(true), MINIMUM_VISIBLE_MS);
-    return () => clearTimeout(timer);
-  }, [markOpacity, markScale, textOpacity, textShift]);
-
+    carX.value = withTiming(100, { duration: reduced ? 0 : 650 });
+    reveal.value = withDelay(reduced ? 0 : 280, withTiming(1, { duration: 240 }));
+    const timer = setTimeout(() => setElapsed(true), reduced ? 0 : 800);
+    const cue = setTimeout(() => { if (!reduced) void requireOptionalNativeModule<{ playLaunchCue(): Promise<void> }>('AvyroWake')?.playLaunchCue().catch(() => {}); }, 300);
+    return () => { clearTimeout(timer); clearTimeout(cue); };
+  }, [carX, reveal, reduced]);
   useEffect(() => {
-    if (!ready || !minimumElapsed) return;
-
-    overlayOpacity.value = withTiming(0, { duration: motion.base }, (finished) => {
-      if (finished) runOnJS(onFinished)();
-    });
-  }, [ready, minimumElapsed, onFinished, overlayOpacity]);
-
-  const overlayStyle = useAnimatedStyle(() => ({ opacity: overlayOpacity.value }));
-  const markStyle = useAnimatedStyle(() => ({
-    opacity: markOpacity.value,
-    transform: [{ scale: markScale.value }],
-  }));
-  const textStyle = useAnimatedStyle(() => ({
-    opacity: textOpacity.value,
-    transform: [{ translateY: textShift.value }],
-  }));
-
-  return (
-    <Animated.View style={[StyleSheet.absoluteFill, overlayStyle]}>
-      <Screen backdrop="night" edges={['top', 'bottom']}>
-        <View style={styles.content}>
-          <Animated.View style={markStyle}>
-            <AvyroMark size={104} />
-          </Animated.View>
-
-          <Animated.View style={[styles.text, textStyle]}>
-            <AppText variant="title1" style={styles.wordmark}>
-              {APP_INFO.name.toUpperCase()}
-            </AppText>
-            <AppText variant="footnote" tone="tertiary">
-              {APP_INFO.tagline}
-            </AppText>
-          </Animated.View>
-        </View>
-      </Screen>
-    </Animated.View>
-  );
+    if (ready && elapsed) fade.value = withTiming(0, { duration: reduced ? 0 : 230 }, finished => { if (finished) runOnJS(onFinished)(); });
+  }, [ready, elapsed, reduced, fade, onFinished]);
+  const opacity = useAnimatedStyle(() => ({ opacity: fade.value }));
+  const car = useAnimatedStyle(() => ({ opacity: 1 - reveal.value * .65, transform: [{ translateX: carX.value }, { rotate: '90deg' }] }));
+  const mark = useAnimatedStyle(() => ({ opacity: reveal.value, transform: [{ translateY: (1 - reveal.value) * 12 }] }));
+  return <Animated.View style={[StyleSheet.absoluteFill, styles.root, opacity]} accessibilityLabel="meepmeep is opening">
+    <View style={styles.stage}>
+      <View style={styles.road} />
+      {!reduced ? <Animated.View style={[styles.car, car]}><AvyroRoadster /></Animated.View> : null}
+      <Animated.View style={[styles.identity, mark]}>
+        <AvyroMark size={100} />
+        <AppText variant="title1" style={styles.name}>{APP_INFO.name}</AppText>
+        <AppText variant="footnote" style={styles.tagline}>{APP_INFO.tagline}</AppText>
+      </Animated.View>
+    </View>
+  </Animated.View>;
 };
-
 const styles = StyleSheet.create({
-  content: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    gap: spacing.xl,
-  },
-  text: {
-    alignItems: 'center',
-    gap: spacing.xxs,
-  },
-  wordmark: {
-    letterSpacing: 9,
-    marginLeft: 9,
-  },
+  root: { backgroundColor: '#0D202B', alignItems: 'center', justifyContent: 'center' },
+  stage: { width: '100%', height: 280, alignItems: 'center', justifyContent: 'center', overflow: 'hidden' },
+  road: { position: 'absolute', top: 236, width: '100%', height: 1, backgroundColor: '#31505A' },
+  car: { position: 'absolute', top: 214 },
+  identity: { alignItems: 'center', gap: 10 },
+  name: { color: '#F1FFF9', letterSpacing: -1, fontSize: 36 },
+  tagline: { color: '#9EB9C1' },
 });

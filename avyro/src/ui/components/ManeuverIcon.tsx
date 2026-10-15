@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import Svg, { Circle, G, Path } from 'react-native-svg';
 
 import type { ManeuverType } from '@/core/domain/entities/route';
@@ -7,7 +8,7 @@ import { glyphFor } from './maneuverGlyphs';
 export interface ManeuverIconProps {
   maneuver: ManeuverType;
   size?: number;
-  color?: string;
+  color?: ColorValue;
 }
 
 export const ManeuverIcon = ({

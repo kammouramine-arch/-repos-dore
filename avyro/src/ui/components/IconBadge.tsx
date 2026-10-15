@@ -1,3 +1,4 @@
+import type { ColorValue } from 'react-native';
 import { StyleSheet, View } from 'react-native';
 
 import { colors } from '@/ui/theme';
@@ -11,14 +12,14 @@ export interface IconBadgeProps {
   size?: number;
 }
 
-const BACKGROUNDS: Record<IconBadgeTone, string> = {
+const BACKGROUNDS: Record<IconBadgeTone, ColorValue> = {
   neutral: colors.surfaceHighlight,
   accent: colors.accentMuted,
   danger: colors.dangerMuted,
   success: 'rgba(50, 215, 75, 0.14)',
 };
 
-const FOREGROUNDS: Record<IconBadgeTone, string> = {
+const FOREGROUNDS: Record<IconBadgeTone, ColorValue> = {
   neutral: colors.textSecondary,
   accent: colors.accent,
   danger: colors.danger,

@@ -82,7 +82,7 @@ export const createOpenAiProvider = ({
 
     async complete({ transcript, signal }: AiRequest): Promise<AiCompletion> {
       const token = await getAccessToken();
-      if (!token) throw new Error("Sign in to the Avyro gateway first.");
+      if (!token) throw new Error("Sign in to the meepmeep gateway first.");
       const completion = await http.postJson(
         endpoint,
         { transcript },
@@ -121,7 +121,7 @@ const toCompletion = (
 
   const envelope = decodeIntentEnvelope(parsed);
   if (!envelope) {
-    warn("provider returned an intent Avyro does not implement");
+    warn("provider returned an intent meepmeep does not implement");
     return { intent: null, speech: null };
   }
 

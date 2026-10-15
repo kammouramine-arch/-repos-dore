@@ -90,6 +90,7 @@ export interface SpeechRecognitionSession {
 }
 
 export interface SpeechRecognizerEvents {
+  onAudioLevel?: (level: number) => void;
   onTranscript: (event: TranscriptEvent) => void;
   onError: (error: SpeechRecognitionError) => void;
   /** The recogniser stopped on its own — silence, timeout or platform limits. */

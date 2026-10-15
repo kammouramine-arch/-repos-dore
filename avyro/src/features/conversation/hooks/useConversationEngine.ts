@@ -113,6 +113,7 @@ export const useConversationEngine = (): void => {
     // Invalidate first: a start that has not landed yet must not install
     // itself after the microphone has been released.
     generationRef.current += 1;
+    stores.conversation.getState().setCapture(false);
     const command = sessionRef.current;
     if (command)
       releaseRef.current = releaseRef.current.then(() => command.stop());
@@ -120,7 +121,7 @@ export const useConversationEngine = (): void => {
     const wake = wakeSessionRef.current;
     wakeSessionRef.current = null;
     if (wake) releaseRef.current = releaseRef.current.then(() => wake.stop());
-  }, []);
+  }, [stores]);
 
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
@@ -401,6 +402,12 @@ export const useConversationEngine = (): void => {
       let lastPartial = "";
 
       const generation = generationRef.current;
+      const startupTimer = setTimeout(() => {
+        if (generation !== generationRef.current) return;
+        closeSession();
+        dispatch({ type: "recognition-failed", reason: "The microphone could not start. Please try again." });
+      }, 20000);
+      timersRef.current.push(startupTimer);
       const opening = releaseRef.current
         .then(async () => {
           if (
@@ -437,6 +444,7 @@ export const useConversationEngine = (): void => {
               onDevice,
             },
             {
+              onAudioLevel: level => { if (generation === generationRef.current) stores.conversation.getState().setCapture(true, level); },
               onTranscript: ({ text, isFinal }) => {
                 if (generation !== generationRef.current) return;
                 partials += 1;
@@ -448,6 +456,7 @@ export const useConversationEngine = (): void => {
                 dispatch({ type: "transcript", text, isFinal });
               },
               onError: (error) => {
+                if (generation !== generationRef.current) return;
                 voiceDebug(
                   "ERROR command_session",
                   `code=${error.code} fatal=${error.fatal} "${error.message}"`,
@@ -467,7 +476,9 @@ export const useConversationEngine = (): void => {
             await session.stop();
             return;
           }
+          clearTimeout(startupTimer);
           sessionRef.current = session;
+          stores.conversation.getState().setCapture(true);
           voiceDebug("command_session_started");
           timersRef.current.push(setTimeout(() => { void session.finish?.(); }, 12000));
           timersRef.current.push(
@@ -492,6 +503,7 @@ export const useConversationEngine = (): void => {
         () => undefined,
       );
       void opening.catch((error) => {
+        clearTimeout(startupTimer);
         voiceDebug("ERROR command_session_start_threw", String(error));
         if (generation === generationRef.current)
           dispatch({
@@ -572,7 +584,7 @@ export const useConversationEngine = (): void => {
           // first, exactly once.
           let spoken = false;
           const finishSpeaking = (reason: string) => {
-            if (spoken) return;
+            if (spoken || speechGeneration !== generationRef.current) return;
             spoken = true;
             voiceDebug(reason);
             dispatch({ type: "speech-finished" });

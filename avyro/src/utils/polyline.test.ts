@@ -12,7 +12,7 @@ describe('decodePolyline', () => {
     expect(decoded[2].longitude).toBeCloseTo(-126.453, 5);
   });
 
-  it('honours precision 6, which is what Avyro requests', () => {
+  it('honours precision 6, which is what meepmeep requests', () => {
     // Same payload, one more decimal place: every value shifts by a factor of ten.
     const decoded = decodePolyline('_p~iF~ps|U', 6);
 

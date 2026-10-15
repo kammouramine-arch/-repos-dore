@@ -47,8 +47,8 @@ export const RegisterScreen = () => {
 
   return (
     <AuthLayout
-      title="Create your Avyro"
-      subtitle="Create an optional personal profile for Avyro."
+      title="Create your meepmeep"
+      subtitle="Create an optional personal profile for meepmeep."
       footerPrompt="Already have an account?"
       footerAction="Sign in"
       onFooterPress={() => {

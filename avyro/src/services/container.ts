@@ -127,8 +127,8 @@ export const createServiceContainer = (
 
   const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
   const getAccessToken = async () => (await createSessionStore(secure).read(env.backendUrl))?.token ?? guestAccessToken();
-  const routingProvider = overrides.routingProvider ?? (env.backendUrl ? createGatewayRoutingProvider({ http, getAccessToken }) : createOsrmRoutingProvider({ http }));
   const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
+  const routingProvider = overrides.routingProvider ?? (env.backendUrl ? createGatewayRoutingProvider({ http, getAccessToken, getPreferences: () => preferencesRepository.load() }) : createOsrmRoutingProvider({ http }));
 
   const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger), undefined, {
     enabled: async () => (await preferencesRepository.load()).cloudSpeech,
@@ -172,7 +172,7 @@ export const createServiceContainer = (
     placesProvider,
     routingProvider,
     locationTracker,
-    speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(),
+    speechEngine: overrides.speechEngine ?? createExpoSpeechEngine(async () => (await preferencesRepository.load()).preferredVoice),
     preferencesRepository,
     onboardingRepository:
       overrides.onboardingRepository ??

@@ -63,7 +63,7 @@ export const createLocationStore = (services: ServiceContainer) =>
         set({
           permission,
           status: 'error',
-          error: messageFor(error, 'Avyro could not get a location fix.'),
+          error: messageFor(error, 'meepmeep could not get a location fix.'),
         });
         return false;
       }

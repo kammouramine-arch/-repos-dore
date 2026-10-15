@@ -1,4 +1,4 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import Animated, {
   interpolate,
   interpolateColor,
@@ -17,13 +17,14 @@ export interface PageDotsProps {
 const DOT_SIZE = 7;
 
 const Dot = ({ index, width, scrollX }: { index: number } & Omit<PageDotsProps, 'count'>) => {
+  const dark = useColorScheme() === 'dark';
   const range = [(index - 1) * width, index * width, (index + 1) * width];
 
   const style = useAnimatedStyle(() => ({
     width: interpolate(scrollX.value, range, [DOT_SIZE, DOT_SIZE * 3.4, DOT_SIZE], 'clamp'),
     backgroundColor: interpolateColor(scrollX.value, range, [
       colors.borderStrong,
-      colors.accent,
+      dark ? '#67EDC1' : '#087F83',
       colors.borderStrong,
     ]),
   }));

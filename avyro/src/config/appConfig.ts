@@ -6,15 +6,15 @@
  */
 
 export const APP_INFO = {
-  name: 'Avyro',
+  name: 'meepmeep',
   /** The official mission statement. Use this verbatim wherever it is quoted. */
-  mission: 'Avyro is the world’s first AI Driving Companion.',
+  mission: 'Your voice-first driving companion.',
   /**
    * The mission as a standalone line, for placements that already show the
    * wordmark — repeating "Avyro" directly under the AVYRO lockup reads as a
    * typo, not as a positioning statement.
    */
-  tagline: 'The world’s first AI Driving Companion',
+  tagline: 'A little voice. A clearer journey.',
   version: '1.0.0',
 } as const;
 
@@ -40,7 +40,7 @@ export const MAP_DEFAULTS = {
   /** Padding applied when fitting a whole route on screen. */
   routeFitPadding: { top: 140, right: 64, bottom: 320, left: 64 },
   /** Camera used while actively guiding the driver. */
-  navigationCamera: { pitch: 55, zoom: 17.5, altitude: 320 },
+  navigationCamera: { pitch: 35, zoom: 17.5, altitude: 320 },
 } as const;
 
 export const NAVIGATION = {
@@ -74,9 +74,9 @@ export const CONVERSATION = {
   commandSilenceMs: 2200,
 
   wakePhrases: {
-    'en-US': ['hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
-    'en-GB': ['hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
-    'fr-FR': ['hey avyro', 'he avyro', 'hey aviro', 'he aviro', 'hey a viro', 'he a viro', 'hey a vero', 'he av ero', 'eh aviro', 'dis avyro', 'salut avyro', 'ok avyro'],
+    'en-US': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
+    'en-GB': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
+    'fr-FR': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'he avyro', 'hey aviro', 'he aviro', 'hey a viro', 'he a viro', 'hey a vero', 'he av ero', 'eh aviro', 'dis avyro', 'salut avyro', 'ok avyro'],
   } as Record<string, readonly string[]>,
 
   /** Give up on a command if the driver says nothing after waking Avyro. */

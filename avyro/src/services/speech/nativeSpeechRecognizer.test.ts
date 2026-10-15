@@ -63,7 +63,7 @@ test('stopping cancels pending endpoint work and every late transcript', async (
 test('the handoff delivers only the command after the wake phrase', async () => {
   jest.useFakeTimers(); const { emit, recognizer } = setup(); const onTranscript = jest.fn();
   const session = await recognizer.start({ locale: 'en-US', onDevice: true }, { onTranscript, onError: jest.fn(), onEnd: jest.fn() });
-  emit('transcript', { text: 'Hey Avyro, what is the speed limit here?', isFinal: true, locale: 'en-US' });
+  emit('transcript', { text: 'Hey meepmeep, what is the speed limit here?', isFinal: true, locale: 'en-US' });
   expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'what is the speed limit here', isFinal: true }));
   await session.stop();
 });
@@ -71,7 +71,7 @@ test('the handoff delivers only the command after the wake phrase', async () => 
 test('the live wake-name caption uses the brand spelling while preserving the spoken address', async () => {
   const { emit, recognizer } = setup(); const onTranscript = jest.fn();
   const session = await recognizer.start({ locale: 'fr-FR', onDevice: true }, { onTranscript, onError: jest.fn(), onEnd: jest.fn() });
-  emit('transcript', { text: 'Hé Aviro, emmène-moi au 18 rue Blériau', isFinal: false, locale: 'fr-FR' });
-  expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'Hé Avyro, emmène-moi au 18 rue Blériau' }));
+  emit('transcript', { text: 'Hé meep meep, emmène-moi au 18 rue Blériau', isFinal: false, locale: 'fr-FR' });
+  expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'Hé meepmeep, emmène-moi au 18 rue Blériau' }));
   await session.stop();
 });

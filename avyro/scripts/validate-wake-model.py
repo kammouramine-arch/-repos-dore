@@ -16,7 +16,7 @@ spotter = sherpa_onnx.KeywordSpotter(
     tokens=str(models / 'tokens.txt'), encoder=str(models / 'encoder.onnx'),
     decoder=str(models / 'decoder.onnx'), joiner=str(models / 'joiner.onnx'),
     keywords_file=str(models / 'keywords.txt'), num_threads=1,
-    max_active_paths=8, keywords_score=1.5, keywords_threshold=0.1,
+    max_active_paths=64, keywords_score=1.5, keywords_threshold=0.001,
     num_trailing_blanks=1,
 )
 results = []

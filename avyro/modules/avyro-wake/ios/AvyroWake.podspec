@@ -12,7 +12,7 @@ Pod::Spec.new do |s|
   s.dependency 'ExpoModulesCore'
   s.source_files = '**/*.swift'
   s.vendored_frameworks = 'vendor/*.xcframework'
-  s.resource_bundles = { 'AvyroWakeModels' => ['models/*'] }
+  s.resource_bundles = { 'AvyroWakeModels' => ['models/*'], 'MeepmeepBrand' => ['resources/*'] }
   s.frameworks = 'AVFoundation', 'UIKit', 'CoreML', 'Accelerate', 'MapKit', 'Speech'
   s.libraries = 'c++'
   s.swift_version = '5.9'

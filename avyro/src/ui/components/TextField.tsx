@@ -1,6 +1,7 @@
 import { useState, type RefObject } from 'react';
 import {
   Pressable,
+  useColorScheme,
   StyleSheet,
   TextInput,
   View,
@@ -32,6 +33,7 @@ export const TextField = ({
   onBlur,
   ...rest
 }: TextFieldProps) => {
+  const dark = useColorScheme() === 'dark';
   const [revealed, setRevealed] = useState(false);
   const [focused, setFocused] = useState(false);
 
@@ -39,16 +41,16 @@ export const TextField = ({
   // twice per interaction, so there is nothing to gain from bypassing render.
   const animatedBorder = useAnimatedStyle(() => {
     const duration = motion.fast;
-    const border = error ? colors.danger : focused ? colors.accent : colors.border;
+    const border = error ? colors.danger : focused ? (dark ? '#67EDC1' : '#087F83') : colors.border;
 
     return {
       borderColor: withTiming(border, { duration }),
       backgroundColor: withTiming(
-        focused ? colors.surfaceElevated : colors.surface,
+        dark ? (focused ? '#203D49' : '#16303B') : (focused ? '#F1F4F5' : '#FFFFFF'),
         { duration },
       ),
     };
-  }, [focused, error]);
+  }, [focused, error, dark]);
 
   return (
     <View style={styles.container}>

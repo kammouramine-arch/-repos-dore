@@ -7,6 +7,8 @@ Object.assign(maneuvers, { ENTER_FREEWAY: 'ramp', ENTER_HIGHWAY: 'ramp', MOTORWA
 const french = { straight: 'Continuez', 'slight-right': 'Serrez à droite', 'turn-right': 'Tournez à droite', 'sharp-right': 'Tournez fortement à droite', 'slight-left': 'Serrez à gauche', 'turn-left': 'Tournez à gauche', 'sharp-left': 'Tournez fortement à gauche', uturn: 'Faites demi-tour', ramp: 'Prenez la bretelle', merge: 'Rejoignez la route', roundabout: 'Au rond-point', arrive: 'Arrivée à destination' };
 export function validateRouteRequest(input) {
   const stops = input?.waypoints ?? [];
+  const preferences = input?.preferences;
+  if (preferences != null && (typeof preferences !== 'object' || !['car', 'motorcycle'].includes(preferences.vehicleType) || typeof preferences.avoidTolls !== 'boolean' || typeof preferences.avoidMotorways !== 'boolean')) throw fail(400, 'Invalid driving preferences.');
   if (!point(input?.origin) || !point(input?.destination) || !Array.isArray(stops) || stops.length > 3 || !stops.every(point)) throw fail(400, 'Valid origin, destination and at most three stops are required.');
   return [input.origin, ...stops, input.destination].map(p => ({ latitude: p.latitude, longitude: p.longitude }));
 }
@@ -22,10 +24,11 @@ export function decodeRoutes(data) {
     for (const item of instructions) {
       if (!point(item.point) || !finite(item.routeOffsetInMeters) || item.routeOffsetInMeters < offset || item.routeOffsetInMeters > summary.lengthInMeters + 20 || !finite(item.travelTimeInSeconds) || item.travelTimeInSeconds < time) throw fail(502, 'Route instruction rejected.');
       if (item.maneuver === 'DEPART') { roadName = clean(item.street); continue; }
-      const maneuver = maneuvers[item.maneuver] ?? (typeof item.maneuver === 'string' && item.maneuver.startsWith('ROUNDABOUT') ? 'roundabout' : 'straight');
+      const maneuver = maneuvers[item.maneuver];
+      if (!maneuver) throw fail(502, 'Unsupported maneuver returned.');
       const street = clean(item.street);
       const exit = Number.isInteger(item.roundaboutExitNumber) && item.roundaboutExitNumber > 0 && item.roundaboutExitNumber < 30 ? item.roundaboutExitNumber : null;
-      steps.push({ id: crypto.randomUUID(), instruction: clean(item.message) || (maneuver === 'arrive' ? 'Arrive at your destination' : 'Continue along the route'), instructionFr: `${french[maneuver]}${maneuver === 'roundabout' && exit ? `, prenez la sortie ${exit}` : ''}${street && maneuver !== 'arrive' ? ` sur ${street}` : ''}`, maneuver, distanceMeters: item.routeOffsetInMeters - offset, durationSeconds: item.travelTimeInSeconds - time, location: { latitude: item.point.latitude, longitude: item.point.longitude }, ...(roadName ? { roadName } : {}) });
+      steps.push({ id: crypto.randomUUID(), instruction: (maneuver === 'roundabout' && exit ? `At the roundabout, take exit ${exit}` : clean(item.message)) || (maneuver === 'arrive' ? 'Arrive at your destination' : 'Continue along the route'), instructionFr: `${french[maneuver]}${maneuver === 'roundabout' && exit ? `, prenez la sortie ${exit}` : ''}${street && maneuver !== 'arrive' && maneuver !== 'roundabout' ? ` sur ${street}` : ''}`, maneuver, distanceMeters: item.routeOffsetInMeters - offset, durationSeconds: item.travelTimeInSeconds - time, location: { latitude: item.point.latitude, longitude: item.point.longitude }, ...(roadName ? { roadName } : {}) });
       if (Number.isInteger(item.pointIndex) && item.pointIndex >= 0 && item.pointIndex < geometry.length) steps.at(-1).geometryIndex = item.pointIndex;
       offset = item.routeOffsetInMeters; time = item.travelTimeInSeconds; roadName = street;
     }
@@ -38,7 +41,9 @@ export async function calculateRoutes(input, { key, enabled, reserveRequest, fet
   if (!enabled || !key) throw fail(503, 'Route service unavailable.');
   await reserveRequest();
   const url = new URL(`https://api.tomtom.com/routing/1/calculateRoute/${points.map(p => `${p.latitude},${p.longitude}`).join(':')}/json`);
-  for (const [name, value] of Object.entries({ key, travelMode: 'car', routeType: 'fastest', traffic: 'true', departAt: 'now', instructionsType: 'text', language: 'en-GB', maxAlternatives: input.alternatives !== false && points.length === 2 ? '2' : '0', routeRepresentation: 'polyline' })) url.searchParams.set(name, value);
+  for (const [name, value] of Object.entries({ key, travelMode: input.preferences?.vehicleType ?? 'car', routeType: 'fastest', traffic: 'true', departAt: 'now', instructionsType: 'text', language: 'en-GB', maxAlternatives: input.alternatives !== false && points.length === 2 ? '2' : '0', routeRepresentation: 'polyline' })) url.searchParams.set(name, value);
+  if (input.preferences?.avoidTolls) url.searchParams.append('avoid', 'tollRoads');
+  if (input.preferences?.avoidMotorways) url.searchParams.append('avoid', 'motorways');
   try {
     const response = await fetcher(url.toString(), { signal: AbortSignal.timeout(15000), headers: { Accept: 'application/json' } });
     if (!response.ok) throw fail(503, 'Route service unavailable.');

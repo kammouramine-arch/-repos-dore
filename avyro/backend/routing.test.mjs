@@ -22,3 +22,23 @@ test('international freeway/highway entry and exit codes retain ramp guidance', 
     assert.equal(decodeRoutes(data)[0].steps[0].maneuver,'ramp');
   }
 });
+
+
+test('unknown maneuver is rejected rather than rendered as straight', () => {
+  const data = raw(); data.routes[0].guidance.instructions[1].maneuver = 'UNSUPPORTED';
+  assert.throws(() => decodeRoutes(data), { status: 502 });
+});
+test('roundabout exit takes priority over opaque road identifiers in both languages', () => {
+  const data = raw();
+  data.routes[0].guidance.instructions.splice(1, 0, { maneuver: 'ROUNDABOUT_RIGHT', point: a, routeOffsetInMeters: 50, travelTimeInSeconds: 10, roundaboutExitNumber: 4, street: 'Route M750', message: 'Take Route M750' });
+  const step = decodeRoutes(data)[0].steps[0];
+  assert.equal(step.instruction, 'At the roundabout, take exit 4');
+  assert.equal(step.instructionFr, 'Au rond-point, prenez la sortie 4');
+});
+test('validated vehicle and avoidance preferences reach the real route request', async () => {
+  let called;
+  await calculateRoutes({ origin: a, destination: b, preferences: { vehicleType: 'motorcycle', avoidTolls: true, avoidMotorways: true } }, { enabled: true, key: 'not-real', reserveRequest: async () => {}, fetcher: async url => { called = new URL(url); return Response.json(raw()); } });
+  assert.equal(called.searchParams.get('travelMode'), 'motorcycle');
+  assert.deepEqual(called.searchParams.getAll('avoid'), ['tollRoads', 'motorways']);
+  assert.throws(() => validateRouteRequest({ origin: a, destination: b, preferences: { vehicleType: 'truck', avoidTolls: true, avoidMotorways: false } }), { status: 400 });
+});

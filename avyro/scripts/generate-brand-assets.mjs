@@ -17,20 +17,14 @@ import { fileURLToPath } from 'node:url';
 const ASSETS_DIR = join(dirname(fileURLToPath(import.meta.url)), '..', 'assets');
 
 /** Brand tokens, mirrored from `src/ui/theme/colors.ts`. */
-const BACKGROUND = [244, 246, 248, 255];
-const GRADIENT_START = [8, 127, 131];
-const GRADIENT_END = [36, 84, 119];
+const BACKGROUND = [13, 32, 43, 255];
+const GRADIENT_START = [103, 237, 193];
+const GRADIENT_END = [42, 157, 177];
 const HIGHLIGHT = [255, 255, 255, 0.22];
 
 /** The mark, in normalised coordinates: a heading arrow. */
-const ARROW = [
-  [0.5, 0.16],
-  [0.82, 0.78],
-  [0.5, 0.62],
-  [0.18, 0.78],
-];
-/** Right-hand facet, drawn lighter so the arrow reads as folded. */
-const FACET = [ARROW[0], ARROW[1], ARROW[2]];
+const ARROW = [[.16,.78],[.16,.30],[.28,.18],[.50,.45],[.72,.18],[.84,.30],[.84,.78],[.68,.78],[.68,.46],[.50,.68],[.32,.46],[.32,.78]];
+const FACET = [[.50,.45],[.72,.18],[.84,.30],[.84,.78],[.68,.78],[.68,.46],[.50,.68]];
 
 const SUPERSAMPLE = 4;
 

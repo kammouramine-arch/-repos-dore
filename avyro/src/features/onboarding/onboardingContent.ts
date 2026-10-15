@@ -25,6 +25,6 @@ export const ONBOARDING_SLIDES: readonly OnboardingSlideContent[] = [
     key: 'companion',
     icon: 'sparkles',
     title: 'A companion, not a GPS',
-    body: 'Avyro is the world’s first AI Driving Companion — starting with navigation you can trust, every single day.',
+    body: 'meepmeep is the world’s first AI Driving Companion — starting with navigation you can trust, every single day.',
   },
 ];

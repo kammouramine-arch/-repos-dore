@@ -23,6 +23,8 @@ private final class AvyroSuggestions: NSObject, MKLocalSearchCompleterDelegate {
 // Audio lifecycle stays on main; model ownership stays on the inference queue.
 // Stop drains that queue before resolving, so a command never races the wake tap.
 public final class AvyroWakeModule: Module {
+  private var launchPlayer: AVAudioPlayer?
+  private var launchCuePlayed = false
   private var engine: AVAudioEngine?
   private let inference = DispatchQueue(label: "app.avyro.wake", qos: .userInitiated)
   private let capacity = DispatchSemaphore(value: 2)
@@ -49,7 +51,21 @@ public final class AvyroWakeModule: Module {
 
   public func definition() -> ModuleDefinition {
     Name("AvyroWake")
-    Events("detected", "failure", "transcript", "speechEnd", "commandAudio")
+    Events("detected", "failure", "transcript", "speechEnd", "commandAudio", "audioLevel")
+    AsyncFunction("playLaunchCue") {
+      guard !self.launchCuePlayed, self.engine == nil, UIApplication.shared.applicationState == .active else { return }
+      self.launchCuePlayed = true
+      let session = AVAudioSession.sharedInstance()
+      guard !session.isOtherAudioPlaying,
+        let bundleURL = Bundle(for: AvyroWakeModule.self).url(forResource: "MeepmeepBrand", withExtension: "bundle"),
+        let url = Bundle(url: bundleURL)?.url(forResource: "meepmeep-launch", withExtension: "wav") else { return }
+      // Ambient respects the silent switch and does not interrupt other audio.
+      do {
+        try session.setCategory(.ambient, mode: .default)
+        self.launchPlayer = try AVAudioPlayer(contentsOf: url)
+        self.launchPlayer?.play()
+      } catch { /* Launch never waits for sound. */ }
+    }.runOnQueue(.main)
     AsyncFunction("suggestPlaces") { (query: String, latitude: Double?, longitude: Double?, promise: Promise) in
       self.suggestions?.cancel()
       let search = AvyroSuggestions()
@@ -187,6 +203,7 @@ public final class AvyroWakeModule: Module {
       }
     }
     OnDestroy {
+      self.launchPlayer?.stop()
       self.observers.forEach(NotificationCenter.default.removeObserver)
       DispatchQueue.main.async { self.suggestions?.cancel(); self.handoffAudio = nil; self.stopCapture(releaseModel: true) }
     }
@@ -211,10 +228,10 @@ public final class AvyroWakeModule: Module {
     config.model_config.transducer.joiner = UnsafePointer(pointers[2])
     config.model_config.tokens = UnsafePointer(pointers[3])
     config.model_config.num_threads = 1
-    config.max_active_paths = 8
+    config.max_active_paths = 64
     config.num_trailing_blanks = 1
     config.keywords_score = 1.5
-    config.keywords_threshold = 0.1
+    config.keywords_threshold = 0.001
     config.keywords_file = UnsafePointer(pointers[4])
     let created = SherpaOnnxCreateKeywordSpotter(&config)
     guard let created else { throw wakeError("Wake model could not be loaded.") }
@@ -223,7 +240,7 @@ public final class AvyroWakeModule: Module {
 
   private func startCapture() throws {
     stopCapture()
-    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open Avyro to use hands-free voice.") }
+    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open meepmeep to use hands-free voice.") }
     guard AVAudioSession.sharedInstance().recordPermission == .granted else { throw wakeError("Microphone permission is required.") }
     try inference.sync {
       guard let spotter, let createdStream = SherpaOnnxCreateKeywordStream(spotter) else { throw wakeError("Wake stream could not be created.") }
@@ -324,7 +341,7 @@ public final class AvyroWakeModule: Module {
     stopCapture()
     let handoff = handoffAudio
     handoffAudio = nil
-    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open Avyro to use voice.") }
+    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open meepmeep to use voice.") }
     guard AVAudioSession.sharedInstance().recordPermission == .granted else { throw wakeError("Microphone permission is required.") }
     let requested = locales.reduce(into: [String]()) { result, locale in
       if ["en-US", "fr-FR"].contains(locale) && !result.contains(locale) { result.append(locale) }
@@ -344,7 +361,7 @@ public final class AvyroWakeModule: Module {
     var audioSent = false
     var finals: [[String: Any]] = []
     speechRecognizers = recognizers
-    let hints = ["Hey Avyro", "Hé Avyro", "Aviro", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison"]
+    let hints = ["Hey meepmeep", "Dis meepmeep", "meep meep", "What is the speed limit here", "Quelle est la limitation de vitesse ici", "Take me home", "Emmène-moi à la maison"]
     func event(_ result: SFSpeechRecognitionResult, _ locale: String) -> [String: Any] {
       let segments = result.bestTranscription.segments
       let confidence = segments.isEmpty ? 0 : segments.reduce(0.0) { $0 + Double($1.confidence) } / Double(segments.count)
@@ -427,9 +444,22 @@ public final class AvyroWakeModule: Module {
         if conversionError == nil && converted.frameLength > 0 { request.append(converted); try commandFile?.write(from: converted) }
       }
       let recordingFile = commandFile
+      var levelFrames = 0
       input.installTap(onBus: 0, bufferSize: 1024, format: format) { buffer, _ in
         request.append(buffer)
         try? recordingFile?.write(from: buffer)
+        levelFrames += Int(buffer.frameLength)
+        if levelFrames >= Int(format.sampleRate / 8), let samples = buffer.floatChannelData?[0] {
+          levelFrames = 0
+          var energy: Float = 0
+          for i in 0..<Int(buffer.frameLength) { energy += samples[i] * samples[i] }
+          let rms = sqrt(energy / Float(max(1, buffer.frameLength)))
+          let level = min(1, max(0, (20 * log10(max(rms, 0.00001)) + 55) / 45))
+          DispatchQueue.main.async { [weak self] in
+            guard let self, self.generation == currentGeneration else { return }
+            self.sendEvent("audioLevel", ["level": level])
+          }
+        }
       }
       engine = capture
       capture.prepare()

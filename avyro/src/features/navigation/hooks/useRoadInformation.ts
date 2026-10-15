@@ -14,6 +14,7 @@ export function useRoadInformation(now: number): RoadEvidence | null {
   const fix = useLocationStore((s) => s.position);
   const setRoadEvidence = useLocationStore((s) => s.setRoadEvidence);
   const consent = usePreferencesStore((s) => s.preferences.roadInformation);
+  const vehicle = usePreferencesStore(s => s.preferences.vehicleType);
   const guiding = useNavigationStore((s) => s.status === 'guiding');
   const token = useAuthStore((s) => s.session?.token ?? 'guest');
   const [active, setActive] = useState(AppState.currentState === 'active');
@@ -22,7 +23,7 @@ export function useRoadInformation(now: number): RoadEvidence | null {
   const pending = useRef<AbortController | null>(null);
   const lastRequest = useRef(0);
   const generation = useRef(0);
-  const enabled = active && consent && guiding && roadDataProvider.isConfigured();
+  const enabled = vehicle === 'car' && active && consent && guiding && roadDataProvider.isConfigured();
   useEffect(() => { setRoadEvidence(enabled ? result?.evidence ?? null : null); return () => setRoadEvidence(null); }, [enabled, result, setRoadEvidence]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {

@@ -1,10 +1,10 @@
 import type { ReactNode, RefObject } from 'react';
-import { Platform, StyleSheet } from 'react-native';
+import { Platform, StyleSheet, useColorScheme } from 'react-native';
 import MapView, { PROVIDER_GOOGLE, type MapViewProps } from 'react-native-maps';
 
 import type { MapStyle } from '@/core/domain/entities/preferences';
 import { darkMapStyle } from '@/maps/mapStyle';
-import { colors, spacing } from '@/ui/theme';
+import { spacing } from '@/ui/theme';
 
 export interface AvyroMapViewProps extends MapViewProps {
   mapRef?: RefObject<MapView | null>;
@@ -29,22 +29,24 @@ export const AvyroMapView = ({
   legalLabelInsets,
   appleLogoInsets,
   ...rest
-}: AvyroMapViewProps) => (
+}: AvyroMapViewProps) => {
+  const dark = useColorScheme() === 'dark';
+  return (
   <MapView
     ref={mapRef}
     provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
     customMapStyle={Platform.OS === 'android' && appearance === 'standard' ? darkMapStyle : undefined}
     mapType={appearance === 'satellite' ? 'hybrid' : 'standard'}
     showsBuildings
-    userInterfaceStyle="light"
+    userInterfaceStyle={dark ? 'dark' : 'light'}
     showsUserLocation={false}
     showsMyLocationButton={false}
     showsCompass={false}
     toolbarEnabled={false}
     showsPointsOfInterests={false}
     loadingEnabled
-    loadingBackgroundColor={colors.background}
-    loadingIndicatorColor={colors.accent}
+    loadingBackgroundColor={dark ? '#0D202B' : '#F4F6F8'}
+    loadingIndicatorColor={dark ? '#67EDC1' : '#087F83'}
     {...rest}
     legalLabelInsets={legalLabelInsets}
     appleLogoInsets={appleLogoInsets ?? (legalLabelInsets ? { top: 0, left: 0, right: spacing.md, bottom: legalLabelInsets.bottom } : undefined)}
@@ -53,3 +55,4 @@ export const AvyroMapView = ({
     {children}
   </MapView>
 );
+};

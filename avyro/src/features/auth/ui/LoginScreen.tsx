@@ -32,7 +32,7 @@ export const LoginScreen = () => {
     <AuthLayout
       title="Welcome back"
       subtitle="An optional profile. Navigation works without signing in."
-      footerPrompt="New to Avyro?"
+      footerPrompt="New to meepmeep?"
       footerAction="Create an account"
       onFooterPress={() => {
         clearError();

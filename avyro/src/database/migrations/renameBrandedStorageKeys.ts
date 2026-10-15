@@ -77,5 +77,5 @@ export const migrateBrandedStorageKeys = async ({
     await store.remove(legacy);
   }
 
-  if (moved > 0) scoped.info('moved records onto the Avyro keys', { moved });
+  if (moved > 0) scoped.info('moved records onto the existing app storage keys', { moved });
 };

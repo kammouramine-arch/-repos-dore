@@ -1,6 +1,6 @@
 import { LinearGradient } from 'expo-linear-gradient';
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { StyleSheet, View, useColorScheme, type ViewStyle } from 'react-native';
 import { SafeAreaView, type Edge } from 'react-native-safe-area-context';
 
 import { colors, gradients, spacing } from '@/ui/theme';
@@ -21,9 +21,11 @@ export const Screen = ({
   edges = ['top', 'bottom'],
   padded = true,
   style,
-}: ScreenProps) => (
+}: ScreenProps) => {
+ const dark = useColorScheme() === 'dark';
+ return (
   <View style={styles.root}>
-    {backdrop === 'night' ? (
+    {backdrop === 'night' && !dark ? (
       <LinearGradient
         colors={gradients.night}
         start={{ x: 0.1, y: 0 }}
@@ -40,6 +42,7 @@ export const Screen = ({
     </SafeAreaView>
   </View>
 );
+};
 
 const styles = StyleSheet.create({
   root: {

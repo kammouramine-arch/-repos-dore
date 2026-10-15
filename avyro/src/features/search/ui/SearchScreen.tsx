@@ -46,7 +46,7 @@ export const SearchScreen = () => {
     try { place = 'coordinates' in item ? item : await placesProvider.resolveSuggestion?.(item) ?? null; }
     catch { if (generation === selectionGeneration.current) Alert.alert('Address unavailable', 'Please select a current suggestion and try again.'); return; }
     if (generation !== selectionGeneration.current) return;
-    if (!place) { Alert.alert('Exact address unavailable', 'The provider could not confirm this destination or house number. Refine the address; Avyro will not silently choose the street centre.'); return; }
+    if (!place) { Alert.alert('Exact address unavailable', 'The provider could not confirm this destination or house number. Refine the address; meepmeep will not silently choose the street centre.'); return; }
     if (!saveSlot) {
       await planDestination(place, route.params?.addStop);
       return;

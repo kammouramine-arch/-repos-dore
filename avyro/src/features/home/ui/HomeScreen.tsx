@@ -62,13 +62,13 @@ export const HomeScreen = () => {
       void locate();
       return;
     }
-    mapRef.current?.animateCamera({ center: coordinates, heading: 0, pitch: 55, altitude: 450, zoom: 17.5 }, { duration: animated ? 650 : 0 });
+    mapRef.current?.animateCamera({ center: coordinates, heading: 0, pitch: 0, altitude: 450, zoom: 17.5 }, { duration: animated ? 650 : 0 });
   };
 
   // Lock onto the driver once, on the first fix. After that the map is theirs.
   useEffect(() => {
     if (!position || !following || !focused) return;
-    mapRef.current?.animateCamera({ center: position.coordinates, heading: 0, pitch: 55, altitude: 450, zoom: 17.5 }, { duration: 850 });
+    mapRef.current?.animateCamera({ center: position.coordinates, heading: 0, pitch: 0, altitude: 450, zoom: 17.5 }, { duration: 850 });
   }, [position, following, focused]);
 
   return (

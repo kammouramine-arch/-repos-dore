@@ -43,11 +43,12 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
         else { delivered = true; events.onError({ code: 'no-speech', message: 'I could not confirm that command. Please repeat it.', fatal: false }); }
       };
       const subscriptions = [
+        native.addListener('audioLevel', event => { if (!stopped && 'level' in event && typeof event.level === 'number' && Number.isFinite(event.level)) events.onAudioLevel?.(Math.max(0, Math.min(1, event.level))); }),
         native.addListener('commandAudio', event => { if (!stopped && cloudEnabled && !cloudResult && 'audio' in event && typeof event.audio === 'string' && event.audio.length <= 876000) cloudResult = cloud!.transcribe(event.audio, options.locales ?? [options.locale], controller.signal).catch(() => null); }),
         native.addListener('transcript', event => {
           if (stopped || delivered) return;
           if (!event.isFinal) {
-            const displayText = event.text.replace(/^(hey|h[ée]|hi|salut|ok|dis)([,\s]+)(aviro|avero|avyro)\b/iu, '$1$2Avyro');
+            const displayText = event.text.replace(/^(hey|h[ée]|hi|salut|ok|dis)([,\s]+)(meepmeep|meep meep)\b/iu, '$1$2meepmeep');
             events.onTranscript({ ...event, text: displayText });
             if (!options.continuous && event.text !== lastPartial) {
               lastPartial = event.text;

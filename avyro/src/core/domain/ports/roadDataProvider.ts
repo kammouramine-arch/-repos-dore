@@ -11,6 +11,8 @@ export interface RoadAheadEvidence { source: 'TomTom map data'; alerts: RoadAler
 
 export interface RoadEvidence {
   source: 'TomTom map data';
+  countryCode?: string;
+  legalRoadCategory?: import('@/core/navigation/probationaryLimit').FrenchRoadCategory;
   capturedAt: number;
   expiresAt: number;
   speedLimit: { value: number; unit: 'km/h' | 'mph'; source?: 'municipal-order'; authority?: 'wattignies-23-405' } | null;

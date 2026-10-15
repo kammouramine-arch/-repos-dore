@@ -17,7 +17,7 @@ export const Logo = ({ size = 76, showTagline = false }: LogoProps) => (
 
     <View style={styles.text}>
       <AppText variant="title1" style={styles.wordmark}>
-        {APP_INFO.name.toUpperCase()}
+        {APP_INFO.name}
       </AppText>
       {showTagline ? (
         <AppText variant="footnote" tone="tertiary" align="center">
@@ -38,8 +38,8 @@ const styles = StyleSheet.create({
     gap: spacing.xxs,
   },
   wordmark: {
-    letterSpacing: 8,
+    letterSpacing: -1,
     // Optical centring: the tracking adds trailing space after the last letter.
-    marginLeft: 8,
+    marginLeft: 0,
   },
 });

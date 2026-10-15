@@ -16,7 +16,7 @@ const GUIDANCE_RATE = 0.98;
  * on being stopped, or on error. The conversation state machine leaves
  * `speaking` on that signal, so a dropped callback would strand the engine.
  */
-export const createExpoSpeechEngine = (): SpeechEngine => {
+export const createExpoSpeechEngine = (getPreferredVoice?: () => Promise<string | null>): SpeechEngine => {
   let currentUtterance = 0;
   let voices: Promise<Speech.Voice[]> | null = null;
 
@@ -36,7 +36,9 @@ export const createExpoSpeechEngine = (): SpeechEngine => {
       voices ??= Speech.getAvailableVoicesAsync().catch(() => []);
       const language = options.language ?? 'en-US';
       const available = await voices;
-      const voice = available.find((v) => v.language === language && v.quality === Speech.VoiceQuality.Enhanced)
+      const preferred = await getPreferredVoice?.();
+      const voice = available.find(v => v.identifier === preferred && v.language.split('-')[0] === language.split('-')[0])
+        ?? available.find((v) => v.language === language && v.quality === Speech.VoiceQuality.Enhanced)
         ?? available.find((v) => v.language.startsWith(language.split('-')[0]) && v.quality === Speech.VoiceQuality.Enhanced);
       if (utterance !== currentUtterance) return;
 

@@ -9,10 +9,10 @@ export const HomeHeader = ({ onSettingsPress }: { onSettingsPress(): void }) => 
   const update = usePreferencesStore(state => state.update);
   const voice = useConversationStore(state => state.voice);
   const active = preferences.voiceCommands && voice.status === 'listening' && voice.ready;
-  const label = !preferences.voiceCommands ? 'Enable hands-free' : active ? preferences.cloudSpeech ? 'Hey Avyro · AI voice' : 'Hey Avyro · Ready' : voice.status === 'suspended' ? 'Voice in use' : voice.status === 'preparing' ? 'Starting microphone…' : 'Voice needs attention';
+  const label = !preferences.voiceCommands ? 'Enable hands-free' : active ? preferences.cloudSpeech ? 'Hey meepmeep · AI voice' : 'Hey meepmeep · Ready' : voice.status === 'suspended' ? 'Voice in use' : voice.status === 'preparing' ? 'Starting microphone…' : 'Voice needs attention';
   return <View style={styles.root}>
     <View style={styles.row}>
-      <GlassPanel style={styles.brand}><AvyroMark size={21} ring={false} /><AppText variant="subhead">avyro</AppText></GlassPanel>
+      <GlassPanel style={styles.brand}><AvyroMark size={21} ring={false} /><AppText variant="subhead">meepmeep</AppText></GlassPanel>
       <IconButton name="options-outline" accessibilityLabel="Settings" onPress={onSettingsPress} />
     </View>
     <PressableScale onPress={() => !preferences.voiceCommands ? void update({ voiceCommands: true, voiceSetupSeen: true }) : active ? void update({ voiceCommands: false }) : onSettingsPress()} accessibilityRole="button" accessibilityLabel={active ? 'Pause hands-free listening' : label} style={styles.voice}>

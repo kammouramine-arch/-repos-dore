@@ -128,7 +128,7 @@ export const createHttpClient = (logger: Logger): HttpClient => {
       }
 
       scoped.warn('request failed', { operation, reason: String(error) });
-      throw new AppError('network', 'Avyro could not reach the network.', error);
+      throw new AppError('network', 'meepmeep could not reach the network.', error);
     } finally {
       clearTimeout(timer);
       signal?.removeEventListener('abort', abortFromCaller);

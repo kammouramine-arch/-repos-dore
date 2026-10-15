@@ -6,6 +6,12 @@ export type MapStyle = 'standard' | 'satellite';
 export interface Preferences {
   /** Spoken turn-by-turn guidance. */
   voiceGuidance: boolean;
+  vehicleType: 'car' | 'motorcycle';
+  avoidTolls: boolean;
+  avoidMotorways: boolean;
+  rainProtection: boolean;
+  probationaryFrance: boolean;
+  preferredVoice: string | null;
   /**
    * Wake-phrase listening for voice commands.
    *
@@ -33,6 +39,12 @@ export interface Preferences {
 
 export const DEFAULT_PREFERENCES: Preferences = {
   voiceGuidance: true,
+  vehicleType: 'car',
+  avoidTolls: false,
+  avoidMotorways: false,
+  rainProtection: false,
+  probationaryFrance: false,
+  preferredVoice: null,
   voiceCommands: false,
   voiceSetupSeen: false,
   assistantSetupSeen: false,

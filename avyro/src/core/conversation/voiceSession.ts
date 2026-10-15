@@ -105,8 +105,8 @@ export interface VoiceSessionTransition {
 
 /** What the driver is told. Short, and always with a way out. */
 export const VOICE_MESSAGES = {
-  denied: `Avyro needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
-  blocked: `Avyro cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › Avyro.`,
+  denied: `meepmeep needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
+  blocked: `meepmeep cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › meepmeep.`,
   unsupported: 'Hands-free listening is unavailable on this device. Use the microphone button.',
   failed: 'Hands-free listening stopped. Use the microphone button, or turn hands-free off and on to retry.',
 } as const;

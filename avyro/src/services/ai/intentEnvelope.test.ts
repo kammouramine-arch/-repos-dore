@@ -31,7 +31,7 @@ describe('what a model is allowed to return', () => {
 });
 
 describe('what it is not allowed to return', () => {
-  it('rejects a capability Avyro does not have', () => {
+  it('rejects a capability meepmeep does not have', () => {
     expect(decodeIntentEnvelope({ intent: { kind: 'play-music' } })).toBeNull();
     expect(decodeIntentEnvelope({ intent: { kind: 'call-my-wife' } })).toBeNull();
   });

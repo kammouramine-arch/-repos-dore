@@ -90,6 +90,6 @@ export const displayWakePhrase = (
 
   return primary
     .split(' ')
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+    .map((word) => word === 'meepmeep' ? word : word.charAt(0).toUpperCase() + word.slice(1))
     .join(' ');
 };

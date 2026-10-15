@@ -11,16 +11,16 @@ import type { ExpoConfig } from 'expo/config';
  * iOS uses Apple Maps and needs no key.
  */
 
-const BACKGROUND = '#F4F6F8';
+const BACKGROUND = '#0D202B';
 
 const MICROPHONE_REASON =
-  'Avyro listens for “Hey Avyro” so you can ask for directions without taking your hands off the wheel.';
+  'meepmeep listens for “Hey meepmeep” so you can ask for directions without taking your hands off the wheel.';
 
 const SPEECH_REASON =
-  'Avyro turns what you say into commands like “take me home” and “how far is it”.';
+  'meepmeep turns what you say into commands like “take me home” and “how far is it”.';
 
 const LOCATION_REASON =
-  'Avyro uses your location to show where you are, plan routes and guide you turn by turn while you drive.';
+  'meepmeep uses your location to show where you are, plan routes and guide you turn by turn while you drive.';
 
 /**
  * Required by a framework Avyro links but never calls.
@@ -36,7 +36,7 @@ const LOCATION_REASON =
  * so this prompt should never appear. App Privacy in App Store Connect must
  * still say Avyro does not use data for tracking.
  */
-const TRACKING_REASON = 'Avyro does not track you or use your data for advertising.';
+const TRACKING_REASON = 'meepmeep does not track you or use your data for advertising.';
 
 /**
  * Required by a framework Avyro links but never calls.
@@ -52,13 +52,13 @@ const TRACKING_REASON = 'Avyro does not track you or use your data for advertisi
  * Avyro reads no photos and offers no photo feature, so no reason for access
  * is claimed here. The string says what is true.
  */
-const PHOTOS_REASON = 'Avyro does not access your photo library.';
+const PHOTOS_REASON = 'meepmeep does not access your photo library.';
 
 if (process.env.EXPO_PUBLIC_AI_API_KEY?.trim()) throw new Error('Remove EXPO_PUBLIC_AI_API_KEY: provider secrets cannot ship in a mobile app.');
 if (process.env.EXPO_PUBLIC_BACKEND_URL && !process.env.EXPO_PUBLIC_BACKEND_URL.startsWith('https://')) throw new Error('Backend must use HTTPS.');
 
 const config: ExpoConfig = {
-  name: 'Avyro',
+  name: 'meepmeep',
   slug: 'avyro',
   /**
    * The EAS account that owns the project, making it `@aminekm/avyro`.
@@ -72,7 +72,7 @@ const config: ExpoConfig = {
   version: '1.0.0',
   scheme: 'avyro',
   orientation: 'portrait',
-  userInterfaceStyle: 'light',
+  userInterfaceStyle: 'automatic',
   backgroundColor: BACKGROUND,
   icon: './assets/icon.png',
   assetBundlePatterns: ['**/*'],

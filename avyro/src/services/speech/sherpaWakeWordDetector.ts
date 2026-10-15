@@ -23,7 +23,7 @@ export const createSherpaWakeWordDetector = (): WakeWordDetector => {
         available: !!native && (await native.isAvailable()),
         reason: native
           ? undefined
-          : "Install a native Avyro build to use Hey Avyro.",
+          : "Install a native meepmeep build to use Hey meepmeep.",
       };
     },
     async start(events) {

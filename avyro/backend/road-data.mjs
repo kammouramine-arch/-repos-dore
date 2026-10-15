@@ -61,7 +61,7 @@ export function decodeRoadEvidence(data, fixes, receivedAt) {
   const mappedLimit = limit && Number.isInteger(limit.value) && limit.value > 0 && limit.value <= 300 && ['kmph', 'mph'].includes(limit.unit) ? { value: limit.value, unit: limit.unit === 'kmph' ? 'km/h' : 'mph' } : null;
   const speedLimit = authoritativeLimit(road.address, mappedLimit, receivedAt);
   // Segment metadata does not establish sign applicability to this approach.
-  return { ...unavailable, status: 'matched', speedLimit, confidence: road.confidence };
+  return { ...unavailable, status: 'matched', speedLimit, confidence: road.confidence, ...(road.address?.countryCode === 'FRA' ? { countryCode: 'FRA' } : {}), ...(road.roadUse === 'LocalStreet' || road.formOfWay === 'Roundabout' ? { legalRoadCategory: 'other-road' } : {}) };
 
 }
 
@@ -93,7 +93,7 @@ export function createTomTomRoadProvider({ key, enabled = false, fetcher = fetch
       url.searchParams.set('headings', fixes.map(p => p.heading ?? '').join(';'));
       url.searchParams.set('vehicleType', 'PassengerCar');
       url.searchParams.set('measurementSystem', 'auto');
-      url.searchParams.set('fields', '{projectedPoints{geometry{type,coordinates},properties{routeIndex,snapResult}},route{geometry{type,coordinates},properties{elementType,confidence,address{roadName,municipality,countryCode},speedLimits{value,unit,type},trafficSigns{signType}}}}');
+      url.searchParams.set('fields', '{projectedPoints{geometry{type,coordinates},properties{routeIndex,snapResult}},route{geometry{type,coordinates},properties{elementType,confidence,roadUse,formOfWay,address{roadName,municipality,countryCode},speedLimits{value,unit,type},trafficSigns{signType}}}}');
       try {
         const response = await fetcher(url.toString(), { signal: AbortSignal.timeout(3000), headers: { Accept: 'application/json' } });
         if (!response.ok) throw failure(503, 'Road data is unavailable.');

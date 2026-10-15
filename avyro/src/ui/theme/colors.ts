@@ -1,3 +1,5 @@
+import { DynamicColorIOS, Platform } from 'react-native';
+const adaptive = (light: string, dark: string) => Platform.OS === 'ios' ? DynamicColorIOS({ light, dark }) : light;
 /**
  * Avyro's palette. Dark first: the app is used behind a windscreen, at night,
  * for hours — so the base is near-black, surfaces are separated by luminance
@@ -25,30 +27,30 @@ export const palette = {
 
 export const colors = {
   /** Page background — true near-black, kind to OLED panels at night. */
-  background: '#F4F6F8',
+  background: adaptive('#F4F6F8', '#0D202B'),
   /** Panels sitting on the background: sheets, cards, fields. */
-  surface: '#FFFFFF',
+  surface: adaptive('#FFFFFF', '#16303B'),
   /** A panel on top of another panel. */
-  surfaceElevated: '#F1F4F5',
+  surfaceElevated: adaptive('#F1F4F5', '#203D49'),
   /** Pressed states and subtle fills. */
-  surfaceHighlight: '#EAF0F2',
+  surfaceHighlight: adaptive('#EAF0F2', '#294957'),
 
   border: 'rgba(17, 35, 46, 0.08)',
   borderStrong: 'rgba(17, 35, 46, 0.12)',
 
-  textPrimary: '#132C38',
-  textSecondary: '#566F7B',
-  textTertiary: '#647D87',
+  textPrimary: adaptive('#132C38', '#EFF9F7'),
+  textSecondary: adaptive('#566F7B', '#BCCED3'),
+  textTertiary: adaptive('#647D87', '#A1BBC3'),
   textInverted: '#FFFFFF',
 
-  accent: '#087F83',
-  accentMuted: '#E0F3F1',
+  accent: adaptive('#087F83', '#67EDC1'),
+  accentMuted: adaptive('#E0F3F1', '#244C50'),
   onAccent: palette.white,
 
   success: '#16805A',
   warning: '#AB6A00',
   danger: '#C1373B',
-  dangerMuted: '#FCE8E9',
+  dangerMuted: adaptive('#FCE8E9', '#522B38'),
 
   /** Dim layer behind modals and over the map. */
   scrim: 'rgba(5, 6, 9, 0.62)',

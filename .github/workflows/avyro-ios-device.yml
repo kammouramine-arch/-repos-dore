@@ -47,12 +47,12 @@ jobs:
         if: ${{ !inputs.ipa_run }}
         run: |
           [[ "$BUILD_NUMBER" =~ ^[1-9][0-9]{0,6}$ ]] || exit 1
-          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/Avyro/Info.plist
+          /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" ios/meepmeep/Info.plist
       - name: Archive for iPhone
         if: ${{ !inputs.ipa_run }}
         run: |
           set -o pipefail
-          xcodebuild -workspace ios/Avyro.xcworkspace -scheme Avyro -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/Avyro.xcarchive -derivedDataPath build/device archive CODE_SIGNING_ALLOWED=NO CURRENT_PROJECT_VERSION="$BUILD_NUMBER" > native-device-build.log 2>&1 || { tail -n 100 native-device-build.log; exit 1; }
+          xcodebuild -workspace ios/meepmeep.xcworkspace -scheme meepmeep -configuration Release -sdk iphoneos -destination 'generic/platform=iOS' -archivePath build/Avyro.xcarchive -derivedDataPath build/device archive CODE_SIGNING_ALLOWED=NO CURRENT_PROJECT_VERSION="$BUILD_NUMBER" > native-device-build.log 2>&1 || { tail -n 100 native-device-build.log; exit 1; }
       - name: Verify native compatibility before reuse
         if: ${{ inputs.ipa_run }}
         env:
@@ -77,8 +77,8 @@ jobs:
         run: |
           mkdir -p build/Avyro.xcarchive/Products/Applications
           unzip -q build/reused/*.ipa -d build/reused/unpacked
-          cp -R build/reused/unpacked/Payload/Avyro.app build/Avyro.xcarchive/Products/Applications/
-          APP_PATH=build/Avyro.xcarchive/Products/Applications/Avyro.app
+          cp -R build/reused/unpacked/Payload/meepmeep.app build/Avyro.xcarchive/Products/Applications/
+          APP_PATH=build/Avyro.xcarchive/Products/Applications/meepmeep.app
           test "$(/usr/libexec/PlistBuddy -c 'Print :CFBundleIdentifier' "$APP_PATH/Info.plist")" = app.avyro.companion
           /usr/libexec/PlistBuddy -c "Set :CFBundleVersion $BUILD_NUMBER" "$APP_PATH/Info.plist"
           npx expo export:embed --entry-file index.ts --platform ios --dev false --bytecode --bundle-output "$APP_PATH/main.jsbundle" --assets-dest "$APP_PATH"
@@ -114,7 +114,7 @@ jobs:
           assert not profile['Entitlements'].get('get-task-allow',False)
           (folder/'entitlements.plist').write_bytes(plistlib.dumps(profile['Entitlements']))
           PY
-          APP_PATH=build/Avyro.xcarchive/Products/Applications/Avyro.app
+          APP_PATH=build/Avyro.xcarchive/Products/Applications/meepmeep.app
           cp "$SIGNING_DIR/profile.mobileprovision" "$APP_PATH/embedded.mobileprovision"
           find "$APP_PATH" -type f -name '*.dylib' -print0 | while IFS= read -r -d '' item; do codesign --force --sign "$IDENTITY" --keychain "$SIGNING_DIR/build.keychain-db" --timestamp=none "$item"; done
           find "$APP_PATH" -type d -name '*.framework' -depth -print0 | while IFS= read -r -d '' item; do codesign --force --sign "$IDENTITY" --keychain "$SIGNING_DIR/build.keychain-db" --timestamp=none "$item"; done

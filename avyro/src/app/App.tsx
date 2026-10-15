@@ -1,8 +1,8 @@
-import { NavigationContainer } from '@react-navigation/native';
+import { DarkTheme, NavigationContainer } from '@react-navigation/native';
 import { StatusBar } from 'expo-status-bar';
 import * as SplashScreen from 'expo-splash-screen';
 import { useCallback, useEffect, useState } from 'react';
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet, View, useColorScheme } from 'react-native';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 import { AppRuntimeProvider, createAppRuntime } from '@/app/runtime/AppRuntime';
@@ -14,6 +14,7 @@ import { navigationRef } from './navigation/navigationRef';
 import { navigationTheme } from './navigation/navigationTheme';
 import { RootNavigator } from './navigation/RootNavigator';
 import { VoiceSetupPrompt } from '@/features/onboarding/ui/VoiceSetupPrompt';
+import { RainTouchProtection } from '@/features/navigation/ui/RainTouchProtection';
 import { LocationEngine } from '@/features/location/ui/LocationEngine';
 
 // Hold the native splash until React has something to show, so the handover to
@@ -21,6 +22,7 @@ import { LocationEngine } from '@/features/location/ui/LocationEngine';
 void SplashScreen.preventAutoHideAsync();
 
 export const App = () => {
+  const dark = useColorScheme() === 'dark';
   // The service graph and every store, built exactly once per app instance.
   // Nothing is constructed at import time, so a test can mount this tree with
   // its own runtime and no module mocking.
@@ -39,11 +41,11 @@ export const App = () => {
   return (
     <AppRuntimeProvider runtime={runtime}>
       <SafeAreaProvider>
-        <StatusBar style="dark" />
+        <StatusBar style={dark ? "light" : "dark"} />
 
         <View style={styles.root} onLayout={onLayout}>
           {bootstrapped ? (
-            <NavigationContainer ref={navigationRef} theme={navigationTheme}>
+            <NavigationContainer ref={navigationRef} theme={dark ? DarkTheme : navigationTheme}>
               <RootNavigator />
               <LocationEngine />
               {/*
@@ -51,6 +53,7 @@ export const App = () => {
                 voice HUD, which has to float above whatever screen is on.
               */}
               <ConversationEngine />
+              <RainTouchProtection />
               {!splashVisible ? <VoiceSetupPrompt /> : null}
             </NavigationContainer>
           ) : null}

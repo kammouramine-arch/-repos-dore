@@ -20,7 +20,7 @@ export const IncidentReportButton = () => {
         await stores.location.getState().locate();
         fix = stores.location.getState().position;
       }
-      if (!fix || !canReportIncident(fix, Date.now())) { Alert.alert('Location needed', 'Avyro cannot place this report yet. Enable precise location or try with a clearer GPS signal.'); return; }
+      if (!fix || !canReportIncident(fix, Date.now())) { Alert.alert('Location needed', 'meepmeep cannot place this report yet. Enable precise location or try with a clearer GPS signal.'); return; }
       await incidentReporter.submit(category, fix);
       setVisible(false);
       Alert.alert('Report received', 'Your observation is on the community map for one hour, marked unverified.');
