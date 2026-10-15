@@ -23,8 +23,12 @@ Limits are shared atomically through D1: 500 new guests/day, 100 registrations/d
 requests/UTC month. Free account quotas can stop requests; they do not authorize
 an upgrade. The application never activates a paid plan or billed fallback.
 
-Reports are always pending, expire after an hour and require a configured
-account moderator to approve. There is no assigned moderation operation yet.
+Build 38 explicitly publishes structured reports as community observations:
+they appear immediately for one hour and are labelled unverified. Legacy clients
+still create private pending reports, and their old feed excludes community pins.
+Only a configured account moderator can grant approved status or remove a report.
+There is no staffed human review operation. Acceptance is automatic validation,
+not verification that an event occurred.
 Tokens, old guest identities, rate buckets and report/audit records are cleaned
 by the deployed service; reports and audits have a seven-day retention window.
 Personal accounts still need email verification, reset and deletion UX before
@@ -35,7 +39,9 @@ https://huggingface.co/Qwen/Qwen3-30B-A3B/blob/main/LICENSE
 https://developers.cloudflare.com/workers-ai/models/qwen3-30b-a3b-fp8/
 Its server-side model and prompt are fixed; provider prose, route-control
 commands, invented destinations and unsafe/negated commands are rejected.
-The phone asks separately for command-sharing consent. Ambient recognition is
+Build 38's first-use invitation discloses command/audio and road-data sharing;
+continuing enables these core features, with an offline-only alternative.
+Ambient recognition is
 strictly on-device. Cloudflare's data-use policy:
 https://developers.cloudflare.com/workers-ai/platform/data-usage/
 
@@ -61,8 +67,8 @@ The road counter starts at 100 for October to reserve prior evaluation usage.
 # Optional command-audio transcription (build 36)
 
 `POST /speech/transcribe` requires a guest/account bearer session and explicit
-`consent: true`. The app has a separate `cloudSpeech` opt-in, off for existing
-and new installations. Only the bounded command after wake-up is sent; ambient
+`consent: true`. Build 38 enables `cloudSpeech` after the first-use disclosure;
+privacy settings and the offline-only choice can disable it. Only the bounded command after wake-up is sent; ambient
 wake listening remains on-device. The Worker does not store audio or transcripts
 and observability remains disabled.
 
@@ -85,4 +91,25 @@ Cloudflare pricing/free-plan hard stop:
 https://developers.cloudflare.com/workers-ai/platform/pricing/
 Cloudflare data terms:
 https://developers.cloudflare.com/workers-ai/platform/data-usage/
+
+## Build 38 road evidence
+
+Current-position evidence and planned-route lookahead share the persisted
+1,000-request monthly evaluation cap. `/roads/ahead` accepts at most 1.5 km of
+continuous planned geometry, samples at most 12 points and accepts only positioned
+metadata matching that geometry. Stop/yield signs, neutral traffic-light markers,
+limited-access/ramp changes and numbered roads are source-based. No signal phase,
+lane safety assurance or guessed sign is generated. Data coverage and accuracy
+vary worldwide; absent metadata is not evidence of an unobstructed road.
+
+Current limits require a fresh, accurate physical GPS trace and high-confidence
+matching geometry. The signed Wattignies municipal order 23-405 supplies a scoped,
+expiring correction for its named 30 km/h roads; it never raises a lower limit.
+Other towns and countries retain provider evidence. This does not fix every
+provider error worldwide. The client visibly attributes TomTom road data.
+
+The existing TomTom Evaluation key is for this test. Evaluation access is not a
+commercial production licence or a promise of unlimited free use. Commercial
+deployment requires confirming the applicable agreement and coverage before any
+paid activation. No plan or billing change is authorized by this repository.
 

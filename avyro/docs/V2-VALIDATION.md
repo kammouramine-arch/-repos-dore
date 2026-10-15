@@ -2,6 +2,69 @@
 
 This branch is a development candidate, not a completed production release.
 
+## October 15 build 38 internal TestFlight release
+
+Source `8163534bef38cb177776a8ffa4d7337c08e7413b` passes 495 app tests in 43
+suites, TypeScript and lint; 24 gateway tests and 17 Cloudflare tests also pass.
+Cloud HTTP tests run against local workerd/D1 with road and AI flags disabled.
+Clear local test rate buckets before rerunning the suite; otherwise repeated
+runs correctly hit the persisted guest/report limits. Never clear production
+rate buckets for tests.
+
+The normal first-use invitation enables bounded cloud command transcription,
+intent classification and road information after disclosure, with an offline-only
+alternative. Ambient wake processing remains on-device and foreground-only.
+The bundled supported wake phrase is "Hey Avyro" for French and English commands.
+English synthetic command samples passed live Whisper checks; real French and
+car-cabin accuracy still require device validation.
+
+Native MapKit searches now prioritize locally matching named branches and use
+bounded POI categories for fuel, food and parking, sorting before limiting results.
+Full numbered addresses remain strict. Guidance starts in 3D where Apple supplies
+buildings, includes a destination flag, and opens trip details from the bottom bar.
+Trip details retain the destination when adding up to three stops, show returned
+route alternatives and nearby unverified community observations. Best-departure
+prediction and provider live traffic are not implemented.
+
+Structured new-client reports appear immediately for one hour as unverified
+community observations. Older clients still see approved reports only. No staffed
+human review operation is claimed. A valid location is required; speed and an
+assumed parked state no longer gate reporting. Anonymous sessions can continue
+in memory if keychain writes temporarily fail, without plaintext persistence.
+
+Mapped ahead warnings include source-positioned stop/yield signs, neutral traffic
+lights, limited-access/ramp transitions and numbered roads. The route-ahead API
+and physical-trace limit API share the 1,000-request monthly evaluation cap.
+Missing/uncertain/expired data is unavailable, never a safe-road assurance.
+Live verification on a documentation-coordinate route in the Netherlands returned
+a traffic-light marker at 4.6141947806,52.3802402616. Unit fixtures also exercise
+sign chainage and rejecting off-route/malformed metadata. This does not establish
+complete worldwide sign coverage.
+
+The signed Wattignies municipal order 23-405, dated 2023-03-24, was checked on
+both rendered PDF pages. Its named roads carry a scoped 30 km/h correction until
+2027-01-13 review; lower mapped limits stay lower. A live synthetic physical-trace
+check on Avenue Denis Cordonnier returned the 30 correction where upstream mapped
+evidence says 50. Low-confidence synthetic movement was correctly rejected.
+Source: https://api-politique.pappers.fr/territoire/document/d994d3ace92aad23202ec2c6ffa383de/pdf
+No country-wide 30 default or correction of every worldwide mapping error is claimed.
+
+Measured speed remains separate from map limits. At a sourced 30 km/h limit,
+22–30 remain normal; 31/34/35/37/50 trigger red speed digits, a pulsing limit sign,
+and a rate-limited spoken warning. Missing limits explicitly say unavailable.
+These thresholds pass unit tests; road accuracy still needs physical validation.
+
+Signed native build run 38711513165 reuses the compatible full Xcode archive
+38703569746, embeds this source and verifies signatures. All nine bundled wake
+model/licence resources match; hosted backend URL is present and provider secret
+absent. Temporary signing secrets were removed. Native screen run 38711517579
+passed, including the connected guest community feed and adding a parking stop.
+The actual guest map, guidance, route-preview flag and trip-with-stop screenshots
+were visually inspected. Submission b1e8986d-a0f4-4a4e-b333-042f29694b45 finished;
+Apple confirms VALID / IN_BETA_TESTING for 1.0.0 (38). Public commercial launch
+remains out of scope; evaluation terms and
+free quotas do not constitute an unlimited production service licence.
+
 ## October 14 map-first revision (under native validation)
 
 The login/onboarding barrier is removed. Launch animation opens the map; a
