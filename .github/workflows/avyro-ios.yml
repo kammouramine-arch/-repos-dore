@@ -13,7 +13,7 @@ on:
         description: Native interaction suite
         type: choice
         default: guest-map
-        options: [guest-map, location-smoke, trip-smoke, car-motion, settings-language, voice-smoke]
+        options: [guest-map, location-smoke, trip-smoke, car-motion, settings-language, voice-smoke, rain-protection]
 permissions:
   contents: read
 concurrency:
@@ -103,7 +103,7 @@ jobs:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
         run: |
           AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
-          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke || "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language || "$AVYRO_UI_FLOW" == voice-smoke ]] || exit 1
+          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke || "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language || "$AVYRO_UI_FLOW" == voice-smoke || "$AVYRO_UI_FLOW" == rain-protection ]] || exit 1
           if [[ "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language ]]; then
             xcrun simctl location "$DEVICE_ID" set 48.85763,2.35107
           else

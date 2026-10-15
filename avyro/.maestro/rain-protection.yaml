@@ -1,0 +1,56 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- extendedWaitUntil:
+    visible: "Continue without hands-free"
+    timeout: 90000
+- tapOn: "Continue without hands-free"
+- tapOn: "Settings"
+- scrollUntilVisible:
+    element: "Motorcycle"
+    direction: DOWN
+    timeout: 20000
+- tapOn: "Motorcycle"
+- scrollUntilVisible:
+    element: "Rain touch protection"
+    direction: DOWN
+    timeout: 20000
+- tapOn:
+    text: "Rain touch protection"
+    index: 1
+- tapOn: "Go back"
+- tapOn: "Search for a destination"
+- tapOn: "Destination"
+- inputText: "Eiffel Tower Paris France"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "place-result-0"
+    timeout: 30000
+- tapOn:
+    id: "place-result-0"
+- extendedWaitUntil:
+    visible: "Start navigation"
+    timeout: 30000
+- tapOn: "Start navigation"
+- extendedWaitUntil:
+    visible: "Lock screen against rain touches"
+    timeout: 30000
+- tapOn: "Lock screen against rain touches"
+- assertVisible: "Unlock rain protection"
+# A tap at the underlying trip summary must not open its sheet while locked.
+- tapOn:
+    point: 30%,90%
+- assertNotVisible: "Your trip"
+- takeScreenshot: build/screens/rain-shield-locked
+- longPressOn: "Unlock rain protection"
+- assertVisible: "Lock screen against rain touches"
+- tapOn: "Lock screen against rain touches"
+- pressKey: Home
+- launchApp:
+    stopApp: false
+- assertVisible: "Lock screen against rain touches"
+- takeScreenshot: build/screens/rain-shield-lifecycle-unlocked
