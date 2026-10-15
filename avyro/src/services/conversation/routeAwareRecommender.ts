@@ -1,3 +1,4 @@
+import { distanceBetween } from '@/utils/geo';
 import { CONVERSATION, RECOMMENDATION } from '@/config';
 import {
   directDistance,
@@ -115,11 +116,12 @@ export const createRouteAwareRecommender = ({
 
   return {
     async suggest(category, context, signal) {
-      const results = await placesProvider.search(SEARCH_TERMS[category], {
-        near: context.location ?? undefined,
-        limit: CONVERSATION.nearbyResultLimit,
-        signal,
-      });
+      const options = { near: context.location ?? undefined, limit: CONVERSATION.nearbyResultLimit, signal };
+      const found = placesProvider.nearby && category !== 'coffee' && context.location
+        ? await placesProvider.nearby(category, options)
+        : await placesProvider.search(SEARCH_TERMS[category], options);
+      // Apply proximity before the routing candidate cap, not after it.
+      const results = context.location ? [...found].sort((a, b) => distanceBetween(context.location!, a.coordinates) - distanceBetween(context.location!, b.coordinates)) : found;
 
       if (results.length === 0) return [];
 

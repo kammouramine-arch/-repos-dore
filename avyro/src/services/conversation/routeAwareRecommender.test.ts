@@ -212,3 +212,14 @@ describe('with no trip planned', () => {
     expect(requests).toHaveLength(0);
   });
 });
+
+test('voice fuel suggestions use the same nearby category source as the fuel button', async () => {
+  const nearby = jest.fn(async () => [BEHIND]);
+  const search = jest.fn(async () => [AHEAD]);
+  const recommender = createRouteAwareRecommender({ placesProvider: { search, nearby }, routingProvider: routing({}).provider, logger: silentLogger() });
+  const idle = buildRouteContext({ navigationState: 'idle', destination: null, route: null, progress: null, position: { coordinates: START, accuracy: 5, speed: 0, heading: null, timestamp: 0 }, distanceUnit: 'metric' });
+  const results = await recommender.suggest('fuel', idle);
+  expect(nearby).toHaveBeenCalledWith('fuel', expect.objectContaining({ near: START }));
+  expect(search).not.toHaveBeenCalled();
+  expect(results[0].place).toBe(BEHIND);
+});

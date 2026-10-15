@@ -25,9 +25,8 @@ const matchable = (value: string): string => normaliseUtterance(value);
  *
  * Three ways to be confident, in descending strength:
  *
- * 1. It was the only result — there is nothing to be ambiguous with.
- * 2. The name equals the query: "Lille" → *Lille*.
- * 3. The name contains the query as whole words: "the airport" →
+ * 1. The name equals the query: "Lille" → *Lille*.
+ * 2. The name contains the query as whole words: "the airport" →
  *    *Charles de Gaulle Airport*, "12 rue de rivoli" → *12, Rue de Rivoli*.
  *
  * Substring matching is on word boundaries so "nice" does not match
@@ -40,7 +39,6 @@ export const isConfidentMatch = (
 ): boolean => {
   const [top] = results;
   if (!top) return false;
-  if (results.length === 1) return true;
 
   const wanted = matchable(query);
   if (wanted.length === 0) return false;

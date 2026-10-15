@@ -101,3 +101,8 @@ describe('nearest matching branch selection', () => {
     expect(rankDestinationCandidates('La Poste', [far, other, near], origin)[0]).toBe(near);
   });
 });
+
+test('a single unrelated result cannot silently become the voice destination', () => {
+  expect(isConfidentMatch('La Poste', [place('Restaurant')])).toBe(false);
+  expect(isConfidentMatch('', [place('Restaurant')])).toBe(false);
+});
