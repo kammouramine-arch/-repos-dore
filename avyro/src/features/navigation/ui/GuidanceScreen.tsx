@@ -128,6 +128,7 @@ export const GuidanceScreen = () => {
       <AvyroMapView
         mapRef={mapRef}
         appearance={preferences.mapStyle}
+        mapPadding={{ top: insets.top + 160, bottom: insets.bottom + 120, left: spacing.md, right: spacing.md }}
         legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}
         showsTraffic={preferences.showTraffic}
         initialRegion={initialRegion}
