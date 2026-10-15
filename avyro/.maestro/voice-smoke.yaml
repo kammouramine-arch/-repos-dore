@@ -9,7 +9,8 @@ appId: app.avyro.companion
     timeout: 90000
 - tapOn: "Continue with hands-free AI"
 - extendedWaitUntil:
-    visible: "Hey meepmeep · AI voice"
+    # This is the accessible label of the ready-state control.
+    visible: "Pause hands-free listening"
     timeout: 30000
 - tapOn: "Settings"
 - scrollUntilVisible:
