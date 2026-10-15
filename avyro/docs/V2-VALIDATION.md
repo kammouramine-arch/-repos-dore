@@ -2,12 +2,14 @@
 
 This branch is a development candidate, not a completed production release.
 
-## Car-only correction awaiting tester review
+## Car-only correction approved for TestFlight
 
 The tester requested the human be removed and objected to distribution before
 reviewing the revised marker. EAS submission d7e1b60b-7254-4adb-8235-18f1d228074a
-is confirmed CANCELED while queued. Do not retry it or submit a replacement
-without the tester's approval of a concrete car-only preview.
+is confirmed CANCELED while queued. After reviewing the concrete car-only preview,
+the tester explicitly approved submission on October 15. Replacement submission
+`66dda974-4244-49be-aa77-e7d4063ba978` uses the verified car-only candidate;
+it is queued for TestFlight processing. The canceled package must not be retried.
 
 The car-only marker ignores phone-compass swings. Confirmed stationary fixes
 hold tiny route-position jitter; actual movement releases the hold. At a stop,
@@ -20,8 +22,9 @@ Captured frames show the car alone aligned with the road. This validates the
 synthetic trace, not all real-device GPS conditions. Native test source
 `d55dfa6` changes only workflow/test files from app source `4506598`.
 The car-only signed candidate from `4506598` passes signature, nine model/licence
-resource hashes, backend URL and provider-secret absence checks. It is held
-locally and has not been submitted to Apple. The validated native motion excerpt `Avyro-car-only-validated-preview.mp4`
+resource hashes, backend URL and provider-secret absence checks. Its local
+SHA-256 was verified before the approved replacement submission above.
+The validated native motion excerpt `Avyro-car-only-validated-preview.mp4`
 is available for tester review. The earlier run `38746639890` is not counted as
 a pass because its GPS fixture started after its movement assertion timed out.
 Temporary signing credentials were removed after signing.
