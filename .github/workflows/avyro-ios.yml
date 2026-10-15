@@ -63,7 +63,8 @@ jobs:
           [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]] || exit 1
           SOURCE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq '.head_sha')
           git fetch origin "$SOURCE_SHA" --depth=1
-          git diff --exit-code "$SOURCE_SHA" HEAD -- modules package.json package-lock.json app.config.ts scripts plugins
+          # Documentation is copied below; executable code and model bytes must match.
+          git diff --exit-code "$SOURCE_SHA" HEAD -- modules package.json package-lock.json app.config.ts scripts plugins ':!modules/avyro-wake/ios/models/MODEL-CARD.md'
       - uses: actions/download-artifact@v4
         if: ${{ inputs.simulator_run }}
         with:
@@ -76,6 +77,7 @@ jobs:
         run: |
           mkdir -p build/Build/Products/Release-iphonesimulator
           ditto -x -k build/Avyro-simulator.zip build/Build/Products/Release-iphonesimulator
+          cp modules/avyro-wake/ios/models/MODEL-CARD.md build/Build/Products/Release-iphonesimulator/meepmeep.app/AvyroWakeModels.bundle/MODEL-CARD.md
       - name: Embed configured JavaScript into reused simulator app
         if: ${{ inputs.simulator_run }}
         run: |
