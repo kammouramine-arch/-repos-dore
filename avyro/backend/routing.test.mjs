@@ -28,6 +28,23 @@ test('unknown maneuver is rejected rather than rendered as straight', () => {
   const data = raw(); data.routes[0].guidance.instructions[1].maneuver = 'UNSUPPORTED';
   assert.throws(() => decodeRoutes(data), { status: 502 });
 });
+test('intermediate waypoint arrivals preserve the final destination and full route distance', () => {
+  for (const code of ['WAYPOINT_LEFT', 'WAYPOINT_RIGHT', 'WAYPOINT_REACHED']) {
+    const data = raw();
+    data.routes[0].guidance.instructions.splice(1, 0, { maneuver: code, point: a, routeOffsetInMeters: 40, travelTimeInSeconds: 8, message: 'You have reached the waypoint.' });
+    const route = decodeRoutes(data)[0];
+    assert.deepEqual(route.steps.map(s => s.maneuver), ['waypoint', 'arrive']);
+    assert.equal(route.steps.reduce((n,s) => n+s.distanceMeters,0), 100);
+    assert.equal(route.steps.at(-1).distanceMeters,60);
+    assert.match(route.steps[0].instructionFr, /étape/);
+  }
+});
+test('documented ferry and follow instructions retain their distinct meaning', () => {
+  for (const [code, type] of [['TAKE_FERRY','ferry'],['FOLLOW','follow']]) {
+    const data=raw(); data.routes[0].guidance.instructions.splice(1,0,{maneuver:code,point:a,routeOffsetInMeters:40,travelTimeInSeconds:8,message:'Provider instruction'});
+    assert.equal(decodeRoutes(data)[0].steps[0].maneuver,type);
+  }
+});
 test('roundabout exit takes priority over opaque road identifiers in both languages', () => {
   const data = raw();
   data.routes[0].guidance.instructions.splice(1, 0, { maneuver: 'ROUNDABOUT_RIGHT', point: a, routeOffsetInMeters: 50, travelTimeInSeconds: 10, roundaboutExitNumber: 4, street: 'Route M750', message: 'Take Route M750' });

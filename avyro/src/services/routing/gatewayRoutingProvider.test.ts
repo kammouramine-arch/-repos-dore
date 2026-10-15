@@ -7,6 +7,13 @@ test('route decoding rejects missing geometry or a malformed turn rather than dr
   expect(decodeGatewayRoutes([route])).toEqual([route]);
   for (const invalid of [{ ...route, geometry: [a] }, { ...route, steps: [{ ...route.steps[0], maneuver: 'invented' }] }, { ...route, geometry: [a,{ latitude:NaN,longitude:3 }] }]) expect(() => decodeGatewayRoutes([invalid])).toThrow();
 });
+test('waypoint and ferry instructions are accepted without pretending they end the trip', () => {
+  for (const maneuver of ['waypoint','ferry','follow']) {
+    const withStop = {...route, steps:[{...route.steps[0],maneuver},route.steps[0]]};
+    expect(decodeGatewayRoutes([withStop])[0].steps[0].maneuver).toBe(maneuver);
+    expect(decodeGatewayRoutes([withStop])[0].steps.at(-1)?.maneuver).toBe('arrive');
+  }
+});
 test('planning uses the authenticated hosted route service and preserves stop order', async () => {
   const postJson = jest.fn(async (_url, _body, decode) => decode([route]));
   const provider = createGatewayRoutingProvider({ http:{postJson} as unknown as HttpClient,getAccessToken:async()=> 'session' });

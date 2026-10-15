@@ -1,4 +1,5 @@
 import { t, useUiLanguage } from '@/ui/i18n';
+import { useConversationStore } from '@/app/stores/hooks';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
@@ -27,8 +28,15 @@ export interface VoiceDiagnosticsPanelProps {
 export const VoiceDiagnosticsPanel = ({
   entries,
   onClear,
-}: VoiceDiagnosticsPanelProps) => { useUiLanguage(); return ((
+}: VoiceDiagnosticsPanelProps) => { useUiLanguage();
+  const voice = useConversationStore(state => state.voice);
+  const openedAt = entries.findLastIndex(entry => entry.event === 'voice_opened');
+  const stableAt = entries.findLastIndex(entry => entry.event === 'voice_stable');
+  const ready = voice.ready && voice.status === 'listening';
+  return ((
   <View style={styles.panel}>
+    <AppText variant="footnote" testID="native-wake-status">{ready ? 'Native microphone active' : `Voice state: ${voice.status}`}</AppText>
+    {ready && openedAt >= 0 && stableAt > openedAt ? <AppText variant="footnote" testID="native-wake-stable">Native wake stable for 30 seconds</AppText> : null}
     <AppText variant="footnote" tone="tertiary">
       {t("Temporary voice pipeline trace. Clear it, reproduce the problem, then read from the top.")}</AppText>
 

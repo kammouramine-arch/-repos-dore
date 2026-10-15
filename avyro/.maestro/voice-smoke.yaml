@@ -8,18 +8,22 @@ appId: app.avyro.companion
     visible: "Continue with hands-free AI"
     timeout: 90000
 - tapOn: "Continue with hands-free AI"
+- extendedWaitUntil:
+    visible: "Hey meepmeep · AI voice"
+    timeout: 30000
 - tapOn: "Settings"
 - scrollUntilVisible:
     element: ".*Troubleshoot voice.*"
     direction: DOWN
     timeout: 30000
 - tapOn: ".*Troubleshoot voice.*"
-- extendedWaitUntil:
-    visible: ".*voice_opened.*"
+- scrollUntilVisible:
+    element: "Native microphone active"
+    direction: DOWN
     timeout: 30000
 - takeScreenshot: build/screens/native-wake-opened
 - extendedWaitUntil:
-    visible: ".*voice_stable.*"
+    visible: "Native wake stable for 30 seconds"
     timeout: 40000
 - takeScreenshot: build/screens/native-wake-stable
 # Verifies native initialization/30-second ownership only. No simulated wake

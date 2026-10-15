@@ -20,6 +20,9 @@ export type ManeuverType =
   | 'merge'
   | 'fork'
   | 'ramp'
+  | 'waypoint'
+  | 'ferry'
+  | 'follow'
   | 'arrive';
 
 /**

@@ -51,6 +51,13 @@ const route: Route = {
 
 const index = createRouteIndex(route);
 
+test('reaching an intermediate waypoint does not finish navigation', () => {
+  const withStop: Route = {...route,steps:[{...route.steps[0],maneuver:'waypoint',instruction:'You have reached your stop'},route.steps[1]]};
+  const tracked = trackPosition(createRouteIndex(withStop), {coordinates:B,accuracy:5,speed:0,heading:null,timestamp:1000}, initialTrackerState)!;
+  expect(tracked.progress.hasArrived).toBe(false);
+  expect(tracked.progress.remainingDistanceMeters).toBeGreaterThan(600);
+});
+
 test('a stopped car ignores unreliable native heading and faces the road', () => {
   for (const heading of [0, 180, 270]) {
     const result = trackPosition(index, { coordinates: midpoint(A, B), accuracy: 5, speed: 0, heading, timestamp: 1000 }, initialTrackerState)!;

@@ -35,6 +35,7 @@ const GLYPHS = {
   ramp: {
     paths: ['M8 20.5v-4.6C8 10.6 11.8 7.5 16.6 7.5', 'M13.3 4.2 16.6 7.5l-3.3 3.3'],
   },
+  ferry: { paths: ['M4 12l8-3 8 3-3 7H7z', 'M8 10V5h8v5', 'M3 22q3-3 6 0 3-3 6 0 3-3 6 0'] },
   arrive: {
     paths: ['M12 21.2c0 0-6.4-7-6.4-10.8a6.4 6.4 0 1 1 12.8 0C18.4 14.2 12 21.2 12 21.2z'],
     circles: [{ cx: 12, cy: 10.4, r: 2.4, filled: true }],
@@ -58,6 +59,9 @@ const BY_MANEUVER: Record<ManeuverType, { glyph: GlyphName; mirrored?: boolean }
   fork: { glyph: 'fork' },
   ramp: { glyph: 'ramp' },
   arrive: { glyph: 'arrive' },
+  waypoint: { glyph: 'arrive' },
+  ferry: { glyph: 'ferry' },
+  follow: { glyph: 'straight' },
 };
 
 export const glyphFor = (
