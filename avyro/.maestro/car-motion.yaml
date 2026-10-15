@@ -31,9 +31,9 @@ appId: app.avyro.companion
       text: "0"
     timeout: 30000
 - takeScreenshot: build/screens/car-only-stationary
-# The host fixture waits for this screenshot before starting its public,
-# synthetic street trace. No phone code or production GPS is overridden.
-- takeScreenshot: build/screens/start-driving-fixture
+# Direct loopback signal: screenshot report files can be flushed only at test end.
+# No phone code or production GPS is overridden.
+- evalScript: '${http.get("http://127.0.0.1:9876/start")}'
 - extendedWaitUntil:
     visible:
       id: "gps-speed-value"

@@ -98,21 +98,30 @@ jobs:
             xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
           fi
           mkdir -p build/screens
+          AVYRO_FIXTURE_SERVER_PID=''
+          if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+            python3 .maestro/fixture-server.py > build/fixture-server.log 2>&1 &
+            AVYRO_FIXTURE_SERVER_PID=$!
+          fi
           # A slow sub-metre simulator path supplies fresh fixes and valid native
           # speed (rounding to zero). Static `set` fixes have unknown native speed.
           (
             xcrun simctl help location
             if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
               # Public synthetic Rue de Rivoli trace, separate from real GPS.
-              until [[ -n "$(find "$HOME/.maestro/tests" -name start-driving-fixture.png -print -quit 2>/dev/null)" ]]; do
+              until [[ -f build/start-driving-fixture ]]; do
                 xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8576300,2.35107 48.8576350,2.35107
                 for attempt in {1..10}; do
-                  [[ -n "$(find "$HOME/.maestro/tests" -name start-driving-fixture.png -print -quit 2>/dev/null)" ]] && break
+                  [[ -f build/start-driving-fixture ]] && break
                   sleep 1
                 done
               done
               xcrun simctl location "$DEVICE_ID" start --speed=10 --interval=0.5 48.85763,2.35107 48.85858,2.34807 48.85935,2.34569
-              while true; do sleep 1; done
+              sleep 45
+              while true; do
+                xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8593500,2.34569 48.8593550,2.34569
+                sleep 30
+              done
             fi
             while true; do
               xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8565300,2.35332 48.8565350,2.35332
@@ -125,6 +134,7 @@ jobs:
           xcrun simctl io "$DEVICE_ID" recordVideo --codec=h264 build/screens/native-walkthrough.mp4 > build/recording.log 2>&1 &
           AVYRO_RECORD_PID=$!
           finish_capture() {
+            [[ -z "$AVYRO_FIXTURE_SERVER_PID" ]] || kill "$AVYRO_FIXTURE_SERVER_PID" 2>/dev/null || true
             kill "$AVYRO_LOCATION_PID" 2>/dev/null || true
             kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true
             for attempt in {1..10}; do
@@ -154,6 +164,7 @@ jobs:
             avyro/build/gps-fixture.log
             avyro/build/location-fixture.log
             avyro/build/recording.log
+            avyro/build/fixture-server.log
             /Users/runner/.maestro/tests/
           if-no-files-found: ignore
       - name: Upload diagnostics
