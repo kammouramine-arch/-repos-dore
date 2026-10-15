@@ -1,0 +1,15 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- assertVisible: "Your voice. Your way."
+- tapOn: "Continue without hands-free"
+- assertVisible: "Search for a destination"
+- extendedWaitUntil:
+    visible:
+      id: "gps-speed-value"
+      text: "0"
+    timeout: 20000
+- takeScreenshot: build/screens/location-stationary-zero

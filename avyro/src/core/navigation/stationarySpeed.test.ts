@@ -12,3 +12,11 @@ test('movement, poor accuracy and a long GPS gap never become a fabricated stop'
     expect(estimate(next).speed).toBe(-1);
   }
 });
+test('a continuing stopped trace stays at zero across successive 15-second windows', () => {
+  const estimate = createStationarySpeedEstimator();
+  estimate(fix);
+  for (let elapsed = 1000; elapsed <= 60000; elapsed += 1000) {
+    const next = estimate({ ...fix, timestamp: fix.timestamp + elapsed });
+    if (elapsed >= 3000) expect(next.speed).toBe(0);
+  }
+});

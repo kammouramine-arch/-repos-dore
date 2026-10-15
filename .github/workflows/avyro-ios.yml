@@ -9,6 +9,11 @@ on:
         description: Existing successful compile run to reuse for UI-only checks
         required: false
         type: string
+      ui_flow:
+        description: Native interaction suite
+        type: choice
+        default: guest-map
+        options: [guest-map, location-smoke]
 permissions:
   contents: read
 concurrency:
@@ -21,6 +26,7 @@ jobs:
     env:
       EXPO_PUBLIC_BACKEND_URL: https://avyro-gateway.avyro-cloud-gateway.workers.dev
       EXPO_PUBLIC_ROAD_DATA_ENABLED: 'true'
+      EXPO_PUBLIC_NATIVE_DIAGNOSTICS: 'true'
     defaults:
       run:
         working-directory: avyro
@@ -78,26 +84,30 @@ jobs:
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
           xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
           mkdir -p build/screens
-          # Refresh native GPS with centimetre-scale stationary jitter. Repeated
-          # identical `set` commands can leave only an old, one-shot location fix.
+          # A slow sub-metre simulator path supplies fresh fixes and valid native
+          # speed (rounding to zero). Static `set` fixes have unknown native speed.
           (
+            xcrun simctl help location
             while true; do
-              xcrun simctl location "$DEVICE_ID" set 48.8565300,2.35332
-              sleep 1
-              xcrun simctl location "$DEVICE_ID" set 48.8565305,2.35332
-              sleep 1
+              xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8565300,2.35332 48.8565350,2.35332
+              sleep 40
+              xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8565350,2.35332 48.8565300,2.35332
+              sleep 40
             done
           ) > build/location-fixture.log 2>&1 &
           AVYRO_LOCATION_PID=$!
           xcrun simctl io "$DEVICE_ID" recordVideo --codec=h264 build/screens/native-walkthrough.mp4 > build/recording.log 2>&1 &
           AVYRO_RECORD_PID=$!
           trap 'kill "$AVYRO_LOCATION_PID" 2>/dev/null || true; kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true; wait "$AVYRO_RECORD_PID" 2>/dev/null || true' EXIT
-          maestro --device "$DEVICE_ID" test .maestro/guest-map.yaml
+          AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
+          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke ]] || exit 1
+          maestro --device "$DEVICE_ID" test ".maestro/$AVYRO_UI_FLOW.yaml"
       - name: Capture final simulator state
         if: always()
         run: |
           mkdir -p build/screens
           xcrun simctl io booted screenshot build/screens/final-state.png || true
+          xcrun simctl spawn booted log show --last 20m --style compact --predicate 'eventMessage CONTAINS "AVYRO_GPS_TEST"' > build/gps-fixture.log 2>&1 || true
       - name: Upload native UI captures
         if: always()
         uses: actions/upload-artifact@v4
@@ -107,6 +117,9 @@ jobs:
           path: |
             avyro/**/screens/*.png
             avyro/**/screens/*.mp4
+            avyro/build/gps-fixture.log
+            avyro/build/location-fixture.log
+            avyro/build/recording.log
             /Users/runner/.maestro/tests/
           if-no-files-found: ignore
       - name: Upload diagnostics

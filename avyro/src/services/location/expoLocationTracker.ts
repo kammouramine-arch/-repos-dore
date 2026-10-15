@@ -76,7 +76,13 @@ export const createExpoLocationTracker = (): LocationTracker => ({
         timeInterval: options.intervalMs ?? NAVIGATION.locationIntervalMs,
         distanceInterval: options.distanceMeters ?? 0,
       },
-      (position) => onPosition(estimate(toPosition(position))),
+      (position) => {
+        const raw = toPosition(position), resolved = estimate(raw);
+        // Only the simulator workflow enables this; no coordinates or identifiers
+        // are logged, and diagnostics are disabled in the signed phone build.
+        if (process.env.EXPO_PUBLIC_NATIVE_DIAGNOSTICS === 'true') console.error('AVYRO_GPS_TEST', JSON.stringify({ accuracy: raw.accuracy, rawSpeed: raw.speed, resolvedSpeed: resolved.speed, ageMs: Date.now() - raw.timestamp }));
+        onPosition(resolved);
+      },
     );
   },
 });
