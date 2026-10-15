@@ -11,7 +11,7 @@
 - Current quotas and evaluation credentials are for bounded testing. Commercial road-data rights and world coverage are not established. No paid activation/public release authorized.
 - Stripe Directory lookup attempted with latest official CLI/plugin; endpoint rejected its user agent. Provider comparison continues using official sources.
 
-## Execution / release gates
+## Initial execution gates (historical; current checkpoint below)
 Track each stage separately; never mark device-only work verified by mocks.
 - A audit: initial inventory complete; dependency/signing/credential metadata inspection ongoing.
 - B correctness: in progress; fail closed on unsupported directional signs; inspect speed evidence and maneuver anchors.
@@ -69,3 +69,13 @@ Bundled-model hard synthetic set: 16/16 positives, 0/48 controls. On this Window
 Latest source validation: typecheck and lint pass; 52 app suites / 533 tests pass; cloud tests 22/22 and road/routing/local-classifier tests 24/24 pass. Includes trip cancellation ownership, French maneuver copy, new wake-address transcription cleanup, and authenticated optional-account deletion. Physical-device checks remain unverified.
 
 Private desktop replay of 237.46 seconds from the supplied road recording produced no wake activations. Equal-RMS mixes of that screen-recorded audio with synthetic speech detected 24/24 wake samples and activated on 0/72 control samples. This includes app/recorded audio, not a calibrated in-car microphone test; hardware validation remains open. Hosted final backend version: da64cd01-a50a-412b-9771-cc4690f66770.
+
+## Current release checkpoint
+- A: existing repository, distribution identity, credentials metadata and provider setup audited; isolated branch retained.
+- B: uncertain sign suppression, GPS/direction evidence guards, route cancellation ownership, camera/puck and maneuver formatting implemented. Live graph correctness/worldwide coverage remain unverified.
+- C: real bundled Apache-licensed KWS and native audio handoff compiled. Desktop audio checks passed. Mounted-iPhone/BT/long-session validation remains open.
+- D: capped hosted AI intent tools and Whisper transcription verified with live authenticated requests; native installed-voice selection implemented. Physical speech quality/latency unverified.
+- E: original identity/launch, voice perimeter, dark/light and primary EN/FR UI implemented. Native screen checks running. Other locales and full dynamic-error localization are not complete.
+- F: probationary pure rules, motorcycle route preferences, manual rain shield, authenticated community feedback/dedup/withdrawal implemented. Enforcement data deliberately disabled; native rain interactions still need device checks.
+- G: 533 app tests, 46 cloud/road/routing tests, typecheck and lint pass. Simulator native compilation succeeded. Reuse checks initially stopped on a model-card correction; executable/model bytes matched, so updated documentation is now copied explicitly while native compatibility remains enforced.
+- H: signed build 40 produced from 1ebb97fbc4dd65ed463a3f6326009e1588056b67 in run 38822242760. IPA SHA-256 59918aea9bd91f5ad6f9a4e515df726a78f312c6f1131ab52de295569ca62a24. Bundle ID app.avyro.companion, display name meepmeep. Every bundled model/license file matches Git bytes. Not yet submitted to Apple at this checkpoint. Later commits so far change only tests/workflow/docs.
