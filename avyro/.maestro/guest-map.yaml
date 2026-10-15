@@ -58,16 +58,11 @@ appId: app.avyro.companion
     notVisible: "Waiting for GPS…"
     timeout: 60000
 - takeScreenshot: build/screens/06-guidance
-- repeat:
-    times: 6
-    commands:
-      - setLocation:
-          latitude: 48.8566
-          longitude: 2.3522
-      - waitForAnimationToEnd
-- assertVisible:
-    id: "gps-speed-value"
-    text: "0"
+- extendedWaitUntil:
+    visible:
+      id: "gps-speed-value"
+      text: "0"
+    timeout: 15000
 - takeScreenshot: build/screens/06-stationary-zero
 
 - tapOn: "Trip details"

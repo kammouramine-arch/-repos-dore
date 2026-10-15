@@ -78,9 +78,20 @@ jobs:
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
           xcrun simctl location "$DEVICE_ID" set 48.8566,2.3522
           mkdir -p build/screens
+          # Refresh native GPS with centimetre-scale stationary jitter. Repeated
+          # identical `set` commands can leave only an old, one-shot location fix.
+          (
+            while true; do
+              xcrun simctl location "$DEVICE_ID" set 48.8566000,2.3522
+              sleep 1
+              xcrun simctl location "$DEVICE_ID" set 48.8566005,2.3522
+              sleep 1
+            done
+          ) > build/location-fixture.log 2>&1 &
+          AVYRO_LOCATION_PID=$!
           xcrun simctl io "$DEVICE_ID" recordVideo --codec=h264 build/screens/native-walkthrough.mp4 > build/recording.log 2>&1 &
           AVYRO_RECORD_PID=$!
-          trap 'kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true; wait "$AVYRO_RECORD_PID" 2>/dev/null || true' EXIT
+          trap 'kill "$AVYRO_LOCATION_PID" 2>/dev/null || true; kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true; wait "$AVYRO_RECORD_PID" 2>/dev/null || true' EXIT
           maestro --device "$DEVICE_ID" test .maestro/guest-map.yaml
       - name: Capture final simulator state
         if: always()
