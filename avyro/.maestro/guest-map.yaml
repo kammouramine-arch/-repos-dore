@@ -4,6 +4,9 @@ appId: app.avyro.companion
     clearState: true
     permissions:
       all: allow
+- extendedWaitUntil:
+    visible: "Continue without hands-free"
+    timeout: 90000
 - assertVisible: "Your voice. Your way."
 - takeScreenshot: build/screens/01-voice-invitation
 - waitForAnimationToEnd
