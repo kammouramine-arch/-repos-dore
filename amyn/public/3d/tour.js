@@ -3,7 +3,7 @@ const q=new URLSearchParams(location.search), en=q.get('lang')==='en', capture=q
 if(capture)document.body.classList.add('render');
 if(en){document.documentElement.lang='en';document.querySelector('#hint').textContent='Drag to look · 1–4 to change rooms';document.querySelector('#full').setAttribute('aria-label','Fullscreen');document.querySelector('canvas').setAttribute('aria-label','3D apartment. Drag or use left and right arrows to look. Keys 1 to 4 change rooms.');}
 try {
- const canvas=document.querySelector('canvas');const app=createApartment(canvas,{high:capture});window.amynScene=app;
+ const canvas=document.querySelector('canvas');const app=await createApartment(canvas,{high:capture});window.amynScene=app;
  let index=0,visible=true;
  const draw=()=>{if(visible&&!document.hidden)app.render();};
  const select=i=>{index=i;app.setStation(i);document.querySelector('#room').textContent=en?app.stations[i].en:app.stations[i].name;document.querySelector('#count').textContent=`0${i+1} / 04`;document.querySelectorAll('#rooms button').forEach((b,n)=>b.setAttribute('aria-pressed',String(i===n)));const pts=[[46,55],[28,22],[80,50],[55,86]];const dot=document.querySelector('#dot');dot.style.left=pts[i][0]+'%';dot.style.top=pts[i][1]+'%';draw();};

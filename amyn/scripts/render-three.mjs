@@ -8,13 +8,13 @@ const scriptDirectory = path.dirname(fileURLToPath(import.meta.url));
 (async () => {
   const browser = await chromium.launch({ channel: process.platform === 'win32' ? 'msedge' : undefined, headless: true, args: ['--enable-unsafe-swiftshader'] });
   try {
-    const page = await browser.newPage({ viewport: { width: 1920, height: 1080 }, deviceScaleFactor: 1 });
+    const page = await browser.newPage({ viewport: { width: 3840, height: 2160 }, deviceScaleFactor: 1 });
     await page.goto(process.env.AMYN_RENDER_URL || 'http://127.0.0.1:3008/3d/tour.html?render=1');
     await page.waitForFunction(() => window.amynScene);
     const font = process.platform === 'win32' ? 'C\\:/Windows/Fonts/arial.ttf' : '/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf';
-    const filter = `drawbox=x=0:y=1000:w=iw:h=80:color=0x16271c@0.65:t=fill,drawtext=fontfile='${font}':text='AMYN 3D   /   ATELIER LUMIERE   /   FICTIONAL CONCEPT':fontcolor=0xeee9dc:fontsize=19:x=54:y=1032`;
+    const filter = `scale=1920:1080:flags=lanczos,drawbox=x=0:y=1000:w=iw:h=80:color=0x16271c@0.65:t=fill,drawtext=fontfile='${font}':text='AMYN 3D   /   ATELIER LUMIERE   /   FICTIONAL CONCEPT':fontcolor=0xeee9dc:fontsize=19:x=54:y=1032`;
     const file = path.resolve(scriptDirectory, '../public/3d/walkthrough.mp4');
-    const encoder = spawn('ffmpeg', ['-y','-f','image2pipe','-vcodec','mjpeg','-framerate','24','-i','pipe:0','-vf',filter,'-c:v','libx264','-preset','fast','-crf','21','-pix_fmt','yuv420p','-movflags','+faststart','-an',file], { stdio: ['pipe','ignore','pipe'] });
+    const encoder = spawn('ffmpeg', ['-y','-f','image2pipe','-vcodec','mjpeg','-framerate','24','-i','pipe:0','-vf',filter,'-c:v','libx264','-preset','fast','-crf','19','-pix_fmt','yuv420p','-movflags','+faststart','-an',file], { stdio: ['pipe','ignore','pipe'] });
     let log = '';
     encoder.stderr.on('data', d => { log += d; });
     const done = new Promise((resolve,reject) => { encoder.on('error', reject); encoder.on('exit', code => code === 0 ? resolve() : reject(new Error(log))); });
