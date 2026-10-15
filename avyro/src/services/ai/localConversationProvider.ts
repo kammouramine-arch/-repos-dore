@@ -1,9 +1,8 @@
-import { CONVERSATION } from '@/config';
 import { canReportIncident } from '@/core/navigation/reportEligibility';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { IncidentReporter } from '@/core/domain/ports/incidentReporter';
 import { parseCommand } from '@/core/conversation/commandParser';
-import { isConfidentMatch } from '@/core/conversation/destinationMatch';
+import { isConfidentMatch, rankDestinationCandidates } from '@/core/conversation/destinationMatch';
 import { REPLIES } from '@/core/conversation/replyText';
 import type {
   ConversationReply,
@@ -138,12 +137,13 @@ export const createLocalConversationProvider = ({
     { context, origin, signal }: ConversationRequest,
   ): Promise<ConversationReply> => {
     try {
-      const results = await placesProvider.search(intent.query, {
+      const found = await placesProvider.search(intent.query, {
         near: origin ?? context.location ?? undefined,
-        limit: CONVERSATION.destinationCandidates,
+        limit: 25,
         signal,
       });
 
+      const results = rankDestinationCandidates(intent.query, found, origin ?? context.location);
       const [best] = results;
       if (!best) return reply(intent, REPLIES.destinationNotFound(intent.query));
 
@@ -215,7 +215,7 @@ export const createLocalConversationProvider = ({
           if (request.signal?.aborted) throw new Error('Cancelled');
           if (!canReportIncident(fix, Date.now())) return say('I need a usable GPS location to place that report.', 'J’ai besoin d’une position GPS utilisable pour placer ce signalement.');
           await incidentReporter.submit(intent.category, fix);
-          return say('Your observation has been sent for review.', 'Votre observation a été envoyée pour vérification.');
+          return say('Your report is now on the community map for one hour, marked unverified.', 'Votre signalement est visible pendant une heure sur la carte communautaire, sans vérification.');
         } catch { return say('The report was not sent. Please try again.', 'Le signalement n’a pas été envoyé. Réessayez.'); }
       }
       case 'navigate-saved':

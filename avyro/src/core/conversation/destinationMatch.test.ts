@@ -1,5 +1,5 @@
 import type { Place } from '@/core/domain/entities/place';
-import { describeDestination, isConfidentMatch } from './destinationMatch';
+import { describeDestination, isConfidentMatch, rankDestinationCandidates } from './destinationMatch';
 
 const place = (name: string, address = ''): Place => ({
   id: name,
@@ -80,5 +80,24 @@ describe('naming a destination out loud', () => {
 
   it('does not repeat itself', () => {
     expect(describeDestination(place('Lille', 'Lille'))).toBe('Lille');
+  });
+});
+
+
+describe('nearest matching branch selection', () => {
+  const origin = { latitude: 50.6, longitude: 3.0 };
+  const branch = (id: string, name: string, longitude: number): Place => ({ ...place(name), id, coordinates: { latitude: 50.6, longitude } });
+  it('chooses a nearby La Poste branch even when the provider lists the distant branch first', () => {
+    const far = branch('far', 'La Poste', 3.2), near = branch('near', 'La Poste', 3.002);
+    expect(rankDestinationCandidates('La Poste', [far, near], origin).map(p => p.id)).toEqual(['near', 'far']);
+  });
+  it('keeps an exact address or locality-qualified query in relevance order', () => {
+    const far = branch('far', 'La Poste Lille', 3.2), near = branch('near', 'La Poste', 3.002);
+    expect(rankDestinationCandidates('La Poste Lille', [far, near], origin)[0]).toBe(far);
+    expect(rankDestinationCandidates('18 Rue Exemple', [far, near], origin)[0]).toBe(far);
+  });
+  it('does not promote an unrelated close business over matching branches', () => {
+    const far = branch('far', 'La Poste', 3.2), near = branch('near', 'La Poste Agence', 3.002), other = branch('other', 'Restaurant', 3.0001);
+    expect(rankDestinationCandidates('La Poste', [far, other, near], origin)[0]).toBe(near);
   });
 });

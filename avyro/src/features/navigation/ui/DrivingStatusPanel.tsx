@@ -1,7 +1,9 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { StyleSheet, View } from 'react-native';
+import { useStores } from '@/app/runtime/AppRuntime';
 import { useLocationStore, usePreferencesStore } from '@/app/stores/hooks';
 import { AppText, Icon } from '@/ui/components';
+import { haptics } from '@/ui/feedback/haptics';
 import { colors } from '@/ui/theme';
 import { formatSpeed, speedUnitLabel } from '@/utils/format';
 import { useRoadInformation } from '../hooks/useRoadInformation';
@@ -9,6 +11,7 @@ import { aboveMappedLimit, measuredSpeed } from '@/core/navigation/measuredSpeed
 const SIGNS: Record<string, string> = { StopSign: 'STOP', YieldSign: 'Yield', TrafficLightSign: 'Signal', TrafficLightsSign: 'Signal', SchoolZoneSign: 'School', PedestrianCrossingSign: 'Crossing' };
 /** Compact separate instruments: measured speed and sourced legal-limit evidence. */
 export const DrivingStatusPanel = () => {
+  const stores = useStores();
   const fix = useLocationStore(state => state.position);
   const unit = usePreferencesStore(state => state.preferences.distanceUnit);
   const [now, setNow] = useState(Date.now);
@@ -17,6 +20,19 @@ export const DrivingStatusPanel = () => {
   const speed = measuredSpeed(fix, now);
   const limit = road?.speedLimit;
   const over = aboveMappedLimit(speed, limit);
+  const wasOver = useRef(false);
+  const lastWarning = useRef(0);
+  useEffect(() => {
+    if (over && !wasOver.current && now - lastWarning.current > 30000) {
+      haptics.emphasis(); lastWarning.current = now;
+      const prefs = stores.preferences.getState().preferences;
+      if (prefs.voiceGuidance && limit) {
+        const french = prefs.voiceLanguage === 'fr-FR' || (prefs.voiceLanguage === 'bilingual' && Intl.DateTimeFormat().resolvedOptions().locale.startsWith('fr'));
+        stores.conversation.getState().dispatch({ type: 'navigation-announcement', language: french ? 'fr-FR' : 'en-US', text: french ? `Ralentissez. La carte indique une limitation à ${limit.value} ${limit.unit}.` : `Slow down. The mapped limit is ${limit.value} ${limit.unit}.` });
+      }
+    }
+    wasOver.current = over;
+  }, [over, now, limit, stores]);
   const sign = road?.recentSegmentSigns?.map(s => SIGNS[s.type]).find(Boolean);
   return <View style={styles.root}>
     {sign ? <View style={styles.sign} accessibilityLabel={`Mapped road segment: ${sign}, position ahead unknown`}><Icon name="warning-outline" size={14} color={colors.textSecondary} /><AppText variant="caption">{sign} · mapped</AppText></View> : null}
@@ -27,7 +43,7 @@ export const DrivingStatusPanel = () => {
       </View>
       {limit ? <View style={styles.limit} accessibilityLabel={`TomTom mapped speed limit ${limit.value} ${limit.unit}`}><AppText variant="title3">{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9 }}>{limit.unit}</AppText></View> : null}
     </View>
-    {over ? <View style={styles.warning}><AppText variant="caption" tone="danger">Over mapped limit</AppText></View> : null}
+    {over ? <View style={styles.warning}><AppText variant="caption" tone="danger">Slow down · mapped limit {limit?.value} {limit?.unit}</AppText></View> : null}
   </View>;
 };
 const styles = StyleSheet.create({

@@ -12,6 +12,7 @@ export interface PlanTripInput {
   origin: Coordinates;
   destination: Place;
   signal?: AbortSignal;
+  waypoints?: readonly Coordinates[];
 }
 
 /**
@@ -20,11 +21,12 @@ export interface PlanTripInput {
  */
 export const createPlanTrip =
   ({ routingProvider }: Dependencies) =>
-  async ({ origin, destination, signal }: PlanTripInput): Promise<RoutePlan> => {
+  async ({ origin, destination, signal, waypoints }: PlanTripInput): Promise<RoutePlan> => {
     const routes = await routingProvider.getRoutes({
       origin,
       destination: destination.coordinates,
       alternatives: true,
+      waypoints,
       signal,
     });
 

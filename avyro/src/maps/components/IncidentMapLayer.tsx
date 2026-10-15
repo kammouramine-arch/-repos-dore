@@ -8,7 +8,7 @@ import { distanceBetween } from '@/utils/geo';
 import { Icon } from '@/ui/components';
 import { INCIDENT_CATALOG } from '@/features/incidents/incidentCatalog';
 
-/** Reviewed observations only; a review is not an official verification. */
+/** Expiring community observations; never presented as verified road facts. */
 export function IncidentMapLayer() {
   const { incidentReporter } = useServices();
   const position = useLocationStore(state => state.position);
@@ -25,13 +25,14 @@ export function IncidentMapLayer() {
     const controller = new AbortController();
     const refresh = () => { void incidentReporter.list!(controller.signal).then(items => { if (!controller.signal.aborted) setReports(items); }).catch(() => { if (!controller.signal.aborted) setReports([]); }); };
     refresh();
+    const unsubscribe = incidentReporter.subscribe?.(refresh);
     const timer = setInterval(refresh, 60000);
-    return () => { clearInterval(timer); controller.abort(); };
+    return () => { unsubscribe?.(); clearInterval(timer); controller.abort(); };
   }, [active, incidentReporter]);
   if (!active || !position) return null;
   return <>{reports.filter(item => item.expires > now && distanceBetween(position.coordinates, { latitude: item.latitude, longitude: item.longitude }) < 10000).map(item => {
     const category = INCIDENT_CATALOG.find(entry => entry.category === item.category)!;
-    return <Marker key={item.id} coordinate={{ latitude: item.latitude, longitude: item.longitude }} title={category.title} description="Reviewed community observation · approximate location · conditions may change" tracksViewChanges={false}><View style={[styles.marker, { borderColor: category.color }]}><Icon name={category.icon} size={22} color={category.color} /></View></Marker>;
+    return <Marker key={item.id} coordinate={{ latitude: item.latitude, longitude: item.longitude }} title={category.title} description="Unverified community observation · expires after 1 hour · approximate location" tracksViewChanges={false}><View style={[styles.marker, { borderColor: category.color }]}><Icon name={category.icon} size={22} color={category.color} /></View></Marker>;
   })}</>;
 }
 const styles = StyleSheet.create({ marker: { width: 38, height: 38, alignItems: 'center', justifyContent: 'center', borderRadius: 14, borderWidth: 2, borderColor: '#087F83', backgroundColor: '#FFFFFF' } });

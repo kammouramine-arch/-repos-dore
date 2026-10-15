@@ -25,6 +25,7 @@ import { useGuidanceSession } from "../hooks/useGuidanceSession";
 import { ArrivalCard } from "./ArrivalCard";
 import { GuidanceControls } from "./GuidanceControls";
 import { ManeuverBanner } from "./ManeuverBanner";
+import { TripDetailsSheet } from "./TripDetailsSheet";
 import { TripStatusBar } from "./TripStatusBar";
 
 const KEEP_AWAKE_TAG = "avyro-guidance";
@@ -45,11 +46,13 @@ export const GuidanceScreen = () => {
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
   const [overview, setOverview] = useState(false);
+  const [details, setDetails] = useState(false);
 
   // One selector per slice: the map subtree below re-renders on every fix, and
   // subscribing to the whole store would add every unrelated field to that.
   const status = useNavigationStore((state) => state.status);
   const routeIndex = useNavigationStore((state) => state.routeIndex);
+  const stops = useNavigationStore(state => state.stops);
   const destination = useNavigationStore((state) => state.destination);
   const progress = useNavigationStore((state) => state.progress);
   const stop = useNavigationStore((state) => state.stop);
@@ -76,7 +79,7 @@ export const GuidanceScreen = () => {
       {
         center: progress.snappedPosition,
         heading: progress.courseDegrees,
-        pitch: 0,
+        pitch: MAP_DEFAULTS.navigationCamera.pitch,
         zoom: MAP_DEFAULTS.navigationCamera.zoom,
         altitude: MAP_DEFAULTS.navigationCamera.altitude,
       },
@@ -131,6 +134,7 @@ export const GuidanceScreen = () => {
           />
         ) : null}
 
+        {stops.map((stop, index) => <DestinationMarker key={stop.id} coordinate={stop.coordinates} title={`Stop ${index + 1}: ${stop.name}`} />)}
         {destination ? (
           <DestinationMarker
             coordinate={destination.coordinates}
@@ -212,9 +216,12 @@ export const GuidanceScreen = () => {
             progress={progress}
             unit={preferences.distanceUnit}
             onEnd={endTrip}
+            onDetails={() => setDetails(true)}
+            destinationName={destination?.name}
           />
         ) : <GlassPanel style={styles.waiting}><AppText variant="footnote" tone="secondary" style={{ flexShrink: 1 }}>Waiting for an accurate GPS fix</AppText><Button label="End" variant="danger" size="medium" onPress={endTrip} /></GlassPanel>}
       </View>
+      {details ? <TripDetailsSheet visible onClose={() => setDetails(false)} /> : null}
     </View>
   );
 };

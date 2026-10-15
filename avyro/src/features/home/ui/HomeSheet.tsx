@@ -1,7 +1,6 @@
-import { Alert, StyleSheet, View } from 'react-native';
+import { StyleSheet, View } from 'react-native';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
-import { usePreferencesStore } from '@/app/stores/hooks';
 
 import type { Place, RecentDestination } from '@/core/domain/entities/place';
 import { PLACE_ICONS } from '@/features/search/placeIcons';
@@ -32,12 +31,6 @@ export const HomeSheet = ({
 }: HomeSheetProps) => {
   const [expanded, setExpanded] = useState(false);
   const navigation = useNavigation();
-  const preferences = usePreferencesStore(state => state.preferences);
-  const update = usePreferencesStore(state => state.update);
-  const connect = () => Alert.alert('Connect your companion?', 'AI speech sends only your short command audio after wake-up to Cloudflare’s Whisper service for transcription, and command text for interpretation. Free testing is limited; offline recognition remains available. Road information sends a short GPS trace to Avyro and TomTom during navigation. Ambient listening stays on your iPhone. Both can be switched off in Settings.', [
-    { text: 'Later', style: 'cancel' },
-    { text: 'Enable AI and road information', onPress: () => void update({ cloudAssistant: true, cloudSpeech: true, roadInformation: true, showTraffic: true }) },
-  ]);
   return (
   <GlassPanel style={styles.sheet}>
     <PressableScale accessibilityRole="button" accessibilityLabel={expanded ? 'Collapse recent destinations' : 'Show recent destinations'} onPress={() => setExpanded(!expanded)}><View style={styles.grabber} /></PressableScale>
@@ -48,7 +41,6 @@ export const HomeSheet = ({
       <View style={styles.shortcuts}>
         {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Nearby', { category: label === 'Fuel' ? 'fuel' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{label}</AppText></PressableScale>)}
       </View>
-      {!preferences.cloudSpeech || !preferences.cloudAssistant || !preferences.roadInformation ? <PressableScale accessibilityRole="button" onPress={connect}><AppText variant="footnote" tone="accent">Enable AI voice & road information</AppText></PressableScale> : null}
 
       {locationError ? (
         <ListRow

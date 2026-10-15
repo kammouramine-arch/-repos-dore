@@ -10,8 +10,8 @@ export type RootStackParamList = {
   Login: undefined;
   Register: undefined;
   Home: undefined;
-  Nearby: { category: 'fuel' | 'restaurants' | 'parking' };
-  Search: { saveSlot?: 'home' | 'work'; initialQuery?: string } | undefined;
+  Nearby: { category: 'fuel' | 'restaurants' | 'parking'; addStop?: boolean };
+  Search: { saveSlot?: 'home' | 'work'; initialQuery?: string; addStop?: boolean } | undefined;
   RoutePreview: undefined;
   Guidance: undefined;
   Settings: undefined;

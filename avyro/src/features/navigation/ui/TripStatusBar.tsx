@@ -1,8 +1,8 @@
-import { StyleSheet, View } from 'react-native';
+import { StyleSheet } from 'react-native';
 
 import type { NavigationProgress } from '@/core/domain/entities/navigation';
 import type { DistanceUnit } from '@/core/domain/entities/preferences';
-import { AppText, Button, GlassPanel } from '@/ui/components';
+import { AppText, Button, GlassPanel, PressableScale } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import {
   formatArrivalTime,
@@ -14,6 +14,8 @@ export interface TripStatusBarProps {
   progress: NavigationProgress;
   unit: DistanceUnit;
   onEnd: () => void;
+  onDetails: () => void;
+  destinationName?: string;
 }
 
 /**
@@ -32,12 +34,15 @@ export const TripStatusBar = ({
   progress,
   unit,
   onEnd,
+  onDetails,
+  destinationName,
 }: TripStatusBarProps) => {
   const road = progress.currentStep.roadName;
 
   return (
     <GlassPanel style={styles.bar}>
-      <View style={styles.figures}>
+      <PressableScale style={styles.figures} accessibilityRole="button" accessibilityLabel="Trip details" onPress={onDetails}>
+        <AppText variant="caption" tone="accent" numberOfLines={1}>{destinationName ?? 'Your destination'} · Details ⌃</AppText>
         <AppText variant="title2">
           {formatArrivalTime(progress.remainingDurationSeconds)}
         </AppText>
@@ -50,7 +55,7 @@ export const TripStatusBar = ({
             {road}
           </AppText>
         ) : null}
-      </View>
+      </PressableScale>
 
       <Button
         label="End"

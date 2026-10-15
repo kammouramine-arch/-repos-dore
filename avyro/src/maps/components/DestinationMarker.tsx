@@ -1,4 +1,5 @@
 import { memo } from 'react';
+import { Platform } from 'react-native';
 import { Marker } from 'react-native-maps';
 import Svg, { Circle, Defs, LinearGradient, Path, Stop } from 'react-native-svg';
 
@@ -21,7 +22,7 @@ const DestinationMarkerComponent = ({ coordinate, title }: DestinationMarkerProp
     coordinate={coordinate}
     title={title}
     anchor={{ x: 0.5, y: 1 }}
-    tracksViewChanges={false}
+    tracksViewChanges={Platform.OS === 'ios'}
     zIndex={15}
   >
     <Svg width={40} height={52} viewBox="0 0 40 52">
@@ -38,7 +39,8 @@ const DestinationMarkerComponent = ({ coordinate, title }: DestinationMarkerProp
         stroke="rgba(255,255,255,0.35)"
         strokeWidth="1.2"
       />
-      <Circle cx="20" cy="18.5" r="6.2" fill={palette.white} />
+      <Circle cx="20" cy="18.5" r="11" fill={palette.white} />
+      <Path d="M14 26V12h12l-3 4 3 4H14" fill="#173B4C" stroke="#173B4C" strokeWidth="2" strokeLinejoin="round" />
     </Svg>
   </Marker>
 );

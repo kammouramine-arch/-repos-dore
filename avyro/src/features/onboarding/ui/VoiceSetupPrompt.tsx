@@ -6,7 +6,7 @@ import { colors, spacing } from '@/ui/theme';
 /** One invitation over the map. Declining never blocks navigation. */
 export const VoiceSetupPrompt = () => {
   const { preferences, update } = usePreferencesStore();
-  return <Modal transparent animationType="slide" visible={!preferences.voiceSetupSeen} onRequestClose={() => void update({ voiceSetupSeen: true })}>
+  return <Modal transparent animationType="slide" visible={!preferences.voiceSetupSeen || !preferences.assistantSetupSeen} onRequestClose={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true })}>
     <View style={styles.backdrop}>
       <GlassPanel style={styles.card}>
         <AvyroMark size={64} ring={false} />
@@ -16,9 +16,10 @@ export const VoiceSetupPrompt = () => {
           <AppText variant="subhead">“Hey Avyro, emmène-moi à la maison.”</AppText>
           <AppText variant="footnote" tone="secondary">“Hey Avyro, take me home.”</AppText>
         </View>
-        <AppText variant="footnote" tone="secondary">On-device listening while Avyro is open. Your iPhone will ask for microphone access. You can switch this off at any time.</AppText>
-        <Button label="Enable hands-free" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
-        <Button label="Explore the map first" variant="ghost" onPress={() => void update({ voiceSetupSeen: true })} />
+        <AppText variant="footnote" tone="secondary">Your companion is ready: short commands go to Cloudflare AI for speech and interpretation; a short GPS trace goes to TomTom for road information. Ambient wake listening stays on this iPhone, while Avyro is open. Free test limits apply. You can turn each feature off in Settings.</AppText>
+        <Button label="Continue with hands-free AI" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, assistantSetupSeen: true, cloudSpeech: true, cloudAssistant: true, roadInformation: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
+        <Button label="Continue without hands-free" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, cloudSpeech: true, cloudAssistant: true, roadInformation: true })} />
+        <Button label="Use offline features only" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, voiceCommands: false, cloudSpeech: false, cloudAssistant: false, roadInformation: false })} />
       </GlassPanel>
     </View>
   </Modal>;

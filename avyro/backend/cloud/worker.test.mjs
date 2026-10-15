@@ -14,10 +14,10 @@ test('anonymous access works without a personal account; reports stay pending an
   assert.equal((await request('/moderation', null, token)).status, 403);
   const report = await request('/incidents', { category: 'hazard', latitude: 48.856612, longitude: 2.352219, observedAt: Date.now(), consent: true, status: 'approved' }, token);
   assert.equal(report.status, 202); assert.equal((await report.json()).status, 'pending');
-  assert.deepEqual(await (await request('/incidents', null, token)).json(), []);
+  assert.ok((await (await request('/incidents', null, token)).json()).every(item => item.status !== 'pending'));
   const traffic = await request('/incidents', { category: 'traffic', latitude: 48.856612, longitude: 2.352219, observedAt: Date.now(), consent: true, status: 'approved' }, token);
   assert.equal(traffic.status, 202); assert.equal((await traffic.json()).status, 'pending');
-  assert.deepEqual(await (await request('/incidents', null, token)).json(), []);
+  assert.ok((await (await request('/incidents', null, token)).json()).every(item => item.status !== 'pending'));
   assert.equal((await request('/incidents', { category: 'hazard', latitude: 48, longitude: 2, observedAt: Date.now(), consent: false }, token)).status, 400);
   assert.equal((await request('/roads/context', { consent: true }, token)).status, 503);
   assert.equal((await request('/auth/logout', {}, token)).status, 200);
@@ -47,4 +47,19 @@ test('speech endpoint requires authentication, consent and valid bounded WAV', a
   assert.equal((await request('/speech/transcribe', { audio: 'bad', language: 'auto', consent: false }, token)).status, 400);
   assert.equal((await request('/speech/transcribe', { audio: 'bad', language: 'auto', consent: true }, token)).status, 400);
   assert.equal((await request('/speech/transcribe', { padding: 'x'.repeat(900001) }, token)).status, 413);
+});
+
+
+test('explicit community observations appear immediately as unverified with bounded expiry', async () => {
+  const { token } = await (await request('/auth/guest', {})).json();
+  const response = await request('/incidents', { category: 'traffic', latitude: 48.856612, longitude: 2.352219, observedAt: Date.now(), consent: true, publication: 'community', status: 'approved' }, token);
+  assert.equal(response.status, 202);
+  const report = await response.json();
+  assert.equal(report.status, 'community');
+  assert.ok(report.expires - Date.now() <= 3600000);
+  const feed = await (await request('/incidents?community=1', null, token)).json();
+  assert.ok(!(await (await request('/incidents', null, token)).json()).some(item => item.id === report.id));
+  assert.equal(feed.find(item => item.id === report.id)?.status, 'community');
+  assert.equal(report.latitude, 48.8566);
+  assert.equal((await request('/moderation', { id: report.id, decision: 'approved' }, token)).status, 403);
 });

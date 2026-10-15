@@ -68,7 +68,7 @@ export const Button = ({
   );
 
   return (
-    <PressableScale
+    <PressableScale haptic={false}
       accessibilityRole="button"
       accessibilityLabel={label}
       accessibilityState={{ disabled: isDisabled, busy: loading }}

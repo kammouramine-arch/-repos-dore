@@ -34,8 +34,8 @@ export const AvyroMapView = ({
     ref={mapRef}
     provider={Platform.OS === 'android' ? PROVIDER_GOOGLE : undefined}
     customMapStyle={Platform.OS === 'android' && appearance === 'standard' ? darkMapStyle : undefined}
-    mapType={appearance === 'satellite' ? 'hybrid' : Platform.OS === 'ios' ? 'mutedStandard' : 'standard'}
-    showsBuildings={false}
+    mapType={appearance === 'satellite' ? 'hybrid' : 'standard'}
+    showsBuildings
     userInterfaceStyle="light"
     showsUserLocation={false}
     showsMyLocationButton={false}

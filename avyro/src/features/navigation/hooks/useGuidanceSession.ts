@@ -10,6 +10,7 @@ import {
   isOffRoute,
   trackPosition,
 } from '@/core/navigation/routeTracker';
+import { distanceBetween } from '@/utils/geo';
 import { haptics } from '@/ui/feedback/haptics';
 import { initialAnnouncerState, nextAnnouncement } from '@/voice/guidanceAnnouncer';
 
@@ -77,6 +78,7 @@ export const useGuidanceSession = () => {
         const plan = await services.useCases.planTrip({
           origin: position.coordinates,
           destination,
+          waypoints: navigation.getState().stops.map(stop => stop.coordinates),
         });
         const [next] = plan.routes;
         if (!next) return;
@@ -100,6 +102,8 @@ export const useGuidanceSession = () => {
 
     const onPosition = (position: UserPosition) => {
       location.getState().setPosition(position);
+      const stops = navigation.getState().stops;
+      if (stops[0] && distanceBetween(position.coordinates, stops[0].coordinates) <= 50) navigation.getState().setStops(stops.slice(1));
 
       const result = trackPosition(routeIndex, position, trackerRef.current);
       if (!result) return;

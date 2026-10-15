@@ -419,7 +419,7 @@ export const useConversationEngine = (): void => {
           const supported = await Promise.all(requestedLocales.map(locale => services.speechRecognizer.supportsOnDevice(locale)));
           const installedLocales = requestedLocales.filter((_locale, index) => supported[index]);
           const onDevice = installedLocales.length > 0;
-          const locales = onDevice ? installedLocales : requestedLocales;
+          const locales = requestedLocales;
           const permissionRequest = { networkRecognition: !onDevice };
           let permission =
             await services.speechRecognizer.getPermission(permissionRequest);

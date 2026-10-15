@@ -30,7 +30,7 @@ export const IconButton = ({
   size = sizing.iconButton,
   style,
 }: IconButtonProps) => (
-  <PressableScale
+  <PressableScale haptic={false}
     accessibilityRole="button"
     accessibilityLabel={accessibilityLabel}
     accessibilityHint={accessibilityHint}

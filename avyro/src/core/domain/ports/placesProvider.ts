@@ -11,6 +11,7 @@ export interface PlaceSearchOptions {
 
 /** Turns what the driver types into places they can navigate to. */
 export interface PlacesProvider {
+  nearby?(category: 'fuel' | 'restaurants' | 'parking', options: PlaceSearchOptions): Promise<Place[]>;
   supportsTypeahead?: boolean;
   attribution?: string;
   suggest?(query: string, options?: PlaceSearchOptions): Promise<PlaceSuggestion[]>;

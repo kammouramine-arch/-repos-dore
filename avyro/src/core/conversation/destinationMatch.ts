@@ -1,3 +1,5 @@
+import type { Coordinates } from '@/core/domain/entities/geo';
+import { distanceBetween } from '@/utils/geo';
 import type { Place } from '@/core/domain/entities/place';
 import { normaliseUtterance } from './wakePhrase';
 
@@ -84,4 +86,20 @@ export const describeDestination = (place: Place): string => {
   return locality && matchable(locality) !== matchable(name)
     ? `${name}, ${locality}`
     : name;
+};
+
+/** Rank matching branch names by proximity, but never erase an explicit address/locality. */
+export const rankDestinationCandidates = (query: string, results: readonly Place[], origin?: Coordinates | null): Place[] => {
+  const wanted = matchable(query);
+  if (!origin || !wanted || /^\d/.test(wanted)) return [...results];
+  // Only equally matching names compete on distance. A query with a street or town
+  // qualifier remains in provider relevance order instead of silently dropping it.
+  const matching = results.filter(place => {
+    const name = matchable(place.name);
+    return name === wanted || containsWords(name, wanted);
+  });
+  if (matching.length < 2) return [...results];
+  matching.sort((a, b) => distanceBetween(origin, a.coordinates) - distanceBetween(origin, b.coordinates));
+  const ids = new Set(matching.map(place => place.id));
+  return [...matching, ...results.filter(place => !ids.has(place.id))];
 };

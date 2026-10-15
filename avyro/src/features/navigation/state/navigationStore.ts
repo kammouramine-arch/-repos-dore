@@ -28,6 +28,8 @@ export interface NavigationState {
    */
   previousDestination: Place | null;
   progress: NavigationProgress | null;
+  stops: Place[];
+  setStops: (stops: Place[]) => void;
 
   start: (route: Route, destination: Place) => void;
   /** Swaps in a freshly computed route after the driver left the old one. */
@@ -47,6 +49,8 @@ export interface NavigationState {
 export const createNavigationStore = () =>
   create<NavigationState>()((set) => ({
     status: 'idle',
+    stops: [],
+    setStops: stops => set({ stops }),
     route: null,
     routeIndex: null,
     destination: null,
@@ -56,6 +60,7 @@ export const createNavigationStore = () =>
     start: (route, destination) =>
       set((state) => ({
         status: 'guiding',
+        stops: [],
         route,
         routeIndex: createRouteIndex(route),
         destination,
@@ -87,6 +92,7 @@ export const createNavigationStore = () =>
     stop: () =>
       set({
         status: 'idle',
+        stops: [],
         route: null,
         routeIndex: null,
         destination: null,

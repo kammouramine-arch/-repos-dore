@@ -86,7 +86,45 @@ public final class AvyroWakeModule: Module {
         request.region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), latitudinalMeters: 50000, longitudinalMeters: 50000)
       }
       let response = try await MKLocalSearch(request: request).start()
-      return response.mapItems.prefix(8).map { item in
+      return response.mapItems.map { item in
+        let address = item.placemark
+        let street = [address.subThoroughfare, address.thoroughfare].compactMap { $0 }.joined(separator: " ")
+        let fullAddress = [street, address.locality, address.postalCode, address.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+        return ["name": item.name ?? street, "address": fullAddress, "houseNumber": address.subThoroughfare ?? "", "latitude": address.coordinate.latitude, "longitude": address.coordinate.longitude]
+      }
+    }
+    AsyncFunction("searchNearbyNamedPlaces") { (query: String, latitude: Double?, longitude: Double?) async throws -> [[String: Any]] in
+      let request = MKLocalSearch.Request()
+      request.naturalLanguageQuery = query
+      request.resultTypes = [.address, .pointOfInterest]
+      if let latitude, let longitude {
+        request.region = MKCoordinateRegion(center: CLLocationCoordinate2D(latitude: latitude, longitude: longitude), latitudinalMeters: 4000, longitudinalMeters: 4000)
+      }
+      if #available(iOS 18.0, *) { request.regionPriority = .required }
+      let response = try await MKLocalSearch(request: request).start()
+      return response.mapItems.map { item in
+        let address = item.placemark
+        let street = [address.subThoroughfare, address.thoroughfare].compactMap { $0 }.joined(separator: " ")
+        let fullAddress = [street, address.locality, address.postalCode, address.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")
+        return ["name": item.name ?? street, "address": fullAddress, "houseNumber": address.subThoroughfare ?? "", "latitude": address.coordinate.latitude, "longitude": address.coordinate.longitude]
+      }
+    }
+    AsyncFunction("searchNearbyPlaces") { (category: String, latitude: Double, longitude: Double) async throws -> [[String: Any]] in
+      let categories: [MKPointOfInterestCategory]
+      switch category {
+      case "fuel": categories = [.gasStation]
+      case "restaurants": categories = [.restaurant, .cafe, .bakery]
+      case "parking": categories = [.parking]
+      default: throw self.wakeError("Unknown nearby category.")
+      }
+      let center = CLLocationCoordinate2D(latitude: latitude, longitude: longitude)
+      let request = MKLocalPointsOfInterestRequest(center: center, radius: min(2000, MKLocalPointsOfInterestRequest.maxRadius))
+      request.pointOfInterestFilter = MKPointOfInterestFilter(including: categories)
+      let response = try await MKLocalSearch(request: request).start()
+      let origin = CLLocation(latitude: latitude, longitude: longitude)
+      return response.mapItems.sorted { a, b in
+        origin.distance(from: CLLocation(latitude: a.placemark.coordinate.latitude, longitude: a.placemark.coordinate.longitude)) < origin.distance(from: CLLocation(latitude: b.placemark.coordinate.latitude, longitude: b.placemark.coordinate.longitude))
+      }.map { item in
         let address = item.placemark
         let street = [address.subThoroughfare, address.thoroughfare].compactMap { $0 }.joined(separator: " ")
         let fullAddress = [street, address.locality, address.postalCode, address.country].compactMap { $0 }.filter { !$0.isEmpty }.joined(separator: ", ")

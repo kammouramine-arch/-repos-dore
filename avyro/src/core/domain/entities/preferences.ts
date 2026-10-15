@@ -14,6 +14,7 @@ export interface Preferences {
    */
   voiceCommands: boolean;
   voiceSetupSeen: boolean;
+  assistantSetupSeen: boolean;
   voiceLanguage: 'bilingual' | 'fr-FR' | 'en-US';
   voiceDetection: 'system' | 'keyword';
   cloudAssistant: boolean;
@@ -34,6 +35,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   voiceGuidance: true,
   voiceCommands: false,
   voiceSetupSeen: false,
+  assistantSetupSeen: false,
   voiceLanguage: 'bilingual',
   voiceDetection: 'system',
   cloudAssistant: false,

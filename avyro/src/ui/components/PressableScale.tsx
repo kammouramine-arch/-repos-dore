@@ -6,6 +6,7 @@ import Animated, {
   withTiming,
 } from 'react-native-reanimated';
 
+import { haptics } from '@/ui/feedback/haptics';
 import { motion } from '@/ui/theme';
 
 const AnimatedPressable = Animated.createAnimatedComponent(Pressable);
@@ -16,6 +17,7 @@ export interface PressableScaleProps extends Omit<PressableProps, 'style'> {
   activeScale?: number;
   /** Dim as well as shrink — right for large surfaces, wrong for small icons. */
   dim?: boolean;
+  haptic?: boolean;
 }
 
 /**
@@ -26,6 +28,7 @@ export const PressableScale = ({
   style,
   activeScale = 0.97,
   dim = false,
+  haptic = true,
   disabled,
   ...rest
 }: PressableScaleProps) => {
@@ -42,6 +45,7 @@ export const PressableScale = ({
     <AnimatedPressable
       {...rest}
       disabled={disabled}
+      onPress={(event) => { if (haptic && !disabled && rest.onPress) haptics.tap(); rest.onPress?.(event); }}
       onPressIn={(event) => {
         pressed.value = 1;
         rest.onPressIn?.(event);

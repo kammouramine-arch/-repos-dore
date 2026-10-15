@@ -3,12 +3,15 @@ import type { IncidentReporter, ReviewedIncident } from '@/core/domain/ports/inc
 import { AppError } from '@/core/domain/errors/appError';
 import type { HttpClient } from '@/services/http/httpClient';
 
-export const createGatewayIncidentReporter = ({ http, getAccessToken }: { http: HttpClient; getAccessToken(): Promise<string | null> }): IncidentReporter => ({
+export const createGatewayIncidentReporter = ({ http, getAccessToken }: { http: HttpClient; getAccessToken(): Promise<string | null> }): IncidentReporter => {
+  const listeners = new Set<() => void>();
+  return ({
+  subscribe(listener) { listeners.add(listener); return () => { listeners.delete(listener); }; },
   isConfigured: () => env.backendUrl.startsWith('https://'),
   async list(signal) {
     const token = await getAccessToken();
     if (!token) throw new AppError('network', 'Community reports unavailable.');
-    return http.getJson(`${env.backendUrl}/incidents`, value => {
+    return http.getJson(`${env.backendUrl}/incidents?community=1`, value => {
       if (!Array.isArray(value) || value.length > 100) throw new AppError('invalid-response', 'Invalid community feed.');
       return value.filter((item): item is ReviewedIncident => item && typeof item.id === 'string' &&
         ['accident','hazard','closure','police','traffic','blocked-lane','weather','map-issue'].includes(item.category) &&
@@ -25,9 +28,12 @@ export const createGatewayIncidentReporter = ({ http, getAccessToken }: { http: 
       longitude: observation.coordinates.longitude,
       observedAt: observation.timestamp,
       consent: true,
+      publication: 'community',
     }, (value) => {
-      if (!value || typeof value !== 'object' || !('status' in value) || value.status !== 'pending') throw new AppError('invalid-response', 'Report was not accepted.');
+      if (!value || typeof value !== 'object' || !('status' in value) || value.status !== 'community') throw new AppError('invalid-response', 'Report was not accepted.');
       return null;
     }, { operation: 'incident.submit', headers: { Authorization: `Bearer ${token}` } });
+    listeners.forEach(listener => listener());
   },
 });
+};

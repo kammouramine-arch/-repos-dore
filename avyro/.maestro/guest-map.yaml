@@ -8,7 +8,7 @@ appId: app.avyro.companion
 - takeScreenshot: build/screens/01-voice-invitation
 - waitForAnimationToEnd
 - tapOn:
-    text: "Explore the map first"
+    text: "Continue without hands-free"
     retryTapIfNoChange: true
 - takeScreenshot: build/screens/02-after-invitation
 - assertVisible: "Search for a destination"
@@ -58,3 +58,10 @@ appId: app.avyro.companion
     notVisible: "Waiting for GPS…"
     timeout: 60000
 - takeScreenshot: build/screens/06-guidance
+
+- tapOn: "Trip details"
+- assertVisible: "Your trip"
+- assertVisible: "Add a stop"
+- assertVisible: "Parking stop"
+- takeScreenshot: build/screens/09-trip-details
+- tapOn: "Back to navigation"

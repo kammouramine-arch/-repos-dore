@@ -42,14 +42,14 @@ export const NearbyScreen = () => {
   useEffect(() => {
     const controller = new AbortController();
     if (!origin) return () => controller.abort();
-    void placesProvider.search(category.query, { near: origin, signal: controller.signal, limit: 8 }).then(found => {
+    void (placesProvider.nearby ? placesProvider.nearby(route.params.category, { near: origin, signal: controller.signal, limit: 25 }) : placesProvider.search(category.query, { near: origin, signal: controller.signal, limit: 25 })).then(found => {
       if (controller.signal.aborted) return;
       const nearby = found.filter(place => distanceBetween(origin, place.coordinates) <= 50000).sort((a, b) => distanceBetween(origin, a.coordinates) - distanceBetween(origin, b.coordinates));
       setPlaces(nearby); setBusy(false);
       if (nearby.length) map.current?.fitToCoordinates([origin, ...nearby.map(p => p.coordinates)], { animated: true, edgePadding: { top: 130, left: 45, right: 45, bottom: sheetHeightRef.current + 30 } });
     }).catch(() => { if (!controller.signal.aborted) { setFailed(true); setBusy(false); } });
     return () => controller.abort();
-  }, [category.query, origin, placesProvider, retry]);
+  }, [category.query, origin, placesProvider, retry, route.params.category]);
   return <View style={styles.root}>
     <AvyroMapView mapRef={map} appearance={prefs.mapStyle} showsTraffic={prefs.showTraffic} initialRegion={origin ? { ...origin, latitudeDelta: .025, longitudeDelta: .025 } : MAP_DEFAULTS.fallbackRegion} legalLabelInsets={{ top: 0, left: 12, right: 0, bottom: sheetHeight + 8 }}>
       {fix ? <UserPuck coordinate={fix.coordinates} headingDegrees={heading} /> : null}
@@ -59,7 +59,7 @@ export const NearbyScreen = () => {
     <View style={styles.sheetPosition} onLayout={event => { const height = Math.ceil(event.nativeEvent.layout.height); sheetHeightRef.current = height; setSheetHeight(height); }}><GlassPanel style={{ ...styles.sheet, paddingBottom: Math.max(insets.bottom, 12) }}>
       <View style={styles.grabber} /><AppText variant="title3">{category.title}</AppText>
       <AppText variant="caption" tone="secondary">{placesProvider.supportsTypeahead ? 'Apple Maps' : 'OpenStreetMap contributors'} · straight-line distances</AppText>
-      {!origin ? <AppText variant="footnote" style={styles.empty}>Enable your location on the map to search nearby.</AppText> : busy ? <ActivityIndicator style={{ margin: 24 }} color={colors.accent} /> : failed ? <View style={styles.empty}><AppText variant="footnote">Nearby search unavailable</AppText><Button label="Try again" size="medium" onPress={() => { setBusy(true); setFailed(false); setRetry(value => value + 1); }} /></View> : !places.length ? <AppText variant="footnote" style={styles.empty}>No nearby results found.</AppText> : <FlatList style={{ maxHeight: 235 }} data={selected ? [...places.filter(p => p.id === selected), ...places.filter(p => p.id !== selected)] : places} keyExtractor={p => p.id} renderItem={({ item, index }) => <ListRow testID={`nearby-result-${index}`} title={item.name} subtitle={item.address} icon={category.icon} trailing={origin ? <AppText variant="caption" tone="secondary">{formatDistance(distanceBetween(origin, item.coordinates), prefs.distanceUnit)}</AppText> : undefined} onPress={() => void plan(item)} />} />}
+      {!origin ? <AppText variant="footnote" style={styles.empty}>Enable your location on the map to search nearby.</AppText> : busy ? <ActivityIndicator style={{ margin: 24 }} color={colors.accent} /> : failed ? <View style={styles.empty}><AppText variant="footnote">Nearby search unavailable</AppText><Button label="Try again" size="medium" onPress={() => { setBusy(true); setFailed(false); setRetry(value => value + 1); }} /></View> : !places.length ? <AppText variant="footnote" style={styles.empty}>No mapped results within 2 km. Try searching by name.</AppText> : <FlatList style={{ maxHeight: 235 }} data={selected ? [...places.filter(p => p.id === selected), ...places.filter(p => p.id !== selected)] : places} keyExtractor={p => p.id} renderItem={({ item, index }) => <ListRow testID={`nearby-result-${index}`} title={item.name} subtitle={item.address} icon={category.icon} trailing={origin ? <AppText variant="caption" tone="secondary">{formatDistance(distanceBetween(origin, item.coordinates), prefs.distanceUnit)}</AppText> : undefined} onPress={() => void plan(item, route.params.addStop)} />} />}
     </GlassPanel></View>
   </View>;
 };

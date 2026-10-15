@@ -131,29 +131,37 @@ export default {
       }
       if (route === '/incidents' && method === 'POST') {
         await rate(db, `report:${user.id}`, 3, 600000); await rate(db, `report:${ip}`, 6, 600000);
-        const { category, latitude, longitude, observedAt, consent } = await body(request), now = Date.now();
+        const { category, latitude, longitude, observedAt, consent, publication } = await body(request), now = Date.now();
         if (!['accident','hazard','closure','police','traffic','blocked-lane','weather','map-issue'].includes(category) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180 || !Number.isFinite(observedAt) || observedAt > now + 5000 || now - observedAt > 300000 || consent !== true) throw fail(400, 'Recent observation and consent required.');
         const id = crypto.randomUUID();
-        await db.prepare('INSERT INTO incidents (id,user_id,category,latitude,longitude,observed,expires) VALUES (?,?,?,?,?,?,?)').bind(id, user.id, category, Math.round(latitude * 10000) / 10000, Math.round(longitude * 10000) / 10000, observedAt, now + 3600000).run();
-        return json({ id, status: 'pending' }, 202);
+        // Structured categories only: no user text or personal data enters the public pin.
+        // Automated acceptance checks freshness, consent, coordinates and rate limits;
+        // this never claims that the observation is factually verified.
+        const status = publication === 'community' ? 'community' : 'pending';
+        const report = { id, status, category, latitude: Math.round(latitude * 10000) / 10000, longitude: Math.round(longitude * 10000) / 10000, observed: observedAt, expires: now + 3600000 };
+        await db.prepare('INSERT INTO incidents (id,user_id,category,latitude,longitude,observed,expires,status) VALUES (?,?,?,?,?,?,?,?)').bind(id, user.id, category, report.latitude, report.longitude, observedAt, report.expires, status).run();
+        return json(report, 202);
       }
       if (route === '/moderation') {
         if (!moderator(user, env)) throw fail(403, 'Moderator access required.');
-        if (method === 'GET') return json((await db.prepare("SELECT id,category,latitude,longitude,observed,expires,status FROM incidents WHERE status='pending' AND expires>? ORDER BY observed DESC LIMIT 100").bind(Date.now()).all()).results);
+        if (method === 'GET') return json((await db.prepare("SELECT id,category,latitude,longitude,observed,expires,status FROM incidents WHERE status IN ('pending','community') AND expires>? ORDER BY observed DESC LIMIT 100").bind(Date.now()).all()).results);
         if (method === 'POST') {
           const { id, decision } = await body(request);
           if (typeof id !== 'string' || !['approved','rejected'].includes(decision)) throw fail(400, 'Invalid review.');
           const now = Date.now();
           // D1 batches are transactional. Audit insert only applies to a changed pending row.
           const result = await db.batch([
-            db.prepare('INSERT INTO moderation_audit (incident_id,moderator,decision,at) SELECT id,?,?,? FROM incidents WHERE id=? AND status=\'pending\' AND expires>?').bind(user.id, decision, now, id, now),
-            db.prepare("UPDATE incidents SET status=?,reviewer=?,reviewed=? WHERE id=? AND status='pending' AND expires>?").bind(decision, user.id, now, id, now),
+            db.prepare('INSERT INTO moderation_audit (incident_id,moderator,decision,at) SELECT id,?,?,? FROM incidents WHERE id=? AND status IN (\'pending\',\'community\') AND expires>?').bind(user.id, decision, now, id, now),
+            db.prepare("UPDATE incidents SET status=?,reviewer=?,reviewed=? WHERE id=? AND status IN ('pending','community') AND expires>?").bind(decision, user.id, now, id, now),
           ]);
           if (!result[1].meta.changes) throw fail(404, 'Pending report not found.');
           return json({ reviewed: true });
         }
       }
-      if (route === '/incidents' && method === 'GET') return json((await db.prepare("SELECT id,category,latitude,longitude,observed,expires FROM incidents WHERE status='approved' AND expires>? ORDER BY observed DESC LIMIT 100").bind(Date.now()).all()).results);
+      if (route === '/incidents' && method === 'GET') {
+        const includeCommunity = new URL(request.url).searchParams.get('community') === '1';
+        return json((await db.prepare(`SELECT id,category,latitude,longitude,observed,expires,status FROM incidents WHERE status IN ('approved',${includeCommunity ? "'community'" : "'approved'"}) AND expires>? ORDER BY observed DESC LIMIT 100`).bind(Date.now()).all()).results);
+      }
       throw fail(404, 'Not found.');
     } catch (error) { return json({ error: error.status ? error.message : 'Service unavailable.' }, error.status ?? 503); }
   },

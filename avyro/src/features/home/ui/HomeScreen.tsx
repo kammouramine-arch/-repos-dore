@@ -13,7 +13,6 @@ import {
 } from '@/app/stores/hooks';
 import { MAP_DEFAULTS } from '@/config';
 import { usePlanDestination } from '@/features/trip/hooks/usePlanDestination';
-import { regionAround } from '@/maps/camera';
 import { AvyroMapView } from '@/maps/components/AvyroMapView';
 import { UserPuck } from '@/maps/components/UserPuck';
 import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
@@ -63,13 +62,13 @@ export const HomeScreen = () => {
       void locate();
       return;
     }
-    mapRef.current?.animateToRegion(regionAround(coordinates), animated ? 650 : 0);
+    mapRef.current?.animateCamera({ center: coordinates, heading: 0, pitch: 55, altitude: 450, zoom: 17.5 }, { duration: animated ? 650 : 0 });
   };
 
   // Lock onto the driver once, on the first fix. After that the map is theirs.
   useEffect(() => {
     if (!position || !following || !focused) return;
-    mapRef.current?.animateToRegion(regionAround(position.coordinates), 650);
+    mapRef.current?.animateCamera({ center: position.coordinates, heading: 0, pitch: 55, altitude: 450, zoom: 17.5 }, { duration: 850 });
   }, [position, following, focused]);
 
   return (
@@ -79,6 +78,7 @@ export const HomeScreen = () => {
         appearance={preferences.mapStyle}
         showsTraffic={preferences.showTraffic}
         initialRegion={MAP_DEFAULTS.fallbackRegion}
+        onMapReady={() => centreOnDriver(false)}
         onPanDrag={() => setFollowing(false)}
         onRegionChangeComplete={() => { if (focused) void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => undefined); }}
         legalLabelInsets={{ top: 0, right: 0, left: spacing.md, bottom: bottomHeight + spacing.xs }}

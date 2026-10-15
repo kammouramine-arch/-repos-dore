@@ -48,7 +48,7 @@ export const SearchScreen = () => {
     if (generation !== selectionGeneration.current) return;
     if (!place) { Alert.alert('Exact address unavailable', 'The provider could not confirm this destination or house number. Refine the address; Avyro will not silently choose the street centre.'); return; }
     if (!saveSlot) {
-      await planDestination(place);
+      await planDestination(place, route.params?.addStop);
       return;
     }
     try {

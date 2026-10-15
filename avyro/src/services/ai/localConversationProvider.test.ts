@@ -165,7 +165,7 @@ test.each(['report an accident here', 'Signale un accident ici'])('submits an ex
   expect(drivingSafetyReply(transcript)).toBeNull();
   const response = await ask(build({ incidentReporter: { isConfigured: () => true, submit }, getPosition: async () => fix }), transcript);
   expect(submit).toHaveBeenCalledWith('accident', fix);
-  expect(response.speech).toMatch(/sent for review|envoyée pour vérification/);
+  expect(response.speech).toMatch(/marked unverified|sans vérification/);
 });
 
 test('report failure and invalid location never promise a submitted report', async () => {
