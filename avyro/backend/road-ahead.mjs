@@ -1,4 +1,5 @@
 import { metres, project, atDistance, validPoint } from './road-geometry.mjs';
+import { authoritativeLimit } from './authority-limits.mjs';
 const fail = message => Object.assign(Error(message), { status: 400 });
 export function validateLookahead(input) {
   const line = input?.geometry;
@@ -13,14 +14,14 @@ export function validateLookahead(input) {
   return line.map(point => [point[0], point[1]]);
 }
 export function decodeLookahead(data, planned, now) {
-  const alerts = [], seen = new Set();
-  const result = () => ({ source: 'TomTom map data', alerts, expiresAt: now + 300000 });
+  const alerts = [], segments = [], seen = new Set();
+  const result = () => ({ source: 'TomTom map data', alerts, segments, expiresAt: now + 300000 });
   if (!Array.isArray(data?.route) || data.route.length > 200) return result();
   const add = (kind, coordinate, label) => {
     const near = project(coordinate, planned);
     if (!near || near.distance > 15 || near.along < 5) return;
     const id = `${kind}:${coordinate[0].toFixed(5)}:${coordinate[1].toFixed(5)}`;
-    if (seen.has(id) || alerts.length >= 50) return;
+    if (seen.has(id) || alerts.length >= 50 || alerts.some(alert => alert.kind === kind && metres([alert.coordinate.longitude, alert.coordinate.latitude], coordinate) < 12)) return;
     seen.add(id);
     alerts.push({ id, kind, coordinate: { longitude: coordinate[0], latitude: coordinate[1] }, ...(label ? { label } : {}), source: 'TomTom map data' });
   };
@@ -31,7 +32,13 @@ export function decodeLookahead(data, planned, now) {
       previousUse = null;
       continue;
     }
+    // Reject a nearby road element travelling against the selected path.
+    if ((project(line.at(-1), planned)?.along ?? 0) <= (project(line[0], planned)?.along ?? 0)) continue;
     // Documented chainage starts at the beginning of travel on this road element.
+    const rawLimit = props.speedLimits;
+    const mapped = rawLimit?.type === 'Maximum' && Number.isInteger(rawLimit.value) && rawLimit.value > 0 && rawLimit.value <= 300 && ['kmph', 'mph'].includes(rawLimit.unit) ? { value: rawLimit.value, unit: rawLimit.unit === 'kmph' ? 'km/h' : 'mph' } : null;
+    const speedLimit = authoritativeLimit(props.address, mapped, now);
+    if (speedLimit && segments.length < 100) segments.push({ geometry: line.map(p => ({ longitude: p[0], latitude: p[1] })), speedLimit });
     for (const sign of Array.isArray(props.trafficSigns) ? props.trafficSigns : []) {
       const kind = ({ StopSign: 'stop', YieldSign: 'yield', TrafficLightAheadSign: 'traffic-light-warning' })[sign.signType];
       const factor = ({ cm: .01, ft: .3048 })[sign.unit];

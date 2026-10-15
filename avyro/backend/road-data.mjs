@@ -59,7 +59,7 @@ export function createTomTomRoadProvider({ key, enabled = false, fetcher = fetch
       url.searchParams.set('points', samplePath(line).map(point => point.join(',')).join(';'));
       url.searchParams.set('vehicleType', 'PassengerCar');
       url.searchParams.set('measurementSystem', 'metric');
-      url.searchParams.set('fields', '{route{geometry{type,coordinates},properties{elementType,confidence,roadUse,address{roadNumbers,countryCode},trafficSigns{signType,chainage,unit},trafficLight}}}');
+      url.searchParams.set('fields', '{route{geometry{type,coordinates},properties{elementType,confidence,roadUse,address{roadName,municipality,roadNumbers,countryCode},speedLimits{value,unit,type},trafficSigns{signType,chainage,unit},trafficLight}}}');
       return decodeLookahead(await readProviderJson(fetcher, url), line, now());
     },
     async lookup(input) {

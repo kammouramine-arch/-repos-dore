@@ -5,12 +5,16 @@ import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { Coordinates } from '@/core/domain/entities/geo';
 import { colors, palette } from '@/ui/theme';
+import { puckMotionPath } from '@/maps/geometry/puckMotion';
+import { distanceBetween } from '@/utils/geo';
 
 export interface UserPuckProps {
   coordinate: Coordinates;
   /** Course over ground; the cone points where the car is heading. */
   headingDegrees?: number | null;
   cameraHeadingDegrees?: number;
+  routeGeometry?: readonly Coordinates[];
+  segmentIndex?: number;
 }
 
 const SIZE = 56;
@@ -18,13 +22,19 @@ const SIZE = 56;
 /**
  * The driver's position.
  *
- * `tracksViewChanges` is off on purpose: leaving it on re-rasterises the marker
- * on every frame and visibly costs frames while the map is moving.
+ * Coordinates follow route vertices between fixes; rotation is relative to the
+ * measured camera heading, rather than its not-yet-reached animation target.
  */
-const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 0 }: UserPuckProps) => {
+const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 0, routeGeometry, segmentIndex = 0 }: UserPuckProps) => {
   const [animated] = useState(() => ({ latitude: new Animated.Value(coordinate.latitude), longitude: new Animated.Value(coordinate.longitude) }));
   const [rotation] = useState(() => new Animated.Value(headingDegrees != null && headingDegrees >= 0 ? headingDegrees : 0));
   const lastHeading = useRef(headingDegrees != null && headingDegrees >= 0 ? headingDegrees : 0);
+  const drawn = useRef(coordinate);
+  useEffect(() => {
+    const lat = animated.latitude.addListener(({ value }) => { drawn.current = { ...drawn.current, latitude: value }; });
+    const lon = animated.longitude.addListener(({ value }) => { drawn.current = { ...drawn.current, longitude: value }; });
+    return () => { animated.latitude.removeListener(lat); animated.longitude.removeListener(lon); };
+  }, [animated]);
   useEffect(() => {
     if (headingDegrees != null && Number.isFinite(headingDegrees) && headingDegrees >= 0) lastHeading.current = headingDegrees % 360;
     const target = lastHeading.current - (Platform.OS === 'ios' ? cameraHeadingDegrees : 0);
@@ -38,13 +48,16 @@ const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 
   }, [headingDegrees, cameraHeadingDegrees, rotation]);
   const { latitude, longitude } = coordinate;
   useEffect(() => {
-    const movement = Animated.parallel([
-      Animated.timing(animated.latitude, { toValue: latitude, duration: 850, useNativeDriver: false }),
-      Animated.timing(animated.longitude, { toValue: longitude, duration: 850, useNativeDriver: false }),
-    ]);
+    const path = puckMotionPath(drawn.current, { latitude, longitude }, routeGeometry, segmentIndex);
+    const lengths = path.slice(1).map((p, i) => distanceBetween(path[i], p));
+    const total = lengths.reduce((sum, length) => sum + length, 0);
+    const movement = Animated.sequence(path.slice(1).map((p, i) => Animated.parallel([
+      Animated.timing(animated.latitude, { toValue: p.latitude, duration: total > 100 ? 0 : total ? 650 * lengths[i] / total : 0, useNativeDriver: false }),
+      Animated.timing(animated.longitude, { toValue: p.longitude, duration: total > 100 ? 0 : total ? 650 * lengths[i] / total : 0, useNativeDriver: false }),
+    ])));
     movement.start();
     return () => movement.stop();
-  }, [animated, latitude, longitude]);
+  }, [animated, latitude, longitude, routeGeometry, segmentIndex]);
   return (
   <Marker.Animated
     coordinate={animated}

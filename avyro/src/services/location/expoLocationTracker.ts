@@ -1,6 +1,7 @@
 import * as Location from 'expo-location';
 
 import { NAVIGATION } from '@/config';
+import { createStationarySpeedEstimator } from '@/core/navigation/stationarySpeed';
 import type { LocationPermission, UserPosition } from '@/core/domain/entities/geo';
 import { AppError } from '@/core/domain/errors/appError';
 import type {
@@ -68,13 +69,14 @@ export const createExpoLocationTracker = (): LocationTracker => ({
     onPosition: (position: UserPosition) => void,
     options: LocationWatchOptions = {},
   ): Promise<LocationSubscription> {
+    const estimate = createStationarySpeedEstimator();
     return Location.watchPositionAsync(
       {
         accuracy: Location.Accuracy.BestForNavigation,
         timeInterval: options.intervalMs ?? NAVIGATION.locationIntervalMs,
-        distanceInterval: options.distanceMeters ?? NAVIGATION.locationDistanceMeters,
+        distanceInterval: options.distanceMeters ?? 0,
       },
-      (position) => onPosition(toPosition(position)),
+      (position) => onPosition(estimate(toPosition(position))),
     );
   },
 });

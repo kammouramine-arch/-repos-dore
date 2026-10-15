@@ -43,12 +43,15 @@ export interface RouteStep {
   durationSeconds: number;
   /** Where the maneuver closing this leg happens. */
   location: Coordinates;
+  /** Provider's maneuver segment anchor, when supplied. */
+  geometryIndex?: number;
   /** Road the driver is on for the length of this leg, when known. */
   roadName?: string;
 }
 
 export interface Route {
   id: string;
+  source?: 'TomTom';
   distanceMeters: number;
   durationSeconds: number;
   /** Full-resolution geometry, ordered from origin to destination. */

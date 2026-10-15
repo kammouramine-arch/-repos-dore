@@ -2,7 +2,7 @@ import { useDriverHeading } from '@/maps/useDriverHeading';
 import { DrivingStatusPanel } from "./DrivingStatusPanel";
 import { useNavigation } from "@react-navigation/native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { StyleSheet, View } from "react-native";
 import type MapView from "react-native-maps";
 import Animated, { FadeIn, FadeOut } from "react-native-reanimated";
@@ -46,6 +46,12 @@ export const GuidanceScreen = () => {
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
   const [cameraHeading, setCameraHeading] = useState(0);
+  const cameraRead = useRef({ pending: false, at: 0 });
+  const readCamera = useCallback(() => {
+    if (cameraRead.current.pending || Date.now() - cameraRead.current.at < 100) return;
+    cameraRead.current = { pending: true, at: Date.now() };
+    void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => {}).finally(() => { cameraRead.current.pending = false; });
+  }, []);
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
   const [overview, setOverview] = useState(false);
@@ -80,15 +86,15 @@ export const GuidanceScreen = () => {
 
     mapRef.current?.animateCamera(
       {
-        center: progress.snappedPosition,
+        center: progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition,
         heading: progress.courseDegrees,
         pitch: MAP_DEFAULTS.navigationCamera.pitch,
         zoom: MAP_DEFAULTS.navigationCamera.zoom,
         altitude: MAP_DEFAULTS.navigationCamera.altitude,
       },
-      { duration: 850 },
+      { duration: 650 },
     );
-  }, [progress, following, overview]);
+  }, [progress, following, overview, lastPosition]);
 
   // Fitting the route is a one-shot action, not a camera that tracks: the
   // driver asked to see the trip, not to have it recomposed under them.
@@ -126,10 +132,11 @@ export const GuidanceScreen = () => {
         initialRegion={initialRegion}
         pitchEnabled
         onPanDrag={() => setFollowing(false)}
-        onRegionChangeComplete={() => { if (!following || overview) void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => undefined); }}
+        onRegionChange={readCamera}
+        onRegionChangeComplete={readCamera}
       >
         <IncidentMapLayer />
-        <RoadAheadMarkers items={roadAhead} />
+        <RoadAheadMarkers items={roadAhead.items} />
         {routeIndex && progress ? (
           <ActiveRouteOverlay
             routeIndex={routeIndex}
@@ -148,9 +155,11 @@ export const GuidanceScreen = () => {
 
         {progress ? (
           <UserPuck
-            coordinate={progress.snappedPosition}
+            coordinate={progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition}
             headingDegrees={lastPosition?.speed != null && lastPosition.speed >= 1.5 ? progress.courseDegrees : driverHeading}
-            cameraHeadingDegrees={following && !overview ? progress.courseDegrees : cameraHeading}
+            cameraHeadingDegrees={cameraHeading}
+            routeGeometry={progress.distanceFromRouteMeters <= 25 ? route?.geometry : undefined}
+            segmentIndex={progress.segmentIndex}
           />
         ) : lastPosition ? (
           <UserPuck
@@ -174,7 +183,7 @@ export const GuidanceScreen = () => {
           </GlassPanel>
         )}
 
-        <RoadAheadNotice items={roadAhead} />
+        <RoadAheadNotice items={roadAhead.items} />
         {status === "rerouting" && progress ? (
           <Animated.View
             entering={FadeIn}
@@ -196,7 +205,7 @@ export const GuidanceScreen = () => {
       >
         {status === "arrived" ? null : (
           <View style={styles.driving}>
-            <DrivingStatusPanel />
+            <DrivingStatusPanel routeEvidence={roadAhead.current} />
             <GuidanceControls
               following={following}
               onRecenter={() => setFollowing(true)}

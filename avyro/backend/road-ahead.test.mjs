@@ -29,6 +29,16 @@ test('documented municipal facts correct only exact French town/roads and never 
   assert.deepEqual(authoritativeLimit(address, mapped, now), { value: 30, unit: 'km/h', source: 'municipal-order', authority: WATTIGNIES_ORDER.id });
   const lower = { value: 20, unit: 'km/h' };
   assert.equal(authoritativeLimit(address, lower, now), lower);
+  assert.equal(authoritativeLimit({ ...address, roadName: 'Rue Lindbergh' }, mapped, now).value, 30);
+  assert.equal(authoritativeLimit({ ...address, roadName: 'Rue Blériot' }, mapped, now).value, 30);
   for (const change of [{ municipality: 'Lille' }, { countryCode: 'IND' }, { roadName: 'Unlisted Road' }]) assert.equal(authoritativeLimit({ ...address, ...change }, mapped, now), mapped);
   assert.equal(authoritativeLimit(address, mapped, Date.parse('2027-01-14T00:00:00Z')), null);
+});
+test('a segment limit retains sourced geometry and rejects the opposite approach', () => {
+  const properties = { speedLimits: { value: 30, unit: 'kmph', type: 'Maximum' }, trafficLight: 'End' };
+  const result = decodeLookahead({ route: [road(properties)] }, line, 1000);
+  assert.equal(result.segments[0].speedLimit.value, 30);
+  const reverse = { ...road(properties), geometry: { type: 'LineString', coordinates: [...line].reverse() } };
+  assert.deepEqual(decodeLookahead({ route: [reverse] }, line, 1000).segments, []);
+  assert.deepEqual(decodeLookahead({ route: [reverse] }, line, 1000).alerts, []);
 });

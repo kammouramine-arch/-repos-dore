@@ -16,7 +16,7 @@ export const VoiceSetupPrompt = () => {
           <AppText variant="subhead">“Hey Avyro, emmène-moi à la maison.”</AppText>
           <AppText variant="footnote" tone="secondary">“Hey Avyro, take me home.”</AppText>
         </View>
-        <AppText variant="footnote" tone="secondary">Your companion is ready: short commands go to Cloudflare AI for speech and interpretation; a short GPS trace and part of your planned route go to TomTom for mapped road information. Ambient wake listening stays on this iPhone, while Avyro is open. Free test limits apply. You can turn each feature off in Settings.</AppText>
+        <AppText variant="footnote" tone="secondary">Your companion is ready: short commands go to Cloudflare AI for speech and interpretation; your chosen route and a short GPS trace go to TomTom for driving directions and mapped road information. Ambient wake listening stays on this iPhone, while Avyro is open. Free test limits apply. You can turn each feature off in Settings.</AppText>
         <Button label="Continue with hands-free AI" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, assistantSetupSeen: true, cloudSpeech: true, cloudAssistant: true, roadInformation: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
         <Button label="Continue without hands-free" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, voiceCommands: false, cloudSpeech: true, cloudAssistant: true, roadInformation: true })} />
         <Button label="Use offline features only" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, voiceCommands: false, cloudSpeech: false, cloudAssistant: false, roadInformation: false })} />

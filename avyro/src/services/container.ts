@@ -48,6 +48,7 @@ import { createLocalCrashReporter } from "@/services/observability/localCrashRep
 import { createNominatimPlacesProvider } from "@/services/places/nominatimPlacesProvider";
 import { createApplePlacesProvider } from "@/services/places/applePlacesProvider";
 import { createOsrmRoutingProvider } from "@/services/routing/osrmRoutingProvider";
+import { createGatewayRoutingProvider } from '@/services/routing/gatewayRoutingProvider';
 import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecognizer";
 import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
 import { createNativeSpeechRecognizer } from '@/services/speech/nativeSpeechRecognizer';
@@ -124,10 +125,9 @@ export const createServiceContainer = (
   const savedPlacesRepository =
     overrides.savedPlacesRepository ?? createLocalSavedPlacesRepository(secure);
 
-  const routingProvider =
-    overrides.routingProvider ?? createOsrmRoutingProvider({ http });
   const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
   const getAccessToken = async () => (await createSessionStore(secure).read(env.backendUrl))?.token ?? guestAccessToken();
+  const routingProvider = overrides.routingProvider ?? (env.backendUrl ? createGatewayRoutingProvider({ http, getAccessToken }) : createOsrmRoutingProvider({ http }));
   const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
 
   const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger), undefined, {

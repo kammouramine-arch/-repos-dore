@@ -1,5 +1,6 @@
 import type { ReactNode } from 'react';
-import { StyleSheet, View, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, View, type ViewStyle } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 import { colors, radius, shadows } from '@/ui/theme';
 
@@ -12,22 +13,25 @@ export interface GlassPanelProps {
 /**
  * The floating panel used over the map.
  *
- * An opaque surface keeps text legible against moving cartography. One content
- * node preserves each caller's flex layout and avoids live blur work on scroll.
+ * A tinted native material separates text from the moving map while retaining
+ * its colour underneath. The blur is absolute so caller flex layouts stay intact.
  */
-export const GlassPanel = ({ children, style }: GlassPanelProps) => {
-  return <View style={[styles.panel, styles.solid, style]}>{children}</View>;
+export const GlassPanel = ({ children, style, intensity = 65 }: GlassPanelProps) => {
+  return <View style={[styles.panel, styles.solid, style]}>
+    {Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint="systemUltraThinMaterialLight" intensity={intensity} style={StyleSheet.absoluteFill} /> : null}
+    {children}
+  </View>;
 };
 
 const styles = StyleSheet.create({
   panel: {
     borderRadius: radius.xxl,
     borderWidth: StyleSheet.hairlineWidth,
-    borderColor: colors.borderStrong,
+    borderColor: 'rgba(255,255,255,0.65)',
     overflow: 'hidden',
     ...shadows.floating,
   },
   solid: {
-    backgroundColor: colors.surface,
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(221,239,240,0.42)' : colors.surface,
   },
 });

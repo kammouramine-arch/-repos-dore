@@ -69,3 +69,9 @@ test('planned-road metadata also requires authentication and the configured road
   const { token } = await (await request('/auth/guest', {})).json();
   assert.equal((await request('/roads/ahead', { consent: true, geometry: [[3,50],[3.001,50]] }, token)).status, 503);
 });
+test('driving routes require a session and an enabled existing provider', async () => {
+  const route = { origin: { latitude: 50, longitude: 3 }, destination: { latitude: 50.001, longitude: 3 } };
+  assert.equal((await request('/routes', route)).status, 401);
+  const { token } = await (await request('/auth/guest', {})).json();
+  assert.equal((await request('/routes', route, token)).status, 503);
+});

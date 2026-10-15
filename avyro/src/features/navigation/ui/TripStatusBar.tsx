@@ -78,7 +78,9 @@ const styles = StyleSheet.create({
     paddingHorizontal: spacing.md,
   },
   figures: {
-    flexShrink: 1,
+    flex: 1,
+    minHeight: 74,
+    justifyContent: 'center',
     gap: 1,
   },
   end: {

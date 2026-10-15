@@ -1,4 +1,5 @@
-import { StyleSheet, type ViewStyle } from 'react-native';
+import { Platform, StyleSheet, type ViewStyle } from 'react-native';
+import { BlurView } from 'expo-blur';
 
 import { haptics } from '@/ui/feedback/haptics';
 import { colors, shadows, sizing } from '@/ui/theme';
@@ -49,6 +50,7 @@ export const IconButton = ({
       style ?? {},
     ]}
   >
+    {variant === 'floating' && Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint="systemUltraThinMaterialLight" intensity={65} style={[StyleSheet.absoluteFill, { borderRadius: size / 2, overflow: 'hidden' }]} /> : null}
     <Icon
       name={name}
       size={size * 0.46}
@@ -63,7 +65,7 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
   },
   floating: {
-    backgroundColor: colors.surface,
+    backgroundColor: Platform.OS === 'ios' ? 'rgba(221,239,240,0.42)' : colors.surface,
     borderWidth: StyleSheet.hairlineWidth,
     borderColor: colors.borderStrong,
     ...shadows.control,

@@ -1,4 +1,5 @@
 import { createTomTomRoadProvider, ROAD_MONTHLY_CAP } from '../road-data.mjs';
+import { calculateRoutes } from '../routing.mjs';
 import { classifyCommand } from './classify.mjs';
 import { transcribeCommand, validateCommandAudio } from './transcribe.mjs';
 import { DurableObject } from 'cloudflare:workers';
@@ -99,6 +100,15 @@ export default {
       if (route === '/auth/logout' && method === 'POST') {
         await db.prepare('DELETE FROM sessions WHERE hash=?').bind(await hash(request.headers.get('authorization').slice(7))).run();
         return json({ signedOut: true });
+      }
+      if (route === '/routes' && method === 'POST') {
+        await rate(db, `route:${user.id}`, 15);
+        return json(await calculateRoutes(await body(request), { key: env.TOMTOM_API_KEY, enabled: env.ROAD_DATA_ENABLED === 'true', reserveRequest: async () => {
+          const month = 'routing:' + new Date().toISOString().slice(0, 7);
+          await db.prepare('INSERT OR IGNORE INTO provider_usage VALUES (?,0)').bind(month).run();
+          const reservation = await db.prepare('UPDATE provider_usage SET requests=requests+1 WHERE month=? AND requests<1000 RETURNING requests').bind(month).first();
+          if (!reservation) throw fail(429, 'Free route testing allowance exhausted.');
+        } }));
       }
       if (['/roads/context', '/roads/ahead'].includes(route) && method === 'POST') {
         await rate(db, `road:${user.id}`, 6);

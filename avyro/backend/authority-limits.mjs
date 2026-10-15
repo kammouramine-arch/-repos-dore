@@ -8,9 +8,9 @@ export const WATTIGNIES_ORDER = {
 };
 const names = [
   'Rue du Blanc Riez', 'Rue Charles Péguy', 'Rue du Docteur Laennec', 'Rue Fleming',
-  'Rue Charles Lindberg', 'Rue Jean Mermoz', 'Rue Mermoz', 'Rue Roland Garros',
+  'Rue Charles Lindberg', 'Rue Charles Lindbergh', 'Rue Lindbergh', 'Rue Jean Mermoz', 'Rue Mermoz', 'Rue Roland Garros',
   'Allée des Eglantines', 'Avenue Denis Cordonnier', 'Rue Mouchotte', 'Rue Louise de Bettignies',
-  'Rue Louis Blériot', 'Rue Nungesser', 'Rue Lionel Terray', 'Rue Clément Ader',
+  'Rue Louis Blériot', 'Rue Blériot', 'Rue Nungesser', 'Rue Lionel Terray', 'Rue Clément Ader',
   'Rue Charles Gounod', 'Rue Henri Matisse', 'Rue Jules Ferry',
   'Rue du Petit Bois', 'Rue Pierre et Marie Curie', 'Rue du Docteur Schweitzer',
   'Rue Henri Dunant', 'Rue Claude Bernard', 'Rue Charcot', 'Rue Honoré de Balzac',

@@ -1,5 +1,5 @@
 import type { Route } from '@/core/domain/entities/route';
-import { cumulativeDistances } from '@/utils/geo';
+import { cumulativeDistances, projectOnPath } from '@/utils/geo';
 
 /**
  * Pre-computed lookup tables for a route, built once when guidance starts.
@@ -33,10 +33,22 @@ export const createRouteIndex = (route: Route): RouteIndex => {
   const stepLengths: number[] = [];
   const stepEndDistances: number[] = [];
   let travelled = 0;
+  let lastSegment = 0;
 
   route.steps.forEach((step) => {
-    const length = step.distanceMeters * scale;
-    travelled += length;
+    // Anchor each instruction to its actual maneuver coordinate. Rescaling all
+    // declared lengths accumulates error and can announce a turn on another street.
+    const supplied = step.geometryIndex;
+    const projected = Number.isInteger(supplied) && supplied! >= 0 && supplied! < route.geometry.length
+      ? projectOnPath(step.location, route.geometry, Math.max(lastSegment, supplied! - 1), Math.min(route.geometry.length - 2, supplied! + 1))
+      : projectOnPath(step.location, route.geometry, lastSegment);
+    const anchor = projected && projected.distance <= 30
+      ? (vertexDistances[projected.segmentIndex] ?? 0) + ((vertexDistances[projected.segmentIndex + 1] ?? 0) - (vertexDistances[projected.segmentIndex] ?? 0)) * projected.t
+      : travelled + step.distanceMeters * scale;
+    const end = Math.max(travelled, Math.min(totalDistanceMeters, anchor));
+    const length = end - travelled;
+    travelled = end;
+    if (projected && projected.distance <= 30) lastSegment = projected.segmentIndex;
     stepLengths.push(length);
     stepEndDistances.push(travelled);
   });

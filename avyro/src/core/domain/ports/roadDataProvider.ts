@@ -7,7 +7,7 @@ export interface RoadAlert {
   label?: string;
   source: 'TomTom map data';
 }
-export interface RoadAheadEvidence { source: 'TomTom map data'; alerts: RoadAlert[]; expiresAt: number }
+export interface RoadAheadEvidence { source: 'TomTom map data'; alerts: RoadAlert[]; segments?: { geometry: Coordinates[]; speedLimit: NonNullable<RoadEvidence['speedLimit']> }[]; expiresAt: number }
 
 export interface RoadEvidence {
   source: 'TomTom map data';

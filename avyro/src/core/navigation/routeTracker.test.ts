@@ -129,7 +129,7 @@ describe('trackPosition', () => {
     expect(rewound.progress.stepIndex).toBe(advanced.progress.stepIndex);
   });
 
-  it('prefers the reported heading, and falls back to the road direction', () => {
+  it('stabilizes an aligned course on the road but keeps an opposing measured heading', () => {
     expect(track(midpoint(A, B)).progress.courseDegrees).toBeCloseTo(90, 0);
 
     const withHeading = trackPosition(
@@ -137,7 +137,19 @@ describe('trackPosition', () => {
       positionAt(midpoint(A, B), 42),
       initialTrackerState,
     );
-    expect(withHeading?.progress.courseDegrees).toBe(42);
+    expect(withHeading?.progress.courseDegrees).toBeCloseTo(90, 0);
+    const opposite = trackPosition(index, positionAt(midpoint(A, B), 270), initialTrackerState);
+    expect(opposite?.progress.courseDegrees).toBe(270);
+    expect(isOffRoute(opposite!.progress, 1)).toBe(false);
+    expect(isOffRoute(opposite!.progress, 3)).toBe(true);
+  });
+  it('anchors turns to their coordinates even when provider leg lengths disagree', () => {
+    const skewed = createRouteIndex({ ...route, steps: [{ ...route.steps[0], distanceMeters: LEG_ONE * 2 }, route.steps[1]] });
+    expect(skewed.stepEndDistances[0]).toBeCloseTo(LEG_ONE, 1);
+  });
+  it('does not declare arrival merely because an off-route position projects to the route end', () => {
+    const away = { latitude: C.latitude, longitude: C.longitude + .002 };
+    expect(trackPosition(index, positionAt(away), initialTrackerState)?.progress.hasArrived).toBe(false);
   });
 });
 

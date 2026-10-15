@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Modal, ScrollView, StyleSheet, View } from 'react-native';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
 import { useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
@@ -10,9 +10,25 @@ import { INCIDENT_CATALOG } from '@/features/incidents/incidentCatalog';
 import type { Route } from '@/core/domain/entities/route';
 import { AppText, Button, GlassPanel, ListRow } from '@/ui/components';
 import { formatDistance, formatDuration } from '@/utils/format';
-import { spacing, colors } from '@/ui/theme';
+import { spacing } from '@/ui/theme';
 
 export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClose(): void }) => {
+  const [drag] = useState(() => new Animated.Value(0));
+  const scrollOffset = useRef(0);
+  const close = useRef(onClose);
+  useEffect(() => { close.current = onClose; }, [onClose]);
+  // PanResponder stores these callbacks; refs are read only during touch events.
+  // eslint-disable-next-line react-hooks/refs
+  const pan = useMemo(() => PanResponder.create({
+    onMoveShouldSetPanResponderCapture: (_event, gesture) => scrollOffset.current <= 1 && gesture.dy > 10 && gesture.dy > Math.abs(gesture.dx) * 1.3,
+    onPanResponderMove: (_event, gesture) => drag.setValue(Math.max(0, gesture.dy)),
+    onPanResponderRelease: (_event, gesture) => {
+      if (gesture.dy > 100 || (gesture.dy > 35 && gesture.vy > .65)) Animated.timing(drag, { toValue: 900, duration: 200, useNativeDriver: true }).start(() => close.current());
+      else Animated.spring(drag, { toValue: 0, damping: 24, stiffness: 250, useNativeDriver: true }).start();
+    },
+    onPanResponderTerminate: () => { Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); },
+  }), [drag]);
+  useEffect(() => { if (visible) { drag.setValue(0); scrollOffset.current = 0; } }, [visible, drag]);
   const navigation = useNavigation();
   const stores = useStores();
   const services = useServices();
@@ -44,8 +60,9 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   }, [visible, destination, stops, services, stores]);
   const add = (parking = false) => { onClose(); if (parking) navigation.navigate('Nearby', { category: 'parking', addStop: true }); else navigation.navigate('Search', { addStop: true }); };
   return <Modal visible={visible} transparent animationType="slide" onRequestClose={onClose}>
-    <View style={styles.backdrop}><GlassPanel style={styles.sheet}><ScrollView contentContainerStyle={{ gap: 12 }}>
+    <View style={styles.backdrop}><Pressable style={StyleSheet.absoluteFill} accessibilityLabel="Dismiss trip details" onPress={onClose} /><Animated.View {...pan.panHandlers} style={{ maxHeight: '85%', transform: [{ translateY: drag }] }}><GlassPanel style={styles.sheet}><ScrollView onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={16} contentContainerStyle={{ gap: 12 }}>
       <View style={styles.grabber} /><AppText variant="title2">Your trip</AppText>
+      {currentRoute?.source === 'TomTom' ? <AppText variant="caption" tone="tertiary">Route © TomTom</AppText> : null}
       <AppText variant="headline">{destination?.name}</AppText><AppText variant="body" tone="secondary">{destination?.address}</AppText>
       {stops.map((stop, index) => <AppText key={stop.id} variant="footnote">Stop {index + 1}: {stop.name} · {stop.address}</AppText>)}
       <View style={styles.actions}><Button label="Add a stop" size="medium" onPress={() => add()} /><Button label="Parking stop" variant="secondary" size="medium" onPress={() => add(true)} /></View>
@@ -59,7 +76,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
       {nearReports.length ? nearReports.map(({ report, aheadMeters }) => <AppText key={report.id} variant="footnote">{INCIDENT_CATALOG.find(item => item.category === report.category)?.title} · {formatDistance(aheadMeters, unit)} ahead · unverified</AppText>) : reportStatus === 'Community observations · unverified' ? <AppText variant="footnote" tone="secondary">No active community observations returned near this route.</AppText> : null}
       <AppText variant="footnote" tone="secondary">Community pins are unverified observations. Scheduled departures and a best-time-to-leave prediction are not available yet.</AppText>
       <Button label="Back to navigation" variant="ghost" onPress={onClose} />
-    </ScrollView></GlassPanel></View>
+    </ScrollView></GlassPanel></Animated.View></View>
   </Modal>;
 };
-const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: colors.scrim }, sheet: { maxHeight: '85%', padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, grabber: { width: 36, height: 4, borderRadius: 2, backgroundColor: '#CBD4DB', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
+const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,30,38,0.18)' }, sheet: { padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });

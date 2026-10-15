@@ -7,6 +7,7 @@ import { useConversationStore } from '@/app/stores/hooks';
 import { AppText, GlassPanel } from '@/ui/components';
 import { spacing } from '@/ui/theme';
 import { VoiceOrb } from './VoiceOrb';
+import { VoiceFrame } from './VoiceFrame';
 
 /**
  * The state of the conversation, on screen.
@@ -35,6 +36,7 @@ export const VoiceHud = () => {
       pointerEvents="none"
       style={[styles.root, { paddingBottom: insets.bottom + spacing.xxxl }]}
     >
+      <VoiceFrame active={['listening', 'thinking', 'speaking'].includes(status)} />
       <Animated.View entering={FadeInDown.duration(180)} exiting={FadeOutDown.duration(140)}>
         <GlassPanel style={styles.panel}>
           <VoiceOrb tone={prompt.tone} />

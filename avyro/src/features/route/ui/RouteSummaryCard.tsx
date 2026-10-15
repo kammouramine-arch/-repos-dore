@@ -95,6 +95,7 @@ export const RouteSummaryCard = ({
         />
 
         <Button label="Start navigation" icon="navigate" onPress={onStart} />
+        {selectedRoute.source === 'TomTom' ? <AppText variant="caption" tone="tertiary" align="center" style={{ fontSize: 9 }}>© TomTom</AppText> : null}
       </>
     ) : null}
   </GlassPanel>

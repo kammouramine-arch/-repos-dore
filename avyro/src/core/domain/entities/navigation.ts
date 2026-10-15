@@ -20,6 +20,8 @@ export interface NavigationProgress {
   segmentIndex: number;
   /** How far the raw GPS fix sits from the route, in metres. */
   distanceFromRouteMeters: number;
+  /** Repeated accurate movement against the selected road also needs rerouting. */
+  headingOffRoute?: boolean;
   /** Direction of travel along the route, in degrees from true north. */
   courseDegrees: number;
   hasArrived: boolean;

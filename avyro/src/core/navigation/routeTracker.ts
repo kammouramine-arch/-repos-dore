@@ -138,10 +138,10 @@ export const trackPosition = (
   // coincide and the bearing would collapse to zero.
   const segmentStart = geometry[projection.segmentIndex];
   const segmentEnd = geometry[Math.min(projection.segmentIndex + 1, geometry.length - 1)];
-  const courseDegrees =
-    position.heading != null && position.heading >= 0
-      ? position.heading
-      : bearingBetween(segmentStart, segmentEnd);
+  const roadCourse = bearingBetween(segmentStart, segmentEnd);
+  const measured = position.heading != null && position.heading >= 0 ? position.heading : roadCourse;
+  const agrees = Math.abs(((measured - roadCourse + 540) % 360) - 180) <= 60;
+  const courseDegrees = projection.distance <= 25 && agrees ? roadCourse : measured;
 
   return {
     state: { segmentIndex: projection.segmentIndex, stepIndex },
@@ -159,9 +159,10 @@ export const trackPosition = (
       snappedPosition: projection.point,
       segmentIndex: projection.segmentIndex,
       distanceFromRouteMeters: projection.distance,
+      headingOffRoute: (position.speed ?? 0) >= 2 && position.accuracy != null && position.accuracy <= 15 && position.heading != null && position.heading >= 0 && Math.abs(((measured - roadCourse + 540) % 360) - 180) > 100,
       courseDegrees,
       hasArrived:
-        remainingDistanceMeters <= NAVIGATION.arrivalThresholdMeters ||
+        (projection.distance <= 25 && remainingDistanceMeters <= NAVIGATION.arrivalThresholdMeters) ||
         distanceBetween(position.coordinates, destination) <=
           NAVIGATION.arrivalThresholdMeters,
     },
@@ -175,7 +176,7 @@ export const trackPosition = (
  * regularly — so callers count consecutive hits and ask {@link isOffRoute}.
  */
 export const isOffCorridor = (progress: NavigationProgress): boolean =>
-  progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters;
+  progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters || progress.headingOffRoute === true;
 
 /** True once the driver has been away from the route for long enough to act. */
 export const isOffRoute = (
