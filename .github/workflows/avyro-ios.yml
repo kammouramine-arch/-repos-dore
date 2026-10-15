@@ -78,6 +78,9 @@ jobs:
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
           xcrun simctl location "$DEVICE_ID" set 48.8566,2.3522
           mkdir -p build/screens
+          xcrun simctl io "$DEVICE_ID" recordVideo --codec=h264 build/screens/native-walkthrough.mp4 > build/recording.log 2>&1 &
+          AVYRO_RECORD_PID=$!
+          trap 'kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true; wait "$AVYRO_RECORD_PID" 2>/dev/null || true' EXIT
           maestro --device "$DEVICE_ID" test .maestro/guest-map.yaml
       - name: Capture final simulator state
         if: always()
@@ -92,6 +95,7 @@ jobs:
           include-hidden-files: true
           path: |
             avyro/**/screens/*.png
+            avyro/**/screens/*.mp4
             /Users/runner/.maestro/tests/
           if-no-files-found: ignore
       - name: Upload diagnostics

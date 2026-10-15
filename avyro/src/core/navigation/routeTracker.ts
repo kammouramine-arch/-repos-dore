@@ -17,6 +17,8 @@ import type { RouteIndex } from './routeIndex';
 export interface TrackerState {
   segmentIndex: number;
   stepIndex: number;
+  timestamp?: number;
+  travelledMeters?: number;
 }
 
 export const initialTrackerState: TrackerState = { segmentIndex: 0, stepIndex: 0 };
@@ -120,7 +122,25 @@ export const trackPosition = (
   // driver, and even then keep the windowed result unless the full scan is
   // genuinely closer — a driver who has simply left the road should reroute,
   // not be teleported onto whichever part of the route happens to be nearest.
-  const projection = resolveProjection(position, geometry, windowed);
+  let projection = resolveProjection(position, geometry, windowed);
+  // At parallel roads and roundabouts, closest alone can jump to the opposite
+  // approach. Prefer plausible continuous progress with a compatible course.
+  const elapsed = previous.timestamp == null ? 0 : (position.timestamp - previous.timestamp) / 1000;
+  if (elapsed > 0 && elapsed <= 10 && previous.travelledMeters != null && position.accuracy != null && position.accuracy <= 15 && projection.distance <= 25) {
+    const budget = Math.max(10, position.speed ?? 0) * elapsed * 1.7 + 25;
+    let best: ProjectionOnPath | null = null, score = Infinity;
+    for (let segment = searchFrom; segment <= Math.min(searchTo, geometry.length - 2); segment++) {
+      const at = projectOnPath(position.coordinates, geometry, segment, segment);
+      if (!at || at.distance > 25) continue;
+      const along = distanceTravelled(index, at.segmentIndex, at.t);
+      if (along < previous.travelledMeters - 20 || along > previous.travelledMeters + budget) continue;
+      const course = bearingBetween(geometry[segment], geometry[segment + 1]);
+      const angle = (position.speed ?? 0) >= 2 && position.heading != null && position.heading >= 0 ? Math.abs(((position.heading - course + 540) % 360) - 180) : 0;
+      const candidateScore = at.distance + Math.max(0, angle - 60) / 4;
+      if (candidateScore < score) { best = at; score = candidateScore; }
+    }
+    if (best) projection = best;
+  }
 
   const travelled = distanceTravelled(index, projection.segmentIndex, projection.t);
   const stepIndex = resolveStepIndex(index, travelled, previous.stepIndex);
@@ -144,7 +164,7 @@ export const trackPosition = (
   const courseDegrees = projection.distance <= 25 && agrees ? roadCourse : measured;
 
   return {
-    state: { segmentIndex: projection.segmentIndex, stepIndex },
+    state: { segmentIndex: projection.segmentIndex, stepIndex, timestamp: position.timestamp, travelledMeters: travelled },
     progress: {
       stepIndex,
       currentStep: steps[stepIndex],

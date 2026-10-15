@@ -151,6 +151,16 @@ describe('trackPosition', () => {
     const away = { latitude: C.latitude, longitude: C.longitude + .002 };
     expect(trackPosition(index, positionAt(away), initialTrackerState)?.progress.hasArrived).toBe(false);
   });
+  it('does not jump to the opposite parallel road when a noisy fix is slightly closer to it', () => {
+    const p = { latitude: 50, longitude: 3 }, q = { latitude: 50, longitude: 3.001 };
+    const r = { latitude: 50.0001, longitude: 3.001 }, s = { latitude: 50.0001, longitude: 3 };
+    const loop = createRouteIndex({ ...route, geometry: [p,q,r,s], steps: [{ ...route.steps[0], location:q }, { ...route.steps[1], location:s }] });
+    const start = trackPosition(loop, { ...positionAt(p,90),timestamp:10000 }, initialTrackerState)!;
+    const noisy = trackPosition(loop, { ...positionAt({ latitude:50.00007,longitude:3.0005 },90),timestamp:13000 }, start.state)!;
+    expect(noisy.progress.segmentIndex).toBe(0);
+    expect(noisy.progress.snappedPosition.latitude).toBeCloseTo(50,6);
+    expect(noisy.progress.courseDegrees).toBeCloseTo(90,0);
+  });
 });
 
 describe('isOffRoute', () => {
