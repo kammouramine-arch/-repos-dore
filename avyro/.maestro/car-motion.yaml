@@ -7,10 +7,9 @@ appId: app.avyro.companion
 - extendedWaitUntil:
     visible: "Continue without hands-free"
     timeout: 90000
-- waitForAnimationToEnd
 - tapOn:
     text: "Continue without hands-free"
-    retryTapIfNoChange: true
+    waitToSettleTimeoutMs: 1000
 - tapOn: "Search for a destination"
 - tapOn: "Destination"
 - inputText: "Eiffel Tower Paris France"
