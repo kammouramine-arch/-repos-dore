@@ -79,4 +79,4 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
     </ScrollView></GlassPanel></Animated.View></View>
   </Modal>;
 };
-const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,30,38,0.18)' }, sheet: { padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
+const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end', backgroundColor: 'rgba(8,30,38,0.18)' }, sheet: { flexShrink: 1, padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });

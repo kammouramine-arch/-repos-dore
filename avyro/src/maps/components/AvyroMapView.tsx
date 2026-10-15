@@ -45,6 +45,7 @@ export const AvyroMapView = ({
     loadingEnabled
     loadingBackgroundColor={colors.background}
     loadingIndicatorColor={colors.accent}
+    mapPadding={legalLabelInsets ? { top: 0, left: spacing.md, right: spacing.md, bottom: legalLabelInsets.bottom } : undefined}
     {...rest}
     legalLabelInsets={legalLabelInsets}
     appleLogoInsets={appleLogoInsets ?? (legalLabelInsets ? { top: 0, left: 0, right: spacing.md, bottom: legalLabelInsets.bottom } : undefined)}
