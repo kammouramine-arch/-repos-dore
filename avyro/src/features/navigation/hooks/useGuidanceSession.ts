@@ -9,6 +9,7 @@ import {
   isOffCorridor,
   isOffRoute,
   trackPosition,
+  canGuidePosition,
 } from '@/core/navigation/routeTracker';
 import { distanceBetween } from '@/utils/geo';
 import { haptics } from '@/ui/feedback/haptics';
@@ -118,7 +119,7 @@ export const useGuidanceSession = () => {
         lastStepIndex.current = result.progress.stepIndex;
       }
 
-      if (driverPreferences.voiceGuidance) {
+      if (driverPreferences.voiceGuidance && canGuidePosition(result.progress)) {
         const announcement = nextAnnouncement(
           result.progress,
           announcerRef.current,

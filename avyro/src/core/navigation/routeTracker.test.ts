@@ -3,7 +3,7 @@ import type { UserPosition } from '@/core/domain/entities/geo';
 import type { Route } from '@/core/domain/entities/route';
 import { distanceBetween } from '@/utils/geo';
 import { createRouteIndex } from './routeIndex';
-import { initialTrackerState, isOffRoute, trackPosition } from './routeTracker';
+import { canGuidePosition, initialTrackerState, isOffRoute, trackPosition } from './routeTracker';
 
 /**
  * An L-shaped trip: ~440 m east along Rue A, left turn, ~665 m north along
@@ -170,6 +170,9 @@ describe('isOffRoute', () => {
     expect(strayed.distanceFromRouteMeters).toBeGreaterThan(55);
     expect(isOffRoute(strayed, 1)).toBe(false);
     expect(isOffRoute(strayed, 3)).toBe(true);
+    expect(canGuidePosition(strayed)).toBe(false);
+    expect(canGuidePosition({ ...strayed, distanceFromRouteMeters: 5, headingOffRoute: true })).toBe(false);
+    expect(canGuidePosition(track(midpoint(A, B)).progress)).toBe(true);
   });
 
   it('stays false while the driver is on the road', () => {

@@ -198,6 +198,10 @@ export const trackPosition = (
 export const isOffCorridor = (progress: NavigationProgress): boolean =>
   progress.distanceFromRouteMeters > NAVIGATION.offRouteThresholdMeters || progress.headingOffRoute === true;
 
+/** A turn prompt needs a tighter match than the delayed reroute decision. */
+export const canGuidePosition = (progress: NavigationProgress): boolean =>
+  progress.distanceFromRouteMeters <= 25 && progress.headingOffRoute !== true;
+
 /** True once the driver has been away from the route for long enough to act. */
 export const isOffRoute = (
   progress: NavigationProgress,

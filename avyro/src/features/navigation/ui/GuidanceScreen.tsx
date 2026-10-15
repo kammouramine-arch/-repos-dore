@@ -29,6 +29,7 @@ import { TripDetailsSheet } from "./TripDetailsSheet";
 import { useRoadAhead } from '../hooks/useRoadAhead';
 import { RoadAheadMarkers, RoadAheadNotice } from './RoadAheadLayer';
 import { TripStatusBar } from "./TripStatusBar";
+import { canGuidePosition } from '@/core/navigation/routeTracker';
 
 const KEEP_AWAKE_TAG = "avyro-guidance";
 
@@ -171,14 +172,14 @@ export const GuidanceScreen = () => {
       </AvyroMapView>
 
       <View style={[styles.top, { paddingTop: insets.top + spacing.xs }]}>
-        {status === "arrived" ? null : progress ? (
+        {status === "arrived" ? null : progress && status === 'guiding' && canGuidePosition(progress) ? (
           <ManeuverBanner progress={progress} unit={preferences.distanceUnit} />
         ) : (
           <GlassPanel style={styles.acquiring}>
             <AppText variant="subhead" tone="secondary">
-              {status === "rerouting"
+              {status === "rerouting" || status === 'off-route'
                 ? "Finding a new route…"
-                : "Waiting for GPS…"}
+                : progress ? "Checking your position…" : "Waiting for GPS…"}
             </AppText>
           </GlassPanel>
         )}
