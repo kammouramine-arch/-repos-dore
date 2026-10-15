@@ -50,7 +50,7 @@ export const IconButton = ({
       style ?? {},
     ]}
   >
-    {variant === 'floating' && Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint="systemUltraThinMaterialLight" intensity={65} style={[StyleSheet.absoluteFill, { borderRadius: size / 2, overflow: 'hidden' }]} /> : null}
+    {variant === 'floating' && Platform.OS === 'ios' ? <BlurView pointerEvents="none" tint="systemUltraThinMaterial" intensity={65} style={[StyleSheet.absoluteFill, { borderRadius: size / 2, overflow: 'hidden' }]} /> : null}
     <Icon
       name={name}
       size={size * 0.46}

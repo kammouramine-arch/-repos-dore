@@ -63,7 +63,7 @@ export const DrivingStatusPanel = () => {
       </View>
       {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${adjusted ? 'French probationary maximum' : limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3" style={{ color: '#172B36' }}>{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9, color: '#172B36' }}>{adjusted ? 'A · km/h' : limit.unit}</AppText></Animated.View> : roadInformation ? <View style={styles.unknown} accessibilityLabel={t("Mapped speed limit unavailable")}><AppText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>{t("Limit")}</AppText><AppText variant="title3" style={{ color: '#FFFFFF' }}>—</AppText></View> : null}
     </View>
-    {roadInformation || tomtomRoute ? <PressableScale accessibilityRole="link" accessibilityLabel={`TomTom road data attribution${limit ? '' : ', speed limit unavailable'}`} onPress={() => { void Linking.openURL('https://www.tomtom.com/en-gb/legal/product-attributions/').catch(() => {}); }} style={styles.attribution}><AppText variant="caption" tone="secondary" style={{ fontSize: 9 }}>© TomTom</AppText></PressableScale> : null}
+    {roadInformation || tomtomRoute ? <PressableScale accessibilityRole="link" accessibilityLabel={`TomTom road data attribution${limit ? '' : ', speed limit unavailable'}`} onPress={() => { void Linking.openURL('https://www.tomtom.com/en-gb/legal/product-attributions/').catch(() => {}); }} style={styles.attribution}><AppText variant="caption" tone="secondary" style={{ fontSize: 10, color: '#294350' }}>© TomTom</AppText></PressableScale> : null}
   </View>;
 };
 const styles = StyleSheet.create({

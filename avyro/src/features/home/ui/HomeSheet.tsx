@@ -6,7 +6,7 @@ import { useNavigation } from '@react-navigation/native';
 import type { Place, RecentDestination } from '@/core/domain/entities/place';
 import { PLACE_ICONS } from '@/features/search/placeIcons';
 import { AppText, Divider, GlassPanel, ListRow, PressableScale, SectionHeader } from '@/ui/components';
-import { spacing } from '@/ui/theme';
+import { colors, spacing } from '@/ui/theme';
 import { SearchTrigger } from './SearchTrigger';
 import { SavedPlacesDock } from './SavedPlacesDock';
 
@@ -58,7 +58,7 @@ export const HomeSheet = ({
         <View style={styles.recents}>
           <SectionHeader
             title={t("Recent")}
-            actionLabel="Clear"
+            actionLabel={t("Clear")}
             onActionPress={onClearRecents}
           />
 
@@ -77,7 +77,7 @@ export const HomeSheet = ({
       ) : recents.length > 0 ? (
         <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">{t("Recent destinations ·")} {recents.length}</AppText></PressableScale>
       ) : (
-        <PressableScale onPress={() => setExpanded(!expanded)} accessibilityRole="button"><AppText variant="caption" tone="secondary">{expanded ? 'Hide saved places' : 'Home, Work & saved places'}</AppText></PressableScale>
+        <PressableScale onPress={() => setExpanded(!expanded)} accessibilityRole="button"><AppText variant="caption" tone="secondary">{t(expanded ? 'Hide saved places' : 'Home, Work & saved places')}</AppText></PressableScale>
       )}
     </View>
   </GlassPanel>
@@ -89,7 +89,7 @@ const styles = StyleSheet.create({
     paddingBottom: spacing.sm,
   },
   shortcuts: { flexDirection: 'row', gap: spacing.xs },
-  shortcut: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: 14, backgroundColor: '#F0F3F5' },
+  shortcut: { flex: 1, paddingVertical: spacing.sm, alignItems: 'center', borderRadius: 14, backgroundColor: colors.surfaceElevated },
   grabber: {
     alignSelf: 'center',
     width: 38,
