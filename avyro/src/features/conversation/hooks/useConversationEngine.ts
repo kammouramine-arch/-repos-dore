@@ -154,7 +154,7 @@ export const useConversationEngine = (): void => {
     const prefs = stores.preferences.getState().preferences;
     const evidence = prefs.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence : null;
     const probationary = probationaryMaximum(prefs.probationaryFrance, evidence?.countryCode, evidence?.legalRoadCategory, evidence?.speedLimit?.unit === 'km/h' ? evidence.speedLimit.value : null);
-    return { ...context, currentRoadName: evidence?.roadName ?? null, probationaryMaximumKmh: probationary, stops: navigation.stops, nextInstruction: navigation.status === 'guiding' ? navigation.progress?.currentStep.instruction ?? null : null, mappedSpeedLimit: stores.preferences.getState().preferences.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence?.speedLimit ?? null : null };
+    return { ...context, currentRoadName: evidence?.roadName ?? null, probationaryMaximumKmh: probationary, stops: navigation.stops, nextInstructionFr: navigation.status === 'guiding' ? navigation.progress?.currentStep.instructionFr ?? null : null, nextInstruction: navigation.status === 'guiding' ? navigation.progress?.currentStep.instruction ?? null : null, mappedSpeedLimit: stores.preferences.getState().preferences.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence?.speedLimit ?? null : null };
   }, [stores]);
 
   const clearVoiceTimer = useCallback(() => {

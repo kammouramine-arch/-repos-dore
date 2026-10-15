@@ -20,6 +20,8 @@ export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
   const voice = useConversationStore((state) => state.voice.status);
   const status = useConversationStore((state) => state.status);
   const dispatch = useConversationStore((state) => state.dispatch);
+  const handsFreeEnabled = usePreferencesStore(state => state.preferences.voiceCommands);
+  const unavailable = handsFreeEnabled && ['failed','unsupported','denied','blocked'].includes(voice);
   const update = usePreferencesStore(state => state.update);
 
   const listening = status === 'listening';
@@ -28,8 +30,8 @@ export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
 
   return (
     <IconButton
-      name={listening ? 'mic' : 'mic-outline'}
-      accessibilityLabel={busy ? t('Stop voice conversation') : t('Ask meepmeep')}
+      name={listening ? 'mic' : unavailable ? 'mic-off-outline' : 'mic-outline'}
+      accessibilityLabel={busy ? t('Stop voice conversation') : unavailable ? t('Hands-free unavailable. Tap to talk') : t('Ask meepmeep')}
       accessibilityHint={t("Tap to start or stop a conversation. Hold to pause hands-free listening.")}
       active={listening}
       variant={variant}

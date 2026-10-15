@@ -100,7 +100,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
       <View style={styles.grabber} /><AppText variant="title2">{t("Your trip")}</AppText>
       {currentRoute?.source === 'TomTom' ? <AppText variant="caption" tone="tertiary">{t("Route © TomTom")}</AppText> : null}
       <AppText variant="headline">{destination?.name}</AppText><AppText variant="body" tone="secondary">{destination?.address}</AppText>
-      {stops.map((stop, index) => <AppText key={stop.id} variant="footnote">{t("Stop")}{index + 1}: {stop.name} · {stop.address}</AppText>)}
+      {stops.map((stop, index) => <AppText key={stop.id} variant="footnote">{t("Stop")} {index + 1}: {stop.name} · {stop.address}</AppText>)}
       <View style={styles.actions}><Button label={t("Add a stop")} size="medium" onPress={() => add()} /><Button label={t("Parking stop")} variant="secondary" size="medium" onPress={() => add(true)} /></View>
       <AppText variant="subhead">{t("Available routes")}</AppText><AppText variant="footnote" tone="secondary">{t(status)}</AppText>
       {routes.map((route, index) => <ListRow key={route.id} title={`${formatDuration(route.durationSeconds)} · ${formatDistance(route.distanceMeters, unit)}`} subtitle={route.summary || `Route ${index + 1}`} icon="navigate-outline" onPress={() => {

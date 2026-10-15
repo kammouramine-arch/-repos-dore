@@ -131,6 +131,7 @@ export interface RouteContext {
   currentRoadName?: string | null;
   recentIntents?: { kind: string; category?: NearbyCategory }[];
   probationaryMaximumKmh?: number | null;
+  nextInstructionFr?: string | null;
   nextInstruction?: string | null;
   stops?: Place[];
   mappedSpeedLimit?: { value: number; unit: 'km/h' | 'mph'; source?: 'municipal-order' } | null;

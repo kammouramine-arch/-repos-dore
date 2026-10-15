@@ -14,6 +14,7 @@ export interface AuthState {
   restore: () => Promise<void>;
   signIn: (email: string, password: string) => Promise<boolean>;
   signUp: (fullName: string, email: string, password: string) => Promise<boolean>;
+  deleteAccount: () => Promise<void>;
   signOut: () => Promise<void>;
   clearError: () => void;
 }
@@ -69,6 +70,12 @@ export const createAuthStore = (services: ServiceContainer) =>
           'Could not create your account. Try again.',
         ),
 
+      async deleteAccount() {
+        if (!services.authRepository.deleteAccount) throw new Error('Account deletion is unavailable.');
+        await services.authRepository.deleteAccount();
+        services.crashReporter.identify(null);
+        set({session:null,status:'unauthenticated',error:null});
+      },
       async signOut() {
         await services.authRepository.signOut();
         services.crashReporter.identify(null);

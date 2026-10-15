@@ -1,7 +1,7 @@
 import { t, useUiLanguage } from '@/ui/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useServices } from '@/app/runtime/AppRuntime';
-import { ScrollView, StyleSheet, View } from 'react-native';
+import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { useEffect, useState } from 'react';
 import * as Speech from 'expo-speech';
 
@@ -43,6 +43,7 @@ export const SettingsScreen = () => {
   const { roadDataProvider } = useServices();
   const navigation = useNavigation();
   const session = useAuthStore((state) => state.session);
+  const deleteAccount = useAuthStore(state => state.deleteAccount);
   const signOut = useAuthStore((state) => state.signOut);
   const { preferences, update } = usePreferencesStore();
   const voice = useConversationStore((state) => state.voice);
@@ -165,6 +166,7 @@ export const SettingsScreen = () => {
           />
         </SettingsSection>
 
+        {session ? <Button label={t("Delete account")} variant="ghost" onPress={() => Alert.alert(t('Delete account?'), t('This permanently deletes your hosted profile and reports. Saved places on this iPhone remain.'), [{text:t('Cancel'),style:'cancel'}, {text:t('Delete account'),style:'destructive',onPress:()=>{void deleteAccount().catch(()=>Alert.alert(t('Deletion failed'),t('Check your connection and try again.')));}}])} /> : null}
         {session ? <Button label={t("Sign out")} variant="danger" onPress={() => void signOut()} /> : null}
       </ScrollView>
     </Screen>

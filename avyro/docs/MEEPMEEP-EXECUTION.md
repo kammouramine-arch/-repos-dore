@@ -55,3 +55,15 @@ CNIL describes vidéo-verbalisation as remote human observation by authorized ag
 
 ### Interface coverage
 French static copy now covers primary map, search, guidance, onboarding, reports and settings surfaces via explicit translation sites (never auto-translating addresses). Separate UI language/appearance controls persist. ES/DE/IT/AR are declared unavailable; Arabic direction metadata exists but RTL screens are not shipped or claimed validated. Dynamic error strings and native system prompts still need a full localization QA pass; French is not yet claimed 100% complete.
+
+
+### Validation checkpoint
+App: 50 suites / 526 tests passed; selected cloud/roads/routing backend suite 42/42 passed; typecheck and lint passed. The next regression adds cancellation/newest-destination ownership (two tests) after finding that late trip plans could revive cleared state. This follow-up must be included in the final signed binary, not just the branch.
+Hosted backend cece023 deployed with additive D1 tables: version c512500a-ecbc-4bf7-a4aa-98961d5ccf45. No paid plan activated.
+Signed native candidate 40 is compiling from cece023 in run 38820513290; it is not submitted, and will need the final JavaScript commit embedded and re-signed before release.
+
+
+### Desktop wake performance (not iPhone performance)
+Bundled-model hard synthetic set: 16/16 positives, 0/48 controls. On this Windows PC, one inference thread loaded the model in 0.722 s and processed 268.47 s of audio in 6.168 s (real-time factor 0.023). Gaussian-added noise is not recorded driving noise. This result establishes neither mounted-iPhone accuracy nor battery/thermal behavior; those remain physical-device checks.
+
+Latest source validation: typecheck and lint pass; 52 app suites / 533 tests pass; cloud tests 22/22 and road/routing/local-classifier tests 24/24 pass. Includes trip cancellation ownership, French maneuver copy, new wake-address transcription cleanup, and authenticated optional-account deletion. Physical-device checks remain unverified.

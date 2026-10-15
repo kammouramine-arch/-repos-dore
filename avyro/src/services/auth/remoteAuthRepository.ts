@@ -48,6 +48,15 @@ export const createRemoteAuthRepository = ({
   return {
     signIn: (credentials) => save("/auth/login", credentials),
     signUp: (details) => save("/auth/register", details),
+    async deleteAccount() {
+      const session = await secure.readJson<Session & {gateway?: string} | null>(STORAGE_KEYS.session, null);
+      if (!session || session.gateway !== baseUrl) throw new AppError('network', 'Sign in before deleting your account.');
+      await http.postJson(`${baseUrl}/auth/delete`, {confirm:true}, value => {
+        if (!value || typeof value !== 'object' || !('deleted' in value) || value.deleted !== true) throw new AppError('invalid-response', 'Deletion was not confirmed.');
+        return null;
+      }, {operation:'auth.delete',headers:{Authorization:`Bearer ${session.token}`}});
+      await secure.remove(STORAGE_KEYS.session);
+    },
     async signOut() {
       const session = await secure.readJson<Session | null>(
         STORAGE_KEYS.session,

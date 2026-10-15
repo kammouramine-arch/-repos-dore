@@ -91,7 +91,7 @@ export const RegisterScreen = () => {
       <TextField
         label={t("Password")}
         icon="lock-closed-outline"
-        placeholder={t("At least 8 characters")}
+        placeholder={t("At least 10 characters")}
         inputRef={passwordRef}
         value={password.value}
         onChangeText={password.set}

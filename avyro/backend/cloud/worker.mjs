@@ -103,7 +103,20 @@ export default {
       const user = await authorize(request, db);
       await rate(db, `user:${user.id}`, 60);
       if (route === '/auth/me' && method === 'GET') return user.kind === 'account' ? json(publicUser(user)) : json({ guest: true });
-      if (route === '/auth/logout' && method === 'POST') {
+      if (route === '/auth/delete' && method === 'POST') {
+        const input = await body(request);
+        if (input.confirm !== true) throw fail(400, 'Explicit confirmation is required.');
+        await db.batch([
+          db.prepare('DELETE FROM incident_feedback WHERE user_id=? OR incident_id IN (SELECT id FROM incidents WHERE user_id=?)').bind(user.id,user.id),
+          db.prepare('DELETE FROM incident_direction WHERE incident_id IN (SELECT id FROM incidents WHERE user_id=?)').bind(user.id),
+          db.prepare('DELETE FROM moderation_audit WHERE moderator=? OR incident_id IN (SELECT id FROM incidents WHERE user_id=?)').bind(user.id,user.id),
+          db.prepare('DELETE FROM incidents WHERE user_id=?').bind(user.id),
+          db.prepare('DELETE FROM sessions WHERE user_id=?').bind(user.id),
+          db.prepare('DELETE FROM users WHERE id=?').bind(user.id),
+        ]);
+        return json({ deleted: true });
+      }
+      if (route === '/auth/logout'  && method === 'POST') {
         await db.prepare('DELETE FROM sessions WHERE hash=?').bind(await hash(request.headers.get('authorization').slice(7))).run();
         return json({ signedOut: true });
       }

@@ -63,7 +63,7 @@ export const voicePromptFor = (
       // A turn that ended because the microphone failed is worth reporting.
       // A turn the driver cancelled themselves is not — they know.
       return error
-        ? { label: /^(?:Voice could not start|Offline voice needs)/.test(error) ? error : 'Sorry, I didn’t catch that.', tone: 'error', visible: true }
+        ? { label: /^(?:Voice could not start|Offline voice needs|The microphone could not start)/.test(error) ? error : 'Sorry, I didn’t catch that.', tone: 'error', visible: true }
         : hidden;
 
     case 'idle':

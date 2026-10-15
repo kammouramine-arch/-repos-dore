@@ -225,7 +225,7 @@ export const parseCommand = (transcript: string): VoiceIntent => {
   const utterance = normaliseUtterance(transcript);
   if (utterance.length === 0) return { kind: 'unknown' };
   if (/\b(?:ne|n)\b.*\b(?:pas|jamais)\b|\b(?:don t|do not)\b/.test(utterance)) return { kind: 'unknown' };
-  const avoidance = utterance.match(/^(?:(?:can|could) (?:we|you) |please |peux tu |evitons )?(avoid|skip|evite|eviter|allow|autorise) (?:the |les |l |le )?(tolls?|peages?|motorways?|highways?|autoroutes?)(?: please| s il te plait)?$/);
+  const avoidance = utterance.match(/^(?:(?:can|could) (?:we|you) |please |peux tu |peut on |pourrais tu )?(avoid|skip|evite|eviter|evitons|allow|autorise) (?:the |les |l |le )?(tolls?|peages?|motorways?|highways?|autoroutes?)(?: please| s il te plait)?$/);
   if (avoidance) return { kind: 'set-route-preference', preference: /toll|peage/.test(avoidance[2]) ? 'avoidTolls' : 'avoidMotorways', enabled: !/allow|autorise/.test(avoidance[1]) };
   if (/^(?:what(?: s| is) (?:the |our )?next (?:turn|exit|instruction)|quelle est la prochaine (?:sortie|instruction)|ou tourne t on)(?: please)?$/.test(utterance)) return { kind: 'ask-next-maneuver' };
   // Explicit observations only: questions about reporting never create a report.

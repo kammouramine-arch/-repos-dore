@@ -5,7 +5,7 @@
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
 
-export const MIN_PASSWORD_LENGTH = 8;
+export const MIN_PASSWORD_LENGTH = 10;
 
 export const validateFullName = (value: string): string | null => {
   const trimmed = value.trim();
@@ -26,6 +26,7 @@ export const validatePassword = (value: string): string | null => {
   if (value.length < MIN_PASSWORD_LENGTH) {
     return `Use at least ${MIN_PASSWORD_LENGTH} characters.`;
   }
+  if (value.length > 128) return 'Use no more than 128 characters.';
   if (!/[a-zA-Z]/.test(value) || !/[0-9]/.test(value)) {
     return 'Mix letters and numbers.';
   }

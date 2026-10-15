@@ -15,7 +15,7 @@ export const frenchReply = (reply: ConversationReply, request: ConversationReque
   else if (reply.speech === 'I could not search just now. Try again in a moment.') speech = 'La recherche est indisponible. Réessayez dans un instant.';
   else switch (intent.kind) {
     case 'set-route-preference': speech = 'Je mets à jour vos préférences de trajet.'; break;
-    case 'ask-next-maneuver': speech = context.nextInstruction ?? 'Aucune instruction de guidage en cours.'; break;
+    case 'ask-next-maneuver': speech = context.nextInstructionFr ?? context.nextInstruction ?? 'Aucune instruction de guidage en cours.'; break;
     case 'navigate-saved': speech = `Enregistrez d’abord votre adresse ${intent.slot === 'home' ? 'de domicile' : 'de travail'} sur la carte.`; break;
     case 'navigate-to-place': speech = reply.referent ? `J’ai trouvé ${reply.referent.name}. Dites « emmène-moi là-bas » pour y aller.` : `Je n’ai pas trouvé ${intent.query}. Précisez la ville ou la rue.`; break;
     case 'find-nearby': speech = reply.referent ? `J’ai trouvé ${reply.referent.name}. Dites « emmène-moi là-bas » pour y aller.` : context.location ? 'Je n’ai pas trouvé de lieu correspondant à proximité.' : 'Activez votre position pour chercher à proximité.'; break;

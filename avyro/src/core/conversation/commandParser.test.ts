@@ -251,6 +251,8 @@ describe('explicit route preferences', () => {
     ['Can we avoid the tolls?', 'avoidTolls', true],
     ['Avoid motorways', 'avoidMotorways', true],
     ['Évite les péages', 'avoidTolls', true],
+    ['Évitons les autoroutes', 'avoidMotorways', true],
+    ['Peut-on éviter les péages ?', 'avoidTolls', true],
     ['Autorise les autoroutes', 'avoidMotorways', false],
   ])('%s', (text, preference, enabled) => {
     expect(parseCommand(text as string)).toEqual({ kind: 'set-route-preference', preference, enabled });

@@ -8,6 +8,7 @@ import type { Credentials, Session, SignUpDetails } from '../entities/user';
 export interface AuthRepository {
   signIn(credentials: Credentials): Promise<Session>;
   signUp(details: SignUpDetails): Promise<Session>;
+  deleteAccount?(): Promise<void>;
   signOut(): Promise<void>;
   /** Restores a persisted session at launch, or `null` when signed out. */
   restoreSession(): Promise<Session | null>;

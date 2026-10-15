@@ -18,7 +18,7 @@ export interface ManeuverBannerProps {
  * the instruction sits beside it, and the following maneuver is demoted to a
  * single quiet line.
  */
-export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { useUiLanguage(); return ((
+export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { const language = useUiLanguage(); return ((
   <GlassPanel style={styles.banner}>
     <View style={styles.primary}>
       <ManeuverIcon maneuver={progress.currentStep.maneuver} size={36} />
@@ -28,7 +28,7 @@ export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { use
           {formatDistance(progress.distanceToManeuverMeters, unit)}
         </AppText>
         <AppText variant="callout" tone="secondary" numberOfLines={2}>
-          {progress.currentStep.instruction}
+          {language === 'fr' ? progress.currentStep.instructionFr ?? progress.currentStep.instruction : progress.currentStep.instruction}
         </AppText>
       </View>
     </View>
@@ -46,7 +46,7 @@ export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { use
           color={colors.textTertiary}
         />
         <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
-          {t("Then")}{progress.nextStep.instruction.toLowerCase()}
+          {t("Then")} {(language === 'fr' ? progress.nextStep.instructionFr ?? progress.nextStep.instruction : progress.nextStep.instruction).toLowerCase()}
         </AppText>
       </Animated.View>
     ) : null}

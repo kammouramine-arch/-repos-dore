@@ -94,3 +94,12 @@ test('community deduplication respects direction; feedback is nearby and author 
   const feed = await (await call('/incidents?community=1',null,token)).json();
   assert.equal(feed.some(item=>item.id===a.id),false);
 });
+
+
+test('authenticated deletion requires confirmation and revokes the session', async () => {
+  const {token}=await (await request('/auth/guest',{})).json();
+  assert.ok(token);
+  assert.equal((await request('/auth/delete',{confirm:false},token)).status,400);
+  assert.equal((await request('/auth/delete',{confirm:true},token)).status,200);
+  assert.equal((await request('/auth/me',null,token)).status,401);
+});

@@ -30,8 +30,10 @@ export interface TripState {
  * read it (search, preview, guidance, home) and it has to survive every
  * transition between them.
  */
-export const createTripStore = (services: ServiceContainer) =>
-  create<TripState>()((set) => ({
+export const createTripStore = (services: ServiceContainer) => {
+  let generation = 0;
+  let pending: AbortController | null = null;
+  return create<TripState>()((set) => ({
     destination: null,
     plan: null,
     selectedRouteId: null,
@@ -49,12 +51,18 @@ export const createTripStore = (services: ServiceContainer) =>
     },
 
     async planTrip(destination, origin) {
+      const request = ++generation;
+      pending?.abort();
+      const controller = new AbortController(); pending = controller;
       set({ planning: true, error: null, destination });
 
       try {
-        const plan = await services.useCases.planTrip({ destination, origin });
+        const plan = await services.useCases.planTrip({ destination, origin, signal: controller.signal });
+        if (request !== generation || controller.signal.aborted) return false;
         const recents = await services.recentDestinationsRepository.add(destination);
 
+        if (request !== generation || controller.signal.aborted) return false;
+        pending = null;
         set({
           plan,
           selectedRouteId: plan.routes[0]?.id ?? null,
@@ -63,6 +71,8 @@ export const createTripStore = (services: ServiceContainer) =>
         });
         return true;
       } catch (error) {
+        if (request !== generation || controller.signal.aborted) return false;
+        pending = null;
         set({
           planning: false,
           plan: null,
@@ -75,9 +85,12 @@ export const createTripStore = (services: ServiceContainer) =>
 
     selectRoute: (routeId) => set({ selectedRouteId: routeId }),
 
-    clearTrip: () =>
-      set({ destination: null, plan: null, selectedRouteId: null, error: null }),
+    clearTrip: () => {
+      generation++; pending?.abort(); pending = null;
+      set({ destination: null, plan: null, selectedRouteId: null, error: null, planning: false });
+    },
   }));
+};
 
 /** The route the driver is about to take, or `null` before planning. */
 export const selectActiveRoute = (state: TripState): Route | null =>

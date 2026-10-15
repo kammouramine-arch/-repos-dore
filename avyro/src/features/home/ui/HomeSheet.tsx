@@ -75,7 +75,7 @@ export const HomeSheet = ({
           ))}
         </View>
       ) : recents.length > 0 ? (
-        <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">{t("Recent destinations ·")}{recents.length}</AppText></PressableScale>
+        <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">{t("Recent destinations ·")} {recents.length}</AppText></PressableScale>
       ) : (
         <PressableScale onPress={() => setExpanded(!expanded)} accessibilityRole="button"><AppText variant="caption" tone="secondary">{expanded ? 'Hide saved places' : 'Home, Work & saved places'}</AppText></PressableScale>
       )}

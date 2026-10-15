@@ -25,3 +25,9 @@ test('French wake-address cleanup preserves the actual command and negation', as
     ['Do not say hey Avyro, report an accident here.', 'Do not say hey Avyro, report an accident here.'],
   ]) assert.equal((await transcribeCommand({ run: async () => ({ text }) }, audio(), 'auto')).text, expected);
 });
+
+
+test('new wake address cleanup preserves command negation', async () => {
+  const result = await transcribeCommand({run:async()=>({text:'Hey meep meep, do not take me home'})}, audio(), 'en');
+  assert.equal(result.text,'do not take me home');
+});
