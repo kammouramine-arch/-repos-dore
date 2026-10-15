@@ -188,7 +188,7 @@ export const AUTH = {
 
 /** Conservative test-feed limits; never keep a road limit through a GPS gap. */
 export const ROAD_DATA = {
-  maxAccuracyMeters: 25,
+  maxAccuracyMeters: 12,
   evidenceTtlMs: 5000,
   maxEvidenceMovementMeters: 15,
   requestIntervalMs: 12000,

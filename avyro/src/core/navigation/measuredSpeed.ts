@@ -9,5 +9,8 @@ export function measuredSpeed(fix: UserPosition | null, tick: number): number | 
 }
 
 export function aboveMappedLimit(speed: number | null, limit: { value: number; unit: 'km/h' | 'mph' } | null | undefined): boolean {
-  return speed !== null && !!limit && speed * (limit.unit === 'mph' ? 2.236936 : 3.6) > limit.value;
+  if (speed === null || !limit) return false;
+  const threshold = limit.unit === 'mph' ? limit.value * 1609.344 / 3600 : limit.value / 3.6;
+  // Floating conversion alone must not turn exactly 30 km/h into an excess.
+  return speed > threshold + 1e-9;
 }

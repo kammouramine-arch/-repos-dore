@@ -56,7 +56,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
         onClose();
       }} />)}
       <AppText variant="subhead">Reports near your route</AppText><AppText variant="caption" tone="secondary">{reportStatus}</AppText>
-      {nearReports.length ? nearReports.map(({ report, aheadMeters }) => <AppText key={report.id} variant="footnote">{INCIDENT_CATALOG.find(item => item.category === report.category)?.title} · {formatDistance(aheadMeters, unit)} ahead · unverified</AppText>) : <AppText variant="footnote" tone="secondary">No active community observations returned near this route.</AppText>}
+      {nearReports.length ? nearReports.map(({ report, aheadMeters }) => <AppText key={report.id} variant="footnote">{INCIDENT_CATALOG.find(item => item.category === report.category)?.title} · {formatDistance(aheadMeters, unit)} ahead · unverified</AppText>) : reportStatus === 'Community observations · unverified' ? <AppText variant="footnote" tone="secondary">No active community observations returned near this route.</AppText> : null}
       <AppText variant="footnote" tone="secondary">Community pins are unverified observations. Scheduled departures and a best-time-to-leave prediction are not available yet.</AppText>
       <Button label="Back to navigation" variant="ghost" onPress={onClose} />
     </ScrollView></GlassPanel></View>

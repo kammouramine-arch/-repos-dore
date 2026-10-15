@@ -63,3 +63,9 @@ test('explicit community observations appear immediately as unverified with boun
   assert.equal(report.latitude, 48.8566);
   assert.equal((await request('/moderation', { id: report.id, decision: 'approved' }, token)).status, 403);
 });
+
+test('planned-road metadata also requires authentication and the configured road provider', async () => {
+  assert.equal((await request('/roads/ahead', { consent: true, geometry: [[3,50],[3.001,50]] })).status, 401);
+  const { token } = await (await request('/auth/guest', {})).json();
+  assert.equal((await request('/roads/ahead', { consent: true, geometry: [[3,50],[3.001,50]] }, token)).status, 503);
+});

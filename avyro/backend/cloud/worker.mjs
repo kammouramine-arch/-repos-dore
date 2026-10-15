@@ -100,7 +100,7 @@ export default {
         await db.prepare('DELETE FROM sessions WHERE hash=?').bind(await hash(request.headers.get('authorization').slice(7))).run();
         return json({ signedOut: true });
       }
-      if (route === '/roads/context' && method === 'POST') {
+      if (['/roads/context', '/roads/ahead'].includes(route) && method === 'POST') {
         await rate(db, `road:${user.id}`, 6);
         const roads = createTomTomRoadProvider({ key: env.TOMTOM_API_KEY, enabled: env.ROAD_DATA_ENABLED === 'true', reserveRequest: async () => {
           const month = new Date().toISOString().slice(0, 7);
@@ -108,7 +108,8 @@ export default {
           const reservation = await db.prepare('UPDATE provider_usage SET requests=requests+1 WHERE month=? AND requests<? RETURNING requests').bind(month, ROAD_MONTHLY_CAP).first();
           if (!reservation) throw fail(429, 'Road-data evaluation allowance exhausted.');
         } });
-        return json(await roads.lookup(await body(request)));
+        const input = await body(request, route === '/roads/ahead' ? 32000 : 16384);
+        return json(route === '/roads/ahead' ? await roads.lookupAhead(input) : await roads.lookup(input));
       }
       if (route === '/ai' && method === 'POST') {
         await rate(db, `ai:${user.id}`, 10);

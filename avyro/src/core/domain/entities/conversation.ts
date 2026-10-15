@@ -125,7 +125,7 @@ export interface RouteContext {
   headingDegrees: number | null;
   /** Routing-map street name, only when supported by a fresh accurate fix. */
   currentRoadName?: string | null;
-  mappedSpeedLimit?: { value: number; unit: 'km/h' | 'mph' } | null;
+  mappedSpeedLimit?: { value: number; unit: 'km/h' | 'mph'; source?: 'municipal-order' } | null;
   /** The place Avyro last recommended, which "take me there" refers to. */
   referent: Place | null;
   remainingDistanceMeters: number | null;

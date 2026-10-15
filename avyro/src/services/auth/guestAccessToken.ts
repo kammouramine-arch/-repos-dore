@@ -12,16 +12,21 @@ const decode = (input: unknown): GuestSession => {
 /** Anonymous API access, kept in the device keystore, without personal account details. */
 export const createGuestAccessToken = ({ http, secure, baseUrl }: { http: HttpClient; secure: SecureStorage; baseUrl: string }) => {
   let pending: Promise<string | null> | null = null;
+  let memory: GuestSession | null = null;
   return async (): Promise<string | null> => {
     if (!baseUrl) return null;
+    if (memory && memory.expiresAt > Date.now()) return memory.token;
     const stored = await secure.readJson<unknown>(STORAGE_KEYS.guestSession, null);
     try {
       // A credential belongs only to the gateway that issued it.
       const persisted = stored as { gateway?: string; session?: unknown } | null;
-      if (persisted?.gateway === baseUrl) return decode(persisted.session).token;
+      if (persisted?.gateway === baseUrl) { memory = decode(persisted.session); return memory.token; }
     } catch { /* Missing/expired credentials are renewed below. */ }
-    pending ??= http.postJson(`${baseUrl}/auth/guest`, {}, decode, { operation: 'auth.guest', timeoutMs: 4000 }).then(async session => {
-      await secure.writeJson(STORAGE_KEYS.guestSession, { gateway: baseUrl, session });
+    pending ??= http.postJson(`${baseUrl}/auth/guest`, {}, decode, { operation: 'auth.guest', timeoutMs: 12000 }).then(async session => {
+      memory = session;
+      // Anonymous access can continue in RAM if this device's keychain is unavailable.
+      // Account sessions never use this fallback and nothing is written in plaintext.
+      try { await secure.writeJson(STORAGE_KEYS.guestSession, { gateway: baseUrl, session }); } catch { /* Session ends at process restart. */ }
       return session.token;
     }).catch(() => null).finally(() => { pending = null; });
     return pending;

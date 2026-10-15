@@ -26,3 +26,13 @@ test('a gateway migration never sends the previous host its guest credential', a
   expect(await getToken()).toBe('n'.repeat(43));
   expect(postJson).toHaveBeenCalledTimes(1);
 });
+
+test('a temporary keychain write failure keeps anonymous access in memory without plaintext storage', async () => {
+  const session = { token: 'x'.repeat(43), expiresAt: Date.now() + 60000 };
+  const postJson = jest.fn(async () => session);
+  const secure = { readJson: async () => null, writeJson: jest.fn(async () => { throw Error('keychain unavailable'); }) } as unknown as SecureStorage;
+  const access = createGuestAccessToken({ http: { postJson } as unknown as HttpClient, secure, baseUrl: 'https://gateway.example' });
+  expect(await access()).toBe(session.token);
+  expect(await access()).toBe(session.token);
+  expect(postJson).toHaveBeenCalledTimes(1);
+});

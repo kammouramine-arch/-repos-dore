@@ -5,7 +5,7 @@ const now = 1791892800000;
 const fixes = [{ longitude: 2, latitude: 48, accuracy: 10, timestamp: now - 3000 }, { longitude: 2.0002, latitude: 48, accuracy: 10, timestamp: now }];
 const evidence = () => ({
   projectedPoints: fixes.map((p) => ({ geometry: { type: 'Point', coordinates: [p.longitude, p.latitude] }, properties: { routeIndex: 0, snapResult: 'Matched' } })),
-  route: [{ properties: { elementType: 'Road', confidence: 0.95, speedLimits: { value: 50, unit: 'kmph', type: 'Maximum' }, trafficSigns: [{ signType: 'StopSign' }] } }],
+  route: [{ geometry: { type: 'LineString', coordinates: fixes.map(p => [p.longitude, p.latitude]) }, properties: { elementType: 'Road', confidence: 0.95, speedLimits: { value: 50, unit: 'kmph', type: 'Maximum' }, trafficSigns: [{ signType: 'StopSign' }] } }],
 });
 test('rejects inaccurate, stale, stationary and discontinuous traces before spending quota', async () => {
   let reserved = 0;
@@ -69,4 +69,10 @@ test('disabled provider, exhausted budget and oversized response fail safely', a
   await assert.rejects(createTomTomRoadProvider({ ...options, enabled: true, reserveRequest: () => { throw Object.assign(Error('cap'), { status: 429 }); } }).lookup({ fixes, consent: true }), { status: 429 });
   assert.equal(called, false);
   await assert.rejects(createTomTomRoadProvider({ ...options, enabled: true }).lookup({ fixes, consent: true }), { status: 502 });
+});
+
+test('a projected point cannot claim a different nearby road geometry', () => {
+  const data = evidence();
+  data.route[0].geometry.coordinates = [[2.001, 48], [2.002, 48]];
+  assert.equal(decodeRoadEvidence(data, fixes, now).speedLimit, null);
 });

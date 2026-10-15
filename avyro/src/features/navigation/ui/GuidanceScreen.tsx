@@ -26,6 +26,8 @@ import { ArrivalCard } from "./ArrivalCard";
 import { GuidanceControls } from "./GuidanceControls";
 import { ManeuverBanner } from "./ManeuverBanner";
 import { TripDetailsSheet } from "./TripDetailsSheet";
+import { useRoadAhead } from '../hooks/useRoadAhead';
+import { RoadAheadMarkers, RoadAheadNotice } from './RoadAheadLayer';
 import { TripStatusBar } from "./TripStatusBar";
 
 const KEEP_AWAKE_TAG = "avyro-guidance";
@@ -36,6 +38,7 @@ const KEEP_AWAKE_TAG = "avyro-guidance";
  * is theirs until they ask for it back.
  */
 export const GuidanceScreen = () => {
+  const roadAhead = useRoadAhead();
   const navigation = useNavigation();
   const driverHeading = useDriverHeading();
   const insets = useSafeAreaInsets();
@@ -126,6 +129,7 @@ export const GuidanceScreen = () => {
         onRegionChangeComplete={() => { if (!following || overview) void mapRef.current?.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => undefined); }}
       >
         <IncidentMapLayer />
+        <RoadAheadMarkers items={roadAhead} />
         {routeIndex && progress ? (
           <ActiveRouteOverlay
             routeIndex={routeIndex}
@@ -170,6 +174,7 @@ export const GuidanceScreen = () => {
           </GlassPanel>
         )}
 
+        <RoadAheadNotice items={roadAhead} />
         {status === "rerouting" && progress ? (
           <Animated.View
             entering={FadeIn}

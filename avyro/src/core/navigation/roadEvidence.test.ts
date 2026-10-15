@@ -12,3 +12,8 @@ test('road evidence clears as the car moves, GPS weakens or data expires', () =>
   expect(isRoadEvidenceCurrent(evidence, { ...position, timestamp: now + 5001 }, now + 5001)).toBe(false);
   expect(isRoadEvidenceCurrent(null, position, now)).toBe(false);
 });
+
+test('a turn invalidates the previous road limit before its age timer expires', () => {
+  expect(isRoadEvidenceCurrent(evidence, { ...position, heading: 90 }, now)).toBe(false);
+  expect(isRoadEvidenceCurrent({ ...evidence, position: { ...position, heading: 350 } }, { ...position, heading: 10 }, now)).toBe(true);
+});

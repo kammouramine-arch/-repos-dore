@@ -63,6 +63,9 @@ appId: app.avyro.companion
 - assertVisible: "Your trip"
 - assertVisible: "Add a stop"
 - assertVisible: "Parking stop"
+- extendedWaitUntil:
+    visible: "Community observations · unverified"
+    timeout: 30000
 - takeScreenshot: build/screens/09-trip-details
 - tapOn: "Parking stop"
 - extendedWaitUntil:

@@ -20,3 +20,10 @@ test('overspeed compares actual measurement with grounded limits in their own un
   expect(aboveMappedLimit(20, null)).toBe(false);
   expect(aboveMappedLimit(null, { value: 50, unit: 'km/h' })).toBe(false);
 });
+
+test('30-zone warnings trigger above 30, including the reported 37 km/h case', () => {
+  const limit = { value: 30, unit: 'km/h' as const };
+  for (const speed of [0, 22, 25, 29, 30]) expect(aboveMappedLimit(speed / 3.6, limit)).toBe(false);
+  for (const speed of [31, 34, 35, 37, 50]) expect(aboveMappedLimit(speed / 3.6, limit)).toBe(true);
+  expect(aboveMappedLimit(37 / 3.6, null)).toBe(false);
+});
