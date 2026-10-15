@@ -14,7 +14,17 @@ hold tiny route-position jitter; actual movement releases the hold. At a stop,
 route course wins over invalid/noisy CoreLocation course. On iOS the car angle
 uses the actual screen-projected road tangent, accounting for map pitch and
 camera rotation. These behaviors pass 512 app tests in 48 suites plus typecheck
-and lint. A separate native synthetic-street motion check is pending.
+and lint. Native synthetic-street motion run `38750233930` passes guest launch,
+fresh stationary zero, simulated 36 km/h, and trip-panel body-swipe dismissal.
+Captured frames show the car alone aligned with the road. This validates the
+synthetic trace, not all real-device GPS conditions. Native test source
+`d55dfa6` changes only workflow/test files from app source `4506598`.
+The car-only signed candidate from `4506598` passes signature, nine model/licence
+resource hashes, backend URL and provider-secret absence checks. It is held
+locally and has not been submitted to Apple. The validated native motion excerpt `Avyro-car-only-validated-preview.mp4`
+is available for tester review. The earlier run `38746639890` is not counted as
+a pass because its GPS fixture started after its movement assertion timed out.
+Temporary signing credentials were removed after signing.
 ## October 15 additional visual feedback
 
 Reviewed the supplied SUPJ6093, WYVM2675 and RKZS9242 recordings and three desktop
@@ -26,8 +36,9 @@ selection haptic, and opening/closing respects system Reduced Motion. Alternativ
 routes are keyed to the current destination/stops, so results from a different
 trip cannot remain actionable.
 
-The map puck is an original vector open roadster with a seated companion and a
-subtle blink, retaining route-vertex motion and camera-relative bearing. No Waze
+The earlier map puck was an original vector open roadster with a seated companion
+and a subtle blink. The current candidate removes that person entirely, retaining
+route-vertex motion and camera-relative bearing. No Waze
 artwork/code is used. Crossing a grounded limit produces three brief sign pulses;
 GPS digits stay red for the entire excess and return to white below the limit.
 The instrument layout stays fixed, without an expanding repeated warning pill.
