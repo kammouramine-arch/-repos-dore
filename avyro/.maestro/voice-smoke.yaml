@@ -1,0 +1,26 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- extendedWaitUntil:
+    visible: "Continue with hands-free AI"
+    timeout: 90000
+- tapOn: "Continue with hands-free AI"
+- tapOn: "Settings"
+- scrollUntilVisible:
+    element: ".*Troubleshoot voice.*"
+    direction: DOWN
+    timeout: 30000
+- tapOn: ".*Troubleshoot voice.*"
+- extendedWaitUntil:
+    visible: ".*voice_opened.*"
+    timeout: 30000
+- takeScreenshot: build/screens/native-wake-opened
+- extendedWaitUntil:
+    visible: ".*voice_stable.*"
+    timeout: 40000
+- takeScreenshot: build/screens/native-wake-stable
+# Verifies native initialization/30-second ownership only. No simulated wake
+# event and no claim that a simulator microphone validates a driver's speech.
