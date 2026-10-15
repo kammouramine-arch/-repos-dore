@@ -13,7 +13,7 @@ on:
         description: Native interaction suite
         type: choice
         default: guest-map
-        options: [guest-map, location-smoke]
+        options: [guest-map, location-smoke, trip-smoke]
 permissions:
   contents: read
 concurrency:
@@ -118,7 +118,7 @@ jobs:
           }
           trap finish_capture EXIT
           AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
-          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke ]] || exit 1
+          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke ]] || exit 1
           maestro --device "$DEVICE_ID" test ".maestro/$AVYRO_UI_FLOW.yaml"
       - name: Capture final simulator state
         if: always()

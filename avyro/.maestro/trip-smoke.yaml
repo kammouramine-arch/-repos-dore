@@ -1,0 +1,82 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- assertVisible: "Your voice. Your way."
+- tapOn: "Continue without hands-free"
+- assertVisible: "Search for a destination"
+- tapOn: "Search for a destination"
+- tapOn: "Destination"
+- inputText: "Eiffel Tower Paris France"
+- hideKeyboard
+- extendedWaitUntil:
+    visible:
+      id: "place-result-0"
+    timeout: 20000
+- takeScreenshot: build/screens/04-address-results
+- tapOn:
+    id: "place-result-0"
+- extendedWaitUntil:
+    visible: "Start navigation"
+    timeout: 30000
+- takeScreenshot: build/screens/05-route-preview
+- tapOn: "Start navigation"
+# The native workflow already streams fresh positions. A one-shot location reset
+# here can interrupt that stream precisely when guidance takes ownership of GPS.
+- extendedWaitUntil:
+    visible: "End"
+    timeout: 60000
+- extendedWaitUntil:
+    notVisible: "Waiting for GPS…"
+    timeout: 60000
+- takeScreenshot: build/screens/06-guidance
+- extendedWaitUntil:
+    visible:
+      id: "gps-speed-value"
+      text: "0"
+    timeout: 15000
+- takeScreenshot: build/screens/06-stationary-zero
+
+- tapOn: "Trip details"
+- assertVisible: "Your trip"
+- assertVisible: "Add a stop"
+- assertVisible: "Parking stop"
+- extendedWaitUntil:
+    visible: "Community observations · unverified"
+    timeout: 30000
+- takeScreenshot: build/screens/09-trip-details
+- swipe:
+    start: 50%, 60%
+    end: 50%, 95%
+    duration: 500
+- extendedWaitUntil:
+    notVisible: "Your trip"
+    timeout: 10000
+- tapOn: "Trip details"
+- assertVisible: "Your trip"
+- tapOn: "Parking stop"
+- extendedWaitUntil:
+    visible:
+      id: "nearby-result-0"
+    timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "nearby-result-6"
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: build/screens/10-parking-stop-choice
+- tapOn:
+    id: "nearby-result-6"
+- extendedWaitUntil:
+    visible: "End"
+    timeout: 30000
+- tapOn: "Trip details"
+- assertVisible: "Stop 1:.*"
+- takeScreenshot: build/screens/10-trip-with-stop
+- swipe:
+    start: 50%, 60%
+    end: 50%, 95%
+    duration: 500
+- assertNotVisible: "Your trip"

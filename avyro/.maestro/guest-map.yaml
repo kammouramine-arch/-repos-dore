@@ -86,12 +86,22 @@ appId: app.avyro.companion
     visible:
       id: "nearby-result-0"
     timeout: 30000
+- scrollUntilVisible:
+    element:
+      id: "nearby-result-6"
+    direction: DOWN
+    timeout: 30000
+- takeScreenshot: build/screens/10-parking-stop-choice
 - tapOn:
-    id: "nearby-result-0"
+    id: "nearby-result-6"
 - extendedWaitUntil:
     visible: "End"
     timeout: 30000
 - tapOn: "Trip details"
 - assertVisible: "Stop 1:.*"
 - takeScreenshot: build/screens/10-trip-with-stop
-- tapOn: "Back to navigation"
+- swipe:
+    start: 50%, 60%
+    end: 50%, 95%
+    duration: 500
+- assertNotVisible: "Your trip"
