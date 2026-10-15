@@ -66,11 +66,21 @@ appId: app.avyro.companion
     visible:
       id: "nearby-result-0"
     timeout: 30000
-- scrollUntilVisible:
-    element:
-      id: "nearby-result-6"
-    direction: DOWN
-    timeout: 30000
+# Only the bottom list scrolls; the screen centre belongs to the map.
+- repeat:
+    times: 6
+    commands:
+      - runFlow:
+          when:
+            notVisible:
+              id: "nearby-result-6"
+          commands:
+            - swipe:
+                start: 50%, 90%
+                end: 50%, 75%
+                duration: 700
+- assertVisible:
+    id: "nearby-result-6"
 - takeScreenshot: build/screens/10-parking-stop-choice
 - tapOn:
     id: "nearby-result-6"
