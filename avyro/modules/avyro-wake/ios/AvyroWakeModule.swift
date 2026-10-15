@@ -148,7 +148,22 @@ public final class AvyroWakeModule: Module {
     AsyncFunction("isAvailable") { () -> Bool in
       self.models?.path(forResource: "encoder", ofType: "onnx") != nil
     }
-    AsyncFunction("start") { () throws in try self.startCapture() }.runOnQueue(.main)
+    AsyncFunction("start") { (promise: Promise) in
+      self.stopCapture()
+      let requestGeneration = self.generation
+      // Model creation can be slow on real phones. Never block the UI/audio
+      // main queue with ONNX initialization, and reuse weights across turns.
+      self.inference.async {
+        do {
+          try self.prepareSpotter()
+          DispatchQueue.main.async {
+            guard self.generation == requestGeneration else { promise.reject(self.wakeError("Listening request cancelled.")); return }
+            do { try self.startCapture(); promise.resolve(nil) }
+            catch { promise.reject(error) }
+          }
+        } catch { DispatchQueue.main.async { promise.reject(error) } }
+      }
+    }.runOnQueue(.main)
     AsyncFunction("stop") { self.stopCapture() }.runOnQueue(.main)
     OnCreate {
       // Remove only this module's temporary clips left by a previous crash.
@@ -173,14 +188,13 @@ public final class AvyroWakeModule: Module {
     }
     OnDestroy {
       self.observers.forEach(NotificationCenter.default.removeObserver)
-      DispatchQueue.main.async { self.suggestions?.cancel(); self.handoffAudio = nil; self.stopCapture() }
+      DispatchQueue.main.async { self.suggestions?.cancel(); self.handoffAudio = nil; self.stopCapture(releaseModel: true) }
     }
   }
 
-  private func startCapture() throws {
-    stopCapture()
-    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open Avyro to use hands-free voice.") }
-    guard AVAudioSession.sharedInstance().recordPermission == .granted else { throw wakeError("Microphone permission is required.") }
+  // Accessed only on inference queue; code and model licences are bundled.
+  private func prepareSpotter() throws {
+    if spotter != nil { return }
     guard let models else { throw wakeError("Wake model is missing from this build.") }
     let names = ["encoder.onnx", "decoder.onnx", "joiner.onnx", "tokens.txt", "keywords.txt"]
     let paths = try names.map { name -> String in
@@ -204,11 +218,17 @@ public final class AvyroWakeModule: Module {
     config.keywords_file = UnsafePointer(pointers[4])
     let created = SherpaOnnxCreateKeywordSpotter(&config)
     guard let created else { throw wakeError("Wake model could not be loaded.") }
-    guard let createdStream = SherpaOnnxCreateKeywordStream(created) else {
-      SherpaOnnxDestroyKeywordSpotter(created)
-      throw wakeError("Wake stream could not be created.")
+    self.spotter = created
+  }
+
+  private func startCapture() throws {
+    stopCapture()
+    guard UIApplication.shared.applicationState == .active else { throw wakeError("Open Avyro to use hands-free voice.") }
+    guard AVAudioSession.sharedInstance().recordPermission == .granted else { throw wakeError("Microphone permission is required.") }
+    try inference.sync {
+      guard let spotter, let createdStream = SherpaOnnxCreateKeywordStream(spotter) else { throw wakeError("Wake stream could not be created.") }
+      self.stream = createdStream; self.triggered = false
     }
-    inference.sync { self.spotter = created; self.stream = createdStream; self.triggered = false }
     let captureGeneration = generation
     do {
       let audio = AVAudioSession.sharedInstance()
@@ -270,7 +290,7 @@ public final class AvyroWakeModule: Module {
     } catch { stopCapture(); throw error }
   }
 
-  private func stopCapture() {
+  private func stopCapture(releaseModel: Bool = false) {
     generation += 1
     recognitionRequests.forEach { $0.endAudio() }
     recognitionTasks.forEach { $0.cancel() }
@@ -287,8 +307,8 @@ public final class AvyroWakeModule: Module {
     commandURL = nil
     inference.sync {
       if let stream { SherpaOnnxDestroyOnlineStream(stream) }
-      if let spotter { SherpaOnnxDestroyKeywordSpotter(spotter) }
-      stream = nil; spotter = nil; triggered = false
+      if releaseModel, let spotter { SherpaOnnxDestroyKeywordSpotter(spotter); self.spotter = nil }
+      stream = nil; triggered = false
       rollingAudio = []
       acceptedAudioSeconds = 0
     }

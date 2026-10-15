@@ -1,62 +1,18 @@
-import type { SpeechRecognizer, SpeechRecognizerEvents } from '@/core/domain/ports/speechRecognizer';
+import type { SpeechRecognizer } from '@/core/domain/ports/speechRecognizer';
 import { createPlatformWakeWordDetector } from './platformWakeWordDetector';
 
-const setup = () => {
-  let callbacks: SpeechRecognizerEvents;
-  const stop = jest.fn(async () => undefined), finish = jest.fn(async () => undefined);
-  const recognizer = { supportsOnDevice: async () => true, start: jest.fn(async (_options, events) => { callbacks = events; return { stop, finish }; }) } as unknown as SpeechRecognizer;
-  const detector = createPlatformWakeWordDetector(recognizer, { isAvailable: async () => ({ available: false }), start: async () => { throw Error('Not selected'); } });
-  return { detector, recognizer, stop, finish, events: () => callbacks! };
-};
-afterEach(() => jest.useRealTimers());
-test('French same-breath hands-free command survives the wake handoff', async () => {
-  const { detector, recognizer, events, stop } = setup();
-  const onDetected = jest.fn();
-  const session = await detector.start({ onDetected, onError: jest.fn() });
-  expect(recognizer.start).toHaveBeenCalledWith(expect.objectContaining({ onDevice: true, locales: ['fr-FR', 'en-US'] }), expect.anything());
-  events().onTranscript({ text: 'Hey Aviro, emmène-moi à Lille', isFinal: true, locale: 'fr-FR' });
-  expect(onDetected).toHaveBeenCalledWith('emmene moi a lille');
-  await session.stop(); expect(stop).toHaveBeenCalledTimes(1);
+test.each(['system', 'keyword'] as const)('%s preference never substitutes continuous dictation for missing KWS', async engine => {
+  const start = jest.fn(); const keywordStart = jest.fn();
+  const detector = createPlatformWakeWordDetector({ start } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: false, reason: 'Model missing' }), start: keywordStart });
+  expect((await detector.isAvailable({ engine })).available).toBe(false);
+  await expect(detector.start({ onDetected: jest.fn(), onError: jest.fn() }, { engine })).rejects.toThrow('Model missing');
+  expect(start).not.toHaveBeenCalled(); expect(keywordStart).not.toHaveBeenCalled();
 });
-test('a partial command only requests a final result, never navigates', async () => {
-  jest.useFakeTimers(); const { detector, events, finish } = setup(); const onDetected = jest.fn();
-  const session = await detector.start({ onDetected, onError: jest.fn() });
-  events().onTranscript({ text: 'Hey Avyro, take me to', isFinal: false });
-  jest.advanceTimersByTime(2400);
-  expect(finish).toHaveBeenCalledTimes(1); expect(onDetected).not.toHaveBeenCalled();
-  await session.stop();
-});
-test('disabling cancels the delayed wake and closes microphone capture', async () => {
-  jest.useFakeTimers(); const { detector, events, stop } = setup(); const onDetected = jest.fn();
-  const session = await detector.start({ onDetected, onError: jest.fn() });
-  events().onTranscript({ text: 'Hey Avyro', isFinal: false }); await session.stop();
-  jest.runAllTimers(); expect(onDetected).not.toHaveBeenCalled(); expect(stop).toHaveBeenCalledTimes(1);
-});
-test('never falls back to ambient network recognition for a missing offline language', async () => {
-  const start = jest.fn(), keywordStart = jest.fn(async () => ({ stop: async () => undefined }));
-  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => false, start } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: true }), start: keywordStart });
-  expect((await detector.isAvailable()).available).toBe(true);
-  await detector.start({ onDetected: jest.fn(), onError: jest.fn() });
-  expect(start).not.toHaveBeenCalled();
-  expect(keywordStart).toHaveBeenCalledTimes(1);
-});
-
-test('repeated system speech startup failures switch to the offline keyword model', async () => {
-  const systemStart = jest.fn(async () => { throw Error('Speech asset unavailable'); });
-  const keywordStart = jest.fn(async () => ({ stop: async () => undefined }));
-  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => true, start: systemStart } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: systemStart.mock.calls.length >= 2 }), start: keywordStart });
+test('dedicated detector owns capture and its awaited release', async () => {
+  const start = jest.fn(), stop = jest.fn(async () => undefined);
   const events = { onDetected: jest.fn(), onError: jest.fn() };
-  await expect(detector.start(events)).rejects.toThrow();
-  await expect(detector.start(events)).rejects.toThrow();
-  await detector.start(events);
-  expect(systemStart).toHaveBeenCalledTimes(2);
-  expect(keywordStart).toHaveBeenCalledTimes(1);
-});
-test('automatic mode prefers the dedicated offline wake model rather than continuous bilingual dictation', async () => {
-  const systemStart = jest.fn();
-  const keywordStart = jest.fn(async () => ({ stop: async () => undefined }));
-  const detector = createPlatformWakeWordDetector({ supportsOnDevice: async () => true, start: systemStart } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: true }), start: keywordStart });
-  await detector.start({ onDetected: jest.fn(), onError: jest.fn() }, { engine: 'system', locales: ['en-US', 'fr-FR'] });
-  expect(systemStart).not.toHaveBeenCalled();
-  expect(keywordStart).toHaveBeenCalledTimes(1);
+  const keywordStart = jest.fn(async () => ({ stop }));
+  const detector = createPlatformWakeWordDetector({ start } as unknown as SpeechRecognizer, { isAvailable: async () => ({ available: true }), start: keywordStart });
+  const session = await detector.start(events); await session.stop();
+  expect(keywordStart).toHaveBeenCalledWith(events); expect(stop).toHaveBeenCalledTimes(1); expect(start).not.toHaveBeenCalled();
 });

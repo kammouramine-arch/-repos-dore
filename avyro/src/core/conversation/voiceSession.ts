@@ -45,7 +45,7 @@ export type VoiceSessionStatus =
   | 'blocked'
   /** This device cannot recognise speech, or not in this language. */
   | 'unsupported'
-  /** Repeated unexpected failures. Avyro keeps retrying, quietly. */
+  /** Repeated unexpected failures. Automatic retries stop at the limit. */
   | 'failed';
 
 export interface VoiceSessionState {
@@ -107,8 +107,8 @@ export interface VoiceSessionTransition {
 export const VOICE_MESSAGES = {
   denied: `Avyro needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
   blocked: `Avyro cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › Avyro.`,
-  unsupported: 'On-device speech is unavailable. Select one installed voice language or the keyword detector in Settings.',
-  failed: 'Voice commands keep stopping. Avyro is still trying.',
+  unsupported: 'Hands-free listening is unavailable on this device. Use the microphone button.',
+  failed: 'Hands-free listening stopped. Use the microphone button, or turn hands-free off and on to retry.',
 } as const;
 
 /** Exponential, capped. A recogniser that will never work costs no battery. */
@@ -136,7 +136,7 @@ const isActive = (status: VoiceSessionStatus): boolean =>
  * somebody has to remember in a hook.
  */
 const openSession = (state: VoiceSessionState): VoiceSessionTransition => {
-  if (state.turnActive || state.opening || state.open) return stay(state);
+  if (state.turnActive || state.opening || state.open || state.failures >= CONVERSATION.wakeFailuresBeforeSurfacing) return stay(state);
 
   return {
     state: { ...state, status: 'listening', opening: true, message: null },
@@ -202,7 +202,7 @@ export const voiceSessionReducer = (
     case 'opened':
       // A session that arrives after the driver switched off, or during a
       // turn, is not ours to keep.
-      if (state.status === 'off' || state.turnActive) {
+      if (state.status === 'off' || state.turnActive || state.failures >= CONVERSATION.wakeFailuresBeforeSurfacing) {
         return { state: { ...state, opening: false, open: false }, effects: [{ type: 'close-session' }] };
       }
       return {
@@ -256,7 +256,7 @@ export const voiceSessionReducer = (
           failures,
           message: surfaced ? VOICE_MESSAGES.failed : event.error.message,
         },
-        effects: [...closeEffects(state), ...(state.turnActive ? [] : [{ type: 'schedule-retry' as const, delayMs: retryDelayMs(failures) }])],
+        effects: [...closeEffects(state), ...(state.turnActive || surfaced ? [] : [{ type: 'schedule-retry' as const, delayMs: retryDelayMs(failures) }])],
       };
     }
 

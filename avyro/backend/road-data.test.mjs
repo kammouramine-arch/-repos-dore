@@ -27,7 +27,7 @@ test('uses the newest matched road, preserves units and does not invent upcoming
   data.projectedPoints.at(-1).properties.routeIndex = 1;
   const result = decodeRoadEvidence(data, fixes, now);
   assert.deepEqual(result.speedLimit, { value: 50, unit: 'km/h' });
-  assert.deepEqual(result.recentSegmentSigns, [{ type: 'StopSign' }]);
+  assert.deepEqual(result.recentSegmentSigns, []);
   assert.equal('warningsAhead' in result, false);
   data.route[1].properties.speedLimits = { value: 30, unit: 'mph', type: 'Maximum' };
   assert.deepEqual(decodeRoadEvidence(data, fixes, now).speedLimit, { value: 30, unit: 'mph' });
@@ -75,4 +75,16 @@ test('a projected point cannot claim a different nearby road geometry', () => {
   const data = evidence();
   data.route[0].geometry.coordinates = [[2.001, 48], [2.002, 48]];
   assert.equal(decodeRoadEvidence(data, fixes, now).speedLimit, null);
+});
+
+
+test('rejects an opposite or crossing matched carriageway despite high confidence', () => {
+  const reverse = evidence();
+  reverse.route[0].geometry.coordinates.reverse();
+  assert.equal(decodeRoadEvidence(reverse, fixes, now).speedLimit, null);
+  const crossing = evidence();
+  crossing.route[0].geometry.coordinates = [[2.0002, 47.9999], [2.0002, 48.0001]];
+  assert.equal(decodeRoadEvidence(crossing, fixes, now).speedLimit, null);
+  const contradictingHeading = fixes.map(fix => ({ ...fix, heading: 270 }));
+  assert.equal(decodeRoadEvidence(evidence(), contradictingHeading, now).speedLimit, null);
 });

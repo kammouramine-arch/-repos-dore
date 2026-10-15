@@ -276,22 +276,15 @@ export const useConversationEngine = (): void => {
         const apply = (effect: VoiceSessionEffect) => {
           switch (effect.type) {
             case "check-availability":
-              void Promise.all([
-                services.wakeWordDetector.isAvailable(voiceOptions()),
-                services.speechRecognizer.supportsOnDevice(
-                  voiceOptions().locales[0],
-                ),
-              ])
-                .then(([available, onDevice]) => {
-                  voiceDebug(
-                    "availability_checked",
-                    `recogniser=${available} onDevice=${onDevice} locale=${CONVERSATION.defaultLocale}`,
-                  );
+              // Wake availability must not wait on Apple's speech asset setup.
+              // Command recognition checks its own language when a turn starts.
+              void services.wakeWordDetector.isAvailable(voiceOptions())
+                .then((available) => {
+                  voiceDebug("availability_checked", `keyword=${available.available}`);
                   send({
                     type: "availability",
                     available: available.available,
-                    // Both wake paths are offline, including the bundled
-                    // keyword fallback when Apple's speech assets fail.
+                    // Dedicated bundled keyword spotting is always offline.
                     onDevice: available.available,
                   });
                 })

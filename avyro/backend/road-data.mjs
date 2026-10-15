@@ -37,14 +37,32 @@ export function decodeRoadEvidence(data, fixes, receivedAt) {
   const road = data.route[index]?.properties;
   const shape = data.route[index]?.geometry;
   if (road?.elementType !== 'Road' || !finite(road.confidence) || road.confidence < 0.9 || road.confidence > 1 || distance(fixes.at(-1), { longitude: coords[0], latitude: coords[1] }) > 12 || receivedAt > unavailable.expiresAt || shape?.type !== 'LineString' || !Array.isArray(shape.coordinates) || shape.coordinates.length < 2 || shape.coordinates.length > 2000 || !shape.coordinates.every(validPoint) || (project(coords, shape.coordinates)?.distance ?? Infinity) > 3) return unavailable;
+  const projection = project(coords, shape.coordinates);
+  const a = shape.coordinates[projection.segmentIndex];
+  const b = shape.coordinates[projection.segmentIndex + 1];
+  const bearing = (from, to) => {
+    const r = Math.PI / 180;
+    const longitude = (to[0] - from[0]) * r;
+    return (Math.atan2(Math.sin(longitude) * Math.cos(to[1] * r), Math.cos(from[1] * r) * Math.sin(to[1] * r) - Math.sin(from[1] * r) * Math.cos(to[1] * r) * Math.cos(longitude)) / r + 360) % 360;
+  };
+  // Check the oriented matched segment against measured travel, not the planned
+  // route. On sharp turns or weak traces, abstaining is preferable to borrowing
+  // a nearby/opposing carriageway's limit.
+  const last = fixes.at(-1);
+  const previous = fixes.slice(0, -1).reverse().find(fix => distance(fix, last) >= 5);
+  if (!previous || distance({ longitude: a[0], latitude: a[1] }, { longitude: b[0], latitude: b[1] }) < 1) return unavailable;
+  const measuredBearing = bearing([previous.longitude, previous.latitude], [last.longitude, last.latitude]);
+  const roadBearing = bearing(a, b);
+  const difference = value => Math.abs(((value - roadBearing + 540) % 360) - 180);
+  if (difference(measuredBearing) > 35 || (finite(last.heading) && last.heading >= 0 && last.heading < 360 && difference(last.heading) > 35)) return unavailable;
   // The documented response is a single SpeedLimit object, not an array.
   // Advisory speeds, malformed values and unknown units remain unavailable.
   const limit = road.speedLimits?.type === 'Maximum' ? road.speedLimits : null;
   const mappedLimit = limit && Number.isInteger(limit.value) && limit.value > 0 && limit.value <= 300 && ['kmph', 'mph'].includes(limit.unit) ? { value: limit.value, unit: limit.unit === 'kmph' ? 'km/h' : 'mph' } : null;
   const speedLimit = authoritativeLimit(road.address, mappedLimit, receivedAt);
-  const signs = Array.isArray(road.trafficSigns) ? road.trafficSigns.filter((s) => typeof s?.signType === 'string' && /^[A-Za-z]{1,70}Sign$/.test(s.signType)).slice(0, 20).map((s) => ({ type: s.signType })) : [];
-  // Signs describe the traveled segment, not signs ahead; do not invent distance.
-  return { ...unavailable, status: 'matched', speedLimit, recentSegmentSigns: signs, confidence: road.confidence };
+  // Segment metadata does not establish sign applicability to this approach.
+  return { ...unavailable, status: 'matched', speedLimit, confidence: road.confidence };
+
 }
 
 export function createTomTomRoadProvider({ key, enabled = false, fetcher = fetch, now = Date.now, reserveRequest }) {

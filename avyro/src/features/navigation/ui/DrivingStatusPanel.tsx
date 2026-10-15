@@ -1,6 +1,6 @@
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { useEffect, useRef, useState } from 'react';
-import { Linking, StyleSheet, View } from 'react-native';
+import { AccessibilityInfo, Linking, StyleSheet, View } from 'react-native';
 import { useStores } from '@/app/runtime/AppRuntime';
 import { useLocationStore, useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
 import { AppText, PressableScale } from '@/ui/components';
@@ -8,9 +8,8 @@ import { haptics } from '@/ui/feedback/haptics';
 import { formatSpeed, speedUnitLabel } from '@/utils/format';
 import { useRoadInformation } from '../hooks/useRoadInformation';
 import { aboveMappedLimit, measuredSpeed } from '@/core/navigation/measuredSpeed';
-import type { RoadEvidence } from '@/core/domain/ports/roadDataProvider';
 /** Compact separate instruments: measured speed and sourced legal-limit evidence. */
-export const DrivingStatusPanel = ({ routeEvidence }: { routeEvidence?: RoadEvidence | null }) => {
+export const DrivingStatusPanel = () => {
   const stores = useStores();
   const fix = useLocationStore(state => state.position);
   const unit = usePreferencesStore(state => state.preferences.distanceUnit);
@@ -18,17 +17,23 @@ export const DrivingStatusPanel = ({ routeEvidence }: { routeEvidence?: RoadEvid
   const tomtomRoute = useNavigationStore(state => state.route?.source === 'TomTom');
   const [now, setNow] = useState(Date.now);
   useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
-  const road = useRoadInformation(now, routeEvidence);
+  const road = useRoadInformation(now);
   const speed = measuredSpeed(fix, now);
   const limit = road?.speedLimit;
   const over = aboveMappedLimit(speed, limit);
   const pulse = useSharedValue(0);
+  const [reduceMotion, setReduceMotion] = useState(true);
+  useEffect(() => {
+    void AccessibilityInfo.isReduceMotionEnabled().then(setReduceMotion);
+    const subscription = AccessibilityInfo.addEventListener('reduceMotionChanged', setReduceMotion);
+    return () => subscription.remove();
+  }, []);
   useEffect(() => {
     // Three brief entry pulses; the digits stay red for the entire excess.
     // Do not continuously flash or fade the legal-limit number while driving.
-    pulse.value = over ? withRepeat(withSequence(withTiming(1, { duration: 240 }), withTiming(0, { duration: 320 })), 3) : 0;
+    pulse.value = over && !reduceMotion ? withRepeat(withSequence(withTiming(1, { duration: 240 }), withTiming(0, { duration: 320 })), 3) : 0;
     return () => { cancelAnimation(pulse); };
-  }, [over, pulse]);
+  }, [over, pulse, reduceMotion]);
   const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pulse.value * .12 }] }));
   const wasOver = useRef(false);
   const lastWarning = useRef(0);
@@ -49,7 +54,7 @@ export const DrivingStatusPanel = ({ routeEvidence }: { routeEvidence?: RoadEvid
         <AppText testID="gps-speed-value" variant="title2" style={{ color: over ? '#FF6474' : '#FFFFFF', fontVariant: ['tabular-nums'] }}>{formatSpeed(speed, unit) ?? '—'}</AppText>
         <AppText variant="caption" style={{ color: '#DBE4EB', fontSize: 10 }}>{speedUnitLabel(unit)}</AppText>
       </View>
-      {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3">{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9 }}>{limit.unit}</AppText></Animated.View> : null}
+      {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3">{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9 }}>{limit.unit}</AppText></Animated.View> : roadInformation ? <View style={styles.unknown} accessibilityLabel="Mapped speed limit unavailable"><AppText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>Limit</AppText><AppText variant="title3" style={{ color: '#FFFFFF' }}>—</AppText></View> : null}
     </View>
     {roadInformation || tomtomRoute ? <PressableScale accessibilityRole="link" accessibilityLabel={`TomTom road data attribution${limit ? '' : ', speed limit unavailable'}`} onPress={() => { void Linking.openURL('https://www.tomtom.com/en-gb/legal/product-attributions/').catch(() => {}); }} style={styles.attribution}><AppText variant="caption" tone="secondary" style={{ fontSize: 9 }}>© TomTom</AppText></PressableScale> : null}
   </View>;
@@ -60,5 +65,6 @@ const styles = StyleSheet.create({
   speed: { width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center', backgroundColor: '#233442', borderWidth: 3, borderColor: '#FFFFFF', shadowColor: '#102333', shadowOpacity: .16, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
   over: { borderColor: '#E23E54' },
   limit: { width: 50, height: 50, borderRadius: 25, borderWidth: 4, borderColor: '#D74751', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
+  unknown: { minWidth: 44, alignItems: 'center', borderRadius: 14, padding: 5, backgroundColor: '#233442' },
   attribution: { backgroundColor: 'rgba(231,242,243,0.72)', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
 });

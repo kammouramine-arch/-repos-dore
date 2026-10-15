@@ -225,7 +225,7 @@ export const GuidanceScreen = () => {
       >
         {status === "arrived" ? null : (
           <View style={styles.driving}>
-            <DrivingStatusPanel routeEvidence={roadAhead.current} />
+            <DrivingStatusPanel />
             <GuidanceControls
               following={following}
               onRecenter={() => setFollowing(true)}

@@ -9,7 +9,7 @@ import { distanceBetween } from '@/utils/geo';
 import { ROAD_DATA } from '@/config';
 
 /** One bounded trace in memory; never fetch in the background or without opt-in. */
-export function useRoadInformation(now: number, routeEvidence?: RoadEvidence | null): RoadEvidence | null {
+export function useRoadInformation(now: number): RoadEvidence | null {
   const { roadDataProvider } = useServices();
   const fix = useLocationStore((s) => s.position);
   const setRoadEvidence = useLocationStore((s) => s.setRoadEvidence);
@@ -23,7 +23,7 @@ export function useRoadInformation(now: number, routeEvidence?: RoadEvidence | n
   const lastRequest = useRef(0);
   const generation = useRef(0);
   const enabled = active && consent && guiding && roadDataProvider.isConfigured();
-  useEffect(() => { setRoadEvidence(enabled ? routeEvidence ?? result?.evidence ?? null : null); return () => setRoadEvidence(null); }, [enabled, result, routeEvidence, setRoadEvidence]);
+  useEffect(() => { setRoadEvidence(enabled ? result?.evidence ?? null : null); return () => setRoadEvidence(null); }, [enabled, result, setRoadEvidence]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
       if (state !== 'active') { generation.current++; pending.current?.abort(); trace.current = []; setResult(null); }
@@ -47,7 +47,7 @@ export function useRoadInformation(now: number, routeEvidence?: RoadEvidence | n
     const previous = trace.current.at(-1);
     if (previous && (fix.timestamp <= previous.timestamp || distanceBetween(previous.coordinates, fix.coordinates) > ROAD_DATA.maxTraceJumpMeters)) trace.current = [];
     trace.current = [...trace.current.filter((p) => clock - p.timestamp <= ROAD_DATA.traceTtlMs), fix].slice(-ROAD_DATA.maxTraceFixes);
-    if (routeEvidence || pending.current || clock - lastRequest.current < ROAD_DATA.requestIntervalMs || trace.current.length < 2 || distanceBetween(trace.current[0].coordinates, fix.coordinates) < ROAD_DATA.minTraceMovementMeters) return;
+    if (pending.current || clock - lastRequest.current < ROAD_DATA.requestIntervalMs || trace.current.length < 2 || distanceBetween(trace.current[0].coordinates, fix.coordinates) < ROAD_DATA.minTraceMovementMeters) return;
     const controller = new AbortController(); pending.current = controller; lastRequest.current = clock;
     const requestGeneration = generation.current;
     void roadDataProvider.lookup(trace.current, controller.signal).then((result) => {
@@ -55,9 +55,8 @@ export function useRoadInformation(now: number, routeEvidence?: RoadEvidence | n
     }).catch(() => {
       if (requestGeneration === generation.current) setResult(null);
     }).finally(() => { if (pending.current === controller) pending.current = null; });
-  }, [enabled, fix, roadDataProvider, token, routeEvidence]);
+  }, [enabled, fix, roadDataProvider, token]);
   // GPS callbacks may arrive after the display's most recent one-second tick.
   const displayClock = fix && fix.timestamp <= now + 1000 ? Math.max(now, fix.timestamp) : now;
-  if (enabled && routeEvidence && isRoadEvidenceCurrent(routeEvidence, fix, displayClock)) return routeEvidence;
   return enabled && result?.token === token && isRoadEvidenceCurrent(result.evidence, fix, displayClock) ? result.evidence : null;
 }

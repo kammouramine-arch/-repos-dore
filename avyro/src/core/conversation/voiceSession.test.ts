@@ -429,3 +429,24 @@ describe('the Build 15 restart loop, reproduced', () => {
     expect(state.message).toBe(VOICE_MESSAGES.failed);
   });
 });
+
+
+describe('bounded failure recovery', () => {
+  it('stops reopening after the failure budget, including after a tap-to-talk turn', () => {
+    let state = listening().state;
+    for (let i = 0; i < CONVERSATION.wakeFailuresBeforeSurfacing; i++) {
+      const next = voiceSessionReducer(state, { type: 'failed', error: { code: 'audio-capture', message: 'Busy', fatal: false } });
+      state = next.state;
+      if (i === CONVERSATION.wakeFailuresBeforeSurfacing - 1) expect(kinds(next.effects)).not.toContain('schedule-retry');
+    }
+    expect(opens(voiceSessionReducer(state, { type: 'retry' }).effects)).toHaveLength(0);
+    const turn = run([{ type: 'turn-started' }, { type: 'turn-ended' }], state);
+    expect(opens(turn.effects)).toHaveLength(0);
+    const late = voiceSessionReducer(state, { type: 'opened' });
+    expect(late.state.open).toBe(false);
+    expect(kinds(late.effects)).toContain('close-session');
+    const restarted = run([{ type: 'disabled' }, { type: 'enabled' }], state);
+    expect(restarted.state.failures).toBe(0);
+    expect(kinds(restarted.effects)).toContain('check-availability');
+  });
+});

@@ -12,7 +12,7 @@ export function project(point, line) {
     const t = Math.max(0, Math.min(1, (((point[0] - a[0]) * c) * dx + (point[1] - a[1]) * dy) / (dx * dx + dy * dy || 1)));
     const coordinate = [a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t];
     const distance = metres(point, coordinate), length = metres(a, b);
-    if (!best || distance < best.distance) best = { distance, along: travelled + length * t, coordinate };
+    if (!best || distance < best.distance) best = { distance, along: travelled + length * t, coordinate, segmentIndex: i - 1 };
     travelled += length;
   }
   return best;

@@ -4,10 +4,9 @@ import { decodeLookahead, validateLookahead } from './road-ahead.mjs';
 import { authoritativeLimit, WATTIGNIES_ORDER } from './authority-limits.mjs';
 const line = [[3, 50], [3.001, 50], [3.002, 50]];
 const road = properties => ({ geometry: { type: 'LineString', coordinates: line }, properties: { elementType: 'Road', confidence: .95, ...properties } });
-test('locates actual stop and light metadata without inventing a light colour', () => {
+test('suppresses signs without verified approach and freshness even on a matched road', () => {
   const result = decodeLookahead({ route: [road({ trafficSigns: [{ signType: 'StopSign', chainage: 3000, unit: 'cm' }], trafficLight: 'End' })] }, line, 1000);
-  assert.deepEqual(result.alerts.map(a => a.kind), ['stop', 'traffic-light']);
-  assert.ok(result.alerts[0].coordinate.longitude > 3);
+  assert.deepEqual(result.alerts, []);
   assert.equal(JSON.stringify(result).includes('green'), false);
 });
 test('invalid chainage, missing position, low confidence and a different road produce no pins', () => {
@@ -16,8 +15,7 @@ test('invalid chainage, missing position, low confidence and a different road pr
 test('a road transition is generic and never a fast-lane instruction', () => {
   const later = { ...road({ roadUse: 'LimitedAccess' }), geometry: { type: 'LineString', coordinates: [line[1], line[2]] } };
   const result = decodeLookahead({ route: [later] }, line, 1000);
-  assert.equal(result.alerts[0].kind, 'limited-access');
-  assert.equal('lane' in result.alerts[0], false);
+  assert.deepEqual(result.alerts, []);
 });
 test('route requests require consent, finite coordinates and a short continuous geometry', () => {
   assert.deepEqual(validateLookahead({ consent: true, geometry: line }), line);
@@ -25,9 +23,9 @@ test('route requests require consent, finite coordinates and a short continuous 
 });
 
 test('international road-number separators normalize without accepting prose', () => {
-  for (const [input, expected] of [['US-101', 'US101'], ['NH-44', 'NH44'], ['A 1', 'A1']]) {
+  for (const [input] of [['US-101', 'US101'], ['NH-44', 'NH44'], ['A 1', 'A1']]) {
     const result = decodeLookahead({ route: [{ ...road({ address: { roadNumbers: [input] } }), geometry: { type: 'LineString', coordinates: [line[1], line[2]] } }] }, line, 1000);
-    assert.equal(result.alerts.find(a => a.kind === 'numbered-road')?.label, expected);
+    assert.deepEqual(result.alerts, []);
   }
   assert.equal(decodeLookahead({ route: [road({ address: { roadNumbers: ['take the fast lane'] } })] }, line, 1000).alerts.length, 0);
 });
