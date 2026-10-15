@@ -49,8 +49,8 @@ appId: app.avyro.companion
 - takeScreenshot: build/screens/05-route-preview
 - tapOn: "Start navigation"
 - setLocation:
-    latitude: 48.8566
-    longitude: 2.3522
+    latitude: 48.85653
+    longitude: 2.35332
 - extendedWaitUntil:
     visible: "End"
     timeout: 60000
