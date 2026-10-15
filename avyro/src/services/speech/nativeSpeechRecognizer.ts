@@ -47,7 +47,8 @@ export const createNativeSpeechRecognizer = (fallback: SpeechRecognizer, nativeO
         native.addListener('transcript', event => {
           if (stopped || delivered) return;
           if (!event.isFinal) {
-            events.onTranscript(event);
+            const displayText = event.text.replace(/^(hey|h[ée]|hi|salut|ok|dis)([,\s]+)(aviro|avero|avyro)\b/iu, '$1$2Avyro');
+            events.onTranscript({ ...event, text: displayText });
             if (!options.continuous && event.text !== lastPartial) {
               lastPartial = event.text;
               if (endpointTimer) clearTimeout(endpointTimer);

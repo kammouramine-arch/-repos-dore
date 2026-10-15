@@ -64,4 +64,17 @@ appId: app.avyro.companion
 - assertVisible: "Add a stop"
 - assertVisible: "Parking stop"
 - takeScreenshot: build/screens/09-trip-details
+- tapOn: "Parking stop"
+- extendedWaitUntil:
+    visible:
+      id: "nearby-result-0"
+    timeout: 30000
+- tapOn:
+    id: "nearby-result-0"
+- extendedWaitUntil:
+    visible: "End"
+    timeout: 30000
+- tapOn: "Trip details"
+- assertVisible: "Stop 1:.*"
+- takeScreenshot: build/screens/10-trip-with-stop
 - tapOn: "Back to navigation"

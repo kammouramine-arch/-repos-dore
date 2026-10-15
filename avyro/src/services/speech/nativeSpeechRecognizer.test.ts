@@ -67,3 +67,11 @@ test('the handoff delivers only the command after the wake phrase', async () => 
   expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'what is the speed limit here', isFinal: true }));
   await session.stop();
 });
+
+test('the live wake-name caption uses the brand spelling while preserving the spoken address', async () => {
+  const { emit, recognizer } = setup(); const onTranscript = jest.fn();
+  const session = await recognizer.start({ locale: 'fr-FR', onDevice: true }, { onTranscript, onError: jest.fn(), onEnd: jest.fn() });
+  emit('transcript', { text: 'Hé Aviro, emmène-moi au 18 rue Blériau', isFinal: false, locale: 'fr-FR' });
+  expect(onTranscript).toHaveBeenLastCalledWith(expect.objectContaining({ text: 'Hé Avyro, emmène-moi au 18 rue Blériau' }));
+  await session.stop();
+});

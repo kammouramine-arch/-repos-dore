@@ -13,7 +13,7 @@ export const createGatewayIncidentReporter = ({ http, getAccessToken }: { http: 
     if (!token) throw new AppError('network', 'Community reports unavailable.');
     return http.getJson(`${env.backendUrl}/incidents?community=1`, value => {
       if (!Array.isArray(value) || value.length > 100) throw new AppError('invalid-response', 'Invalid community feed.');
-      return value.filter((item): item is ReviewedIncident => item && typeof item.id === 'string' &&
+      return value.filter((item): item is ReviewedIncident => item && typeof item.id === 'string' && ['approved', 'community'].includes(item.status) &&
         ['accident','hazard','closure','police','traffic','blocked-lane','weather','map-issue'].includes(item.category) &&
         Number.isFinite(item.latitude) && Math.abs(item.latitude) <= 90 && Number.isFinite(item.longitude) && Math.abs(item.longitude) <= 180 &&
         Number.isFinite(item.observed) && item.observed <= Date.now() && Number.isFinite(item.expires) && item.expires > Date.now());

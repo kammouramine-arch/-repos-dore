@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import Svg, { Circle, Path, Rect, Text as SvgText } from 'react-native-svg';
 import { StyleSheet, View } from 'react-native';
 import { useStores } from '@/app/runtime/AppRuntime';
 import { useLocationStore, usePreferencesStore } from '@/app/stores/hooks';
@@ -28,14 +29,15 @@ export const DrivingStatusPanel = () => {
       const prefs = stores.preferences.getState().preferences;
       if (prefs.voiceGuidance && limit) {
         const french = prefs.voiceLanguage === 'fr-FR' || (prefs.voiceLanguage === 'bilingual' && Intl.DateTimeFormat().resolvedOptions().locale.startsWith('fr'));
-        stores.conversation.getState().dispatch({ type: 'navigation-announcement', language: french ? 'fr-FR' : 'en-US', text: french ? `Ralentissez. La carte indique une limitation à ${limit.value} ${limit.unit}.` : `Slow down. The mapped limit is ${limit.value} ${limit.unit}.` });
+        stores.conversation.getState().dispatch({ type: 'navigation-announcement', language: french ? 'fr-FR' : 'en-US', text: french ? `Ralentissez. La carte indique une limitation à ${limit.value} ${limit.unit === 'km/h' ? 'kilomètres par heure' : 'miles par heure'}.` : `Slow down. The mapped limit is ${limit.value} ${limit.unit === 'km/h' ? 'kilometers per hour' : 'miles per hour'}.` });
       }
     }
     wasOver.current = over;
   }, [over, now, limit, stores]);
   const sign = road?.recentSegmentSigns?.map(s => SIGNS[s.type]).find(Boolean);
+  const signal = sign === 'Signal';
   return <View style={styles.root}>
-    {sign ? <View style={styles.sign} accessibilityLabel={`Mapped road segment: ${sign}, position ahead unknown`}><Icon name="warning-outline" size={14} color={colors.textSecondary} /><AppText variant="caption">{sign} · mapped</AppText></View> : null}
+    {sign ? <View style={styles.sign} accessibilityLabel={`Mapped road segment: ${sign}, position ahead unknown`}>{sign === 'STOP' ? <Svg width={28} height={28} viewBox="0 0 28 28"><Path d="M8 1H20L27 8V20L20 27H8L1 20V8Z" fill="#C63843" stroke="#FFFFFF" strokeWidth="2" /><SvgText x="14" y="17" fontSize="8" fontWeight="800" textAnchor="middle" fill="#FFFFFF">STOP</SvgText></Svg> : signal ? <Svg width={18} height={30} viewBox="0 0 18 30"><Rect x="2" y="1" width="14" height="28" rx="5" fill="#273746" />{[7, 15, 23].map(y => <Circle key={y} cx="9" cy={y} r="3" fill="#BBC7CF" />)}</Svg> : <Icon name="warning-outline" size={20} color={colors.textSecondary} />}<View><AppText variant="caption">{sign} · mapped</AppText>{signal ? <AppText variant="caption" tone="secondary" style={{ fontSize: 9 }}>Live light state unavailable</AppText> : null}</View></View> : null}
     <View style={styles.row}>
       <View style={[styles.speed, over && styles.over]} accessibilityLabel={`GPS speed ${formatSpeed(speed, unit) ?? 'unavailable'} ${speedUnitLabel(unit)}`}>
         <AppText variant="title2" style={{ color: '#FFFFFF', fontVariant: ['tabular-nums'] }}>{formatSpeed(speed, unit) ?? '—'}</AppText>

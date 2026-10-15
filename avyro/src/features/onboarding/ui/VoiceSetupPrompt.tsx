@@ -18,7 +18,7 @@ export const VoiceSetupPrompt = () => {
         </View>
         <AppText variant="footnote" tone="secondary">Your companion is ready: short commands go to Cloudflare AI for speech and interpretation; a short GPS trace goes to TomTom for road information. Ambient wake listening stays on this iPhone, while Avyro is open. Free test limits apply. You can turn each feature off in Settings.</AppText>
         <Button label="Continue with hands-free AI" onPress={() => void update({ voiceCommands: true, voiceSetupSeen: true, assistantSetupSeen: true, cloudSpeech: true, cloudAssistant: true, roadInformation: true, voiceDetection: 'system', voiceLanguage: 'bilingual' })} />
-        <Button label="Continue without hands-free" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, cloudSpeech: true, cloudAssistant: true, roadInformation: true })} />
+        <Button label="Continue without hands-free" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, voiceCommands: false, cloudSpeech: true, cloudAssistant: true, roadInformation: true })} />
         <Button label="Use offline features only" variant="ghost" onPress={() => void update({ voiceSetupSeen: true, assistantSetupSeen: true, voiceCommands: false, cloudSpeech: false, cloudAssistant: false, roadInformation: false })} />
       </GlassPanel>
     </View>
