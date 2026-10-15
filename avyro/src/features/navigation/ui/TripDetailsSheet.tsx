@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Modal, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
 import { useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
+import type { ReviewedIncident } from '@/core/domain/ports/incidentReporter';
+import { locateOnRoute } from '@/core/conversation/detour';
+import { reportsNearRoute } from '@/features/incidents/routeReports';
+import { INCIDENT_CATALOG } from '@/features/incidents/incidentCatalog';
 import type { Route } from '@/core/domain/entities/route';
 import { AppText, Button, GlassPanel, ListRow } from '@/ui/components';
 import { formatDistance, formatDuration } from '@/utils/format';
@@ -15,7 +19,14 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   const destination = useNavigationStore(state => state.destination);
   const stops = useNavigationStore(state => state.stops);
   const currentRoute = useNavigationStore(state => state.route);
+  const routeIndex = useNavigationStore(state => state.routeIndex);
+  const progress = useNavigationStore(state => state.progress);
   const unit = usePreferencesStore(state => state.preferences.distanceUnit);
+  const [reports, setReports] = useState<ReviewedIncident[]>([]);
+  const [reportStatus, setReportStatus] = useState('Checking community observations…');
+  const [now, setNow] = useState(Date.now);
+  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
+  const nearReports = useMemo(() => routeIndex ? reportsNearRoute(reports, routeIndex, (progress ? locateOnRoute(routeIndex, progress.snappedPosition)?.travelledMeters ?? 0 : 0), now) : [], [reports, routeIndex, progress, now]);
   const [routes, setRoutes] = useState<Route[]>([]);
   const [status, setStatus] = useState(() => stores.location.getState().position ? 'Checking routes…' : 'Waiting for location');
   useEffect(() => {
@@ -23,6 +34,9 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
     const origin = stores.location.getState().position?.coordinates;
     if (!origin) return;
     const controller = new AbortController();
+    if (services.incidentReporter.list) void services.incidentReporter.list(controller.signal).then(items => {
+      if (!controller.signal.aborted) { setReports(items); setReportStatus('Community observations · unverified'); }
+    }).catch(() => { if (!controller.signal.aborted) setReportStatus('Community observations unavailable'); });
     void services.useCases.planTrip({ origin, destination, waypoints: stops.map(stop => stop.coordinates), signal: controller.signal }).then(plan => {
       if (!controller.signal.aborted) { setRoutes(plan.routes); setStatus(plan.routes.length > 1 ? 'Routes from your current position' : 'One route returned by the provider'); }
     }).catch(() => { if (!controller.signal.aborted) setStatus('Could not refresh alternatives. Your current route is unchanged.'); });
@@ -41,6 +55,8 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
         if (live.destination?.id === destination?.id && live.route === currentRoute) live.replaceRoute(route);
         onClose();
       }} />)}
+      <AppText variant="subhead">Reports near your route</AppText><AppText variant="caption" tone="secondary">{reportStatus}</AppText>
+      {nearReports.length ? nearReports.map(({ report, aheadMeters }) => <AppText key={report.id} variant="footnote">{INCIDENT_CATALOG.find(item => item.category === report.category)?.title} · {formatDistance(aheadMeters, unit)} ahead · unverified</AppText>) : <AppText variant="footnote" tone="secondary">No active community observations returned near this route.</AppText>}
       <AppText variant="footnote" tone="secondary">Community pins are unverified observations. Scheduled departures and a best-time-to-leave prediction are not available yet.</AppText>
       <Button label="Back to navigation" variant="ghost" onPress={onClose} />
     </ScrollView></GlassPanel></View>
