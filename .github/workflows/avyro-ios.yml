@@ -17,7 +17,7 @@ on:
 permissions:
   contents: read
 concurrency:
-  group: avyro-ios-${{ github.ref }}-${{ github.event_name }}
+  group: avyro-ios-${{ github.ref }}-${{ github.event_name }}-${{ inputs.ui_flow || 'guest-map' }}
   cancel-in-progress: true
 jobs:
   ios:
@@ -54,6 +54,16 @@ jobs:
         with:
           name: Avyro-iOS-simulator
           path: avyro/build/Avyro-simulator.zip
+      - name: Verify native compatibility before simulator reuse
+        if: ${{ inputs.simulator_run }}
+        env:
+          SOURCE_RUN: ${{ inputs.simulator_run }}
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          [[ "$SOURCE_RUN" =~ ^[0-9]+$ ]] || exit 1
+          SOURCE_SHA=$(gh api "repos/$GITHUB_REPOSITORY/actions/runs/$SOURCE_RUN" --jq '.head_sha')
+          git fetch origin "$SOURCE_SHA" --depth=1
+          git diff --exit-code "$SOURCE_SHA" HEAD -- modules package.json package-lock.json app.config.ts scripts plugins
       - uses: actions/download-artifact@v4
         if: ${{ inputs.simulator_run }}
         with:
