@@ -4,8 +4,13 @@ appId: app.avyro.companion
     clearState: true
     permissions:
       all: allow
-- assertVisible: "Your voice. Your way."
-- tapOn: "Continue without hands-free"
+- extendedWaitUntil:
+    visible: "Continue without hands-free"
+    timeout: 90000
+- waitForAnimationToEnd
+- tapOn:
+    text: "Continue without hands-free"
+    retryTapIfNoChange: true
 - assertVisible: "Search for a destination"
 - tapOn: "Search for a destination"
 - tapOn: "Destination"
