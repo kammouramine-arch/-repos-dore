@@ -44,7 +44,7 @@ light indicates listening/thinking/replying; no Siri assets/code are used.
 
 507 app tests in 47 suites, typecheck and lint pass. 30 backend and 18 Cloudflare
 tests pass, including route authentication and disabled-provider behavior.
-Final native screen validation and Apple TestFlight availability are pending.
+Native run 38732327312 passed guest entry, reports, nearby search, route preview, continuous stationary zero, trip details and swipe dismissal. Its last stop assertion selected a parking place only 20 m away, within the existing 50 m stop-arrival radius, so the stop immediately completed. A focused native rerun selects a farther parking place to validate retaining a pending stop. Final stop validation and Apple TestFlight availability remain pending.
 Physical accuracy on the tester's roads and in-car French/English voice still
 require device testing. No ElevenLabs account, paid voice or paid plan is activated.
 
