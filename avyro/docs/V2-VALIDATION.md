@@ -2,6 +2,23 @@
 
 This branch is a development candidate, not a completed production release.
 
+## October 15 additional visual feedback
+
+Reviewed the supplied SUPJ6093, WYVM2675 and RKZS9242 recordings and three desktop
+screenshots of the native preview. The trip panel now animates only its own
+surface; its full-screen dimming layer stays fixed, avoiding a sliding tinted
+rectangle across the map. Its height remains stable while route results load.
+Dismissal and subsequent navigation are sequenced, swipe dismissal supplies a
+selection haptic, and opening/closing respects system Reduced Motion. Alternative
+routes are keyed to the current destination/stops, so results from a different
+trip cannot remain actionable.
+
+The map puck is an original vector open roadster with a seated companion and a
+subtle blink, retaining route-vertex motion and camera-relative bearing. No Waze
+artwork/code is used. Crossing a grounded limit produces three brief sign pulses;
+GPS digits stay red for the entire excess and return to white below the limit.
+The instrument layout stays fixed, without an expanding repeated warning pill.
+This revision requires new native visual validation and a replacement signed IPA.
 ## October 15 build 39 candidate: driving recording review
 
 Reviewed LGZA8479, SUPJ6093 and RKZS9242 driving/UI recordings, and the NODU6018

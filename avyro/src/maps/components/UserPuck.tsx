@@ -1,10 +1,9 @@
 import { memo, useEffect, useRef, useState } from 'react';
 import { Marker } from 'react-native-maps';
 import { Animated, Platform } from 'react-native';
-import Svg, { Circle, Path } from 'react-native-svg';
 
 import type { Coordinates } from '@/core/domain/entities/geo';
-import { colors, palette } from '@/ui/theme';
+import { AvyroRoadster } from './AvyroRoadster';
 import { puckMotionPath } from '@/maps/geometry/puckMotion';
 import { distanceBetween } from '@/utils/geo';
 
@@ -16,8 +15,6 @@ export interface UserPuckProps {
   routeGeometry?: readonly Coordinates[];
   segmentIndex?: number;
 }
-
-const SIZE = 56;
 
 /**
  * The driver's position.
@@ -68,10 +65,7 @@ const UserPuckComponent = ({ coordinate, headingDegrees, cameraHeadingDegrees = 
     zIndex={20}
   >
     <Animated.View style={Platform.OS === 'ios' ? { transform: [{ rotate: rotation.interpolate({ inputRange: [-360, 360], outputRange: ['-360deg', '360deg'] }) }] } : undefined}>
-    <Svg width={SIZE} height={SIZE} viewBox="0 0 56 56">
-      <Circle cx="28" cy="28" r="26" fill="rgba(8, 127, 131, 0.14)" />
-      <Path d="M28 8 L43 42 L28 35 L13 42 Z" fill={colors.accent} stroke={palette.white} strokeWidth="3" strokeLinejoin="round" />
-    </Svg>
+    <AvyroRoadster />
     </Animated.View>
   </Marker.Animated>
 ); };

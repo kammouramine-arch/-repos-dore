@@ -24,10 +24,12 @@ export const DrivingStatusPanel = ({ routeEvidence }: { routeEvidence?: RoadEvid
   const over = aboveMappedLimit(speed, limit);
   const pulse = useSharedValue(0);
   useEffect(() => {
-    pulse.value = over ? withRepeat(withSequence(withTiming(1, { duration: 550 }), withTiming(0, { duration: 550 })), -1) : 0;
+    // Three brief entry pulses; the digits stay red for the entire excess.
+    // Do not continuously flash or fade the legal-limit number while driving.
+    pulse.value = over ? withRepeat(withSequence(withTiming(1, { duration: 240 }), withTiming(0, { duration: 320 })), 3) : 0;
     return () => { cancelAnimation(pulse); };
   }, [over, pulse]);
-  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pulse.value * .1 }], opacity: 1 - pulse.value * .25 }));
+  const pulseStyle = useAnimatedStyle(() => ({ transform: [{ scale: 1 + pulse.value * .12 }] }));
   const wasOver = useRef(false);
   const lastWarning = useRef(0);
   useEffect(() => {
@@ -49,7 +51,6 @@ export const DrivingStatusPanel = ({ routeEvidence }: { routeEvidence?: RoadEvid
       </View>
       {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3">{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9 }}>{limit.unit}</AppText></Animated.View> : null}
     </View>
-    {over ? <View style={styles.warning}><AppText variant="caption" tone="danger">Slow down · limit {limit?.value} {limit?.unit}</AppText></View> : null}
     {roadInformation || tomtomRoute ? <PressableScale accessibilityRole="link" accessibilityLabel={`TomTom road data attribution${limit ? '' : ', speed limit unavailable'}`} onPress={() => { void Linking.openURL('https://www.tomtom.com/en-gb/legal/product-attributions/').catch(() => {}); }} style={styles.attribution}><AppText variant="caption" tone="secondary" style={{ fontSize: 9 }}>© TomTom</AppText></PressableScale> : null}
   </View>;
 };
@@ -59,6 +60,5 @@ const styles = StyleSheet.create({
   speed: { width: 62, height: 62, borderRadius: 31, alignItems: 'center', justifyContent: 'center', backgroundColor: '#233442', borderWidth: 3, borderColor: '#FFFFFF', shadowColor: '#102333', shadowOpacity: .16, shadowRadius: 5, shadowOffset: { width: 0, height: 2 } },
   over: { borderColor: '#E23E54' },
   limit: { width: 50, height: 50, borderRadius: 25, borderWidth: 4, borderColor: '#D74751', alignItems: 'center', justifyContent: 'center', backgroundColor: '#FFFFFF' },
-  warning: { backgroundColor: '#FFFFFF', borderRadius: 10, paddingHorizontal: 8, paddingVertical: 4 },
   attribution: { backgroundColor: 'rgba(231,242,243,0.72)', borderRadius: 6, paddingHorizontal: 5, paddingVertical: 2 },
 });
