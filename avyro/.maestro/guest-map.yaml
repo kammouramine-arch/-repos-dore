@@ -48,9 +48,8 @@ appId: app.avyro.companion
     timeout: 30000
 - takeScreenshot: build/screens/05-route-preview
 - tapOn: "Start navigation"
-- setLocation:
-    latitude: 48.85653
-    longitude: 2.35332
+# The native workflow already streams fresh positions. A one-shot location reset
+# here can interrupt that stream precisely when guidance takes ownership of GPS.
 - extendedWaitUntil:
     visible: "End"
     timeout: 60000

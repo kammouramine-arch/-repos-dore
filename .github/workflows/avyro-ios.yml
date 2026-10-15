@@ -70,7 +70,8 @@ jobs:
         if: ${{ inputs.simulator_run }}
         run: |
           npx expo export:embed --entry-file index.ts --platform ios --dev false --bytecode --bundle-output build/Build/Products/Release-iphonesimulator/Avyro.app/main.jsbundle --assets-dest build/Build/Products/Release-iphonesimulator/Avyro.app
-      - name: Verify guest launch and capture native screens
+      - name: Prepare iPhone simulator and test driver
+        timeout-minutes: 10
         env:
           MAESTRO_CLI_NO_ANALYTICS: 1
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
@@ -82,6 +83,13 @@ jobs:
           xcrun simctl ui "$DEVICE_ID" appearance light
           xcrun simctl status_bar "$DEVICE_ID" override --time 9:41 --dataNetwork wifi --wifiMode active --wifiBars 3 --batteryState charged --batteryLevel 100
           xcrun simctl install "$DEVICE_ID" build/Build/Products/Release-iphonesimulator/Avyro.app
+          echo "DEVICE_ID=$DEVICE_ID" >> "$GITHUB_ENV"
+      - name: Verify guest launch and capture native screens
+        timeout-minutes: 15
+        env:
+          MAESTRO_CLI_NO_ANALYTICS: 1
+          MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
+        run: |
           xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
           mkdir -p build/screens
           # A slow sub-metre simulator path supplies fresh fixes and valid native
@@ -98,7 +106,17 @@ jobs:
           AVYRO_LOCATION_PID=$!
           xcrun simctl io "$DEVICE_ID" recordVideo --codec=h264 build/screens/native-walkthrough.mp4 > build/recording.log 2>&1 &
           AVYRO_RECORD_PID=$!
-          trap 'kill "$AVYRO_LOCATION_PID" 2>/dev/null || true; kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true; wait "$AVYRO_RECORD_PID" 2>/dev/null || true' EXIT
+          finish_capture() {
+            kill "$AVYRO_LOCATION_PID" 2>/dev/null || true
+            kill -INT "$AVYRO_RECORD_PID" 2>/dev/null || true
+            for attempt in {1..10}; do
+              kill -0 "$AVYRO_RECORD_PID" 2>/dev/null || break
+              sleep 1
+            done
+            kill -TERM "$AVYRO_RECORD_PID" 2>/dev/null || true
+            wait "$AVYRO_RECORD_PID" 2>/dev/null || true
+          }
+          trap finish_capture EXIT
           AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
           [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke ]] || exit 1
           maestro --device "$DEVICE_ID" test ".maestro/$AVYRO_UI_FLOW.yaml"
