@@ -109,7 +109,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <Logo />
           </Link>
 
-          <nav aria-label={t.mainNav} className="hidden xl:block">
+          <nav aria-label={t.mainNav} className="hidden lg:block">
             <ul className="flex items-center gap-0.5 rounded-full border border-[rgb(242_238_230/0.08)] bg-[rgb(242_238_230/0.03)] p-1 backdrop-blur-md">
               {nav.map((item) => {
                 const active = isActive(item.href);
@@ -161,7 +161,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
               aria-expanded={open}
               aria-controls="menu-mobile"
               aria-label={open ? t.closeMenu : t.openMenu}
-              className="relative -mr-1 flex size-11 items-center justify-center rounded-full border border-[rgb(242_238_230/0.14)] bg-[rgb(242_238_230/0.05)] text-bone backdrop-blur-md transition-transform duration-150 active:scale-90 xl:hidden"
+              className="relative -mr-1 flex size-11 items-center justify-center rounded-full border border-[rgb(242_238_230/0.14)] bg-[rgb(242_238_230/0.05)] text-bone backdrop-blur-md transition-transform duration-150 active:scale-90 lg:hidden"
             >
               <span aria-hidden className="relative block h-3 w-[18px]">
                 <span
@@ -193,7 +193,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             ? "circle(150% at calc(100% - 2.4rem) 2.1rem)"
             : "circle(0% at calc(100% - 2.4rem) 2.1rem)",
         }}
-        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto bg-[#0b0b0b] pt-[var(--header-h)] transition-[clip-path,visibility] duration-[650ms] ease-[var(--ease-in-out)] motion-reduce:transition-none xl:hidden ${
+        className={`fixed inset-0 z-40 flex flex-col overflow-y-auto bg-[#0b0b0b] pt-[var(--header-h)] transition-[clip-path,visibility] duration-[650ms] ease-[var(--ease-in-out)] motion-reduce:transition-none lg:hidden ${
           open ? "visible" : "invisible"
         }`}
       >

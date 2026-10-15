@@ -12,8 +12,6 @@ const eslintConfig = defineConfig([
     "out/**",
     "build/**",
     "next-env.d.ts",
-    // Upstream Three.js, retained verbatim under its MIT licence.
-    "public/3d/vendor/**",
   ]),
 ]);
 

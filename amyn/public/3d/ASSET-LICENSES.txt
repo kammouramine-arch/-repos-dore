@@ -1,8 +1,0 @@
-Three.js 0.186.1 and addons: MIT. See vendor/LICENSE.txt.
-Original apartment geometry, design, fabric/stone maps and camera paths: authored for AMYN.
-Wood color, OpenGL normal and roughness textures: Poly Haven, Kitchen Wood.
-https://polyhaven.com/a/kitchen_wood
-https://polyhaven.com/license
-License: CC0 1.0 (commercial use and redistribution permitted).
-Downloaded at 1K on 2026-10-15 via the public asset API. Locally hosted; no runtime requests to Poly Haven.
-No paid assets, model generation credits, subscriptions or rendering services used.

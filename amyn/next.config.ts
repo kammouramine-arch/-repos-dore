@@ -54,12 +54,6 @@ const nextConfig: NextConfig = {
     ];
     return [
       { source: "/:path*", headers: securityHeaders },
-      // Only this self-hosted viewer may be embedded, and only by AMYN.
-      { source: "/3d/tour.html", headers: [
-        { key: "X-Frame-Options", value: "SAMEORIGIN" },
-        { key: "Content-Security-Policy", value: "frame-ancestors 'self'; base-uri 'self'; form-action 'self'; object-src 'none'" },
-        { key: "X-Robots-Tag", value: "noindex" },
-      ] },
       { source: "/audit/:slug*", headers: auditHeaders },
       { source: "/en/audit/:slug*", headers: auditHeaders },
     ];
