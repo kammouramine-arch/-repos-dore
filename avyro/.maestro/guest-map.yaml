@@ -32,6 +32,10 @@ appId: app.avyro.companion
 - tapOn: "Back to map"
 - tapOn: "Settings"
 - assertVisible: "Optional account"
+- scrollUntilVisible:
+    element: "Voice language"
+    direction: DOWN
+    timeout: 15000
 - assertVisible: "Voice language"
 - takeScreenshot: build/screens/03-settings
 - tapOn: "Go back"

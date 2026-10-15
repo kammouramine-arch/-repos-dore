@@ -13,7 +13,7 @@ on:
         description: Native interaction suite
         type: choice
         default: guest-map
-        options: [guest-map, location-smoke, trip-smoke, car-motion]
+        options: [guest-map, location-smoke, trip-smoke, car-motion, settings-language]
 permissions:
   contents: read
 concurrency:
@@ -91,15 +91,15 @@ jobs:
           MAESTRO_DRIVER_STARTUP_TIMEOUT: 600000
         run: |
           AVYRO_UI_FLOW="${{ inputs.ui_flow || 'guest-map' }}"
-          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke || "$AVYRO_UI_FLOW" == car-motion ]] || exit 1
-          if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+          [[ "$AVYRO_UI_FLOW" == guest-map || "$AVYRO_UI_FLOW" == location-smoke || "$AVYRO_UI_FLOW" == trip-smoke || "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language ]] || exit 1
+          if [[ "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language ]]; then
             xcrun simctl location "$DEVICE_ID" set 48.85763,2.35107
           else
             xcrun simctl location "$DEVICE_ID" set 48.85653,2.35332
           fi
           mkdir -p build/screens
           AVYRO_FIXTURE_SERVER_PID=''
-          if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+          if [[ "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language ]]; then
             python3 .maestro/fixture-server.py > build/fixture-server.log 2>&1 &
             AVYRO_FIXTURE_SERVER_PID=$!
           fi
@@ -107,7 +107,7 @@ jobs:
           # speed (rounding to zero). Static `set` fixes have unknown native speed.
           (
             xcrun simctl help location
-            if [[ "$AVYRO_UI_FLOW" == car-motion ]]; then
+            if [[ "$AVYRO_UI_FLOW" == car-motion || "$AVYRO_UI_FLOW" == settings-language ]]; then
               # Public synthetic Rue de Rivoli trace, separate from real GPS.
               until [[ -f build/start-driving-fixture ]]; do
                 xcrun simctl location "$DEVICE_ID" start --speed=0.01 --interval=1 48.8576300,2.35107 48.8576350,2.35107

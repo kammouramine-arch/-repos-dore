@@ -1,0 +1,20 @@
+appId: app.avyro.companion
+---
+- launchApp:
+    clearState: true
+    permissions:
+      all: allow
+- extendedWaitUntil:
+    visible: "Continue without hands-free"
+    timeout: 90000
+- tapOn: "Continue without hands-free"
+- tapOn: "Settings"
+- tapOn: "Dark"
+- takeScreenshot: build/screens/settings-dark
+- tapOn: "Français"
+- assertVisible: "Réglages"
+- assertVisible: "Apparence"
+- takeScreenshot: build/screens/settings-french
+- tapOn: "Retour"
+- assertVisible: "Rechercher une destination"
+- takeScreenshot: build/screens/map-french-dark
