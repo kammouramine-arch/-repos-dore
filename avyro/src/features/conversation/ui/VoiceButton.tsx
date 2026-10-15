@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useConversationStore, usePreferencesStore } from '@/app/stores/hooks';
 import { canStartVoiceTurn } from '@/core/conversation/voicePrompt';
 import { IconButton } from '@/ui/components';
@@ -15,6 +16,7 @@ export type VoiceButtonProps = Pick<IconButtonProps, 'variant' | 'size' | 'style
  * not move around under the driver's thumb.
  */
 export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
+  useUiLanguage();
   const voice = useConversationStore((state) => state.voice.status);
   const status = useConversationStore((state) => state.status);
   const dispatch = useConversationStore((state) => state.dispatch);
@@ -27,8 +29,8 @@ export const VoiceButton = ({ variant, size, style }: VoiceButtonProps) => {
   return (
     <IconButton
       name={listening ? 'mic' : 'mic-outline'}
-      accessibilityLabel={busy ? 'Stop voice conversation' : 'Ask meepmeep'}
-      accessibilityHint="Tap to start or stop a conversation. Hold to pause hands-free listening."
+      accessibilityLabel={busy ? t('Stop voice conversation') : t('Ask meepmeep')}
+      accessibilityHint={t("Tap to start or stop a conversation. Hold to pause hands-free listening.")}
       active={listening}
       variant={variant}
       size={size}

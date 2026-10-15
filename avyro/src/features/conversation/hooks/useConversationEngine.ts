@@ -1,3 +1,4 @@
+import { probationaryMaximum } from '@/core/navigation/probationaryLimit';
 import { useCallback, useEffect, useRef } from "react";
 import { AppState } from "react-native";
 import type { WakeWordSession } from "@/core/domain/ports/wakeWordDetector";
@@ -68,6 +69,9 @@ export const useConversationEngine = (): void => {
    * instead of quietly becoming a second listener.
    */
   const generationRef = useRef(0);
+  const wakeOpeningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preparationEpoch = useRef(0);
+  const wakeHealthyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wakeSessionRef = useRef<WakeWordSession | null>(null);
   const releaseRef = useRef<Promise<void>>(Promise.resolve());
 
@@ -113,6 +117,10 @@ export const useConversationEngine = (): void => {
     // Invalidate first: a start that has not landed yet must not install
     // itself after the microphone has been released.
     generationRef.current += 1;
+    if (wakeOpeningTimeoutRef.current) clearTimeout(wakeOpeningTimeoutRef.current);
+    wakeOpeningTimeoutRef.current = null;
+    if (wakeHealthyRef.current) clearTimeout(wakeHealthyRef.current);
+    wakeHealthyRef.current = null;
     stores.conversation.getState().setCapture(false);
     const command = sessionRef.current;
     if (command)
@@ -143,7 +151,10 @@ export const useConversationEngine = (): void => {
       distanceUnit: stores.preferences.getState().preferences.distanceUnit,
     });
     const location = stores.location.getState();
-    return { ...context, mappedSpeedLimit: stores.preferences.getState().preferences.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence?.speedLimit ?? null : null };
+    const prefs = stores.preferences.getState().preferences;
+    const evidence = prefs.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence : null;
+    const probationary = probationaryMaximum(prefs.probationaryFrance, evidence?.countryCode, evidence?.legalRoadCategory, evidence?.speedLimit?.unit === 'km/h' ? evidence.speedLimit.value : null);
+    return { ...context, currentRoadName: evidence?.roadName ?? null, probationaryMaximumKmh: probationary, stops: navigation.stops, nextInstruction: navigation.status === 'guiding' ? navigation.progress?.currentStep.instruction ?? null : null, mappedSpeedLimit: stores.preferences.getState().preferences.roadInformation && isRoadEvidenceCurrent(location.roadEvidence, location.position, Date.now()) ? location.roadEvidence?.speedLimit ?? null : null };
   }, [stores]);
 
   const clearVoiceTimer = useCallback(() => {
@@ -167,6 +178,7 @@ export const useConversationEngine = (): void => {
       // results back in. Recursion through the hook's own callback would tie
       // every future event to the identity of one render.
       const send = (current: VoiceSessionEvent): void => {
+        if (current.type === "disabled" || current.type === "enabled") preparationEpoch.current++;
         const { state, effects } = voiceSessionReducer(
           voiceRef.current,
           current,
@@ -220,6 +232,9 @@ export const useConversationEngine = (): void => {
           const isCurrent = () => generation === generationRef.current;
 
           voiceDebug("wake_session_requested", "offline keyword model");
+          wakeOpeningTimeoutRef.current = setTimeout(() => {
+            if (isCurrent()) send({ type: 'failed', error: { code: 'audio-capture', message: 'Hands-free could not start. Use the microphone button.', fatal: false } });
+          }, 20000);
           const opening = releaseRef.current
             .then(() => {
               if (!isCurrent()) throw new Error("Superseded wake session");
@@ -254,8 +269,11 @@ export const useConversationEngine = (): void => {
                 await session.stop();
                 return;
               }
+              if (wakeOpeningTimeoutRef.current) clearTimeout(wakeOpeningTimeoutRef.current);
+              wakeOpeningTimeoutRef.current = null;
               wakeSessionRef.current = session;
               send({ type: "opened" });
+              wakeHealthyRef.current = setTimeout(() => { if (isCurrent()) send({ type: "stable" }); }, 30000);
             });
           releaseRef.current = opening.then(
             () => undefined,
@@ -276,11 +294,13 @@ export const useConversationEngine = (): void => {
 
         const apply = (effect: VoiceSessionEffect) => {
           switch (effect.type) {
-            case "check-availability":
+            case "check-availability": {
+              const epoch = preparationEpoch.current;
               // Wake availability must not wait on Apple's speech asset setup.
               // Command recognition checks its own language when a turn starts.
               void services.wakeWordDetector.isAvailable(voiceOptions())
                 .then((available) => {
+                  if (epoch !== preparationEpoch.current) return;
                   voiceDebug("availability_checked", `keyword=${available.available}`);
                   send({
                     type: "availability",
@@ -290,6 +310,7 @@ export const useConversationEngine = (): void => {
                   });
                 })
                 .catch((error) => {
+                  if (epoch !== preparationEpoch.current) return;
                   voiceDebug("ERROR availability_check_threw", String(error));
                   send({
                     type: "availability",
@@ -298,8 +319,10 @@ export const useConversationEngine = (): void => {
                   });
                 });
               return;
+            }
 
             case "request-permission": {
+              const epoch = preparationEpoch.current;
               const request = { networkRecognition: effect.networkRecognition };
               // Read before prompting: the platform shows each dialog once, and
               // a driver who already granted it should not be asked again.
@@ -310,6 +333,7 @@ export const useConversationEngine = (): void => {
               void services.speechRecognizer
                 .getPermission(request)
                 .then((current) => {
+                  if (epoch !== preparationEpoch.current) throw new Error("Permission request superseded");
                   voiceDebug(
                     "permission_current",
                     `granted=${current.granted} canAskAgain=${current.canAskAgain}`,
@@ -319,6 +343,7 @@ export const useConversationEngine = (): void => {
                     : services.speechRecognizer.requestPermission(request);
                 })
                 .then(({ granted, canAskAgain }) => {
+                  if (epoch !== preparationEpoch.current) return;
                   voiceDebug(
                     "permission_resolved",
                     `granted=${granted} canAskAgain=${canAskAgain}`,
@@ -326,6 +351,7 @@ export const useConversationEngine = (): void => {
                   send({ type: "permission", granted, canAskAgain });
                 })
                 .catch((error) => {
+                  if (epoch !== preparationEpoch.current) return;
                   voiceDebug("ERROR permission_threw", String(error));
                   send({
                     type: "permission",

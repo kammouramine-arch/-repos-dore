@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useNavigation, useRoute } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
 import { ActivityIndicator, FlatList, StyleSheet, View } from 'react-native';
@@ -21,6 +22,7 @@ const CATEGORIES = { fuel: { title: 'Fuel', query: 'gas station', icon: 'car-out
 
 /** Nearby POIs come from the geocoder, never decorative or invented map pins. */
 export const NearbyScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const route = useRoute<RootStackScreenProps<'Nearby'>['route']>();
   const category = CATEGORIES[route.params.category];
@@ -55,11 +57,11 @@ export const NearbyScreen = () => {
       {fix ? <UserPuck coordinate={fix.coordinates} headingDegrees={heading} /> : null}
       {places.map((place, index) => <Marker key={place.id} coordinate={place.coordinates} onPress={() => setSelected(place.id)} tracksViewChanges={false} accessibilityLabel={place.name}><View style={[styles.pin, selected === place.id && styles.selectedPin]}><AppText variant="caption" style={{ color: '#FFFFFF' }}>{route.params.category === 'parking' ? 'P' : index + 1}</AppText></View></Marker>)}
     </AvyroMapView>
-    <View style={[styles.top, { top: insets.top + 8 }]}><IconButton name="chevron-back" accessibilityLabel="Back to map" onPress={() => navigation.goBack()} /><GlassPanel style={styles.title}><Icon name={category.icon} size={18} color={colors.accent} /><AppText variant="subhead">{category.title} nearby</AppText></GlassPanel></View>
+    <View style={[styles.top, { top: insets.top + 8 }]}><IconButton name="chevron-back" accessibilityLabel={t("Back to map")} onPress={() => navigation.goBack()} /><GlassPanel style={styles.title}><Icon name={category.icon} size={18} color={colors.accent} /><AppText variant="subhead">{category.title} {t("nearby")}</AppText></GlassPanel></View>
     <View style={styles.sheetPosition} onLayout={event => { const height = Math.ceil(event.nativeEvent.layout.height); sheetHeightRef.current = height; setSheetHeight(height); }}><GlassPanel style={{ ...styles.sheet, paddingBottom: Math.max(insets.bottom, 12) }}>
       <View style={styles.grabber} /><AppText variant="title3">{category.title}</AppText>
-      <AppText variant="caption" tone="secondary">{placesProvider.supportsTypeahead ? 'Apple Maps' : 'OpenStreetMap contributors'} · straight-line distances</AppText>
-      {!origin ? <AppText variant="footnote" style={styles.empty}>Enable your location on the map to search nearby.</AppText> : busy ? <ActivityIndicator style={{ margin: 24 }} color={colors.accent} /> : failed ? <View style={styles.empty}><AppText variant="footnote">Nearby search unavailable</AppText><Button label="Try again" size="medium" onPress={() => { setBusy(true); setFailed(false); setRetry(value => value + 1); }} /></View> : !places.length ? <AppText variant="footnote" style={styles.empty}>No mapped results within 2 km. Try searching by name.</AppText> : <FlatList style={{ maxHeight: 235 }} data={selected ? [...places.filter(p => p.id === selected), ...places.filter(p => p.id !== selected)] : places} keyExtractor={p => p.id} renderItem={({ item, index }) => <ListRow testID={`nearby-result-${index}`} title={item.name} subtitle={item.address} icon={category.icon} trailing={origin ? <AppText variant="caption" tone="secondary">{formatDistance(distanceBetween(origin, item.coordinates), prefs.distanceUnit)}</AppText> : undefined} onPress={() => void plan(item, route.params.addStop)} />} />}
+      <AppText variant="caption" tone="secondary">{placesProvider.supportsTypeahead ? 'Apple Maps' : 'OpenStreetMap contributors'} {t("· straight-line distances")}</AppText>
+      {!origin ? <AppText variant="footnote" style={styles.empty}>{t("Enable your location on the map to search nearby.")}</AppText> : busy ? <ActivityIndicator style={{ margin: 24 }} color={colors.accent} /> : failed ? <View style={styles.empty}><AppText variant="footnote">{t("Nearby search unavailable")}</AppText><Button label={t("Try again")} size="medium" onPress={() => { setBusy(true); setFailed(false); setRetry(value => value + 1); }} /></View> : !places.length ? <AppText variant="footnote" style={styles.empty}>{t("No mapped results within 2 km. Try searching by name.")}</AppText> : <FlatList style={{ maxHeight: 235 }} data={selected ? [...places.filter(p => p.id === selected), ...places.filter(p => p.id !== selected)] : places} keyExtractor={p => p.id} renderItem={({ item, index }) => <ListRow testID={`nearby-result-${index}`} title={item.name} subtitle={item.address} icon={category.icon} trailing={origin ? <AppText variant="caption" tone="secondary">{formatDistance(distanceBetween(origin, item.coordinates), prefs.distanceUnit)}</AppText> : undefined} onPress={() => void plan(item, route.params.addStop)} />} />}
     </GlassPanel></View>
   </View>;
 };

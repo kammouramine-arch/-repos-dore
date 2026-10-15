@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useEffect, useState } from 'react';
 import { AppState, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +12,7 @@ export function RainTouchProtection() {
   return enabled && routeId ? <ActiveRainProtection key={routeId} /> : null;
 }
 function ActiveRainProtection() {
+  useUiLanguage();
   const [locked, setLocked] = useState(false);
   const [holding, setHolding] = useState(false);
   const insets = useSafeAreaInsets();
@@ -25,9 +27,9 @@ function ActiveRainProtection() {
     <View pointerEvents="box-none" style={[styles.position, { top: insets.top + 160 }]}>
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel={locked ? 'Unlock rain protection' : 'Lock screen against rain touches'}
-        accessibilityHint={locked ? 'Hold for three seconds. With VoiceOver, use the Unlock action.' : 'Navigation and voice stay active.'}
-        accessibilityActions={locked ? [{ name: 'activate', label: 'Unlock' }] : undefined}
+        accessibilityLabel={locked ? t('Unlock rain protection') : t('Lock screen against rain touches')}
+        accessibilityHint={locked ? t('Hold for three seconds. With VoiceOver, use the Unlock action.') : t('Navigation and voice stay active.')}
+        accessibilityActions={locked ? [{ name: 'activate', label: t('Unlock') }] : undefined}
         onAccessibilityAction={locked ? unlock : undefined}
         onPress={locked ? undefined : () => setLocked(true)}
         onPressIn={() => setHolding(true)}
@@ -36,7 +38,7 @@ function ActiveRainProtection() {
         delayLongPress={3000}
         style={[styles.button, holding && styles.holding]}
       >
-        <AppText style={styles.label}>{locked ? (holding ? 'Keep holding to unlock…' : 'Rain lock · hold 3s to unlock') : 'Rain lock'}</AppText>
+        <AppText style={styles.label}>{locked ? (holding ? t('Keep holding to unlock…') : t('Rain lock · hold 3s to unlock')) : t('Rain lock')}</AppText>
       </Pressable>
     </View>
   </View>;

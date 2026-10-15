@@ -1,3 +1,5 @@
+import { setUiLanguage } from '@/ui/i18n';
+import { Appearance } from 'react-native';
 import { create } from 'zustand';
 
 import {
@@ -27,12 +29,16 @@ export const createPreferencesStore = (services: ServiceContainer) =>
 
     async load() {
       const preferences = await services.preferencesRepository.load();
+      setUiLanguage(preferences.interfaceLanguage);
+      Appearance.setColorScheme(preferences.appearance === 'system' ? 'unspecified' : preferences.appearance);
       setHapticsEnabled(preferences.hapticFeedback);
       set({ preferences, hydrated: true });
     },
 
     async update(patch) {
       const preferences = { ...get().preferences, ...patch };
+      setUiLanguage(preferences.interfaceLanguage);
+      Appearance.setColorScheme(preferences.appearance === 'system' ? 'unspecified' : preferences.appearance);
       setHapticsEnabled(preferences.hapticFeedback);
       set({ preferences });
 

@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import type { ReactNode } from 'react';
 import { StyleSheet, View } from 'react-native';
 
@@ -22,13 +23,13 @@ export const ScreenHeader = ({
   subtitle,
   onBack,
   trailing,
-}: ScreenHeaderProps) => (
+}: ScreenHeaderProps) => { useUiLanguage(); return ((
   <View style={styles.header}>
     <View style={styles.side}>
       {onBack ? (
         <IconButton
           name="chevron-back"
-          accessibilityLabel="Go back"
+          accessibilityLabel={t("Go back")}
           variant="plain"
           onPress={onBack}
         />
@@ -50,7 +51,7 @@ export const ScreenHeader = ({
 
     <View style={[styles.side, styles.trailing]}>{trailing}</View>
   </View>
-);
+)); };
 
 const styles = StyleSheet.create({
   header: {

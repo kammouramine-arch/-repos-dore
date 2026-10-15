@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useRef } from 'react';
 import type { TextInput } from 'react-native';
@@ -15,6 +16,7 @@ import { AuthLayout } from './AuthLayout';
 import { FormError } from './FormError';
 
 export const RegisterScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const fullName = useField();
   const email = useField();
@@ -47,8 +49,8 @@ export const RegisterScreen = () => {
 
   return (
     <AuthLayout
-      title="Create your meepmeep"
-      subtitle="Create an optional personal profile for meepmeep."
+      title={t("Create your meepmeep")}
+      subtitle={t("Create an optional personal profile for meepmeep.")}
       footerPrompt="Already have an account?"
       footerAction="Sign in"
       onFooterPress={() => {
@@ -59,7 +61,7 @@ export const RegisterScreen = () => {
       <FormError message={error} />
 
       <TextField
-        label="Name"
+        label={t("Name")}
         icon="person-outline"
         placeholder="Alex Durand"
         value={fullName.value}
@@ -72,7 +74,7 @@ export const RegisterScreen = () => {
       />
 
       <TextField
-        label="Email"
+        label={t("Email")}
         icon="mail-outline"
         placeholder="you@example.com"
         inputRef={emailRef}
@@ -87,9 +89,9 @@ export const RegisterScreen = () => {
       />
 
       <TextField
-        label="Password"
+        label={t("Password")}
         icon="lock-closed-outline"
-        placeholder="At least 8 characters"
+        placeholder={t("At least 8 characters")}
         inputRef={passwordRef}
         value={password.value}
         onChangeText={password.set}
@@ -102,9 +104,9 @@ export const RegisterScreen = () => {
       />
 
       <TextField
-        label="Confirm password"
+        label={t("Confirm password")}
         icon="checkmark-circle-outline"
-        placeholder="Repeat your password"
+        placeholder={t("Repeat your password")}
         inputRef={confirmationRef}
         value={confirmation.value}
         onChangeText={confirmation.set}
@@ -115,7 +117,7 @@ export const RegisterScreen = () => {
         onSubmitEditing={() => void submit()}
       />
 
-      <Button label="Create account" loading={submitting} onPress={() => void submit()} />
+      <Button label={t("Create account")} loading={submitting} onPress={() => void submit()} />
     </AuthLayout>
   );
 };

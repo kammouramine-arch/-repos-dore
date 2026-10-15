@@ -9,3 +9,9 @@ test('route observations exclude expired, behind and distant reports without tre
   expect(result[0].aheadMeters).toBeGreaterThan(350);
   expect(result[0].report.status).toBe('community');
 });
+
+
+test('known opposing travel direction is excluded from route observations', () => {
+  expect(reportsNearRoute([{...report('opposing', .005),heading:270}], route, 200, 1000)).toEqual([]);
+  expect(reportsNearRoute([{...report('same', .005),heading:90}], route, 200, 1000)).toHaveLength(1);
+});

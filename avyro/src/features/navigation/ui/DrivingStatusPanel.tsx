@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import Animated, { cancelAnimation, useAnimatedStyle, useSharedValue, withRepeat, withSequence, withTiming } from 'react-native-reanimated';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { AccessibilityInfo, Linking, StyleSheet, View } from 'react-native';
@@ -11,6 +12,7 @@ import { probationaryMaximum } from '@/core/navigation/probationaryLimit';
 import { aboveMappedLimit, measuredSpeed } from '@/core/navigation/measuredSpeed';
 /** Compact separate instruments: measured speed and sourced legal-limit evidence. */
 export const DrivingStatusPanel = () => {
+  useUiLanguage();
   const stores = useStores();
   const fix = useLocationStore(state => state.position);
   const probationary = usePreferencesStore(s => s.preferences.probationaryFrance);
@@ -59,7 +61,7 @@ export const DrivingStatusPanel = () => {
         <AppText testID="gps-speed-value" variant="title2" style={{ color: over ? '#FF6474' : '#FFFFFF', fontVariant: ['tabular-nums'] }}>{formatSpeed(speed, unit) ?? '—'}</AppText>
         <AppText variant="caption" style={{ color: '#DBE4EB', fontSize: 10 }}>{speedUnitLabel(unit)}</AppText>
       </View>
-      {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${adjusted ? 'French probationary maximum' : limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3" style={{ color: '#172B36' }}>{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9, color: '#172B36' }}>{adjusted ? 'A · km/h' : limit.unit}</AppText></Animated.View> : roadInformation ? <View style={styles.unknown} accessibilityLabel="Mapped speed limit unavailable"><AppText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>Limit</AppText><AppText variant="title3" style={{ color: '#FFFFFF' }}>—</AppText></View> : null}
+      {limit ? <Animated.View style={[styles.limit, pulseStyle]} accessibilityLabel={`${adjusted ? 'French probationary maximum' : limit.source === 'municipal-order' ? 'Municipal order' : 'TomTom mapped'} speed limit ${limit.value} ${limit.unit}${over ? ', exceeded' : ''}`}><AppText variant="title3" style={{ color: '#172B36' }}>{limit.value}</AppText><AppText variant="caption" style={{ fontSize: 9, color: '#172B36' }}>{adjusted ? 'A · km/h' : limit.unit}</AppText></Animated.View> : roadInformation ? <View style={styles.unknown} accessibilityLabel={t("Mapped speed limit unavailable")}><AppText variant="caption" style={{ color: '#FFFFFF', fontSize: 10 }}>{t("Limit")}</AppText><AppText variant="title3" style={{ color: '#FFFFFF' }}>—</AppText></View> : null}
     </View>
     {roadInformation || tomtomRoute ? <PressableScale accessibilityRole="link" accessibilityLabel={`TomTom road data attribution${limit ? '' : ', speed limit unavailable'}`} onPress={() => { void Linking.openURL('https://www.tomtom.com/en-gb/legal/product-attributions/').catch(() => {}); }} style={styles.attribution}><AppText variant="caption" tone="secondary" style={{ fontSize: 9 }}>© TomTom</AppText></PressableScale> : null}
   </View>;

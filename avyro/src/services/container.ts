@@ -47,7 +47,7 @@ import { createConsoleLogger } from "@/services/observability/consoleLogger";
 import { createLocalCrashReporter } from "@/services/observability/localCrashReporter";
 import { createNominatimPlacesProvider } from "@/services/places/nominatimPlacesProvider";
 import { createApplePlacesProvider } from "@/services/places/applePlacesProvider";
-import { createOsrmRoutingProvider } from "@/services/routing/osrmRoutingProvider";
+import { AppError } from "@/core/domain/errors/appError";
 import { createGatewayRoutingProvider } from '@/services/routing/gatewayRoutingProvider';
 import { createExpoSpeechRecognizer } from "@/services/speech/expoSpeechRecognizer";
 import { createExpoSpeechEngine } from "@/voice/expoSpeechEngine";
@@ -128,7 +128,7 @@ export const createServiceContainer = (
   const guestAccessToken = createGuestAccessToken({ http, secure, baseUrl: env.backendUrl });
   const getAccessToken = async () => (await createSessionStore(secure).read(env.backendUrl))?.token ?? guestAccessToken();
   const preferencesRepository = overrides.preferencesRepository ?? createLocalPreferencesRepository(keyValue);
-  const routingProvider = overrides.routingProvider ?? (env.backendUrl ? createGatewayRoutingProvider({ http, getAccessToken, getPreferences: () => preferencesRepository.load() }) : createOsrmRoutingProvider({ http }));
+  const routingProvider = overrides.routingProvider ?? (env.backendUrl ? createGatewayRoutingProvider({ http, getAccessToken, getPreferences: () => preferencesRepository.load() }) : { async getRoutes() { throw new AppError('network', 'The navigation service is not configured.'); } });
 
   const speechRecognizer = overrides.speechRecognizer ?? createNativeSpeechRecognizer(createExpoSpeechRecognizer(logger), undefined, {
     enabled: async () => (await preferencesRepository.load()).cloudSpeech,

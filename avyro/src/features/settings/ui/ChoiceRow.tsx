@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText, SegmentedControl, type SegmentedOption } from '@/ui/components';
@@ -18,7 +19,9 @@ export const ChoiceRow = <T extends string>({
   options,
   value,
   onChange,
-}: ChoiceRowProps<T>) => (
+}: ChoiceRowProps<T>) => {
+  useUiLanguage();
+  return (
   <View style={styles.row}>
     <View style={styles.labels}>
       <AppText variant="callout">{title}</AppText>
@@ -29,9 +32,10 @@ export const ChoiceRow = <T extends string>({
       ) : null}
     </View>
 
-    <SegmentedControl options={options} value={value} onChange={onChange} />
+    <SegmentedControl options={options.map(option => ({...option, label: t(option.label)}))} value={value} onChange={onChange} />
   </View>
 );
+};
 
 const styles = StyleSheet.create({
   row: {

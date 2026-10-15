@@ -4,7 +4,8 @@ import { randomUUID, randomBytes } from 'node:crypto';
 
 // Exercise workerd and a real local D1 database, rather than a mock SQL adapter.
 const base = process.env.AVYRO_CLOUD_TEST_URL ?? 'http://127.0.0.1:8790';
-const request = (route, data, token) => fetch(base + route, { method: data ? 'POST' : 'GET', headers: { ...(data ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: data ? JSON.stringify(data) : undefined });
+const testIp = `198.18.${Math.floor(Math.random()*255)}.${Math.floor(Math.random()*254)+1}`;
+const request = (route, data, token) => fetch(base + route, { method: data ? 'POST' : 'GET', headers: { 'CF-Connecting-IP': testIp, ...(data ? { 'Content-Type': 'application/json' } : {}), ...(token ? { Authorization: `Bearer ${token}` } : {}) }, body: data ? JSON.stringify(data) : undefined });
 
 test('anonymous access works without a personal account; reports stay pending and private', async () => {
   assert.equal((await request('/health')).status, 200);
@@ -74,4 +75,22 @@ test('driving routes require a session and an enabled existing provider', async 
   assert.equal((await request('/routes', route)).status, 401);
   const { token } = await (await request('/auth/guest', {})).json();
   assert.equal((await request('/routes', route, token)).status, 503);
+});
+
+
+test('community deduplication respects direction; feedback is nearby and author withdrawal is private', async () => {
+  const call = async (route, data, token) => fetch(base + route, { method: data ? 'POST' : 'GET', headers: { 'CF-Connecting-IP': `198.19.${Math.floor(Math.random()*255)}.42`, ...(data ? {'Content-Type':'application/json'} : {}), ...(token ? {Authorization: `Bearer ${token}`} : {}) }, body: data ? JSON.stringify(data) : undefined });
+  const { token } = await (await call('/auth/guest', {})).json();
+  const longitude = 4 + Math.random() * .1;
+  const observation = { category:'hazard', latitude:49,longitude, observedAt:Date.now(), consent:true, publication:'community', heading:90 };
+  const first = await call('/incidents', observation, token); assert.equal(first.status,202); const a = await first.json();
+  const repeated = await call('/incidents', observation, token); assert.equal(repeated.status,202); assert.equal((await repeated.json()).id,a.id);
+  const opposite = await call('/incidents', {...observation,heading:270},token); assert.equal(opposite.status,202); assert.notEqual((await opposite.json()).id,a.id);
+  assert.equal((await call('/incidents/feedback', {id:a.id,decision:'confirmed',latitude:0,longitude:0,observedAt:Date.now()},token)).status,400);
+  assert.equal((await call('/incidents/feedback', {id:a.id,decision:'confirmed',latitude:49,longitude,observedAt:Date.now()},token)).status,200);
+  const stranger = await (await call('/auth/guest', {})).json();
+  assert.equal((await call('/incidents/feedback', {id:a.id,decision:'withdraw'},stranger.token)).status,403);
+  assert.equal((await call('/incidents/feedback', {id:a.id,decision:'withdraw'},token)).status,200);
+  const feed = await (await call('/incidents?community=1',null,token)).json();
+  assert.equal(feed.some(item=>item.id===a.id),false);
 });

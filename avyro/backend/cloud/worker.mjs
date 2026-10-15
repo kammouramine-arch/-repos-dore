@@ -5,6 +5,12 @@ import { transcribeCommand, validateCommandAudio } from './transcribe.mjs';
 import { DurableObject } from 'cloudflare:workers';
 import { derivePasswordValue } from './password.mjs';
 
+const metersBetween = (a, b) => {
+  const rad = Math.PI / 180, dLat = (b.latitude - a.latitude) * rad, dLon = (b.longitude - a.longitude) * rad;
+  const h = Math.sin(dLat / 2) ** 2 + Math.cos(a.latitude * rad) * Math.cos(b.latitude * rad) * Math.sin(dLon / 2) ** 2;
+  return 6371000 * 2 * Math.atan2(Math.sqrt(h), Math.sqrt(Math.max(0, 1 - h)));
+};
+const directionCompatible = (a,b) => a == null || b == null ? a == null && b == null : Math.abs(((a-b+540)%360)-180) <= 45;
 const SESSION_MS = 7 * 86400000;
 const fail = (status, message) => Object.assign(new Error(message), { status });
 const b64 = bytes => Buffer.from(bytes).toString('base64url');
@@ -123,11 +129,11 @@ export default {
       }
       if (route === '/ai' && method === 'POST') {
         await rate(db, `ai:${user.id}`, 10);
-        const { transcript } = await body(request);
+        const { transcript, context } = await body(request);
         if (typeof transcript !== 'string' || transcript.length > 500 || !transcript.trim()) throw fail(400, 'Invalid command.');
         if (env.AI_ENABLED !== 'true' || !env.AI) throw fail(503, 'Cloud command assistance is disabled.');
         await rate(db, 'ai:global', 100, 86400000);
-        return json({ choices: [{ message: { content: JSON.stringify(await classifyCommand(env.AI, transcript)) } }] });
+        return json({ choices: [{ message: { content: JSON.stringify(await classifyCommand(env.AI, transcript, context)) } }] });
       }
       if (route === '/speech/transcribe' && method === 'POST') {
         const { audio, language, consent } = await body(request, 900000);
@@ -140,10 +146,34 @@ export default {
         await rate(db, 'speech:global', 100, 86400000);
         return json(await transcribeCommand(env.AI, audio, language));
       }
+      if (route === '/incidents/feedback' && method === 'POST') {
+        await rate(db, `feedback:${user.id}`, 10, 600000); await rate(db, `feedback:${ip}`, 20, 600000);
+        const input = await body(request), now = Date.now();
+        if (typeof input.id !== 'string' || !['confirmed','not-seen','withdraw'].includes(input.decision)) throw fail(400, 'Invalid feedback.');
+        const report = await db.prepare("SELECT * FROM incidents WHERE id=? AND expires>? AND status IN ('community','approved','pending')").bind(input.id, now).first();
+        if (!report) throw fail(404, 'This observation has expired.');
+        if (input.decision === 'withdraw') {
+          if (report.user_id !== user.id) throw fail(403, 'Only the author can withdraw a report.');
+          await db.prepare("UPDATE incidents SET status='withdrawn',expires=? WHERE id=? AND user_id=?").bind(now, input.id, user.id).run();
+          return json({ accepted: true });
+        }
+        if (![input.latitude,input.longitude,input.observedAt].every(Number.isFinite) || Math.abs(input.latitude)>90 || Math.abs(input.longitude)>180 || input.observedAt>now+5000 || now-input.observedAt>60000 || metersBetween(input, report)>150) throw fail(400, 'A recent nearby observation is required.');
+        await db.prepare('INSERT INTO incident_feedback (incident_id,user_id,decision,at) VALUES (?,?,?,?) ON CONFLICT(incident_id,user_id) DO UPDATE SET decision=excluded.decision,at=excluded.at').bind(input.id,user.id,input.decision,now).run();
+        // Feedback never upgrades a community report to verified. Three distinct
+        // recent "not seen" reports expire it when they outweigh confirmations.
+        await db.prepare("UPDATE incidents SET expires=? WHERE id=? AND status='community' AND (SELECT COUNT(*) FROM incident_feedback WHERE incident_id=? AND decision='not-seen' AND at>?)>=3 AND (SELECT COUNT(*) FROM incident_feedback WHERE incident_id=? AND decision='not-seen' AND at>?)>(SELECT COUNT(*) FROM incident_feedback WHERE incident_id=? AND decision='confirmed' AND at>?)").bind(now,input.id,input.id,now-600000,input.id,now-600000,input.id,now-600000).run();
+        return json({ accepted: true });
+      }
       if (route === '/incidents' && method === 'POST') {
         await rate(db, `report:${user.id}`, 3, 600000); await rate(db, `report:${ip}`, 6, 600000);
-        const { category, latitude, longitude, observedAt, consent, publication } = await body(request), now = Date.now();
-        if (!['accident','hazard','closure','police','traffic','blocked-lane','weather','map-issue'].includes(category) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180 || !Number.isFinite(observedAt) || observedAt > now + 5000 || now - observedAt > 300000 || consent !== true) throw fail(400, 'Recent observation and consent required.');
+        const { category, latitude, longitude, observedAt, consent, publication, heading } = await body(request), now = Date.now();
+        if (!['accident','hazard','closure','traffic','blocked-lane','weather','map-issue'].includes(category) || !Number.isFinite(latitude) || Math.abs(latitude) > 90 || !Number.isFinite(longitude) || Math.abs(longitude) > 180 || !Number.isFinite(observedAt) || observedAt > now + 5000 || now - observedAt > 300000 || consent !== true) throw fail(400, 'Recent observation and consent required.');
+        const direction = Number.isFinite(heading) && heading >= 0 && heading < 360 ? heading : null;
+        if (publication === 'community') {
+          const nearby = (await db.prepare("SELECT i.*,d.heading FROM incidents i LEFT JOIN incident_direction d ON d.incident_id=i.id WHERE i.category=? AND i.status='community' AND i.expires>? AND i.latitude BETWEEN ? AND ? AND i.longitude BETWEEN ? AND ? LIMIT 30").bind(category,now,latitude-.001,latitude+.001,longitude-.002,longitude+.002).all()).results;
+          const duplicate = nearby.find(item => metersBetween({ latitude,longitude },item)<60 && directionCompatible(direction,item.heading));
+          if (duplicate) return json({ id: duplicate.id, category, latitude: duplicate.latitude, longitude: duplicate.longitude, observed: duplicate.observed, expires: duplicate.expires, status: 'community', merged: true },202);
+        }
         const id = crypto.randomUUID();
         // Structured categories only: no user text or personal data enters the public pin.
         // Automated acceptance checks freshness, consent, coordinates and rate limits;
@@ -151,6 +181,7 @@ export default {
         const status = publication === 'community' ? 'community' : 'pending';
         const report = { id, status, category, latitude: Math.round(latitude * 10000) / 10000, longitude: Math.round(longitude * 10000) / 10000, observed: observedAt, expires: now + 3600000 };
         await db.prepare('INSERT INTO incidents (id,user_id,category,latitude,longitude,observed,expires,status) VALUES (?,?,?,?,?,?,?,?)').bind(id, user.id, category, report.latitude, report.longitude, observedAt, report.expires, status).run();
+        await db.prepare('INSERT INTO incident_direction (incident_id,heading) VALUES (?,?)').bind(id,direction).run();
         return json(report, 202);
       }
       if (route === '/moderation') {
@@ -171,7 +202,7 @@ export default {
       }
       if (route === '/incidents' && method === 'GET') {
         const includeCommunity = new URL(request.url).searchParams.get('community') === '1';
-        return json((await db.prepare(`SELECT id,category,latitude,longitude,observed,expires,status FROM incidents WHERE status IN ('approved',${includeCommunity ? "'community'" : "'approved'"}) AND expires>? ORDER BY observed DESC LIMIT 100`).bind(Date.now()).all()).results);
+        return json((await db.prepare(`SELECT id,category,latitude,longitude,observed,expires,status,(SELECT heading FROM incident_direction WHERE incident_id=incidents.id) AS heading FROM incidents WHERE category!='police' AND status IN ('approved',${includeCommunity ? "'community'" : "'approved'"}) AND expires>? ORDER BY observed DESC LIMIT 100`).bind(Date.now()).all()).results);
       }
       throw fail(404, 'Not found.');
     } catch (error) { return json({ error: error.status ? error.message : 'Service unavailable.' }, error.status ?? 503); }

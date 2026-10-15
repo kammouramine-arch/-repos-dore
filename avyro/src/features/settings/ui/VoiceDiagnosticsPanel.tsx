@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { ScrollView, StyleSheet, View } from 'react-native';
 
 import {
@@ -26,18 +27,15 @@ export interface VoiceDiagnosticsPanelProps {
 export const VoiceDiagnosticsPanel = ({
   entries,
   onClear,
-}: VoiceDiagnosticsPanelProps) => (
+}: VoiceDiagnosticsPanelProps) => { useUiLanguage(); return ((
   <View style={styles.panel}>
     <AppText variant="footnote" tone="tertiary">
-      Temporary voice pipeline trace. Clear it, reproduce the problem, then read
-      from the top.
-    </AppText>
+      {t("Temporary voice pipeline trace. Clear it, reproduce the problem, then read from the top.")}</AppText>
 
     <View style={styles.console}>
       {entries.length === 0 ? (
         <AppText variant="footnote" tone="tertiary">
-          Nothing recorded yet.
-        </AppText>
+          {t("Nothing recorded yet.")}</AppText>
       ) : (
         <ScrollView style={styles.scroll} nestedScrollEnabled>
           {entries.map((entry, index) => (
@@ -61,7 +59,7 @@ export const VoiceDiagnosticsPanel = ({
       onPress={onClear}
     />
   </View>
-);
+)); };
 
 const styles = StyleSheet.create({
   panel: {

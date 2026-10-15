@@ -485,3 +485,21 @@ describe('navigating to a place named out loud', () => {
     expect(reply.speech).toBe('Heading home.');
   });
 });
+
+
+test('closer follow-up uses the remembered category and a geographically closer returned place', async () => {
+  const provider = build({ results: [suggestion(FAR, {directDistanceMeters:4400}), suggestion(NEAR,{directDistanceMeters:150})] });
+  const context = {...guiding(), referent:FAR, recentIntents:[{kind:'find-nearby',category:'coffee' as const}]};
+  const reply = await ask(provider,'somewhere closer',context);
+  expect(reply.referent?.id).toBe(NEAR.id);
+  expect(reply.action.type).toBe('none');
+});
+test('closer follow-up without a recent category never guesses a destination', async () => {
+  const reply = await ask(build(),'somewhere closer',{...guiding(),referent:FAR});
+  expect(reply.intent.kind).toBe('unknown');
+  expect(reply.action.type).toBe('none');
+});
+test('voice toll preference is an executable action rather than a spoken promise alone', async () => {
+  const reply = await ask(build(),'avoid tolls');
+  expect(reply.action).toEqual({type:'set-route-preference',preference:'avoidTolls',enabled:true});
+});

@@ -35,6 +35,8 @@ export type SavedPlaceSlot = 'home' | 'work';
  * wait on a model to be told how far is left.
  */
 export type VoiceIntent =
+  | { kind: 'set-route-preference'; preference: 'avoidTolls' | 'avoidMotorways'; enabled: boolean }
+  | { kind: 'ask-next-maneuver' }
   | { kind: 'report-incident'; category: IncidentCategory }
   | { kind: 'navigate-saved'; slot: SavedPlaceSlot }
   /**
@@ -62,6 +64,7 @@ export type VoiceIntent =
 
 /** Every intent kind, for provider schemas and exhaustive checks. */
 export const VOICE_INTENT_KINDS = [
+  'set-route-preference', 'ask-next-maneuver',
   'report-incident',
   'navigate-saved',
   'navigate-to-place',
@@ -83,6 +86,7 @@ export type NearbyCategory = 'restaurants' | 'coffee' | 'fuel' | 'parking';
 
 /** What the app should do once the reply has been spoken. */
 export type ConversationAction =
+  | { type: 'set-route-preference'; preference: 'avoidTolls' | 'avoidMotorways'; enabled: boolean }
   | { type: 'none' }
   | { type: 'navigate-to'; place: Place }
   | { type: 'cancel-navigation' }
@@ -125,6 +129,10 @@ export interface RouteContext {
   headingDegrees: number | null;
   /** Routing-map street name, only when supported by a fresh accurate fix. */
   currentRoadName?: string | null;
+  recentIntents?: { kind: string; category?: NearbyCategory }[];
+  probationaryMaximumKmh?: number | null;
+  nextInstruction?: string | null;
+  stops?: Place[];
   mappedSpeedLimit?: { value: number; unit: 'km/h' | 'mph'; source?: 'municipal-order' } | null;
   /** The place Avyro last recommended, which "take me there" refers to. */
   referent: Place | null;

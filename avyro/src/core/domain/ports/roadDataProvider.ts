@@ -11,6 +11,7 @@ export interface RoadAheadEvidence { source: 'TomTom map data'; alerts: RoadAler
 
 export interface RoadEvidence {
   source: 'TomTom map data';
+  roadName?: string;
   countryCode?: string;
   legalRoadCategory?: import('@/core/navigation/probationaryLimit').FrenchRoadCategory;
   capturedAt: number;

@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 
 import { AppText, GlassPanel, IconButton } from '@/ui/components';
@@ -18,6 +19,7 @@ const greetingFor = (hour: number): string => {
 
 /** Floating identity pill and the way into Settings. */
 export const HomeTopBar = ({ fullName, onSettingsPress }: HomeTopBarProps) => {
+  useUiLanguage();
   const firstName = fullName.trim().split(/\s+/)[0] ?? '';
 
   return (
@@ -38,7 +40,7 @@ export const HomeTopBar = ({ fullName, onSettingsPress }: HomeTopBarProps) => {
 
       <IconButton
         name="options-outline"
-        accessibilityLabel="Settings"
+        accessibilityLabel={t("Settings")}
         onPress={onSettingsPress}
       />
     </View>

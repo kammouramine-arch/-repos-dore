@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useRoute, useNavigation } from "@react-navigation/native";
 import type { RootStackScreenProps } from "@/app/navigation/types";
 import { useServices } from "@/app/runtime/AppRuntime";
@@ -29,6 +30,7 @@ import { SearchField } from "./SearchField";
  * driver wants nine times out of ten.
  */
 export const SearchScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const { savedPlacesRepository, placesProvider } = useServices();
   const route = useRoute<RootStackScreenProps<"Search">["route"]>();
@@ -71,7 +73,7 @@ export const SearchScreen = () => {
       return (
         <EmptyState
           icon="cloud-offline-outline"
-          title="Search unavailable"
+          title={t("Search unavailable")}
           message={error ?? undefined}
         />
       );
@@ -80,7 +82,7 @@ export const SearchScreen = () => {
       return (
         <EmptyState
           icon="compass-outline"
-          title="Nothing found"
+          title={t("Nothing found")}
           message="Try a different spelling, or add the town or city."
         />
       );
@@ -89,7 +91,7 @@ export const SearchScreen = () => {
       return (
         <EmptyState
           icon="time-outline"
-          title="No recent trips"
+          title={t("No recent trips")}
           message="Places you navigate to will show up here."
         />
       );
@@ -104,7 +106,7 @@ export const SearchScreen = () => {
           title={
             saveSlot
               ? `Save ${saveSlot === "home" ? "Home" : "Work"}`
-              : "Where to?"
+              : t("Where to?")
           }
           onBack={() => navigation.goBack()}
         />
@@ -119,7 +121,7 @@ export const SearchScreen = () => {
           autoFocus
         />
         {!placesProvider.supportsTypeahead ? <Button
-          label="Search address"
+          label={t("Search address")}
           onPress={submit}
           disabled={query.trim().length < 2}
         /> : null}
@@ -135,7 +137,7 @@ export const SearchScreen = () => {
         contentContainerStyle={styles.list}
         ListHeaderComponent={
           showRecents && places.length > 0 ? (
-            <SectionHeader title="Recent" />
+            <SectionHeader title={t("Recent")} />
           ) : null
         }
         ItemSeparatorComponent={() => (

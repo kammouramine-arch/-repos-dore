@@ -7,3 +7,6 @@ CREATE INDEX IF NOT EXISTS incident_visibility ON incidents(status,expires);
 CREATE TABLE IF NOT EXISTS moderation_audit (id INTEGER PRIMARY KEY, incident_id TEXT NOT NULL, moderator TEXT NOT NULL, decision TEXT NOT NULL, at INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS provider_usage (month TEXT PRIMARY KEY, requests INTEGER NOT NULL);
 CREATE TABLE IF NOT EXISTS rate_limits (key TEXT PRIMARY KEY, count INTEGER NOT NULL, expires INTEGER NOT NULL);
+
+CREATE TABLE IF NOT EXISTS incident_direction (incident_id TEXT PRIMARY KEY REFERENCES incidents(id) ON DELETE CASCADE, heading REAL);
+CREATE TABLE IF NOT EXISTS incident_feedback (incident_id TEXT NOT NULL REFERENCES incidents(id) ON DELETE CASCADE, user_id TEXT NOT NULL REFERENCES users(id), decision TEXT NOT NULL CHECK(decision IN ('confirmed','not-seen')), at INTEGER NOT NULL, PRIMARY KEY(incident_id,user_id));

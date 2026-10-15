@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeIn, FadeOut } from 'react-native-reanimated';
 
@@ -17,7 +18,7 @@ export interface ManeuverBannerProps {
  * the instruction sits beside it, and the following maneuver is demoted to a
  * single quiet line.
  */
-export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => (
+export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { useUiLanguage(); return ((
   <GlassPanel style={styles.banner}>
     <View style={styles.primary}>
       <ManeuverIcon maneuver={progress.currentStep.maneuver} size={36} />
@@ -45,12 +46,12 @@ export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => (
           color={colors.textTertiary}
         />
         <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
-          Then {progress.nextStep.instruction.toLowerCase()}
+          {t("Then")}{progress.nextStep.instruction.toLowerCase()}
         </AppText>
       </Animated.View>
     ) : null}
   </GlassPanel>
-);
+)); };
 
 const styles = StyleSheet.create({
   banner: {

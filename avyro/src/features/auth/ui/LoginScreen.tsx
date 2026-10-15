@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useNavigation } from '@react-navigation/native';
 import { useRef } from 'react';
 import type { TextInput } from 'react-native';
@@ -10,6 +11,7 @@ import { AuthLayout } from './AuthLayout';
 import { FormError } from './FormError';
 
 export const LoginScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const email = useField();
   const password = useField();
@@ -30,8 +32,8 @@ export const LoginScreen = () => {
 
   return (
     <AuthLayout
-      title="Welcome back"
-      subtitle="An optional profile. Navigation works without signing in."
+      title={t("Welcome back")}
+      subtitle={t("An optional profile. Navigation works without signing in.")}
       footerPrompt="New to meepmeep?"
       footerAction="Create an account"
       onFooterPress={() => {
@@ -42,7 +44,7 @@ export const LoginScreen = () => {
       <FormError message={error} />
 
       <TextField
-        label="Email"
+        label={t("Email")}
         icon="mail-outline"
         placeholder="you@example.com"
         value={email.value}
@@ -56,9 +58,9 @@ export const LoginScreen = () => {
       />
 
       <TextField
-        label="Password"
+        label={t("Password")}
         icon="lock-closed-outline"
-        placeholder="Your password"
+        placeholder={t("Your password")}
         inputRef={passwordRef}
         value={password.value}
         onChangeText={password.set}
@@ -70,8 +72,8 @@ export const LoginScreen = () => {
         onSubmitEditing={() => void submit()}
       />
 
-      <Button label="Sign in" loading={submitting} onPress={() => void submit()} />
-      <Button label="Continue without an account" variant="ghost" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} />
+      <Button label={t("Sign in")} loading={submitting} onPress={() => void submit()} />
+      <Button label={t("Continue without an account")} variant="ghost" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} />
     </AuthLayout>
   );
 };

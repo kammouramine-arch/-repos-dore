@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -21,6 +22,7 @@ import { VoiceFrame } from './VoiceFrame';
  * to the maneuver banner, and nothing here may compete with it.
  */
 export const VoiceHud = () => {
+  useUiLanguage();
   const insets = useSafeAreaInsets();
 
   const status = useConversationStore((state) => state.status);
@@ -48,7 +50,7 @@ export const VoiceHud = () => {
             numberOfLines={2}
             style={styles.label}
           >
-            {status === 'listening' && !ready ? 'Just a moment…' : status === 'listening' && transcript ? transcript : prompt.label}
+            {status === 'listening' && !ready ? t('Just a moment…') : status === 'listening' && transcript ? transcript : t(prompt.label)}
           </AppText>
         </GlassPanel>
       </Animated.View>

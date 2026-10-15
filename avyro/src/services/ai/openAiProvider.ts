@@ -80,12 +80,12 @@ export const createOpenAiProvider = ({
 
     isConfigured: () => endpoint.length > 0,
 
-    async complete({ transcript, signal }: AiRequest): Promise<AiCompletion> {
+    async complete({ transcript, context, signal }: AiRequest): Promise<AiCompletion> {
       const token = await getAccessToken();
       if (!token) throw new Error("Sign in to the meepmeep gateway first.");
       const completion = await http.postJson(
         endpoint,
-        { transcript },
+        { transcript, context: { isNavigating: context.isNavigating, hasReferent: !!context.referent, recentIntents: context.recentIntents?.slice(-4) ?? [] } },
         decodeChatCompletion,
         {
           operation: "ai.complete",

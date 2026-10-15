@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { IncidentReportButton } from '@/features/incidents/ui/IncidentReportButton';
 import { StyleSheet, View } from 'react-native';
 
@@ -31,7 +32,7 @@ export const GuidanceControls = ({
   onToggleOverview,
   muted,
   onToggleMute,
-}: GuidanceControlsProps) => (
+}: GuidanceControlsProps) => { useUiLanguage(); return ((
   <View style={styles.column}>
     <VoiceButton />
     <IncidentReportButton />
@@ -53,12 +54,12 @@ export const GuidanceControls = ({
     {!following && !overview ? (
       <IconButton
         name="locate"
-        accessibilityLabel="Recentre on my position"
+        accessibilityLabel={t("Recentre on my position")}
         onPress={onRecenter}
       />
     ) : null}
   </View>
-);
+)); };
 
 const styles = StyleSheet.create({
   column: {

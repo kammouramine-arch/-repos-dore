@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { ActivityIndicator, Pressable, StyleSheet, TextInput, View } from 'react-native';
 
 import { colors, radius, sizing, spacing, typography } from '@/ui/theme';
@@ -18,7 +19,7 @@ export const SearchField = ({
   busy = false,
   autoFocus = false,
   onSubmit,
-}: SearchFieldProps) => (
+}: SearchFieldProps) => { useUiLanguage(); return ((
   <View style={styles.field}>
     <Icon name="search" size={19} color={colors.textSecondary} />
 
@@ -26,14 +27,14 @@ export const SearchField = ({
       value={value}
       onChangeText={onChangeText}
       autoFocus={autoFocus}
-      placeholder="Search a place or address"
+      placeholder={t("Search a place or address")}
       placeholderTextColor={colors.textTertiary}
       selectionColor={colors.accent}
       returnKeyType="search"
       onSubmitEditing={onSubmit}
       autoCorrect={false}
       style={styles.input}
-      accessibilityLabel="Destination"
+      accessibilityLabel={t("Destination")}
     />
 
     {busy ? <ActivityIndicator size="small" color={colors.textTertiary} /> : null}
@@ -41,7 +42,7 @@ export const SearchField = ({
     {value.length > 0 && !busy ? (
       <Pressable
         accessibilityRole="button"
-        accessibilityLabel="Clear search"
+        accessibilityLabel={t("Clear search")}
         hitSlop={12}
         onPress={() => onChangeText('')}
       >
@@ -49,7 +50,7 @@ export const SearchField = ({
       </Pressable>
     ) : null}
   </View>
-);
+)); };
 
 const styles = StyleSheet.create({
   field: {

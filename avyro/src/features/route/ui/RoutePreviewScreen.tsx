@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useDriverHeading } from '@/maps/useDriverHeading';
 import { useNavigation } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
@@ -20,6 +21,7 @@ import { RouteSummaryCard } from './RouteSummaryCard';
  * it, and one button to start driving.
  */
 export const RoutePreviewScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const driverHeading = useDriverHeading();
   const insets = useSafeAreaInsets();
@@ -90,7 +92,7 @@ export const RoutePreviewScreen = () => {
       <View style={[styles.top, { paddingTop: insets.top + spacing.xs }]}>
         <IconButton
           name="chevron-back"
-          accessibilityLabel="Back to map"
+          accessibilityLabel={t("Back to map")}
           onPress={() => navigation.goBack()}
         />
       </View>

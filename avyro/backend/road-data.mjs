@@ -61,7 +61,7 @@ export function decodeRoadEvidence(data, fixes, receivedAt) {
   const mappedLimit = limit && Number.isInteger(limit.value) && limit.value > 0 && limit.value <= 300 && ['kmph', 'mph'].includes(limit.unit) ? { value: limit.value, unit: limit.unit === 'kmph' ? 'km/h' : 'mph' } : null;
   const speedLimit = authoritativeLimit(road.address, mappedLimit, receivedAt);
   // Segment metadata does not establish sign applicability to this approach.
-  return { ...unavailable, status: 'matched', speedLimit, confidence: road.confidence, ...(road.address?.countryCode === 'FRA' ? { countryCode: 'FRA' } : {}), ...(road.roadUse === 'LocalStreet' || road.formOfWay === 'Roundabout' ? { legalRoadCategory: 'other-road' } : {}) };
+  return { ...unavailable, status: 'matched', speedLimit, ...(typeof road.address?.roadName === 'string' && road.address.roadName.length <= 150 ? { roadName: road.address.roadName } : {}), confidence: road.confidence, ...(road.address?.countryCode === 'FRA' ? { countryCode: 'FRA' } : {}), ...(road.roadUse === 'LocalStreet' || road.formOfWay === 'Roundabout' ? { legalRoadCategory: 'other-road' } : {}) };
 
 }
 

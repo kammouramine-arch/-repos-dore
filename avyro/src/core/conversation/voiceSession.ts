@@ -81,6 +81,7 @@ export type VoiceSessionEvent =
   | { type: 'permission'; granted: boolean; canAskAgain: boolean }
   /** A session is open and listening. */
   | { type: 'opened' }
+  | { type: 'stable' }
   /** A session stopped on its own. */
   | { type: 'ended' }
   | { type: 'failed'; error: { code: string; message: string; fatal: boolean } }
@@ -211,11 +212,13 @@ export const voiceSessionReducer = (
           status: 'listening',
           opening: false,
           open: true,
-          failures: 0,
           message: null,
         },
         effects: [],
       };
+
+    case 'stable':
+      return state.open && state.status === 'listening' ? stay({ ...state, failures: 0 }) : stay(state);
 
     case 'ended': {
       const settled = { ...state, opening: false, open: false };

@@ -14,3 +14,11 @@ test('planning uses the authenticated hosted route service and preserves stop or
   expect(postJson.mock.calls[0][0]).toBe('https://gateway.example/routes');
   expect(postJson.mock.calls[0][1]).toMatchObject({ waypoints:[a],alternatives:false });
 });
+
+
+test('routing preferences never forward unrelated consent or personal settings', async () => {
+  const postJson = jest.fn(async (_url, _body, decode) => decode([route]));
+  const provider = createGatewayRoutingProvider({http:{postJson} as unknown as HttpClient,getAccessToken:async()=> 'session',getPreferences:async()=>({ vehicleType:'motorcycle',avoidTolls:true,avoidMotorways:false,cloudSpeech:true,preferredVoice:'private-choice' })});
+  await provider.getRoutes({origin:a,destination:b});
+  expect(postJson.mock.calls[0][1].preferences).toEqual({vehicleType:'motorcycle',avoidTolls:true,avoidMotorways:false});
+});

@@ -56,6 +56,8 @@ export const createAiGateway = ({
   crashReporter,
 }: AiGatewayOptions): ConversationProvider => {
   const scoped = logger.scoped('ai.gateway');
+  // Ephemeral structured context only: no transcript, coordinates or persistence.
+  let memory: { at: number; kind: string; category?: 'coffee' | 'fuel' | 'restaurants' | 'parking' }[] = [];
 
   /**
    * Asks the model, under a deadline it cannot exceed.
@@ -120,20 +122,26 @@ export const createAiGateway = ({
     name: `gateway(${provider.id})`,
 
     async respond(request: ConversationRequest): Promise<ConversationReply> {
+      memory = memory.filter(turn => Date.now() - turn.at < 300000).slice(-4);
+      request = { ...request, context: { ...request.context, recentIntents: memory.map(({ kind, category }) => ({ kind, category })) } };
+      const remember = (reply: ConversationReply) => {
+        if (!request.signal?.aborted && reply.intent.kind !== 'unknown') memory.push({ at: Date.now(), kind: reply.intent.kind, ...(reply.intent.kind === 'find-nearby' ? { category: reply.intent.category } : {}) });
+        return reply;
+      };
       const safety = drivingSafetyReply(request.transcript);
       if (safety) return { speech: safety, intent: { kind: 'unknown' }, action: { type: 'none' }, referent: null };
       const localReply = await local.respond(request);
 
       // The parser understood it. Nothing a model could add is worth the
       // latency, and plenty could be worth the risk.
-      if (localReply.intent.kind !== 'unknown') return frenchReply(localReply, request);
+      if (localReply.intent.kind !== 'unknown') return remember(frenchReply(localReply, request));
 
       if (!provider.isConfigured()) {
         scoped.debug('no provider configured, staying local');
-        return frenchReply(localReply, request);
+        return remember(frenchReply(localReply, request));
       }
 
-      return frenchReply((await askProvider(request)) ?? localReply, request);
+      return remember(frenchReply((await askProvider(request)) ?? localReply, request));
     },
   };
 };

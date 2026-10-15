@@ -1,3 +1,6 @@
+import { t, useUiLanguage } from '@/ui/i18n';
+import { distanceBetween } from '@/utils/geo';
+import type { Coordinates } from '@/core/domain/entities/geo';
 import { useDriverHeading } from '@/maps/useDriverHeading';
 import { useIsFocused, useNavigation } from '@react-navigation/native';
 import { useEffect, useRef, useState } from 'react';
@@ -28,10 +31,12 @@ import { HomeHeader } from './HomeHeader';
  * onto the driver exactly once — after that the map is theirs to move.
  */
 export const HomeScreen = () => {
+  useUiLanguage();
   const navigation = useNavigation();
   const driverHeading = useDriverHeading();
   const focused = useIsFocused();
   const insets = useSafeAreaInsets();
+  const lastCameraPosition = useRef<Coordinates | null>(null);
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
@@ -62,12 +67,16 @@ export const HomeScreen = () => {
       void locate();
       return;
     }
+    lastCameraPosition.current = coordinates;
     mapRef.current?.animateCamera({ center: coordinates, heading: 0, pitch: 0, altitude: 450, zoom: 17.5 }, { duration: animated ? 650 : 0 });
   };
 
   // Lock onto the driver once, on the first fix. After that the map is theirs.
   useEffect(() => {
-    if (!position || !following || !focused) return;
+    if (!position || !following || !focused || Date.now() - position.timestamp > 10000 || (position.accuracy ?? 100) > 50) return;
+    const minimumMovement = Math.max(3, Math.min(12, (position.accuracy ?? 12) * .5));
+    if (lastCameraPosition.current && distanceBetween(lastCameraPosition.current, position.coordinates) < minimumMovement) return;
+    lastCameraPosition.current = position.coordinates;
     mapRef.current?.animateCamera({ center: position.coordinates, heading: 0, pitch: 0, altitude: 450, zoom: 17.5 }, { duration: 850 });
   }, [position, following, focused]);
 
@@ -106,7 +115,7 @@ export const HomeScreen = () => {
           <IncidentReportButton />
           <IconButton
             name="locate"
-            accessibilityLabel="Centre on my location"
+            accessibilityLabel={t("Centre on my location")}
             onPress={() => centreOnDriver()}
           />
           </View>

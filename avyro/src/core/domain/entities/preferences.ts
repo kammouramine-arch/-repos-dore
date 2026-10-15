@@ -6,6 +6,8 @@ export type MapStyle = 'standard' | 'satellite';
 export interface Preferences {
   /** Spoken turn-by-turn guidance. */
   voiceGuidance: boolean;
+  appearance: 'system' | 'light' | 'dark';
+  interfaceLanguage: 'system' | 'en' | 'fr';
   vehicleType: 'car' | 'motorcycle';
   avoidTolls: boolean;
   avoidMotorways: boolean;
@@ -32,6 +34,7 @@ export interface Preferences {
   keepScreenAwake: boolean;
   distanceUnit: DistanceUnit;
   mapStyle: MapStyle;
+  mapPerspective: 'flat' | 'perspective';
   showTraffic: boolean;
   /** Opt-in sharing of a short GPS trace with the licensed road-data service. */
   roadInformation: boolean;
@@ -39,6 +42,8 @@ export interface Preferences {
 
 export const DEFAULT_PREFERENCES: Preferences = {
   voiceGuidance: true,
+  appearance: 'system',
+  interfaceLanguage: 'system',
   vehicleType: 'car',
   avoidTolls: false,
   avoidMotorways: false,
@@ -56,6 +61,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   keepScreenAwake: true,
   distanceUnit: 'metric',
   mapStyle: 'standard',
+  mapPerspective: 'perspective',
   showTraffic: true,
   roadInformation: false,
 };

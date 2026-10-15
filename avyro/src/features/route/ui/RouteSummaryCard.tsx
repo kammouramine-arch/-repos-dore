@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { ActivityIndicator, StyleSheet, View } from 'react-native';
 
 import type { Place } from '@/core/domain/entities/place';
@@ -42,11 +43,11 @@ export const RouteSummaryCard = ({
   onSelectRoute,
   onStart,
   onRetry,
-}: RouteSummaryCardProps) => (
+}: RouteSummaryCardProps) => { useUiLanguage(); return ((
   <GlassPanel style={styles.card}>
     <View style={styles.header}>
       <AppText variant="title3" numberOfLines={1}>
-        {destination?.name ?? 'Destination'}
+        {destination?.name ?? t("Destination")}
       </AppText>
       <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
         {destination?.address ?? ''}
@@ -57,8 +58,7 @@ export const RouteSummaryCard = ({
       <View style={styles.pending}>
         <ActivityIndicator color={colors.accent} />
         <AppText variant="subhead" tone="secondary">
-          Planning your route…
-        </AppText>
+          {t("Planning your route…")}</AppText>
       </View>
     ) : null}
 
@@ -67,7 +67,7 @@ export const RouteSummaryCard = ({
         <AppText variant="subhead" tone="danger" align="center">
           {error}
         </AppText>
-        <Button label="Try again" variant="secondary" size="medium" onPress={onRetry} />
+        <Button label={t("Try again")} variant="secondary" size="medium" onPress={onRetry} />
       </View>
     ) : null}
 
@@ -76,13 +76,13 @@ export const RouteSummaryCard = ({
         <Divider />
 
         <View style={styles.metrics}>
-          <Metric label="Time" value={formatDuration(selectedRoute.durationSeconds)} />
+          <Metric label={t("Time")} value={formatDuration(selectedRoute.durationSeconds)} />
           <Metric
-            label="Distance"
+            label={t("Distance")}
             value={formatDistance(selectedRoute.distanceMeters, unit)}
           />
           <Metric
-            label="Arrival"
+            label={t("Arrival")}
             value={formatArrivalTime(selectedRoute.durationSeconds)}
           />
         </View>
@@ -94,12 +94,12 @@ export const RouteSummaryCard = ({
           onSelect={onSelectRoute}
         />
 
-        <Button label="Start navigation" icon="navigate" onPress={onStart} />
+        <Button label={t("Start navigation")} icon="navigate" onPress={onStart} />
         {selectedRoute.source === 'TomTom' ? <AppText variant="caption" tone="tertiary" align="center" style={{ fontSize: 9 }}>© TomTom</AppText> : null}
       </>
     ) : null}
   </GlassPanel>
-);
+)); };
 
 const styles = StyleSheet.create({
   card: {

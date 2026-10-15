@@ -1,3 +1,5 @@
+import { distanceBetween } from '@/utils/geo';
+import { normaliseUtterance } from '@/core/conversation/wakePhrase';
 import { canReportIncident } from '@/core/navigation/reportEligibility';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { IncidentReporter } from '@/core/domain/ports/incidentReporter';
@@ -76,6 +78,7 @@ export const createLocalConversationProvider = ({
         origin: context.location,
         destination: context.destination.coordinates,
         alternatives: true,
+        waypoints: context.stops?.map(stop => stop.coordinates),
         signal,
       });
 
@@ -188,6 +191,20 @@ export const createLocalConversationProvider = ({
     name: 'local-commands',
 
     async respond(request: ConversationRequest): Promise<ConversationReply> {
+      const text = normaliseUtterance(request.transcript);
+      if (/^(?:actually )?(?:find |take me |i changed my mind )?(?:somewhere closer|something closer|a closer one|closer|plus pres|quelque chose de plus proche|trouve plus pres)$/.test(text)) {
+        const category = [...(request.context.recentIntents ?? [])].reverse().find(turn => turn.kind === 'find-nearby' && turn.category)?.category;
+        const previous = request.context.referent;
+        const here = request.context.location;
+        if (!category || !previous || !here) return reply({ kind: 'unknown' }, 'Ask me to find a place first, then ask for somewhere closer.');
+        const intent: VoiceIntent = { kind: 'find-nearby', category };
+        try {
+          const candidates = await recommender.suggest(category, request.context, request.signal);
+          const previousDistance = distanceBetween(here, previous.coordinates);
+          const closer = candidates.filter(candidate => candidate.place.id !== previous.id && candidate.directDistanceMeters + 25 < previousDistance).sort((a, b) => a.directDistanceMeters - b.directDistanceMeters)[0];
+          return closer ? reply(intent, REPLIES.stopSuggestion(category, closer, request.context), { type: 'none' }, closer.place) : reply(intent, 'I could not verify a closer option.');
+        } catch { return reply(intent, REPLIES.searchFailed()); }
+      }
       return resolveIntent(parseCommand(request.transcript), request);
     },
 
@@ -206,9 +223,14 @@ export const createLocalConversationProvider = ({
     scoped.debug('resolving', { kind: intent.kind });
 
     switch (intent.kind) {
+      case 'set-route-preference':
+        return reply(intent, 'I’m updating your route preferences.', { type: 'set-route-preference', preference: intent.preference, enabled: intent.enabled });
+      case 'ask-next-maneuver':
+        return reply(intent, context.nextInstruction ?? 'There is no current maneuver to read.');
       case 'report-incident': {
         const french = /signal/i.test(request.transcript);
         const say = (en: string, fr: string) => ({ ...reply(intent, french ? fr : en), language: french ? 'fr-FR' as const : 'en-US' as const });
+        if (intent.category === 'police') return say('Enforcement reporting is unavailable until regional rules are configured.', 'Les signalements de contrôles sont indisponibles tant que les règles locales ne sont pas configurées.');
         if (!incidentReporter?.isConfigured() || !getPosition) return say('Reports are unavailable right now.', 'Les signalements sont indisponibles pour le moment.');
         try {
           const fix = await getPosition();
@@ -255,6 +277,7 @@ export const createLocalConversationProvider = ({
       case 'ask-speed-limit': {
         const french = /\b(quelle|vitesse|limitation|limite)\b/i.test(request.transcript);
         const limit = context.mappedSpeedLimit;
+        if (limit?.unit === 'km/h' && context.probationaryMaximumKmh != null && context.probationaryMaximumKmh < limit.value) return reply(intent, french ? `La carte indique ${limit.value} kilomètres par heure. Votre maximum probatoire est de ${context.probationaryMaximumKmh}. Suivez les panneaux.` : `The map indicates ${limit.value} kilometers per hour. Your probationary maximum is ${context.probationaryMaximumKmh}. Follow posted signs.`);
         return reply(intent, limit
           ? french ? `${limit.source === 'municipal-order' ? 'L’arrêté municipal indique' : 'La carte TomTom indique'} ${limit.value} ${limit.unit}. Suivez toujours les panneaux routiers.` : `${limit.source === 'municipal-order' ? 'The municipal order indicates' : 'The TomTom map indicates'} ${limit.value} ${limit.unit}. Always follow posted road signs.`
           : french ? 'Je n’ai pas de limitation de vitesse vérifiée ici. Suivez les panneaux routiers.' : 'I do not have a verified speed limit here. Please follow posted road signs.');

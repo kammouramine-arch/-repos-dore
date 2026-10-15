@@ -1,18 +1,21 @@
 import type { ConversationReply, ConversationRequest } from '@/core/domain/entities/conversation';
 import { formatDistance, formatDuration } from '@/utils/format';
 
-export const isFrenchUtterance = (text: string): boolean => /\b(?:emm[eè]ne|am[eè]ne|conduis|annule|arr[eê]te|combien|quelle|o[uù]|maison|travail|trouve|cherche|recalcule|itin[eé]raire|peux|suis|sommes)\b/i.test(text);
+export const isFrenchUtterance = (text: string): boolean => /\b(?:emm[eè]ne|am[eè]ne|conduis|annule|arr[eê]te|combien|quelle|o[uù]|maison|travail|trouve|cherche|recalcule|itin[eé]raire|peux|suis|sommes|évite|evite|péages|peages|autoroute|autorise)\b/i.test(text);
 
 /** Translate only supported, grounded reply templates, never a provider's invented prose. */
 export const frenchReply = (reply: ConversationReply, request: ConversationRequest): ConversationReply => {
   if (reply.intent.kind === 'report-incident') return reply;
-  if (!isFrenchUtterance(request.transcript)) return { ...reply, language: 'en-US' };
+  if (!isFrenchUtterance(request.transcript) && !/plus pr[eè]s|plus proche/i.test(request.transcript)) return { ...reply, language: 'en-US' };
   const { context } = request;
   const { action, intent } = reply;
   let speech: string;
   if (action.type === 'navigate-to') speech = `Direction ${action.place.name}.`;
+  else if (reply.speech === 'I could not verify a closer option.') speech = 'Je n’ai pas pu vérifier une option plus proche.';
   else if (reply.speech === 'I could not search just now. Try again in a moment.') speech = 'La recherche est indisponible. Réessayez dans un instant.';
   else switch (intent.kind) {
+    case 'set-route-preference': speech = 'Je mets à jour vos préférences de trajet.'; break;
+    case 'ask-next-maneuver': speech = context.nextInstruction ?? 'Aucune instruction de guidage en cours.'; break;
     case 'navigate-saved': speech = `Enregistrez d’abord votre adresse ${intent.slot === 'home' ? 'de domicile' : 'de travail'} sur la carte.`; break;
     case 'navigate-to-place': speech = reply.referent ? `J’ai trouvé ${reply.referent.name}. Dites « emmène-moi là-bas » pour y aller.` : `Je n’ai pas trouvé ${intent.query}. Précisez la ville ou la rue.`; break;
     case 'find-nearby': speech = reply.referent ? `J’ai trouvé ${reply.referent.name}. Dites « emmène-moi là-bas » pour y aller.` : context.location ? 'Je n’ai pas trouvé de lieu correspondant à proximité.' : 'Activez votre position pour chercher à proximité.'; break;
@@ -21,7 +24,7 @@ export const frenchReply = (reply: ConversationReply, request: ConversationReque
     case 'ask-eta': speech = context.arrivalAt && context.remainingDurationSeconds !== null ? `Arrivée prévue à ${new Date(context.arrivalAt).toLocaleTimeString('fr-FR', { hour: '2-digit', minute: '2-digit' })}, dans environ ${formatDuration(context.remainingDurationSeconds)}.` : 'Aucun trajet en cours.'; break;
     case 'ask-remaining-distance': speech = context.remainingDistanceMeters !== null ? `Il reste ${formatDistance(context.remainingDistanceMeters, context.distanceUnit)}${context.destination ? ` jusqu’à ${context.destination.name}` : ''}.` : 'Aucun trajet en cours.'; break;
     case 'ask-location': speech = context.currentRoadName ? `Vous êtes sur ${context.currentRoadName}.` : 'Je ne dispose pas d’un nom de rue vérifié ici.'; break;
-    case 'ask-speed-limit': speech = context.mappedSpeedLimit ? `La carte TomTom indique ${context.mappedSpeedLimit.value} ${context.mappedSpeedLimit.unit}. Suivez toujours les panneaux routiers.` : 'Je n’ai pas de limitation de vitesse vérifiée ici. Suivez les panneaux routiers.'; break;
+    case 'ask-speed-limit': speech = context.mappedSpeedLimit?.unit === 'km/h' && context.probationaryMaximumKmh != null && context.probationaryMaximumKmh < context.mappedSpeedLimit.value ? `La carte indique ${context.mappedSpeedLimit.value} kilomètres par heure. Votre maximum probatoire est de ${context.probationaryMaximumKmh}. Suivez les panneaux.` : context.mappedSpeedLimit ? `La carte TomTom indique ${context.mappedSpeedLimit.value} ${context.mappedSpeedLimit.unit}. Suivez toujours les panneaux routiers.` : 'Je n’ai pas de limitation de vitesse vérifiée ici. Suivez les panneaux routiers.'; break;
     case 'ask-traffic': speech = 'Je ne dispose pas du trafic en direct. Je peux rechercher un autre itinéraire.'; break;
     case 'navigate-referent': speech = 'Demandez-moi d’abord de trouver un lieu.'; break;
     case 'restore-destination': speech = 'Je n’ai pas de destination précédente à restaurer.'; break;

@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 
 import type { User } from '@/core/domain/entities/user';
@@ -9,7 +10,7 @@ export interface AccountCardProps {
   user: User | null;
 }
 
-export const AccountCard = ({ user }: AccountCardProps) => (
+export const AccountCard = ({ user }: AccountCardProps) => { useUiLanguage(); return (
   <Card style={styles.card}>
     <View style={styles.avatar}>
       <AppText variant="title3">{initialsOf(user?.fullName ?? '')}</AppText>
@@ -17,14 +18,14 @@ export const AccountCard = ({ user }: AccountCardProps) => (
 
     <View style={styles.details}>
       <AppText variant="headline" numberOfLines={1}>
-        {user?.fullName ?? 'Guest mode'}
+        {user?.fullName ?? t('Guest mode')}
       </AppText>
       <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
-        {user?.email ?? 'Your saved places stay on this iPhone'}
+        {user?.email ?? t('Your saved places stay on this iPhone')}
       </AppText>
     </View>
   </Card>
-);
+); };
 
 const styles = StyleSheet.create({
   card: {

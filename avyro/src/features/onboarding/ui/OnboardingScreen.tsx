@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { useState } from 'react';
 import { StyleSheet, useWindowDimensions, View } from 'react-native';
 import Animated, {
@@ -16,6 +17,7 @@ import { PageDots } from './PageDots';
 const LAST_INDEX = ONBOARDING_SLIDES.length - 1;
 
 export const OnboardingScreen = () => {
+  useUiLanguage();
   const { width } = useWindowDimensions();
   const complete = useOnboardingStore((state) => state.complete);
 
@@ -44,8 +46,7 @@ export const OnboardingScreen = () => {
           hitSlop={12}
         >
           <AppText variant="subhead" tone="tertiary">
-            Skip
-          </AppText>
+            {t("Skip")}</AppText>
         </PressableScale>
       </View>
 

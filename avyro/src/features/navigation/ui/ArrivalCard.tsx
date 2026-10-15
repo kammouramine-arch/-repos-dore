@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 
 import type { Place } from '@/core/domain/entities/place';
@@ -9,21 +10,21 @@ export interface ArrivalCardProps {
   onDone: () => void;
 }
 
-export const ArrivalCard = ({ destination, onDone }: ArrivalCardProps) => (
+export const ArrivalCard = ({ destination, onDone }: ArrivalCardProps) => { useUiLanguage(); return ((
   <GlassPanel style={styles.card}>
     <View style={styles.header}>
       <IconBadge name="checkmark-circle" tone="success" size={44} />
       <View style={styles.text}>
-        <AppText variant="title3">You have arrived</AppText>
+        <AppText variant="title3">{t("You have arrived")}</AppText>
         <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
           {destination?.name ?? 'Destination reached'}
         </AppText>
       </View>
     </View>
 
-    <Button label="Done" variant="secondary" onPress={onDone} />
+    <Button label={t("Done")} variant="secondary" onPress={onDone} />
   </GlassPanel>
-);
+)); };
 
 const styles = StyleSheet.create({
   card: {

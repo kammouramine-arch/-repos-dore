@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 import { useConversationStore, usePreferencesStore } from '@/app/stores/hooks';
 import { AppText, AvyroMark, GlassPanel, IconButton, PressableScale } from '@/ui/components';
@@ -5,6 +6,7 @@ import { colors, radius, spacing } from '@/ui/theme';
 
 /** A compact brand and an honest, persistent microphone status over the map. */
 export const HomeHeader = ({ onSettingsPress }: { onSettingsPress(): void }) => {
+  useUiLanguage();
   const preferences = usePreferencesStore(state => state.preferences);
   const update = usePreferencesStore(state => state.update);
   const voice = useConversationStore(state => state.voice);
@@ -13,7 +15,7 @@ export const HomeHeader = ({ onSettingsPress }: { onSettingsPress(): void }) => 
   return <View style={styles.root}>
     <View style={styles.row}>
       <GlassPanel style={styles.brand}><AvyroMark size={21} ring={false} /><AppText variant="subhead">meepmeep</AppText></GlassPanel>
-      <IconButton name="options-outline" accessibilityLabel="Settings" onPress={onSettingsPress} />
+      <IconButton name="options-outline" accessibilityLabel={t("Settings")} onPress={onSettingsPress} />
     </View>
     <PressableScale onPress={() => !preferences.voiceCommands ? void update({ voiceCommands: true, voiceSetupSeen: true }) : active ? void update({ voiceCommands: false }) : onSettingsPress()} accessibilityRole="button" accessibilityLabel={active ? 'Pause hands-free listening' : label} style={styles.voice}>
       <View style={[styles.dot, { backgroundColor: active ? colors.success : colors.textTertiary }]} />

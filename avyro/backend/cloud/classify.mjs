@@ -22,7 +22,12 @@ export function validateClassification(output, transcript) {
   return { intent: safe, speech: null };
 }
 
-export async function classifyCommand(ai, transcript) {
+export function safeConversationContext(value) {
+  const recentIntents = Array.isArray(value?.recentIntents) ? value.recentIntents.slice(-4).filter(item => kinds.has(item?.kind)).map(item => ({ kind: item.kind, ...(['coffee','fuel','restaurants','parking'].includes(item.category) ? { category: item.category } : {}) })) : [];
+  return { isNavigating: value?.isNavigating === true, hasReferent: value?.hasReferent === true, recentIntents };
+}
+
+export async function classifyCommand(ai, transcript, context) {
   const text = normalize(transcript);
   if (/\b(?:don['’]t|do not|overtak\w*|lanes?|safe to|road signs?|hazards? ahead|depass\w*|changer de voie|panneaux)\b|\b(?:ne|n['’])\b.*\b(?:pas|jamais)\b/.test(text)) return unknown();
   let timer;
@@ -30,7 +35,7 @@ export async function classifyCommand(ai, transcript) {
     const result = await Promise.race([
       ai.run('@cf/qwen/qwen3-30b-a3b-fp8', { temperature: 0, max_tokens: 160, response_format: { type: 'json_object' }, messages: [
         { role: 'system', content: `Classify only a French or English navigation command. Return JSON {intent:{kind,slot?,query?,category?}}. Allowed kinds: ${[...kinds].join(',')}. Slots home/work; categories coffee/fuel/restaurants/parking. Query must be a substring of the user's words. Speed questions may classify as ask-speed-limit, but never supply a numeric limit: the app checks current licensed evidence separately. No route-control commands, facts about roads, driving safety or negated actions. Return unknown if unsure. /no_think` },
-        { role: 'user', content: transcript },
+        { role: 'user', content: JSON.stringify({ command: transcript, context: safeConversationContext(context) }) },
       ] }),
       new Promise((_, reject) => { timer = setTimeout(() => reject(Error('Classifier timeout')), 3500); }),
     ]);

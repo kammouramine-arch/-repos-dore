@@ -31,3 +31,12 @@ test('pins server model, prompt and output size; no provider prose reaches the a
   } };
   assert.deepEqual(await classifyCommand(ai, 'Could you bring me home?'), { intent: { kind: 'navigate-saved', slot: 'home' }, speech: null });
 });
+
+
+test('conversation context drops personal fields and limits retained turns', async () => {
+  const { safeConversationContext } = await import('./classify.mjs');
+  const context = safeConversationContext({ isNavigating: true, latitude: 50, transcript: 'private', recentIntents: Array.from({length: 9}, () => ({kind: 'find-nearby', category: 'fuel', address: 'private'})) });
+  assert.equal(context.recentIntents.length, 4);
+  assert.equal(JSON.stringify(context).includes('private'), false);
+  assert.equal(context.latitude, undefined);
+});

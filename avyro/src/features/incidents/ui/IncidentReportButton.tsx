@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { Alert, Modal, StyleSheet, View } from 'react-native';
 import { useCallback, useState } from 'react';
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
@@ -7,6 +8,7 @@ import { AppText, Button, GlassPanel, Icon, IconButton, PressableScale } from '@
 import { colors, spacing } from '@/ui/theme';
 import { INCIDENT_CATALOG as categories } from '../incidentCatalog';
 export const IncidentReportButton = () => {
+  useUiLanguage();
   const { incidentReporter } = useServices();
   const stores = useStores();
   const [visible, setVisible] = useState(false);
@@ -27,18 +29,18 @@ export const IncidentReportButton = () => {
     } catch { Alert.alert('Report not sent', 'Check your connection and try again.'); }
     finally { setBusy(false); }
   }, [busy, incidentReporter, stores]);
-  return <><IconButton name="flag" style={{ backgroundColor: '#FFE18B', borderColor: '#F0CC6B' }} accessibilityLabel="Report an incident" onPress={() => {
+  return <><IconButton name="flag" style={{ backgroundColor: '#FFE18B', borderColor: '#F0CC6B' }} accessibilityLabel={t("Report an incident")} onPress={() => {
     if (!incidentReporter.isConfigured()) { Alert.alert('Reports unavailable', 'Please try again later.'); return; }
     setVisible(true);
   }} />
     <Modal visible={visible} transparent animationType="slide" onRequestClose={() => { if (!busy) setVisible(false); }}>
       <View style={styles.backdrop}><GlassPanel style={styles.sheet}>
         <View style={styles.grabber} />
-        <AppText variant="title2">What did you see?</AppText>
-        <AppText variant="footnote" tone="secondary">Share an unverified community observation at your approximate location. It appears immediately and expires after one hour.</AppText>
-        <View style={styles.grid}>{categories.map(item => <PressableScale key={item.category} disabled={busy} style={styles.tile} accessibilityRole="button" accessibilityLabel={`Report ${item.title}`} onPress={() => void submit(item.category)}><View style={[styles.icon, { backgroundColor: item.color + '18' }]}><Icon name={item.icon} color={item.color} size={27} /></View><AppText variant="caption">{item.title}</AppText></PressableScale>)}</View>
-        {busy ? <AppText variant="footnote" tone="accent">Sending observation…</AppText> : null}
-        <Button label="Close" variant="ghost" disabled={busy} onPress={() => setVisible(false)} />
+        <AppText variant="title2">{t("What did you see?")}</AppText>
+        <AppText variant="footnote" tone="secondary">{t("Share an unverified community observation at your approximate location. It appears immediately and expires after one hour.")}</AppText>
+        <View style={styles.grid}>{categories.map(item => <PressableScale key={item.category} disabled={busy} style={styles.tile} accessibilityRole="button" accessibilityLabel={`Report ${item.title}`} onPress={() => void submit(item.category)}><View style={[styles.icon, { backgroundColor: item.color + '18' }]}><Icon name={item.icon} color={item.color} size={27} /></View><AppText variant="caption">{t(item.title)}</AppText></PressableScale>)}</View>
+        {busy ? <AppText variant="footnote" tone="accent">{t("Sending observation…")}</AppText> : null}
+        <Button label={t("Close")} variant="ghost" disabled={busy} onPress={() => setVisible(false)} />
       </GlassPanel></View>
     </Modal></>;
 };

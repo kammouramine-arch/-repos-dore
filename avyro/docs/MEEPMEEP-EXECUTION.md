@@ -39,3 +39,19 @@ Record source SHA, build/signing workflow, model/resource hashes, unit/integrati
 - French R413-5 pure rules tested for 110/100/80 maxima and lower restrictions. Connected feed only establishes other-road classification for local streets/roundabouts; motorway legal category unavailable, no invented adjustment. Native voice selection, manual rain shield and dynamic iOS dark colors implemented, device UI verification pending.
 - Sources: https://docs.tomtom.com/routing-api/documentation/tomtom-maps/v1/calculate-route ; https://www.service-public.gouv.fr/particuliers/vosdroits/F19460 ; https://www.cnil.fr/fr/videoverbalisation . No verified lawful enforcement feed: enforcement overlay unavailable.
 - Natural voice: enhanced installed Apple voices are supported. ElevenLabs free tier lacks commercial rights (https://help.elevenlabs.io/hc/en-us/articles/13313564601361-Can-I-publish-the-content-I-generate-on-the-platform); no paid subscription started.
+
+
+### Follow-up execution: commands and community observations
+- Explicit EN/FR toll/motorway commands persist real preferences and recalculate an active trip while preserving intermediate stops. Late reroute results cannot resurrect a cancelled/replaced trip.
+- Next-maneuver queries use current guidance. Structured last-four-intent context expires after five minutes and never persists raw transcripts; closer-stop follow-ups compare returned geographic candidates.
+- Production service graph no longer falls back to the public OSRM demo when a gateway is missing.
+- Community duplicate checks preserve opposing directions; author withdrawal and nearby confirmed/not-seen feedback use authenticated, rate-limited endpoints. Community feedback never becomes verified road data. Three recent distinct not-seen observations can expire an unverified report when they outweigh confirmations.
+- Backend schema changes are additive. Local workerd/D1 tests passed 8/8 after isolating synthetic rate-limit identities between test runs. Earlier rerun failures were quota reuse (429), not hidden as passes.
+- Native compile of 44cb09d succeeded; simulator setup was superseded by the complete new-model native compile at eb442ab (run 38819075370). Neither is a new signed release.
+
+
+### Enforcement-data boundary
+CNIL describes vidéo-verbalisation as remote human observation by authorized agents, not an automatic speed-camera feed: https://www.cnil.fr/fr/videoverbalisation . R413-15 restricts devices providing enforcement-equipment locations in France: https://www.legifrance.gouv.fr/loda/article_lc/LEGIARTI000025111528/2026-06-16 . This does not establish every country's law or treat every police observation as equivalent to a radar. No jurisdiction-aware permissions or verified licensed enforcement feed exist here, so enforcement pins/submission are disabled for this build. Accident/hazard/traffic/closure reporting remains available. No invented camera locations or live traffic-light colours.
+
+### Interface coverage
+French static copy now covers primary map, search, guidance, onboarding, reports and settings surfaces via explicit translation sites (never auto-translating addresses). Separate UI language/appearance controls persist. ES/DE/IT/AR are declared unavailable; Arabic direction metadata exists but RTL screens are not shipped or claimed validated. Dynamic error strings and native system prompts still need a full localization QA pass; French is not yet claimed 100% complete.

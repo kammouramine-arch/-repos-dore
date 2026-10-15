@@ -3,6 +3,7 @@ import { useEffect } from 'react';
 import { StyleSheet, View } from 'react-native';
 import Animated, {
   Easing,
+  useReducedMotion,
   cancelAnimation,
   useAnimatedStyle,
   useSharedValue,
@@ -35,9 +36,11 @@ const TONE_COLOR: Record<VoiceTone, ColorValue> = {
  * and its job is to be readable in a glance, not to be looked at.
  */
 export const VoiceOrb = ({ tone, size = 12 }: VoiceOrbProps) => {
+  const reduced = useReducedMotion();
   const pulse = useSharedValue(0);
 
   useEffect(() => {
+    if (reduced) { cancelAnimation(pulse); pulse.value = 0; return; }
     if (tone === 'listening') {
       pulse.value = withRepeat(
         withSequence(
@@ -62,7 +65,7 @@ export const VoiceOrb = ({ tone, size = 12 }: VoiceOrbProps) => {
     }
 
     return () => cancelAnimation(pulse);
-  }, [tone, pulse]);
+  }, [tone, pulse, reduced]);
 
   const halo = useAnimatedStyle(() => ({
     opacity: 0.10 + pulse.value * 0.34,

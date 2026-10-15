@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 import { useState } from 'react';
 import { useNavigation } from '@react-navigation/native';
@@ -29,22 +30,23 @@ export const HomeSheet = ({
   onEnableLocation,
   onClearRecents,
 }: HomeSheetProps) => {
+  useUiLanguage();
   const [expanded, setExpanded] = useState(false);
   const navigation = useNavigation();
   return (
   <GlassPanel style={styles.sheet}>
-    <PressableScale accessibilityRole="button" accessibilityLabel={expanded ? 'Collapse recent destinations' : 'Show recent destinations'} onPress={() => setExpanded(!expanded)}><View style={styles.grabber} /></PressableScale>
+    <PressableScale accessibilityRole="button" accessibilityLabel={expanded ? t('Collapse recent destinations') : t('Show recent destinations')} onPress={() => setExpanded(!expanded)}><View style={styles.grabber} /></PressableScale>
 
     <View style={styles.body}>
       <SearchTrigger onPress={onSearchPress} />
       {expanded ? <SavedPlacesDock onNavigate={onRecentPress} /> : null}
       <View style={styles.shortcuts}>
-        {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Nearby', { category: label === 'Fuel' ? 'fuel' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{label}</AppText></PressableScale>)}
+        {['Fuel', 'Food', 'Parking'].map(label => <PressableScale key={label} style={styles.shortcut} accessibilityRole="button" onPress={() => navigation.navigate('Nearby', { category: label === 'Fuel' ? 'fuel' : label === 'Food' ? 'restaurants' : 'parking' })}><AppText variant="subhead" tone="accent">{t(label)}</AppText></PressableScale>)}
       </View>
 
       {locationError ? (
         <ListRow
-          title="Turn on location"
+          title={t("Turn on location")}
           subtitle={locationError}
           icon="locate-outline"
           iconTone="danger"
@@ -55,7 +57,7 @@ export const HomeSheet = ({
       {recents.length > 0 && expanded ? (
         <View style={styles.recents}>
           <SectionHeader
-            title="Recent"
+            title={t("Recent")}
             actionLabel="Clear"
             onActionPress={onClearRecents}
           />
@@ -73,7 +75,7 @@ export const HomeSheet = ({
           ))}
         </View>
       ) : recents.length > 0 ? (
-        <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">Recent destinations · {recents.length}</AppText></PressableScale>
+        <PressableScale accessibilityRole="button" onPress={() => setExpanded(true)}><AppText variant="footnote" tone="secondary">{t("Recent destinations ·")}{recents.length}</AppText></PressableScale>
       ) : (
         <PressableScale onPress={() => setExpanded(!expanded)} accessibilityRole="button"><AppText variant="caption" tone="secondary">{expanded ? 'Hide saved places' : 'Home, Work & saved places'}</AppText></PressableScale>
       )}

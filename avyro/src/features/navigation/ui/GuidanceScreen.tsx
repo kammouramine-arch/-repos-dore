@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { DrivingStatusPanel } from "./DrivingStatusPanel";
 import { useNavigation } from "@react-navigation/native";
 import { activateKeepAwakeAsync, deactivateKeepAwake } from "expo-keep-awake";
@@ -40,6 +41,7 @@ const KEEP_AWAKE_TAG = "avyro-guidance";
  * is theirs until they ask for it back.
  */
 export const GuidanceScreen = () => {
+  useUiLanguage();
   const roadAhead = useRoadAhead();
   const navigation = useNavigation();
   const insets = useSafeAreaInsets();
@@ -104,14 +106,14 @@ export const GuidanceScreen = () => {
     mapRef.current?.animateCamera(
       {
         center: progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition,
-        heading: progress.courseDegrees,
-        pitch: MAP_DEFAULTS.navigationCamera.pitch,
+        ...(navigationHeading != null ? { heading: navigationHeading } : {}),
+        pitch: preferences.mapPerspective === 'flat' ? 0 : MAP_DEFAULTS.navigationCamera.pitch,
         zoom: MAP_DEFAULTS.navigationCamera.zoom,
         altitude: MAP_DEFAULTS.navigationCamera.altitude,
       },
       { duration: 650 },
     );
-  }, [progress, following, overview, lastPosition]);
+  }, [progress, following, overview, lastPosition, navigationHeading, preferences.mapPerspective]);
 
   // Fitting the route is a one-shot action, not a camera that tracks: the
   // driver asked to see the trip, not to have it recomposed under them.
@@ -212,8 +214,7 @@ export const GuidanceScreen = () => {
           >
             <GlassPanel style={styles.pillInner}>
               <AppText variant="caption" tone="accent">
-                Rerouting…
-              </AppText>
+                {t("Rerouting…")}</AppText>
             </GlassPanel>
           </Animated.View>
         ) : null}
@@ -253,7 +254,7 @@ export const GuidanceScreen = () => {
             onDetails={() => setDetails(true)}
             destinationName={destination?.name}
           />
-        ) : <GlassPanel style={styles.waiting}><AppText variant="footnote" tone="secondary" style={{ flexShrink: 1 }}>Waiting for an accurate GPS fix</AppText><Button label="End" variant="danger" size="medium" onPress={endTrip} /></GlassPanel>}
+        ) : <GlassPanel style={styles.waiting}><AppText variant="footnote" tone="secondary" style={{ flexShrink: 1 }}>{t("Waiting for an accurate GPS fix")}</AppText><Button label={t("End")} variant="danger" size="medium" onPress={endTrip} /></GlassPanel>}
       </View>
       {details ? <TripDetailsSheet visible onClose={() => setDetails(false)} /> : null}
     </View>

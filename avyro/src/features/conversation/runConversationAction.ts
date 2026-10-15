@@ -60,6 +60,11 @@ export const runConversationAction = async (
       return;
     }
 
+    case 'set-route-preference': {
+      await stores.preferences.getState().update({ [action.preference]: action.enabled });
+      if (navigation.getState().destination) await runConversationAction({ type: 'reroute' }, { services, stores, logger });
+      return;
+    }
     case 'reroute': {
       const destination = navigation.getState().destination;
       const origin = location.getState().position?.coordinates;
@@ -68,16 +73,20 @@ export const runConversationAction = async (
         return;
       }
 
+      const previousRoute = navigation.getState().route;
       navigation.getState().setStatus('rerouting');
 
       try {
-        const plan = await services.useCases.planTrip({ origin, destination });
+        const plan = await services.useCases.planTrip({ origin, destination, waypoints: navigation.getState().stops.map(stop => stop.coordinates) });
+        if (navigation.getState().destination?.id !== destination.id || navigation.getState().route !== previousRoute) return;
         const [next] = plan.routes;
         if (next) navigation.getState().replaceRoute(next);
         else navigation.getState().setStatus('guiding');
       } catch (error) {
+        if (navigation.getState().destination?.id !== destination.id || navigation.getState().route !== previousRoute) return;
         navigation.getState().setStatus('guiding');
         logger.warn('voice reroute failed', { reason: String(error) });
+        conversation.getState().dispatch({ type: 'navigation-announcement', text: 'The route could not be updated. The previous route is still shown.' });
       }
       return;
     }

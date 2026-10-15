@@ -244,3 +244,21 @@ test.each([
   ['Do not report an accident here', { kind: 'unknown' }],
   ['How do I report an accident?', { kind: 'unknown' }],
 ])('explicit incident command: %s', (text, intent) => expect(parseCommand(text)).toEqual(intent));
+
+
+describe('explicit route preferences', () => {
+  test.each([
+    ['Can we avoid the tolls?', 'avoidTolls', true],
+    ['Avoid motorways', 'avoidMotorways', true],
+    ['Évite les péages', 'avoidTolls', true],
+    ['Autorise les autoroutes', 'avoidMotorways', false],
+  ])('%s', (text, preference, enabled) => {
+    expect(parseCommand(text as string)).toEqual({ kind: 'set-route-preference', preference, enabled });
+  });
+  test('does not turn a negation into a settings change', () => {
+    expect(parseCommand('Do not avoid tolls')).toEqual({ kind: 'unknown' });
+  });
+  test('reads the next maneuver', () => {
+    expect(parseCommand('What is the next exit?')).toEqual({ kind: 'ask-next-maneuver' });
+  });
+});

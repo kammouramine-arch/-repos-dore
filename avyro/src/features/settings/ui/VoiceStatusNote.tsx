@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { Linking, StyleSheet, View } from 'react-native';
 
 import type { VoiceSessionStatus } from '@/core/conversation/voiceSession';
@@ -17,6 +18,7 @@ export interface VoiceStatusNoteProps {
  * opened the driver is told, in one sentence, and given the way out.
  */
 export const VoiceStatusNote = ({ status, message }: VoiceStatusNoteProps) => {
+  useUiLanguage();
   if (!message) return null;
 
   // Refused for good is the only state the driver cannot fix from here: iOS
@@ -40,7 +42,7 @@ export const VoiceStatusNote = ({ status, message }: VoiceStatusNoteProps) => {
 
       {blocked ? (
         <Button
-          label="Open iOS Settings"
+          label={t("Open iOS Settings")}
           variant="secondary"
           size="medium"
           onPress={() => void Linking.openSettings()}

@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import type { ReactNode } from 'react';
 import {
   KeyboardAvoidingView,
@@ -33,10 +34,11 @@ export const AuthLayout = ({
   footerAction,
   onFooterPress,
 }: AuthLayoutProps) => {
+  useUiLanguage();
   const navigation = useNavigation();
   return (
   <Screen backdrop="night">
-    <View style={styles.close}><IconButton name="close" accessibilityLabel="Back to map" onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} /></View>
+    <View style={styles.close}><IconButton name="close" accessibilityLabel={t("Back to map")} onPress={() => navigation.reset({ index: 0, routes: [{ name: 'Home' }] })} /></View>
     <KeyboardAvoidingView
       style={styles.flex}
       behavior={Platform.OS === 'ios' ? 'padding' : undefined}

@@ -18,4 +18,4 @@ Previous 2024 BPE model failed the new phrase (1/24 at baseline); the new model 
 - decoder.onnx: SHA-256 `63a22dd60f40fff082ac3e09afa507f6787da36df76ded2fbe145fa233e22c21`
 - joiner.onnx: SHA-256 `76f7a24ed0c08633af14b2ee377f747af880d3b65eeba2cd3f31f3380fb73e8d`
 - tokens.txt: SHA-256 `2d3f32311f9b692b964da3c90e830258d3e78e013cb0c992dbfb15cd5a1a71b0`
-- keywords.txt: SHA-256 `75cc6a3f70950bf86a1b51656a3bc64f08895e6e7bb6d1d123754b9f55684209`
+- keywords.txt: SHA-256 `ede86a8cd2da43b665668a9736b359354a5606cd589ff83c69e909d96151b394`

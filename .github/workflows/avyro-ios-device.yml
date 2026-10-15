@@ -21,7 +21,7 @@ concurrency:
   cancel-in-progress: false
 jobs:
   device:
-    if: github.repository == 'kammouramine-arch/-repos-dore' && github.ref == 'refs/heads/chatgpt/avyro-v2-foundation-20261013'
+    if: github.repository == 'kammouramine-arch/-repos-dore' && (github.ref == 'refs/heads/chatgpt/avyro-v2-foundation-20261013' || github.ref == 'refs/heads/chatgpt/meepmeep-v2-20261016')
     runs-on: macos-26
     timeout-minutes: 60
     defaults:

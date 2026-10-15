@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet } from 'react-native';
 
 import type { NavigationProgress } from '@/core/domain/entities/navigation';
@@ -37,12 +38,13 @@ export const TripStatusBar = ({
   onDetails,
   destinationName,
 }: TripStatusBarProps) => {
+  useUiLanguage();
   const road = progress.currentStep.roadName;
 
   return (
     <GlassPanel style={styles.bar}>
-      <PressableScale style={styles.figures} accessibilityRole="button" accessibilityLabel="Trip details" onPress={onDetails}>
-        <AppText variant="caption" tone="accent" numberOfLines={1}>{destinationName ?? 'Your destination'} · Details ⌃</AppText>
+      <PressableScale style={styles.figures} accessibilityRole="button" accessibilityLabel={t("Trip details")} onPress={onDetails}>
+        <AppText variant="caption" tone="accent" numberOfLines={1}>{destinationName ?? 'Your destination'} {t("· Details ⌃")}</AppText>
         <AppText variant="title2">
           {formatArrivalTime(progress.remainingDurationSeconds)}
         </AppText>
@@ -58,7 +60,7 @@ export const TripStatusBar = ({
       </PressableScale>
 
       <Button
-        label="End"
+        label={t("End")}
         variant="danger"
         size="medium"
         onPress={onEnd}

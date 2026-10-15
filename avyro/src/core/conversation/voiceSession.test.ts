@@ -271,9 +271,11 @@ describe('a session that fails', () => {
     expect(state.status).toBe('unsupported');
   });
 
-  it('forgets past failures once a session opens cleanly', () => {
+  it('forgets past failures only after the open session proves stable', () => {
     const failed = voiceSessionReducer(listening().state, failure('network', false));
-    const recovered = voiceSessionReducer(failed.state, { type: 'opened' });
+    const opened = voiceSessionReducer(failed.state, { type: 'opened' });
+    expect(opened.state.failures).toBe(1);
+    const recovered = voiceSessionReducer(opened.state, { type: 'stable' });
 
     expect(recovered.state.failures).toBe(0);
     expect(recovered.state.message).toBeNull();
@@ -449,4 +451,17 @@ describe('bounded failure recovery', () => {
     expect(restarted.state.failures).toBe(0);
     expect(kinds(restarted.effects)).toContain('check-availability');
   });
+});
+
+
+test('briefly opening then failing cannot evade the three-failure limit', () => {
+  let state = listening().state;
+  for (let i=0;i<3;i++) {
+    state = voiceSessionReducer(state, {type:'failed',error:{code:'audio-capture',message:'Interrupted',fatal:false}}).state;
+    state = voiceSessionReducer(state, {type:'retry'}).state;
+    state = voiceSessionReducer(state, {type:'opened'}).state;
+  }
+  expect(state.failures).toBe(3);
+  expect(state.open).toBe(false);
+  expect(voiceSessionReducer(state, {type:'retry'}).effects).toEqual([]);
 });

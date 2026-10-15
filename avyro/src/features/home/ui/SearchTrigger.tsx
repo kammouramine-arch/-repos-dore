@@ -1,3 +1,4 @@
+import { t, useUiLanguage } from '@/ui/i18n';
 import { StyleSheet, View } from 'react-native';
 
 import { VoiceButton } from '@/features/conversation/ui/VoiceButton';
@@ -17,18 +18,17 @@ export interface SearchTriggerProps {
  * address and speaking one are different acts, and a driver reaching for voice
  * should not have to hit a target nested in something else.
  */
-export const SearchTrigger = ({ onPress }: SearchTriggerProps) => (
+export const SearchTrigger = ({ onPress }: SearchTriggerProps) => { useUiLanguage(); return ((
   <View style={styles.row}>
     <PressableScale
       accessibilityRole="search"
-      accessibilityLabel="Search for a destination"
+      accessibilityLabel={t("Search for a destination")}
       onPress={onPress}
       style={styles.trigger}
     >
       <Icon name="search" size={19} color={colors.textSecondary} />
       <AppText variant="body" tone="tertiary" style={styles.label}>
-        Where to?
-      </AppText>
+        {t("Where to?")}</AppText>
       <View style={styles.badge}>
         <Icon name="arrow-forward" size={16} color={colors.onAccent} />
       </View>
@@ -36,7 +36,7 @@ export const SearchTrigger = ({ onPress }: SearchTriggerProps) => (
 
     <VoiceButton />
   </View>
-);
+)); };
 
 const styles = StyleSheet.create({
   row: {
