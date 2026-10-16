@@ -16,8 +16,7 @@ export interface ActiveRouteOverlayProps {
 
 /**
  * Route geometry during guidance: the road already driven fades back, the road
- * ahead stays lit. Splitting at the snapped position (rather than at the
- * nearest vertex) keeps the boundary exactly under the puck.
+ * ahead stays lit, and the boundary always sits behind the arrow.
  *
  * Only a window around the driver is drawn, and the vertex slices are memoised
  * on the segment index — so a fix that does not cross a vertex costs two array
@@ -33,15 +32,16 @@ const ActiveRouteOverlayComponent = ({
     [routeIndex, segmentIndex],
   );
 
-  const driven = useMemo(
-    () => [...window.behind, snappedPosition],
-    [window.behind, snappedPosition],
-  );
+  // Split at the start of the current segment, never at the newest fix: the
+  // arrow is drawn gliding up to that fix (see followPose.ts), so a split at
+  // the fix would grey the road just ahead of the arrow for a moment.
+  void snappedPosition;
+  const driven = window.behind;
   const remaining = useMemo(
-    () => [snappedPosition, ...window.ahead],
-    [window.ahead, snappedPosition],
+    () => [...window.behind.slice(-1), ...window.ahead],
+    [window.behind, window.ahead],
   );
-  const casing = useMemo(() => [...driven, ...window.ahead], [driven, window.ahead]);
+  const casing = useMemo(() => [...window.behind, ...window.ahead], [window.behind, window.ahead]);
 
   return (
     <>
