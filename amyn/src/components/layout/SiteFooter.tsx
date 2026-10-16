@@ -60,6 +60,7 @@ export function SiteFooter({ locale }: { locale: Locale }) {
           </FooterColumn>
 
           <FooterColumn title={t.footer.services} className="lg:col-span-2">
+            <FooterLink href={href("acquisition", locale)}>{n.acquisition}</FooterLink>
             {getServices(locale).map((s) => (
               <FooterLink key={s.slug} href={servicePath(s.slug, locale)}>
                 {s.short}

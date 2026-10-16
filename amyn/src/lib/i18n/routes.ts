@@ -16,6 +16,8 @@ export const ROUTES = {
   revenueOs: { fr: "/revenue-os", en: "/en/revenue-os" },
   revenueOsDemo: { fr: "/revenue-os/demo", en: "/en/revenue-os/demo" },
   revenueAudit: { fr: "/revenue-audit", en: "/en/revenue-audit" },
+  /* Offre de projet « Acquisition & Conversion Express ». */
+  acquisition: { fr: "/acquisition-conversion", en: "/en/acquisition-conversion" },
   services: { fr: "/services", en: "/en/services" },
   work: { fr: "/realisations", en: "/en/work" },
   method: { fr: "/methode", en: "/en/method" },

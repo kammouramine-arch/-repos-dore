@@ -39,9 +39,9 @@ const FORM = "apercu";
  *   ?besoin=<slug> / ?service=   → pré-coche le service correspondant.
  * Aucune donnée personnelle ne transite par l'adresse.
  */
-function useInitialValues(locale: Locale): FirstLookValues {
+function useInitialValues(locale: Locale, preset?: string): FirstLookValues {
   const params = useSearchParams();
-  const service = SERVICE_BY_SLUG[params.get("besoin") ?? params.get("service") ?? ""];
+  const service = SERVICE_BY_SLUG[params.get("besoin") ?? params.get("service") ?? preset ?? ""];
   return sanitizeFirstLook({
     ...EMPTY_FIRST_LOOK,
     company: params.get("business") ?? "",
@@ -51,16 +51,21 @@ function useInitialValues(locale: Locale): FirstLookValues {
   });
 }
 
-export function FirstLookForm({ locale }: { locale: Locale }) {
+/**
+ * `service` : identifiant d'un service pré-coché par défaut (page d'une
+ * offre qui intègre le formulaire) ; un paramètre d'adresse reste prioritaire.
+ */
+export function FirstLookForm({ locale, service }: { locale: Locale; service?: string }) {
+  const preset = service ? SERVICE_BY_SLUG[service] : undefined;
   return (
-    <Suspense fallback={<Form locale={locale} initial={{ ...EMPTY_FIRST_LOOK, lang: locale }} />}>
-      <FormWithParams locale={locale} />
+    <Suspense fallback={<Form locale={locale} initial={{ ...EMPTY_FIRST_LOOK, services: preset ? [preset] : [], lang: locale }} />}>
+      <FormWithParams locale={locale} service={service} />
     </Suspense>
   );
 }
 
-function FormWithParams({ locale }: { locale: Locale }) {
-  return <Form locale={locale} initial={useInitialValues(locale)} />;
+function FormWithParams({ locale, service }: { locale: Locale; service?: string }) {
+  return <Form locale={locale} initial={useInitialValues(locale, service)} />;
 }
 
 /**

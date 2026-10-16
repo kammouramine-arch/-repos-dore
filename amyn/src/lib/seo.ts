@@ -4,6 +4,7 @@ import type { Alternates } from "./i18n/routes.ts";
 import { href, servicePath } from "./i18n/routes.ts";
 import { PROOFSPRINT_PRICE_EUR, getProofSprint } from "./proofsprint.ts";
 import { REVENUE_OS_FROM_EUR, getRevenue } from "./revenue-os.ts";
+import { ACQUISITION_FROM_EUR, getAcquisition } from "./acquisition.ts";
 import type { Service } from "./services.ts";
 import { legal } from "./legal.ts";
 import { site } from "./site.ts";
@@ -173,6 +174,26 @@ export function revenueOsSchema(locale: Locale = "fr") {
         minPrice: REVENUE_OS_FROM_EUR,
         priceCurrency: "EUR",
       },
+    },
+  };
+}
+
+/** Acquisition & Conversion Express : prix d'entrée publié, zones servies. */
+export function acquisitionSchema(locale: Locale = "fr") {
+  const t = getAcquisition(locale);
+  return {
+    "@context": "https://schema.org",
+    "@type": "Service",
+    name: `AMYN ${t.name}`,
+    description: t.meta.description,
+    url: `${site.url}${href("acquisition", locale)}`,
+    inLanguage: locale,
+    provider: { "@id": ORG_ID },
+    audience: { "@type": "BusinessAudience" },
+    areaServed: ["France", "Belgium", "Luxembourg", "Switzerland"].map((name) => ({ "@type": "Country", name })),
+    offers: {
+      "@type": "Offer",
+      priceSpecification: { "@type": "PriceSpecification", minPrice: ACQUISITION_FROM_EUR, priceCurrency: "EUR" },
     },
   };
 }

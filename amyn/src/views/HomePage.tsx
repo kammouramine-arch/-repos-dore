@@ -4,6 +4,7 @@ import { Work } from "@/components/home/Sections";
 import { ServicesShowcase } from "@/components/home/ServicesShowcase";
 import { Testimonials, hasTestimonials } from "@/components/home/Testimonials";
 import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
+import { AcquisitionCard } from "@/components/acquisition/AcquisitionCard";
 import {
   AudienceSection,
   CalculatorSection,
@@ -140,7 +141,8 @@ export function HomePage({ locale }: { locale: Locale }) {
             <ServicesShowcase rows={rows} />
           </div>
           <p className="label mt-8 text-bone-3">{t.home.services.note}</p>
-          <ProofSprintCard locale={locale} className="mt-12 sm:mt-16" />
+          <AcquisitionCard locale={locale} className="mt-12 sm:mt-16" />
+          <ProofSprintCard locale={locale} className="mt-4" />
         </Container>
       </Section>
 

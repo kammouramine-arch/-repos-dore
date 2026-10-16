@@ -2069,3 +2069,78 @@ html[data-presenting] .audit-section {
     padding-left: 0;
   }
 }
+
+/* --- Acquisition & Conversion : le fil qui relie les quatre étapes ------- */
+.acq-line {
+  background: linear-gradient(var(--acq-dir, 90deg), rgb(198 167 106 / 0.75), rgb(198 167 106 / 0.2));
+}
+.acq-line-v {
+  --acq-dir: 180deg;
+}
+@media (prefers-reduced-motion: no-preference) {
+  .acq-line {
+    transition: transform 1.6s var(--ease-out) 0.15s;
+  }
+  .acq-line-h {
+    transform-origin: left center;
+  }
+  .acq-line-v {
+    transform-origin: center top;
+  }
+  html.reveal-ready .acq-line-h:not(.is-in) {
+    transform: scaleX(0);
+  }
+  html.reveal-ready .acq-line-v:not(.is-in) {
+    transform: scaleY(0);
+  }
+  /* Une lumière parcourt le fil, lentement, une fois tracé. */
+  .acq-line.is-in::after {
+    content: "";
+    position: absolute;
+    border-radius: 999px;
+    background: rgb(245 228 190);
+    box-shadow: 0 0 12px 2px rgb(198 167 106 / 0.6);
+  }
+  .acq-line-h.is-in::after {
+    top: -1px;
+    left: 0;
+    width: 3px;
+    height: 3px;
+    animation: acq-travel-h 7s ease-in-out 1.8s infinite;
+  }
+  .acq-line-v.is-in::after {
+    left: -1px;
+    top: 0;
+    width: 3px;
+    height: 3px;
+    animation: acq-travel-v 7s ease-in-out 1.8s infinite;
+  }
+}
+@keyframes acq-travel-h {
+  0% {
+    left: 0;
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    left: calc(100% - 3px);
+    opacity: 0;
+  }
+}
+@keyframes acq-travel-v {
+  0% {
+    top: 0;
+    opacity: 0;
+  }
+  10%,
+  85% {
+    opacity: 1;
+  }
+  100% {
+    top: calc(100% - 3px);
+    opacity: 0;
+  }
+}

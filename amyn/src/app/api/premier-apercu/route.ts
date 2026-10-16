@@ -13,7 +13,8 @@ export async function POST(request: Request) {
     validate: validateFirstLook,
     compose: (v) => {
       const outreach = v.source === "outreach";
-      const subject = `Premier aperçu — ${v.company}${outreach ? " (suite à un message AMYN)" : ""}`;
+      const acquisition = v.services.includes("Acquisition & Conversion Express");
+      const subject = `${acquisition ? "Acquisition & Conversion Express" : "Premier aperçu"} — ${v.company}${outreach ? " (suite à un message AMYN)" : ""}`;
       const { html, text } = renderRequestEmail({
         title: "Nouvelle demande de premier aperçu",
         rows: [

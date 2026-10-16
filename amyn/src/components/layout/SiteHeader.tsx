@@ -104,7 +104,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             : "border-b border-transparent bg-transparent"
         }`}
       >
-        <Container className="flex h-[var(--header-h)] items-center justify-between gap-6">
+        <Container className="flex h-[var(--header-h)] items-center justify-between gap-3 xl:gap-6">
           <Link href={href("home", locale)} aria-label={t.homeAria} className="-m-2 p-2 text-bone">
             <Logo />
           </Link>
@@ -118,7 +118,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                     <Link
                       href={item.href}
                       aria-current={active ? "page" : undefined}
-                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-full px-2.5 py-2 text-[0.875rem] font-medium transition-[background-color,color] duration-300 active:scale-[0.97] xl:px-4 ${
+                      className={`relative flex items-center gap-2 whitespace-nowrap rounded-full px-2 py-2 text-[0.875rem] font-medium transition-[background-color,color] duration-300 active:scale-[0.97] xl:px-4 ${
                         active
                           ? `bg-[rgb(242_238_230/0.1)] ${item.accent ? "text-gold-2" : "text-bone"}`
                           : item.accent
@@ -126,7 +126,7 @@ export function SiteHeader({ locale }: { locale: Locale }) {
                             : "text-bone-2 hover:bg-[rgb(242_238_230/0.06)] hover:text-bone"
                       }`}
                     >
-                      {/* ProofSprint : un point de laiton, rien de plus. */}
+                      {/* Offres : un point de laiton, rien de plus. */}
                       {item.accent && <span aria-hidden className="size-1.5 rounded-full bg-gold" />}
                       {item.label}
                     </Link>
@@ -140,13 +140,15 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             <LanguageSwitcher locale={locale} />
             <span className="hidden md:block">
               <Link
-                href={cta.revenueAudit.href}
+                href={cta.talk.href}
                 data-magnetic=""
-                data-track="revenue_audit_cta_clicked"
+                data-track="contact_initiated"
                 data-track-place="header"
                 className={buttonClass("primary", "", "sm")}
               >
-                {cta.revenueAudit.short}
+                {/* Entre 1024 et 1280 px, la navigation complète laisse peu de place : libellé court. */}
+                <span className="lg:max-xl:hidden">{cta.talk.label}</span>
+                <span className="hidden lg:max-xl:inline">{cta.talk.short}</span>
                 <ArrowRight className="nudge size-4" />
               </Link>
             </span>
@@ -241,13 +243,13 @@ export function SiteHeader({ locale }: { locale: Locale }) {
             style={{ transitionDelay: open ? "420ms" : "0ms" }}
           >
             <Link
-              href={cta.revenueAudit.href}
-              data-track="revenue_audit_cta_clicked"
+              href={cta.talk.href}
+              data-track="contact_initiated"
               data-track-place="menu"
               onClick={() => close(false)}
               className={buttonClass("primary", "w-full !min-h-14 text-[1rem]")}
             >
-              {cta.revenueAudit.label}
+              {cta.talk.label}
               <ArrowRight className="nudge size-4" />
             </Link>
             <a href={`mailto:${site.email}`} className="text-center text-[0.9375rem] text-bone-2">

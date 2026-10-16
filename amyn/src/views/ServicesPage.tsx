@@ -5,6 +5,7 @@ import { ButtonLink } from "@/components/ui/Button";
 import { Container, Section, delay } from "@/components/ui/Layout";
 import { ProofSprintCard } from "@/components/proofsprint/ProofSprintCard";
 import { RevenueOsCard } from "@/components/revenue/RevenueOsCard";
+import { AcquisitionCard } from "@/components/acquisition/AcquisitionCard";
 import { Shot } from "@/components/visuals/Shots";
 import type { Locale } from "@/lib/i18n/config";
 import { getDictionary } from "@/lib/i18n/dictionary";
@@ -66,6 +67,7 @@ export function ServicesPage({ locale }: { locale: Locale }) {
       <Section tone="ink" spacing="tight" className="seam">
         <Container>
           <RevenueOsCard locale={locale} />
+          <AcquisitionCard locale={locale} className="mt-4" />
         </Container>
       </Section>
 

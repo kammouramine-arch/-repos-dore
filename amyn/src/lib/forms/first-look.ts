@@ -23,6 +23,7 @@ import {
  */
 
 export const SERVICE_OPTIONS = [
+  "Acquisition & Conversion Express",
   "Site web / refonte",
   "Suivi demandes & devis",
   "Application mobile",
@@ -35,6 +36,7 @@ export const SERVICE_OPTIONS = [
 export type ServiceOption = (typeof SERVICE_OPTIONS)[number];
 
 export const SERVICE_LABELS_EN: Record<ServiceOption, string> = {
+  "Acquisition & Conversion Express": "Acquisition & Conversion Express",
   "Site web / refonte": "Website / redesign",
   "Suivi demandes & devis": "Request & quote tracking",
   "Application mobile": "Mobile app",
@@ -50,6 +52,7 @@ export const SERVICE_LABELS_EN: Record<ServiceOption, string> = {
  * par l'identifiant du service ou par son adresse anglaise.
  */
 export const SERVICE_BY_SLUG: Record<string, ServiceOption> = {
+  "acquisition-conversion": "Acquisition & Conversion Express",
   "site-web": "Site web / refonte",
   "suivi-demandes-devis": "Suivi demandes & devis",
   "application-mobile": "Application mobile",
