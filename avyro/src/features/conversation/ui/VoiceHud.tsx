@@ -1,5 +1,5 @@
 import { t, useUiLanguage } from '@/ui/i18n';
-import { StyleSheet, View } from 'react-native';
+import { Pressable, StyleSheet, View } from 'react-native';
 import Animated, { FadeInDown, FadeOutDown } from 'react-native-reanimated';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
@@ -20,6 +20,9 @@ import { VoiceFrame } from './VoiceFrame';
  *
  * Deliberately bottom-anchored and single-line: the top of the screen belongs
  * to the maneuver banner, and nothing here may compete with it.
+ *
+ * The card is tappable: one touch stops Avyro and clears it. The map around it
+ * stays touchable, so the card never blocks the screen it floats over.
  */
 export const VoiceHud = () => {
   useUiLanguage();
@@ -31,17 +34,27 @@ export const VoiceHud = () => {
   const ready = useConversationStore(state => state.commandReady);
   const level = useConversationStore(state => state.audioLevel);
   const transcript = useConversationStore(state => state.transcript);
+  const dispatch = useConversationStore(state => state.dispatch);
 
   const prompt = voicePromptFor(status, speaking, error);
   if (!prompt.visible) return null;
 
   return (
     <View
-      pointerEvents="none"
+      pointerEvents="box-none"
       style={[styles.root, { paddingBottom: insets.bottom + spacing.xxxl }]}
     >
-      <VoiceFrame state={status} level={level} active={(status === 'listening' && ready) || ['thinking', 'speaking'].includes(status)} />
+      <View pointerEvents="none" style={StyleSheet.absoluteFill}>
+        <VoiceFrame state={status} level={level} active={(status === 'listening' && ready) || ['thinking', 'speaking'].includes(status)} />
+      </View>
       <Animated.View entering={FadeInDown.duration(180)} exiting={FadeOutDown.duration(140)}>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={t('Dismiss')}
+          accessibilityHint={t('Tap to stop meepmeep and close this message.')}
+          hitSlop={8}
+          onPress={() => dispatch({ type: 'cancel' })}
+        >
         <GlassPanel style={styles.panel}>
           <VoiceOrb tone={status === 'listening' && !ready ? 'idle' : prompt.tone} />
           <AppText
@@ -53,6 +66,7 @@ export const VoiceHud = () => {
             {status === 'listening' && !ready ? t('Just a moment…') : status === 'listening' && transcript ? transcript : t(prompt.label)}
           </AppText>
         </GlassPanel>
+        </Pressable>
       </Animated.View>
     </View>
   );

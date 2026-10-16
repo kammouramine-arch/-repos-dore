@@ -31,10 +31,11 @@ describe('telling the driver what the microphone is doing', () => {
     });
   });
 
-  it('treats a maneuver interrupt as meepmeep speaking, because it is', () => {
-    expect(voicePromptFor('navigation-interrupt', 'Turn right', null).tone).toBe(
-      'speaking',
-    );
+  it('leaves a spoken maneuver to the banner instead of repeating it', () => {
+    // EJXG3453: "Keep straight on at Rue …" sat in a voice card under a banner
+    // already showing the same maneuver — in another language — for the whole
+    // drive. Guidance has one home on screen, and it is the banner.
+    expect(voicePromptFor('navigation-interrupt', 'Turn right', null).visible).toBe(false);
     expect(voicePromptFor('resuming', 'Heading home.', null).tone).toBe('speaking');
   });
 

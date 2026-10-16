@@ -15,6 +15,7 @@ import {
 } from "@/core/conversation/voiceSession";
 import { formatVoiceDebug } from "@/core/conversation/voiceDebug";
 import { speechLanguage } from '@/core/conversation/frenchReply';
+import { createSpeechCompletion, speechWatchdogMs } from '@/core/conversation/speechCompletion';
 import type { ConversationEffect } from "@/core/conversation/conversationMachine";
 import type { SpeechRecognitionSession } from "@/core/domain/ports/speechRecognizer";
 import { runConversationAction } from "../runConversationAction";
@@ -134,6 +135,18 @@ export const useConversationEngine = (): void => {
   const clearTimers = useCallback(() => {
     timersRef.current.forEach(clearTimeout);
     timersRef.current = [];
+  }, []);
+
+  /**
+   * The speaker's watchdog lives apart from `timersRef` on purpose:
+   * `stop-listening` clears those, and a microphone event must never be able
+   * to disarm the one thing guaranteeing a spoken reply leaves the screen.
+   */
+  const speechRef = useRef(createSpeechCompletion());
+  const speechWatchdogRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const clearSpeechWatchdog = useCallback(() => {
+    if (speechWatchdogRef.current) clearTimeout(speechWatchdogRef.current);
+    speechWatchdogRef.current = null;
   }, []);
 
   /** Reads the live route context for the provider. */
@@ -600,43 +613,46 @@ export const useConversationEngine = (): void => {
           // conversation machine has no reason to emit `stop-listening` — so
           // the release happens here, where speaking actually begins.
           closeSession();
-          const speechGeneration = generationRef.current;
           voiceDebug("tts_started", `"${effect.text.slice(0, 80)}"`);
 
-          // The machine leaves `speaking` only on `speech-finished`. A
-          // platform that never calls back would leave the reply on screen
-          // over the map for the rest of the drive, so the turn is ended
-          // either by the callback or by this watchdog — whichever comes
-          // first, exactly once.
-          let spoken = false;
-          const finishSpeaking = (reason: string) => {
-            if (spoken || speechGeneration !== generationRef.current) return;
-            spoken = true;
+          // The machine leaves `speaking` only on `speech-finished`, so this
+          // utterance is ended by the TTS callback or by a watchdog sized to
+          // the sentence — whichever comes first, exactly once. Completion is
+          // keyed to its own token, never to the microphone: mic activity
+          // during speech used to disarm both paths and strand the reply on
+          // screen for a whole drive (see speechCompletion.ts).
+          clearSpeechWatchdog();
+          const turn = speechRef.current.begin((reason) => {
+            clearSpeechWatchdog();
             voiceDebug(reason);
             dispatch({ type: "speech-finished" });
-          };
-
-          timersRef.current.push(
-            setTimeout(
-              () => finishSpeaking("ERROR tts_watchdog_fired"),
-              CONVERSATION.speechWatchdogMs,
-            ),
+          });
+          speechWatchdogRef.current = setTimeout(
+            () => turn.finish("ERROR tts_watchdog_fired"),
+            speechWatchdogMs(effect.text),
           );
 
           return void releaseRef.current
-            .then(() =>
-              speechGeneration === generationRef.current ? services.speechEngine.speak(effect.text, {
+            .then(() => {
+              // Superseded while the microphone was being released: the newer
+              // utterance owns the speaker and its own completion.
+              if (!turn.isCurrent()) return undefined;
+              return services.speechEngine.speak(effect.text, {
                 language: effect.language ?? speechLanguage(effect.text),
-                onDone: () => finishSpeaking("tts_finished"),
-              }) : undefined,
-            )
+                onDone: () => turn.finish("tts_finished"),
+              });
+            })
             .catch((error) => {
               voiceDebug("ERROR tts_threw", String(error));
-              finishSpeaking("tts_abandoned");
+              turn.finish("tts_abandoned");
             });
         }
         case "stop-speaking":
           voiceDebug("tts_stopped");
+          // An explicit stop: the machine has already left `speaking`, so the
+          // cut-off utterance must not later report itself finished.
+          speechRef.current.supersede();
+          clearSpeechWatchdog();
           return void services.speechEngine.stop();
         case "run-action":
           voiceDebug("action_started", effect.reply.action.type);
@@ -677,6 +693,7 @@ export const useConversationEngine = (): void => {
     voiceOptions,
     closeSession,
     clearTimers,
+    clearSpeechWatchdog,
     voiceDebug,
   ]);
 
@@ -685,10 +702,12 @@ export const useConversationEngine = (): void => {
     () => () => {
       clearTimers();
       clearVoiceTimer();
+      clearSpeechWatchdog();
+      speechRef.current.supersede();
       closeSession();
       requestRef.current?.abort();
       void services.speechEngine.stop();
     },
-    [services, clearTimers, clearVoiceTimer, closeSession],
+    [services, clearTimers, clearVoiceTimer, clearSpeechWatchdog, closeSession],
   );
 };

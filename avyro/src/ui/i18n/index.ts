@@ -6,6 +6,8 @@ const systemLanguage = (): UiLanguage => Intl.DateTimeFormat().resolvedOptions()
 let language = systemLanguage();
 const listeners = new Set<() => void>();
 export function setUiLanguage(value: 'system' | UiLanguage) { language = value === 'system' ? systemLanguage() : value; listeners.forEach(listener => listener()); }
+/** The interface language right now, for code outside React. */
+export function currentUiLanguage(): UiLanguage { return language; }
 export function useUiLanguage() { return useSyncExternalStore(listener => { listeners.add(listener); return () => { listeners.delete(listener); }; }, () => language); }
 /** Static interface copy only. Addresses, place names and user content are never translated. */
 export function t(text: string): string { return language === 'fr' ? french[text] ?? text : text; }

@@ -1,5 +1,6 @@
 export const french: Record<string, string> = {
 "Hands-free unavailable. Tap to talk": "Mains libres indisponibles. Touchez pour parler",
+"Dismiss": "Fermer", "Tap to stop meepmeep and close this message.": "Touchez pour interrompre meepmeep et fermer ce message.",
 "Delete account": "Supprimer le compte", "Delete account?": "Supprimer le compte ?", "This permanently deletes your hosted profile and reports. Saved places on this iPhone remain.": "Cette action supprime définitivement votre profil en ligne et vos signalements. Les lieux enregistrés sur cet iPhone sont conservés.", "Deletion failed": "Échec de la suppression",
 
 "Driving perspective": "Perspective du guidage",

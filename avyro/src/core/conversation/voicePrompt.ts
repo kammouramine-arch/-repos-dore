@@ -36,9 +36,12 @@ const hidden: VoicePrompt = { label: '', tone: 'idle', visible: false };
  * The prompt for the current turn.
  *
  * `speaking` shows Avyro's own words rather than a generic label — the driver
- * hears them, and seeing them confirms they were heard correctly. A maneuver
- * interrupt is still "speaking" from the driver's point of view: guidance is
- * Avyro's voice too.
+ * hears them, and seeing them confirms they were heard correctly.
+ *
+ * A spoken maneuver is not repeated here. The maneuver banner already shows
+ * it, in the interface language, with the arrow; a second copy in a voice card
+ * is noise at best and, when the card failed to clear, was a permanent panel
+ * over the map.
  */
 export const voicePromptFor = (
   status: ConversationStatus,
@@ -52,8 +55,10 @@ export const voicePromptFor = (
     case 'thinking':
       return { label: 'Thinking…', tone: 'thinking', visible: true };
 
-    case 'speaking':
     case 'navigation-interrupt':
+      return hidden;
+
+    case 'speaking':
     case 'resuming':
       return speaking
         ? { label: speaking, tone: 'speaking', visible: true }
