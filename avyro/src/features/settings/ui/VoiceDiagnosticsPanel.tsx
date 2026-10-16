@@ -7,6 +7,7 @@ import {
   formatVoiceDebugTime,
   type VoiceDebugEntry,
 } from '@/core/conversation/voiceDebug';
+import { summariseLatency } from '@/core/conversation/voiceLatency';
 import { AppText, Button } from '@/ui/components';
 import { colors, radius, spacing } from '@/ui/theme';
 
@@ -33,10 +34,17 @@ export const VoiceDiagnosticsPanel = ({
   const openedAt = entries.findLastIndex(entry => entry.event === 'voice_opened');
   const stableAt = entries.findLastIndex(entry => entry.event === 'voice_stable');
   const ready = voice.ready && voice.status === 'listening';
+  const latency = summariseLatency(entries);
+  const ms = (value: number | null) => (value == null ? '—' : `${(value / 1000).toFixed(1)} s`);
   return ((
   <View style={styles.panel}>
     <AppText variant="footnote" testID="native-wake-status">{ready ? 'Native microphone active' : `Voice state: ${voice.status}`}</AppText>
     {ready && openedAt >= 0 && stableAt > openedAt ? <AppText variant="footnote" testID="native-wake-stable">Native wake stable for 30 seconds</AppText> : null}
+    {latency.last ? (
+      <AppText variant="footnote" testID="voice-latency">
+        {`Last turn · mic ${ms(latency.last.toMicrophoneMs)} · understood ${ms(latency.last.understandingMs)} · reply starts ${ms(latency.last.responseMs)} after you finish (median of ${latency.turns}: ${ms(latency.median.responseMs)})`}
+      </AppText>
+    ) : null}
     <AppText variant="footnote" tone="tertiary">
       {t("Temporary voice pipeline trace. Clear it, reproduce the problem, then read from the top.")}</AppText>
 

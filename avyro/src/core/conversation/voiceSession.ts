@@ -1,4 +1,4 @@
-import { CONVERSATION } from '@/config';
+import { BRAND, CONVERSATION } from '@/config';
 import { displayWakePhrase } from './wakePhrase';
 
 /**
@@ -106,8 +106,8 @@ export interface VoiceSessionTransition {
 
 /** What the driver is told. Short, and always with a way out. */
 export const VOICE_MESSAGES = {
-  denied: `meepmeep needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
-  blocked: `meepmeep cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › meepmeep.`,
+  denied: `${BRAND.assistantName} needs the microphone to hear “${displayWakePhrase()}”. Allow access to use voice commands.`,
+  blocked: `${BRAND.assistantName} cannot hear “${displayWakePhrase()}” without microphone access. Turn it on in Settings › ${BRAND.appName}.`,
   unsupported: 'Hands-free listening is unavailable on this device. Use the microphone button.',
   failed: 'Hands-free listening stopped. Use the microphone button, or turn hands-free off and on to retry.',
 } as const;

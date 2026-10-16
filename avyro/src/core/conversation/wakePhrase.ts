@@ -1,4 +1,4 @@
-import { CONVERSATION } from '@/config';
+import { BRAND, CONVERSATION } from '@/config';
 
 /**
  * Wake-phrase detection over a speech-to-text stream.
@@ -85,11 +85,7 @@ export const matchWakePhrase = (
 export const displayWakePhrase = (
   locale: string = CONVERSATION.defaultLocale,
 ): string => {
-  const [primary] = wakePhrasesFor(locale);
-  if (!primary) return '';
-
-  return primary
-    .split(' ')
-    .map((word) => word === 'meepmeep' ? word : word.charAt(0).toUpperCase() + word.slice(1))
-    .join(' ');
+  // One written form in every language: the brand is not translated.
+  void locale;
+  return BRAND.wake.display;
 };

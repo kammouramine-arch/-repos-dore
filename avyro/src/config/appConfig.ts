@@ -1,3 +1,5 @@
+import { BRAND } from './brand';
+
 /**
  * Application-wide tuning constants.
  *
@@ -6,7 +8,7 @@
  */
 
 export const APP_INFO = {
-  name: 'meepmeep',
+  name: BRAND.appName,
   /** The official mission statement. Use this verbatim wherever it is quoted. */
   mission: 'Your voice-first driving companion.',
   /**
@@ -74,9 +76,9 @@ export const CONVERSATION = {
   commandSilenceMs: 2200,
 
   wakePhrases: {
-    'en-US': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
-    'en-GB': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
-    'fr-FR': ['hey meepmeep', 'hey meep meep', 'hey avyro', 'he avyro', 'hey aviro', 'he aviro', 'hey a viro', 'he a viro', 'hey a vero', 'he av ero', 'eh aviro', 'dis avyro', 'salut avyro', 'ok avyro'],
+    'en-US': [...BRAND.wake.spoken, 'hey avyro', 'hey aviro', 'hey avero', 'hey avi ro', 'hey a viro', 'hey a vi ro', 'hey a vero', 'hey a hero', 'hi avyro', 'ok avyro'],
+    'en-GB': [...BRAND.wake.spoken, 'hey avyro', 'hi avyro', 'ok avyro', 'hey aviro', 'hey avero'],
+    'fr-FR': [...BRAND.wake.spoken, 'hey avyro', 'he avyro', 'hey aviro', 'he aviro', 'hey a viro', 'he a viro', 'hey a vero', 'he av ero', 'eh aviro', 'dis avyro', 'salut avyro', 'ok avyro'],
   } as Record<string, readonly string[]>,
 
   /** Give up on a command if the driver says nothing after waking Avyro. */
@@ -91,6 +93,12 @@ export const CONVERSATION = {
    * who said only the wake phrase is not left waiting.
    */
   wakeSettleMs: 900,
+  /**
+   * Longest the hands-free handshake (model check, microphone permission) may
+   * take before it is treated as failed and retried. A permission dialog
+   * backgrounds the app and restarts the handshake, so this never cuts one off.
+   */
+  voicePreparationTimeoutMs: 10_000,
   /** How long the cancelled state stays observable before returning to idle. */
   cancelledLingerMs: 1_200,
   /** Nearby searches are capped tightly: a driver wants the next one, not a list. */

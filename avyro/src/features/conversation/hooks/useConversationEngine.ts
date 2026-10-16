@@ -72,6 +72,15 @@ export const useConversationEngine = (): void => {
   const generationRef = useRef(0);
   const wakeOpeningTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const preparationEpoch = useRef(0);
+  /**
+   * `preparing` had no exit of its own: one availability or permission
+   * callback that never landed (or landed for a superseded epoch) left the
+   * header reading "Connexion vocale…" for an entire drive (LRWF0930) with
+   * hands-free never armed. This bounds it, and the diagnostics record which
+   * step stalled.
+   */
+  const preparationTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const preparationStepRef = useRef('none');
   const wakeHealthyRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const wakeSessionRef = useRef<WakeWordSession | null>(null);
   const releaseRef = useRef<Promise<void>>(Promise.resolve());
@@ -309,6 +318,14 @@ export const useConversationEngine = (): void => {
           switch (effect.type) {
             case "check-availability": {
               const epoch = preparationEpoch.current;
+              preparationStepRef.current = "availability";
+              if (preparationTimerRef.current) clearTimeout(preparationTimerRef.current);
+              preparationTimerRef.current = setTimeout(() => {
+                preparationTimerRef.current = null;
+                if (epoch !== preparationEpoch.current || voiceRef.current.status !== "preparing") return;
+                voiceDebug("ERROR preparation_stalled", `step=${preparationStepRef.current}`);
+                send({ type: "failed", error: { code: "audio-capture", message: "Hands-free is taking longer than usual to start. Retrying…", fatal: false } });
+              }, CONVERSATION.voicePreparationTimeoutMs);
               // Wake availability must not wait on Apple's speech asset setup.
               // Command recognition checks its own language when a turn starts.
               void services.wakeWordDetector.isAvailable(voiceOptions())
@@ -336,6 +353,7 @@ export const useConversationEngine = (): void => {
 
             case "request-permission": {
               const epoch = preparationEpoch.current;
+              preparationStepRef.current = "permission";
               const request = { networkRecognition: effect.networkRecognition };
               // Read before prompting: the platform shows each dialog once, and
               // a driver who already granted it should not be asked again.
@@ -704,6 +722,7 @@ export const useConversationEngine = (): void => {
       clearVoiceTimer();
       clearSpeechWatchdog();
       speechRef.current.supersede();
+      if (preparationTimerRef.current) clearTimeout(preparationTimerRef.current);
       closeSession();
       requestRef.current?.abort();
       void services.speechEngine.stop();

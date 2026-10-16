@@ -465,3 +465,20 @@ test('briefly opening then failing cannot evade the three-failure limit', () => 
   expect(state.open).toBe(false);
   expect(voiceSessionReducer(state, {type:'retry'}).effects).toEqual([]);
 });
+
+describe('a handshake that never answers (LRWF0930: "Connexion vocale…" for the whole drive)', () => {
+  it('leaves preparing when the controller reports the stall, and retries into listening', () => {
+    // The permission callback never arrives. The controller's watchdog reports it.
+    const stalled = run([
+      { type: 'enabled' },
+      { type: 'availability', available: true, onDevice: true },
+      { type: 'failed', error: { code: 'audio-capture', message: 'Hands-free is taking longer than usual to start. Retrying…', fatal: false } },
+    ]);
+    expect(stalled.state.status).toBe('failed');
+    expect(kinds(stalled.effects)).toContain('schedule-retry');
+
+    const recovered = run([{ type: 'retry' }, { type: 'opened' }], stalled.state);
+    expect(recovered.state.status).toBe('listening');
+    expect(recovered.state.open).toBe(true);
+  });
+});
