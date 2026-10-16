@@ -100,3 +100,20 @@ Private desktop replay of 237.46 seconds from the supplied road recording produc
 - Rain native run 38827589486 passed: lock, blocked underlying summary tap, deliberate hold unlock, relock and background/foreground unlock. Actual rain, gloves and VoiceOver remain physical checks.
 - Car run 38827585208 again passed 0 → 36 km/h and moving guidance, but failed custom header swipe dismissal. Guest run 38827692253 failed content swipe dismissal. Those are recorded failures, not complete passes.
 - After these repeat failures, 86b7528 replaces the custom animated modal/PanResponder layer with the installed React Native version's native iOS pageSheet + allowSwipeDismissal. Glass content remains; add-stop navigation waits for UIKit's onDismiss. This supersedes the earlier JavaScript gesture workarounds. Typecheck/lint pass; native guest/car validation and final signing are running. Earlier build-40 candidate files must not be submitted.
+
+### Final sheet lifecycle candidate
+- 38831333164 passed native drag-handle dismissal, then exposed a real add-stop regression: GuidanceScreen unmounted the sheet before its UIKit onDismiss callback could open nearby parking.
+- 90455c3 keeps the modal component mounted through dismissal, pauses its timer while hidden and clears cached alternatives/reports after dismissal. Typecheck/lint pass. Native rerun: 38832710745.
+- Candidate signed run 38832714554: source 90455c3ba2e581c4fecd6ffec98dcbe143260ca8, meepmeep 1.0.0 (40), app.avyro.companion, IPA SHA-256 b008ffc4af26fcecc9e7c5d096a5fff4112d57351d31c0e237b7bc39eb9497e4. All ten model/licence files match Git bytes. Signing secrets removed again. Not uploaded at this checkpoint.
+- Native sheet contract: drag the visible header handle to dismiss; the body is scrollable. The earlier body-swipe assertion failed and is not claimed passing. Latest car run 38829590338 failed before navigation because XCTest timed out requesting a screenshot; earlier moving-speed assertions passed on unchanged movement code, but the complete car suite is not reported as passing.
+
+User confirmed that meepmeep may be used provisionally for this internal build.
+This authorizes the provisional test identity, not a claim of commercial name clearance.
+
+### Delivered internal TestFlight build 40
+- Final focused native trip run 38832710745 PASSED: guest launch, typeahead, route preview, guidance, stationary zero, trip details/alternatives, native handle dismissal/reopen, farther parking selection, selected stop address and final dismissal.
+- Final app checks: 52 suites / 535 tests PASS, typecheck and lint PASS. Selected backend checks: 48 PASS (22 cloud plus 26 road/routing/classifier). Physical acoustics and real-road correctness remain unverified.
+- Submitted only source 90455c3ba2e581c4fecd6ffec98dcbe143260ca8, signed run 38832714554, IPA SHA-256 b008ffc4af26fcecc9e7c5d096a5fff4112d57351d31c0e237b7bc39eb9497e4.
+- EAS submission d98544d6-41cd-4832-95dd-6e1ef2d3b787 FINISHED. Apple status subsequently verified: 1.0.0 (40), VALID, IN_BETA_TESTING, not expired; uploaded 2026-10-15T21:08:54-07:00. External state READY_FOR_BETA_SUBMISSION: no public release made.
+- Initial optional test-notes upload was rejected as Enterprise-only before scheduling. Retried without that option; no subscription purchased. A transient Apple status authentication error resolved on the next status check; no duplicate binary submission made.
+- Internal testers can update the existing Avyro TestFlight listing to build 40; installed display name is meepmeep. Wake phrase is “Hey meepmeep” for English and French commands. Hosted gateway runs independently of this computer.

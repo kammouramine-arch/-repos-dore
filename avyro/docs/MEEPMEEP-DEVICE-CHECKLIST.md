@@ -79,3 +79,13 @@ The overspeed color/pulse logic is also covered by controlled tests.
   testing. Enhanced native voices depend on voices installed on the phone.
 - The meepmeep name is provisional pending commercial name clearance. Internal
   TestFlight is authorized; no public launch or paid subscription is authorized.
+
+For the native iOS trip sheet, drag its top handle downward to dismiss; the body
+scrolls through route alternatives and reports. Test adding a parking stop after
+closing and reopening the sheet, and confirm the selected stop appears in the trip.
+
+## Installation verified
+Apple reports version 1.0.0 build 40 VALID / IN_BETA_TESTING. Update the existing
+Avyro listing in TestFlight; the installed display name is meepmeep. Use “Hey
+meepmeep” for either English or French commands, after microphone permission and
+hands-free setup. The hosted gateway does not require this computer to stay on.
