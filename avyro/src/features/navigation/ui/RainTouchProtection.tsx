@@ -1,5 +1,5 @@
 import { t, useUiLanguage } from '@/ui/i18n';
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { AppState, Pressable, StyleSheet, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
@@ -15,6 +15,7 @@ function ActiveRainProtection() {
   useUiLanguage();
   const [locked, setLocked] = useState(false);
   const [holding, setHolding] = useState(false);
+  const unlockedDuringPress = useRef(false);
   const insets = useSafeAreaInsets();
   useEffect(() => {
     const subscription = AppState.addEventListener('change', state => {
@@ -31,10 +32,10 @@ function ActiveRainProtection() {
         accessibilityHint={locked ? t('Hold for three seconds. With VoiceOver, use the Unlock action.') : t('Navigation and voice stay active.')}
         accessibilityActions={locked ? [{ name: 'activate', label: t('Unlock') }] : undefined}
         onAccessibilityAction={locked ? unlock : undefined}
-        onPress={locked ? undefined : () => setLocked(true)}
-        onPressIn={() => setHolding(true)}
+        onPress={() => { if (!locked && !unlockedDuringPress.current) setLocked(true); }}
+        onPressIn={() => { unlockedDuringPress.current = false; setHolding(true); }}
         onPressOut={() => setHolding(false)}
-        onLongPress={locked ? unlock : undefined}
+        onLongPress={() => { if (locked) { unlockedDuringPress.current = true; unlock(); } }}
         delayLongPress={3000}
         style={[styles.button, holding && styles.holding]}
       >

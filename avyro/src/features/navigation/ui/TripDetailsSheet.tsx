@@ -23,6 +23,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   const [shade] = useState(() => new Animated.Value(0));
   const closing = useRef(false);
   const scrollOffset = useRef(0);
+  const dragFromHeader = useRef(false);
   const close = useRef(onClose);
   useEffect(() => { close.current = onClose; }, [onClose]);
   const dismiss = useCallback((after?: () => void) => {
@@ -43,13 +44,14 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   // PanResponder stores these callbacks; refs are read only during touch events.
   // eslint-disable-next-line react-hooks/refs
   const pan = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (_event, gesture) => scrollOffset.current <= 1 && gesture.dy > 10 && gesture.dy > Math.abs(gesture.dx) * 1.3,
+    onMoveShouldSetPanResponderCapture: (_event, gesture) => (dragFromHeader.current || scrollOffset.current <= 1) && gesture.dy > 10 && gesture.dy > Math.abs(gesture.dx) * 1.3,
     onPanResponderMove: (_event, gesture) => drag.setValue(Math.max(0, gesture.dy)),
     onPanResponderRelease: (_event, gesture) => {
       if (gesture.dy > 100 || (gesture.dy > 35 && gesture.vy > .65)) { haptics.selection(); dismiss(); }
       else Animated.spring(drag, { toValue: 0, damping: 24, stiffness: 250, useNativeDriver: true }).start();
     },
     onPanResponderTerminate: () => { Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); },
+    onPanResponderTerminationRequest: () => false,
   }), [drag, dismiss]);
   useEffect(() => { if (visible) { closing.current = false; drag.setValue(height); shade.setValue(0); scrollOffset.current = 0; } }, [visible, drag, shade, height]);
   const navigation = useNavigation();
@@ -96,8 +98,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   };
   const add = (parking = false) => dismiss(() => { if (parking) navigation.navigate('Nearby', { category: 'parking', addStop: true }); else navigation.navigate('Search', { addStop: true }); });
   return <Modal visible={visible} transparent animationType="none" onShow={reveal} onRequestClose={() => dismiss()}>
-    <View style={styles.backdrop}><Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,30,38,0.10)', opacity: shade }]} /><Pressable style={StyleSheet.absoluteFill} accessibilityLabel={t("Dismiss trip details")} onPress={() => { haptics.selection(); dismiss(); }} /><Animated.View {...pan.panHandlers} style={{ height: '82%', transform: [{ translateY: drag }] }}><GlassPanel style={styles.sheet}><ScrollView onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={16} contentContainerStyle={{ gap: 12 }}>
-      <View style={styles.grabber} /><AppText variant="title2">{t("Your trip")}</AppText>
+    <View style={styles.backdrop}><Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,30,38,0.10)', opacity: shade }]} /><Pressable style={StyleSheet.absoluteFill} accessibilityLabel={t("Dismiss trip details")} onPress={() => { haptics.selection(); dismiss(); }} /><Animated.View {...pan.panHandlers} style={{ height: '82%', transform: [{ translateY: drag }] }}><GlassPanel style={styles.sheet}><View onTouchStart={() => { dragFromHeader.current = true; }} testID="trip-sheet-drag-handle" style={styles.dragHeader}><View style={styles.grabber} /><AppText variant="title2">{t("Your trip")}</AppText></View><ScrollView onTouchStart={() => { dragFromHeader.current = false; }} bounces={false} onScroll={event => { scrollOffset.current = event.nativeEvent.contentOffset.y; }} scrollEventThrottle={16} contentContainerStyle={{ gap: 12 }}>
       {currentRoute?.source === 'TomTom' ? <AppText variant="caption" tone="tertiary">{t("Route © TomTom")}</AppText> : null}
       <AppText variant="headline">{destination?.name}</AppText><AppText variant="body" tone="secondary">{destination?.address}</AppText>
       {stops.map((stop, index) => <AppText key={stop.id} variant="footnote">{t("Stop")} {index + 1}: {stop.name} · {stop.address}</AppText>)}
@@ -115,4 +116,4 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
     </ScrollView></GlassPanel></Animated.View></View>
   </Modal>;
 };
-const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end' }, sheet: { flex: 1, padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
+const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end' }, sheet: { flex: 1, padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, dragHeader: { paddingBottom: 16, minHeight: 64 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
