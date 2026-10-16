@@ -8,6 +8,12 @@ import { AppText, GlassPanel, ManeuverIcon } from '@/ui/components';
 import { colors, spacing } from '@/ui/theme';
 import { formatDistance } from '@/utils/format';
 
+/**
+ * "Then turn right onto Rue Lindbergh", not "then turn right onto rue
+ * lindbergh": only the verb follows "Then"; street names keep their capitals.
+ */
+const lowerFirst = (text: string) => text.charAt(0).toLowerCase() + text.slice(1);
+
 export interface ManeuverBannerProps {
   progress: NavigationProgress;
   unit: DistanceUnit;
@@ -46,7 +52,7 @@ export const ManeuverBanner = ({ progress, unit }: ManeuverBannerProps) => { con
           color={colors.textTertiary}
         />
         <AppText variant="footnote" tone="tertiary" numberOfLines={1}>
-          {t("Then")} {(language === 'fr' ? progress.nextStep.instructionFr ?? progress.nextStep.instruction : progress.nextStep.instruction).toLowerCase()}
+          {t("Then")} {lowerFirst(language === 'fr' ? progress.nextStep.instructionFr ?? progress.nextStep.instruction : progress.nextStep.instruction)}
         </AppText>
       </Animated.View>
     ) : null}

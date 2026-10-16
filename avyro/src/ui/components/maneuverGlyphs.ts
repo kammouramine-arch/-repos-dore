@@ -70,3 +70,16 @@ export const glyphFor = (
   const entry = BY_MANEUVER[maneuver] ?? BY_MANEUVER.straight;
   return { glyph: GLYPHS[entry.glyph], mirrored: entry.mirrored ?? false };
 };
+
+/**
+ * The transform for a glyph, always spelled out.
+ *
+ * Never `undefined` for the unmirrored case: react-native-svg on iOS keeps a
+ * native transform when the prop is later removed, so a banner that had shown
+ * a left turn kept drawing every following right turn as a left one (EJXG3453
+ * 1:06–1:20, "Tournez à droite" beside a left arrow while the "then" row, which
+ * remounts each step, showed the correct right arrow). An explicit identity
+ * always overwrites what was there.
+ */
+export const glyphTransform = (mirrored: boolean): string =>
+  mirrored ? 'matrix(-1 0 0 1 24 0)' : 'matrix(1 0 0 1 0 0)';

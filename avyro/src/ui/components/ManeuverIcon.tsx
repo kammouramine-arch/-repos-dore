@@ -3,7 +3,7 @@ import Svg, { Circle, G, Path } from 'react-native-svg';
 
 import type { ManeuverType } from '@/core/domain/entities/route';
 import { colors } from '@/ui/theme';
-import { glyphFor } from './maneuverGlyphs';
+import { glyphFor, glyphTransform } from './maneuverGlyphs';
 
 export interface ManeuverIconProps {
   maneuver: ManeuverType;
@@ -20,8 +20,10 @@ export const ManeuverIcon = ({
   const stroke = { stroke: color, strokeWidth: 2.1, strokeLinecap: 'round', strokeLinejoin: 'round' } as const;
 
   return (
-    <Svg width={size} height={size} viewBox="0 0 24 24">
-      <G transform={mirrored ? 'translate(24, 0) scale(-1, 1)' : undefined}>
+    // Keyed by maneuver as well, so a change of direction redraws from scratch
+    // rather than patching native state (see glyphTransform).
+    <Svg key={maneuver} width={size} height={size} viewBox="0 0 24 24">
+      <G transform={glyphTransform(mirrored)}>
         {glyph.paths.map((path) => (
           <Path key={path} d={path} fill="none" {...stroke} />
         ))}
