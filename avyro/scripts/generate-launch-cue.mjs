@@ -14,6 +14,7 @@
  * 16-bit mono PCM), played once per cold launch by AvyroWakeModule with the
  * ambient audio category, so it respects the silent switch.
  */
+import { Buffer } from 'node:buffer';
 import { writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 
