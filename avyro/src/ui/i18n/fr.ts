@@ -1,6 +1,6 @@
 export const french: Record<string, string> = {
 "Hands-free unavailable. Tap to talk": "Mains libres indisponibles. Touchez pour parler",
-"Dismiss": "Fermer", "Tap to stop meepmeep and close this message.": "Touchez pour interrompre meepmeep et fermer ce message.",
+"Dismiss": "Fermer", "Speed warning": "Alerte de vitesse", "Only when the limit is known. Posted signs always take precedence over map data.": "Uniquement si la limitation est connue. Les panneaux priment toujours sur les données cartographiques.", "Visual": "Visuelle", "Tone": "Bip", "Voice": "Voix", "Signs prevail": "Panneaux prioritaires", "Speed limit unknown": "Limitation inconnue", "Tap to stop meepmeep and close this message.": "Touchez pour interrompre meepmeep et fermer ce message.",
 "Delete account": "Supprimer le compte", "Delete account?": "Supprimer le compte ?", "This permanently deletes your hosted profile and reports. Saved places on this iPhone remain.": "Cette action supprime définitivement votre profil en ligne et vos signalements. Les lieux enregistrés sur cet iPhone sont conservés.", "Deletion failed": "Échec de la suppression",
 
 "Driving perspective": "Perspective du guidage",

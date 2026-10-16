@@ -88,3 +88,11 @@ test('rejects an opposite or crossing matched carriageway despite high confidenc
   const contradictingHeading = fixes.map(fix => ({ ...fix, heading: 270 }));
   assert.equal(decodeRoadEvidence(evidence(), contradictingHeading, now).speedLimit, null);
 });
+
+test('returns the matched element geometry, oriented with travel, so the app can hold the limit along it', () => {
+  const result = decodeRoadEvidence(evidence(), fixes, now);
+  assert.equal(result.status, 'matched');
+  assert.deepEqual(result.segment.geometry, fixes.map(p => ({ latitude: p.latitude, longitude: p.longitude })));
+  const data = evidence(); data.route[0].properties.confidence = 0.6;
+  assert.equal('segment' in decodeRoadEvidence(data, fixes, now), false);
+});

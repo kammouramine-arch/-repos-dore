@@ -24,6 +24,7 @@ private final class AvyroSuggestions: NSObject, MKLocalSearchCompleterDelegate {
 // Stop drains that queue before resolving, so a command never races the wake tap.
 public final class AvyroWakeModule: Module {
   private var launchPlayer: AVAudioPlayer?
+  private var alertPlayer: AVAudioPlayer?
   private var launchCuePlayed = false
   private var engine: AVAudioEngine?
   private let inference = DispatchQueue(label: "app.avyro.wake", qos: .userInitiated)
@@ -65,6 +66,21 @@ public final class AvyroWakeModule: Module {
         self.launchPlayer = try AVAudioPlayer(contentsOf: url)
         self.launchPlayer?.play()
       } catch { /* Launch never waits for sound. */ }
+    }.runOnQueue(.main)
+    // Speed warning: two short descending tones, synthesised so no asset is
+    // shipped. Never changes the audio session while the microphone owns it;
+    // otherwise mixes with and briefly ducks other audio, so a playing podcast
+    // is lowered rather than stopped.
+    AsyncFunction("playAlertCue") {
+      guard UIApplication.shared.applicationState == .active else { return }
+      if self.engine == nil {
+        try? AVAudioSession.sharedInstance().setCategory(.playback, mode: .default, options: [.mixWithOthers, .duckOthers])
+      }
+      do {
+        self.alertPlayer = try AVAudioPlayer(data: Self.alertTone())
+        self.alertPlayer?.volume = 0.8
+        self.alertPlayer?.play()
+      } catch { /* A warning is visual first; sound is a courtesy. */ }
     }.runOnQueue(.main)
     AsyncFunction("suggestPlaces") { (query: String, latitude: Double?, longitude: Double?, promise: Promise) in
       self.suggestions?.cancel()
@@ -519,6 +535,30 @@ public final class AvyroWakeModule: Module {
       u16(UInt16(bitPattern: Int16(sample * 32767)))
     }
     return wav.base64EncodedString()
+  }
+
+  /// 16-bit mono PCM WAV: 988 Hz then 784 Hz, 110 ms each with 8 ms fades.
+  private static func alertTone() -> Data {
+    let rate = 22_050.0
+    var samples: [Int16] = []
+    for (frequency, gap) in [(988.0, 0.06), (784.0, 0.0)] {
+      let count = Int(rate * 0.11)
+      let fade = Int(rate * 0.008)
+      for n in 0..<count {
+        let envelope = min(1.0, Double(min(n, count - 1 - n)) / Double(fade))
+        samples.append(Int16(sin(2 * .pi * frequency * Double(n) / rate) * envelope * 0.55 * Double(Int16.max)))
+      }
+      samples.append(contentsOf: [Int16](repeating: 0, count: Int(rate * gap)))
+    }
+    var wav = Data()
+    func u32(_ value: UInt32) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
+    func u16(_ value: UInt16) { var v = value.littleEndian; withUnsafeBytes(of: &v) { wav.append(contentsOf: $0) } }
+    let bytes = UInt32(samples.count * 2)
+    wav.append(contentsOf: Array("RIFF".utf8)); u32(36 + bytes); wav.append(contentsOf: Array("WAVE".utf8))
+    wav.append(contentsOf: Array("fmt ".utf8)); u32(16); u16(1); u16(1); u32(UInt32(rate)); u32(UInt32(rate) * 2); u16(2); u16(16)
+    wav.append(contentsOf: Array("data".utf8)); u32(bytes)
+    samples.forEach { u16(UInt16(bitPattern: $0)) }
+    return wav
   }
 
   private func wakeError(_ message: String) -> NSError {

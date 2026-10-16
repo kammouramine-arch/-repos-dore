@@ -61,7 +61,11 @@ export function decodeRoadEvidence(data, fixes, receivedAt) {
   const mappedLimit = limit && Number.isInteger(limit.value) && limit.value > 0 && limit.value <= 300 && ['kmph', 'mph'].includes(limit.unit) ? { value: limit.value, unit: limit.unit === 'kmph' ? 'km/h' : 'mph' } : null;
   const speedLimit = authoritativeLimit(road.address, mappedLimit, receivedAt);
   // Segment metadata does not establish sign applicability to this approach.
-  return { ...unavailable, status: 'matched', speedLimit, ...(typeof road.address?.roadName === 'string' && road.address.roadName.length <= 150 ? { roadName: road.address.roadName } : {}), confidence: road.confidence, ...(road.address?.countryCode === 'FRA' ? { countryCode: 'FRA' } : {}), ...(road.roadUse === 'LocalStreet' || road.formOfWay === 'Roundabout' ? { legalRoadCategory: 'other-road' } : {}) };
+  // The matched element's shape lets the app keep this limit while the car is
+  // still on it, instead of discarding it after five seconds. Already checked
+  // above to be oriented with measured travel.
+  const segment = { geometry: shape.coordinates.map(([longitude, latitude]) => ({ latitude, longitude })) };
+  return { ...unavailable, status: 'matched', speedLimit, segment, ...(typeof road.address?.roadName === 'string' && road.address.roadName.length <= 150 ? { roadName: road.address.roadName } : {}), confidence: road.confidence, ...(road.address?.countryCode === 'FRA' ? { countryCode: 'FRA' } : {}), ...(road.roadUse === 'LocalStreet' || road.formOfWay === 'Roundabout' ? { legalRoadCategory: 'other-road' } : {}) };
 
 }
 

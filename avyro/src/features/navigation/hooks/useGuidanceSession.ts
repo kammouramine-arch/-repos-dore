@@ -1,4 +1,4 @@
-import { currentUiLanguage } from '@/ui/i18n';
+import { guidanceLanguageFor } from '@/voice/guidanceLanguage';
 import { useEffect, useRef } from 'react';
 
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
@@ -49,13 +49,8 @@ export const useGuidanceSession = () => {
 
     const logger = services.logger.scoped('guidance');
     const { navigation, preferences, location, conversation } = stores;
-    // 'bilingual' speaks the language the banner is written in. Following the
-    // device locale instead is how EJXG3453 had a French banner reading
-    // "Continuez tout droit" over a voice saying "Keep straight on".
-    const interfaceIsFrench = () => currentUiLanguage() === 'fr';
     const guidanceLanguage = () => {
-      const language = preferences.getState().preferences.voiceLanguage;
-      return language === 'fr-FR' || (language === 'bilingual' && interfaceIsFrench()) ? 'fr-FR' as const : 'en-US' as const;
+      return guidanceLanguageFor(preferences.getState().preferences.voiceLanguage);
     };
 
     // Guidance never speaks for itself. Announcements go to the conversation

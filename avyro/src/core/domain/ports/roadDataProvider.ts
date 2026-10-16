@@ -19,6 +19,12 @@ export interface RoadEvidence {
   speedLimit: { value: number; unit: 'km/h' | 'mph'; source?: 'municipal-order'; authority?: 'wattignies-23-405' } | null;
   recentSegmentSigns?: { type: string }[];
   position: UserPosition;
+  /**
+   * The matched road element, oriented in the direction of travel. A map
+   * element carries a single speed limit, so the limit holds exactly while the
+   * car is still on this geometry — see `isRoadEvidenceCurrent`.
+   */
+  segment?: { geometry: Coordinates[] };
 }
 
 export interface RoadDataProvider {

@@ -38,6 +38,11 @@ export interface Preferences {
   showTraffic: boolean;
   /** Opt-in sharing of a short GPS trace with the licensed road-data service. */
   roadInformation: boolean;
+  /**
+   * How an excess over a *known* limit is signalled. Always visual; optionally
+   * a short tone, or a spoken sentence. Never raised on an unknown limit.
+   */
+  speedWarning: 'visual' | 'sound' | 'voice';
 }
 
 export const DEFAULT_PREFERENCES: Preferences = {
@@ -64,4 +69,5 @@ export const DEFAULT_PREFERENCES: Preferences = {
   mapPerspective: 'perspective',
   showTraffic: true,
   roadInformation: false,
+  speedWarning: 'voice',
 };

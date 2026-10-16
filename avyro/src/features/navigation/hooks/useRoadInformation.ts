@@ -4,7 +4,7 @@ import { useServices } from '@/app/runtime/AppRuntime';
 import { useAuthStore, useLocationStore, useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { RoadEvidence } from '@/core/domain/ports/roadDataProvider';
-import { isRoadEvidenceCurrent } from '@/core/navigation/roadEvidence';
+import { isOnMatchedSegment, isRoadEvidenceCurrent, segmentAheadMeters } from '@/core/navigation/roadEvidence';
 import { distanceBetween } from '@/utils/geo';
 import { ROAD_DATA } from '@/config';
 
@@ -23,7 +23,9 @@ export function useRoadInformation(now: number): RoadEvidence | null {
   const pending = useRef<AbortController | null>(null);
   const lastRequest = useRef(0);
   const generation = useRef(0);
+  const latest = useRef<RoadEvidence | null>(null);
   const enabled = vehicle === 'car' && active && consent && guiding && roadDataProvider.isConfigured();
+  useEffect(() => { latest.current = result?.evidence ?? null; }, [result]);
   useEffect(() => { setRoadEvidence(enabled ? result?.evidence ?? null : null); return () => setRoadEvidence(null); }, [enabled, result, setRoadEvidence]);
   useEffect(() => {
     const subscription = AppState.addEventListener('change', (state) => {
@@ -48,7 +50,14 @@ export function useRoadInformation(now: number): RoadEvidence | null {
     const previous = trace.current.at(-1);
     if (previous && (fix.timestamp <= previous.timestamp || distanceBetween(previous.coordinates, fix.coordinates) > ROAD_DATA.maxTraceJumpMeters)) trace.current = [];
     trace.current = [...trace.current.filter((p) => clock - p.timestamp <= ROAD_DATA.traceTtlMs), fix].slice(-ROAD_DATA.maxTraceFixes);
-    if (pending.current || clock - lastRequest.current < ROAD_DATA.requestIntervalMs || trace.current.length < 2 || distanceBetween(trace.current[0].coordinates, fix.coordinates) < ROAD_DATA.minTraceMovementMeters) return;
+    // While the car is still on the matched element the limit is known: no
+    // request. Once it leaves, ask again promptly; a gateway without segment
+    // geometry keeps the original fixed cadence.
+    const held = latest.current;
+    const anchored = !!held && segmentAheadMeters(held) >= ROAD_DATA.segmentMinAheadMeters;
+    if (anchored && isOnMatchedSegment(held, fix, clock)) return;
+    const interval = anchored ? ROAD_DATA.segmentRetryMs : ROAD_DATA.requestIntervalMs;
+    if (pending.current || clock - lastRequest.current < interval || trace.current.length < 2 || distanceBetween(trace.current[0].coordinates, fix.coordinates) < ROAD_DATA.minTraceMovementMeters) return;
     const controller = new AbortController(); pending.current = controller; lastRequest.current = clock;
     const requestGeneration = generation.current;
     void roadDataProvider.lookup(trace.current, controller.signal).then((result) => {

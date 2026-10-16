@@ -178,6 +178,22 @@ export const ROAD_DATA = {
   evidenceTtlMs: 5000,
   maxEvidenceMovementMeters: 15,
   requestIntervalMs: 12000,
+  /**
+   * With segment geometry the app asks again only once the car has left the
+   * matched element, so a short retry closes the "—" gap at a road change
+   * without polling while the limit is known.
+   */
+  segmentRetryMs: 3000,
+  /**
+   * Matched-segment evidence is re-confirmed at least this often. Short enough
+   * that, should an element ever carry more than one limit, a stale value is
+   * bounded; long enough to stop polling on a long straight road.
+   */
+  segmentMaxAgeMs: 120000,
+  /** Segment geometry is trusted only if it reaches at least this far ahead of the car. */
+  segmentMinAheadMeters: 30,
+  /** Fix-to-segment distance beyond which the car is no longer on it. */
+  segmentMatchMeters: 12,
   traceTtlMs: 60000,
   maxTraceFixes: 12,
   maxTraceJumpMeters: 2000,
