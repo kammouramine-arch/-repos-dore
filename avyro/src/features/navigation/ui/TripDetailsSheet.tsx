@@ -1,6 +1,6 @@
 import { t, useUiLanguage } from '@/ui/i18n';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { Alert, Animated, Modal, PanResponder, Pressable, ScrollView, StyleSheet, View, useWindowDimensions } from 'react-native';
+import { Alert, Modal, Platform, ScrollView, StyleSheet, View } from 'react-native';
 import { useNavigation } from '@react-navigation/native';
 import { useServices, useStores } from '@/app/runtime/AppRuntime';
 import { useNavigationStore, usePreferencesStore } from '@/app/stores/hooks';
@@ -17,43 +17,20 @@ import { useReducedMotion } from 'react-native-reanimated';
 
 export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClose(): void }) => {
   useUiLanguage();
-  const { height } = useWindowDimensions();
   const reduced = useReducedMotion();
-  const [drag] = useState(() => new Animated.Value(height));
-  const [shade] = useState(() => new Animated.Value(0));
-  const closing = useRef(false);
-  const scrollOffset = useRef(0);
-  const dragFromHeader = useRef(false);
-  const close = useRef(onClose);
-  useEffect(() => { close.current = onClose; }, [onClose]);
+  const afterDismiss = useRef<(() => void) | undefined>(undefined);
   const dismiss = useCallback((after?: () => void) => {
-    if (closing.current) return;
-    closing.current = true;
-    Animated.parallel([
-      Animated.timing(drag, { toValue: height, duration: reduced ? 0 : 230, useNativeDriver: true }),
-      Animated.timing(shade, { toValue: 0, duration: reduced ? 0 : 230, useNativeDriver: true }),
-    ]).start(({ finished }) => { if (finished) { close.current(); after?.(); } });
-  }, [drag, shade, height, reduced]);
-  const reveal = useCallback(() => {
-    if (reduced) { drag.setValue(0); shade.setValue(1); return; }
-    Animated.parallel([
-      Animated.spring(drag, { toValue: 0, damping: 30, stiffness: 290, mass: 1, overshootClamping: true, useNativeDriver: true }),
-      Animated.timing(shade, { toValue: 1, duration: 240, useNativeDriver: true }),
-    ]).start();
-  }, [drag, shade, reduced]);
-  // PanResponder stores these callbacks; refs are read only during touch events.
-  // eslint-disable-next-line react-hooks/refs
-  const pan = useMemo(() => PanResponder.create({
-    onMoveShouldSetPanResponderCapture: (_event, gesture) => (dragFromHeader.current || scrollOffset.current <= 1) && gesture.dy > 10 && gesture.dy > Math.abs(gesture.dx) * 1.3,
-    onPanResponderMove: (_event, gesture) => drag.setValue(Math.max(0, gesture.dy)),
-    onPanResponderRelease: (_event, gesture) => {
-      if (gesture.dy > 100 || (gesture.dy > 35 && gesture.vy > .65)) { haptics.selection(); dismiss(); }
-      else Animated.spring(drag, { toValue: 0, damping: 24, stiffness: 250, useNativeDriver: true }).start();
-    },
-    onPanResponderTerminate: () => { Animated.spring(drag, { toValue: 0, useNativeDriver: true }).start(); },
-    onPanResponderTerminationRequest: () => false,
-  }), [drag, dismiss]);
-  useEffect(() => { if (visible) { closing.current = false; drag.setValue(height); shade.setValue(0); scrollOffset.current = 0; } }, [visible, drag, shade, height]);
+    afterDismiss.current = after;
+    haptics.selection();
+    onClose();
+    // UIKit owns the iOS sheet transition. Navigate only once it has finished.
+    if (Platform.OS !== 'ios') { afterDismiss.current = undefined; after?.(); }
+  }, [onClose]);
+  const didDismiss = useCallback(() => {
+    const action = afterDismiss.current;
+    afterDismiss.current = undefined;
+    action?.();
+  }, []);
   const navigation = useNavigation();
   const stores = useStores();
   const services = useServices();
@@ -97,8 +74,10 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
     finally { setFeedbackBusy(null); }
   };
   const add = (parking = false) => dismiss(() => { if (parking) navigation.navigate('Nearby', { category: 'parking', addStop: true }); else navigation.navigate('Search', { addStop: true }); });
-  return <Modal visible={visible} transparent animationType="none" onShow={reveal} onRequestClose={() => dismiss()}>
-    <View style={styles.backdrop}><Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, { backgroundColor: 'rgba(8,30,38,0.10)', opacity: shade }]} /><Pressable style={StyleSheet.absoluteFill} accessibilityLabel={t("Dismiss trip details")} onPress={() => { haptics.selection(); dismiss(); }} /><Animated.View {...pan.panHandlers} style={{ height: '82%', transform: [{ translateY: drag }] }}><GlassPanel style={styles.sheet}><View onTouchStart={() => { dragFromHeader.current = true; }} testID="trip-sheet-drag-handle" style={styles.dragHeader}><View style={styles.grabber} /><AppText variant="title2">{t("Your trip")}</AppText></View><ScrollView onTouchStart={() => { dragFromHeader.current = false; }} bounces alwaysBounceVertical onScroll={event => { const offset = event.nativeEvent.contentOffset.y; scrollOffset.current = offset; if (offset < -65 && !closing.current) { haptics.selection(); dismiss(); } }} scrollEventThrottle={16} contentContainerStyle={{ gap: 12 }}>
+  return <Modal visible={visible} presentationStyle="pageSheet" allowSwipeDismissal animationType={reduced ? 'none' : 'slide'} backdropColor="transparent" onDismiss={didDismiss} onRequestClose={() => dismiss()}>
+    <GlassPanel style={styles.sheet}>
+      <View testID="trip-sheet-drag-handle" style={styles.dragHeader}><View style={styles.grabber} /><AppText variant="title2">{t("Your trip")}</AppText></View>
+      <ScrollView bounces alwaysBounceVertical contentContainerStyle={{ gap: 12, paddingBottom: 24 }}>
       {currentRoute?.source === 'TomTom' ? <AppText variant="caption" tone="tertiary">{t("Route © TomTom")}</AppText> : null}
       <AppText variant="headline">{destination?.name}</AppText><AppText variant="body" tone="secondary">{destination?.address}</AppText>
       {stops.map((stop, index) => <AppText key={stop.id} variant="footnote">{t("Stop")} {index + 1}: {stop.name} · {stop.address}</AppText>)}
@@ -113,7 +92,7 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
       {nearReports.length ? nearReports.map(({ report, aheadMeters }) => <View key={report.id} style={{ gap: 8 }}><AppText variant="footnote">{INCIDENT_CATALOG.find(item => item.category === report.category)?.title} · {formatDistance(aheadMeters, unit)} {t("ahead · unverified")}</AppText><View style={styles.actions}><Button label={t("Still there")} size="medium" disabled={!!feedbackBusy} onPress={() => void giveFeedback(report.id, 'confirmed')} /><Button label={t("Not seen")} size="medium" variant="secondary" disabled={!!feedbackBusy} onPress={() => void giveFeedback(report.id, 'not-seen')} /></View></View>) : reportStatus === 'Community observations · unverified' ? <AppText variant="footnote" tone="secondary">{t("No active community observations returned near this route.")}</AppText> : null}
       <AppText variant="footnote" tone="secondary">{t("Community pins are unverified observations. Scheduled departures and a best-time-to-leave prediction are not available yet.")}</AppText>
       <Button label={t("Back to navigation")} variant="ghost" onPress={() => dismiss()} />
-    </ScrollView></GlassPanel></Animated.View></View>
+    </ScrollView></GlassPanel>
   </Modal>;
 };
-const styles = StyleSheet.create({ backdrop: { flex: 1, justifyContent: 'flex-end' }, sheet: { flex: 1, padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, dragHeader: { paddingBottom: 16, minHeight: 64 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
+const styles = StyleSheet.create({ sheet: { flex: 1, padding: spacing.lg, paddingBottom: 32, borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }, dragHeader: { paddingBottom: 16, minHeight: 64 }, grabber: { width: 42, height: 5, borderRadius: 3, backgroundColor: '#75929C', alignSelf: 'center', marginBottom: 6 }, actions: { flexDirection: 'row', gap: 12 } });
