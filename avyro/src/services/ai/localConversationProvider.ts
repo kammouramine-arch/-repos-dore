@@ -4,6 +4,7 @@ import { canReportIncident } from '@/core/navigation/reportEligibility';
 import type { UserPosition } from '@/core/domain/entities/geo';
 import type { IncidentReporter } from '@/core/domain/ports/incidentReporter';
 import { parseCommand } from '@/core/conversation/commandParser';
+import { savedPlaceAlias } from '@/core/conversation/savedPlaceAlias';
 import { isConfidentMatch, rankDestinationCandidates } from '@/core/conversation/destinationMatch';
 import { REPLIES } from '@/core/conversation/replyText';
 import type {
@@ -243,8 +244,17 @@ export const createLocalConversationProvider = ({
       case 'navigate-saved':
         return goToSaved(intent, request);
 
-      case 'navigate-to-place':
-        return goToPlace(intent, request);
+      case 'navigate-to-place': {
+        // Every producer converges here — the parser, the French parser and the
+        // hosted classifier alike. A destination that is really "home" or
+        // "work" goes to the saved slot and never to the geocoder, whichever
+        // of them sent it. A missing slot asks to be configured; it does not
+        // fall back to a search.
+        const slot = savedPlaceAlias(intent.query);
+        return slot
+          ? goToSaved({ kind: 'navigate-saved', slot }, request)
+          : goToPlace(intent, request);
+      }
 
       case 'find-nearby':
         return suggestStop(intent, request);

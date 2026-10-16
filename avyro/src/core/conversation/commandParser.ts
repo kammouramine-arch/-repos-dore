@@ -1,4 +1,5 @@
 import type { VoiceIntent } from '@/core/domain/entities/conversation';
+import { savedPlaceAlias } from './savedPlaceAlias';
 import { normaliseUtterance } from './wakePhrase';
 
 /**
@@ -204,7 +205,10 @@ const RULES: Rule[] = [
      */
     intent: (match) => {
       const query = cleanDestinationQuery(match[1] ?? '');
-      return query.length > 0 ? { kind: 'navigate-to-place', query } : null;
+      if (query.length === 0) return null;
+      // "Take me to home" is a saved place, never a search for the word.
+      const slot = savedPlaceAlias(query);
+      return slot ? { kind: 'navigate-saved', slot } : { kind: 'navigate-to-place', query };
     },
     patterns: [
       new RegExp(`\\b${MOTION}\\s+(?:me|us)\\s+to\\s+(.+)$`),
@@ -236,6 +240,9 @@ export const parseCommand = (transcript: string): VoiceIntent => {
   }
   const french = parseFrenchCommand(utterance);
   if (french) return french;
+  // "Home please", "back home" — the alias alone is still an order.
+  const bare = savedPlaceAlias(utterance.replace(/^(?:let s go|lets go|go|on rentre|rentrons)\s+/, ''));
+  if (bare) return { kind: 'navigate-saved', slot: bare };
 
   for (const rule of RULES) {
     for (const pattern of rule.patterns) {
@@ -254,6 +261,9 @@ export const parseCommand = (transcript: string): VoiceIntent => {
 };
 
 const parseFrenchCommand = (text: string): VoiceIntent | null => {
+  // Going home is said many ways in French, and none of them is a search.
+  if (/\b(?:je rentre|on rentre|rentre|rentrons|rentrer|ramene moi|ramene nous|raccompagne moi)\b(?:\s+(?:a la maison|chez moi|chez nous|au domicile|a mon domicile|a la maison s il te plait))?$/.test(text)) return { kind: 'navigate-saved', slot: 'home' };
+  if (/^(?:direction|cap sur|en route pour)\s+(?:la\s+)?(?:maison|chez moi|domicile)$/.test(text)) return { kind: 'navigate-saved', slot: 'home' };
   if (/\b(?:emmene moi|amene moi|va)\s+la bas\b/.test(text)) return { kind: 'navigate-referent' };
   if (/\b(?:annule|arrete|termine)\b.*\b(?:navigation|guidage|itineraire|trajet)\b/.test(text)) return { kind: 'cancel-navigation' };
   if (/\b(?:recalcule|change|nouvel|autre)\b.*\b(?:itineraire|route|trajet)\b/.test(text)) return { kind: 'reroute' };
@@ -271,8 +281,9 @@ const parseFrenchCommand = (text: string): VoiceIntent | null => {
   const match = text.match(motion);
   if (!match) return null;
   const query = (match[1] ?? '').replace(/\s+s il te plait$/, '').trim();
-  if (/^(?:la )?maison$|^moi$/.test(query)) return { kind: 'navigate-saved', slot: 'home' };
-  if (/^(?:le )?(?:travail|bureau)$/.test(query)) return { kind: 'navigate-saved', slot: 'work' };
+  if (/^moi$/.test(query)) return { kind: 'navigate-saved', slot: 'home' };
+  const slot = savedPlaceAlias(query);
+  if (slot) return { kind: 'navigate-saved', slot };
   if (/^(?:la )?bas$/.test(query)) return { kind: 'navigate-referent' };
   return query ? { kind: 'navigate-to-place', query } : null;
 };
