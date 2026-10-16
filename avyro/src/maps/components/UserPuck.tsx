@@ -3,7 +3,7 @@ import { Marker } from 'react-native-maps';
 import { Animated, Platform } from 'react-native';
 
 import type { Coordinates } from '@/core/domain/entities/geo';
-import { AvyroRoadster } from './AvyroRoadster';
+import { NavigationArrow } from './NavigationArrow';
 import { puckMotionPath } from '@/maps/geometry/puckMotion';
 import { distanceBetween } from '@/utils/geo';
 
@@ -66,7 +66,7 @@ const UserPuckComponent = ({ coordinate, headingDegrees, screenHeadingDegrees, c
     zIndex={20}
   >
     <Animated.View style={Platform.OS === 'ios' ? { transform: [{ rotate: rotation.interpolate({ inputRange: [-360, 360], outputRange: ['-360deg', '360deg'] }) }] } : undefined}>
-    <AvyroRoadster />
+    <NavigationArrow />
     </Animated.View>
   </Marker.Animated>
 ); };

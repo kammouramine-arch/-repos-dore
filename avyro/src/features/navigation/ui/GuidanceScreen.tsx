@@ -17,7 +17,7 @@ import { MAP_DEFAULTS } from "@/config";
 import { ActiveRouteOverlay } from "@/maps/components/ActiveRouteOverlay";
 import { DestinationMarker } from "@/maps/components/DestinationMarker";
 import { AvyroMapView } from "@/maps/components/AvyroMapView";
-import { UserPuck } from "@/maps/components/UserPuck";
+import { FollowPuck } from "@/maps/components/FollowPuck";
 import { IncidentMapLayer } from '@/maps/components/IncidentMapLayer';
 import { AppText, Button, GlassPanel } from "@/ui/components";
 import { spacing } from "@/ui/theme";
@@ -30,8 +30,6 @@ import { useRoadAhead } from '../hooks/useRoadAhead';
 import { RoadAheadMarkers, RoadAheadNotice } from './RoadAheadLayer';
 import { TripStatusBar } from "./TripStatusBar";
 import { canGuidePosition } from '@/core/navigation/routeTracker';
-import type { Coordinates } from '@/core/domain/entities/geo';
-import { projectedPuckBearing, puckBearingPoint } from '@/maps/geometry/puckBearing';
 
 const KEEP_AWAKE_TAG = "avyro-guidance";
 
@@ -48,22 +46,18 @@ export const GuidanceScreen = () => {
   const mapRef = useRef<MapView>(null);
   const [following, setFollowing] = useState(true);
   const [bottomHeight, setBottomHeight] = useState(0);
+  // The camera's heading matters only once the driver has taken the map: the
+  // arrow is then drawn relative to wherever they left it pointing. While
+  // following, FollowPuck owns the camera and reading it back would only
+  // re-render this screen ten times a second for nothing.
   const [cameraHeading, setCameraHeading] = useState(0);
-  const [puckScreenHeading, setPuckScreenHeading] = useState<number | null>(null);
-  const puckProjection = useRef<{ coordinate: Coordinates; heading: number } | null>(null);
   const cameraRead = useRef({ pending: false, at: 0 });
   const readCamera = useCallback(() => {
     if (cameraRead.current.pending || Date.now() - cameraRead.current.at < 100) return;
     cameraRead.current = { pending: true, at: Date.now() };
-    const map = mapRef.current, frame = puckProjection.current;
+    const map = mapRef.current;
     if (!map) { cameraRead.current.pending = false; return; }
-    void Promise.all([map.getCamera(), frame ? map.pointForCoordinate(frame.coordinate) : null, frame ? map.pointForCoordinate(puckBearingPoint(frame.coordinate, frame.heading)) : null]).then(([camera, from, to]) => {
-      setCameraHeading(camera.heading);
-      if (frame === puckProjection.current && from && to) {
-        const angle = projectedPuckBearing(from, to);
-        if (angle != null) setPuckScreenHeading(previous => previous != null && Math.abs(((angle - previous + 540) % 360) - 180) < .5 ? previous : angle);
-      }
-    }).catch(() => {}).finally(() => { cameraRead.current.pending = false; });
+    void map.getCamera().then(camera => setCameraHeading(camera.heading)).catch(() => {}).finally(() => { cameraRead.current.pending = false; });
   }, []);
   // Overview suspends the follow camera and fits the whole route, so a driver
   // stopped at lights can see what is coming without losing their place.
@@ -83,11 +77,9 @@ export const GuidanceScreen = () => {
   const lastPosition = useLocationStore((state) => state.position);
   const route = useNavigationStore((state) => state.route);
   const navigationHeading = progress && progress.distanceFromRouteMeters <= 25 ? progress.courseDegrees : lastPosition?.speed != null && lastPosition.speed >= 1.5 && lastPosition.heading != null && lastPosition.heading >= 0 ? lastPosition.heading : null;
-  useEffect(() => {
-    const coordinate = progress && progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates;
-    if (coordinate && navigationHeading != null) puckProjection.current = { coordinate, heading: navigationHeading };
-    readCamera();
-  }, [progress, lastPosition, navigationHeading, readCamera]);
+  const onRoute = !!progress && progress.distanceFromRouteMeters <= 25;
+  const puckCoordinate = onRoute ? progress!.snappedPosition : lastPosition?.coordinates ?? progress?.snappedPosition ?? null;
+  const followCamera = following && !overview;
 
   useGuidanceSession();
 
@@ -100,20 +92,8 @@ export const GuidanceScreen = () => {
     };
   }, [preferences.keepScreenAwake]);
 
-  useEffect(() => {
-    if (!progress || !following || overview) return;
-
-    mapRef.current?.animateCamera(
-      {
-        center: progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition,
-        ...(navigationHeading != null ? { heading: navigationHeading } : {}),
-        pitch: preferences.mapPerspective === 'flat' ? 0 : MAP_DEFAULTS.navigationCamera.pitch,
-        zoom: MAP_DEFAULTS.navigationCamera.zoom,
-        altitude: MAP_DEFAULTS.navigationCamera.altitude,
-      },
-      { duration: 650 },
-    );
-  }, [progress, following, overview, lastPosition, navigationHeading, preferences.mapPerspective]);
+  // The follow camera lives in FollowPuck, driven by the same per-frame pose
+  // as the arrow, so the two can never drift apart.
 
   // Fitting the route is a one-shot action, not a camera that tracks: the
   // driver asked to see the trip, not to have it recomposed under them.
@@ -152,8 +132,8 @@ export const GuidanceScreen = () => {
         initialRegion={initialRegion}
         pitchEnabled
         onPanDrag={() => setFollowing(false)}
-        onRegionChange={readCamera}
-        onRegionChangeComplete={readCamera}
+        onRegionChange={followCamera ? undefined : readCamera}
+        onRegionChangeComplete={followCamera ? undefined : readCamera}
       >
         <IncidentMapLayer />
         <RoadAheadMarkers items={roadAhead.items} />
@@ -173,21 +153,16 @@ export const GuidanceScreen = () => {
           />
         ) : null}
 
-        {progress ? (
-          <UserPuck
-            coordinate={progress.distanceFromRouteMeters <= 25 ? progress.snappedPosition : lastPosition?.coordinates ?? progress.snappedPosition}
+        {puckCoordinate ? (
+          <FollowPuck
+            mapRef={mapRef}
+            coordinate={puckCoordinate}
             headingDegrees={navigationHeading}
-            screenHeadingDegrees={puckScreenHeading}
-            cameraHeadingDegrees={cameraHeading}
-            routeGeometry={progress.distanceFromRouteMeters <= 25 ? route?.geometry : undefined}
-            segmentIndex={progress.segmentIndex}
-          />
-        ) : lastPosition ? (
-          <UserPuck
-            coordinate={lastPosition.coordinates}
-            headingDegrees={navigationHeading}
-            screenHeadingDegrees={puckScreenHeading}
-            cameraHeadingDegrees={cameraHeading}
+            routeGeometry={onRoute ? route?.geometry : undefined}
+            segmentIndex={progress?.segmentIndex}
+            following={followCamera}
+            pitch={preferences.mapPerspective === 'flat' ? 0 : MAP_DEFAULTS.navigationCamera.pitch}
+            freeCameraHeading={cameraHeading}
           />
         ) : null}
       </AvyroMapView>
