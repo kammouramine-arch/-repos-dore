@@ -95,3 +95,8 @@ Private desktop replay of 237.46 seconds from the supplied road recording produc
 - Rain run 38825996079 verified activation and blocked underlying taps, but failed hold-to-unlock; lifecycle checks were not reached.
 - 4680e04 separates the fixed trip-sheet drag header from the scroll view, disables scroll bounce and prevents responder takeover during dismissal. Rain unlock retains a stable long-press handler and guards against release immediately re-locking the shield. Both require the next native results; source 28c323b IPA is now superseded and must not be submitted.
 - Refreshed checks: typecheck/lint pass, 52 app suites / 535 tests pass. Signing and native interaction workflows running from 4680e04. No build 40 uploaded to Apple yet.
+
+### Native gesture redesign
+- Rain native run 38827589486 passed: lock, blocked underlying summary tap, deliberate hold unlock, relock and background/foreground unlock. Actual rain, gloves and VoiceOver remain physical checks.
+- Car run 38827585208 again passed 0 → 36 km/h and moving guidance, but failed custom header swipe dismissal. Guest run 38827692253 failed content swipe dismissal. Those are recorded failures, not complete passes.
+- After these repeat failures, 86b7528 replaces the custom animated modal/PanResponder layer with the installed React Native version's native iOS pageSheet + allowSwipeDismissal. Glass content remains; add-stop navigation waits for UIKit's onDismiss. This supersedes the earlier JavaScript gesture workarounds. Typecheck/lint pass; native guest/car validation and final signing are running. Earlier build-40 candidate files must not be submitted.
