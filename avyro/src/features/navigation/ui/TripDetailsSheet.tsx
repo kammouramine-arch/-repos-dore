@@ -26,11 +26,6 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
     // UIKit owns the iOS sheet transition. Navigate only once it has finished.
     if (Platform.OS !== 'ios') { afterDismiss.current = undefined; after?.(); }
   }, [onClose]);
-  const didDismiss = useCallback(() => {
-    const action = afterDismiss.current;
-    afterDismiss.current = undefined;
-    action?.();
-  }, []);
   const navigation = useNavigation();
   const stores = useStores();
   const services = useServices();
@@ -43,10 +38,18 @@ export const TripDetailsSheet = ({ visible, onClose }: { visible: boolean; onClo
   const [reports, setReports] = useState<ReviewedIncident[]>([]);
   const [reportStatus, setReportStatus] = useState('Checking community observations…');
   const [now, setNow] = useState(Date.now);
-  useEffect(() => { const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, []);
+  useEffect(() => { if (!visible) return; const timer = setInterval(() => setNow(Date.now()), 1000); return () => clearInterval(timer); }, [visible]);
   const nearReports = useMemo(() => routeIndex ? reportsNearRoute(reports, routeIndex, (progress ? locateOnRoute(routeIndex, progress.snappedPosition)?.travelledMeters ?? 0 : 0), now) : [], [reports, routeIndex, progress, now]);
   const routeContext = JSON.stringify([destination?.id, ...stops.map(stop => stop.id)]);
   const [alternatives, setAlternatives] = useState<{ context: string; routes: Route[]; status: string } | null>(null);
+  const didDismiss = useCallback(() => {
+    const action = afterDismiss.current;
+    afterDismiss.current = undefined;
+    setAlternatives(null);
+    setReports([]);
+    setReportStatus('Checking community observations…');
+    action?.();
+  }, []);
   const routes = alternatives?.context === routeContext ? alternatives.routes : [];
   const status = alternatives?.context === routeContext ? alternatives.status : stores.location.getState().position ? 'Checking routes…' : 'Waiting for location';
   useEffect(() => {

@@ -256,7 +256,7 @@ export const GuidanceScreen = () => {
           />
         ) : <GlassPanel style={styles.waiting}><AppText variant="footnote" tone="secondary" style={{ flexShrink: 1 }}>{t("Waiting for an accurate GPS fix")}</AppText><Button label={t("End")} variant="danger" size="medium" onPress={endTrip} /></GlassPanel>}
       </View>
-      {details ? <TripDetailsSheet visible onClose={() => setDetails(false)} /> : null}
+      <TripDetailsSheet visible={details} onClose={() => setDetails(false)} />
     </View>
   );
 };
