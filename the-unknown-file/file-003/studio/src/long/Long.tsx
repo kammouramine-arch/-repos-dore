@@ -258,7 +258,7 @@ const SHOTS: Sh[] = [
   mk(T.outdoorWork - 0.2, T.weKnow - 0.2, (t) => <Odds t={t} />),
   mk(T.weKnow - 0.2, T.recordNot - 0.2, (t, d) => <><RoyPhoto t={t} dur={d} mode="hat" /><Shade k={0.7} side="left" /><Emph t={t} text="RECOGNIZED BY GUINNESS WORLD RECORDS" at={lc(T.documented, T.weKnow - 0.2) + 0.5} y={0.42} size={64} /><Chapter t={t} n={8} title="The Record" top /></>),
   mk(T.recordNot - 0.2, T.seven2 - 0.3, (t) => <RecordCard at={lc(T.mostStrikes, T.recordNot - 0.2) - 0.6} />),
-  mk(T.seven2 - 0.3, T.died - 0.2, (t, d) => <><SevenReveal t={t} at={0.1} dur={1.2} /><Emph t={t} text="NEVER RECORDED BEING STRUCK AGAIN" at={lc(T.never, T.seven2 - 0.3)} y={0.8} size={52} /></>),
+  mk(T.seven2 - 0.3, T.died - 0.2, (t, d) => <><SevenReveal t={t} at={0.1} dur={1.2} /><Emph t={t} text="NEVER RECORDED BEING STRUCK AGAIN" at={lc(T.never, T.seven2 - 0.3)} y={0.93} size={52} /></>),
   mk(T.died - 0.2, T.remains - 0.1, () => <Memorial />, { fi: 0.8 }),
   mk(T.remains - 0.1, T.reminder - 0.2, (t, d) => <AfterStorm t={t} src="photos/shen_fog_ocean.jpg" />, { fi: 0.8 }),
   mk(T.reminder - 0.2, T.worked - 0.2, () => <Archive src="arch_valley" tag="ARCHIVE FOOTAGE · SHENANDOAH VALLEY, 1936" credit={ARCH36} />),

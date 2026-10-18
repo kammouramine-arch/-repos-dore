@@ -1,0 +1,5 @@
+renders/
+audio/master/
+studio/node_modules
+studio/out/
+data/*.err
