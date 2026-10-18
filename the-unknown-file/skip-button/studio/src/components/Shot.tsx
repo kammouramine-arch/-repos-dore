@@ -28,7 +28,8 @@ export const Shot: React.FC<{
 }> = ({ from, to, fadeIn = 0.6, fadeOut = 0.6, inT = "fade", outT = "fade", z = 0, name, children }) => {
   const { fps } = useVideoConfig();
   const start = Math.round(from * fps);
-  const dur = Math.max(1, Math.round((to - from) * fps));
+  // end frame computed from the absolute end time so consecutive shots tile exactly (no 1-frame gaps)
+  const dur = Math.max(1, Math.round(to * fps) - start);
   return (
     <Sequence from={start} durationInFrames={dur} name={name} layout="none">
       <Ctx.Provider value={{ dur: dur / fps }}>
