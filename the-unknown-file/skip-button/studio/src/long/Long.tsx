@@ -37,8 +37,8 @@ const lc = (abs: number, shotStart: number) => abs - shotStart;
 
 /** Morning walk to the café (tracking). */
 const MorningWalk: React.FC<{ t: number; dur: number }> = ({ t, dur }) => {
-  const total = 430 * (dur - 0.4);
-  const d = walkDist(t, 0, total, 430, 0.4);
+  const total = 430 * (dur + 6);
+  const d = walkDist(t + 2.5, 0, total, 430, 0.4);
   const me = walkPose(d, { x0: 0, dir: 1, total, energy: 0.7 }, { expr: "neutral" });
   return (
     <View cam={{ cx: me.root[0] + 300, cy: -1150, w: 5200 }} style={{ filter: GRADE.warm }}>
@@ -193,7 +193,7 @@ const SHOTS: Sh[] = [
   mk(467.6, 474.0, (t) => <B.KitchenTogether t={t} mode="talk" cam={{ cx: 250, cy: -1000, w: 3000 }} />, { inT: "cut" }),
   mk(474.0, 476.5, (t) => <B.KitchenTogether t={t} mode="laugh" cam={{ cx: -100, cy: -1000, w: 2600 }} />, { inT: "cut" }),
   mk(476.5, 479.6, (t) => <B.KitchenTogether t={t} mode="quiet" cam={{ cx: 0, cy: -980, w: 3600 }} />, { inT: "cut" }),
-  mk(479.6, 488.4, (t) => <B.KitchenTogether t={t} mode="pocket" cam={{ cx: -380, cy: -850, w: 2000 }} />, { inT: "cut" }),
+  mk(479.6, 488.4, (t) => <B.KitchenTogether t={t} mode="pocket" cam={{ cx: -380, cy: -700, w: 2300 }} />, { inT: "cut" }),
   mk(488.4, 496.8, (t) => <B.KitchenTogether t={t} mode="listen" cam={{ cx: 300, cy: -980, w: 2700 }} />, { inT: "cut" }),
   mk(496.8, 508.6, (t) => <B.KitchenTogether t={t + 3} mode="talk" cam={{ cx: 0, cy: -980, w: 3600 + t * 120 }} />, { fi: 0.6 }),
   mk(508.6, 519.6, (t) => <><View cam={{ cx: 1300, cy: -1350, w: 3800 + t * 200 }} style={{ filter: "brightness(0.85)" }}><HouseFront t={t} door={0} /></View><Fade o={1 - ramp(t, 0, 1.5)} /></>, { fi: 1.2 }),

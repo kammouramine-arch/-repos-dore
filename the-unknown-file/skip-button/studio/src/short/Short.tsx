@@ -96,7 +96,7 @@ const SHOTS: Sh[] = [
   mk(103.2, 104.55, (t) => <B.KitchenTogether t={t} mode="sitdown" k={ramp(t, 0, 1.2, easeInOut)} />),
   mk(104.55, 105.6, (t) => <B.KitchenTogether t={t} mode="talk" cam={{ cx: 450, cy: -1000, w: 1900 }} />, { inT: "cut" }),
   mk(105.6, 106.8, (t) => <B.KitchenTogether t={t} mode="laugh" cam={{ cx: -400, cy: -1000, w: 1900 }} />, { inT: "cut" }),
-  mk(106.8, 111.2, (t) => <B.KitchenTogether t={t} mode="pocket" cam={{ cx: -350, cy: -900, w: 1900 }} />),
+  mk(106.8, 111.2, (t) => <B.KitchenTogether t={t} mode="pocket" cam={{ cx: -350, cy: -700, w: 1900 }} />),
   // 12 — the good parts
   mk(111.2, 116.5, (t) => <B.KitchenTogether t={t} mode="quiet" cam={{ cx: 0, cy: -950, w: 2400 + t * 260 }} />),
   mk(116.5, 121.3, (t) => <><View cam={{ cx: 1300, cy: -1300, w: 2400 + t * 220 }} style={{ filter: "brightness(0.85)" }}><HouseFront t={t} door={0} mood="night" /></View><Fade o={1 - ramp(t, 0, 1.2)} /></>, { fi: 1.0 }),

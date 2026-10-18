@@ -83,21 +83,21 @@ export const impatient = (sighAt = 1.4, phoneAt = 99) => (t: number, base: Pose)
 /* ============================================================================================
  * FACE CLOSE-UP lit by the phone (any set behind, darkened)
  * ========================================================================================== */
-export const PhoneFace: React.FC<{ t: number; expr?: Expr | keyof typeof EXPR; exprB?: Expr | keyof typeof EXPR; mixAt?: number; look?: Look; bg?: React.ReactNode; yaw?: number; dark?: number; push?: number; blinkOff?: boolean }> = ({ t, expr = "curious", exprB, mixAt = 99, look = KID, bg, yaw = -35, dark = 0.45, push = 0.06 }) => {
+export const PhoneFace: React.FC<{ t: number; expr?: Expr | keyof typeof EXPR; exprB?: Expr | keyof typeof EXPR; mixAt?: number; look?: Look; bg?: React.ReactNode; yaw?: number; dark?: number; push?: number; blinkOff?: boolean }> = ({ t, expr = "curious", exprB, mixAt = 99, look = KID, bg, yaw = 40, dark = 0.45, push = 0.06 }) => {
   const v = useV();
   const e0 = typeof expr === "string" ? EXPR[expr] : expr;
   const e1 = exprB ? (typeof exprB === "string" ? EXPR[exprB] : exprB) : e0;
   const k = ramp(t, mixAt, mixAt + 0.6);
-  const base = stand(yaw, { x: 0, hands: "phone", headTilt: 12, look: [0.15, 0.9], expr: mixExpr(e0, e1, k) });
+  const base = stand(yaw, { x: 0, hands: "phone", headTilt: 16, headYaw: 18, look: [0.7, 1], expr: mixExpr(e0, e1, k) });
   const p = idle(base, t, 2, 0.4);
   const zoom = 1 + push * clamp(t / 4);
-  const c: Cam = v ? { cx: 70, cy: -1010, w: 680 / zoom } : { cx: 80, cy: -1000, w: 1500 / zoom };
+  const c: Cam = v ? { cx: 150, cy: -900, w: 820 / zoom } : { cx: 160, cy: -930, w: 1500 / zoom };
   return (
     <AbsoluteFill>
       {bg && <AbsoluteFill style={{ filter: "blur(14px) brightness(0.5)" }}>{bg}</AbsoluteFill>}
       <Shade o={dark} />
       <View cam={c} bg="transparent">
-        <Glow id="faceGlow" x={110} y={-900} rx={700} ry={600} color="#9fc6ff" o={0.22} />
+        <Glow id="faceGlow" x={200} y={-900} rx={700} ry={600} color="#9fc6ff" o={0.22} />
         <Person pose={p} look={look} t={t} shadow={0} />
       </View>
     </AbsoluteFill>
@@ -356,7 +356,7 @@ export const BedEdge: React.FC<{ t: number; mode: "sitdown" | "phone" | "still" 
   if (mode === "putdown") {
     // he sets the phone face-down on the nightstand and lets go
     const a = ramp(t, 0.3, 1.6, easeInOut), r = ramp(t, 1.9, 2.6, easeInOut);
-    const tgt: V = [-3260, -560];
+    const tgt: V = [me.root[0] + 230, -336];
     const from: V = [me.root[0] - 200, me.root[1] - 120];
     const at: V = [lerp(from[0], tgt[0], a), lerp(from[1], tgt[1], a) - Math.sin(a * Math.PI) * 60];
     me.lean = 10 + a * 18 * (1 - r);
@@ -367,7 +367,7 @@ export const BedEdge: React.FC<{ t: number; mode: "sitdown" | "phone" | "still" 
     <View cam={c} style={{ filter: GRADE.grief }}>
       <Bedroom t={t} mood={night > 0.5 ? "night" : "grief"} night={night} />
       <Person pose={me} look={KID_OLDER} t={t} seed={1} />
-      {mode === "putdown" && ramp(t, 1.9, 2.0) > 0 && <rect x={-3330} y={-536} width={140} height={20} rx={6} fill="#15181e" />}
+      {mode === "putdown" && ramp(t, 1.9, 2.0) > 0 && <rect x={me.root[0] + 160} y={-344} width={140} height={18} rx={6} fill="#15181e" />}
     </View>
   );
 };
@@ -464,10 +464,14 @@ export const MomCalls: React.FC<{ t: number; lower?: number; older?: boolean; ca
   const x = 1200;
   let mom = idle(stand(-60, { x, expr: "warm" }), t, 5, 0.5);
   const down = ramp(t, lower, lower + 1.0, easeInOut);
-  // right hand holds the phone at her ear (hand drawn over the head side)
-  const ear: V = [x - 10, -P.hipY + 6 - P.neckY - P.headUp + 30];
-  const rest: V = [x - 150, -560];
-  mom.R = down < 0.5 ? { at: lerp2(ear, rest, down * 2), kind: "grip", obj: "phone", objAng: -10, overHead: down < 0.2, ang: -80 } : { at: lerp2(ear, rest, down), kind: "grip", obj: "phone", objAng: 30, ang: 100, front: true };
+  // she faces screen-left, so her LEFT side is toward camera: the phone sits at her left ear (behind the
+  // cheek, toward the back of the head), held in her left hand; lowered, it comes down in front of her
+  const head: V = [x - 30, -P.hipY + 6 - P.neckY - P.headUp];
+  const ear: V = [head[0] + 95, head[1] + 85];
+  const rest: V = [x - 120, -600];
+  mom.L = down < 0.35
+    ? { at: lerp2(ear, rest, down), kind: "grip", obj: "phone", objAng: 15, overHead: true, ang: -95 }
+    : { at: lerp2(ear, rest, down), kind: "grip", obj: "phone", objAng: 40, ang: 60, front: true };
   mom.expr = mixExpr(EXPR.warm, EXPR.sad, down);
   mom.headTilt = 6 * down;
   const c = cam ?? (v ? { cx: x - 200, cy: -950, w: 2400 } : { cx: 400, cy: -1000, w: 4600 });

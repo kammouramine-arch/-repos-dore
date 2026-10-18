@@ -109,10 +109,10 @@ export const FriendMeet: React.FC<{ t: number; who: "trip" | "thanks"; cam?: Cam
     me.headTilt = 6; me.look = [0.6, 0.4];
   } else {
     // a grateful friend lays a hand on his shoulder
-    fr = idle(stand(-70, { x: 230, expr: "warm" }), t, 7);
+    fr = idle(stand(-70, { x: 60, expr: "warm" }), t, 7);
     fr.talk = t < 2.4 ? 0.8 : 0;
     const reach = ramp(t, 0.3, 1.0, easeInOut);
-    fr.R = { at: [lerp(230 - 120, -320 + 70, reach), lerp(-650, -830, reach)], kind: reach > 0.8 ? "flat" : "relax", front: true, ang: 180 };
+    fr.R = { at: [lerp(60 - 110, -320 + 80, reach), lerp(-650, -820, reach)], kind: reach > 0.8 ? "flat" : "relax", front: true, ang: 180 };
     me.expr = mixExpr(EXPR.warm, EXPR.confused, ramp(t, 2.0, 3.0));
   }
   const c = cam ?? (v ? { cx: 0, cy: -900, w: 2000 } : { cx: 0, cy: -950, w: 3300 });

@@ -60,9 +60,9 @@ export function walkPose(d: number, o: WalkOpts, extra: Partial<Pose> = {}): Pos
   const endK = clamp((total - dd) / (S * 0.3));
   const gait = Math.min(startK, endK);
   const phase = (dd / S) * Math.PI; // 0 at each mid-stance
-  const bob = -Math.cos(phase * 2) * 12; // high at mid-stance (straight leg), low at double support
+  const bob = -Math.cos(phase * 2) * 10; // high at mid-stance (straight leg), low at double support
   const lean = 4 * gait * (0.5 + energy * 0.5);
-  const rootY = lerp(-P.hipY + 6, -462 + bob, gait); // stance leg nearly straight at mid-stance; low enough to reach at double support
+  const rootY = lerp(-P.hipY + 6, -457 + bob, gait); // stance leg nearly straight at mid-stance; low enough to reach at double support
   const px = o.x0 + o.dir * dd;
   const fx = (f: { x: number }) => o.x0 + o.dir * f.x;
   const ank = -P.ankleY;

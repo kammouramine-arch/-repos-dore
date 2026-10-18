@@ -29,8 +29,8 @@ export function stand(yaw: number, o: Partial<Pose> & { x?: number; weight?: num
   const mode = o.hands ?? "relax";
   if (mode === "pockets") {
     // forearms slide into the front pockets of the shorts
-    R = { at: [x - 80 * c + f * 30 * prof, rootY - 12], kind: "pocket" };
-    L = { at: [x + 80 * c + f * 30 * prof, rootY - 12], kind: "pocket" };
+    R = { at: [x - 80 * c + f * 30 * prof, rootY - 20], kind: "pocket" };
+    L = { at: [x + 80 * c + f * 30 * prof, rootY - 20], kind: "pocket" };
   } else if (mode === "phone") {
     const ph = phoneHold(yaw, x, rootY);
     R = ph.R;
@@ -64,9 +64,9 @@ export function phoneHold(yaw: number, x = 0, rootY = -P.hipY + 6, raise = 1): {
   const shR = shoulderAt(yaw, "R", rootY), shL = shoulderAt(yaw, "L", rootY);
   // wrist sits in front of the stomach/chest; forearm points forward and up
   const low: V = [x + shR[0] + f * 70 * prof + 40 * c, shR[1] + 270];
-  const high: V = [x + shR[0] + f * 150 * prof + 70 * c, shR[1] + 92];
+  const high: V = [x + shR[0] + f * 270 * prof + 50 * c, shR[1] + 175];
   const at: V = [low[0] + (high[0] - low[0]) * raise, low[1] + (high[1] - low[1]) * raise];
-  const R: HandPose = { at, kind: "grip", obj: "phoneLit", objAng: -f * 14 * prof, front: true, ang: -90 + f * 38 * prof + 35 * c * (1 - prof) };
+  const R: HandPose = { at, kind: "grip", obj: "phoneLit", objAng: -f * 18 * prof, front: true, ang: -90 + f * 55 * prof + 35 * c * (1 - prof) };
   const L: HandPose = { at: [x + shL[0] + 22 * c + f * 4 * prof, shL[1] + 304], kind: "relax" };
   return { L, R };
 }

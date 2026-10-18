@@ -2,6 +2,7 @@ import React from "react";
 import { Composition } from "remotion";
 import "./theme";
 import { ModelSheet } from "./ModelSheet";
+import { Thumb, Cover } from "./Covers";
 import { MotionTest } from "./MotionTest";
 import { Lab } from "./Lab";
 import { Short, SHORT_DURATION } from "./short/Short";
@@ -82,6 +83,8 @@ export const Root: React.FC = () => (
     <Composition id="LabV-b-dinner" component={Lab} durationInFrames={120} fps={24} width={1080} height={1920} defaultProps={{ which: "b-dinner" }} />
     <Composition id="Lab-b-walk" component={Lab} durationInFrames={120} fps={24} width={1920} height={1080} defaultProps={{ which: "b-walk" }} />
     <Composition id="LabV-b-walk" component={Lab} durationInFrames={120} fps={24} width={1080} height={1920} defaultProps={{ which: "b-walk" }} />
+    <Composition id="Thumb" component={Thumb} durationInFrames={1} fps={24} width={1920} height={1080} />
+    <Composition id="Cover" component={Cover} durationInFrames={1} fps={24} width={1080} height={1920} />
     <Composition id="ModelSheet" component={ModelSheet} durationInFrames={1} fps={24} width={3840} height={2160} />
   </>
 );
