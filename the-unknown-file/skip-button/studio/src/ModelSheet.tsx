@@ -40,8 +40,8 @@ export const ModelSheet: React.FC = () => {
         {/* expressions */}
         {exprs.map((e, i) => (
           <g key={e}>
-            <Person pose={stand(0, { expr: EXPR[e], blink: 0 })} x={170 + i * 255} y={2010} scale={0.36} t={1.5} shadow={0} />
-            <Label x={170 + i * 255} y={2060} text={e.toUpperCase()} size={20} />
+            <Person pose={stand(0, { expr: EXPR[e], blink: 0 })} x={170 + i * 255} y={2060} scale={0.34} t={1.5} shadow={0} />
+            <Label x={170 + i * 255} y={2110} text={e.toUpperCase()} size={20} />
           </g>
         ))}
         {/* hands */}
@@ -55,8 +55,8 @@ export const ModelSheet: React.FC = () => {
         {/* cast */}
         {cast.map(([lk, name], i) => (
           <g key={name}>
-            <Person pose={stand(25, { expr: EXPR.neutral })} look={lk} x={2060 + i * 380} y={1640} scale={0.38} t={1.5} />
-            <Label x={2060 + i * 380} y={1690} text={name} size={20} />
+            <Person pose={stand(25, { expr: EXPR.neutral })} look={lk} x={2060 + i * 380} y={1480} scale={0.36} t={1.5} />
+            <Label x={2060 + i * 380} y={1530} text={name} size={20} />
           </g>
         ))}
       </svg>
