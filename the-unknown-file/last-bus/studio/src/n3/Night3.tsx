@@ -30,9 +30,11 @@ const bb = (p: Vec3) => busToStreet(BLDG_BUS, p);
 
 /** the double waiting under the shelter light at his building (bldg_stop_from_door) */
 const STOP_SPOT: Vec3 = [2.0, 7.35, 0.14];
-const DoubleAtStop: React.FC<{ t: number; frame?: Frame; smile?: number; walk?: number }> = ({ t, frame, smile = 1, walk = 0 }) => {
+const DoubleAtStop: React.FC<{ t: number; frame?: Frame; smile?: number; walk?: number; focus?: { at: number; z: number; push?: number } }> = ({ t, frame, smile = 1, walk = 0, focus }) => {
   const cam = "bldg_stop_from_door";
   let a = project(cam, STOP_SPOT);
+  // focus.at: height on the figure in rig units above the soles (0 shoes … 1100 face)
+  if (focus) frame = hand({ x: a.x, y: a.y - focus.at * a.s, z: focus.z * (1 + (focus.push ?? 0) * t) }, t, 0.3);
   let p: Pose = uncanny({ ...stand(yawFor(cam, [0, -1]), { hands: "relax" }) }, t, { smileAt: -5 + (1 - smile) * 99, drift: 0.4 });
   if (walk > 0) {
     const w = walk3D(cam, [[STOP_SPOT[0], STOP_SPOT[1], 0.14], [2.0, 5.2, 0.14]], walk, {});
@@ -89,15 +91,12 @@ export const Night3: React.FC = () => {
       }} />
 
       {/* 6 — "You. Or rather, the thing that stole your face." */}
-      <S a={18.9} b={23.6} r={(t) => {
-        const head = project("bldg_stop_from_door", [STOP_SPOT[0], STOP_SPOT[1], 1.55]);
-        return <DoubleAtStop t={t} frame={hand(lerpF(F(540, 900, 1.15), on(head, 1.9, 260), ramp(t, 0, 4.7, easeInOut)), t, 0.3)} />;
-      }} />
+      <S a={18.9} b={23.6} r={(t) => <DoubleAtStop t={t} focus={{ at: lerp(600, 950, ramp(t, 0, 4.7, easeInOut)), z: lerp(1.15, 2.0, ramp(t, 0, 4.7, easeInOut)) }} />} />
 
       {/* 7 — jacket, shoes, smile. "It's wearing your jacket, your shoes, and it's smiling." */}
-      <S a={23.6} b={25.7} r={(t) => <DoubleAtStop t={t} frame={on(project("bldg_stop_from_door", [STOP_SPOT[0], STOP_SPOT[1], 1.05]), 2.6, 0)} />} />
-      <S a={25.7} b={26.9} r={(t) => <DoubleAtStop t={t} frame={on(project("bldg_stop_from_door", [STOP_SPOT[0], STOP_SPOT[1], 0.2]), 2.8, -40)} />} />
-      <S a={26.9} b={28.6} r={(t) => <DoubleAtStop t={t} frame={on(project("bldg_stop_from_door", [STOP_SPOT[0], STOP_SPOT[1], 1.6]), 3.4, 30)} />} />
+      <S a={23.6} b={25.7} r={(t) => <DoubleAtStop t={t} focus={{ at: 620, z: 2.6, push: 0.03 }} />} />
+      <S a={25.7} b={26.9} r={(t) => <DoubleAtStop t={t} focus={{ at: 90, z: 3.2, push: 0.03 }} />} />
+      <S a={26.9} b={28.6} r={(t) => <DoubleAtStop t={t} focus={{ at: 1000, z: 3.6, push: 0.05 }} />} />
 
       {/* 8 — "Then it steps onto the bus." */}
       <S a={28.6} b={31.1} r={(t) => {

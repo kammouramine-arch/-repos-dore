@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, Img, staticFile } from "remotion";
-import { Person, Pose, Look } from "../rig/Person";
+import { Person, Pose, Look, settle } from "../rig/Person";
 import { Proj, PW, PH } from "./place";
 
 /**
@@ -13,14 +13,14 @@ const LIGHTS: Record<LightName, { tint: [number, number, number]; key: string; a
   bus: { tint: [0.74, 0.83, 0.95], key: "#e4f1ff", az: 235, el: 52, kd: 0.78, ka: 0.3 },
   busDim: { tint: [0.5, 0.58, 0.72], key: "#b9d2f0", az: 235, el: 52, kd: 0.7, ka: 0.22 },
   red: { tint: [0.86, 0.5, 0.5], key: "#ff8f80", az: 250, el: 50, kd: 0.8, ka: 0.3 },
-  street: { tint: [0.74, 0.62, 0.52], key: "#ffc07a", az: 290, el: 55, kd: 0.8, ka: 0.22 },
+  street: { tint: [0.74, 0.72, 0.72], key: "#ffd9b8", az: 290, el: 55, kd: 0.8, ka: 0.26 },
   station: { tint: [0.66, 0.74, 0.86], key: "#d6e8ff", az: 270, el: 62, kd: 0.8, ka: 0.24 },
-  home: { tint: [0.9, 0.78, 0.64], key: "#ffd9a6", az: 250, el: 55, kd: 0.8, ka: 0.26 },
+  home: { tint: [0.86, 0.8, 0.74], key: "#ffe2c2", az: 250, el: 55, kd: 0.8, ka: 0.28 },
   bath: { tint: [0.86, 0.9, 0.96], key: "#f4f8ff", az: 270, el: 70, kd: 0.8, ka: 0.3 },
   bathDark: { tint: [0.3, 0.34, 0.44], key: "#9fb2d0", az: 200, el: 40, kd: 0.6, ka: 0.18 },
   dark: { tint: [0.34, 0.38, 0.5], key: "#8fa6c8", az: 230, el: 45, kd: 0.6, ka: 0.18 },
   phone: { tint: [0.5, 0.6, 0.76], key: "#bfe0ff", az: 90, el: 30, kd: 0.85, ka: 0.18 },
-  tv: { tint: [0.58, 0.66, 0.88], key: "#a9c6ff", az: 300, el: 35, kd: 0.8, ka: 0.22 },
+  tv: { tint: [0.68, 0.72, 0.86], key: "#c3d6ff", az: 300, el: 35, kd: 0.8, ka: 0.26 },
 };
 
 export const LightDefs: React.FC = () => (
@@ -46,7 +46,7 @@ export const LightDefs: React.FC = () => (
 export const Char: React.FC<{ a: Proj; pose: Pose; look: Look; t: number; light?: LightName; seed?: number; shadow?: number; opacity?: number; extraScale?: number; qcName?: string; blur?: number }> = ({ a, pose, look, t, light = "bus", seed = 1, shadow = 0.32, opacity = 1, extraScale = 1, qcName, blur = 0 }) => (
   <g transform={`translate(${a.x} ${a.y}) scale(${a.s * extraScale})`} opacity={opacity}>
     <g filter={`url(#lit-${light})`} style={blur ? { filter: `url(#lit-${light}) blur(${blur}px)` } : undefined}>
-      <Person pose={pose} look={look} t={t} seed={seed} shadow={shadow} qcName={qcName} />
+      <Person pose={settle(pose, look)} look={look} t={t} seed={seed} shadow={shadow} qcName={qcName} />
     </g>
   </g>
 );

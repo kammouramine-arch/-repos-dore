@@ -180,7 +180,7 @@ export const Night2: React.FC = () => {
         const cam = "bus_underseat";
         const c = project(cam, [HX + 0.152, -0.7, 0.19]);
         return (
-          <Stage plate={cam} frame={hand(lerpF(F(540, 960, 1.0), on(c, 1.35, 0), ramp(t, 0, 4.5, easeInOut)), t, 0.4)} bright={1.25}
+          <Stage plate={cam} frame={hand(lerpF(on(c, 1.0, 0), on(c, 1.18, 0), ramp(t, 0, 9, easeInOut)), t, 0.4)} bright={1.25}
             over={<Scratch cam={cam} reveal={ramp(t, 1.0, 3.2, easeOut)} wipe={ramp(t, 0.6, 2.6)} t={t} />} />
         );
       }} />
@@ -227,7 +227,7 @@ export const Night2: React.FC = () => {
       <S a={80.7} b={86.3} r={(t) => (
         <PhoneShot t={t} plate="bus_row" frame={F(560, 900, 1.3)} zoom={1.25}
           screen={<CamApp t={t} pct={1} stamp={`02:16:${String(10 + Math.floor(t)).padStart(2, "0")}`} feedH={1100}
-            feed={<foreignObject x={0} y={0} width={700} height={1100}><div style={{ width: 1080, height: 1920, transform: "scale(1.0) translate(-190px, -420px)", transformOrigin: "0 0", position: "relative" }}><KitchenDouble cam="apt_kitchen_cam" t={t} feed /></div></foreignObject>} />} />
+            feed={<foreignObject x={0} y={0} width={700} height={1100}><div style={{ width: 1080, height: 1920, transform: "scale(1.55) translate(-300px, -500px)", transformOrigin: "0 0", position: "relative" }}><KitchenDouble cam="apt_kitchen_cam" t={t} feed /></div></foreignObject>} />} />
       )} />
 
       {/* 24 — the feed full screen: it freezes, turns to the camera, smiles. */}
@@ -237,7 +237,7 @@ export const Night2: React.FC = () => {
         return (
           <AbsoluteFill>
             <div style={{ position: "absolute", inset: 0, transform: glitch ? "translateX(14px)" : undefined }}>
-              <KitchenDouble cam="apt_kitchen_cam" t={t} feed freeze={0.1} turn={ramp(t, 1.7, 3.2, easeInOut)} smile={ramp(t, 3.5, 4.3)} plateFrame={lerpF(F(540, 960, 1.0), on(head, 1.7, 60), ramp(t, 1.5, 5.5, easeInOut))} />
+              <KitchenDouble cam="apt_kitchen_cam" t={t} feed freeze={0.1} turn={ramp(t, 1.7, 3.2, easeInOut)} smile={ramp(t, 3.5, 4.3)} plateFrame={lerpF(on(head, 1.7, 160), on(head, 2.7, 90), ramp(t, 0.5, 5.5, easeInOut))} />
             </div>
             <AbsoluteFill style={{ background: "repeating-linear-gradient(0deg, rgba(0,0,0,0.12) 0px, rgba(0,0,0,0.12) 2px, rgba(0,0,0,0) 2px, rgba(0,0,0,0) 5px)", mixBlendMode: "multiply" }} />
             <div style={{ position: "absolute", left: 60, top: 150, fontFamily: "IBM Plex Mono", fontSize: 34, color: "#e9edf2", letterSpacing: "0.12em", textShadow: "0 2px 8px #000" }}>

@@ -541,3 +541,31 @@ export const Person: React.FC<{ pose: Pose; look?: Look; x?: number; y?: number;
     </g>
   );
 };
+
+/**
+ * Make a pose physically reachable before drawing: standing/walking figures lower the pelvis until
+ * both planted feet are within leg length (bent knees instead of floating feet); any remaining hand or
+ * foot target beyond reach is pulled in along its limb. Limbs therefore never stretch or detach.
+ */
+export function settle(p: Pose, look?: Look): Pose {
+  let q = p;
+  const LM = (P.thigh + P.shin) * 0.99, AM = (P.upper + P.fore) * 0.99;
+  if (!p.sit) {
+    for (let it = 0; it < 4; it++) {
+      const j = solve(q, look);
+      const ex = Math.max(len(sub(q.fR.at, j.hipR)), len(sub(q.fL.at, j.hipL))) - LM;
+      if (ex <= 0.3) break;
+      q = { ...q, root: [q.root[0], q.root[1] + ex + 0.3] };
+    }
+  }
+  const j = solve(q, look);
+  const pull = (from: V, to: V, max: number): V => {
+    const d = sub(to, from); const l = len(d);
+    return l > max ? add(from, mul(d, max / l)) : to;
+  };
+  return {
+    ...q,
+    fR: { ...q.fR, at: pull(j.hipR, q.fR.at, LM) }, fL: { ...q.fL, at: pull(j.hipL, q.fL.at, LM) },
+    R: { ...q.R, at: pull(j.shoulderR, q.R.at, AM) }, L: { ...q.L, at: pull(j.shoulderL, q.L.at, AM) },
+  };
+}

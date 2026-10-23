@@ -51,7 +51,7 @@ export const tableSit = (cam: string, seatEdge: Vec3, handsAt: [Vec3, Vec3], ext
   const pose: Pose = {
     root: [0, -seatY], yaw, lean: 6,
     fR: { at: [-60, -P.ankleY], ang: 0 }, fL: { at: [60, -P.ankleY], ang: 0 },
-    R: { at: hr, kind: "flat", front: true, ang: 10 }, L: { at: hl, kind: "flat", front: true, ang: 170 },
+    R: { at: hl, kind: "flat", front: true, ang: 170 }, L: { at: hr, kind: "flat", front: true, ang: 10 },
     sit: true, expr: EXPR.neutral, ...extra,
   };
   return { a, pose };
@@ -142,7 +142,7 @@ export const Scratch: React.FC<{ cam: string; reveal: number; t: number; wipe?: 
   const l = project(cam, [xF, -1.02, 0.19]), r = project(cam, [xF, -0.38, 0.19]);
   const width = r.x - l.x;
   const lines = ["IF THE GLASS", "TAKES YOUR PLACE,", "THE BELL CAN", "CALL IT BACK."];
-  const fs = width * 0.105;
+  const fs = Math.min(width * 0.072, 64);
   const n = lines.join("").length;
   let k = 0;
   return (
@@ -237,8 +237,8 @@ export const MirrorScene: React.FC<{ t: number; dark?: number; frame?: Frame; hi
     </div>
   );
 };
-import { Person } from "../rig/Person";
-const PersonRef: React.FC<{ pose: Pose; t: number }> = ({ pose, t }) => <Person pose={pose} look={HERO} t={t} seed={1} shadow={0} />;
+import { Person, settle } from "../rig/Person";
+const PersonRef: React.FC<{ pose: Pose; t: number }> = ({ pose, t }) => <Person pose={settle(pose, HERO)} look={HERO} t={t} seed={1} shadow={0} />;
 
 /* ----------------------------------------------------------------------------------------------
  * Living room: roommate on the sofa (apt_living / apt_living_open)

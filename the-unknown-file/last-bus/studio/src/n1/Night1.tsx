@@ -150,8 +150,8 @@ export const Night1: React.FC = () => {
       {/* 11 — the empty aisle; he walks to the back. "Inside, every seat is empty." */}
       <S a={25.3} b={28.0} r={(t) => {
         const cam = "bus_aisle_back";
-        const path: Vec3[] = [[3.0, -0.02, 0], [HX + 0.35, 0.0, 0]];
-        const w = walk3D(cam, path, walkDistM(t, 0, 2.65, 1.05), { arms: "pockets" }, { expr: EXPR.uneasy });
+        const path: Vec3[] = [[2.35, -0.02, 0], [HX + 0.35, 0.0, 0]];
+        const w = walk3D(cam, path, walkDistM(t, 0, 3.4, 1.15), { arms: "pockets" }, { expr: EXPR.uneasy });
         return (
           <Stage plate={cam} frame={hand(lerpF(F(540, 980, 1.0), F(540, 1000, 1.12), ramp(t, 0, 2.7)), t)}>
             <Char a={w.a} pose={w.pose} look={HERO} t={t} light="bus" />
@@ -172,7 +172,7 @@ export const Night1: React.FC = () => {
       <S a={30.6} b={33.1} r={(t) => {
         const cam = "bus_row";
         const s = heroSeat(cam, 1, { expr: EXPR.neutral });
-        let p = lapPhone(idle(s.pose, t, 1, 0.5), lerp(0.2, 0.75, ramp(t, 1.2, 1.9)));
+        let p = lapPhone(idle(s.pose, t, 1, 0.5), lerp(0.3, 1.25, ramp(t, 1.2, 1.9)));
         p = { ...p, headTilt: 14, look: [0.2, 0.7] };
         const bz = buzz(t, 1.15, 0.9) * 0.5;
         if (p.R) p = { ...p, R: { ...p.R, at: [p.R.at[0] + bz, p.R.at[1]] } };

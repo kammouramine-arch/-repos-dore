@@ -1,6 +1,6 @@
 import React from "react";
 import { AbsoluteFill, useVideoConfig } from "remotion";
-import { Pose, P, Look, Person } from "../rig/Person";
+import { Pose, P, Look, Person, settle } from "../rig/Person";
 import { V } from "../rig/math";
 import { clamp, easeInOut, ramp, rng } from "../lib/anim";
 import { PhoneInsert } from "../phone/Phone";
@@ -101,7 +101,7 @@ export const Reflection: React.FC<{ cam: string; planeY: number; at: Vec3; facin
   return (
     <g transform={`translate(${a.x} ${a.y}) scale(${-a.s} ${a.s})`} opacity={o} style={{ filter: `blur(${blur}px)` }}>
       <g filter={`url(#lit-${light})`}>
-        <Person pose={pose} look={look} t={t} seed={seed} shadow={0} />
+        <Person pose={settle(pose, look)} look={look} t={t} seed={seed} shadow={0} />
       </g>
     </g>
   );
