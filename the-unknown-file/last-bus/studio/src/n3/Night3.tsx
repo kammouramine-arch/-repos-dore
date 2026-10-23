@@ -6,7 +6,7 @@ import { QC } from "../rig/math";
 import { stand } from "../rig/poses";
 import { Stage, Char, Frame, LightDefs } from "../lb/Stage";
 import { EpisodeTitle, EndCard, Spoken } from "../lb/type";
-import { idle, hand, lerpF, on, flicker, Glow, Rain, shake, Night } from "../lb/kit";
+import { idle, hand, lerpF, on, flicker, Glow, Rain, shake, Night, AnimFrames } from "../lb/kit";
 import { BUS, BLDG_BUS, busToStreet } from "../lb/sets";
 import { hasCam } from "../lb/place";
 import {
@@ -317,7 +317,7 @@ export const Night3: React.FC = () => {
         const turn = ramp(t, 3.9, 4.6, easeInOut);
         const him = (yaw: number): Pose => {
           const b = idle(stand(yaw, { expr: EXPR.uneasy }), t, 2);
-          return { ...b, R: raise > 0 ? { at: [lerp(b.R.at[0], b.R.at[0] + 30, raise), lerp(b.R.at[1], b.R.at[1] - 470, raise)], kind: "open", front: true } : b.R, headYaw: turn * 35 };
+          return { ...b, R: raise > 0 ? { at: [lerp(b.R.at[0], b.R.at[0] - 70, raise), lerp(b.R.at[1], b.R.at[1] - 590, raise)], kind: "open", front: true, ang: lerp(90, -95, raise) } : b.R, headYaw: turn * 35 };
         };
         return <MirrorScene t={t} frame={hand(lerpF(F(560, 860, 1.2), F(500, 820, 1.4), ramp(t, 0, 6.6, easeInOut)), t, 0.3)} him={him} />;
       }} />
@@ -368,13 +368,12 @@ const HandsOnGlass: React.FC<{ t: number }> = ({ t }) => {
 
 /* ------------------------------------------------------------------ the bus pulls away and turns the corner (Cycles, 15 fps) */
 const DepartAnim: React.FC<{ t: number }> = ({ t }) => {
-  const fr = Math.max(1, Math.min(66, Math.floor(t * 15) + 1));
   const cam = hasCam("anim_depart_bldg") ? "anim_depart_bldg" : "street_bldg_empty";
   const a = project(cam, [6.6, 8.0, 0.14]);
   const p: Pose = { ...idle(stand(yawFor(cam, [-1, -0.25]), { expr: EXPR.fear }), t, 3) };
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      {hasCam("anim_depart_bldg") ? <Img src={staticFile(`plates/anim_depart_bldg/f_${String(fr).padStart(4, "0")}.jpg`)} style={{ width: 1080, height: 1920 }} /> : <Stage plate="street_bldg_empty" />}
+      {hasCam("anim_depart_bldg") ? <AnimFrames dir="anim_depart_bldg" t={t} n={66} /> : <Stage plate="street_bldg_empty" />}
       <svg width={1080} height={1920} viewBox="0 0 1080 1920" style={{ position: "absolute", inset: 0 }}>
         <LightDefs />
         <Char a={a} pose={p} look={HERO} t={t} light="street" />

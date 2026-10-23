@@ -2,6 +2,7 @@ import React from "react";
 import { AbsoluteFill } from "remotion";
 import { F } from "./theme";
 import { stand } from "./rig/poses";
+import { Person } from "./rig/Person";
 import { Char, Stage } from "./lb/Stage";
 import { PhoneInHand } from "./phone/Phone";
 import { CamApp } from "./lb/phone";
@@ -47,11 +48,25 @@ export const Cover1: React.FC = () => {
     </AbsoluteFill>
   );
 };
+const RowLike: React.FC<{ t: number }> = ({ t }) => {
+  const cam = "bus_row";
+  const s = heroSeat(cam, 1);
+  const p = { ...lapPhone(s.pose, 0.9), headTilt: 6, headYaw: headTo(cam, s.pose.yaw, [0.6, 1], 60), look: [0.6, 0.1] as [number, number], expr: EXPR.fear };
+  const head = project(cam, [-1.95 + 0.08, -0.955, 1.05]);
+  return (
+    <Stage plate={cam} fg frame={{ x: head.x + 60, y: head.y + 260, z: 1.45 }} bright={1.1} maskedBelow maskedBlend="screen"
+      masked={<g transform={`translate(${head.x + 300} ${head.y + 330}) scale(${0.55})`} opacity={0.6} style={{ filter: "blur(1.4px)" }}>
+        <g filter="url(#lit-busDim)"><Person pose={uncanny({ ...seatedPose(-70), headYaw: 70 }, t, { smileAt: -9, drift: 0.2 })} look={DOUBLE} t={t} seed={9} shadow={0} /></g>
+      </g>}>
+      <Char a={s.a} pose={p} look={HERO} t={t} light="bus" />
+    </Stage>
+  );
+};
 const WindowLike: React.FC<{ t: number; him: ReturnType<typeof lapPhone> }> = ({ t, him }) => {
   const cam = "bus_seat_window";
   const s = heroSeat(cam, 1);
   return (
-    <Stage plate={cam} frame={{ x: 700, y: 900, z: 1.18 }} bright={1.15} maskedBelow maskedBlend="screen"
+    <Stage plate={cam} frame={{ x: 760, y: 1010, z: 1.22 }} bright={1.15} maskedBelow maskedBlend="screen"
       masked={<>
         {seatReflection(cam, "window", t, (y) => ({ ...lapPhone(seatedPose(y), 0.6), headYaw: 0, expr: EXPR.uneasy }), { headDir: [0.1, -1], o: 0.5 })}
         {seatReflection(cam, "aisle", t, (y) => uncanny({ ...seatedPose(y), headYaw: 0 }, t, { smileAt: -9, drift: 0.3 }), { o: 0.62, look: DOUBLE, seed: 9, headDir: [0.05, -1] })}
@@ -70,14 +85,14 @@ export const Cover2: React.FC = () => {
   const head = project(cam, [-1.95 + 0.08, -0.955, 1.1]);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      <Stage plate={cam} fg frame={{ x: head.x, y: head.y + 200, z: 1.9 }} bright={0.9}>
+      <Stage plate={cam} fg frame={{ x: head.x, y: head.y + 40, z: 1.9 }} bright={0.9}>
         <Char a={s.a} pose={p} look={HERO} t={t} light="phone" />
       </Stage>
       <svg width={1080} height={1920} viewBox="0 0 1080 1920" style={{ position: "absolute", inset: 0 }}>
         <Glow id="cv2" x={560} y={1380} r={700} color="#9fc6ff" o={0.25} />
         <g transform="translate(600 1370) scale(0.62) rotate(-6)">
           <PhoneInHand thumb={null} glow={1} screen={
-            <CamApp t={t} pct={1} stamp="02:16:44" feedH={1100} feed={<foreignObject x={0} y={0} width={700} height={1100}><div style={{ width: 1080, height: 1920, transform: "translate(-190px, -420px)", transformOrigin: "0 0", position: "relative" }}><KitchenDouble cam="apt_kitchen_cam" t={t} feed turn={1} smile={1} /></div></foreignObject>} />
+            <CamApp t={t} pct={1} stamp="02:16:44" feedH={1100} feed={<foreignObject x={0} y={0} width={700} height={1100}><div style={{ width: 1080, height: 1920, transform: "scale(1.9) translate(-330px, -560px)", transformOrigin: "0 0", position: "relative" }}><KitchenDouble cam="apt_kitchen_cam" t={t} feed turn={1} smile={1} /></div></foreignObject>} />
           } />
         </g>
       </svg>
@@ -92,14 +107,14 @@ export const Cover2: React.FC = () => {
 export const Cover3: React.FC = () => {
   const t = 2.0;
   const cam = "bus_middoor_open_red";
-  const him = standAt(cam, [0.45, -0.3, 0], [1, -0.25], { expr: EXPR.fear });
-  const d = standAt(cam, [1.25, -0.75, 0], [-1, 0.45]);
+  const him = standAt(cam, [0.62, -0.95, 0], [1, 0.35], { expr: EXPR.fear });
+  const d = standAt(cam, [1.62, -1.1, 0], [-1, 0.15]);
   const dp = uncanny({ ...d.pose, headYaw: headTo(cam, d.pose.yaw, [-1, 0.5], 40) }, t, { smileAt: -9, drift: 0.2 });
-  const hp = { ...him.pose, headYaw: headTo(cam, him.pose.yaw, [1, -0.5], 40), headTilt: -4, look: [0.5, 0] as [number, number] };
-  const mid = project(cam, [0.85, -0.5, 1.15]);
+  const hp = { ...him.pose, headYaw: headTo(cam, him.pose.yaw, [1, 0.3], 40), headTilt: -4, look: [-0.6, 0] as [number, number] };
+  const mid = project(cam, [1.12, -1.0, 1.0]);
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      <Stage plate={cam} frame={{ x: mid.x, y: mid.y + 120, z: 1.32 }} masked={<rect x={0} y={0} width={1080} height={1920} fill="#05030a" />} maskedBelow>
+      <Stage plate={cam} frame={{ x: mid.x, y: mid.y + 60, z: 1.0 }} masked={<rect x={0} y={0} width={1080} height={1920} fill="#05030a" />} maskedBelow>
         <Char a={d.a} pose={dp} look={DOUBLE} t={t} light="red" seed={9} />
         <Char a={him.a} pose={hp} look={HERO} t={t} light="red" />
       </Stage>

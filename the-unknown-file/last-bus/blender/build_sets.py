@@ -934,7 +934,7 @@ def run_anim(path, frames, name, cam, offset=(0, 0, 0)):
     scene = bpy.context.scene
     scene.frame_start, scene.frame_end = 1, frames
     scene.render.fps = 15
-    scene.render.use_motion_blur = True; scene.render.motion_blur_shutter = 0.5
+    scene.render.use_motion_blur = False
     scene.cycles.samples = ANIM_SAMPLES
     os.makedirs(path, exist_ok=True)
     scene.render.filepath = os.path.join(path, "f_")
@@ -942,7 +942,7 @@ def run_anim(path, frames, name, cam, offset=(0, 0, 0)):
     bpy.ops.render.render(animation=True)
     scene.render.use_motion_blur = False
 
-ANIM_SAMPLES = 24
+ANIM_SAMPLES = 8
 if __name__ == "__main__":
     import json
     build_all()

@@ -413,7 +413,6 @@ export const Night1: React.FC = () => {
 
 /* ------------------------------------------------------------------ the bus arriving (Cycles animation, 15 fps) */
 export const ArriveAnim: React.FC<{ t: number; him?: boolean }> = ({ t, him }) => {
-  const fr = Math.max(1, Math.min(75, Math.floor(t * 15) + 1));
   const cam = "anim_arrive_station";
   let a = null, p: Pose | null = null;
   if (him && hasCam(cam)) {
@@ -423,7 +422,7 @@ export const ArriveAnim: React.FC<{ t: number; him?: boolean }> = ({ t, him }) =
   }
   return (
     <AbsoluteFill style={{ background: "#000" }}>
-      {hasCam(cam) ? <Img src={staticFile(`plates/anim_arrive_station/f_${String(fr).padStart(4, "0")}.jpg`)} style={{ width: 1080, height: 1920 }} /> : <Stage plate="street_station_sign" />}
+      {hasCam(cam) ? <AnimFrames dir="anim_arrive_station" t={t} n={75} /> : <Stage plate="street_station_sign" />}
       {a && p && (
         <svg width={1080} height={1920} viewBox="0 0 1080 1920" style={{ position: "absolute", inset: 0 }}>
           <StageDefs />
@@ -436,6 +435,7 @@ export const ArriveAnim: React.FC<{ t: number; him?: boolean }> = ({ t, him }) =
   );
 };
 import { LightDefs as StageDefs } from "../lb/Stage";
+import { AnimFrames } from "../lb/kit";
 
 /* ------------------------------------------------------------------ the window reflection gag (Night 1) */
 const GlassClose: React.FC<{ t: number; phase: "beside" | "hand" | "turn" }> = ({ t, phase }) => {

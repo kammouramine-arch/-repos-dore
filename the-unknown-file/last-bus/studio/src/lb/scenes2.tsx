@@ -70,25 +70,25 @@ const Seven: React.FC<{ ch: string; x: number; y: number; h: number; on: string;
     </g>
   );
 };
-/** overlay digits on the clock face of a plate (cam = bus_clock*): text like "--:--" or "4:51" */
+/** overlay digits on the clock face of a plate (cam = bus_clock*): text like "-:--" or "4:51".
+ *  Digit centres are the same set positions build_sets.py uses for the lit 2:16, so they line up. */
+const DIGIT_Y = [0.167, 0.0812, 0.0218, -0.0838];
 export const ClockOverlay: React.FC<{ cam: string; text: string; o?: number; glow?: number }> = ({ cam, text, o = 1, glow = 1 }) => {
-  const fx = BUS.x1;
-  const c0 = project(cam, [fx - 0.318, 0.27, 2.05]), c1 = project(cam, [fx - 0.318, -0.27, 2.05]);
-  const top = project(cam, [fx - 0.318, 0, 2.05 + 0.09]), bot = project(cam, [fx - 0.318, 0, 2.05 - 0.09]);
-  const mid = project(cam, [fx - 0.318, 0, 2.05]);
-  const h = (bot.y - top.y) * 0.68;
-  const span = c1.x - c0.x;
+  const fx = BUS.x1 - 0.318;
+  const P3 = (y: number, z: number) => project(cam, [fx, y, z]);
+  const tl = P3(0.3, 2.05 + 0.097), br = P3(-0.3, 2.05 - 0.097);
+  const on = glow > 0.1 ? "#ff3a22" : "#140303";
   const chars = text.split("");
-  const glowCol = `rgba(255,40,20,${0.5 * glow})`;
   return (
     <g opacity={o}>
-      <rect x={c0.x} y={top.y} width={span} height={bot.y - top.y} fill="#050000" />
-      <g style={{ filter: `drop-shadow(0 0 ${h * 0.25}px ${glowCol})` }}>
-        {chars.map((ch, i) => ch === ":" ? (
-          <g key={i}>{[-1, 1].map((k) => <rect key={k} x={mid.x - span * 0.12 - h * 0.06} y={mid.y + k * h * 0.28 - h * 0.055} width={h * 0.11} height={h * 0.11} fill={glow > 0.1 ? "#ff3a22" : "#2a0505"} />)}</g>
-        ) : (
-          <Seven key={i} ch={ch} x={mid.x + (i - (chars.length - 1) / 2) * span * 0.23 - span * 0.06} y={mid.y} h={h} on={glow > 0.1 ? "#ff3a22" : "#2a0505"} />
-        ))}
+      <rect x={tl.x} y={tl.y} width={br.x - tl.x} height={br.y - tl.y} fill="#050000" />
+      <g style={{ filter: glow > 0.1 ? "drop-shadow(0 0 10px rgba(255,40,20,0.6))" : undefined }}>
+        {chars.map((ch, i) => {
+          const c = P3(DIGIT_Y[i] ?? 0, 2.05);
+          const h = P3(DIGIT_Y[i] ?? 0, 2.11).y - P3(DIGIT_Y[i] ?? 0, 1.99).y;
+          if (ch === ":") return <g key={i}>{[-1, 1].map((k) => <rect key={k} x={c.x - Math.abs(h) * 0.055} y={c.y + k * Math.abs(h) * 0.28 - Math.abs(h) * 0.055} width={Math.abs(h) * 0.11} height={Math.abs(h) * 0.11} fill={on} />)}</g>;
+          return <Seven key={i} ch={ch} x={c.x} y={c.y} h={Math.abs(h)} on={on} off="#140303" />;
+        })}
       </g>
     </g>
   );

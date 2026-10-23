@@ -52,7 +52,7 @@ export const driverPose = (cam: string, t: number, turn = 0, o: { smile?: number
   const fl = o.flip ? -1 : 1; // bus parked facing -x in the street sets
   const s = seat3D(cam, xf([DRIVER_SEAT[0] + 0.25, DRIVER_SEAT[1], 0]), [fl, 0], 1, 0.5);
   const yaw = s.pose.yaw;
-  const wheel = (dy: number): V => toLocal(s.a, project(cam, xf([5.18, DRIVER_SEAT[1] + dy, 1.12])));
+  const wheel = (dy: number): V => toLocal(s.a, project(cam, xf([5.08, DRIVER_SEAT[1] + dy, 0.9])));  // lower rim (the cartoon torso is short)
   const toCam = headTo(cam, yaw, [-fl, 0.25 * fl], 150);
   const hy = lerp(0, toCam, easeInOut(clamp(turn)));
   const expr = mixExpr(EXPR.neutral, { ...EXPR.smirk, smile: 1, mouthW: 1.25, skew: 0.05, brow: [0, 0] }, o.smile ?? 0);

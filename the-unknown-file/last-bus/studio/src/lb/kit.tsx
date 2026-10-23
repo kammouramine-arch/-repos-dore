@@ -1,5 +1,5 @@
 import React from "react";
-import { AbsoluteFill, useVideoConfig } from "remotion";
+import { AbsoluteFill, Img, staticFile, useVideoConfig } from "remotion";
 import { Pose, P, Look, Person, settle } from "../rig/Person";
 import { V } from "../rig/math";
 import { clamp, easeInOut, ramp, rng } from "../lib/anim";
@@ -122,3 +122,16 @@ export const shake = (t: number, at: number, amp = 10, dur = 0.45) => {
 export const ease = (t: number, a: number, b: number) => ramp(t, a, b, easeInOut);
 export { clamp, P, PW, PH };
 export type { Proj };
+
+/** a 15 fps Cycles frame sequence played at 30 fps: neighbouring frames are blended (smooth motion, soft blur) */
+export const AnimFrames: React.FC<{ dir: string; t: number; n: number }> = ({ dir, t, n }) => {
+  const x = Math.max(0, Math.min(n - 1, t * 15));
+  const i = Math.floor(x), k = x - i;
+  const src = (j: number) => staticFile(`plates/${dir}/f_${String(Math.min(n, j + 1)).padStart(4, "0")}.jpg`);
+  return (
+    <AbsoluteFill>
+      <Img src={src(i)} style={{ width: 1080, height: 1920 }} />
+      {k > 0.01 && i + 1 < n && <Img src={src(i + 1)} style={{ position: "absolute", left: 0, top: 0, width: 1080, height: 1920, opacity: k }} />}
+    </AbsoluteFill>
+  );
+};
