@@ -889,7 +889,7 @@ def anim_arrive_station(path, frames=75):
         if stop_f - 7 < f <= stop_f + 8: dip = math.sin((f - (stop_f - 7)) / 15 * math.pi) * math.radians(1.2)
         bus.rotation_euler = (0, dip, math.pi); bus.keyframe_insert("rotation_euler", frame=f)
     set_doors(front=0, frame=stop_f + 4); set_doors(front=1, frame=stop_f + 13)
-    cam = camera("CAM_anim_arrive", tuple(Vector((-1.2, 8.4, 1.35)) + so), tuple(Vector((9.0, 4.6, 1.6)) + so), lens=20)
+    cam = camera("CAM_anim_arrive", tuple(Vector((-1.6, 6.75, 1.3)) + so), tuple(Vector((9.0, 4.7, 1.55)) + so), lens=20)
     scene.camera = cam
     run_anim(path, frames, "anim_arrive_station", cam, OFFSETS["STREET"])
 
