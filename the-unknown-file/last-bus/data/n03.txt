@@ -1,0 +1,51 @@
+   0.00    0.78 Night three.
+   1.78    3.32 You're sitting in the same seat.
+   3.90    5.50 The bus hasn't stopped moving.
+   6.44   10.86 Then, 2.16 AM, the driver presses the brakes.
+  11.48   14.12 You look outside, your apartment building.
+  14.84   18.50 The doors open, and someone is standing at the bus stop.
+  19.18   23.50 You, or rather, the thing that stole your face.
+  23.72   28.02 It's wearing your jacket, your shoes, and it's smiling.
+  28.72   30.52 Then, it steps onto the bus.
+  31.16   32.18 The lights turn red.
+  32.62   33.44 You stand up.
+  33.84   35.38 The driver finally speaks.
+  36.08   38.42 One passenger leaves, one stays.
+  39.04   40.36 Your double looks at you.
+  40.78   42.76 You weren't supposed to figure it out.
+  43.24   45.20 You slowly step toward the exit,
+  45.22   47.78 but your double moves to block the doors.
+  48.20   51.80 It reaches for your arm, and that's when you hear something.
+  52.46   52.74 Ding!
+  53.26   56.44 The stop request bell, but nobody touched it.
+  56.44   57.90 Your double freezes.
+  58.40   59.70 It's smile disappears.
+  60.54   63.18 Then, something invisible seems to pull it backward.
+  63.84   65.46 One step, then another,
+  65.88   68.86 until it falls into the empty seat beside the window.
+  69.44   71.10 The driver turns toward you.
+  71.50   72.06 Your stop!
+  72.54   73.28 You don't wait.
+  73.70   76.48 You run, through the doors, onto the pavement.
+  76.94   79.16 The bus doors slam shut behind you.
+  79.64   81.58 Through the window, you see your double.
+  82.02   84.08 It's hands are pressed against the glass.
+  84.60   86.34 Then, the bus drives away,
+  86.74   88.52 and disappears around the corner.
+  89.16   90.28 You're finally home.
+  90.88   91.98 You enter your apartment.
+  92.60   94.26 Your roommate looks up from the sofa.
+  94.76   95.50 Where have you been?
+  95.98   97.62 You don't know how to explain,
+  97.88   99.60 so you walk to the bathroom,
+ 100.04  102.36 turn on the light, and look into the mirror.
+ 102.88  104.06 You raise your hand.
+ 104.52  106.32 Your reflection raises its hand.
+ 106.70  107.72 You turn your head.
+ 108.18  108.80 It follows.
+ 109.56  111.10 Everything seems normal,
+ 111.10  113.38 until you turn away,
+ 113.84  114.64 and in the mirror,
+ 115.20  117.78 your reflection is still looking at you.
+ 118.64  119.84 End of night three.
+ALLDONE

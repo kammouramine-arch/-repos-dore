@@ -1,0 +1,6 @@
+deliverables/*.mp4 filter=lfs diff=lfs merge=lfs -text
+deliverables/*.wav filter=lfs diff=lfs merge=lfs -text
+deliverables/*.png filter=lfs diff=lfs merge=lfs -text
+audio/*.mp3 filter=lfs diff=lfs merge=lfs -text
+blender/*.blend filter=lfs diff=lfs merge=lfs -text
+blender/plates/**/*.png filter=lfs diff=lfs merge=lfs -text

@@ -1,0 +1,8 @@
+renders/
+audio/master/
+studio/node_modules
+studio/out/
+studio/public/plates/
+data/*.err
+blender/*.log
+blender/*.blend1
