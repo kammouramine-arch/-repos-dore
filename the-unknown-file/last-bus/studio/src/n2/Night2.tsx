@@ -6,7 +6,7 @@ import { QC } from "../rig/math";
 import { stand } from "../rig/poses";
 import { Stage, Char, Frame } from "../lb/Stage";
 import { EpisodeTitle, EndCard, Spoken } from "../lb/type";
-import { Lock, Thread, Call, CamApp, NoteCard, buzz } from "../lb/phone";
+import { Lock, Thread, Call, CamApp, NoteCard, LowBattery, buzz } from "../lb/phone";
 import { idle, lapPhone, hand, lerpF, on, PhoneShot, shake } from "../lb/kit";
 import { BUS } from "../lb/sets";
 import {
@@ -101,7 +101,7 @@ export const Night2: React.FC = () => {
 
       {/* 7 — the phone lights up: 1%. "Your phone suddenly lights up. 1% battery." */}
       <S a={23.8} b={27.6} r={(t) => (
-        <PhoneShot t={t} plate="bus_row" frame={F(560, 900, 1.3)} screen={<Lock pct={1} dim={1 - ramp(t, 0.1, 0.35)} blink={t > 1.6 ? (Math.sin(t * 8) > -0.3 ? 1 : 0.3) : 1} />} zoom={1.22} />
+        <PhoneShot t={t} plate="bus_row" frame={F(560, 900, 1.3)} screen={<g><Lock pct={1} dim={1 - ramp(t, 0.1, 0.35)} blink={t > 1.6 ? (Math.sin(t * 8) > -0.3 ? 1 : 0.3) : 1} /><LowBattery pct={1} appear={ramp(t, 1.55, 1.9)} /></g>} zoom={1.22} />
       )} />
 
       {/* 8 — message from his own number: I'M HOME. + photo. */}
@@ -172,7 +172,7 @@ export const Night2: React.FC = () => {
         const a = project(cam, [HX + 0.3, 0.08, 0]);
         const yaw = yawFor(cam, [0.4, -1]);
         const p = crouch(yaw, 0.6 + 0.4 * Math.sin(t * 2), t);
-        return <SideScene t={t} frame={hand(lerpF(F(500, 1000, 1.08), on(a, 1.3, -260), ramp(t, 0, 2.3)), t, 0.6)} people={[{ look: HERO, a, pose: p }]} />;
+        return <SideScene t={t} frame={hand(lerpF(F(540, 960, 1.0), on(a, 1.12, -420), ramp(t, 0, 2.3)), t, 0.6)} people={[{ look: HERO, a, pose: p }]} />;
       }} />
 
       {/* 16+17 — under a seat: words scratched into the metal. */}

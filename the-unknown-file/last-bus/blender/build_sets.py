@@ -627,7 +627,7 @@ def build_apartment():
             box(f"table_leg{dx:+.2f}{dy:+.2f}", (-0.8 + dx, 1.3 + dy, 0.37), (0.05, 0.05, 0.74), wood, c)
     for k, (cx, cy, bdx, bdy) in enumerate(((-0.8, 2.05, 0, 0.21), (-1.75, 1.3, -0.21, 0))):
         box(f"chair{k}_seat", (cx, cy, 0.46), (0.45, 0.45, 0.04), wood, c)
-        box(f"chair{k}_back", (cx + bdx, cy + bdy, 0.9), (0.45 if bdy else 0.04, 0.04 if bdy else 0.45, 0.85), wood, c)
+        box(f"chair{k}_back", (cx + bdx, cy + bdy, 0.74), (0.45 if bdy else 0.04, 0.04 if bdy else 0.45, 0.52), wood, c)
         for dx in (-0.19, 0.19):
             for dy in (-0.19, 0.19):
                 box(f"chair{k}_leg{dx:+.2f}{dy:+.2f}", (cx + dx, cy + dy, 0.23), (0.035, 0.035, 0.46), wood, c)
