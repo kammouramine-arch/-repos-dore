@@ -6,3 +6,4 @@ studio/public/plates/
 data/*.err
 blender/*.log
 blender/*.blend1
+blender/plates/anim_*/
