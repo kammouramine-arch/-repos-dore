@@ -1,0 +1,155 @@
+[
+ {
+  "id": "sofa_02",
+  "kind": "model",
+  "name": "Sofa 02",
+  "authors": [
+   "Kirill Sannikov"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/sofa_02"
+ },
+ {
+  "id": "coffee_table_round_01",
+  "kind": "model",
+  "name": "Coffee Table Round 01",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/coffee_table_round_01"
+ },
+ {
+  "id": "dining_chair_02",
+  "kind": "model",
+  "name": "Dining Chair 02",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/dining_chair_02"
+ },
+ {
+  "id": "television_02",
+  "kind": "model",
+  "name": "Television 02",
+  "authors": [
+   "Benny Weimer"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/television_02"
+ },
+ {
+  "id": "potted_plant_02",
+  "kind": "model",
+  "name": "Potted Plant 02",
+  "authors": [
+   "Rico Cilliers"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/potted_plant_02"
+ },
+ {
+  "id": "side_table_01",
+  "kind": "model",
+  "name": "Side Table 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/side_table_01"
+ },
+ {
+  "id": "throw_pillows_01",
+  "kind": "model",
+  "name": "Throw Pillows 01",
+  "authors": [
+   "Serhii Khromov"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/throw_pillows_01"
+ },
+ {
+  "id": "drawer_cabinet",
+  "kind": "model",
+  "name": "Drawer Cabinet",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/drawer_cabinet"
+ },
+ {
+  "id": "modern_ceiling_lamp_01",
+  "kind": "model",
+  "name": "Modern Ceiling Lamp 01",
+  "authors": [
+   "James Ray Cock"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/modern_ceiling_lamp_01"
+ },
+ {
+  "id": "laminate_floor_02",
+  "kind": "tex",
+  "name": "Laminate Floor 02",
+  "authors": [
+   "Dario Barresi",
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/laminate_floor_02"
+ },
+ {
+  "id": "long_white_tiles",
+  "kind": "tex",
+  "name": "Long White Tiles",
+  "authors": [
+   "Jenelle van Heerden",
+   "Sergej Majboroda"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/long_white_tiles"
+ },
+ {
+  "id": "kitchen_wood",
+  "kind": "tex",
+  "name": "Kitchen Wood",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/kitchen_wood"
+ },
+ {
+  "id": "rough_linen",
+  "kind": "tex",
+  "name": "Rough Linen",
+  "authors": [
+   "colormass",
+   "Rico Cilliers"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/rough_linen"
+ },
+ {
+  "id": "dirty_carpet",
+  "kind": "tex",
+  "name": "Dirty Carpet",
+  "authors": [
+   "Rohit Seervi"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/dirty_carpet"
+ },
+ {
+  "id": "painted_plaster_wall",
+  "kind": "tex",
+  "name": "Painted Plaster Wall",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/painted_plaster_wall"
+ }
+]

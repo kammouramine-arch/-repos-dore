@@ -1,0 +1,15 @@
+renders/
+audio/master/
+audio/edited/
+audio/stems/
+studio/node_modules
+studio/out/
+studio/public/shots/
+studio/public/photos/
+studio/public/audio/
+data/*.err
+blender/*.blend1
+blender/mh_test*.blend
+blender/mh_test*.png
+blender/__pycache__/
+tools/__pycache__/

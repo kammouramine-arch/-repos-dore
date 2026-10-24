@@ -1,0 +1,53 @@
+   0.00    3.20 Imagine ordering food at 3.13 in the morning.
+   3.94    6.16 You're home alone, it's raining outside,
+   6.34    7.94 and you're too tired to cook.
+   8.72   10.22 You place an order for a burger.
+  10.98   13.44 The app says your driver is eight minutes away.
+  14.04   18.28 But 30 seconds later, ding dong, someone is at your door.
+  18.94   19.86 You check your phone.
+  20.42   22.74 Your driver is still eight minutes away.
+  23.34   24.82 Then a message appears.
+  25.48   26.88 I'm not at your building yet.
+  27.26   28.06 Another message.
+  28.06   30.16 Please don't open the door.
+  30.80   31.40 You freeze.
+  32.24   33.26 Someone knocks again.
+  33.88   35.36 Three slow knocks.
+  36.16   37.60 You open your doorbell camera.
+  38.16   39.86 There's a man standing outside.
+  40.44   44.20 Yellow raincoat, black gloves, a paper bag in his hand.
+  44.72   47.74 His head is hanging so low that you can't see his face.
+  48.46   50.04 You turn on the camera's microphone.
+  50.76   51.02 Hello?
+  51.58   53.02 The man doesn't move.
+  53.60   57.66 Then, very slowly, his head begins tilting upward.
+  57.66   61.28 But before you can see his face, your phone vibrates.
+  61.72   62.60 It's the real driver.
+  63.18   63.86 That isn't me.
+  64.22   65.22 Get away from the door.
+  65.86   66.66 You step backward.
+  67.28   70.44 The man outside suddenly slams his face against the camera.
+  70.90   72.04 The screen goes black.
+  72.54   73.80 You nearly drop your phone.
+  74.40   76.26 Then another notification arrives.
+  76.78   78.14 Your order has been delivered.
+  78.74   79.62 That's impossible.
+  79.98   81.22 You haven't opened the door.
+  81.84   83.96 Underneath the notification is a photograph.
+  84.66   85.52 Proof of delivery.
+  85.52   86.82 You tap it.
+  87.12   88.98 But the photo isn't of your front door.
+  89.34   92.38 It's your kitchen, taken from inside your apartment.
+  92.88   97.00 And standing at the end of the hallway is the man in the yellow raincoat.
+  97.58   98.80 You turn toward the kitchen.
+  99.48   99.76 Nothing.
+ 100.38  101.80 You look at the photograph again.
+ 102.32  103.28 Something is different.
+ 103.76  104.94 The man is closer.
+ 105.48  108.40 And underneath the image, there's one final message.
+ 108.90  110.92 Please confirm you received your order.
+ 110.92  115.30 Then you hear the sound of a camera shutter, directly behind your head.
+ 115.92  117.66 You slowly look down at your phone.
+ 118.22  119.68 A new photograph has appeared.
+ 120.24  124.06 It's a picture of you, standing exactly where you're standing now.
+ 124.46  127.22 And the delivery man is right behind you.

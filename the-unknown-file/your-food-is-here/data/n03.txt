@@ -1,0 +1,63 @@
+   0.00    2.58 Night three, you haven't slept.
+   3.34    5.28 Every light in your apartment is on.
+   5.94    8.28 You've locked the doors, covered the windows,
+   8.70   10.72 and placed your phone on the kitchen table.
+  11.40   15.40 At 3.12 AM, the screen turns on by itself.
+  16.02   18.82 Final delivery attempt, you open the app.
+  19.36   20.50 There's a new photograph.
+  21.16   23.82 It's your living room, one minute in the future.
+  24.48   26.46 The delivery man is standing inside,
+  26.84   28.18 right next to your sofa.
+  28.82   30.60 But there's something different this time.
+  31.18   33.90 At the bottom of the screen, a button is glowing.
+  34.46   35.52 Confirm delivery.
+  36.24   40.20 Then, you notice another option in tiny letters beneath it.
+  40.74   41.82 That's not my order.
+  42.52   44.96 You remember what happened during the first two nights.
+  45.48   47.22 The photographs, the warnings,
+  47.78   50.18 the man appearing closer every time.
+  50.54   52.44 And suddenly, you understand.
+  53.08   55.90 The photographs aren't proof that he's already inside.
+  55.90   58.62 They're showing what happens if you accept.
+  59.28   61.42 He needs you to confirm the delivery.
+  62.14   66.40 The clock changes, 3.13 AM, ding dong.
+  66.98   70.46 You hear footsteps outside, slow, heavy,
+  70.94   72.94 stopping directly in front of your door.
+  73.44   74.96 The handle begins turning.
+  75.46   76.92 Then, a voice speaks.
+  77.50   80.06 It sounds exactly like the real delivery driver.
+  80.62   82.72 Please, just confirm the order.
+  83.26   84.48 You reach for your phone.
+  85.00   87.38 Outside, the knocking becomes violent.
+  87.84   88.84 The door shakes.
+  89.40   91.00 Then, everything stops.
+  91.84   92.16 Silence.
+  92.92   93.86 You open the camera.
+  94.36   95.82 The delivery man is gone.
+  96.34   97.98 You lean closer to the screen.
+  98.44  101.76 And suddenly, his face fills the entire camera.
+ 102.10  104.48 The phone blasts a distorted scream.
+ 104.68  105.60 You drop it.
+ 105.88  108.40 On the floor, the screen is still glowing.
+ 108.90  109.98 Confirm delivery.
+ 110.46  112.10 Your hand moves toward it.
+ 112.10  114.42 But at the last second, you press,
+ 114.78  115.90 that's not my order.
+ 116.48  117.90 The screen turns black.
+ 118.42  120.46 Every light in the apartment goes out.
+ 120.90  122.44 For one terrible moment,
+ 122.82  124.80 you hear breathing beside your ear.
+ 125.28  126.58 Then, nothing.
+ 127.26  128.56 The lights come back on.
+ 128.96  130.28 Your front door is locked.
+ 130.78  132.10 The hallway is empty.
+ 132.70  134.76 The app says, order canceled.
+ 135.28  136.12 You survived.
+ 136.86  139.70 The next morning, you finally open your front door.
+ 140.12  141.36 There's nothing outside.
+ 141.88  144.60 Except a small paper receipt lying on the floor.
+ 145.20  147.48 It has a different apartment number printed on it.
+ 148.02  149.24 Apartment 6B.
+ 149.90  151.98 Then, from behind your neighbor's door,
+ 152.46  154.24 you hear three slow knocks.
+ALLDONE

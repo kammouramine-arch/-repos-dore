@@ -1,0 +1,54 @@
+   0.00    1.68 You survived the first night.
+   2.32    3.66 You never opened the door.
+   4.38    6.88 You spent the rest of the night locked in your bathroom.
+   7.78   10.44 When morning came, the delivery man was gone,
+  10.88   13.88 and every photograph had disappeared from your phone.
+  14.78   16.68 You told yourself it was over.
+  17.42   21.40 But the following night, at exactly 3.13 AM,
+  21.96   24.20 your doorbell rings.
+  24.78   26.02 You haven't ordered anything.
+  26.66   28.10 Your phone lights up anyway.
+  28.62   29.76 Your delivery is waiting.
+  30.40   31.14 You don't move.
+  31.90   33.46 Then another message appears.
+  34.00   35.26 Please confirm your order.
+  35.94   37.46 You open the delivery photograph.
+  38.18   39.74 This time, it's your bedroom.
+  40.40   43.92 Your closet door is open, and the man in the yellow rain
+  43.92   45.50 coat is standing inside.
+  46.24   48.16 You slowly look toward your bedroom.
+  48.84   50.24 The closet is closed.
+  50.86   52.14 You look back at your phone.
+  52.78   56.64 That's when you notice the timestamp, 3.14 AM.
+  57.28   60.12 But the clock on your wall says 3.13.
+  60.78   63.50 The photograph is from one minute in the future.
+  64.18   65.58 Your phone vibrates again.
+  66.12   66.88 Another photo.
+  67.44   70.22 This one shows you standing beside your bedroom door.
+  70.68   73.32 And behind you, the closet is opening.
+  73.82   75.26 You immediately step away.
+  75.76   77.08 A new photograph appears.
+  77.62   78.70 Now you're in the kitchen.
+  79.20   80.72 The photograph has changed.
+  81.16   83.40 It's showing you what might happen next.
+  83.92   85.04 You realize something.
+  85.04   88.42 Whatever this thing is, it hasn't reached you yet.
+  88.90   91.04 The photographs are showing what could happen
+  91.04   92.62 if you accept the delivery.
+  93.32   96.48 Then the clock changes, 3.14 AM.
+  97.16  100.36 From inside your bedroom, three slow knocks.
+ 100.90  101.88 You hold your breath.
+ 102.42  104.18 The closet door begins shaking.
+ 104.58  105.84 Your phone starts ringing.
+ 106.32  108.82 The caller ID says, delivery driver.
+ 109.26  109.84 You answer.
+ 110.40  112.78 For several seconds, there's only breathing.
+ 113.34  116.98 Then a voice whispers, why won't you let me in?
+ 117.42  118.16 You hang up.
+ 118.60  119.96 Another photograph arrives.
+ 120.42  122.50 A close up of the delivery man's face.
+ 123.02  125.72 Except where his eyes should be, there's nothing.
+ 126.34  128.30 Then the photograph begins moving.
+ 128.84  131.20 His head slowly turns toward you.
+ 131.58  132.62 And a message appears.
+ 133.16  135.28 Tomorrow night, final attempt.
