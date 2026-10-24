@@ -17,6 +17,8 @@ def guard_seated(G, t, yaw=180.0, look=0.0, look_up=0.0, lean=6.0, hands="desk",
     """Seated in the office chair. look: head yaw (deg, + = his left); look_up: head pitch up (deg).
     hands: 'desk' (both forearms on the desk), 'lap', 'keys' (typing), or None (caller poses the hands)."""
     cx, cy = (chair if x is None else (x, y))
+    if chair is CHAIR and x is None and bpy.data.objects.get("OFFICE_CHAIR"):
+        place_chair(cx, cy, yaw)
     G.sit(cx, cy, yaw, seat=0.52, feet_fwd=0.46, feet_apart=0.14)
     if lift_feet:
         for s_ in "lr":
@@ -42,7 +44,7 @@ def guard_seated(G, t, yaw=180.0, look=0.0, look_up=0.0, lean=6.0, hands="desk",
 
 def place_chair(x, y, yaw):
     ch = bpy.data.objects["OFFICE_CHAIR"]
-    ch.location = (x, y, 0.0); ch.rotation_euler = (0, 0, math.radians(yaw - 180))
+    ch.location = (x, y, 0.0); ch.rotation_euler = (0, 0, math.radians(yaw))      # the chair's back is at its local +Y: behind a sitter facing yaw
 
 
 def guard_stand(G, x, y, yaw, t, spine=3.0, head_pitch=0.0, head_yaw=0.0, breath=1.0, spread=-0.035, arms=True):

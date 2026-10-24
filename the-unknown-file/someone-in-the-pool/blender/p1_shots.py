@@ -120,7 +120,7 @@ def feed_c1_woman():
 
     def update(t):
         guard_seated(G, 0.0, hands="desk")
-        woman_stand(W, 25.25, -2.15, 180, 0.0, head_pitch=24)
+        woman_stand(W, 25.5, -1.98, 218, 0.0, head_pitch=24)
     return {"frames": 1, "update": update, "still": True, "res": MON, "samples": 8}
 
 
@@ -263,6 +263,8 @@ def p1_07():
     for o in bpy.data.collections["GUARD"].all_objects:
         o.hide_render = True
     fl = bpy.data.objects["FLASHLIGHT"]; show("FLASHLIGHT", True)
+    for k_ in range(3):
+        recenter(bpy.data.objects[f"LIGHT_SWITCH_{k_}"])
 
     def update(t):
         k = smooth(ramp(t, 0.0, 0.9))
@@ -394,7 +396,7 @@ def p1_13():
 def p1_14():
     """72.56-78.20  Looking down through the water: the tiles bulge in the shape of a palm and five fingers pressing up from UNDER the floor."""
     S, G, W = open_set("pool", "hall", guard=False, woman=False)
-    cam = camera(lens=60)
+    cam = camera(lens=95)
     hf = fx.HandFloor(scale=0.5)
     dim_hall(0.2)
 
@@ -410,7 +412,7 @@ def p1_14():
 def p1_15():
     """78.20-83.76  Just above the floor (under water): the hand strains and claws, cracks run through the grout, a thump."""
     S, G, W = open_set("pool", "hall", guard=False, woman=False)
-    cam = camera(lens=26)
+    cam = camera(lens=30)
     hf = fx.HandFloor(scale=0.5)
     dim_hall(0.2)
 
@@ -422,7 +424,7 @@ def p1_15():
         water(t, 0.3)
         d, r = handheld(t, 0.6)
         sh = Vector((0, 0, 0.015 * thump))
-        aim(cam, lerp(Vector((24.15, 8.75, -2.72)), Vector((23.95, 8.5, -2.8)), smooth(t / 5.6)) + d + sh, Vector((23.2, 7.55, -3.12)), r)
+        aim(cam, lerp(Vector((23.85, 8.3, -2.45)), Vector((23.72, 8.12, -2.58)), smooth(t / 5.6)) + d + sh, Vector((23.18, 7.55, -3.12)), r)
     return {"frames": 68, "fps": 12, "update": update, "res": HERO}
 
 
@@ -489,11 +491,11 @@ def p1_18():
     return {"frames": 27, "fps": 12, "update": update, "res": STD}
 
 
-WOMAN_BEHIND = (25.25, -2.15)
+WOMAN_BEHIND = (25.5, -1.98)          # right behind his chair, on the CAM1 line, facing his back
 
 
 def _office_drips(W):
-    return fx.Drips([((25.12, -2.3, 0.35), 0.9, 0.0), ((24.9, -2.25, 0.32), 1.3, 0.4), ((25.0, -2.4, 0.4), 1.1, 0.7)], 0.0, 0.007)
+    return fx.Drips([((25.6, -1.95, 0.35), 0.9, 0.0), ((25.4, -1.9, 0.32), 1.3, 0.4), ((25.5, -2.06, 0.4), 1.1, 0.7)], 0.0, 0.007)
 
 
 def p1_cc1():
@@ -505,7 +507,7 @@ def p1_cc1():
 
     def update(t):
         guard_seated(G, t, hands="desk", lean=2, breath=0.5)
-        woman_stand(W, *WOMAN_BEHIND, 180, t, head_pitch=24, spine=5)
+        woman_stand(W, *WOMAN_BEHIND, 218, t, head_pitch=24, spine=5)
         dr.update(t)
     return {"frames": 84, "fps": 8, "update": update, "res": CCTV, "samples": 4}
 
@@ -518,19 +520,19 @@ def p1_cc1b():
 
     def update(t):
         guard_seated(G, t, hands="desk", lean=2, breath=0.3)
-        woman_stand(W, 25.0, -1.95, 180, t, head_pitch=30, spine=22)
+        woman_stand(W, 25.32, -1.78, 216, t, head_pitch=30, spine=22)
     return {"frames": 16, "fps": 8, "update": update, "res": CCTV, "samples": 4}
 
 
 def p1_cc1z():
     """111.48-114.72  CAM1 zoomed: her face almost touching the back of his head, wet hair hanging."""
     S, G, W = open_set("pool", "hall")
-    cam = cctv_cam("CAM1_OFFICE", lens=42, at=(24.95, -1.6, 1.25))
+    cam = cctv_cam("CAM1_OFFICE", lens=42, at=(25.12, -1.55, 1.3))
     feeds(c4="feed_c4_empty", c1="feed_c1_woman")
 
     def update(t):
         guard_seated(G, t, hands="desk", lean=2, breath=0.3)
-        woman_stand(W, 25.0, -1.9, 180, t, head_pitch=26 + 2 * math.sin(t), spine=26)
+        woman_stand(W, 25.3, -1.76, 216, t, head_pitch=26 + 2 * math.sin(t), spine=26)
     return {"frames": 27, "fps": 8, "update": update, "res": CCTV, "samples": 5}
 
 

@@ -257,7 +257,8 @@ def p3_08():
     S, G, W = open_set("apartment", "warm", woman=False)
     cam = camera(lens=45)
     flood = water_sheet(); flood(1.3)
-    vw = bpy.data.objects["VALVE"]; r0 = vw.rotation_euler.copy()
+    vw = bpy.data.objects["VALVE"]; vw.rotation_mode = "ZYX"        # spin about the wheel's own axis (local Z), then the 90° wall tilt
+    r0 = Euler((0, math.radians(90), 0))
 
     def update(t):
         G.place(2.3, 3.1, 270, dz=-0.12)
@@ -269,7 +270,7 @@ def p3_08():
         Mv = vw.matrix_world
         reach = smooth(ramp(t, 0.0, 0.5))
         a = math.radians(90 + 0)          # grip the rim at the top, the grip point turns with the wheel
-        vw.rotation_euler = (r0.x - math.radians(turn), r0.y, r0.z)
+        vw.rotation_euler = (0, r0.y, -math.radians(turn))
         bpy.context.view_layer.update(); Mv = vw.matrix_world
         rim = Mv @ Vector((0.07 * math.cos(a), 0.07 * math.sin(a), 0))
         ctr = Mv.translation

@@ -1378,7 +1378,8 @@ def main():
         bed(amb, **b)
     for e in events:
         kind = e.pop("kind"); t = e.pop("t"); g = e.pop("db", 0.0); pan = e.pop("pan", 0.0)
-        place(fx, LIB[kind](**e), t, g, pan)
+        gen = LIB.get(kind) or BEDS.get(kind) or globals()[kind]      # any library sound, bed or generator can be a one-shot
+        place(fx, gen(**e), t, g, pan)
     trim = 10 ** (getattr(cues, "TRIM_DB", 0.0) / 20)      # per-episode overall effects trim (narration stays primary)
     amb *= trim; fx *= trim
     buf = amb + fx

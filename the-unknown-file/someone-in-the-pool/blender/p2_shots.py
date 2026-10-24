@@ -299,7 +299,7 @@ def p2_11():
     """84.36-86.06  His hand turns the lock's thumb-turn."""
     S, G, W = open_set("pool", "drained", woman=False)
     cam = camera(lens=55)
-    lk = bpy.data.objects["OFFICE_LOCK_TURN"]
+    lk = recenter(bpy.data.objects["OFFICE_LOCK_TURN"])
     base = lk.rotation_euler.copy()
 
     def update(t):

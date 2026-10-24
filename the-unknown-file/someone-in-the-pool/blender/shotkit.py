@@ -54,10 +54,12 @@ def noise1(t, seed=0.0, f=1.0):
 
 # ------------------------------------------------------------------ scene
 SETS = {"pool": "pool.blend", "apartment": "apartment.blend"}
+CURRENT_SET = ["pool"]
 
 
 def open_set(set_name="pool", lights="night", guard=True, woman=True):
     """set_name: pool | apartment"""
+    CURRENT_SET[0] = set_name
     bpy.ops.wm.open_mainfile(filepath=os.path.join(HERE, SETS[set_name]))
     S = bpy.context.scene
     with bpy.data.libraries.load(os.path.join(HERE, "characters.blend"), link=False) as (src, dst):
@@ -232,6 +234,15 @@ def door(name, deg):
     if base is None:
         o["yaw0"] = math.degrees(o.rotation_euler.z); base = o["yaw0"]
     o.rotation_euler.z = math.radians(base + deg)
+
+
+def recenter(o):
+    """move a box-built object's origin to its geometric centre (set pieces are built in world/parent coordinates with the
+    origin at 0), so rotating it turns it in place."""
+    c = sum((Vector(v.co) for v in o.data.vertices), Vector()) / max(1, len(o.data.vertices))
+    o.data.transform(Matrix.Translation(-c))
+    o.matrix_basis = o.matrix_basis @ Matrix.Translation(c)
+    return o
 
 
 def handle(name, deg):

@@ -116,6 +116,22 @@ class HandFloor:
         if b.inputs["Emission Color"].links:
             nt.links.new(mx.outputs["Result"], b.inputs["Emission Color"])
         self.cv = cv
+        # the tiles are pushed up like a thin skin: flat (top-down) projection so they stretch over the hand instead of
+        # streaking, and where the bulge is highest pale flesh shows through the stretched glaze (PALE drives it)
+        for nd in nt.nodes:
+            if nd.type == "TEX_IMAGE" and nd.projection == "BOX":
+                nd.projection = "FLAT"
+        hi = nt.nodes.new("ShaderNodeTexImage"); hi.image = _img("hand_height.png"); hi.extension = "CLIP"; hi.image.colorspace_settings.name = "Non-Color"
+        nt.links.new(mp.outputs["Vector"], hi.inputs["Vector"])
+        pv = nt.nodes.new("ShaderNodeValue"); pv.name = "PALE"; pv.outputs[0].default_value = 0.0
+        hp = nt.nodes.new("ShaderNodeMath"); hp.operation = "POWER"; hp.inputs[1].default_value = 2.0; nt.links.new(hi.outputs["Color"], hp.inputs[0])
+        pm = nt.nodes.new("ShaderNodeMath"); pm.operation = "MULTIPLY"; pm.use_clamp = True; nt.links.new(hp.outputs[0], pm.inputs[0]); nt.links.new(pv.outputs[0], pm.inputs[1])
+        mx2 = nt.nodes.new("ShaderNodeMix"); mx2.data_type = "RGBA"; mx2.inputs["B"].default_value = (0.78, 0.8, 0.76, 1)
+        nt.links.new(pm.outputs[0], mx2.inputs["Factor"]); nt.links.new(mx.outputs["Result"], mx2.inputs["A"])
+        nt.links.new(mx2.outputs["Result"], b.inputs["Base Color"])
+        if b.inputs["Emission Color"].links:
+            nt.links.new(mx2.outputs["Result"], b.inputs["Emission Color"])
+        self.pale = pv
 
     def uv(self, dx=0.0, dy=0.0, rot_extra=0.0):
         x = self.co[:, 0] - self.cx - dx; y = self.co[:, 1] - self.cy - dy
@@ -123,7 +139,7 @@ class HandFloor:
         xr = x * math.cos(a) + y * math.sin(a); yr = -x * math.sin(a) + y * math.cos(a)
         return xr / self.scale + 0.5, yr / self.scale + 0.5
 
-    def update(self, t, press=0.05, drag=(0.0, 0.0), crack=0.0, wobble=0.0):
+    def update(self, t, press=0.05, drag=(0.0, 0.0), crack=0.0, wobble=0.0, pale=None):
         u, v = self.uv(drag[0], drag[1], wobble * 0.05 * math.sin(t * 3.1))
         inside = (u > 0) & (u < 1) & (v > 0) & (v < 1)
         hh = np.where(inside, _sample(self.h, u, v), 0.0)
@@ -132,6 +148,7 @@ class HandFloor:
         co = self.co.copy(); co[:, 2] = self.co[:, 2] + (press * hh * trem).astype(np.float32)
         self.o.data.vertices.foreach_set("co", co.ravel()); self.o.data.update()
         self.cv.outputs[0].default_value = crack
+        self.pale.outputs[0].default_value = min(0.85, press * 7.0) if pale is None else pale
 
 
 # ------------------------------------------------------------------ hair hanging under gravity
