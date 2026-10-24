@@ -110,10 +110,15 @@ def woman_stand(W, x, y, yaw, t, head_pitch=20.0, head_roll=0.0, head_yaw=0.0, s
 
 
 def void_eyes(on=True):
+    """Night 3 (and the scares): wet, black, void eyes."""
+    m = bpy.data.materials.get("Wom.eyes_void")
+    if m is None:          # an unused material is not saved in characters.blend: build it here
+        m = bpy.data.materials.new("Wom.eyes_void"); m.use_nodes = True; b = m.node_tree.nodes["Principled BSDF"]
+        b.inputs["Base Color"].default_value = (0.003, 0.003, 0.004, 1); b.inputs["Roughness"].default_value = 0.06; b.inputs["Coat Weight"].default_value = 1.0
     eye = bpy.data.objects.get("Wom.high-poly")
     if eye and on:
         for ms in eye.material_slots:
-            ms.material = bpy.data.materials["Wom.eyes_void"]
+            ms.material = m
 
 
 def hold_torch(G, side, pos_rig, aim_rig, torch="FLASHLIGHT"):

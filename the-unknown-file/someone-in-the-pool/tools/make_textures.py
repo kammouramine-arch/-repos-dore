@@ -154,3 +154,15 @@ for i, t in enumerate(entries):
         x += pen.getlength(ch) * R.uniform(0.98, 1.06)
 lp = lp.filter(ImageFilter.GaussianBlur(0.6))
 save(lp, "logbook_page.png")
+
+# ---- a single water drop's wet splash on cloth (irregular blot + spatter)
+ws = Image.new("L", (512, 512), 0); d = ImageDraw.Draw(ws)
+for _ in range(26):
+    a = R.uniform(0, 2 * math.pi); r = R.uniform(0, 70)
+    x, y = 256 + math.cos(a) * r, 256 + math.sin(a) * r; rr = R.uniform(35, 70)
+    d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=255)
+for _ in range(18):
+    a = R.uniform(0, 2 * math.pi); r = R.uniform(150, 230); rr = R.uniform(5, 14)
+    x, y = 256 + math.cos(a) * r, 256 + math.sin(a) * r
+    d.ellipse((x - rr, y - rr, x + rr, y + rr), fill=230)
+save(ws.filter(ImageFilter.GaussianBlur(5)), "wetspot.png")

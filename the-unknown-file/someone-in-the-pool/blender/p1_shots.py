@@ -566,7 +566,7 @@ def p1_20():
 def p1_21():
     """114.72-118.78  Extreme close-up: a single drop falls on his shoulder, splashes, the slate cloth darkens."""
     S, G, W = open_set("pool", "hall", woman=False)
-    cam = camera(lens=85)
+    cam = camera(lens=60)
     feeds(c4="feed_c4_empty", c1="feed_c1_woman")
     state = {}
 
@@ -574,10 +574,13 @@ def p1_21():
         guard_seated(G, 0.0, hands="desk", lean=6, breath=0.0)
         bpy.context.view_layer.update()
         if "pt" not in state:
-            sh = G.rig.matrix_world @ G.rig.pose.bones["clavicle_r"].tail
-            state["pt"] = sh + Vector((0.0, 0.03, 0.075))
+            # the drop lands on the cloth: raycast down onto the shirt above the right shoulder joint
+            sh = G.rig.matrix_world @ G.rig.pose.bones["upperarm_r"].head
+            dg = bpy.context.evaluated_depsgraph_get()
+            hit, loc, nrm, *_ = S.ray_cast(dg, sh + Vector((-0.02, 0.0, 0.4)), Vector((0, 0, -1)))
+            state["pt"] = (loc if hit else sh + Vector((0, 0, 0.08))) + Vector((0, 0, 0.001))
             state["drop"] = fx.Drips([(state["pt"] + Vector((0, 0, 1.6)), 9.0, 7.85)], state["pt"].z, 0.0065)
-            o, op = fx.decal("wet_spot", "handprint.png", state["pt"] + Vector((0, 0, 0.004)), 0.05, color=(0.06, 0.07, 0.08), alpha=0.0, rough=0.3, coat=0.5)
+            o, op = fx.decal("wet_spot", "wetspot.png", state["pt"] + Vector((0, 0, 0.003)), 0.06, color=(0.06, 0.07, 0.08), alpha=0.0, rough=0.3, coat=0.5)
             state["spot"] = (o, op)
         pt = state["pt"]
         state["drop"].update(t)
@@ -585,8 +588,9 @@ def p1_21():
         k = ramp(t, 1.72, 2.2)          # the drop lands at t=1.72 (emitter 1.6 m above, released at 1.15)
         op.outputs[0].default_value = 0.85 * k
         o.scale = (0.4 + 0.6 * k, 0.4 + 0.6 * k, 1)
-        aim(cam, pt + Vector((0.32, -0.42, 0.12)), pt + Vector((0, 0, 0.03)), handheld(t, 0.15)[1])
-        dof(cam, 0.54, 2.8)
+        loc = pt + Vector((0.36, -0.32, 0.13))
+        aim(cam, loc, pt + Vector((-0.06, 0.04, 0.03)), handheld(t, 0.15)[1])
+        dof(cam, (pt - loc).length, 3.2)
     return {"frames": 49, "fps": 12, "update": update, "res": STD}
 
 
