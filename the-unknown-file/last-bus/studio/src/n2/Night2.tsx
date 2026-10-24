@@ -96,7 +96,7 @@ export const Night2: React.FC = () => {
         const p = { ...idle(s.pose, t, 1, 0.3), lean: 18, headYaw: headTo(cam, s.pose.yaw, [0.1, -1], 90), headTilt: -2, expr: mixExpr(EXPR.uneasy, EXPR.shock, ramp(t, 0.6, 1.4)) };
         const slide = (1 - ramp(t, 0, 3.3, easeOut)) * 380;
         return <WindowScene t={t} him={p} frame={hand(F(600, 900, 1.15), t, 0.5)}
-          outsideHtml={<Img src={staticFile("plates/bldg_from_bus.jpg")} style={{ position: "absolute", left: -260 + slide, top: 260, width: 1500, height: 2667, opacity: 0.8 }} />} />;
+          outsideHtml={<Img src={staticFile("plates/bldg_from_bus.jpg")} style={{ position: "absolute", left: -260 + slide, top: 160, width: 1500, height: 2667, opacity: 1, filter: "brightness(2.6) contrast(1.15) saturate(0.9)" }} />} />;
       }} />
 
       {/* 7 — the phone lights up: 1%. "Your phone suddenly lights up. 1% battery." */}

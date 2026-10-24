@@ -383,7 +383,7 @@ export const Night1: React.FC = () => {
       <S a={92.6} b={95.5} r={(t) => {
         const cam = "bus_seat_side";
         const a = project(cam, [HX + 0.35, 0.02, 0]);
-        const yaw = yawFor(cam, [1, -0.3]);
+        const yaw = yawFor(cam, [1, 0.55]);
         const raise = ramp(t, 0.9, 1.6, easeInOut);
         let p = idle(stand(yaw, { hands: "phone", expr: EXPR.fear }), t, 6);
         p = { ...p, headTilt: lerp(0, 16, raise), look: [0.3, lerp(0, 0.7, raise)] };

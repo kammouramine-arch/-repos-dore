@@ -79,7 +79,7 @@ export const Night3: React.FC = () => {
         const s = heroSeat(cam, 1);
         const p = { ...idle(s.pose, t, 1, 0.3), lean: 16, headYaw: headTo(cam, s.pose.yaw, [0.1, -1], 90), expr: mixExpr(EXPR.uneasy, EXPR.shock, ramp(t, 1.2, 2.0)) };
         return <WindowScene t={t} him={p} frame={hand(lerpF(F(600, 900, 1.1), F(620, 880, 1.25), ramp(t, 0, 3.4)), t, 0.4)}
-          outsideHtml={<Img src={staticFile("plates/bldg_from_bus.jpg")} style={{ position: "absolute", left: -260, top: 260, width: 1500, height: 2667, opacity: 0.85 }} />} />;
+          outsideHtml={<Img src={staticFile("plates/bldg_from_bus.jpg")} style={{ position: "absolute", left: -260, top: 160, width: 1500, height: 2667, opacity: 1, filter: "brightness(2.6) contrast(1.15) saturate(0.9)" }} />} />;
       }} />
 
       {/* 5 — the doors open; someone is standing at the stop. */}
@@ -152,7 +152,7 @@ export const Night3: React.FC = () => {
       {/* 13 — he steps toward the exit; the double slides into the doorway. "You slowly step toward the exit, but your double moves to block the doors." */}
       <S a={43.2} b={48.2} r={(t) => {
         const cam = "bus_middoor_open_red";
-        const w = walk3D(cam, [[-0.5, -0.65, 0], [0.55, -0.8, 0]], walkDistM(t, 0.1, 1.06, 0.5), {}, { expr: EXPR.fear });
+        const w = walk3D(cam, [[-0.45, -0.95, 0], [0.55, -0.8, 0]], walkDistM(t, 0.1, 1.0, 0.5), {}, { expr: EXPR.fear, headYaw: 25 });
         const dpath: Vec3[] = [[2.2, -0.7, 0], [1.25, -1.05, 0]];
         const dw = walk3D(cam, dpath, walkDistM(t, 2.2, 0.75, 0.9, 0.25), {}, {});
         const dp = uncanny({ ...dw.pose, yaw: t > 3.4 ? yawFor(cam, [-1, 0.5]) : dw.pose.yaw, headYaw: t > 3.4 ? 0 : headTo(cam, dw.pose.yaw, [-1, 0.6], 60) }, t, { smileAt: -5, drift: 0.4 });
@@ -162,7 +162,7 @@ export const Night3: React.FC = () => {
       {/* 14 — it reaches for his arm. "It reaches for your arm, and that's when you hear something." */}
       <S a={48.2} b={52.3} r={(t) => {
         const cam = "bus_middoor_open_red";
-        const him = standAt(cam, [0.55, -0.8, 0], [1, -0.3], { expr: EXPR.fear });
+        const him = standAt(cam, [0.55, -0.8, 0], [1, 0.35], { expr: EXPR.fear });
         const d = standAt(cam, [1.25, -1.05, 0], [-1, 0.4]);
         const reach = ramp(t, 0.2, 1.8, easeInOut);
         const target = toLocal(d.a, project(cam, [0.72, -0.85, 1.0]));
@@ -196,14 +196,14 @@ export const Night3: React.FC = () => {
       {/* 18 — something invisible drags it backward, one step, then another. */}
       <S a={60.4} b={65.8} r={(t) => {
         const cam = "bus_middoor_open_red";
-        const him = standAt(cam, [0.4, -0.75, 0], [1, -0.3], { expr: EXPR.shock });
+        const him = standAt(cam, [0.4, -0.75, 0], [1, 0.4], { expr: EXPR.shock });
         // backward path away from the door toward the back of the bus; heels drag, arms reach forward
         const path: Vec3[] = [[1.25, -1.05, 0], [0.9, -0.75, 0], [-1.2, -0.5, 0]];
         const steps = [[0.2, 0.9], [1.4, 2.1], [2.6, 3.3], [3.7, 4.3], [4.6, 5.2]];
         let dist = 0;
         for (const [a0, a1] of steps) dist += 0.3 * ramp(t, a0, a1, easeInOut);
         const w = walk3D(cam, path, dist, { yawOffset: 0 }, {});
-        const fwd = yawFor(cam, [1, -0.4]);
+        const fwd = yawFor(cam, [1, 0.45]);
         const strain = 0.6 + 0.4 * Math.sin(t * 6);
         const dp: Pose = { ...w.pose, yaw: fwd, lean: -14 - 6 * strain, R: { at: [w.pose.root[0] + 260 * Math.sign(Math.sin(fwd * Math.PI / 180)), w.pose.root[1] - 330], kind: "open" }, L: { at: [w.pose.root[0] + 200 * Math.sign(Math.sin(fwd * Math.PI / 180)), w.pose.root[1] - 260], kind: "open" }, expr: EXPR.fear, blink: 0, look: [0.4, 0] };
         return <MidDoorScene t={t} open={1} red frame={hand(F(540, 1000, 1.05), t, 0.6)} people={[{ look: HERO, a: him.a, pose: him.pose }, { look: DOUBLE, a: w.a, pose: dp, seed: 9 }]} outside={<rect x={0} y={0} width={1080} height={1920} fill="#05030a" />} />;
