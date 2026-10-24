@@ -28,13 +28,13 @@ for f in sorted(glob.glob(os.path.join(src, "*.mp4")) + glob.glob(os.path.join(s
         continue
     if f.endswith(".jpg") and name.startswith("db_"):
         vf = ("scale=1080:1440:flags=lanczos,lenscorrection=cx=0.5:cy=0.5:k1=-0.32:k2=0.06,"
-              "eq=saturation=0.55:contrast=1.08:brightness=0.01,colorbalance=gs=0.04:bs=-0.02,noise=alls=14:allf=t")
+              "eq=saturation=0.85:contrast=1.08:brightness=0.01,colorbalance=gs=0.04:bs=-0.02,noise=alls=14:allf=t")
         run(["-loop", "1", "-i", f, "-t", "8", "-vf", vf, "-r", "15", "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", out[:-4] + ".mp4"])
     elif f.endswith(".jpg"):
         shutil.copy(f, out)
     elif name.startswith("db_"):
         vf = ("scale=1080:1440:flags=lanczos,lenscorrection=cx=0.5:cy=0.5:k1=-0.32:k2=0.06,"
-              "eq=saturation=0.55:contrast=1.08:brightness=0.01,colorbalance=gs=0.04:bs=-0.02,"
+              "eq=saturation=0.85:contrast=1.08:brightness=0.01,colorbalance=gs=0.04:bs=-0.02,"
               "noise=alls=14:allf=t,unsharp=5:5:0.4")
         dfps = (json.load(open(f[:-4] + ".json")) if os.path.exists(f[:-4] + ".json") else {"fps": 15}).get("fps", 15)
         run(["-i", f, "-vf", vf, "-r", str(dfps), "-c:v", "libx264", "-crf", "16", "-pix_fmt", "yuv420p", out])

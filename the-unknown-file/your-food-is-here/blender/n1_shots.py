@@ -10,7 +10,7 @@ UI = os.path.join(ROOT, "renders", "ui")
 SOFA = (4.36, 5.98)            # he sits here, facing east (TV)
 HALLMOUTH = (0.95, 4.95)        # where he stands to watch the doorbell feed, facing the front door (south)
 LIVING = (3.4, 6.2)             # where he ends the night, facing the kitchen (west)
-DOOR_SPOT = (0.62, -1.05)       # courier, outside 6A, facing the door (north)
+DOOR_SPOT = (0.62, -1.42)       # courier, outside 6A, facing the door (north)
 
 
 def ui(name):
@@ -199,8 +199,8 @@ def n1_08():
 
 # --- doorbell camera feed (corridor, wide lens; fisheye + noise added in the edit)
 def _doorbell_cam():
-    cam = camera("DBCAM", lens=10.5)
-    aim(cam, Vector((1.35, -0.31, 1.37)), Vector((0.55, -1.6, 0.95)), 0.0)
+    cam = camera("DBCAM", lens=15)
+    aim(cam, Vector((1.35, -0.31, 1.37)), Vector((0.62, -1.75, 1.05)), 0.0)
     cam.data.clip_start = 0.02
     return cam
 
