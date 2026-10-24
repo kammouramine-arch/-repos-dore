@@ -3,6 +3,7 @@ import { AbsoluteFill, Img, OffthreadVideo, Sequence, staticFile, useCurrentFram
 import { SW, SH, SAFE_TOP, clamp, ease } from "../ui/Phone";
 
 export const FPS = 30;
+const PS = 0.92;   // phone screen scale in screen-fill shots
 export type Cue = { from: number; to: number; el: (t: number, d: number) => React.ReactNode; key?: string };
 
 /** plays cues (seconds) as hard-cut sequences; t = local seconds */
@@ -62,7 +63,10 @@ export const ScreenFill: React.FC<{ t: number; d: number; z0?: number; z1?: numb
   return (
     <AbsoluteFill style={{ background: "#000", overflow: "hidden" }}>
       <AbsoluteFill style={{ transform: `translate(${dr.x + bz}px, ${dr.y}px) rotate(${dr.r * 0.6}deg) scale(${z})`, transformOrigin: `${fx * 100}% ${fy * 100}%` }}>
-        <div style={{ position: "absolute", left: 0, top: -SAFE_TOP, width: SW, height: SH }}>{children}</div>
+        {/* the phone: screen scaled to 92 %, centred; side bezels and glow visible, top/bottom run off frame like a close-up */}
+        <div style={{ position: "absolute", left: (1080 - SW * PS) / 2 - 16, top: (1920 - SH * PS) / 2 - 16, width: SW * PS + 32, height: SH * PS + 32, borderRadius: 96,
+          background: "linear-gradient(90deg, #2a2d33, #0c0d10 6%, #0c0d10 94%, #2a2d33)", boxShadow: "0 0 140px 30px rgba(120,150,210,0.10)" }} />
+        <div style={{ position: "absolute", left: (1080 - SW * PS) / 2, top: (1920 - SH * PS) / 2, width: SW, height: SH, transform: `scale(${PS})`, transformOrigin: "0 0", borderRadius: 86 / PS, overflow: "hidden" }}>{children}</div>
         {dim ? <AbsoluteFill style={{ background: "#000", opacity: dim }} /> : null}
       </AbsoluteFill>
       <AbsoluteFill style={{ background: "linear-gradient(115deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0) 32%, rgba(255,255,255,0) 70%, rgba(255,255,255,0.03) 100%)", pointerEvents: "none" }} />
