@@ -14,7 +14,7 @@ OUT = os.path.join(ROOT, "renders", "p3")
 UI = os.path.join(ROOT, "renders", "ui")
 HERO = (720, 1280); STD = (576, 1024); CCTV = (540, 960)
 SOFA_SEAT = (3.38, 5.9)         # he sits facing west (TV), yaw 270
-BATH_DOOR_SPOT = (2.9, 3.05)     # in front of the bathroom door (landing), facing south into the bathroom
+BATH_DOOR_SPOT = (2.9, 3.25)     # in front of the bathroom door (landing), facing south into the bathroom
 GZ = -9.0
 CAR = Vector((40.0, -7.15, GZ))
 
@@ -98,12 +98,12 @@ def p3_02():
         start = G.world(Vector((-0.2, -0.25, 0.95)))
         G.hand_world("r", start.lerp(p + Vector((0.03, 0.06, -0.06)), reach), (-0.3, -0.5, 0.8), (-1, 0, 0), "handle")
         db.rotation_euler = (math.radians(90), 0, math.radians(90 * k))
-        aim(cam, Vector((1.75, 1.45, 1.6)), Vector((1.0, 0.1, 1.25)), handheld(t, 0.3)[1])
+        aim(cam, Vector((1.4, 1.75, 1.62)), Vector((1.0, 0.05, 1.22)), handheld(t, 0.3)[1])
     return {"frames": 41, "fps": 12, "update": update, "res": STD}
 
 
 def _sofa(G, t, look=0.0, lift=0.0, head_pitch=26.0, phone_ui=None):
-    G.sit(SOFA_SEAT[0], SOFA_SEAT[1], 270, seat=0.47, feet_fwd=0.5)
+    G.sit(SOFA_SEAT[0], SOFA_SEAT[1], 270, seat=0.6, feet_fwd=0.5)
     b = breathe(t, 0.22)
     G.spine(pitch=-10 + b + 10 * lift, yaw=look * 0.3)
     G.head(pitch=head_pitch - lift * 34, yaw=look * 0.7)
@@ -186,8 +186,10 @@ def p3_05():
 
 def p3_06():
     """50.32-53.00  The dark bathroom: the tap drips into the sink — drip, drip, drip."""
-    S, G, W = open_set("apartment", "dark", guard=False, woman=False)
+    S, G, W = open_set("apartment", "bath", guard=False, woman=False)
     cam = camera(lens=80)
+    for nm in ("L_bath", "L_bath_mirror"):
+        bpy.data.objects[nm].data.energy *= 0.12
     fill = area_fill("BATH_FILL", (3.5, 1.2, 2.3), 6, (0.6, 0.75, 1.0))
     dr = fx.Drips([((1.855, 1.85, 1.022), 0.68, 0.12)], 0.84, 0.0045, coll="BATHROOM")
 
@@ -239,9 +241,9 @@ def water_sheet(name="FLOOD"):
 
 def p3_07():
     """53.00-57.14  Low on the hall floor: water flows out under the bathroom door and spreads toward us."""
-    S, G, W = open_set("apartment", "warm", guard=False, woman=False)
+    S, G, W = open_set("apartment", "bath", guard=False, woman=False)
     cam = camera(lens=30)
-    flood = water_sheet()
+    flood = water_sheet()          # the bathroom light leaks under the door and glints on the spreading water
     for nm in ("L_living_ceiling",):
         bpy.data.objects[nm].data.energy *= 0.5
 
@@ -277,7 +279,7 @@ def p3_08():
         rad = (rim - ctr).normalized()
         start = G.world(Vector((-0.25, -0.3, 0.9)))
         G.hand_world("r", start.lerp(rim + rad * 0.05 + Vector((0.05, 0, 0)), reach), -rad, Vector((1, 0, 0)), "grip")
-        aim(cam, Vector((2.35, 2.55, 1.1)), Vector((1.78, 3.05, 0.62)), handheld(t, 0.3)[1])
+        aim(cam, Vector((2.55, 3.32, 1.05)), Vector((1.78, 3.05, 0.62)), handheld(t, 0.3)[1])
         dof(cam, 0.85, 2.8)
     return {"frames": 40, "fps": 12, "update": update, "res": STD}
 
@@ -304,7 +306,7 @@ def _bath_photo(woman_pose):
     def update(t):
         guard_stand(G, 2.9, 3.0, 0, 0.0, spine=4, head_pitch=10, breath=0.0)
         woman_pose(W)
-        aim(cam, Vector((4.05, 0.15, 2.45)), Vector((2.75, 2.75, 1.2)))
+        aim(cam, Vector((1.78, 0.18, 2.45)), Vector((2.95, 2.75, 1.25)))
     return {"frames": 1, "update": update, "still": True, "res": HERO, "samples": 10}
 
 
@@ -373,10 +375,10 @@ def p3_12():
     po.location = (1.704, 1.85, 1.475); po.rotation_euler = (0, math.radians(90), 0); po.scale = (0.4, 0.4, 1)
 
     def update(t):
-        nt.nodes["FOG"].outputs[0].default_value = 0.9 * smooth(ramp(t, 0.0, 3.0))
+        nt.nodes["FOG"].outputs[0].default_value = 0.72 * smooth(ramp(t, 0.0, 3.0))
         prog.outputs[0].default_value = 2.05 * ramp(t, 2.9, 6.6, lambda x: x)
         k = smooth(t / 9.6)
-        aim(cam, lerp(Vector((2.75, 1.5, 1.6)), Vector((2.45, 1.62, 1.55)), k), Vector((1.7, 1.86, 1.47)), handheld(t, 0.2)[1])
+        aim(cam, lerp(Vector((3.05, 1.72, 1.55)), Vector((2.8, 1.78, 1.52)), k), Vector((1.7, 1.86, 1.47)), handheld(t, 0.2)[1])
     return {"frames": 114, "fps": 12, "update": update, "res": STD}
 
 
@@ -392,7 +394,7 @@ def p3_13():
         door("BATH_DOOR", 100 * (1 - slam))
         jolt = math.exp(-(t - 2.02) * 8) * math.sin((t - 2.02) * 60) if t > 2.02 else 0.0
         d, r = handheld(t, 0.8 + 6 * abs(jolt))
-        aim(cam, eye + d, Vector((2.4, 0.5, 1.3)), r)
+        aim(cam, eye + d, Vector((1.75, 1.85, 1.45)), r)
     return {"frames": 80, "fps": 24, "update": update, "res": STD}
 
 
@@ -438,15 +440,15 @@ def p3_16():
     S, G, W = open_set("apartment", "dark")
     cam = camera(lens=55)
     void_eyes(True)
-    rim = area_fill("RIM", (1.2, 0.3, 1.9), 3.0, (0.55, 0.7, 1.0), 0.4)
+    rim = area_fill("RIM", (0.25, 0.6, 2.0), 5.0, (0.55, 0.7, 1.0), 0.4)
 
     def update(t):
         guard_stand(G, 0.8, 1.2, 0, t, spine=4, head_pitch=4, head_yaw=-4, breath=0.2)
         k = smooth(ramp(t, 0.6, 2.4))
-        woman_stand(W, 1.0, 1.52 - 0.06 * k, 0, t, head_pitch=6, head_roll=12, spine=16 + 6 * k, locks=True, arms=False)
+        woman_stand(W, 0.6, 1.52 - 0.06 * k, 0, t, head_pitch=6, head_roll=-12, spine=16 + 6 * k, locks=True, arms=False)
         W.hand_rest("l"); W.hand_rest("r")
         eye = G.world(G.eye())
-        aim(cam, eye + Vector((0.78, -0.38, 0.02)), eye + Vector((0.12, 0.12, -0.02)), handheld(t, 0.2)[1])
+        aim(cam, eye + Vector((-0.55, -0.5, 0.02)), eye + Vector((-0.1, 0.12, -0.02)), handheld(t, 0.2)[1])
         dof(cam, 0.88, 2.0)
         L = phone_light(True, 25)
         L.location = eye + Vector((0.05, -0.35, -0.35)); L.rotation_euler = ((eye + Vector((0, 0.2, 0.0))) - L.location).to_track_quat("-Z", "Y").to_euler()
@@ -486,7 +488,7 @@ def p3_18():
         k = smoother(ramp(t, 0.15, 0.5))
         door("FRONT_DOOR", 95 * k)
         guard_stand(G, 0.75, 0.55 - 0.45 * smooth(ramp(t, 0.4, 1.4)), 0, t, spine=14, head_pitch=-4, breath=0)
-        aim(cam, Vector((-1.2, -1.75, 1.55)), Vector((0.75, 0.2, 1.25)), handheld(t, 1.2)[1])
+        aim(cam, Vector((-0.35, -1.7, 1.55)), Vector((0.75, 0.25, 1.3)), handheld(t, 1.2)[1])
     return {"frames": 36, "fps": 15, "update": update, "res": STD}
 
 
@@ -566,7 +568,7 @@ def p3_24():
     """134.62-137.44  The driver window from inside: a tap rattles the glass (0.5) — nothing outside."""
     S, G, W = open_set("apartment", "street", woman=False)
     cam = camera(lens=35)
-    g = bpy.data.objects["car_door_driver_glass"]; g0 = g.location.copy()
+    g = bpy.data.objects["glass_front_r"]; g0 = g.location.copy()
 
     def update(t):
         guard_in_car(G, t, grip=True, head_back=0.4, look=-20 * smooth(ramp(t, 0.7, 1.5)))
@@ -652,10 +654,9 @@ def p3_29():
         guard_in_car(G, t, grip=True, head_back=0.0, breath=0.2, look=-6 * smooth(ramp(t, 2.6, 4.0)))
         rise = smoother(ramp(t, 4.9, 5.25)); lunge = smoother(ramp(t, 5.55, 5.8))
         W.floor = GZ + 0.35
-        p = car((-1.0 + 0.32 * lunge, -0.14, 0))
-        W.place(p.x, p.y, 90, dz=-0.55 + 0.52 * rise + 0.03 * lunge)
-        W.stand(spread=0.05)
-        W.spine(pitch=40 - 10 * rise + 12 * lunge); W.head(pitch=-6 - 10 * rise, roll=14)
+        p = car((-1.02 + 0.22 * lunge, -0.07, 0))
+        W.sit(p.x, p.y, 90, seat=GZ + 0.62, feet_fwd=0.42)
+        W.spine(pitch=62 - 30 * rise + 10 * lunge, yaw=-8); W.head(pitch=-28 * rise - 10, roll=14)
         W.hand_rest("l"); W.hand_rest("r")
         eye = G.world(G.eye())
         d, r = handheld(t, 0.2 + 1.0 * lunge)

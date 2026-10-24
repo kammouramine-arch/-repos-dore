@@ -3,7 +3,7 @@ import bpy, math
 from mathutils import Vector, Matrix
 from shotkit import ramp, smooth, smoother, lerp, noise1
 
-CHAIR = (25.0, -1.35)           # office swivel chair (N1/N2), guard faces north (yaw 180) toward the monitors + window
+CHAIR = (25.0, -1.18)           # office swivel chair (N1/N2), guard faces north (yaw 180) toward the monitors + window
 DESK_Z = 0.78
 
 

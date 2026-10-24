@@ -160,7 +160,8 @@ class HangingHair:
             # scalp points on the upper/back hemisphere of the head bone (rig space offsets from the head bone head)
             th = R.uniform(0, 2 * math.pi); ph = R.uniform(0.0, 1.15)
             self.roots.append((th, ph, R.uniform(*length), R.uniform(0, 6.28), R.uniform(0.6, 1.2)))
-        cu = bpy.data.curves.new("Wom.hair_hanging", "CURVE"); cu.dimensions = "3D"; cu.bevel_depth = 0.0028; cu.bevel_resolution = 1
+        self.clump = [R.randrange(22) for _ in range(n)]
+        cu = bpy.data.curves.new("Wom.hair_hanging", "CURVE"); cu.dimensions = "3D"; cu.bevel_depth = 0.0016; cu.bevel_resolution = 1
         self.K = 8
         for _ in range(n):
             sp = cu.splines.new("POLY"); sp.points.add(self.K - 1)
@@ -194,7 +195,11 @@ class HangingHair:
                     drift = Vector((math.sin(t * 0.9 * sw + sd + f * 2), math.cos(t * 0.7 * sw + sd * 1.3 + f * 1.5), 0)) * 0.012 * f * sway
                     p = p + drift
                     p = p.lerp(Vector((center.x, center.y, p.z)) + (p - Vector((center.x, center.y, p.z))) * (1 - 0.35 * wet_clump), f * wet_clump * 0.15)
+                    ca = self.clump[i] * 2 * math.pi / 22
+                    cpt = Vector((center.x + math.cos(ca) * 0.06, center.y + math.sin(ca) * 0.06, p.z))
+                    p = p.lerp(cpt, f * wet_clump * 0.45)
                 sp.points[k].co = (*p, 1)
+                sp.points[k].radius = 1.4 - 1.0 * f          # thick wet clumps at the root, fine tips
         self.o.data.update_tag()
 
 

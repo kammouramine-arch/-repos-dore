@@ -265,20 +265,67 @@ def cpart(nm, a, m, bev=0.02):
     o = box(nm, *a, m, C["CAR"], bev); o.parent = car; return o
 
 
-# body (local: +x forward, +y left/kerb, z up); length 4.1, width 1.75
-cpart("car_lower", (-2.05, -0.875, 0.18, 2.05, 0.875, 0.95), M_PAINT, 0.08)
-cpart("car_bonnet", (1.0, -0.86, 0.95, 2.05, 0.86, 1.02), M_PAINT, 0.05)
-cpart("car_roof", (-1.3, -0.72, 1.48, 0.55, 0.72, 1.53), M_PAINT, 0.05)
-for (nm, a) in (("car_pillar_a_l", (0.55, 0.66, 0.95, 0.98, 0.74, 1.5)), ("car_pillar_a_r", (0.55, -0.74, 0.95, 0.98, -0.66, 1.5)),
-                ("car_pillar_b_l", (-0.35, 0.68, 0.95, -0.25, 0.75, 1.5)), ("car_pillar_b_r", (-0.35, -0.75, 0.95, -0.25, -0.68, 1.5)),
-                ("car_pillar_c_l", (-1.45, 0.66, 0.95, -1.25, 0.74, 1.5)), ("car_pillar_c_r", (-1.45, -0.74, 0.95, -1.25, -0.66, 1.5))):
-    cpart(nm, a, M_PAINT, 0.01)
-for (nm, a) in (("glass_windscreen", (0.6, -0.68, 0.98, 0.95, 0.68, 1.48)), ("glass_rear", (-1.45, -0.66, 0.98, -1.4, 0.66, 1.45)),
-                ("glass_front_l", (-0.25, 0.73, 0.98, 0.6, 0.745, 1.47)), ("glass_front_r", (-0.25, -0.745, 0.98, 0.6, -0.73, 1.47)),
-                ("glass_back_l", (-1.25, 0.73, 0.98, -0.35, 0.745, 1.47)), ("glass_back_r", (-1.25, -0.745, 0.98, -0.35, -0.73, 1.47))):
-    g = cpart(nm, a, M_CARGLASS, 0.0); g.visible_shadow = False
-for (x, y) in ((1.35, 0.8), (1.35, -0.8), (-1.35, 0.8), (-1.35, -0.8)):
-    w = cyl("car_wheel", 0, 0, -0.11, 0.11, 0.32, M_TRIM, C["CAR"], 24); w.rotation_euler = (math.radians(90), 0, 0); w.location = (x, y, 0.32); w.parent = car
+# body (local: +x forward, +y left/kerb, z up); length 4.15, width 1.75. Built from side profiles so the cabin is hollow
+# (interior cameras see seats, dash and the real windows) and the silhouette reads as a hatchback.
+def prof(nm, pts, y0, y1, m, bev=0.0):
+    """extrude a closed (x, z) polygon across y0..y1, parented to the car"""
+    bm = bmesh.new()
+    vs = [bm.verts.new((x, y0, z)) for (x, z) in pts]
+    f = bm.faces.new(vs)
+    ext = bmesh.ops.extrude_face_region(bm, geom=[f])
+    for v in [e for e in ext["geom"] if isinstance(e, bmesh.types.BMVert)]:
+        v.co.y = y1
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    me = bpy.data.meshes.new(nm); bm.to_mesh(me); bm.free()
+    o = bpy.data.objects.new(nm, me); link(o, C["CAR"]); me.materials.append(m); o.parent = car
+    if bev:
+        bv = o.modifiers.new("bevel", "BEVEL"); bv.width = bev; bv.segments = 3; bv.limit_method = "ANGLE"
+    for pg in me.polygons:
+        pg.use_smooth = True
+    return o
+
+
+BELT = 0.97
+SIDE = [(-2.02, 0.26), (-1.62, 0.26), (-1.6, 0.5), (-1.1, 0.5), (-1.08, 0.26), (1.08, 0.26), (1.1, 0.5), (1.6, 0.5), (1.62, 0.26),
+        (2.02, 0.28), (2.08, 0.55), (2.04, 0.78), (1.85, 0.86), (0.95, BELT), (-1.9, BELT + 0.02), (-2.06, 0.95), (-2.1, 0.6)]
+for sgn in (1, -1):
+    prof(f"car_side_{'l' if sgn > 0 else 'r'}", SIDE, sgn * 0.835, sgn * 0.875, M_PAINT, 0.012)
+prof("car_bonnet", [(0.95, 0.4), (1.08, 0.4), (1.1, 0.5), (1.6, 0.5), (1.62, 0.3), (2.02, 0.3), (2.08, 0.55), (2.04, 0.78), (1.85, 0.86), (0.95, BELT)], -0.84, 0.84, M_PAINT, 0.04)
+prof("car_boot", [(-2.06, 0.3), (-1.62, 0.3), (-1.6, 0.5), (-1.45, 0.5), (-1.45, BELT + 0.02), (-1.9, BELT + 0.02), (-2.06, 0.95), (-2.1, 0.6)], -0.84, 0.84, M_PAINT, 0.04)
+ROOF = [(0.44, 1.43), (-1.15, 1.47)]
+prof("car_roof", [(0.48, 1.42), (0.44, 1.46), (-1.15, 1.5), (-1.22, 1.46), (-1.15, 1.44), (0.42, 1.4)], -0.74, 0.74, M_PAINT, 0.02)
+# pillars: A along the windscreen edge, B, C along the rear window edge
+for sgn in (1, -1):
+    y0, y1 = sgn * 0.70, sgn * 0.80
+    prof(f"car_pillar_a_{sgn}", [(0.98, BELT), (0.92, BELT), (0.4, 1.42), (0.47, 1.43)], min(y0, y1), max(y0, y1), M_PAINT, 0.01)
+    prof(f"car_pillar_b_{sgn}", [(-0.32, BELT), (-0.22, BELT), (-0.22, 1.46), (-0.32, 1.46)], min(y0, y1), max(y0, y1), M_PAINT, 0.01)
+    prof(f"car_pillar_c_{sgn}", [(-1.92, BELT + 0.02), (-1.8, BELT + 0.02), (-1.12, 1.47), (-1.2, 1.48)], min(y0, y1), max(y0, y1), M_PAINT, 0.01)
+# glass: windscreen + rear window (slanted quads), side windows following the profile
+def quad(nm, ps, m):
+    me = bpy.data.meshes.new(nm); me.from_pydata(ps, [], [list(range(len(ps)))])
+    o = bpy.data.objects.new(nm, me); link(o, C["CAR"]); me.materials.append(m); o.parent = car; o.visible_shadow = False
+    return o
+quad("glass_windscreen", [(0.95, -0.7, BELT), (0.95, 0.7, BELT), (0.43, 0.68, 1.42), (0.43, -0.68, 1.42)], M_CARGLASS)
+quad("glass_rear", [(-1.86, -0.66, BELT + 0.03), (-1.86, 0.66, BELT + 0.03), (-1.16, 0.66, 1.46), (-1.16, -0.66, 1.46)], M_CARGLASS)
+for sgn, sd in ((1, "l"), (-1, "r")):
+    yy = sgn * 0.76
+    quad(f"glass_front_{sd}", [(0.9, yy, BELT + 0.01), (-0.24, yy, BELT + 0.01), (-0.24, yy, 1.44), (0.44, yy, 1.42)], M_CARGLASS)
+    if sd == "l":
+        quad(f"glass_back_{sd}", [(-0.33, yy, BELT + 0.01), (-1.8, yy, BELT + 0.03), (-1.17, yy, 1.45), (-0.33, yy, 1.45)], M_CARGLASS)
+    else:
+        quad(f"glass_back_{sd}", [(-0.33, yy, BELT + 0.01), (-1.8, yy, BELT + 0.03), (-1.17, yy, 1.45), (-0.33, yy, 1.45)], M_CARGLASS)
+for (x, y) in ((1.35, 0.78), (1.35, -0.78), (-1.35, 0.78), (-1.35, -0.78)):
+    w = cyl("car_wheel", 0, 0, -0.1, 0.1, 0.31, M_TRIM, C["CAR"], 32); w.rotation_euler = (math.radians(90), 0, 0); w.location = (x, y, 0.31); w.parent = car
+    rim = cyl("car_rim", 0, 0, -0.102, 0.102, 0.19, mat("rim", (0.35, 0.36, 0.38), 0.3, 1.0), C["CAR"], 24); rim.rotation_euler = (math.radians(90), 0, 0); rim.location = (x, y, 0.31); rim.parent = car
+for sgn in (1, -1):
+    cpart(f"car_headlight_{sgn}", (2.03, sgn * 0.48 - 0.16, 0.66, 2.07, sgn * 0.48 + 0.16, 0.74), mat("headlight", (0.8, 0.82, 0.85), 0.05, emit=(1.0, 0.95, 0.85), emit_s=0.0), 0.01)
+    cpart(f"car_taillight_{sgn}", (-2.1, sgn * 0.62 - 0.1, 0.72, -2.06, sgn * 0.62 + 0.1, 0.86), mat("taillight", (0.4, 0.02, 0.02), 0.1, emit=(1.0, 0.05, 0.03), emit_s=0.0), 0.01)
+    cpart(f"car_mirror_{sgn}", (0.75, sgn * 0.88 - 0.06, 1.0, 0.88, sgn * 0.88 + 0.06, 1.1), M_PAINT, 0.02)
+cpart("car_bumper_f", (2.0, -0.84, 0.3, 2.1, 0.84, 0.48), M_TRIM, 0.03)
+cpart("car_bumper_r", (-2.12, -0.84, 0.3, -2.02, 0.84, 0.48), M_TRIM, 0.03)
+cpart("car_headliner", (-1.2, -0.72, 1.4, 0.44, 0.72, 1.42), mat("headliner", (0.32, 0.32, 0.3), 0.9), 0.0)
+cpart("car_door_trim_l", (-1.6, 0.8, 0.35, 0.9, 0.835, BELT), M_SEAT, 0.01)
+cpart("car_door_trim_r", (-1.6, -0.835, 0.35, 0.9, -0.8, BELT), M_SEAT, 0.01)
 # interior
 cpart("car_floor_in", (-1.4, -0.7, 0.3, 0.6, 0.7, 0.35), M_TRIM, 0.0)
 cpart("dashboard", (0.45, -0.72, 0.75, 0.75, 0.72, 1.02), M_DASH, 0.04)
@@ -310,9 +357,10 @@ ho = bpy.data.objects.new("HAIR_STRAND", hc); link(ho, C["CAR"]); ho.parent = ca
 hc.materials.append(mat("strand", (0.004, 0.004, 0.005), 0.25, coat=0.6))
 # door (driver) as a hinged object for getting in
 DD = bpy.data.objects.new("CAR_DOOR_DRIVER", None); link(DD, C["CAR"]); DD.parent = car; DD.location = (0.55, -0.875, 0.0)
-dpanel = box("car_door_driver_panel", -0.9, -0.03, 0.2, 0.0, 0.03, 0.95, M_PAINT, C["CAR"], 0.02); dpanel.parent = DD
-dglass = box("car_door_driver_glass", -0.85, -0.012, 0.98, 0.02, 0.0, 1.46, M_CARGLASS, C["CAR"], 0.0); dglass.parent = DD
+dpanel = box("car_door_driver_panel", -1.1, -0.006, 0.4, 0.0, 0.004, 0.96, M_PAINT, C["CAR"], 0.01); dpanel.parent = DD
+dglass = box("car_door_driver_glass", -1.05, 0.11, 0.99, 0.3, 0.12, 1.4, M_CARGLASS, C["CAR"], 0.0); dglass.parent = DD
 dglass.visible_shadow = False
+dglass.hide_render = True          # the fixed side glass is the window; this one only shows when the door swings open
 cpart("dash_cluster", (0.48, -0.5, 0.98, 0.55, -0.22, 1.05), mat("cluster", (0.02, 0.03, 0.05), 0.3, emit=(0.9, 0.55, 0.2), emit_s=0.0), 0.01)
 
 # ------------------------------------------------------------------ LIGHTS
@@ -337,6 +385,8 @@ _sl = bpy.data.lights.new("L_streetlamp", "SPOT"); _sl.energy = 2500; _sl.color 
 _slo = bpy.data.objects.new("L_streetlamp", _sl); link(_slo, C["LIGHTS_STREET"]); _slo.location = (38.5, -6.4, GZ + 5.6)
 area_light("L_moon", (40, -10, GZ + 20), 30, 40, (0.4, 0.5, 0.8), (math.radians(20), 0, 0), C["LIGHTS_STREET"])
 area_light("L_car_dash", (40.3, -7.5, GZ + 1.05), 0.3, 1.2, (0.9, 0.6, 0.3), (0, math.radians(-90), 0), C["LIGHTS_STREET"])
+# street light falling into the cabin through the glass (soft, cold-amber) so interiors read at night
+area_light("L_car_fill", (39.6, -7.15, GZ + 1.38), 0.9, 2.2, (0.95, 0.8, 0.6), (0, 0, 0), C["LIGHTS_STREET"], sy=0.6)
 
 w = bpy.data.worlds.new("night"); S.world = w; w.use_nodes = True
 w.node_tree.nodes["Background"].inputs[0].default_value = (0.01, 0.012, 0.02, 1)

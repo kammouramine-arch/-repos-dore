@@ -380,7 +380,11 @@ door_frame("frame_office", -1.45, -0.55, 22.0, 0.12, oc, axis="y")
 OD = door_leaf("OFFICE_DOOR", (22.0, -0.55, 0.0), 0.9, -90, M_DOOR, oc, 0.045)
 for o in [o for o in bpy.data.objects if o.name.startswith("OFFICE_DOOR_panel")]:
     o.hide_render = True
-og = box("OFFICE_DOOR_GLASS", 0.25, -0.03, 1.15, 0.65, 0.03, 1.85, M_GLASS, oc); og.parent = OD
+# the leaf has a real opening for the vision panel: rebuild it as four pieces around the glass
+bpy.data.objects.remove(bpy.data.objects["OFFICE_DOOR_leaf"])
+for (nm_, a_) in (("below", (0.005, 0.018, 0.895, 1.15)), ("above", (0.005, 1.85, 0.895, 2.09)), ("left", (0.005, 1.15, 0.25, 1.85)), ("right", (0.65, 1.15, 0.895, 1.85))):
+    lp_ = box("OFFICE_DOOR_leaf_" + nm_, a_[0], -0.0225, a_[1], a_[2], 0.0225, a_[3], M_DOOR, oc, 0.003); lp_.parent = OD
+og = box("OFFICE_DOOR_GLASS", 0.25, -0.006, 1.15, 0.65, 0.006, 1.85, M_GLASS, oc); og.parent = OD
 ogf = box("OFFICE_DOOR_GLASS_FRAME", 0.22, -0.026, 1.12, 0.68, 0.026, 1.88, M_DARK, oc); ogf.parent = OD
 ogf.modifiers.new("hole", "SOLIDIFY")
 bpy.data.objects.remove(ogf)

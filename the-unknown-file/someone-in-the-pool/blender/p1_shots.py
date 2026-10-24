@@ -591,7 +591,7 @@ def p1_21():
             hit, loc, nrm, *_ = S.ray_cast(dg, sh + Vector((-0.02, 0.0, 0.4)), Vector((0, 0, -1)))
             state["pt"] = (loc if hit else sh + Vector((0, 0, 0.08))) + Vector((0, 0, 0.001))
             state["drop"] = fx.Drips([(state["pt"] + Vector((0, 0, 1.6)), 9.0, 7.85)], state["pt"].z, 0.0065)
-            o, op = fx.decal("wet_spot", "wetspot.png", state["pt"] + Vector((0, 0, 0.003)), 0.06, color=(0.06, 0.07, 0.08), alpha=0.0, rough=0.3, coat=0.5)
+            o, op = fx.decal("wet_spot", "wetspot.png", state["pt"] + Vector((0, 0, 0.003)), 0.06, color=(0.05, 0.06, 0.07), alpha=0.0, rough=0.45, coat=0.0)
             state["spot"] = (o, op)
         pt = state["pt"]
         state["drop"].update(t)
@@ -623,36 +623,47 @@ def p1_22():
 
 
 def p1_23():
-    """122.54-125.80  FINAL SCARE. Looking up into the hole: her upside-down face drops out of the dark, wet hair hanging straight down,
-    water dripping onto the lens; at t=2.75 her face lurches down at the camera. (Edit hard-cuts to black at 125.8.)"""
+    """122.54-125.80  FINAL SCARE. POV looking up at the hole in the ceiling: out of the dark her upside-down face slides down,
+    long wet hair hanging straight down toward us, water dripping off it onto the lens; at t=2.75 her face lurches down at us.
+    (Edit hard-cuts to black at 125.8.)"""
     S, G, W = open_set("pool", "hall", guard=False)
-    cam = camera(lens=26); cam.data.clip_start = 0.02
+    cam = camera(lens=24); cam.data.clip_start = 0.02
     show("OFFICE_CEIL_TILE", False)
     void_eyes(True)
-    hair = fx.HangingHair(W, n=170, length=(0.55, 0.85))
+    for nm in ("L_office_23.8", "L_office_26.2"):
+        bpy.data.objects[nm].data.energy *= 0.18
+    for m in ("office_tube_m23.8", "office_tube_m26.2"):
+        bpy.data.materials[m].node_tree.nodes["Principled BSDF"].inputs["Emission Strength"].default_value = 0.6
+    under = bpy.data.lights.new("FACE_UNDER", "AREA"); under.energy = 6; under.size = 0.5; under.color = (0.6, 0.8, 1.0)
+    uo = bpy.data.objects.new("FACE_UNDER", under); S.collection.objects.link(uo); uo.location = (25.0, -0.75, 1.15)
+    uo.rotation_euler = (Vector((25.0, -1.3, 2.4)) - uo.location).to_track_quat("-Z", "Y").to_euler()
+    hair = fx.HangingHair(W, n=420, length=(0.55, 1.05), hide_mesh_hair=False)
+    for o in bpy.data.objects:
+        if o.name.startswith("Wom.lock_"):
+            o.hide_render = True
     state = {}
 
     def update(t):
-        # pose her upright on a virtual floor (z=0), looking up, then rotate her onto the ceiling
+        # pose her upright on a virtual floor (z=0), looking up, then rotate her onto the ceiling: her body is up in the dark plenum
         W.floor = 0.0
         W.place(25.0, -1.3, 0, floor=0.0)
-        W.stand(spread=0.02)
-        W.spine(pitch=-14); W.head(pitch=-62)
+        W.stand(spread=-0.03)
+        W.spine(pitch=-10); W.head(pitch=-58)
         W.hand_rest("l", out=0.0); W.hand_rest("r", out=0.0)
-        descend = 0.22 * smooth(ramp(t, 0.0, 1.6)) + 0.5 * smoother(ramp(t, 2.75, 3.05))
+        descend = 0.18 + 0.3 * smooth(ramp(t, 0.0, 2.2)) + 0.42 * smoother(ramp(t, 2.75, 3.0))
         fx.invert(W, pivot_z=(2.62 - descend + 1.58) / 2)
-        hair.update(t, sway=0.6)
+        hair.update(t, sway=0.5, wet_clump=0.9)
         if "dr" not in state:
             bpy.context.view_layer.update()
             tips = []
-            for i in range(0, 170, 34):
+            for i in range(0, 420, 60):
                 p = hair.o.data.splines[i].points[-1].co
-                tips.append(((p.x, p.y, p.z - 0.01), 0.55 + 0.1 * (i % 3), 0.13 * i % 0.5))
+                tips.append(((p.x, p.y, p.z - 0.01), 0.5 + 0.13 * (i % 3), (0.17 * i) % 0.5))
             state["dr"] = fx.Drips(tips, 1.0, 0.006)
         state["dr"].update(t)
-        eye = Vector((25.0, -1.45, 1.24))
+        eye = Vector((25.0, -0.62, 1.22))
         d, r = handheld(t, 0.6 + 1.5 * ramp(t, 2.75, 2.9))
-        aim(cam, eye + d, Vector((25.0, -1.3, 2.7)), r)
+        aim(cam, eye + d, Vector((25.0, -1.3, 2.25)), r)
     return {"frames": 40, "fps": 12, "update": update, "res": HERO}
 
 
@@ -660,7 +671,7 @@ def cover1():
     """Cover NIGHT 1: from just above the black water, looking straight down the torch beam at her upturned face on the deep-end floor;
     beside her the floor tiles bulge in the shape of a hand pressing up from underneath."""
     S, G, W = open_set("pool", "night", guard=False)
-    cam = camera(lens=55)
+    cam = camera(lens=42)
     void_eyes(True)
     hf = fx.HandFloor(scale=0.5)
     for o in bpy.data.objects:
@@ -670,8 +681,8 @@ def cover1():
     def update(t):
         woman_under(W, 23.9, 8.4, 200, 0.0, head_pitch=-55, spine=-12, sway=0)
         hf.update(0.0, press=0.11, crack=0.6, wobble=0)
-        torch_at((23.75, 7.2, 2.6), Vector((23.6, 8.1, -3.2)), 1400, visible=False)
-        aim(cam, Vector((23.55, 7.0, 1.6)), Vector((23.6, 8.15, -2.4)), 0)
+        torch_at((23.75, 7.6, 1.6), Vector((23.85, 8.35, -2.0)), 1400, visible=False)
+        aim(cam, Vector((23.7, 7.85, 0.55)), Vector((23.88, 8.38, -1.65)), 0)
         water(2.0, 0.5)
     return {"frames": 1, "update": update, "still": True, "res": (1080, 1920), "samples": 16}
 

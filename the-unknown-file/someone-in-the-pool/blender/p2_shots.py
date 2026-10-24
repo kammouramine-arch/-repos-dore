@@ -15,7 +15,7 @@ P1 = os.path.join(ROOT, "renders", "p1")
 HERO = (720, 1280); STD = (576, 1024); CCTV = (540, 960); MON = (640, 360)
 LADDER = (26.6, 14.0)            # north ladder (rails at x 26.35/26.85, y 13.92), she faces the wall (north, yaw 180)
 OUTSIDE = (21.55, -1.0)          # where she stands outside the office door (facing east)
-DOOR_GLASS_IN_X = 22.026         # inner (office-side) face of the door's vision panel
+DOOR_GLASS_IN_X = 22.008         # inner (office-side) face of the door's vision panel
 PRINTS_T = [1.86 + 0.78 * i for i in range(11)]   # p2_10 local times of the wet footprints (narration 75.26 + ...)
 
 
@@ -61,6 +61,14 @@ def footprints(n=11, t_list=None, x0=14.4, step=0.66):
     return update
 
 
+def drained_hall(k=0.3):
+    set_lights("drained_hall")
+    for o in bpy.data.objects:
+        if o.type == "LIGHT" and o.name.startswith("L_fix"):
+            o.data.energy *= k
+    bpy.data.materials["fluoro_tube"].node_tree.nodes["Principled BSDF"].inputs["Emission Strength"].default_value = 6.0 * max(k, 0.4)
+
+
 def drain_level(level):
     """move the water surface + volume to a lower level (time-lapse draining)."""
     ws = bpy.data.objects["WATER_SURFACE"]; wv = bpy.data.objects["WATER_VOLUME"]
@@ -78,12 +86,14 @@ def radio_led(on, flicker=0.0, t=0.0):
 # ------------------------------------------------------------------ feeds
 def feed_c4_dry():
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cctv_cam("CAM4_POOL", lens=55, at=(24.0, 9.0, -2.4))
     return {"frames": 1, "update": lambda t: None, "still": True, "res": MON, "samples": 8}
 
 
 def feed_c3_dry():
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cctv_cam("CAM3_SHALLOW")
     return {"frames": 1, "update": lambda t: None, "still": True, "res": MON, "samples": 8}
 
@@ -97,6 +107,7 @@ def feed_c4_full():
 def p2_cc2_empty():
     """62.54-67.48  CAM 2 hallway: empty."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cctv_cam("CAM2_CORRIDOR", lens=34, at=(22.0, -1.0, 1.0))
     return {"frames": 1, "update": lambda t: None, "still": True, "res": CCTV, "samples": 8}
 
@@ -105,6 +116,7 @@ def p2_cc2_empty():
 def p2_01():
     """0.00-3.64  POV walking down the service corridor toward SECURITY; the drained pool glimpsed through the glass doors."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=24)
 
     def update(t):
@@ -118,17 +130,20 @@ def p2_01():
 def p2_02():
     """3.64-5.98  The logbook on the desk, open at his Night 1 entry."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=40)
     bk, _ = fx.decal("LOGBOOK_PAGE", "logbook_page.png", (24.1, -0.7, 0.782), (0.42, 0.3), rot=(0, 0, math.radians(4)), color=(0.88, 0.86, 0.8), alpha=1.0, rough=0.7, coat=0.0, coll="OFFICE")
     m = bk.data.materials[0]; nt = m.node_tree; b = nt.nodes["Principled BSDF"]
     tx = [n for n in nt.nodes if n.type == "TEX_IMAGE"][0]; tx.image.colorspace_settings.name = "sRGB"
-    nt.links.new(tx.outputs["Color"], b.inputs["Base Color"]); b.inputs["Alpha"].default_value = 1.0
+    dim = nt.nodes.new("ShaderNodeMix"); dim.data_type = "RGBA"; dim.blend_type = "MULTIPLY"; dim.inputs["Factor"].default_value = 1.0
+    dim.inputs["B"].default_value = (0.5, 0.5, 0.5, 1); nt.links.new(tx.outputs["Color"], dim.inputs["A"])
+    nt.links.new(dim.outputs["Result"], b.inputs["Base Color"]); b.inputs["Alpha"].default_value = 1.0; b.inputs["Roughness"].default_value = 0.85
     for l in list(b.inputs["Alpha"].links):
         nt.links.remove(l)
     pen = cyl("PEN", 0, 0, -0.07, 0.07, 0.005, None, bpy.data.collections["OFFICE"], 12); pen.rotation_euler = (0, math.radians(90), math.radians(30)); pen.location = (24.25, -0.82, 0.787)
     pen.data.materials.append(bpy.data.materials["torch_black"])
-    aim(cam, (24.05, -0.98, 1.2), (24.12, -0.68, 0.78))
-    dof(cam, 0.5, 4.0)
+    aim(cam, (24.08, -0.86, 1.25), (24.11, -0.7, 0.78))
+    dof(cam, 0.49, 4.0)
     return {"frames": 1, "update": lambda t: None, "still": True, "res": HERO, "samples": 12}
 
 
@@ -151,6 +166,7 @@ def p2_03():
 def p2_04():
     """17.18-20.66  Night: the drained deep end — dark puddle, cones, hose, barrier tape. Dry tiles. Nothing."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=26)
     bpy.data.objects["L_windows"].data.energy = 420
 
@@ -162,6 +178,7 @@ def p2_04():
 def p2_05():
     """20.66-25.02  Back at the monitors, typing, checking the cameras (all normal: the pool is dry on CAM 4)."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=35)
     feeds()
 
@@ -174,6 +191,7 @@ def p2_05():
 def p2_06():
     """27.30-31.50  The monitor bank: CAM 4's monitor flashes red — motion alarm. Red light pulses on him."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=28)
     feeds(c4="feed_c4_full")
     red = bpy.data.lights.new("ALARM", "POINT"); red.color = (1, 0.08, 0.05); red.shadow_soft_size = 0.2
@@ -192,6 +210,7 @@ def p2_06():
 def p2_07():
     """31.50-35.14  His face lit by the monitor; his stomach drops (he pulls back)."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=55)
     feeds(c4="feed_c4_full")
     bpy.data.objects["L_monitors"].data.energy = 45
@@ -208,6 +227,7 @@ def p2_07():
 def p2_08():
     """38.36-44.08  Over his shoulder, racking from monitor 4 (FULL of water) up to the window: the real basin is EMPTY."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=45)
     feeds(c4="feed_c4_full")
     bpy.data.objects["L_windows"].data.energy = 380
@@ -225,7 +245,7 @@ def p2_cc4():
     """35.14-62.54  CAM 4 (the screen, FULL of water). At t=8.94 she is there (glitch in the edit): standing below the north ladder looking up.
     17.0 she rises, grips the rails; two steps up (18.8-20.0, 20.4-21.8); her head breaks the surface (~21.8); 22.4-27.0 she turns toward the office."""
     S, G, W = open_set("pool", "night", guard=False)
-    cctv_cam("CAM4_POOL", lens=40, at=(25.6, 11.6, -1.7))
+    cctv_cam("CAM4_POOL", lens=32, at=(26.3, 13.2, -1.6))
     # two extra treads lower down the ladder (the set's ladder stops at -1.21)
     for k, z in enumerate((-1.53, -1.85)):
         box_ = bpy.data.objects["ladder_n_tread_3"].copy(); box_.data = box_.data.copy(); bpy.data.collections["BASIN"].objects.link(box_)
@@ -270,6 +290,7 @@ def p2_cc4():
 def p2_09():
     """67.48-73.40  Wet footsteps outside: he turns his head toward the office door and its glass panel."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=40)
     feeds(c4="feed_c4_full")
 
@@ -285,6 +306,7 @@ def p2_09():
 def p2_10():
     """73.40-84.36  POV through the door's glass panel: an empty corridor; wet footprints appear one by one, straight toward the door."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=30)
     fp = footprints(11, PRINTS_T)
 
@@ -298,6 +320,7 @@ def p2_10():
 def p2_11():
     """84.36-86.06  His hand turns the lock's thumb-turn."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=55)
     lk = recenter(bpy.data.objects["OFFICE_LOCK_TURN"])
     base = lk.rotation_euler.copy()
@@ -321,6 +344,7 @@ def p2_11():
 def p2_12():
     """86.06-89.12  Close on his face at the door, holding his breath."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=60)
 
     def update(t):
@@ -334,6 +358,7 @@ def p2_12():
 def p2_13():
     """89.12-95.92  The radio on the desk: its LED flicks on by itself; static, then the whisper (LED pulses with the voice)."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=70)
     feeds(c4="feed_c4_full", dim=0.6)
 
@@ -349,6 +374,7 @@ def p2_13():
 def p2_14():
     """95.92-101.12  His hand switches the radio off (LED dies at 0.9) — it turns back on (1.75)."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=45)
     feeds(c4="feed_c4_full", dim=0.6)
     knob = cyl("RADIO_KNOB", 26.91, -0.64, 1.0, 1.02, 0.012, bpy.data.materials["dark_metal"], bpy.data.collections["OFFICE"], 16)
@@ -369,6 +395,7 @@ def p2_14():
 def p2_15():
     """101.12-103.28  From the door, over his shoulder: the monitor bank — monitor 4 is black."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=32)
     feeds(off=(3,))
 
@@ -382,6 +409,7 @@ def p2_cc2():
     """103.28-122.52  CAM 2: outside his locked door, the woman, perfectly still, dripping into a growing puddle, head tilted sideways.
     14.6-18.6 she raises one hand and lays it flat on the door's glass."""
     S, G, W = open_set("pool", "drained", guard=False)
+    drained_hall()
     cctv_cam("CAM2_CORRIDOR", lens=34, at=(22.0, -1.0, 1.0))
     fp = footprints(11)
     dr = fx.Drips([((21.55 + dx, -1.0 + dy, 0.12 + 0.02 * i), 0.7 + 0.21 * i, 0.31 * i) for i, (dx, dy) in enumerate(((0.1, 0.12), (-0.08, -0.1), (0.05, -0.15), (-0.1, 0.1), (0.12, 0.0)))], 0.0, 0.007)
@@ -416,12 +444,13 @@ def p2_16():
     """122.52-134.60  POV whip to the door. The glass from inside: nobody behind it, but wet handprints form on OUR side, one after another;
     SLAM at 10.28 (the door jolts), the glass cracks at 10.52."""
     S, G, W = open_set("pool", "drained", guard=False, woman=False)
+    drained_hall()
     cam = camera(lens=30)
     door = bpy.data.objects["OFFICE_DOOR"]; d0 = door.rotation_euler.z
     prints = []
     for i, (at, (y, z)) in enumerate(HANDPRINTS):
         o, op = fx.decal(f"handprint_{i}", "handprint.png", (DOOR_GLASS_IN_X - 0.0, y, z), 0.2, rot=(math.radians(90), 0, math.radians(90)),
-                         color=(0.72, 0.78, 0.8), alpha=0.0, rough=0.25, coat=0.6, flip_x=(i % 2 == 1), coll="OFFICE")
+                         color=(0.55, 0.62, 0.64), alpha=0.0, rough=0.12, coat=0.6, flip_x=(i % 2 == 1), coll="OFFICE")
         o.parent = door; o.matrix_parent_inverse = door.matrix_world.inverted()
         prints.append((at, o, op))
     cr, crop = fx.decal("glass_crack", "glass_crack.png", (DOOR_GLASS_IN_X + 0.001, -1.0, 1.5), (0.42, 0.72), rot=(math.radians(90), 0, math.radians(90)),
@@ -431,7 +460,7 @@ def p2_16():
     def update(t):
         for (at, o, op) in prints:
             k = clamp((t - at) / 0.6)
-            op.outputs[0].default_value = 0.75 * k
+            op.outputs[0].default_value = 0.42 * k
             o.hide_render = k <= 0
         crop.outputs[0].default_value = 0.95 if t >= CRACK else 0.0
         slam = math.exp(-((t - SLAM) / 0.05) ** 2) if t >= SLAM - 0.1 else 0.0
@@ -448,6 +477,7 @@ def p2_16():
 def p2_17():
     """134.60-136.10  The monitors go black one by one (he has turned back to them)."""
     S, G, W = open_set("pool", "drained", woman=False)
+    drained_hall()
     cam = camera(lens=30)
     G.rig.hide_render = True
     for o in bpy.data.collections["GUARD"].all_objects:
@@ -465,6 +495,7 @@ def p2_18():
     """136.10-137.60  FINAL SCARE (rendered as the reflection in the black monitor, flipped + darkened in the edit):
     his face looking down at the screen — and at t=0.55 her pale face slides in right beside his."""
     S, G, W = open_set("pool", "drained")
+    drained_hall()
     cam = camera(lens=40)
     feeds(off=(0, 1, 2, 3, 4))
     for nm in ("L_monitors",):
@@ -476,7 +507,7 @@ def p2_18():
     def update(t):
         guard_stand(G, 25.0, -1.45, 180, t, spine=22, head_pitch=24, breath=0.3)
         k = smoother(ramp(t, 0.55, 0.85))
-        woman_stand(W, 25.22 - 0.0 * k, -1.8 + 0.25 * k, 180, t, head_pitch=26, head_roll=-14, spine=24 + 6 * k, locks=False)
+        woman_stand(W, 25.24, -1.85 + 0.25 * k, 180, t, head_pitch=12, head_roll=-14, spine=10 + 4 * k, locks=False)
         eye = G.world(G.eye())
         aim(cam, Vector((25.0, -0.62, 1.12)), eye + Vector((0.05, 0, -0.05)))
         dof(cam, (eye - cam.location).length, 2.2)
@@ -487,7 +518,8 @@ def cover2():
     """Cover NIGHT 2: the drained deep end at night, dry tiles, the puddle — and the woman standing at the bottom in the torch beam,
     head tilted, looking up at us."""
     S, G, W = open_set("pool", "drained", guard=False)
-    cam = camera(lens=40)
+    drained_hall()
+    cam = camera(lens=55)
     bpy.data.objects["L_windows"].data.energy = 420
     fl = bpy.data.objects["FLASHLIGHT"]; show("FLASHLIGHT", True); fl.hide_render = True; bpy.data.objects["FLASHLIGHT.lens"].hide_render = True
     fl.parent = None; fl.location = (22.3, 3.3, 1.7)
@@ -496,7 +528,7 @@ def cover2():
 
     def update(t):
         woman_stand(W, 24.4, 9.6, 200, 0.0, head_pitch=-14, head_roll=-26, spine=2, floor=-3.2, locks=False)
-        aim(cam, Vector((22.0, 3.0, 1.75)), Vector((24.35, 9.4, -2.25)), 0)
+        aim(cam, Vector((23.2, 6.0, 0.9)), Vector((24.38, 9.5, -1.75)), 0)
     return {"frames": 1, "update": update, "still": True, "res": (1080, 1920), "samples": 16}
 
 
