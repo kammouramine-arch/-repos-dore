@@ -68,7 +68,14 @@ def dim_hall(k):
     b.inputs["Emission Strength"].default_value *= max(k, 0.4)
 
 
-def torch_at(loc, at, energy=260.0, visible=True):
+BEAM = [None]
+
+
+def torch_at(loc, at, energy=260.0, visible=True, shaft=False, t=0.0):
+    if shaft:
+        if BEAM[0] is None:
+            BEAM[0] = fx.Beam()
+        BEAM[0].update(loc, Vector(at) - Vector(loc), t)
     fl = bpy.data.objects["FLASHLIGHT"]
     show("FLASHLIGHT", True); fl.hide_render = not visible; bpy.data.objects["FLASHLIGHT.lens"].hide_render = not visible
     fl.parent = None
@@ -366,6 +373,7 @@ def p1_12():
     cam = camera(lens=26)
     show("FLASHLIGHT", True)
     dim_hall(0.22)
+    beam = fx.Beam()
 
     def update(t):
         guard_stand(G, EDGE[0], EDGE[1] + 0.05, 180, t, spine=24, head_pitch=30, arms=False)
@@ -373,6 +381,9 @@ def p1_12():
         a = ramp(t, 0.0, 0.8)
         hold_torch(G, "r", Vector((-0.18, -0.42, 1.15 - 0.1 * a)), lerp(Vector((0.0, -1.0, -0.4)), Vector((0.05, -0.75, -1.0)), a))
         flashlight(True, 900)
+        bpy.context.view_layer.update()
+        fl = bpy.data.objects["FLASHLIGHT"].matrix_world
+        beam.update(fl @ Vector((0, 0, 0.16)), fl.to_3x3() @ Vector((0, 0, 1)), t)
         water(t, 0.2)
         aim(cam, Vector((22.35, 2.55, 2.05)), Vector((23.45, 6.6, -2.8)), handheld(t, 0.5)[1])
     return {"frames": 30, "fps": 12, "update": update, "res": STD}
@@ -386,7 +397,7 @@ def p1_13():
     dim_hall(0.2)
 
     def update(t):
-        torch_at((23.42, 4.05, 1.25), Vector(HAND_SPOT + (-3.2,)) + Vector((0.05 * math.sin(t * 0.9), 0.04 * math.cos(t * 0.7), 0)), 900, visible=False)
+        torch_at((23.42, 4.05, 1.25), Vector(HAND_SPOT + (-3.2,)) + Vector((0.05 * math.sin(t * 0.9), 0.04 * math.cos(t * 0.7), 0)), 900, visible=False, shaft=True, t=t)
         hf.update(t, press=0.012 + 0.03 * smooth(ramp(t, 2.0, 3.6)), drag=(0.0, 0.03 * ramp(t, 2.0, 3.8)), wobble=0.5)
         water(t, 0.2)
         aim(cam, Vector((23.4, 4.15, 1.55)), Vector((23.22, 7.5, -3.2)), handheld(t, 0.5)[1])
@@ -401,7 +412,7 @@ def p1_14():
     dim_hall(0.2)
 
     def update(t):
-        torch_at((22.9, 4.6, 1.0), Vector((HAND_SPOT[0], HAND_SPOT[1], -3.2)), 900, visible=False)
+        torch_at((22.9, 4.6, 1.0), Vector((HAND_SPOT[0], HAND_SPOT[1], -3.2)), 900, visible=False, shaft=True, t=t)
         press = 0.04 + 0.075 * smooth(ramp(t, 0.2, 3.0)) + 0.012 * math.sin(t * 6.0) * ramp(t, 3.0, 3.5)
         hf.update(t, press=press, drag=(0.0, 0.03), crack=0.25 * ramp(t, 2.0, 5.0), wobble=1.0)
         water(t, 0.2)
@@ -417,7 +428,7 @@ def p1_15():
     dim_hall(0.2)
 
     def update(t):
-        torch_at((23.0, 4.6, 0.9), Vector((HAND_SPOT[0], HAND_SPOT[1], -3.2)), 900, visible=False)
+        torch_at((23.0, 4.6, 0.9), Vector((HAND_SPOT[0], HAND_SPOT[1], -3.2)), 900, visible=False, shaft=True, t=t)
         thump = math.exp(-((t - 3.1) / 0.12) ** 2)
         press = 0.105 + 0.025 * math.sin(t * 2.3) + 0.05 * thump
         hf.update(t, press=press, drag=(0.012 * math.sin(t * 1.1), 0.03 - 0.05 * ramp(t, 1.0, 5.0)), crack=0.3 + 0.7 * ramp(t, 0.5, 3.2), wobble=1.6)

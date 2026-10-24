@@ -279,3 +279,64 @@ def invert(actor, pivot_z, pivot_y=None):
     for f, M in zip(feet, fm):
         f.matrix_world = F @ M
     bpy.context.view_layer.update()
+
+
+# ------------------------------------------------------------------ the torch shaft in the water
+class Beam:
+    """the visible shaft of the torch beam inside the water: a soft additive cone from where the beam enters the water
+    (z = surface) to the floor. update(origin, direction) follows the torch every frame."""
+
+    def __init__(self, half_angle_deg=13.0, surface=-0.12, floor=-3.2, strength=0.35, color=(0.85, 0.97, 1.0)):
+        self.ha = math.radians(half_angle_deg); self.zs = surface; self.zf = floor
+        bpy.ops.mesh.primitive_cone_add(vertices=48, radius1=1.0, radius2=0.0, depth=1.0, end_fill_type="NOTHING")
+        o = bpy.context.object; o.name = "TORCH_SHAFT"
+        for u in list(o.users_collection):
+            u.objects.unlink(o)
+        bpy.data.collections["WATER"].objects.link(o)
+        # put the apex at the origin, axis along -Z, base at z=-1
+        o.data.transform(Matrix.Translation((0, 0, -0.5)) @ Matrix.Rotation(math.pi, 4, "X") @ Matrix.Translation((0, 0, 0)))
+        for p in o.data.polygons:
+            p.use_smooth = True
+        m = bpy.data.materials.new("torch_shaft"); m.use_nodes = True; nt = m.node_tree; nt.nodes.clear()
+        out = nt.nodes.new("ShaderNodeOutputMaterial"); em = nt.nodes.new("ShaderNodeEmission"); em.inputs["Color"].default_value = (*color, 1)
+        tr = nt.nodes.new("ShaderNodeBsdfTransparent")
+        lw = nt.nodes.new("ShaderNodeLayerWeight"); lw.inputs["Blend"].default_value = 0.5
+        inv = nt.nodes.new("ShaderNodeMath"); inv.operation = "SUBTRACT"; inv.inputs[0].default_value = 1.0; nt.links.new(lw.outputs["Facing"], inv.inputs[1])
+        pw = nt.nodes.new("ShaderNodeMath"); pw.operation = "POWER"; pw.inputs[1].default_value = 2.5; nt.links.new(inv.outputs[0], pw.inputs[0])
+        # fade along the length (brighter near the surface, absorbed toward the floor)
+        tc = nt.nodes.new("ShaderNodeTexCoord"); sz = nt.nodes.new("ShaderNodeSeparateXYZ"); nt.links.new(tc.outputs["Object"], sz.inputs[0])
+        fd = nt.nodes.new("ShaderNodeMapRange"); fd.inputs["From Min"].default_value = -1.0; fd.inputs["From Max"].default_value = 0.0
+        fd.inputs["To Min"].default_value = 0.35; fd.inputs["To Max"].default_value = 1.0; nt.links.new(sz.outputs["Z"], fd.inputs["Value"])
+        ns = nt.nodes.new("ShaderNodeTexNoise"); ns.inputs["Scale"].default_value = 6.0; ns.noise_dimensions = "4D"; ns.name = "MOTES"
+        nt.links.new(tc.outputs["Object"], ns.inputs["Vector"])
+        nm = nt.nodes.new("ShaderNodeMapRange"); nm.inputs["To Min"].default_value = 0.6; nm.inputs["To Max"].default_value = 1.2; nt.links.new(ns.outputs["Fac"], nm.inputs["Value"])
+        m1 = nt.nodes.new("ShaderNodeMath"); m1.operation = "MULTIPLY"; nt.links.new(pw.outputs[0], m1.inputs[0]); nt.links.new(fd.outputs["Result"], m1.inputs[1])
+        m2 = nt.nodes.new("ShaderNodeMath"); m2.operation = "MULTIPLY"; nt.links.new(m1.outputs[0], m2.inputs[0]); nt.links.new(nm.outputs["Result"], m2.inputs[1])
+        # only under the water surface (world z < surface); the part in the air stays invisible
+        geo = nt.nodes.new("ShaderNodeNewGeometry"); gz = nt.nodes.new("ShaderNodeSeparateXYZ"); nt.links.new(geo.outputs["Position"], gz.inputs[0])
+        lt = nt.nodes.new("ShaderNodeMapRange"); lt.inputs["From Min"].default_value = surface; lt.inputs["From Max"].default_value = surface - 0.6
+        lt.interpolation_type = "SMOOTHSTEP"; nt.links.new(gz.outputs["Z"], lt.inputs["Value"])          # fades in over the first 60 cm below the surface
+        m3 = nt.nodes.new("ShaderNodeMath"); m3.operation = "MULTIPLY"; nt.links.new(m2.outputs[0], m3.inputs[0]); nt.links.new(lt.outputs["Result"], m3.inputs[1])
+        st = nt.nodes.new("ShaderNodeMath"); st.operation = "MULTIPLY"; st.inputs[1].default_value = strength; st.name = "STRENGTH"; nt.links.new(m3.outputs[0], st.inputs[0])
+        nt.links.new(st.outputs[0], em.inputs["Strength"])
+        add = nt.nodes.new("ShaderNodeAddShader"); nt.links.new(em.outputs[0], add.inputs[0]); nt.links.new(tr.outputs[0], add.inputs[1])
+        nt.links.new(add.outputs[0], out.inputs["Surface"])
+        m.surface_render_method = "BLENDED"; o.data.materials.append(m); o.visible_shadow = False
+        self.o = o; self.m = m
+
+    def update(self, origin, direction, t=0.0, on=True):
+        o = self.o; o.hide_render = not on
+        if not on:
+            return
+        d = Vector(direction).normalized(); p = Vector(origin)
+        if d.z >= -0.05:
+            o.hide_render = True; return
+        # entry point on the water surface, length to the floor along the beam
+        k = (self.zs - p.z) / d.z if p.z > self.zs else 0.0
+        entry = p + d * k
+        L = (self.zf - entry.z) / d.z
+        r_entry = math.tan(self.ha) * max(0.05, k)            # beam radius where it enters the water
+        r_floor = math.tan(self.ha) * (k + L)
+        # cone apex at the torch (virtual), we show only the part from the surface to the floor: scale + offset
+        o.matrix_world = Matrix.Translation(p) @ d.to_track_quat("-Z", "Y").to_matrix().to_4x4() @ Matrix.Diagonal((r_floor, r_floor, k + L, 1))
+        self.m.node_tree.nodes["MOTES"].inputs["W"].default_value = t * 0.3

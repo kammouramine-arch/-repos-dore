@@ -267,6 +267,7 @@ box("barrier_tape_post_a", 17.2, 3.2, 0.0, 17.26, 3.26, 1.0, M_STEEL, dc)
 box("barrier_tape_post_b", 27.8, 3.2, 0.0, 27.86, 3.26, 1.0, M_STEEL, dc)
 box("barrier_tape", 17.23, 3.225, 0.9, 27.83, 3.235, 0.96, mat("tape", (0.9, 0.75, 0.05), 0.5), dc)
 M_BASIN_DRY = basin_tile_mat("basin_tiles_dry", (0.68, 0.84, 0.86), caustic=False)
+M_BASIN_DRY.use_fake_user = True          # only assigned at shot time (drained pool): keep it in the file
 
 # ------------------------------------------------------------------ deck furniture
 K.CUR[0] = C["PROPS"]

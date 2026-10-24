@@ -238,6 +238,7 @@ for ms in woman.material_slots:
 # eyes: Night 1-2 very dark irises (human); Night 3 material "Wom.eyes_void" swapped in by shots
 eye = bpy.data.objects.get("Wom.high-poly")
 M_VOID = principled("Wom.eyes_void", (0.003, 0.003, 0.004), 0.06, coat=1.0)
+M_VOID.use_fake_user = True
 if eye:
     for ms in eye.material_slots:
         for n in ms.material.node_tree.nodes:
