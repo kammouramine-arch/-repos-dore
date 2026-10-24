@@ -41,6 +41,6 @@ python3 tools/prep_plates.py
 # audio
 for n in 1 2 3; do bash tools/mix.sh n$n audio/THE_LAST_BUS_NIGHT_0$n.mp3 <duration> 8; done
 # video (chunked, resumable) + mux
-bash tools/render.sh Night1 3088 ../renders/n1_parts 600 16 && bash tools/finish.sh 1
+bash tools/render.sh Night1 3088 $(pwd)/renders/n1_parts 600 16 && bash tools/finish.sh 1   # Night2: 3495 frames, Night3: 3606
 ```
 Rig QC: `node studio/qc.mjs Night1` reports any limb that could not reach its target (should be 0).
