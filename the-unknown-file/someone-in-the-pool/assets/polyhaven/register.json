@@ -1,0 +1,143 @@
+[
+ {
+  "id": "metal_office_desk",
+  "kind": "model",
+  "name": "Metal Office Desk",
+  "authors": [
+   "Ulan Cabanilla"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/metal_office_desk"
+ },
+ {
+  "id": "plastic_monobloc_chair_01",
+  "kind": "model",
+  "name": "Plastic Monobloc Chair 01",
+  "authors": [
+   "Kuutti Siitonen"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/plastic_monobloc_chair_01"
+ },
+ {
+  "id": "signal_flashlight",
+  "kind": "model",
+  "name": "Signal Flashlight",
+  "authors": [
+   "Ji\u0159\u00ed Pt\u00e1\u010dek"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/signal_flashlight"
+ },
+ {
+  "id": "street_lamp_01",
+  "kind": "model",
+  "name": "Street Lamp 01",
+  "authors": [
+   "Josh Dean"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/street_lamp_01"
+ },
+ {
+  "id": "sofa_03",
+  "kind": "model",
+  "name": "Sofa 03",
+  "authors": [
+   "Fran Calvente"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/sofa_03"
+ },
+ {
+  "id": "square_tiles_02",
+  "kind": "tex",
+  "name": "Square Tiles 02",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/square_tiles_02"
+ },
+ {
+  "id": "anti_skid_tiles",
+  "kind": "tex",
+  "name": "Anti Skid Tiles",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/anti_skid_tiles"
+ },
+ {
+  "id": "rounded_square_tiled_wall",
+  "kind": "tex",
+  "name": "Rounded Square Tiled Wall",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/rounded_square_tiled_wall"
+ },
+ {
+  "id": "interior_tiles",
+  "kind": "tex",
+  "name": "Interior Tiles",
+  "authors": [
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/interior_tiles"
+ },
+ {
+  "id": "concrete_floor_painted",
+  "kind": "tex",
+  "name": "Concrete Floor Painted",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/concrete_floor_painted"
+ },
+ {
+  "id": "laminate_floor_02",
+  "kind": "tex",
+  "name": "Laminate Floor 02",
+  "authors": [
+   "Dario Barresi",
+   "Charlotte Baglioni"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/laminate_floor_02"
+ },
+ {
+  "id": "painted_plaster_wall",
+  "kind": "tex",
+  "name": "Painted Plaster Wall",
+  "authors": [
+   "Amal Kumar"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/painted_plaster_wall"
+ },
+ {
+  "id": "kitchen_wood",
+  "kind": "tex",
+  "name": "Kitchen Wood",
+  "authors": [
+   "Rob Tuytel"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/kitchen_wood"
+ },
+ {
+  "id": "asphalt_floor",
+  "kind": "tex",
+  "name": "Asphalt Floor",
+  "authors": [
+   "eye-candy.xyz"
+  ],
+  "license": "CC0 1.0",
+  "url": "https://polyhaven.com/a/asphalt_floor"
+ }
+]
