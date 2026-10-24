@@ -36,11 +36,11 @@ const cues: Cue[] = [
   { from: 65.86, to: 67.28, el: (t, d) => <Shot src={S("n1_09")} t={t} d={d} hand={0.6} /> },
   { from: 67.28, to: 69.2, el: (t, d) => (
     <ScreenFill t={t} d={d} z0={1} z1={1} hand={0.5}>
-      <DoorbellScreen t={t} time="3:14" clock="03:14:31" feed={<Feed src={S("db_03")} t={t} z={1.1} fy={0.2} glitch={t > 1.3 ? 1 : 0} />} />
+      <DoorbellScreen t={t} time="3:14" clock="03:14:31" feed={<Feed src={S("db_03")} t={t} z={1.1} fy={0.2} glitch={t > 1.2 ? 1 : 0} />} />
     </ScreenFill>) },
   { from: 69.2, to: 70.9, el: (t, d) => (
     <ScreenFill t={t} d={d} z0={1} z1={1} hand={0.3}>
-      <DoorbellScreen t={t} time="3:14" clock="03:14:33" feed={<Freeze frame={56}><Feed src={S("db_03")} t={t} z={1.1} fy={0.2} glitch={0.7} /></Freeze>} />
+      <DoorbellScreen t={t} time="3:14" clock="03:14:33" feed={<Freeze frame={35}><Feed src={S("db_03")} t={t} z={1.1} fy={0.2} glitch={0.4} /></Freeze>} />
     </ScreenFill>) },
   { from: 70.9, to: 72.4, el: (t, d) => <ScreenFill t={t} d={d} hand={0.9}><DoorbellScreen t={t} time="3:14" lost={1} /></ScreenFill> },
   { from: 72.4, to: 74.4, el: (t, d) => <Shot src={S("n1_10")} t={t} d={d} at={1.4} hand={0.8} /> },

@@ -48,15 +48,15 @@ def footprints(n=11, t_list=None, x0=14.4, step=0.66):
     for i in range(n):
         x = x0 + i * step
         y = -1.0 + (0.11 if i % 2 == 0 else -0.11)
-        o, op = fx.decal(f"print_{i}", "footprint.png", (x, y, 0.002), (0.12, 0.26), rot=(0, 0, math.radians(-90)),
-                         color=(0.015, 0.018, 0.02), alpha=0.0, rough=0.02, flip_x=(i % 2 == 1), coll="CORRIDOR")
+        o, op = fx.decal(f"print_{i}", "footprint.png", (x, y, 0.002), (0.15, 0.32), rot=(0, 0, math.radians(-90)),
+                         color=(0.0, 0.0, 0.0), alpha=0.0, rough=0.01, coat=1.0, flip_x=(i % 2 == 1), coll="CORRIDOR")
         items.append((o, op))
 
     def update(t):
         for i, (o, op) in enumerate(items):
             a = (t_list[i] if t_list else -1)
             k = clamp((t - a) / 0.18) if t_list else 1.0
-            op.outputs[0].default_value = 0.85 * k
+            op.outputs[0].default_value = 0.97 * k
             o.hide_render = k <= 0
     return update
 
@@ -251,6 +251,12 @@ def p2_cc4():
         box_ = bpy.data.objects["ladder_n_tread_3"].copy(); box_.data = box_.data.copy(); bpy.data.collections["BASIN"].objects.link(box_)
         box_.location.z += z - (-1.21)
     x, y = LADDER[0], LADDER[1] - 0.52
+    for o in bpy.data.objects:
+        if o.type == "LIGHT" and o.name.startswith("L_uw"):
+            o.data.energy *= 1.5
+    sp = bpy.data.lights.new("LADDER_SPOT", "SPOT"); sp.energy = 380; sp.color = (0.5, 0.9, 1.0); sp.spot_size = math.radians(60); sp.spot_blend = 0.7
+    so = bpy.data.objects.new("LADDER_SPOT", sp); bpy.data.collections["LIGHTS_UNDERWATER"].objects.link(so); so.location = (25.2, 12.0, -0.6)
+    so.rotation_euler = (Vector((26.6, 13.4, -2.4)) - so.location).to_track_quat("-Z", "Y").to_euler()
 
     def update(t):
         water(t, 0.8)
@@ -313,7 +319,7 @@ def p2_10():
     def update(t):
         fp(t)
         push = smooth(t / 11.0)
-        aim(cam, Vector((22.42 - 0.12 * push, -1.0, 1.62)), Vector((16.0, -1.08, 0.2)) + Vector((0, 0, 0.6 * push)), handheld(t, 0.35)[1])
+        aim(cam, Vector((22.42 - 0.12 * push, -1.0, 1.62)), Vector((17.6, -1.05, -0.2)) + Vector((0, 0, 0.5 * push)), handheld(t, 0.35)[1])
     return {"frames": 132, "fps": 12, "update": update, "res": STD}
 
 
@@ -519,7 +525,7 @@ def cover2():
     head tilted, looking up at us."""
     S, G, W = open_set("pool", "drained", guard=False)
     drained_hall()
-    cam = camera(lens=55)
+    cam = camera(lens=45)
     bpy.data.objects["L_windows"].data.energy = 420
     fl = bpy.data.objects["FLASHLIGHT"]; show("FLASHLIGHT", True); fl.hide_render = True; bpy.data.objects["FLASHLIGHT.lens"].hide_render = True
     fl.parent = None; fl.location = (22.3, 3.3, 1.7)
@@ -528,7 +534,7 @@ def cover2():
 
     def update(t):
         woman_stand(W, 24.4, 9.6, 200, 0.0, head_pitch=-14, head_roll=-26, spine=2, floor=-3.2, locks=False)
-        aim(cam, Vector((23.2, 6.0, 0.9)), Vector((24.38, 9.5, -1.75)), 0)
+        aim(cam, Vector((23.2, 6.0, 0.9)), Vector((24.4, 9.55, -2.3)), 0)
     return {"frames": 1, "update": update, "still": True, "res": (1080, 1920), "samples": 16}
 
 

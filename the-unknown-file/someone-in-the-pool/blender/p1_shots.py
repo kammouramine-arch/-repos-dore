@@ -586,12 +586,13 @@ def p1_21():
         bpy.context.view_layer.update()
         if "pt" not in state:
             # the drop lands on the cloth: raycast down onto the shirt above the right shoulder joint
-            sh = G.rig.matrix_world @ G.rig.pose.bones["upperarm_r"].head
+            pbn = G.rig.pose.bones
+            sh = G.rig.matrix_world @ ((pbn["upperarm_r"].head * 0.45) + (pbn["neck_01"].head * 0.55))     # top of the shoulder, beside the collar
             dg = bpy.context.evaluated_depsgraph_get()
             hit, loc, nrm, *_ = S.ray_cast(dg, sh + Vector((-0.02, 0.0, 0.4)), Vector((0, 0, -1)))
             state["pt"] = (loc if hit else sh + Vector((0, 0, 0.08))) + Vector((0, 0, 0.001))
             state["drop"] = fx.Drips([(state["pt"] + Vector((0, 0, 1.6)), 9.0, 7.85)], state["pt"].z, 0.0065)
-            o, op = fx.decal("wet_spot", "wetspot.png", state["pt"] + Vector((0, 0, 0.003)), 0.06, color=(0.05, 0.06, 0.07), alpha=0.0, rough=0.45, coat=0.0)
+            o, op = fx.decal("wet_spot", "wetspot.png", state["pt"] + Vector((0, 0, 0.003)), 0.06, color=(0.035, 0.045, 0.055), alpha=0.0, rough=0.85, coat=0.0)
             state["spot"] = (o, op)
         pt = state["pt"]
         state["drop"].update(t)
@@ -599,8 +600,8 @@ def p1_21():
         k = ramp(t, 1.72, 2.2)          # the drop lands at t=1.72 (emitter 1.6 m above, released at 1.15)
         op.outputs[0].default_value = 0.85 * k
         o.scale = (0.4 + 0.6 * k, 0.4 + 0.6 * k, 1)
-        loc = pt + Vector((0.36, -0.32, 0.13))
-        aim(cam, loc, pt + Vector((-0.06, 0.04, 0.03)), handheld(t, 0.15)[1])
+        loc = pt + Vector((0.18, -0.36, 0.26))
+        aim(cam, loc, pt + Vector((-0.03, 0.05, 0.0)), handheld(t, 0.15)[1])
         dof(cam, (pt - loc).length, 3.2)
     return {"frames": 49, "fps": 12, "update": update, "res": STD}
 
