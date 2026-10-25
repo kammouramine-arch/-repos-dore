@@ -14,7 +14,7 @@ for ((s=0; s<TOTAL; s+=CHUNK)); do
   for attempt in 1 2 3; do
     echo "$(date +%H:%M:%S) $COMP frames $s-$e (attempt $attempt)"
     if npx remotion render src/index.ts "$COMP" "$out.tmp.mp4" --frames="$s-$e" --gl=angle --muted --codec=h264 \
-        --crf="$CRF" --x264-preset=medium --pixel-format=yuv420p --concurrency=4 --timeout=240000 --log=error; then
+        --crf="$CRF" --x264-preset=medium --pixel-format=yuv420p --concurrency=${CONC:-4} --timeout=240000 --log=error; then
       mv "$out.tmp.mp4" "$out"; break
     fi
     rm -f "$out.tmp.mp4"
