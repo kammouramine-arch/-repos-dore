@@ -304,14 +304,14 @@ def _bath_photo(woman_pose):
     S, G, W = open_set("apartment", "bath")
     cam = camera(lens=14)
     area_fill("LANDING_LIGHT", (2.9, 3.1, 2.5), 22, (1.0, 0.85, 0.65), 0.6)
-    door("BATH_DOOR", 100)
+    door("BATH_DOOR", 172)          # swung right back against the bathroom's north wall: the doorway is clear for the camera
     void_eyes(True)
     flood = water_sheet(); flood(1.3)
 
     def update(t):
         guard_stand(G, 2.9, 3.0, 0, 0.0, spine=4, head_pitch=10, breath=0.0)
         woman_pose(W)
-        aim(cam, Vector((1.78, 0.18, 2.45)), Vector((2.95, 2.75, 1.25)))
+        aim(cam, Vector((4.05, 0.2, 2.45)), Vector((2.85, 2.8, 1.3)))
     return {"frames": 1, "update": update, "still": True, "res": HERO, "samples": 10}
 
 
@@ -451,7 +451,7 @@ def p3_16():
     def update(t):
         guard_stand(G, 0.8, 1.2, 0, t, spine=4, head_pitch=4, head_yaw=-4, breath=0.2)
         k = smooth(ramp(t, 0.6, 2.4))
-        woman_stand(W, 0.6, 1.52 - 0.06 * k, 0, t, head_pitch=6, head_roll=-12, spine=16 + 6 * k, locks=True, arms=False)
+        woman_stand(W, 0.6, 1.52 - 0.06 * k, 0, t, head_pitch=6, head_roll=-12, head_yaw=-25, spine=16 + 6 * k, locks=False, arms=False)
         W.hand_rest("l"); W.hand_rest("r")
         eye = G.world(G.eye())
         aim(cam, eye + Vector((-0.55, -0.5, 0.02)), eye + Vector((-0.1, 0.12, -0.02)), handheld(t, 0.2)[1])
@@ -559,6 +559,8 @@ def p3_23():
     cam = camera(lens=26)
     cl = [o for o in bpy.data.objects if o.name == "dash_cluster"][0].data.materials[0].node_tree.nodes["Principled BSDF"]
     dash = bpy.data.objects["L_car_dash"]
+    side = area_fill("STREET_SIDE", tuple(car((0.1, -1.6, 1.6))), 30, (1.0, 0.75, 0.45), 1.0)
+    side.rotation_euler = (car((0.0, -0.36, 1.1)) - side.location).to_track_quat("-Z", "Y").to_euler()
 
     def update(t):
         on = t > 1.4
@@ -566,7 +568,7 @@ def p3_23():
         dash.data.energy = 7.0 if on else 0.0
         hb = smooth(ramp(t, 3.4, 4.6))
         guard_in_car(G, t, head_back=hb, breath=1.5 - 0.8 * hb)
-        aim(cam, car((-0.42, 0.3, 1.22)), car((0.05, -0.36, 1.05)), handheld(t, 0.25)[1])
+        aim(cam, car((-0.28, 0.33, 1.12)), car((0.02, -0.36, 1.12)), handheld(t, 0.25)[1])
     return {"frames": 68, "fps": 12, "update": update, "res": STD}
 
 
@@ -628,7 +630,10 @@ def p3_28():
     base = [p.co.copy() for p in sp.bezier_points]
     tip = car(tuple(base[-1])) - Vector((0, 0, 0.004))
     dr = fx.Drips([(tuple(tip), 2.3, 1.2)], GZ + 0.58, 0.0035, coll="CAR")
-    fill = area_fill("STREET_SPILL", tuple(car((-0.3, 1.2, 1.4))), 20, (1.0, 0.75, 0.45), 0.6)
+    fill = area_fill("STREET_SPILL", tuple(car((-0.3, 1.2, 1.4))), 40, (1.0, 0.75, 0.45), 0.6)
+    back = area_fill("HAIR_RIM", tuple(car((-0.75, 0.62, 1.0))), 12, (0.8, 0.88, 1.0), 0.3)
+    back.rotation_euler = (car((-0.355, 0.59, 0.85)) - back.location).to_track_quat("-Z", "Y").to_euler()
+    bpy.data.objects["HAIR_STRAND"].data.bevel_depth = 0.0018
     fill.rotation_euler = (car((-0.35, 0.59, 0.85)) - fill.location).to_track_quat("-Z", "Y").to_euler()
 
     def update(t):
