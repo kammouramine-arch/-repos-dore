@@ -365,6 +365,7 @@ def n3_18():
     P.place(1.6, 5.3, 40, dz=-0.38); P.stand(spread=0.12); P.spine(pitch=35); P.head(pitch=20)
     P.hand_rest("r", "relaxed", swing=0.2); P.hand_rest("l", "relaxed", swing=0.1)
     W = bpy.context.scene.world.node_tree.nodes["Background"]; W.inputs[1].default_value = 0.4
+    S.view_settings.exposure = 3.6          # blackout, but the eye adjusts: shapes stay readable in the dark
 
     def update(t):
         aim(cam, Vector((3.4, 7.6, 1.8)), Vector((1.4, 4.6, 0.6)), 0.0)
@@ -388,6 +389,7 @@ def n3_19():
     S, P, C = open_set("dark"); allon(); set_lights("dark")
     bpy.data.collections["CURTAINS_N3"].hide_render = False
     W = bpy.context.scene.world.node_tree.nodes["Background"]; W.inputs[1].default_value = 0.25
+    S.view_settings.exposure = 3.6
     cam = camera(lens=55)
     P.place(1.6, 5.3, 40, dz=-0.38); P.stand(spread=0.12); P.spine(pitch=28); P.head(pitch=4, yaw=-10)
     P.hand_rest("r", "relaxed", swing=0.2); P.hand_rest("l", "relaxed", swing=0.1)
@@ -536,6 +538,7 @@ def n3_26():
     """149.90-157.00  From his doorway he looks down the corridor at 6B. Three slow knocks from behind it (t=4.5, 5.15, 5.8). Hold."""
     S, P, C = open_set("corridor", courier=False); set_lights("corridor")
     door("DOOR_6A", 70)
+    bpy.data.objects["DOOR_6B"].location.y -= 0.035     # the leaf sat inside the wall skin (z-fighting stripes)
     cam = camera(lens=34)
     P.place(0.95, -0.35, 112); P.stand(spread=0.03)
     P.spine(pitch=4); P.head(pitch=6, yaw=10)
@@ -545,7 +548,7 @@ def n3_26():
     def update(t):
         j = sum(math.exp(-((t - k) / 0.05) ** 2) for k in knocks)
         door("DOOR_6B", 0.12 * j)
-        aim(cam, Vector((0.35, 0.25, 1.68)), Vector((8.65, -0.1, 1.15)), 0.0)
+        aim(cam, Vector((0.95, -1.72, 1.7)), Vector((8.65, -0.15, 1.2)), 0.0, 42)   # from his doorway across the corridor: 6B faces us down the hall
         dof(cam, 7.8, 4.0)
     return {"frames": 85, "fps": 12, "update": update}
 
