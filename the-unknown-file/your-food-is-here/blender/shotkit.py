@@ -55,6 +55,8 @@ def noise1(t, seed=0.0, f=1.0):
 def open_set(lights="night", courier=True, protagonist=True):
     bpy.ops.wm.open_mainfile(filepath=os.path.join(HERE, "apartment.blend"))
     S = bpy.context.scene
+    if bpy.data.objects.get("clock_glass"):
+        bpy.data.objects["clock_glass"].hide_render = True     # transmission glass renders opaque in EEVEE without raytracing: it hid the face
     with bpy.data.libraries.load(os.path.join(HERE, "characters.blend"), link=False) as (src, dst):
         dst.collections = ["PROTAGONIST", "COURIER", "PROPS"]
     for c in dst.collections:
