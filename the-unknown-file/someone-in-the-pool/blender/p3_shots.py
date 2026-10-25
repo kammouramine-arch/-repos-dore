@@ -309,7 +309,7 @@ def _bath_photo(woman_pose):
     flood = water_sheet(); flood(1.3)
 
     def update(t):
-        guard_stand(G, 2.9, 2.68, 0, 0.0, spine=4, head_pitch=10, breath=0.0)      # standing in the doorway, looking in
+        guard_stand(G, 2.82, 2.5, 0, 0.0, spine=4, head_pitch=10, breath=0.0)      # standing in the doorway, looking in
         woman_pose(W)
         aim(cam, Vector((4.05, 0.2, 2.45)), Vector((2.85, 2.8, 1.3)))
     return {"frames": 1, "update": update, "still": True, "res": HERO, "samples": 10}
@@ -319,8 +319,8 @@ def p3_photo_a():
     """69.18-78.20  The camera image: a high corner view of HIS bathroom. He stands in the doorway; she crouches upside-down on the ceiling above him."""
     def pose(W):
         W.floor = 0.0
-        crouch(W, 2.85, 2.35, 180, 0.0, depth=0.55, spine=38, head_pitch=-55, head_roll=10)
-        fx.invert(W, pivot_z=2.545 / 2, pivot_y=2.35)
+        crouch(W, 2.8, 2.25, 180, 0.0, depth=0.55, spine=38, head_pitch=-55, head_roll=10)
+        fx.invert(W, pivot_z=2.545 / 2, pivot_y=2.25)
         h = fx.HangingHair(W, n=140, length=(0.5, 0.8)); h.update(0.0, sway=0.0)
     return _bath_photo(pose)
 
@@ -328,7 +328,7 @@ def p3_photo_a():
 def p3_photo_b():
     """80.34-84.66  The photo changes: she is crouched on the floor directly behind him."""
     def pose(W):
-        crouch(W, 2.95, 3.12, 0, 0.0, depth=0.5, spine=30, head_pitch=-25, head_roll=-18)
+        crouch(W, 3.12, 2.9, 15, 0.0, depth=0.5, spine=30, head_pitch=-25, head_roll=-18)
         for i in range(6):
             bpy.data.objects[f"Wom.lock_{i}"].hide_render = False
     return _bath_photo(pose)
