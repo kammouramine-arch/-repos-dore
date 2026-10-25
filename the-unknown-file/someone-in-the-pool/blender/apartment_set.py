@@ -386,7 +386,7 @@ _slo = bpy.data.objects.new("L_streetlamp", _sl); link(_slo, C["LIGHTS_STREET"])
 area_light("L_moon", (40, -10, GZ + 20), 30, 40, (0.4, 0.5, 0.8), (math.radians(20), 0, 0), C["LIGHTS_STREET"])
 area_light("L_car_dash", (40.3, -7.5, GZ + 1.05), 0.3, 1.2, (0.9, 0.6, 0.3), (0, math.radians(-90), 0), C["LIGHTS_STREET"])
 # street light falling into the cabin through the glass (soft, cold-amber) so interiors read at night
-area_light("L_car_fill", (39.6, -7.15, GZ + 1.38), 0.9, 2.2, (0.95, 0.8, 0.6), (0, 0, 0), C["LIGHTS_STREET"], sy=0.6)
+area_light("L_car_fill", (39.6, -7.15, GZ + 1.38), 0.9, 9.0, (0.95, 0.8, 0.6), (0, 0, 0), C["LIGHTS_STREET"], sy=0.6)
 
 w = bpy.data.worlds.new("night"); S.world = w; w.use_nodes = True
 w.node_tree.nodes["Background"].inputs[0].default_value = (0.01, 0.012, 0.02, 1)

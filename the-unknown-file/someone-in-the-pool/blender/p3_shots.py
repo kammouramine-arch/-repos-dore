@@ -98,12 +98,12 @@ def p3_02():
         start = G.world(Vector((-0.2, -0.25, 0.95)))
         G.hand_world("r", start.lerp(p + Vector((0.03, 0.06, -0.06)), reach), (-0.3, -0.5, 0.8), (-1, 0, 0), "handle")
         db.rotation_euler = (math.radians(90), 0, math.radians(90 * k))
-        aim(cam, Vector((1.4, 1.75, 1.62)), Vector((1.0, 0.05, 1.22)), handheld(t, 0.3)[1])
+        aim(cam, Vector((1.48, 0.95, 1.5)), Vector((1.08, 0.0, 1.28)), handheld(t, 0.3)[1])
     return {"frames": 41, "fps": 12, "update": update, "res": STD}
 
 
 def _sofa(G, t, look=0.0, lift=0.0, head_pitch=26.0, phone_ui=None):
-    G.sit(SOFA_SEAT[0], SOFA_SEAT[1], 270, seat=0.6, feet_fwd=0.5)
+    G.sit(SOFA_SEAT[0], SOFA_SEAT[1], 270, seat=0.66, feet_fwd=0.52)
     b = breathe(t, 0.22)
     G.spine(pitch=-10 + b + 10 * lift, yaw=look * 0.3)
     G.head(pitch=head_pitch - lift * 34, yaw=look * 0.7)
@@ -212,7 +212,8 @@ def water_sheet(name="FLOOD"):
     me.from_pydata([(1.62, 2.86, 0.003), (4.18, 2.86, 0.003), (4.18, 4.6, 0.003), (1.62, 4.6, 0.003)], [], [(0, 1, 2, 3)])
     o = bpy.data.objects.new(name, me); bpy.data.collections["WET"].objects.link(o); o.visible_shadow = False
     m = bpy.data.materials.new(name + "_mat"); m.use_nodes = True; nt = m.node_tree; b = nt.nodes["Principled BSDF"]
-    b.inputs["Base Color"].default_value = (0.02, 0.025, 0.028, 1); b.inputs["Roughness"].default_value = 0.0; b.inputs["Coat Weight"].default_value = 1.0
+    b.inputs["Base Color"].default_value = (0.06, 0.07, 0.075, 1); b.inputs["Roughness"].default_value = 0.0; b.inputs["Coat Weight"].default_value = 1.0
+    b.inputs["Specular IOR Level"].default_value = 1.0
     tc = nt.nodes.new("ShaderNodeTexCoord"); sx = nt.nodes.new("ShaderNodeSeparateXYZ"); nt.links.new(tc.outputs["Object"], sx.inputs[0])
     # distance from the door gap: (y - 2.8) + 0.6*|x - 2.9|
     dx = nt.nodes.new("ShaderNodeMath"); dx.operation = "SUBTRACT"; dx.inputs[1].default_value = 2.9; nt.links.new(sx.outputs["X"], dx.inputs[0])
@@ -230,7 +231,7 @@ def water_sheet(name="FLOOD"):
     nt.links.new(ed.outputs[0], sm.inputs["Value"]); nt.links.new(sm.outputs["Result"], b.inputs["Alpha"])
     rp = nt.nodes.new("ShaderNodeTexNoise"); rp.noise_dimensions = "4D"; rp.inputs["Scale"].default_value = 24; rp.name = "RIPPLE"
     nt.links.new(tc.outputs["Object"], rp.inputs["Vector"])
-    bp = nt.nodes.new("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.04; nt.links.new(rp.outputs["Fac"], bp.inputs["Height"]); nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
+    bp = nt.nodes.new("ShaderNodeBump"); bp.inputs["Strength"].default_value = 0.12; nt.links.new(rp.outputs["Fac"], bp.inputs["Height"]); nt.links.new(bp.outputs["Normal"], b.inputs["Normal"])
     m.surface_render_method = "BLENDED"; me.materials.append(m)
     bpy.data.objects["DOOR_WATER"].hide_render = True
 
@@ -244,6 +245,9 @@ def p3_07():
     S, G, W = open_set("apartment", "bath", guard=False, woman=False)
     cam = camera(lens=30)
     flood = water_sheet()          # the bathroom light leaks under the door and glints on the spreading water
+    # the light leaking through the gap under the door: a thin strip just outside the door, low, facing the hall
+    glint = area_fill("DOOR_GAP_LIGHT", (2.9, 2.86, 0.012), 6, (1.0, 0.9, 0.75), 0.78)
+    glint.data.shape = "RECTANGLE"; glint.data.size_y = 0.012; glint.rotation_euler = (math.radians(-90), 0, 0)
     for nm in ("L_living_ceiling",):
         bpy.data.objects[nm].data.energy *= 0.5
 
@@ -279,7 +283,7 @@ def p3_08():
         rad = (rim - ctr).normalized()
         start = G.world(Vector((-0.25, -0.3, 0.9)))
         G.hand_world("r", start.lerp(rim + rad * 0.05 + Vector((0.05, 0, 0)), reach), -rad, Vector((1, 0, 0)), "grip")
-        aim(cam, Vector((2.55, 3.32, 1.05)), Vector((1.78, 3.05, 0.62)), handheld(t, 0.3)[1])
+        aim(cam, Vector((1.98, 3.37, 0.92)), Vector((1.76, 3.05, 0.62)), handheld(t, 0.3)[1])
         dof(cam, 0.85, 2.8)
     return {"frames": 40, "fps": 12, "update": update, "res": STD}
 
@@ -299,6 +303,7 @@ def p3_09():
 def _bath_photo(woman_pose):
     S, G, W = open_set("apartment", "bath")
     cam = camera(lens=14)
+    area_fill("LANDING_LIGHT", (2.9, 3.1, 2.5), 22, (1.0, 0.85, 0.65), 0.6)
     door("BATH_DOOR", 100)
     void_eyes(True)
     flood = water_sheet(); flood(1.3)
@@ -359,7 +364,7 @@ def p3_11():
 def p3_12():
     """87.64-97.12  The bathroom mirror fogs over; then, from the other side, a fingertip wipes letters clear: YOU LEFT THE DOOR OPEN."""
     S, G, W = open_set("apartment", "bath", guard=False, woman=False)
-    cam = camera(lens=32)
+    cam = camera(lens=24)
     door("BATH_DOOR", 100)
     m = bpy.data.materials["mirror_fog"]; nt = m.node_tree
     tx = nt.nodes["MSG"]; tx.image = bpy.data.images.load(os.path.join(ROOT, "assets", "textures", "mirror_msg.png")); tx.image.colorspace_settings.name = "Non-Color"
@@ -440,7 +445,8 @@ def p3_16():
     S, G, W = open_set("apartment", "dark")
     cam = camera(lens=55)
     void_eyes(True)
-    rim = area_fill("RIM", (0.25, 0.6, 2.0), 5.0, (0.55, 0.7, 1.0), 0.4)
+    rim = area_fill("RIM", (0.35, 0.9, 2.1), 16.0, (0.55, 0.7, 1.0), 0.4)
+    rim.rotation_euler = (Vector((0.6, 1.4, 1.5)) - rim.location).to_track_quat("-Z", "Y").to_euler()
 
     def update(t):
         guard_stand(G, 0.8, 1.2, 0, t, spine=4, head_pitch=4, head_yaw=-4, breath=0.2)
@@ -557,7 +563,7 @@ def p3_23():
     def update(t):
         on = t > 1.4
         cl.inputs["Emission Strength"].default_value = 3.0 if on else 0.0
-        dash.data.energy = 2.5 if on else 0.0
+        dash.data.energy = 7.0 if on else 0.0
         hb = smooth(ramp(t, 3.4, 4.6))
         guard_in_car(G, t, head_back=hb, breath=1.5 - 0.8 * hb)
         aim(cam, car((-0.42, 0.3, 1.22)), car((0.05, -0.36, 1.05)), handheld(t, 0.25)[1])
@@ -605,7 +611,7 @@ def p3_27():
     S, G, W = open_set("apartment", "street", guard=False, woman=False)
     cam = camera(lens=40)
     dr = fx.Drips([(tuple(car((0.19, 0.36 + dy, 0.57))), 0.5 + 0.2 * i, 0.17 * i) for i, dy in enumerate((-0.12, 0.0, 0.1))], GZ + 0.35, 0.0045, coll="CAR")
-    fill = area_fill("STREET_SPILL", tuple(car((0.0, 1.4, 1.5))), 8, (1.0, 0.75, 0.45), 0.8)
+    fill = area_fill("STREET_SPILL", tuple(car((0.0, 1.4, 1.5))), 24, (1.0, 0.75, 0.45), 0.8)
     fill.rotation_euler = (math.radians(60), 0, math.radians(180))
 
     def update(t):
@@ -622,7 +628,8 @@ def p3_28():
     base = [p.co.copy() for p in sp.bezier_points]
     tip = car(tuple(base[-1])) - Vector((0, 0, 0.004))
     dr = fx.Drips([(tuple(tip), 2.3, 1.2)], GZ + 0.58, 0.0035, coll="CAR")
-    fill = area_fill("STREET_SPILL", tuple(car((-0.3, 1.2, 1.4))), 6, (1.0, 0.75, 0.45), 0.6)
+    fill = area_fill("STREET_SPILL", tuple(car((-0.3, 1.2, 1.4))), 20, (1.0, 0.75, 0.45), 0.6)
+    fill.rotation_euler = (car((-0.35, 0.59, 0.85)) - fill.location).to_track_quat("-Z", "Y").to_euler()
 
     def update(t):
         for i, p in enumerate(sp.bezier_points):
@@ -646,7 +653,7 @@ def p3_29():
     void_eyes(True)
     cl = [o for o in bpy.data.objects if o.name == "dash_cluster"][0].data.materials[0].node_tree.nodes["Principled BSDF"]
     cl.inputs["Emission Strength"].default_value = 3.0
-    bpy.data.objects["L_car_dash"].data.energy = 2.5
+    bpy.data.objects["L_car_dash"].data.energy = 7.0
     key = area_fill("DASH_UP", tuple(car((0.4, -0.2, 0.95))), 3.5, (0.9, 0.6, 0.35), 0.3)
     key.rotation_euler = ((car((-0.6, -0.25, 1.3))) - key.location).to_track_quat("-Z", "Y").to_euler()
 
