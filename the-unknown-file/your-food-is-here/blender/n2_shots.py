@@ -104,6 +104,10 @@ def n2_04():
 
 def _clock_cam(cam, lens=85):
     aim(cam, Vector((3.25, 5.55, 1.85)), Vector((3.25, 4.27, 1.95)), 0.0, lens)
+    # the floor lamp's spill catches the clock face (otherwise it is lost in the dark)
+    L = bpy.data.lights.new("CLOCK_SPILL", "AREA"); L.energy = 7.0; L.size = 0.5; L.color = (1.0, 0.8, 0.55)
+    o = bpy.data.objects.new("CLOCK_SPILL", L); bpy.context.scene.collection.objects.link(o); o.location = (3.9, 5.0, 1.4)
+    o.rotation_euler = (Vector((3.25, 4.27, 1.95)) - o.location).to_track_quat("-Z", "Y").to_euler()
 
 
 def n2_05():
@@ -114,7 +118,7 @@ def n2_05():
 
     def update(t):
         set_clock(3, 13, 12 + math.floor(t))
-    return {"frames": 55, "fps": 12, "update": update, "border": (0.12, 0.25, 0.88, 0.75)}
+    return {"frames": 55, "fps": 12, "update": update}
 
 
 def n2_06():
@@ -305,7 +309,7 @@ def n2_14():
     def update(t):
         s = 54 + math.floor(t * 2) / 2 * 2
         set_clock(3, 13 + (1 if t >= 2.2 else 0), (s % 60))
-    return {"frames": 48, "fps": 12, "update": update, "border": (0.12, 0.25, 0.88, 0.75)}
+    return {"frames": 48, "fps": 12, "update": update}
 
 
 def n2_15():
@@ -324,7 +328,7 @@ def n2_15():
             a = min(1.0, (t - 5.25) / 0.4)
             shake = a * (2.2 * math.sin(t * 43) + 1.4 * math.sin(t * 71 + 1.3)) * (0.6 + 0.4 * abs(math.sin(t * 5.1)))
         closet(j + shake)
-    return {"frames": 90, "fps": 12, "update": update, "border": (0.3, 0.12, 0.7, 0.62)}
+    return {"frames": 90, "fps": 12, "update": update}
 
 
 def n2_16():

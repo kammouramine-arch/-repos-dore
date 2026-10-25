@@ -148,7 +148,7 @@ def n3_07():
     def update(t):
         s = 57 + math.floor(t)
         set_clock(3, 12 + (s // 60), s % 60)
-    return {"frames": 58, "fps": 12, "update": update, "border": (0.12, 0.25, 0.88, 0.75)}
+    return {"frames": 58, "fps": 12, "update": update}
 
 
 def n3_08():
@@ -171,7 +171,7 @@ def n3_08():
         if 0.2 < cx < 1.2:
             gaps = [(max(0.27, cx - 0.24), max(0.28, cx - 0.1)), (min(1.12, cx + 0.03), min(1.13, cx + 0.17))]
         door_leak(gaps)
-    return {"frames": 72, "fps": 12, "update": update, "border": (0.0, 0.0, 1.0, 0.55)}
+    return {"frames": 72, "fps": 12, "update": update}
 
 
 def n3_09():
@@ -183,7 +183,7 @@ def n3_09():
 
     def update(t):
         handle("DOOR_6A", -38 * smooth(ramp(t, 0.1, 1.9)))
-    return {"frames": 25, "fps": 12, "update": update, "border": (0.15, 0.2, 0.95, 0.85)}
+    return {"frames": 25, "fps": 12, "update": update}
 
 
 def n3_10():
@@ -238,7 +238,7 @@ def n3_12():
         v = a * (0.55 * abs(math.sin(t * 26)) + 0.35 * abs(math.sin(t * 41 + 1.1))) * (0.7 + 0.3 * math.sin(t * 7))
         door("DOOR_6A", v)
         handle("DOOR_6A", -10 * a * abs(math.sin(t * 19)))
-    return {"frames": 66, "fps": 15, "update": update, "border": (0.2, 0.15, 0.8, 0.85)}
+    return {"frames": 66, "fps": 15, "update": update}
 
 
 def db_n3a():
@@ -547,7 +547,7 @@ def n3_26():
         door("DOOR_6B", 0.12 * j)
         aim(cam, Vector((0.35, 0.25, 1.68)), Vector((8.65, -0.1, 1.15)), 0.0)
         dof(cam, 7.8, 4.0)
-    return {"frames": 85, "fps": 12, "update": update, "border": (0.45, 0.25, 0.9, 0.8)}
+    return {"frames": 85, "fps": 12, "update": update}
 
 
 def cover3():
